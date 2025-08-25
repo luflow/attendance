@@ -1,0 +1,91 @@
+/* Dashboard widget styles for attendance app */
+
+.appointment-widget-item {
+	padding: 12px;
+	border-bottom: 1px solid var(--color-border);
+	
+	&:last-child {
+		border-bottom: none;
+	}
+}
+
+.appointment-info {
+	margin-bottom: 8px;
+	
+	.appointment-title {
+		font-weight: 500;
+		color: var(--color-text);
+		margin-bottom: 4px;
+		font-size: 14px;
+	}
+	
+	.appointment-time {
+		font-size: 12px;
+		color: var(--color-text-lighter);
+	}
+}
+
+.appointment-actions {
+	display: flex;
+	gap: 6px;
+	margin-bottom: 8px;
+	
+	button {
+		font-size: 12px;
+		padding: 4px 8px;
+		min-height: 28px;
+		
+		&:not(.active) {
+			background: var(--color-background-dark) !important;
+			color: var(--color-text-lighter) !important;
+			border-color: var(--color-border-dark) !important;
+			
+			&:hover {
+				background: var(--color-background-hover) !important;
+				color: var(--color-text) !important;
+			}
+		}
+		
+		&.active {
+			font-weight: bold;
+			opacity: 1;
+		}
+	}
+}
+
+.comment-section {
+	margin-top: 8px;
+	
+	input {
+		font-size: 12px;
+		padding: 6px 8px;
+	}
+}
+
+/* Dashboard widget container adjustments */
+.dashboard-widget .attendance-widget {
+	.appointment-widget-item:first-child {
+		padding-top: 8px;
+	}
+	
+	.appointment-widget-item:last-child {
+		padding-bottom: 8px;
+	}
+}
+
+/* Responsive adjustments for smaller dashboard widgets */
+@media (max-width: 768px) {
+	.appointment-actions {
+		flex-wrap: wrap;
+		gap: 4px;
+		
+		button {
+			flex: 1;
+			min-width: 60px;
+		}
+	}
+	
+	.appointment-info .appointment-title {
+		font-size: 13px;
+	}
+}
