@@ -1,0 +1,402 @@
+<?php
+
+declare(strict_types=1);
+
+namespace OCA\Attendance\Service;
+
+use OCA\Attendance\Db\Appointment;
+use OCA\Attendance\Db\AppointmentMapper;
+use OCA\Attendance\Db\AttendanceResponse;
+use OCA\Attendance\Db\AttendanceResponseMapper;
+use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\IUserManager;
+use OCP\IGroupManager;
+
+class AppointmentService {
+	private AppointmentMapper $appointmentMapper;
+	private AttendanceResponseMapper $responseMapper;
+	private IUserManager $userManager;
+	private IGroupManager $groupManager;
+
+	public function __construct(
+		AppointmentMapper $appointmentMapper,
+		AttendanceResponseMapper $responseMapper,
+		IUserManager $userManager,
+		IGroupManager $groupManager
+	) {
+		$this->appointmentMapper = $appointmentMapper;
+		$this->responseMapper = $responseMapper;
+		$this->userManager = $userManager;
+		$this->groupManager = $groupManager;
+	}
+
+	/**
+	 * Create a new appointment
+	 */
+	public function createAppointment(
+		string $name,
+		string $description,
+		string $startDatetime,
+		string $endDatetime,
+		string $createdBy
+	): Appointment {
+		// Check if user is admin
+		if (!$this->groupManager->isAdmin($createdBy)) {
+			throw new \Exception('Only administrators can create appointments');
+		}
+
+		// Convert ISO 8601 datetime to MySQL format
+		$startFormatted = $this->formatDatetime($startDatetime);
+		$endFormatted = $this->formatDatetime($endDatetime);
+
+		$appointment = new Appointment();
+		$appointment->setName($name);
+		$appointment->setDescription($description);
+		$appointment->setStartDatetime($startFormatted);
+		$appointment->setEndDatetime($endFormatted);
+		$appointment->setCreatedBy($createdBy);
+		$appointment->setCreatedAt(date('Y-m-d H:i:s'));
+		$appointment->setUpdatedAt(date('Y-m-d H:i:s'));
+		$appointment->setIsActive(1);
+
+		return $this->appointmentMapper->insert($appointment);
+	}
+
+	/**
+	 * Update an existing appointment
+	 */
+	public function updateAppointment(
+		int $id,
+		string $name,
+		string $description,
+		string $startDatetime,
+		string $endDatetime,
+		string $userId
+	): Appointment {
+		$appointment = $this->appointmentMapper->find($id);
+		
+		// Check if user is admin or creator
+		if (!$this->groupManager->isAdmin($userId) && $appointment->getCreatedBy() !== $userId) {
+			throw new \Exception('Only administrators can update appointments');
+		}
+
+		// Convert ISO 8601 datetime to MySQL format
+		$startFormatted = $this->formatDatetime($startDatetime);
+		$endFormatted = $this->formatDatetime($endDatetime);
+
+		$appointment->setName($name);
+		$appointment->setDescription($description);
+		$appointment->setStartDatetime($startFormatted);
+		$appointment->setEndDatetime($endFormatted);
+		$appointment->setUpdatedAt(date('Y-m-d H:i:s'));
+
+		return $this->appointmentMapper->update($appointment);
+	}
+
+	/**
+	 * Delete an appointment
+	 */
+	public function deleteAppointment(int $id, string $userId): void {
+		$appointment = $this->appointmentMapper->find($id);
+		
+		// Check if user is admin or creator
+		if (!$this->groupManager->isAdmin($userId) && $appointment->getCreatedBy() !== $userId) {
+			throw new \Exception('Not authorized to delete this appointment');
+		}
+
+		$appointment->setIsActive(0);
+		$appointment->setUpdatedAt(date('Y-m-d H:i:s'));
+		$this->appointmentMapper->update($appointment);
+	}
+
+	/**
+	 * Get all appointments
+	 */
+	public function getAllAppointments(): array {
+		return $this->appointmentMapper->findAll();
+	}
+
+	/**
+	 * Get upcoming appointments
+	 */
+	public function getUpcomingAppointments(): array {
+		return $this->appointmentMapper->findUpcoming();
+	}
+
+	/**
+	 * Get appointments created by a specific user
+	 */
+	public function getAppointmentsByCreator(string $userId): array {
+		return $this->appointmentMapper->findByCreatedBy($userId);
+	}
+
+	/**
+	 * Submit attendance response
+	 */
+	public function submitResponse(
+		int $appointmentId,
+		string $userId,
+		string $response,
+		string $comment = ''
+	): AttendanceResponse {
+		// Validate response
+		if (!in_array($response, ['yes', 'no', 'maybe'])) {
+			throw new \InvalidArgumentException('Invalid response. Must be yes, no, or maybe.');
+		}
+
+		// Check if appointment exists
+		$this->appointmentMapper->find($appointmentId);
+
+		// Check if user already responded
+		try {
+			$existingResponse = $this->responseMapper->findByAppointmentAndUser($appointmentId, $userId);
+			// Update existing response
+			$existingResponse->setResponse($response);
+			$existingResponse->setComment($comment);
+			$existingResponse->setRespondedAt(date('Y-m-d H:i:s'));
+			return $this->responseMapper->update($existingResponse);
+		} catch (DoesNotExistException $e) {
+			// Create new response
+			$attendanceResponse = new AttendanceResponse();
+			$attendanceResponse->setAppointmentId($appointmentId);
+			$attendanceResponse->setUserId($userId);
+			$attendanceResponse->setResponse($response);
+			$attendanceResponse->setComment($comment);
+			$attendanceResponse->setRespondedAt(date('Y-m-d H:i:s'));
+			return $this->responseMapper->insert($attendanceResponse);
+		}
+	}
+
+	/**
+	 * Get user's response for an appointment
+	 */
+	public function getUserResponse(int $appointmentId, string $userId): ?AttendanceResponse {
+		try {
+			return $this->responseMapper->findByAppointmentAndUser($appointmentId, $userId);
+		} catch (DoesNotExistException $e) {
+			return null;
+		}
+	}
+
+	/**
+	 * Get all responses for an appointment
+	 */
+	public function getAppointmentResponses(int $appointmentId): array {
+		return $this->responseMapper->findByAppointment($appointmentId);
+	}
+
+	/**
+	 * Get all responses for an appointment with user details (admin only)
+	 */
+	public function getAppointmentResponsesWithUsers(int $appointmentId, string $requestingUserId): array {
+		// Check if requesting user is admin
+		if (!$this->groupManager->isAdmin($requestingUserId)) {
+			throw new \Exception('Only administrators can view detailed responses');
+		}
+
+		$responses = $this->responseMapper->findByAppointment($appointmentId);
+		$result = [];
+
+		foreach ($responses as $response) {
+			$user = $this->userManager->get($response->getUserId());
+			$responseData = $response->jsonSerialize();
+			$responseData['userName'] = $user ? $user->getDisplayName() : $response->getUserId();
+			
+			// Add user groups
+			if ($user) {
+				$userGroups = $this->groupManager->getUserGroups($user);
+				$responseData['userGroups'] = array_map(function($group) {
+					return $group->getGID();
+				}, $userGroups);
+			} else {
+				$responseData['userGroups'] = [];
+			}
+			
+			$result[] = $responseData;
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Get response summary for an appointment
+	 */
+	public function getResponseSummary(int $appointmentId): array {
+		$responses = $this->responseMapper->findByAppointment($appointmentId);
+		
+		$summary = [
+			'yes' => 0,
+			'no' => 0,
+			'maybe' => 0,
+			'no_response' => 0,
+			'by_group' => []
+		];
+
+		// Count responses by type and collect user groups
+		$respondedUserIds = [];
+		foreach ($responses as $response) {
+			$summary[$response->getResponse()]++;
+			$respondedUserIds[] = $response->getUserId();
+			
+			// Get user groups for this response
+			$user = $this->userManager->get($response->getUserId());
+			if ($user) {
+				$excludedGroups = ['mitglieder', 'vorstand', 'admin'];
+				$userGroups = $this->groupManager->getUserGroups($user);
+				foreach ($userGroups as $group) {
+					$groupId = $group->getGID();
+					
+					// Skip excluded groups
+					if (in_array(strtolower($groupId), array_map('strtolower', $excludedGroups))) {
+						continue;
+					}
+					
+					if (!isset($summary['by_group'][$groupId])) {
+						$summary['by_group'][$groupId] = [
+							'yes' => 0,
+							'no' => 0,
+							'maybe' => 0,
+							'no_response' => 0,
+							'responses' => []
+						];
+					}
+					$summary['by_group'][$groupId][$response->getResponse()]++;
+					
+					// Add the detailed response to this group
+					$responseData = $response->jsonSerialize();
+					$responseData['userName'] = $user->getDisplayName();
+					$summary['by_group'][$groupId]['responses'][] = $responseData;
+				}
+			}
+		}
+
+		// Calculate users who haven't responded and group them by groups
+		$excludedGroups = ['mitglieder', 'vorstand', 'admin'];
+		$allGroups = $this->groupManager->search('');
+		foreach ($allGroups as $group) {
+			$groupId = $group->getGID();
+			
+			// Skip excluded groups
+			if (in_array(strtolower($groupId), array_map('strtolower', $excludedGroups))) {
+				continue;
+			}
+			
+			if (!isset($summary['by_group'][$groupId])) {
+				$summary['by_group'][$groupId] = [
+					'yes' => 0,
+					'no' => 0,
+					'maybe' => 0,
+					'no_response' => 0,
+					'responses' => [],
+					'non_responding_users' => []
+				];
+			}
+			
+			// Get users in this group who haven't responded
+			$groupUsers = $this->groupManager->get($groupId)->getUsers();
+			$groupUserIds = array_map(function($user) { return $user->getUID(); }, $groupUsers);
+			$nonRespondedInGroup = array_diff($groupUserIds, $respondedUserIds);
+			$summary['by_group'][$groupId]['no_response'] += count($nonRespondedInGroup);
+			
+			// Add names of non-responding users
+			foreach ($nonRespondedInGroup as $userId) {
+				$user = $this->userManager->get($userId);
+				if ($user) {
+					$summary['by_group'][$groupId]['non_responding_users'][] = $user->getDisplayName();
+				}
+			}
+		}
+
+		// Calculate total users who haven't responded (only users who belong to relevant groups)
+		$excludedGroups = ['mitglieder', 'vorstand', 'admin'];
+		$allUsers = $this->userManager->search('');
+		$usersInGroups = [];
+		$nonRespondingUsers = [];
+		foreach ($allUsers as $user) {
+			$userGroups = $this->groupManager->getUserGroups($user);
+			$relevantGroups = [];
+			
+			// Filter out excluded groups
+			foreach ($userGroups as $group) {
+				$groupId = $group->getGID();
+				if (!in_array(strtolower($groupId), array_map('strtolower', $excludedGroups))) {
+					$relevantGroups[] = $groupId;
+				}
+			}
+			
+			// Only count users who belong to at least one relevant group
+			if (count($relevantGroups) > 0) {
+				$usersInGroups[] = $user->getUID();
+				// Check if this user hasn't responded
+				if (!in_array($user->getUID(), $respondedUserIds)) {
+					$nonRespondingUsers[] = $user->getDisplayName();
+				}
+			}
+		}
+		
+		$totalUsersInGroups = count($usersInGroups);
+		$totalResponses = count($responses);
+		$summary['no_response'] = max(0, $totalUsersInGroups - $totalResponses);
+		$summary['non_responding_users'] = $nonRespondingUsers;
+
+		return $summary;
+	}
+
+	/**
+	 * Get appointments with user responses
+	 */
+	public function getAppointmentsWithUserResponses(string $userId, bool $showPastAppointments = false): array {
+		// Admins can choose to see all or only upcoming appointments, regular users see only upcoming ones
+		if ($this->groupManager->isAdmin($userId) && $showPastAppointments) {
+			$appointments = $this->getAllAppointments();
+		} else {
+			$appointments = $this->getUpcomingAppointments();
+		}
+		
+		$result = [];
+
+		foreach ($appointments as $appointment) {
+			$appointmentData = $appointment->jsonSerialize();
+			$appointmentData['userResponse'] = $this->getUserResponse($appointment->getId(), $userId);
+			$appointmentData['responseSummary'] = $this->getResponseSummary($appointment->getId());
+			$result[] = $appointmentData;
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Get upcoming appointments for dashboard widget
+	 */
+	public function getUpcomingAppointmentsForWidget(string $userId, int $limit = 5): array {
+		$appointments = $this->getUpcomingAppointments();
+		$result = [];
+
+		$count = 0;
+		foreach ($appointments as $appointment) {
+			if ($count >= $limit) {
+				break;
+			}
+
+			$appointmentData = $appointment->jsonSerialize();
+			$appointmentData['userResponse'] = $this->getUserResponse($appointment->getId(), $userId);
+			$result[] = $appointmentData;
+			$count++;
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Convert ISO 8601 datetime to MySQL format
+	 */
+	private function formatDatetime(string $datetime): string {
+		try {
+			$date = new \DateTime($datetime);
+			return $date->format('Y-m-d H:i:s');
+		} catch (\Exception $e) {
+			// If parsing fails, assume it's already in MySQL format
+			return $datetime;
+		}
+	}
+}

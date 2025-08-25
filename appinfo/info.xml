@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	  xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+	<id>attendance</id>
+	<name>Attendance</name>
+	<summary>Helps to track attendance in advance with easy dashboard widget to answer with yes/no/maybe</summary>
+	<description>Helps to track attendance in advance with easy dashboard widget to answer with yes/no/maybe</description>
+	<version>1.0.0</version>
+	<licence>agpl</licence>
+	<author mail="florian@krautnerds.de" homepage="https://krautnerds.de">Florian Ludwig</author>
+	<namespace>Attendance</namespace>
+	<category>dashboard</category>
+	<category>organization</category>
+	<bugs>https://krautnerds.de</bugs>
+	<dependencies>
+		<nextcloud min-version="29" max-version="31"/>
+	</dependencies>
+	<navigations>
+		<navigation>
+			<id>attendance</id>
+			<name>Attendance</name>
+			<route>attendance.page.index</route>
+			<icon>app.svg</icon>
+			<type>link</type>
+		</navigation>
+	</navigations>
+</info>
