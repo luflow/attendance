@@ -24,7 +24,7 @@
 - Complete admin visibility into attendance across all groups
 
 Perfect for organizations, teams, and communities that need to coordinate attendance for meetings, events, and activities.]]></description>
-	<version>1.0.0</version>
+	<version>1.0.2</version>
 	<licence>AGPL-3.0-or-later</licence>
 	<author mail="florian@krautnerds.de" homepage="https://krautnerds.de">Florian Ludwig</author>
 	<namespace>Attendance</namespace>
