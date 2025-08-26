@@ -6,7 +6,13 @@
 
 - Nightly changes here
 
-## 1.0.0 – 2025-01-26
+## 1.0.2 – 2025-08-26
+
+### Fixed
+
+- Fixed color issues in older Nextcloud versions
+
+## 1.0.0 – 2025-08-26
 
 ### Added
 
