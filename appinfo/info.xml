@@ -3,15 +3,36 @@
 	  xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
 	<id>attendance</id>
 	<name>Attendance</name>
-	<summary>Helps to track attendance in advance with easy dashboard widget to answer with yes/no/maybe</summary>
-	<description>Helps to track attendance in advance with easy dashboard widget to answer with yes/no/maybe</description>
+	<summary>Event attendance management with advance RSVP functionality and group-based statistics</summary>
+	<description><![CDATA[A small Nextcloud app for managing event attendance with advance RSVP functionality. 
+
+**For Administrators:**
+- Create and manage appointments with name, description, and date/time
+- Track responses with detailed attendance summaries organized by user groups
+- Identify non-responders to follow up
+- Toggle between upcoming and past appointments
+
+**For All Users:**
+- Easy RSVP with Yes/No/Maybe responses to any appointment
+- Add optional comments with your response
+- Update responses anytime until the event date
+- Quick access via dashboard widget
+
+**Group-Based Organization:**
+- Statistics automatically organized by Nextcloud user groups
+- See which group members haven't responded yet
+- Complete admin visibility into attendance across all groups
+
+Perfect for organizations, teams, and communities that need to coordinate attendance for meetings, events, and activities.]]></description>
 	<version>1.0.0</version>
-	<licence>agpl</licence>
+	<licence>AGPL-3.0-or-later</licence>
 	<author mail="florian@krautnerds.de" homepage="https://krautnerds.de">Florian Ludwig</author>
 	<namespace>Attendance</namespace>
 	<category>dashboard</category>
 	<category>organization</category>
-	<bugs>https://krautnerds.de</bugs>
+	<website>https://krautnerds.de</website>
+	<bugs>https://github.com/luflow/attendance/issues</bugs>
+	<repository type="git">https://github.com/luflow/attendance</repository>
 	<dependencies>
 		<nextcloud min-version="29" max-version="31"/>
 	</dependencies>
@@ -21,6 +42,7 @@
 			<name>Attendance</name>
 			<route>attendance.page.index</route>
 			<icon>app.svg</icon>
+			<order>10</order>
 			<type>link</type>
 		</navigation>
 	</navigations>
