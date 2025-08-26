@@ -338,7 +338,7 @@ export default {
 }
 
 .appointment-item {
-	padding: 0 0 12px 0;
+	padding: 0 14px 12px 14px;
 	border-bottom: 1px solid var(--color-border);
 	overflow: hidden;
 	word-wrap: break-word;
@@ -433,7 +433,7 @@ export default {
 		}
 
 		:deep(.textarea__input) {
-			height: calc(var(--default-clickable-area) * 1.3);
+			height: calc(var(--default-clickable-area) * 1);
 		}
 
 		.saving-spinner {

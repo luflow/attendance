@@ -700,20 +700,18 @@ export default {
 		padding: 5px 10px;
 		border-radius: 4px;
 		font-size: 14px;
+		color: #ffffff;
 
 		&.yes {
 			background: var(--color-success);
-			color: var(--color-success-text);
 		}
 
 		&.maybe {
 			background: var(--color-warning);
-			color: var(--color-warning-text);
 		}
 
 		&.no {
 			background: var(--color-error);
-			color: var(--color-error-text);
 		}
 
 		&.no-response {
@@ -763,17 +761,14 @@ export default {
 
 				&.yes {
 					background: var(--color-success);
-					color: var(--color-success-text);
 				}
 
 				&.maybe {
 					background: var(--color-warning);
-					color: var(--color-warning-text);
 				}
 
 				&.no {
 					background: var(--color-error);
-					color: var(--color-error-text);
 				}
 			}
 		}
@@ -850,6 +845,7 @@ export default {
 			gap: 10px;
 
 			.stat {
+				color: #ffffff;
 				padding: 3px 8px;
 				border-radius: 3px;
 				font-size: 12px;
@@ -859,17 +855,14 @@ export default {
 
 				&.yes {
 					background: var(--color-success);
-					color: var(--color-success-text);
 				}
 
 				&.maybe {
 					background: var(--color-warning);
-					color: var(--color-warning-text);
 				}
 
 				&.no {
 					background: var(--color-error);
-					color: var(--color-error-text);
 				}
 
 				&.no-response {
@@ -918,17 +911,14 @@ export default {
 
 						&.yes {
 							background: var(--color-success);
-							color: var(--color-success-text);
 						}
 
 						&.maybe {
 							background: var(--color-warning);
-							color: var(--color-warning-text);
 						}
 
 						&.no {
 							background: var(--color-error);
-							color: var(--color-error-text);
 						}
 					}
 				}
@@ -989,17 +979,14 @@ export default {
 
 					&.yes {
 						background: var(--color-success);
-						color: var(--color-success-text);
 					}
 
 					&.maybe {
 						background: var(--color-warning);
-						color: var(--color-warning-text);
 					}
 
 					&.no {
 						background: var(--color-error);
-						color: var(--color-error-text);
 					}
 				}
 			}
