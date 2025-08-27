@@ -1,8 +1,8 @@
 { "translations": {
     "Attendance": "Anwesenheit",
-    "Create Appointment": "Termin erstellen",
-    "Edit Appointment": "Termin bearbeiten",
-    "Delete Appointment": "Termin löschen",
+    "Create Appointment": "+ Termin erstellen",
+    "Edit Appointment": "Bearbeiten",
+    "Delete Appointment": "Löschen",
     "Appointment Name": "Terminname",
     "Description": "Beschreibung",
     "Start Date & Time": "Start",
