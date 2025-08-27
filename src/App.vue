@@ -203,37 +203,11 @@
 						</div>
 
 						<!-- Non-responding users section -->
-						<div v-if="isAdmin && appointment.responseSummary && appointment.responseSummary.non_responding_users && appointment.responseSummary.non_responding_users.length > 0"
+						<div v-if="appointment.responseSummary && appointment.responseSummary.non_responding_users && appointment.responseSummary.non_responding_users.length > 0"
 							class="non-responding-users-section">
 							<h4>{{ t('attendance', 'Non-responding users') }}</h4>
 							<div class="non-responding-users-list">
 								{{ appointment.responseSummary.non_responding_users.join(', ') }}
-							</div>
-						</div>
-
-						<!-- Admin All Comments View (only shown if no groups exist) -->
-						<div v-if="isAdmin && appointment.detailedResponses && (!appointment.responseSummary.by_group || Object.keys(appointment.responseSummary.by_group).length === 0)"
-							class="admin-comments">
-							<h4>{{ t('attendance', 'All Comments') }}</h4>
-							<div v-if="appointment.detailedResponses.length === 0" class="no-comments">
-								{{ t('attendance', 'No responses yet') }}
-							</div>
-							<div v-else class="comments-list">
-								<div v-for="response in appointment.detailedResponses"
-									v-if="response.comment && response.comment.trim()" :key="response.id"
-									class="comment-item">
-									<div class="comment-header">
-										<strong>{{ response.userName }}</strong>
-										<span class="response-badge" :class="response.response">{{
-											getResponseText(response.response) }}</span>
-									</div>
-									<div class="comment-text">
-										{{ response.comment }}
-									</div>
-									<div class="comment-date">
-										{{ formatDateTime(response.respondedAt) }}
-									</div>
-								</div>
 							</div>
 						</div>
 					</div>
@@ -382,8 +356,9 @@ export default {
 			return this.isAdmin || appointment.createdBy === this.currentUser?.uid
 		},
 		formatDateTime(dateTime) {
-			return new Date(dateTime).toLocaleString()
-		},
+			const options = {dateStyle:'short', timeStyle:'short'}
+			return new Date(dateTime).toLocaleString(['de-DE','en-EN'], options)
+		}, 
 		getResponseText(response) {
 			const responses = {
 				yes: this.t('attendance', 'Yes'),
@@ -493,39 +468,32 @@ export default {
 		margin: 0;
 	}
 }
-
 .modal-content {
 	padding: 20px;
-	min-width: 400px;
 
 	h2 {
 		margin-top: 0;
 	}
 
-	.form-field {
+	.input-field,
+	.textarea,
+	.native-datetime-picker {
 		margin-bottom: 15px;
+	}
 
-		label {
-			display: block;
-			margin-bottom: 5px;
-			font-weight: 500;
-			color: var(--color-text);
-		}
+	input[type="datetime-local"] {
+		width: 100%;
+		padding: 8px 12px;
+		border: 1px solid var(--color-border);
+		border-radius: 4px;
+		background: var(--color-main-background);
+		color: var(--color-text);
+		font-size: 14px;
 
-		input[type="datetime-local"] {
-			width: 100%;
-			padding: 8px 12px;
-			border: 1px solid var(--color-border);
-			border-radius: 4px;
-			background: var(--color-main-background);
-			color: var(--color-text);
-			font-size: 14px;
-
-			&:focus {
-				outline: none;
-				border-color: var(--color-primary);
-				box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2);
-			}
+		&:focus {
+			outline: none;
+			border-color: var(--color-primary);
+			box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2);
 		}
 	}
 
@@ -693,14 +661,15 @@ export default {
 
 
 .summary-stats {
-	display: flex;
-	gap: 20px;
 
 	.stat {
+		display: inline-block;
 		padding: 5px 10px;
 		border-radius: 4px;
 		font-size: 14px;
-		color: #ffffff;
+		color: #fff;
+		margin-right: 5px;
+		margin-bottom: 5px;
 
 		&.yes {
 			background: var(--color-success);
@@ -821,7 +790,7 @@ export default {
 		}
 
 		.group-name {
-			min-width: 120px;
+			min-width: 90px;
 			font-weight: 500;
 			color: var(--color-text);
 			margin-right: 15px;
@@ -850,7 +819,7 @@ export default {
 				border-radius: 3px;
 				font-size: 12px;
 				font-weight: bold;
-				min-width: 20px;
+				min-width: 35px;
 				text-align: center;
 
 				&.yes {

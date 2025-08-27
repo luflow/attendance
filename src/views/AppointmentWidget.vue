@@ -251,13 +251,8 @@ export default {
 		formatDate(datetime) {
 			try {
 				const date = new Date(datetime)
-				return date.toLocaleString('de-DE', {
-					day: '2-digit',
-					month: '2-digit',
-					year: 'numeric',
-					hour: '2-digit',
-					minute: '2-digit',
-				})
+				const options = {dateStyle:'short', timeStyle:'short'}
+				return date.toLocaleString(['de-DE','en-EN'], options)
 			} catch (error) {
 				return datetime
 			}

@@ -1,8 +1,8 @@
 { "translations": {
     "Attendance": "Attendance",
-    "Create Appointment": "Create Appointment",
-    "Edit Appointment": "Edit Appointment",
-    "Delete Appointment": "Delete Appointment",
+    "Create Appointment": "+ Create Appointment",
+    "Edit Appointment": "Edit",
+    "Delete Appointment": "Delete",
     "Appointment Name": "Appointment Name",
     "Description": "Description",
     "Start Date & Time": "Start",
