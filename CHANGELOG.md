@@ -6,6 +6,12 @@
 
 - Nightly changes here
 
+## 1.1.1 – 2025-08-28
+
+### Fixed
+
+- Fixed version number in info.xml
+
 ## 1.1.0 – 2025-08-28
 
 ### Added
