@@ -54,12 +54,29 @@ class Appointment extends Entity implements JsonSerializable {
 			'id' => $this->getId(),
 			'name' => $this->getName(),
 			'description' => $this->getDescription(),
-			'startDatetime' => $this->getStartDatetime(),
-			'endDatetime' => $this->getEndDatetime(),
+			'startDatetime' => $this->formatDatetimeToUtc($this->getStartDatetime()),
+			'endDatetime' => $this->formatDatetimeToUtc($this->getEndDatetime()),
 			'createdBy' => $this->getCreatedBy(),
-			'createdAt' => $this->getCreatedAt(),
-			'updatedAt' => $this->getUpdatedAt(),
+			'createdAt' => $this->formatDatetimeToUtc($this->getCreatedAt()),
+			'updatedAt' => $this->formatDatetimeToUtc($this->getUpdatedAt()),
 			'isActive' => $this->getIsActive(),
 		];
+	}
+
+	/**
+	 * Format datetime to UTC ISO 8601 format
+	 */
+	private function formatDatetimeToUtc(string $datetime): string {
+		try {
+			// Database stores datetime in UTC, so create DateTime object with UTC timezone
+			$utcTimezone = new \DateTimeZone('UTC');
+			$date = new \DateTime($datetime, $utcTimezone);
+			
+			// Return in ISO 8601 format with UTC timezone indicator
+			return $date->format('Y-m-d\TH:i:s\Z');
+		} catch (\Exception $e) {
+			// If parsing fails, return the original value
+			return $datetime;
+		}
 	}
 }
