@@ -6,7 +6,7 @@
 			:loading="state === 'loading'"
 			class="appointment-widget">
 			<template #empty-content>
-				<NcEmptyContent :title="t('attendance', 'Keine Termine gefunden')">
+				<NcEmptyContent :title="t('attendance', 'No appointments found')">
 					<template #icon>
 						<CalendarIcon />
 					</template>
@@ -29,19 +29,19 @@
 								:class="{ active: item.userResponse?.response === 'yes' }"
 								type="success"
 								@click="respond(item.id, 'yes')">
-								{{ t('attendance', 'Ja') }}
+								{{ t('attendance', 'Yes') }}
 							</NcButton>
 							<NcButton
 								:class="{ active: item.userResponse?.response === 'maybe' }"
 								type="warning"
 								@click="respond(item.id, 'maybe')">
-								{{ t('attendance', 'Vielleicht') }}
+								{{ t('attendance', 'Maybe') }}
 							</NcButton>
 							<NcButton
 								:class="{ active: item.userResponse?.response === 'no' }"
 								type="error"
 								@click="respond(item.id, 'no')">
-								{{ t('attendance', 'Nein') }}
+								{{ t('attendance', 'No') }}
 							</NcButton>
 						</div>
 
@@ -51,7 +51,7 @@
 								<NcTextArea
 									resize="vertical"
 									:value="responseComments[item.id] || item.userResponse?.comment || undefined"
-									:placeholder="t('attendance', 'Kommentar (optional)')"
+									:placeholder="t('attendance', 'Comment (optional)')"
 									@input="onCommentInput(item.id, $event.target.value)" />
 								
 								<div v-if="savingComments[item.id]" class="saving-spinner">
@@ -67,7 +67,7 @@
 		<!-- Show All Button -->
 		<div class="widget-footer">
 			<NcButton type="primary" wide @click="goToAttendanceApp">
-				{{ t('attendance', 'Alle Termine anzeigen') }}
+				{{ t('attendance', 'Show all appointments') }}
 			</NcButton>
 		</div>
 	</div>
@@ -75,17 +75,17 @@
 	<!-- Comment Dialog -->
 	<NcModal v-if="showDialog" @close="closeDialog">
 		<div class="comment-dialog">
-			<h2>{{ t('attendance', 'Kommentar hinzufügen') }}</h2>
+			<h2>{{ t('attendance', 'Add comment') }}</h2>
 			<NcTextArea
 				v-model="comment"
-				:placeholder="t('attendance', 'Optional: Grund für Ihre Antwort')"
+				:placeholder="t('attendance', 'Optional: Reason for your response')"
 				rows="3" />
 			<div class="dialog-buttons">
 				<NcButton type="secondary" @click="closeDialog">
-					{{ t('attendance', 'Abbrechen') }}
+					{{ t('attendance', 'Cancel') }}
 				</NcButton>
 				<NcButton type="primary" @click="submitResponse">
-					{{ t('attendance', 'Bestätigen') }}
+					{{ t('attendance', 'Confirm') }}
 				</NcButton>
 			</div>
 		</div>
@@ -144,7 +144,7 @@ export default {
 				responseComments: {},
 				savingComments: {},
 				commentTimeouts: {},
-				title: t('attendance', 'Anwesenheit'),
+				title: t('attendance', 'Attendance'),
 			}
 		} catch (error) {
 			console.error('Error loading appointments:', error)
@@ -159,7 +159,7 @@ export default {
 				responseComments: {},
 				savingComments: {},
 				commentTimeouts: {},
-				title: t('attendance', 'Anwesenheit'),
+				title: t('attendance', 'Attendance'),
 			}
 		}
 	},
@@ -241,9 +241,9 @@ export default {
 
 		getResponseText(response) {
 			switch (response) {
-			case 'yes': return this.t('attendance', 'Ja')
-			case 'no': return this.t('attendance', 'Nein')
-			case 'maybe': return this.t('attendance', 'Vielleicht')
+			case 'yes': return this.t('attendance', 'Yes')
+			case 'no': return this.t('attendance', 'No')
+			case 'maybe': return this.t('attendance', 'Maybe')
 			default: return response
 			}
 		},
@@ -251,13 +251,8 @@ export default {
 		formatDate(datetime) {
 			try {
 				const date = new Date(datetime)
-				return date.toLocaleString('de-DE', {
-					day: '2-digit',
-					month: '2-digit',
-					year: 'numeric',
-					hour: '2-digit',
-					minute: '2-digit',
-				})
+				const options = {dateStyle:'short', timeStyle:'short'}
+				return date.toLocaleString(['de-DE','en-EN'], options)
 			} catch (error) {
 				return datetime
 			}
@@ -433,7 +428,7 @@ export default {
 		}
 
 		:deep(.textarea__input) {
-			height: calc(var(--default-clickable-area) * 1);
+			height: calc(var(--default-clickable-area) * 1.4);
 		}
 
 		.saving-spinner {

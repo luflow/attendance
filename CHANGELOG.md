@@ -6,6 +6,18 @@
 
 - Nightly changes here
 
+## 1.1.0 – 2025-08-28
+
+### Added
+
+- Added screenshots
+- Added appointment end time auto setting to start time + 2.5 hours
+
+### Fixed
+
+- Fixed widget translations
+- Fixed timezone issues when editing appointments
+
 ## 1.0.2 – 2025-08-26
 
 ### Fixed
