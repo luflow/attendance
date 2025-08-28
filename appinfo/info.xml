@@ -3,7 +3,9 @@
 	  xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
 	<id>attendance</id>
 	<name>Attendance</name>
+	<name lang="de">Anwesenheit</name>
 	<summary>Event attendance management with advance RSVP functionality and group-based statistics</summary>
+	<summary lang="de">Veranstaltungsanwesenheitsverwaltung mit Vorab-RSVP-Funktionalität und gruppenbasierten Statistiken</summary>
 	<description><![CDATA[A small Nextcloud app for managing event attendance with advance RSVP functionality. 
 
 **For Administrators:**
@@ -24,7 +26,29 @@
 - Complete admin visibility into attendance across all groups
 
 Perfect for organizations, teams, and communities that need to coordinate attendance for meetings, events, and activities.]]></description>
-	<version>1.0.2</version>
+	<description lang="de"><![CDATA[Eine kleine Nextcloud-App zur Verwaltung der Veranstaltungsanwesenheit mit Vorab-RSVP-Funktionalität.
+
+**Für Administratoren:**
+- Termine erstellen und verwalten mit Name, Beschreibung und Datum/Uhrzeit
+- Antworten verfolgen mit detaillierten Anwesenheitszusammenfassungen nach Benutzergruppen organisiert
+- Nicht-Antwortende identifizieren zum Nachfassen
+- Zwischen bevorstehenden und vergangenen Terminen wechseln
+
+**Für alle Benutzer:**
+- Einfache RSVP mit Ja/Nein/Vielleicht-Antworten auf jeden Termin
+- Optionale Kommentare zu Ihrer Antwort hinzufügen
+- Antworten jederzeit bis zum Veranstaltungsdatum aktualisieren
+- Schneller Zugriff über Dashboard-Widget
+
+**Gruppenbasierte Organisation:**
+- Statistiken automatisch nach Nextcloud-Benutzergruppen organisiert
+- Sehen, welche Gruppenmitglieder noch nicht geantwortet haben
+- Vollständige Admin-Sichtbarkeit der Anwesenheit über alle Gruppen hinweg
+
+Perfekt für Organisationen, Teams und Gemeinschaften, die die Anwesenheit bei Meetings, Veranstaltungen und Aktivitäten koordinieren müssen.]]></description>
+	<screenshot small-thumbnail="https://github.com/luflow/attendance/blob/main/appinfo/screens/screen-small.jpg">https://github.com/luflow/attendance/blob/main/appinfo/screens/screen.jpg</screenshot>
+    <screenshot>https://github.com/luflow/attendance/blob/main/appinfo/screens/screen-admin.jpg</screenshot>
+	<version>1.1.0</version>
 	<licence>AGPL-3.0-or-later</licence>
 	<author mail="florian@krautnerds.de" homepage="https://krautnerds.de">Florian Ludwig</author>
 	<namespace>Attendance</namespace>
