@@ -22,9 +22,11 @@
 							required />
 						<NcTextArea v-model="newAppointment.description" :label="t('attendance', 'Description')" />
 						<NcDateTimePickerNative v-model="newAppointment.startDatetime"
-							:label="t('attendance', 'Start Date & Time')" type="datetime-local" required />
-						<NcDateTimePickerNative v-model="newAppointment.endDatetime"
-							:label="t('attendance', 'End Date & Time')" type="datetime-local" required />
+							:label="t('attendance', 'Start Date & Time')" type="datetime-local" required 
+							@blur="onStartDatetimeBlur" />
+						<NcDateTimePickerNative ref="endDatetimePicker" v-model="newAppointment.endDatetime"
+							:label="t('attendance', 'End Date & Time')" type="datetime-local" required 
+							:key="newAppointment.endDatetime" />
 						<div class="form-actions">
 							<NcButton type="secondary" @click="showCreateForm = false">
 								{{ t('attendance', 'Cancel') }}
@@ -40,7 +42,7 @@
 			<!-- Edit Appointment Modal -->
 			<NcModal v-if="showEditForm" @close="showEditForm = false">
 				<div class="modal-content">
-					<h2>{{ t('attendance', 'Edit Appointment') }}</h2>
+					<h2>{{ t('attendance', 'Edit') }}</h2>
 					<form @submit.prevent="updateAppointment">
 						<NcTextField v-model="editingAppointment.name" :label="t('attendance', 'Appointment Name')"
 							required />
@@ -80,11 +82,11 @@
 							<div class="appointment-actions">
 								<NcButton v-if="canEdit(appointment)" type="tertiary"
 									@click="editAppointment(appointment)">
-									{{ t('attendance', 'Edit Appointment') }}
+									{{ t('attendance', 'Edit') }}
 								</NcButton>
 								<NcButton v-if="canEdit(appointment)" type="tertiary"
 									@click="deleteAppointment(appointment.id)">
-									{{ t('attendance', 'Delete Appointment') }}
+									{{ t('attendance', 'Delete') }}
 								</NcButton>
 							</div>
 						</div>
@@ -132,11 +134,11 @@
 						<div v-if="appointment.responseSummary" class="response-summary">
 							<h4>{{ t('attendance', 'Response Summary') }}</h4>
 							<div class="summary-stats">
-								<span class="stat yes">{{ t('attendance', 'Attending') }}: {{
+								<span class="stat yes">{{ t('attendance', 'Yes') }}: {{
 								appointment.responseSummary.yes }}</span>
-								<span class="stat maybe">{{ t('attendance', 'Maybe Attending') }}: {{
+								<span class="stat maybe">{{ t('attendance', 'Maybe') }}: {{
 								appointment.responseSummary.maybe }}</span>
-								<span class="stat no">{{ t('attendance', 'Not Attending') }}: {{
+								<span class="stat no">{{ t('attendance', 'No') }}: {{
 								appointment.responseSummary.no }}</span>
 								<span class="stat no-response">{{ t('attendance', 'No Response') }}: {{
 								appointment.responseSummary.no_response }}</span>
@@ -227,6 +229,8 @@ import NcDateTimePickerNative from '@nextcloud/vue/dist/Components/NcDateTimePic
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
+import { format } from 'date-fns'
+import { fromZonedTime } from 'date-fns-tz'
 
 export default {
 	name: 'App',
@@ -260,7 +264,7 @@ export default {
 			responseComments: {},
 			currentUser: getCurrentUser(),
 			showPastAppointments: false,
-			expandedGroups: {}, // Track which groups are expanded for each appointment
+			expandedGroups: {},
 		}
 	},
 	computed: {
@@ -383,11 +387,15 @@ export default {
 		},
 		async updateAppointment() {
 			try {
+				// Convert datetime to Europe/Berlin timezone using date-fns-tz
+				const startDatetimeWithTz = fromZonedTime(this.editingAppointment.startDatetime, 'Europe/Berlin');
+				const endDatetimeWithTz = fromZonedTime(this.editingAppointment.endDatetime, 'Europe/Berlin');
+
 				await axios.put(generateUrl(`/apps/attendance/api/appointments/${this.editingAppointment.id}`), {
 					name: this.editingAppointment.name,
 					description: this.editingAppointment.description,
-					startDatetime: this.editingAppointment.startDatetime,
-					endDatetime: this.editingAppointment.endDatetime,
+					startDatetime: startDatetimeWithTz,
+					endDatetime: endDatetimeWithTz,
 				})
 				this.showEditForm = false
 				this.editingAppointment = {
@@ -403,7 +411,7 @@ export default {
 			}
 		},
 		formatDateTimeForInput(dateTime) {
-			// Convert datetime to format required by datetime-local input
+			// Convert datetime to format "yyyy-MM-ddThh:mm" required by datetime-local input
 			if (!dateTime) return ''
 
 			const date = new Date(dateTime)
@@ -440,6 +448,24 @@ export default {
 
 			// Return pre-filtered responses from backend
 			return appointment.responseSummary.by_group[groupId].responses
+		},
+		onStartDatetimeBlur() {
+			// Auto-set endDatetime if it's empty and startDatetime is set
+			if (this.newAppointment.startDatetime && !this.newAppointment.endDatetime) {
+				const startDate = new Date(this.newAppointment.startDatetime)
+				const endDate = new Date(startDate.getTime() + 2.5 * 60 * 60 * 1000) // Add 2,5 hours
+				const formattedEndDate = this.formatDateTimeForInput(endDate.toISOString())
+				
+				// Set input value and let the input event update Vue state
+				// Could not do it via state change, so we have to do it via DOM
+				if (this.$refs.endDatetimePicker && this.$refs.endDatetimePicker.$el) {
+					const input = this.$refs.endDatetimePicker.$el.querySelector('input[type="datetime-local"]')
+					if (input) {
+						input.value = formattedEndDate
+						input.dispatchEvent(new Event('input', { bubbles: true }))
+					}
+				}
+			}
 		},
 	},
 }
@@ -727,6 +753,7 @@ export default {
 				border-radius: 12px;
 				font-size: 12px;
 				font-weight: bold;
+				color: #fff;
 
 				&.yes {
 					background: var(--color-success);
