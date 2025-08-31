@@ -14,7 +14,7 @@
 </template>
 
 <script>
-import CheckinView from './views/CheckinView.vue'
+import CheckinView from './views/Checkin.vue'
 import AllAppointments from './views/AllAppointments.vue'
 import NcAppContent from '@nextcloud/vue/dist/Components/NcAppContent.js'
 

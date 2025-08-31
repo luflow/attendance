@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import './vueBootstrap.js'
-import AppointmentWidget from './views/AppointmentWidget.vue'
+import AppointmentWidget from './views/Widget.vue'
 
 document.addEventListener('DOMContentLoaded', () => {
 	OCA.Dashboard.register('attendance-vue-widget', (el, { widget }) => {

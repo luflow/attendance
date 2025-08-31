@@ -4,7 +4,8 @@ import { join, resolve } from "path";
 export default createAppConfig(
   {
     main: resolve(join("src", "main.js")),
-    dashboardVue: resolve(join("src", "dashboardVue.js")),
+    dashboard: resolve(join("src", "dashboard.js")),
+    settings: resolve(join("src", "settings.js")),
   },
   {
     createEmptyCSSEntryPoints: true,

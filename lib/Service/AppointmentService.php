@@ -483,9 +483,16 @@ class AppointmentService {
 			$userResponseMap[$response->getUserId()] = $response;
 		}
 		
-		// Get all user groups for filtering
-		$allGroups = $this->groupManager->search('');
-		$userGroups = [];
+		// Get whitelisted groups for filtering
+		$whitelistedGroups = $this->getWhitelistedGroups();
+		
+		// If no whitelist is configured, get all groups; otherwise use whitelisted groups
+		if (empty($whitelistedGroups)) {
+			$allGroups = $this->groupManager->search('');
+			$userGroups = array_map(function($group) { return $group->getGID(); }, $allGroups);
+		} else {
+			$userGroups = $whitelistedGroups;
+		}
 		
 		// Categorize users
 		foreach ($allUsers as $user) {
@@ -495,11 +502,20 @@ class AppointmentService {
 			// Get user's groups
 			$userGroupIds = $this->groupManager->getUserGroupIds($user);
 			
-			// Collect all unique groups
-			foreach ($userGroupIds as $groupId) {
-				if (!in_array($groupId, $userGroups)) {
-					$userGroups[] = $groupId;
+			// Check if user belongs to any whitelisted group (if whitelist is configured)
+			$userInWhitelistedGroup = empty($whitelistedGroups);
+			if (!empty($whitelistedGroups)) {
+				foreach ($userGroupIds as $groupId) {
+					if (in_array($groupId, $whitelistedGroups)) {
+						$userInWhitelistedGroup = true;
+						break;
+					}
 				}
+			}
+			
+			// Skip users not in whitelisted groups
+			if (!$userInWhitelistedGroup) {
+				continue;
 			}
 			
 			if (isset($userResponseMap[$userId])) {
