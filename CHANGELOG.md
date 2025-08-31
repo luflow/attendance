@@ -6,6 +6,13 @@
 
 - Nightly changes here
 
+## 1.2.0 – 2025-08-31
+
+### Added
+
+- Added check-in feature to track attendance at the event including checkin comments
+- Added settings screen to configure allowed user groups
+
 ## 1.1.1 – 2025-08-28
 
 ### Fixed

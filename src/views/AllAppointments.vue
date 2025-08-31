@@ -5,10 +5,14 @@
 				<NcButton v-if="isAdmin" type="primary" @click="showCreateForm = true">
 					{{ t('attendance', 'Create Appointment') }}
 				</NcButton>
-				<NcButton v-if="isAdmin" :type="showPastAppointments ? 'secondary' : 'tertiary'"
-					@click="togglePastAppointments">
-					{{ showPastAppointments ? t('attendance', 'Hide Past Appointments') : t('attendance', 'Show Past Appointments') }}
-				</NcButton>
+				<NcActions v-if="isAdmin" :force-menu="true">
+					<NcActionButton @click="togglePastAppointments" :close-after-click="true">
+						<template #icon>
+							<History :size="20" />
+						</template>
+						{{ showPastAppointments ? t('attendance', 'Hide Past Appointments') : t('attendance', 'Show Past Appointments') }}
+					</NcActionButton>
+				</NcActions>
 			</div>
 		</div>
 
@@ -241,6 +245,7 @@ import { fromZonedTime } from 'date-fns-tz'
 import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
+import History from 'vue-material-design-icons/History.vue'
 
 export default {
 	name: 'AllAppointments',
@@ -255,6 +260,7 @@ export default {
 		ListStatusIcon,
 		Pencil,
 		Delete,
+		History,
 	},
 	data() {
 		return {
