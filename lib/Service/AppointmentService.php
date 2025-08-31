@@ -9,25 +9,48 @@ use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\IUserManager;
 use OCP\IGroupManager;
+use OCP\IUserManager;
+use OCP\IConfig;
 
 class AppointmentService {
 	private AppointmentMapper $appointmentMapper;
 	private AttendanceResponseMapper $responseMapper;
-	private IUserManager $userManager;
 	private IGroupManager $groupManager;
+	private IUserManager $userManager;
+	private IConfig $config;
 
-	public function __construct(
-		AppointmentMapper $appointmentMapper,
-		AttendanceResponseMapper $responseMapper,
-		IUserManager $userManager,
-		IGroupManager $groupManager
-	) {
+	public function __construct(AppointmentMapper $appointmentMapper, AttendanceResponseMapper $responseMapper, IGroupManager $groupManager, IUserManager $userManager, IConfig $config) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
-		$this->userManager = $userManager;
 		$this->groupManager = $groupManager;
+		$this->userManager = $userManager;
+		$this->config = $config;
+	}
+
+	/**
+	 * Get whitelisted groups from app config
+	 * If no groups are configured, return empty array (meaning all groups are allowed)
+	 */
+	private function getWhitelistedGroups(): array {
+		$groupsJson = $this->config->getAppValue('attendance', 'whitelisted_groups', '[]');
+		return json_decode($groupsJson, true) ?: [];
+	}
+
+	/**
+	 * Check if a group is allowed based on whitelist configuration
+	 * If no whitelist is configured, all groups are allowed
+	 */
+	private function isGroupAllowed(string $groupId): bool {
+		$whitelistedGroups = $this->getWhitelistedGroups();
+		
+		// If no groups are whitelisted, allow all groups
+		if (empty($whitelistedGroups)) {
+			return true;
+		}
+		
+		// Check if group is in whitelist (case-insensitive)
+		return in_array(strtolower($groupId), array_map('strtolower', $whitelistedGroups));
 	}
 
 	/**
@@ -241,13 +264,12 @@ class AppointmentService {
 			// Get user groups for this response
 			$user = $this->userManager->get($response->getUserId());
 			if ($user) {
-				$excludedGroups = ['mitglieder', 'vorstand', 'admin'];
 				$userGroups = $this->groupManager->getUserGroups($user);
 				foreach ($userGroups as $group) {
 					$groupId = $group->getGID();
 					
-					// Skip excluded groups
-					if (in_array(strtolower($groupId), array_map('strtolower', $excludedGroups))) {
+					// Skip groups not in whitelist
+					if (!$this->isGroupAllowed($groupId)) {
 						continue;
 					}
 					
@@ -271,13 +293,12 @@ class AppointmentService {
 		}
 
 		// Calculate users who haven't responded and group them by groups
-		$excludedGroups = ['mitglieder', 'vorstand', 'admin'];
 		$allGroups = $this->groupManager->search('');
 		foreach ($allGroups as $group) {
 			$groupId = $group->getGID();
 			
-			// Skip excluded groups
-			if (in_array(strtolower($groupId), array_map('strtolower', $excludedGroups))) {
+			// Skip groups not in whitelist
+			if (!$this->isGroupAllowed($groupId)) {
 				continue;
 			}
 			
@@ -311,7 +332,6 @@ class AppointmentService {
 		}
 
 		// Calculate total users who haven't responded (only users who belong to relevant groups)
-		$excludedGroups = ['mitglieder', 'vorstand', 'admin'];
 		$allUsers = $this->userManager->search('');
 		$usersInGroups = [];
 		$nonRespondingUsers = [];
@@ -319,10 +339,10 @@ class AppointmentService {
 			$userGroups = $this->groupManager->getUserGroups($user);
 			$relevantGroups = [];
 			
-			// Filter out excluded groups
+			// Filter to only include whitelisted groups
 			foreach ($userGroups as $group) {
 				$groupId = $group->getGID();
-				if (!in_array(strtolower($groupId), array_map('strtolower', $excludedGroups))) {
+				if ($this->isGroupAllowed($groupId)) {
 					$relevantGroups[] = $groupId;
 				}
 			}
@@ -399,7 +419,7 @@ class AppointmentService {
 	public function checkinResponse(
 		int $appointmentId,
 		string $targetUserId,
-		string $response,
+		?string $response,
 		string $comment,
 		string $adminUserId
 	): AttendanceResponse {
@@ -408,8 +428,8 @@ class AppointmentService {
 			throw new \Exception('Only administrators can checkin responses');
 		}
 
-		// Validate response
-		if (!in_array($response, ['yes', 'no', 'maybe'])) {
+		// Validate response if provided
+		if ($response !== null && !in_array($response, ['yes', 'no', 'maybe'])) {
 			throw new \InvalidArgumentException('Invalid response. Must be yes, no, or maybe.');
 		}
 
@@ -424,7 +444,9 @@ class AppointmentService {
 		}
 
 		// Set checkin values
-		$attendanceResponse->setCheckinState($response);
+		if ($response !== null) {
+			$attendanceResponse->setCheckinState($response);
+		}
 		$attendanceResponse->setCheckinComment($comment);
 		$attendanceResponse->setCheckinBy($adminUserId);
 		$attendanceResponse->setCheckinAt(date('Y-m-d H:i:s'));
@@ -437,6 +459,80 @@ class AppointmentService {
 		}
 	}
 
+
+	/**
+	 * Get check-in data for an appointment (admin only)
+	 */
+	public function getCheckinData(int $appointmentId): array {
+		// Get the appointment
+		$appointment = $this->appointmentMapper->find($appointmentId);
+		
+		// Get all responses for this appointment
+		$responses = $this->responseMapper->findByAppointment($appointmentId);
+		
+		// Get all users in the system
+		$allUsers = $this->userManager->search('');
+		
+		// Organize users by response status
+		$respondingUsers = [];
+		$nonRespondingUsers = [];
+		$userResponseMap = [];
+		
+		// Create a map of user responses
+		foreach ($responses as $response) {
+			$userResponseMap[$response->getUserId()] = $response;
+		}
+		
+		// Get all user groups for filtering
+		$allGroups = $this->groupManager->search('');
+		$userGroups = [];
+		
+		// Categorize users
+		foreach ($allUsers as $user) {
+			$userId = $user->getUID();
+			$displayName = $user->getDisplayName();
+			
+			// Get user's groups
+			$userGroupIds = $this->groupManager->getUserGroupIds($user);
+			
+			// Collect all unique groups
+			foreach ($userGroupIds as $groupId) {
+				if (!in_array($groupId, $userGroups)) {
+					$userGroups[] = $groupId;
+				}
+			}
+			
+			if (isset($userResponseMap[$userId])) {
+				$response = $userResponseMap[$userId];
+				
+				$respondingUsers[] = [
+					'userId' => $userId,
+					'displayName' => $displayName,
+					'response' => $response->getResponse(),
+					'comment' => $response->getComment(),
+					'isCheckedIn' => $response->isCheckedIn(),
+					'checkinState' => $response->getCheckinState(),
+					'checkinComment' => $response->getCheckinComment(),
+					'checkinBy' => $response->getCheckinBy(),
+					'checkinAt' => $response->getCheckinAt(),
+					'groups' => $userGroupIds,
+				];
+			} else {
+				$nonRespondingUsers[] = [
+					'userId' => $userId,
+					'displayName' => $displayName,
+					'groups' => $userGroupIds,
+				];
+			}
+		}
+		
+		return [
+			'appointment' => $appointment->jsonSerialize(),
+			'respondingUsers' => $respondingUsers,
+			'nonRespondingUsers' => $nonRespondingUsers,
+			'userGroups' => array_values($userGroups),
+		];
+	}
 
 	/**
 	 * Convert ISO 8601 datetime to MySQL format
