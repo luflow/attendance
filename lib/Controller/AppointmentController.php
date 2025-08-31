@@ -180,4 +180,32 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => $e->getMessage()], 400);
 		}
 	}
+
+	/**
+	 * Set Checkin for a user (admin only)
+	 *
+	 * @NoAdminRequired
+	 */
+	public function checkinResponse(int $appointmentId, string $targetUserId): DataResponse {
+		$response = $this->request->getParam('response');
+		$comment = $this->request->getParam('comment', '');
+
+		if (!$response) {
+			return new DataResponse(['error' => 'Response is required'], 400);
+		}
+
+		try {
+			$result = $this->appointmentService->checkinResponse(
+				$appointmentId,
+				$targetUserId,
+				$response,
+				$comment,
+				$this->userSession->getUser()->getUID()
+			);
+
+			return new DataResponse($result);
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => $e->getMessage()], 400);
+		}
+	}
 }

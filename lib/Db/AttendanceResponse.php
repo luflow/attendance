@@ -20,6 +20,14 @@ use OCP\AppFramework\Db\Entity;
  * @method void setComment(string $comment)
  * @method string getRespondedAt()
  * @method void setRespondedAt(string $respondedAt)
+ * @method string getCheckinState()
+ * @method void setCheckinState(string $checkinState)
+ * @method string getCheckinComment()
+ * @method void setCheckinComment(string $checkinComment)
+ * @method string getCheckinBy()
+ * @method void setCheckinBy(string $checkinBy)
+ * @method string getCheckinAt()
+ * @method void setCheckinAt(string $checkinAt)
  */
 class AttendanceResponse extends Entity implements JsonSerializable {
 	protected $appointmentId = 0;
@@ -27,6 +35,10 @@ class AttendanceResponse extends Entity implements JsonSerializable {
 	protected $response = '';
 	protected $comment = '';
 	protected $respondedAt = '';
+	protected $checkinState = '';
+	protected $checkinComment = '';
+	protected $checkinBy = '';
+	protected $checkinAt = '';
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -35,6 +47,10 @@ class AttendanceResponse extends Entity implements JsonSerializable {
 		$this->addType('response', 'string');
 		$this->addType('comment', 'string');
 		$this->addType('respondedAt', 'string');
+		$this->addType('checkinState', 'string');
+		$this->addType('checkinComment', 'string');
+		$this->addType('checkinBy', 'string');
+		$this->addType('checkinAt', 'string');
 	}
 
 	public function jsonSerialize(): array {
@@ -45,6 +61,19 @@ class AttendanceResponse extends Entity implements JsonSerializable {
 			'response' => $this->getResponse(),
 			'comment' => $this->getComment(),
 			'respondedAt' => $this->getRespondedAt(),
+			'checkinState' => $this->getCheckinState(),
+			'checkinComment' => $this->getCheckinComment(),
+			'checkinBy' => $this->getCheckinBy(),
+			'checkinAt' => $this->getCheckinAt(),
+			'isCheckedIn' => $this->isCheckedIn(),
 		];
+	}
+
+
+	/**
+	 * Check if this response has been checked in by an admin
+	 */
+	public function isCheckedIn(): bool {
+		return !empty($this->getCheckinState());
 	}
 }

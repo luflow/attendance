@@ -16,5 +16,8 @@ return [
 		
 		// Dashboard widget route
 		['name' => 'appointment#widget', 'url' => '/api/appointments/widget', 'verb' => 'GET'],
+		
+		// Response checkin routes (admin only)
+		['name' => 'appointment#checkinResponse', 'url' => '/api/appointments/{appointmentId}/checkin/{targetUserId}', 'verb' => 'POST'],
 	]
 ];
