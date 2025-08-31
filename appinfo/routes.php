@@ -23,7 +23,8 @@ return [
 		['name' => 'appointment#getCheckinData', 'url' => '/api/appointments/{id}/checkin-data', 'verb' => 'GET'],
 		['name' => 'page#checkin', 'url' => '/checkin/{id}', 'verb' => 'GET'],
 		
-		// Admin settings routes
+		// Admin settings
+		['name' => 'admin#getSettings', 'url' => '/admin/settings', 'verb' => 'GET'],
 		['name' => 'admin#saveSettings', 'url' => '/admin/settings', 'verb' => 'POST'],
 	]
 ];

@@ -78,14 +78,26 @@
 					<div class="appointment-header">
 						<h3>{{ appointment.name }}</h3>
 						<div class="appointment-actions">
-							<NcButton v-if="canEdit(appointment)" type="tertiary"
-								@click="editAppointment(appointment)">
-								{{ t('attendance', 'Edit') }}
-							</NcButton>
-							<NcButton v-if="canEdit(appointment)" type="tertiary"
-								@click="deleteAppointment(appointment.id)">
-								{{ t('attendance', 'Delete') }}
-							</NcButton>
+							<NcActions v-if="isAdmin || canEdit(appointment)" :force-menu="true">
+								<NcActionButton v-if="isAdmin" @click="startCheckin(appointment.id)" :close-after-click="true">
+									<template #icon>
+										<ListStatusIcon :size="20" />
+									</template>
+									{{ t('attendance', 'Start check-in') }}
+								</NcActionButton>
+								<NcActionButton v-if="canEdit(appointment)" @click="editAppointment(appointment)" :close-after-click="true">
+									<template #icon>
+										<Pencil :size="20" />
+									</template>
+									{{ t('attendance', 'Edit') }}
+								</NcActionButton>
+								<NcActionButton v-if="canEdit(appointment)" @click="deleteAppointment(appointment.id)" :close-after-click="true">
+									<template #icon>
+										<Delete :size="20" />
+									</template>
+									{{ t('attendance', 'Delete') }}
+								</NcActionButton>
+							</NcActions>
 						</div>
 					</div>
 					<p v-if="appointment.description" class="appointment-description">
@@ -220,10 +232,15 @@ import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
 import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
 import NcTextArea from '@nextcloud/vue/dist/Components/NcTextArea.js'
 import NcDateTimePickerNative from '@nextcloud/vue/dist/Components/NcDateTimePickerNative.js'
+import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
+import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { getCurrentUser } from '@nextcloud/auth'
 import { fromZonedTime } from 'date-fns-tz'
+import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
+import Pencil from 'vue-material-design-icons/Pencil.vue'
+import Delete from 'vue-material-design-icons/Delete.vue'
 
 export default {
 	name: 'AllAppointments',
@@ -233,6 +250,11 @@ export default {
 		NcTextField,
 		NcTextArea,
 		NcDateTimePickerNative,
+		NcActions,
+		NcActionButton,
+		ListStatusIcon,
+		Pencil,
+		Delete,
 	},
 	data() {
 		return {
@@ -458,6 +480,10 @@ export default {
 					}
 				}
 			}
+		},
+		startCheckin(appointmentId) {
+			// Navigate to check-in page for this appointment
+			window.location.href = generateUrl(`/apps/attendance/checkin/${appointmentId}`)
 		},
 	},
 }

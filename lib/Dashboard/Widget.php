@@ -12,7 +12,7 @@ use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\Util;
 
-class VueWidget implements IAPIWidget {
+class Widget implements IAPIWidget {
 
 	/** @var IL10N */
 	private $l10n;
@@ -83,8 +83,8 @@ class VueWidget implements IAPIWidget {
 			$this->initialStateService->provideInitialState('dashboard-widget-items', $items);
 		}
 
-		Util::addScript(Application::APP_ID, Application::APP_ID . '-dashboardVue');
-		Util::addStyle(Application::APP_ID, Application::APP_ID . '-dashboardVue');
+		Util::addScript(Application::APP_ID, Application::APP_ID . '-dashboard');
+		Util::addStyle(Application::APP_ID, Application::APP_ID . '-dashboard');
 	}
 
 	/**

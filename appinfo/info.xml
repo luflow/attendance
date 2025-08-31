@@ -48,7 +48,8 @@ Perfect for organizations, teams, and communities that need to coordinate attend
 Perfekt für Organisationen, Teams und Gemeinschaften, die die Anwesenheit bei Meetings, Veranstaltungen und Aktivitäten koordinieren müssen.]]></description>
 	<screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/screen-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/screen.jpg</screenshot>
     <screenshot>https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/admin.jpg</screenshot>
-	<version>1.1.1</version>
+    <screenshot>https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/checkin.jpg</screenshot>
+	<version>1.2.0</version>
 	<licence>AGPL-3.0-or-later</licence>
 	<author mail="florian@krautnerds.de" homepage="https://krautnerds.de">Florian Ludwig</author>
 	<namespace>Attendance</namespace>
@@ -70,4 +71,8 @@ Perfekt für Organisationen, Teams und Gemeinschaften, die die Anwesenheit bei M
 			<type>link</type>
 		</navigation>
 	</navigations>
+	<settings>
+		<admin>OCA\Attendance\Settings\AdminSettings</admin>
+		<admin-section>OCA\Attendance\Settings\AdminSection</admin-section>
+	</settings>
 </info>

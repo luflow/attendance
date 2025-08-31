@@ -511,6 +511,9 @@ export default {
 
 	.group-filter {
 		max-width: 300px;
+		.v-select.select {
+			min-width: 200px;
+		}
 	}
 }
 
