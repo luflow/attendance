@@ -190,10 +190,6 @@ class AppointmentController extends Controller {
 		$response = $this->request->getParam('response');
 		$comment = $this->request->getParam('comment', '');
 
-		if (!$response) {
-			return new DataResponse(['error' => 'Response is required'], 400);
-		}
-
 		try {
 			$result = $this->appointmentService->checkinResponse(
 				$appointmentId,
@@ -208,4 +204,40 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => $e->getMessage()], 400);
 		}
 	}
+
+	/**
+	 * @NoAdminRequired
+	 */
+	public function getAdminStatus(): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		$isAdmin = $this->groupManager->isAdmin($user->getUID());
+		return new DataResponse(['isAdmin' => $isAdmin]);
+	}
+
+	/**
+	 * @NoAdminRequired
+	 */
+	public function getCheckinData(int $id): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		// Check if user is admin
+		if (!$this->groupManager->isAdmin($user->getUID())) {
+			return new DataResponse(['error' => 'Only administrators can access check-in data'], 403);
+		}
+
+		try {
+			$checkinData = $this->appointmentService->getCheckinData($id);
+			return new DataResponse($checkinData);
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => $e->getMessage()], 400);
+		}
+	}
+
 }

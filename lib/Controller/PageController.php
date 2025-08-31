@@ -26,4 +26,14 @@ class PageController extends Controller {
 			'index',
 		);
 	}
+
+	#[NoCSRFRequired]
+	#[NoAdminRequired]
+	#[OpenAPI(OpenAPI::SCOPE_IGNORE)]
+	public function checkin(int $id): TemplateResponse {
+		return new TemplateResponse(
+			Application::APP_ID,
+			'index',
+		);
+	}
 }

@@ -14,6 +14,19 @@
 			</template>
 			<template #default="{ item }">
 				<div class="appointment-item">
+
+					<!-- Check-in Section (for admins when appointment is ready for check-in) -->
+					<div v-if="showCheckinButton(item)" class="checkin-section">
+						<NcButton
+							type="primary"
+							class="checkin-button"
+							@click="openCheckinView(item.id)">
+							<template #icon>
+								<ListStatusIcon />
+							</template>
+							{{ t('attendance', 'Start check-in') }}
+						</NcButton>
+					</div>
 					<div class="appointment-header">
 						<h3>{{ item.mainText }}</h3>
 						<span class="appointment-time">{{ formatDate(item.subText) }}</span>
@@ -94,7 +107,7 @@
 
 <script>
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
-import CheckIcon from 'vue-material-design-icons/Check.vue'
+import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
 import CloseIcon from 'vue-material-design-icons/Close.vue'
 import HelpIcon from 'vue-material-design-icons/Help.vue'
 
@@ -113,7 +126,7 @@ export default {
 
 	components: {
 		CalendarIcon,
-		CheckIcon,
+		ListStatusIcon,
 		CloseIcon,
 		HelpIcon,
 		NcDashboardWidget,
@@ -145,6 +158,7 @@ export default {
 				savingComments: {},
 				commentTimeouts: {},
 				title: t('attendance', 'Attendance'),
+				isAdmin: false,
 			}
 		} catch (error) {
 			console.error('Error loading appointments:', error)
@@ -160,6 +174,7 @@ export default {
 				savingComments: {},
 				commentTimeouts: {},
 				title: t('attendance', 'Attendance'),
+				isAdmin: false,
 			}
 		}
 	},
@@ -188,6 +203,7 @@ export default {
 	},
 
 	mounted() {
+		this.checkAdminStatus()
 	},
 
 	methods: {
@@ -309,6 +325,36 @@ export default {
 		goToAttendanceApp() {
 			window.location.href = generateUrl('/apps/attendance/')
 		},
+
+		async checkAdminStatus() {
+			try {
+				const url = generateUrl('/apps/attendance/api/user/admin-status')
+				const response = await axios.get(url)
+				this.isAdmin = response.data.isAdmin
+			} catch (error) {
+				console.error('Failed to check admin status:', error)
+				this.isAdmin = false
+			}
+		},
+
+		showCheckinButton(item) {
+			if (!this.isAdmin) {
+				return false
+			}
+
+			// Show check-in button 30 minutes before start time
+			const now = new Date()
+			const startTime = new Date(item.subText)
+			const checkinTime = new Date(startTime.getTime() - 30 * 60 * 1000) // 30 minutes before
+
+			return now >= checkinTime
+		},
+
+		openCheckinView(appointmentId) {
+			// Navigate to check-in view
+			const checkinUrl = generateUrl('/apps/attendance/checkin/{id}', { id: appointmentId })
+			window.location.href = checkinUrl
+		},
 	},
 }
 </script>
@@ -373,6 +419,17 @@ export default {
 	word-wrap: break-word;
 	overflow-wrap: break-word;
 	hyphens: auto;
+}
+
+.checkin-section {
+	margin-bottom: 8px;
+
+	.checkin-button {
+		font-size: 11px;
+		padding: 4px 12px;
+		min-height: 28px;
+		font-weight: 600;
+	}
 }
 
 .response-section {
