@@ -194,14 +194,8 @@
 												{{ t('attendance', 'No response yet:') }}
 											</div>
 											<div class="non-responding-list">
-												{{ appointment.responseSummary.by_group[groupId].non_responding_users.map(u => u.displayName || u).join(', ') }}
+												{{ appointment.responseSummary.by_group[groupId].non_responding_users.map(u => u.displayName).join(', ') }}
 											</div>
-										</div>
-
-										<!-- Only show generic message if no responses AND no non-responding users -->
-										<div v-if="getGroupResponses(appointment, groupId).length === 0 && (!appointment.responseSummary.by_group[groupId].non_responding_users || appointment.responseSummary.by_group[groupId].non_responding_users.length === 0)"
-											class="no-responses">
-											{{ t('attendance', 'No responses from this group yet') }}
 										</div>
 									</div>
 								</div>
@@ -213,7 +207,7 @@
 							class="non-responding-users-section">
 							<h4>{{ t('attendance', 'Non-responding users') }}</h4>
 							<div class="non-responding-users-list">
-								{{ appointment.responseSummary.non_responding_users.join(', ') }}
+								{{ appointment.responseSummary.non_responding_users.map(u => u.displayName).join(', ') }}
 							</div>
 						</div>
 					</div>
