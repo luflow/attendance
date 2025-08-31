@@ -46,7 +46,7 @@
 						</div>
 
 						<!-- Comment Section -->
-						<div v-if="item.userResponse && (item.userResponse.response === 'maybe' || item.userResponse.response === 'no')" class="comment-section">
+						<div v-if="item.userResponse" class="comment-section">
 							<div class="textarea-container">
 								<NcTextArea
 									resize="vertical"
