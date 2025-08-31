@@ -175,6 +175,10 @@
 													<strong>{{ response.userName }}</strong>
 													<span class="response-badge" :class="response.response">{{
 														getResponseText(response.response) }}</span>
+													<span v-if="response.isCheckedIn" class="checkin-badge">CheckIn</span>
+													<span v-if="response.isCheckedIn" class="response-badge" :class="response.checkinState">
+														{{ getResponseText(response.checkinState) }}
+													</span>
 												</div>
 												<div v-if="response.comment && response.comment.trim()"
 													class="response-comment">
@@ -190,7 +194,7 @@
 												{{ t('attendance', 'No response yet:') }}
 											</div>
 											<div class="non-responding-list">
-												{{ appointment.responseSummary.by_group[groupId].non_responding_users.join(', ') }}
+												{{ appointment.responseSummary.by_group[groupId].non_responding_users.map(u => u.displayName || u).join(', ') }}
 											</div>
 										</div>
 
@@ -577,10 +581,15 @@ export default {
 	}
 }
 
+.response-summary {
+	border-top: 1px solid var(--color-border);
+    margin-top: 30px;
+}
+
 .response-section {
 	border-top: 1px solid var(--color-border);
-	padding-top: 15px;
-	margin-top: 15px;
+	padding-top: 20px;
+	margin-top: 25px;
 
 	h4 {
 		margin: 0 0 10px 0;

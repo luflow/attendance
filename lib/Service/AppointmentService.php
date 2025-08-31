@@ -235,7 +235,10 @@ class AppointmentService {
 		// Count responses by type and collect user groups
 		$respondedUserIds = [];
 		foreach ($responses as $response) {
-			$summary[$response->getResponse()]++;
+			$responseValue = $response->getCheckinState() ?: $response->getResponse();
+			if ($responseValue) {
+				$summary[$responseValue]++;
+			}
 			$respondedUserIds[] = $response->getUserId();
 			
 			// Get user groups for this response
@@ -298,11 +301,14 @@ class AppointmentService {
 			$nonRespondedInGroup = array_diff($groupUserIds, $respondedUserIds);
 			$summary['by_group'][$groupId]['no_response'] += count($nonRespondedInGroup);
 			
-			// Add names of non-responding users
+			// Add names and IDs of non-responding users
 			foreach ($nonRespondedInGroup as $userId) {
 				$user = $this->userManager->get($userId);
 				if ($user) {
-					$summary['by_group'][$groupId]['non_responding_users'][] = $user->getDisplayName();
+					$summary['by_group'][$groupId]['non_responding_users'][] = [
+						'userId' => $userId,
+						'displayName' => $user->getDisplayName()
+					];
 				}
 			}
 		}
@@ -329,7 +335,10 @@ class AppointmentService {
 				$usersInGroups[] = $user->getUID();
 				// Check if this user hasn't responded
 				if (!in_array($user->getUID(), $respondedUserIds)) {
-					$nonRespondingUsers[] = $user->getDisplayName();
+					$nonRespondingUsers[] = [
+						'userId' => $user->getUID(),
+						'displayName' => $user->getDisplayName()
+					];
 				}
 			}
 		}
@@ -386,6 +395,51 @@ class AppointmentService {
 
 		return $result;
 	}
+
+	/**
+	 * Checkin a user's response (admin only)
+	 */
+	public function checkinResponse(
+		int $appointmentId,
+		string $targetUserId,
+		string $response,
+		string $comment,
+		string $adminUserId
+	): AttendanceResponse {
+		// Check if requesting user is admin
+		if (!$this->groupManager->isAdmin($adminUserId)) {
+			throw new \Exception('Only administrators can checkin responses');
+		}
+
+		// Validate response
+		if (!in_array($response, ['yes', 'no', 'maybe'])) {
+			throw new \InvalidArgumentException('Invalid response. Must be yes, no, or maybe.');
+		}
+
+		// Find existing response or create new one
+		try {
+			$attendanceResponse = $this->responseMapper->findByAppointmentAndUser($appointmentId, $targetUserId);
+		} catch (DoesNotExistException $e) {
+			// Create new response if none exists
+			$attendanceResponse = new AttendanceResponse();
+			$attendanceResponse->setAppointmentId($appointmentId);
+			$attendanceResponse->setUserId($targetUserId);
+		}
+
+		// Set checkin values
+		$attendanceResponse->setCheckinState($response);
+		$attendanceResponse->setCheckinComment($comment);
+		$attendanceResponse->setCheckinBy($adminUserId);
+		$attendanceResponse->setCheckinAt(date('Y-m-d H:i:s'));
+
+		// Save or update
+		if ($attendanceResponse->getId()) {
+			return $this->responseMapper->update($attendanceResponse);
+		} else {
+			return $this->responseMapper->insert($attendanceResponse);
+		}
+	}
+
 
 	/**
 	 * Convert ISO 8601 datetime to MySQL format
