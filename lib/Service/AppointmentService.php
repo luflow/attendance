@@ -235,10 +235,7 @@ class AppointmentService {
 		// Count responses by type and collect user groups
 		$respondedUserIds = [];
 		foreach ($responses as $response) {
-			$responseValue = $response->getCheckinState() ?: $response->getResponse();
-			if ($responseValue) {
-				$summary[$responseValue]++;
-			}
+			$summary[$response->getResponse()]++;
 			$respondedUserIds[] = $response->getUserId();
 			
 			// Get user groups for this response
