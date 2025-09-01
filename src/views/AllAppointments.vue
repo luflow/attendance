@@ -213,6 +213,46 @@
 									</div>
 								</div>
 							</div>
+
+							<!-- Others Section -->
+							<div v-if="appointment.responseSummary.others && hasOthersResponses(appointment)"
+								class="group-container">
+								<div class="group-stats clickable"
+									@click="toggleGroupExpansion(appointment.id, 'others')">
+									<div class="group-name">
+										<span class="expand-icon"
+											:class="{ expanded: isGroupExpanded(appointment.id, 'others') }">▶</span>
+										{{ t('attendance', 'Others') }}
+									</div>
+									<div class="group-counts">
+										<span class="stat yes">{{ appointment.responseSummary.others.yes }}</span>
+										<span class="stat maybe">{{ appointment.responseSummary.others.maybe }}</span>
+										<span class="stat no">{{ appointment.responseSummary.others.no }}</span>
+									</div>
+								</div>
+
+								<!-- Expanded Others Details -->
+								<div v-if="isGroupExpanded(appointment.id, 'others')" class="group-details">
+									<div v-if="appointment.responseSummary.others.responses.length > 0" class="group-responses">
+										<div v-for="response in appointment.responseSummary.others.responses"
+											:key="response.id" class="response-item">
+											<div class="response-header">
+												<strong>{{ response.userName }}</strong>
+												<span class="response-badge" :class="response.response">{{
+													getResponseText(response.response) }}</span>
+												<span v-if="response.isCheckedIn" class="checkin-badge">CheckIn</span>
+												<span v-if="response.isCheckedIn" class="response-badge" :class="response.checkinState">
+													{{ getResponseText(response.checkinState) }}
+												</span>
+											</div>
+											<div v-if="response.comment && response.comment.trim()"
+												class="response-comment">
+												{{ response.comment }}
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
 						</div>
 					</div>
 
@@ -468,6 +508,9 @@ export default {
 
 			// Return pre-filtered responses from backend
 			return appointment.responseSummary.by_group[groupId].responses
+		},
+		hasOthersResponses(appointment) {
+			return appointment.responseSummary.others && appointment.responseSummary.others.responses.length > 0
 		},
 		onStartDatetimeBlur() {
 			// Auto-set endDatetime if it's empty and startDatetime is set
@@ -846,7 +889,7 @@ export default {
 		}
 
 		.group-name {
-			min-width: 90px;
+			min-width: 100px;
 			font-weight: 500;
 			color: var(--color-text);
 			margin-right: 15px;

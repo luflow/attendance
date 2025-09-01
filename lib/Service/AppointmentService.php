@@ -252,42 +252,61 @@ class AppointmentService {
 			'no' => 0,
 			'maybe' => 0,
 			'no_response' => 0,
-			'by_group' => []
+			'by_group' => [],
+			'others' => [
+				'yes' => 0,
+				'no' => 0,
+				'maybe' => 0,
+				'responses' => []
+			]
 		];
 
 		// Count responses by type and collect user groups
 		$respondedUserIds = [];
+		$usersInWhitelistedGroups = [];
+		
 		foreach ($responses as $response) {
 			$summary[$response->getResponse()]++;
 			$respondedUserIds[] = $response->getUserId();
 			
 			// Get user groups for this response
 			$user = $this->userManager->get($response->getUserId());
+			$userInWhitelistedGroup = false;
+			
 			if ($user) {
 				$userGroups = $this->groupManager->getUserGroups($user);
 				foreach ($userGroups as $group) {
 					$groupId = $group->getGID();
 					
-					// Skip groups not in whitelist
-					if (!$this->isGroupAllowed($groupId)) {
-						continue;
+					// Check if group is in whitelist
+					if ($this->isGroupAllowed($groupId)) {
+						$userInWhitelistedGroup = true;
+						$usersInWhitelistedGroups[] = $response->getUserId();
+						
+						if (!isset($summary['by_group'][$groupId])) {
+							$summary['by_group'][$groupId] = [
+								'yes' => 0,
+								'no' => 0,
+								'maybe' => 0,
+								'no_response' => 0,
+								'responses' => []
+							];
+						}
+						$summary['by_group'][$groupId][$response->getResponse()]++;
+						
+						// Add the detailed response to this group
+						$responseData = $response->jsonSerialize();
+						$responseData['userName'] = $user->getDisplayName();
+						$summary['by_group'][$groupId]['responses'][] = $responseData;
 					}
-					
-					if (!isset($summary['by_group'][$groupId])) {
-						$summary['by_group'][$groupId] = [
-							'yes' => 0,
-							'no' => 0,
-							'maybe' => 0,
-							'no_response' => 0,
-							'responses' => []
-						];
-					}
-					$summary['by_group'][$groupId][$response->getResponse()]++;
-					
-					// Add the detailed response to this group
+				}
+				
+				// If user is not in any whitelisted group, add to "others"
+				if (!$userInWhitelistedGroup) {
+					$summary['others'][$response->getResponse()]++;
 					$responseData = $response->jsonSerialize();
 					$responseData['userName'] = $user->getDisplayName();
-					$summary['by_group'][$groupId]['responses'][] = $responseData;
+					$summary['others']['responses'][] = $responseData;
 				}
 			}
 		}
@@ -360,9 +379,7 @@ class AppointmentService {
 			}
 		}
 		
-		$totalUsersInGroups = count($usersInGroups);
-		$totalResponses = count($responses);
-		$summary['no_response'] = max(0, $totalUsersInGroups - $totalResponses);
+		$summary['no_response'] = count($nonRespondingUsers);
 		$summary['non_responding_users'] = $nonRespondingUsers;
 
 		return $summary;
