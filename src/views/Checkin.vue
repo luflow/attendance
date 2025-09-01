@@ -102,15 +102,13 @@
 								<div class="user-actions">
 									<div class="action-buttons">
 										<NcButton
-											:class="{ active: user.checkinState === 'yes' }"
-											:type="user.checkinState && user.checkinState !== 'yes' ? 'tertiary' : 'success'"
+											:type="user.checkinState === 'yes' || !user.checkinState ? 'success' : 'tertiary'"
 											size="small"
 											@click="checkinUser(user.userId, 'yes')">
 											{{ t('attendance', 'Present') }}
 										</NcButton>
 										<NcButton
-											:class="{ active: user.checkinState === 'no' }"
-											:type="user.checkinState && user.checkinState !== 'no' ? 'tertiary' : 'error'"
+											:type="user.checkinState === 'no' || !user.checkinState ? 'error' : 'tertiary'"
 											size="small"
 											@click="checkinUser(user.userId, 'no')">
 											{{ t('attendance', 'Absent') }}
@@ -663,22 +661,6 @@ export default {
 			}
 		}
 
-		button {
-			&:not(.active) {
-				background: var(--color-background-dark) !important;
-				color: var(--color-text-lighter) !important;
-				border-color: var(--color-border-dark) !important;
-
-				&:hover {
-					opacity: 0.8;
-				}
-			}
-
-			&.active {
-				font-weight: bold;
-				opacity: 1;
-			}
-		}
 	}
 
 	.comment-overlay {
