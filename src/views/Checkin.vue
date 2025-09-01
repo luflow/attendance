@@ -253,16 +253,11 @@ export default {
 	},
 
 	methods: {
-		async loadAppointmentData(preserveScrollPosition = false) {
-			let scrollPosition = 0
-			if (preserveScrollPosition) {
-				scrollPosition = window.pageYOffset || document.documentElement.scrollTop
-			}
-
+		async loadAppointmentData(skipLoadingSpinner = false) {
 			try {
-				// Don't show loading spinner when preserving scroll position
-				if (!preserveScrollPosition) {
-				this.loading = true
+				// Don't show loading spinner when refreshing data
+				if (!skipLoadingSpinner) {
+					this.loading = true
 				}
 				this.error = null
 
@@ -278,12 +273,6 @@ export default {
 				this.error = error.response?.data?.message || t('attendance', 'Failed to load appointment data')
 			} finally {
 				this.loading = false
-				
-				if (preserveScrollPosition) {
-					this.$nextTick(() => {
-						window.scrollTo(0, scrollPosition)
-					})
-				}
 			}
 		},
 

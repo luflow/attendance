@@ -336,9 +336,12 @@ export default {
 		await this.loadAppointments()
 	},
 	methods: {
-		async loadAppointments() {
+		async loadAppointments(skipLoadingSpinner = false) {
 			try {
-				this.loading = true
+				// Don't show loading spinner when refreshing data
+				if (!skipLoadingSpinner) {
+					this.loading = true
+				}
 				const params = this.showPastAppointments ? '?showPast=true' : ''
 				const response = await axios.get(generateUrl('/apps/attendance/api/appointments') + params)
 				this.appointments = response.data
@@ -380,7 +383,7 @@ export default {
 					startDatetime: '',
 					endDatetime: '',
 				}
-				await this.loadAppointments()
+				await this.loadAppointments(true)
 			} catch (error) {
 				console.error('Failed to create appointment:', error)
 			}
@@ -392,7 +395,7 @@ export default {
 					response,
 					comment,
 				})
-				await this.loadAppointments()
+				await this.loadAppointments(true)
 			} catch (error) {
 				console.error('Failed to submit response:', error)
 			}
@@ -407,7 +410,7 @@ export default {
 			if (confirm(this.t('attendance', 'Are you sure you want to delete this appointment?'))) {
 				try {
 					await axios.delete(generateUrl(`/apps/attendance/api/appointments/${appointmentId}`))
-					await this.loadAppointments()
+					await this.loadAppointments(true)
 				} catch (error) {
 					console.error('Failed to delete appointment:', error)
 				}
@@ -465,7 +468,7 @@ export default {
 					startDatetime: '',
 					endDatetime: '',
 				}
-				await this.loadAppointments()
+				await this.loadAppointments(true)
 			} catch (error) {
 				console.error('Failed to update appointment:', error)
 			}
@@ -493,7 +496,7 @@ export default {
 		},
 		async togglePastAppointments() {
 			this.showPastAppointments = !this.showPastAppointments
-			await this.loadAppointments()
+			await this.loadAppointments(true)
 		},
 		toggleGroupExpansion(appointmentId, groupId) {
 			const key = `${appointmentId}-${groupId}`
