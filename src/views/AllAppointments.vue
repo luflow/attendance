@@ -186,13 +186,17 @@
 										<div v-for="response in getGroupResponses(appointment, groupId)"
 											:key="response.id" class="response-item">
 											<div class="response-header">
-												<strong>{{ response.userName }}</strong>
-												<span class="response-badge" :class="response.response">{{
-													getResponseText(response.response) }}</span>
-												<span v-if="response.isCheckedIn" class="checkin-badge">CheckIn</span>
-												<span v-if="response.isCheckedIn" class="response-badge" :class="response.checkinState">
-													{{ getResponseText(response.checkinState) }}
-												</span>
+												<div class="user-info">
+													<strong>{{ response.userName }}</strong>
+													<span class="response-badge" :class="response.response">{{
+														getResponseText(response.response) }}</span>
+												</div>
+												<div v-if="response.isCheckedIn" class="checkin-info">
+													<span class="checkin-badge">Anwesend?</span>
+													<span class="response-badge" :class="response.checkinState">
+														{{ getResponseText(response.checkinState) }}
+													</span>
+												</div>
 											</div>
 											<div v-if="response.comment && response.comment.trim()"
 												class="response-comment">
@@ -237,13 +241,17 @@
 										<div v-for="response in appointment.responseSummary.others.responses"
 											:key="response.id" class="response-item">
 											<div class="response-header">
-												<strong>{{ response.userName }}</strong>
-												<span class="response-badge" :class="response.response">{{
-													getResponseText(response.response) }}</span>
-												<span v-if="response.isCheckedIn" class="checkin-badge">CheckIn</span>
-												<span v-if="response.isCheckedIn" class="response-badge" :class="response.checkinState">
-													{{ getResponseText(response.checkinState) }}
-												</span>
+												<div class="user-info">
+													<strong>{{ response.userName }}</strong>
+													<span class="response-badge" :class="response.response">{{
+														getResponseText(response.response) }}</span>
+												</div>
+												<div v-if="response.isCheckedIn" class="checkin-info">
+													<span class="checkin-badge">Anwesend?</span>
+													<span class="response-badge" :class="response.checkinState">
+														{{ getResponseText(response.checkinState) }}
+													</span>
+												</div>
 											</div>
 											<div v-if="response.comment && response.comment.trim()"
 												class="response-comment">
@@ -853,8 +861,26 @@ export default {
 		.response-header {
 			display: flex;
 			align-items: center;
+			justify-content: space-between;
 			margin-bottom: 5px;
 			gap: 10px;
+
+			.user-info {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+			}
+
+			.checkin-info {
+				display: flex;
+				align-items: center;
+				gap: 8px;
+			}
+
+			.checkin-badge {
+				font-size: 12px;
+				font-weight: bold;
+			}
 
 			.response-badge {
 				padding: 2px 8px;
