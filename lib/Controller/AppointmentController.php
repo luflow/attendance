@@ -188,7 +188,7 @@ class AppointmentController extends Controller {
 	 */
 	public function checkinResponse(int $appointmentId, string $targetUserId): DataResponse {
 		$response = $this->request->getParam('response');
-		$comment = $this->request->getParam('comment', '');
+		$comment = $this->request->getParam('comment');
 
 		try {
 			$result = $this->appointmentService->checkinResponse(

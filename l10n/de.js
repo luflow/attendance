@@ -13,8 +13,8 @@ OC.L10N.register(
         "Delete": "Löschen",
         "Appointment Name": "Terminname",
         "Description": "Beschreibung",
-        "Start Date & Time": "Start",
-        "End Date & Time": "Ende",
+        "Start": "Start",
+        "End": "Ende",
         "Save": "Speichern",
         "Cancel": "Abbrechen",
         "Delete": "Löschen",
@@ -98,6 +98,8 @@ OC.L10N.register(
         "Failed to load settings": "Fehler beim Laden der Einstellungen",
         "Failed to save settings": "Fehler beim Speichern der Einstellungen",
         "Start check-in": "Check-in starten",
+        "All attendees checked in": "Alle Teilnehmenden eingecheckt",
+        "{count} attendees not yet checked in": "{count} Teilnehmende noch nicht eingecheckt",
     },
     "nplurals=2; plural=(n != 1);"
 );
