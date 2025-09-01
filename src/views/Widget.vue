@@ -158,7 +158,10 @@ export default {
 				savingComments: {},
 				commentTimeouts: {},
 				title: t('attendance', 'Attendance'),
-				isAdmin: false,
+				permissions: {
+					canManageAppointments: false,
+					canCheckin: false,
+				},
 			}
 		} catch (error) {
 			console.error('Error loading appointments:', error)
@@ -174,7 +177,10 @@ export default {
 				savingComments: {},
 				commentTimeouts: {},
 				title: t('attendance', 'Attendance'),
-				isAdmin: false,
+				permissions: {
+					canManageAppointments: false,
+					canCheckin: false,
+				},
 			}
 		}
 	},
@@ -203,7 +209,7 @@ export default {
 	},
 
 	mounted() {
-		this.checkAdminStatus()
+		this.loadPermissions()
 	},
 
 	methods: {
@@ -326,19 +332,22 @@ export default {
 			window.location.href = generateUrl('/apps/attendance/')
 		},
 
-		async checkAdminStatus() {
+		async loadPermissions() {
 			try {
-				const url = generateUrl('/apps/attendance/api/user/admin-status')
+				const url = generateUrl('/apps/attendance/api/user/permissions')
 				const response = await axios.get(url)
-				this.isAdmin = response.data.isAdmin
+				this.permissions = response.data
 			} catch (error) {
-				console.error('Failed to check admin status:', error)
-				this.isAdmin = false
+				console.error('Failed to load permissions:', error)
+				this.permissions = {
+					canManageAppointments: false,
+					canCheckin: false,
+				}
 			}
 		},
 
 		showCheckinButton(item) {
-			if (!this.isAdmin) {
+			if (!this.permissions.canCheckin) {
 				return false
 			}
 

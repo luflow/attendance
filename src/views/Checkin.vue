@@ -78,14 +78,14 @@
 								size="small"
 								type="success"
 								:disabled="bulkProcessing"
-								@click="bulkCheckinAll('yes')">
+								@click="confirmBulkCheckin('yes')">
 								{{ t('attendance', 'All Present') }}
 							</NcButton>
 							<NcButton
 								size="small"
 								type="error"
 								:disabled="bulkProcessing"
-								@click="bulkCheckinAll('no')">
+								@click="confirmBulkCheckin('no')">
 								{{ t('attendance', 'All Absent') }}
 							</NcButton>
 						</div>
@@ -179,6 +179,24 @@
 				</div>
 			</div>
 		</div>
+
+		<!-- Confirmation Dialog -->
+		<NcDialog
+			:open="showConfirmDialog"
+			:name="t('attendance', 'Confirm Bulk Action')"
+			:message="confirmMessage"
+			@closing="cancelBulkAction">
+			<template #actions>
+				<NcButton @click="cancelBulkAction">
+					{{ t('attendance', 'Cancel') }}
+				</NcButton>
+				<NcButton
+					:type="pendingBulkAction === 'yes' ? 'success' : 'error'"
+					@click="executeBulkAction">
+					{{ t('attendance', 'Confirm') }}
+				</NcButton>
+			</template>
+		</NcDialog>
 	</div>
 </template>
 
@@ -196,6 +214,7 @@ import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
 import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
 import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
 import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
+import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
 
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
@@ -216,6 +235,7 @@ export default {
 		NcAvatar,
 		NcLoadingIcon,
 		NcEmptyContent,
+		NcDialog,
 	},
 
 	props: {
@@ -225,25 +245,27 @@ export default {
 		},
 	},
 
-	data() {
+		data() {
 		return {
 			loading: true,
 			error: null,
 			appointment: null,
-			respondingUsers: [],
-			nonRespondingUsers: [],
+			users: [],
 			bulkProcessing: false,
 			searchQuery: '',
 			selectedGroup: null,
 			userGroups: [],
 			showCommentInput: {},
 			checkinComments: {},
+			showConfirmDialog: false,
+			pendingBulkAction: null,
+			confirmMessage: '',
 		}
 	},
 
-	computed: {
+		computed: {
 		totalUsers() {
-			return this.respondingUsers.length + this.nonRespondingUsers.length
+			return this.users.length
 		},
 
 		groupOptions() {
@@ -254,19 +276,17 @@ export default {
 		},
 
 		filteredAllUsers() {
-			const allUsers = [...this.respondingUsers, ...this.nonRespondingUsers]
-			const filtered = this.filterUsers(allUsers)
+			const filtered = this.filterUsers(this.users)
 			// Always sort by display name alphabetically
 			return filtered.sort((a, b) => a.displayName.localeCompare(b.displayName))
 		},
 
 		checkinStatus() {
-			const allUsers = [...this.respondingUsers, ...this.nonRespondingUsers]
-			const checkedInUsers = allUsers.filter(user => user.checkinState)
-			const notCheckedInCount = allUsers.length - checkedInUsers.length
+			const checkedInUsers = this.users.filter(user => user.checkinState)
+			const notCheckedInCount = this.users.length - checkedInUsers.length
 			
 			return {
-				total: allUsers.length,
+				total: this.users.length,
 				checkedIn: checkedInUsers.length,
 				notCheckedIn: notCheckedInCount,
 				allCheckedIn: notCheckedInCount === 0
@@ -291,8 +311,7 @@ export default {
 				const response = await axios.get(url)
 
 				this.appointment = response.data.appointment
-				this.respondingUsers = response.data.respondingUsers || []
-				this.nonRespondingUsers = response.data.nonRespondingUsers || []
+				this.users = response.data.users || []
 				this.userGroups = response.data.userGroups || []
 			} catch (error) {
 				console.error('Failed to load appointment data:', error)
@@ -334,34 +353,29 @@ export default {
 			}
 		},
 
-		async bulkCheckinSection(section, response) {
-			if (this.bulkProcessing) return
 
-			this.bulkProcessing = true
-			const users = section === 'responding' ? this.respondingUsers : this.nonRespondingUsers
+		confirmBulkCheckin(response) {
+			const userCount = this.filteredAllUsers.length
+			const actionText = response === 'yes' ? this.t('attendance', 'attending') : this.t('attendance', 'not attending')
 			
-			try {
-				for (const user of users) {
-					await this.checkinUser(user.userId, response, false)
-				}
-				
-				// Reload data after bulk operation
-				await this.loadAppointmentData(true)
-			} catch (error) {
-				console.error('Bulk section check-in failed:', error)
-			} finally {
-				this.bulkProcessing = false
-			}
+			// Use string replacement for proper translation
+			this.confirmMessage = this.t('attendance', 'Do you really want to set all {count} users to {action}?')
+				.replace('{count}', userCount)
+				.replace('{action}', actionText)
+			
+			this.pendingBulkAction = response
+			this.showConfirmDialog = true
 		},
 
-		async bulkCheckinAll(response) {
+		async executeBulkAction() {
 			if (this.bulkProcessing) return
 
 			this.bulkProcessing = true
+			this.showConfirmDialog = false
 			
 			try {
 				for (const user of this.filteredAllUsers) {
-					await this.checkinUser(user.userId, response, false)
+					await this.checkinUser(user.userId, this.pendingBulkAction, false)
 				}
 				
 				// Reload data after bulk operation
@@ -370,7 +384,14 @@ export default {
 				console.error('Failed to bulk checkin users:', error)
 			} finally {
 				this.bulkProcessing = false
+				this.pendingBulkAction = null
 			}
+		},
+
+		cancelBulkAction() {
+			this.showConfirmDialog = false
+			this.pendingBulkAction = null
+			this.confirmMessage = ''
 		},
 
 		filterUsers(users) {
@@ -696,6 +717,7 @@ export default {
 		margin: 0;
 		display: flex;
 		align-items: center;
+		justify-content: flex-end;
 		gap: 6px;
 
 		.checkin-icon {

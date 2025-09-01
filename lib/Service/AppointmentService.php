@@ -19,13 +19,15 @@ class AppointmentService {
 	private IGroupManager $groupManager;
 	private IUserManager $userManager;
 	private IConfig $config;
+	private PermissionService $permissionService;
 
-	public function __construct(AppointmentMapper $appointmentMapper, AttendanceResponseMapper $responseMapper, IGroupManager $groupManager, IUserManager $userManager, IConfig $config) {
+	public function __construct(AppointmentMapper $appointmentMapper, AttendanceResponseMapper $responseMapper, IGroupManager $groupManager, IUserManager $userManager, IConfig $config, PermissionService $permissionService) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
 		$this->groupManager = $groupManager;
 		$this->userManager = $userManager;
 		$this->config = $config;
+		$this->permissionService = $permissionService;
 	}
 
 	/**
@@ -63,10 +65,6 @@ class AppointmentService {
 		string $endDatetime,
 		string $createdBy
 	): Appointment {
-		// Check if user is admin
-		if (!$this->groupManager->isAdmin($createdBy)) {
-			throw new \Exception('Only administrators can create appointments');
-		}
 
 		// Convert ISO 8601 datetime to MySQL format
 		$startFormatted = $this->formatDatetime($startDatetime);
@@ -98,10 +96,6 @@ class AppointmentService {
 	): Appointment {
 		$appointment = $this->appointmentMapper->find($id);
 		
-		// Check if user is admin or creator
-		if (!$this->groupManager->isAdmin($userId) && $appointment->getCreatedBy() !== $userId) {
-			throw new \Exception('Only administrators can update appointments');
-		}
 
 		// Convert ISO 8601 datetime to MySQL format
 		$startFormatted = $this->formatDatetime($startDatetime);
@@ -122,14 +116,17 @@ class AppointmentService {
 	public function deleteAppointment(int $id, string $userId): void {
 		$appointment = $this->appointmentMapper->find($id);
 		
-		// Check if user is admin or creator
-		if (!$this->groupManager->isAdmin($userId) && $appointment->getCreatedBy() !== $userId) {
-			throw new \Exception('Not authorized to delete this appointment');
-		}
 
 		$appointment->setIsActive(0);
 		$appointment->setUpdatedAt(date('Y-m-d H:i:s'));
 		$this->appointmentMapper->update($appointment);
+	}
+
+	/**
+	 * Get a single appointment by ID
+	 */
+	public function getAppointment(int $id): Appointment {
+		return $this->appointmentMapper->find($id);
 	}
 
 	/**
@@ -212,10 +209,6 @@ class AppointmentService {
 	 * Get all responses for an appointment with user details (admin only)
 	 */
 	public function getAppointmentResponsesWithUsers(int $appointmentId, string $requestingUserId): array {
-		// Check if requesting user is admin
-		if (!$this->groupManager->isAdmin($requestingUserId)) {
-			throw new \Exception('Only administrators can view detailed responses');
-		}
 
 		$responses = $this->responseMapper->findByAppointment($appointmentId);
 		$result = [];
@@ -389,8 +382,8 @@ class AppointmentService {
 	 * Get appointments with user responses
 	 */
 	public function getAppointmentsWithUserResponses(string $userId, bool $showPastAppointments = false): array {
-		// Admins can choose to see all or only upcoming appointments, regular users see only upcoming ones
-		if ($this->groupManager->isAdmin($userId) && $showPastAppointments) {
+		// Users with manage appointments permission can choose to see all or only upcoming appointments, regular users see only upcoming ones
+		if ($this->permissionService->canManageAppointments($userId) && $showPastAppointments) {
 			$appointments = $this->getAllAppointments();
 		} else {
 			$appointments = $this->getUpcomingAppointments();
@@ -431,7 +424,7 @@ class AppointmentService {
 	}
 
 	/**
-	 * Checkin a user's response (admin only)
+	 * Check-in an attendee
 	 */
 	public function checkinResponse(
 		int $appointmentId,
@@ -440,10 +433,6 @@ class AppointmentService {
 		?string $comment,
 		string $adminUserId
 	): AttendanceResponse {
-		// Check if requesting user is admin
-		if (!$this->groupManager->isAdmin($adminUserId)) {
-			throw new \Exception('Only administrators can checkin responses');
-		}
 
 		// Validate response if provided
 		if ($response !== null && !in_array($response, ['yes', 'no', 'maybe'])) {
@@ -480,7 +469,7 @@ class AppointmentService {
 
 
 	/**
-	 * Get check-in data for an appointment (admin only)
+	 * Get check-in data for an appointment
 	 */
 	public function getCheckinData(int $appointmentId): array {
 		// Get the appointment
@@ -492,9 +481,8 @@ class AppointmentService {
 		// Get all users in the system
 		$allUsers = $this->userManager->search('');
 		
-		// Organize users by response status
-		$respondingUsers = [];
-		$nonRespondingUsers = [];
+		// Create unified user list
+		$users = [];
 		$userResponseMap = [];
 		
 		// Create a map of user responses
@@ -516,7 +504,7 @@ class AppointmentService {
 		// Add "Others" group to the list for filtering
 		$userGroups[] = 'Others';
 		
-		// Categorize users
+		// Build unified user list
 		foreach ($allUsers as $user) {
 			$userId = $user->getUID();
 			$displayName = $user->getDisplayName();
@@ -541,34 +529,38 @@ class AppointmentService {
 				$effectiveGroups = ['Others'];
 			}
 			
+			// Create user data structure with response info if available
+			$userData = [
+				'userId' => $userId,
+				'displayName' => $displayName,
+				'groups' => $effectiveGroups,
+				'response' => null,
+				'comment' => null,
+				'isCheckedIn' => false,
+				'checkinState' => null,
+				'checkinComment' => null,
+				'checkinBy' => null,
+				'checkinAt' => null,
+			];
+			
+			// Add response data if user has responded
 			if (isset($userResponseMap[$userId])) {
 				$response = $userResponseMap[$userId];
-				
-				$respondingUsers[] = [
-					'userId' => $userId,
-					'displayName' => $displayName,
-					'response' => $response->getResponse(),
-					'comment' => $response->getComment(),
-					'isCheckedIn' => $response->isCheckedIn(),
-					'checkinState' => $response->getCheckinState(),
-					'checkinComment' => $response->getCheckinComment(),
-					'checkinBy' => $response->getCheckinBy(),
-					'checkinAt' => $response->getCheckinAt(),
-					'groups' => $effectiveGroups,
-				];
-			} else {
-				$nonRespondingUsers[] = [
-					'userId' => $userId,
-					'displayName' => $displayName,
-					'groups' => $effectiveGroups,
-				];
+				$userData['response'] = $response->getResponse();
+				$userData['comment'] = $response->getComment();
+				$userData['isCheckedIn'] = $response->isCheckedIn();
+				$userData['checkinState'] = $response->getCheckinState();
+				$userData['checkinComment'] = $response->getCheckinComment();
+				$userData['checkinBy'] = $response->getCheckinBy();
+				$userData['checkinAt'] = $response->getCheckinAt();
 			}
+			
+			$users[] = $userData;
 		}
 		
 		return [
 			'appointment' => $appointment->jsonSerialize(),
-			'respondingUsers' => $respondingUsers,
-			'nonRespondingUsers' => $nonRespondingUsers,
+			'users' => $users,
 			'userGroups' => array_values($userGroups),
 		];
 	}

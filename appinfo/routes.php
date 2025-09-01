@@ -2,7 +2,9 @@
 
 return [
 	'routes' => [
+		// Vue pages
 		['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
+		['name' => 'page#checkin', 'url' => '/checkin/{id}', 'verb' => 'GET'],
 		
 		// Appointment management routes
 		['name' => 'appointment#index', 'url' => '/api/appointments', 'verb' => 'GET'],
@@ -19,12 +21,13 @@ return [
 		
 		// Check-in functionality routes
 		['name' => 'appointment#checkinResponse', 'url' => '/api/appointments/{appointmentId}/checkin/{targetUserId}', 'verb' => 'POST'],
-		['name' => 'appointment#getAdminStatus', 'url' => '/api/user/admin-status', 'verb' => 'GET'],
 		['name' => 'appointment#getCheckinData', 'url' => '/api/appointments/{id}/checkin-data', 'verb' => 'GET'],
-		['name' => 'page#checkin', 'url' => '/checkin/{id}', 'verb' => 'GET'],
 		
 		// Admin settings
-		['name' => 'admin#getSettings', 'url' => '/admin/settings', 'verb' => 'GET'],
-		['name' => 'admin#saveSettings', 'url' => '/admin/settings', 'verb' => 'POST'],
+		['name' => 'admin#getSettings', 'url' => '/api/admin/settings', 'verb' => 'GET'],
+		['name' => 'admin#saveSettings', 'url' => '/api/admin/settings', 'verb' => 'POST'],
+
+		// User data
+		['name' => 'appointment#getPermissions', 'url' => '/api/user/permissions', 'verb' => 'GET'],
 	]
 ];
