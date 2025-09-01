@@ -4,15 +4,19 @@
 	<id>attendance</id>
 	<name>Attendance</name>
 	<name lang="de">Anwesenheit</name>
-	<summary>Event attendance management with advance RSVP functionality and group-based statistics</summary>
-	<summary lang="de">Veranstaltungsanwesenheitsverwaltung mit Vorab-RSVP-Funktionalität und gruppenbasierten Statistiken</summary>
-	<description><![CDATA[A small Nextcloud app for managing event attendance with advance RSVP functionality. 
+	<summary>Event attendance management with advance RSVP functionality, real-time check-in, and group-based statistics</summary>
+	<summary lang="de">Veranstaltungsanwesenheitsverwaltung mit Vorab-RSVP-Funktionalität, Echtzeit-Check-in und gruppenbasierten Statistiken</summary>
+	<description><![CDATA[A small Nextcloud app for managing event attendance with advance RSVP functionality and real-time check-in capabilities. 
 
 **For Administrators:**
 - Create and manage appointments with name, description, and date/time
 - Track responses with detailed attendance summaries organized by user groups
 - Identify non-responders to follow up
 - Toggle between upcoming and past appointments
+- **Check-in Management:** Dedicated interface to track actual attendance during events
+- **Bulk Operations:** Mark multiple users as present/absent with bulk check-in actions
+- **Admin Comments:** Add check-in specific comments for detailed attendance tracking
+- **Group Whitelisting:** Configure which user groups are included in attendance statistics and check-in lists
 
 **For All Users:**
 - Easy RSVP with Yes/No/Maybe responses to any appointment
@@ -24,15 +28,20 @@
 - Statistics automatically organized by Nextcloud user groups
 - See which group members haven't responded yet
 - Complete admin visibility into attendance across all groups
+- **Filtered Check-in:** Search and filter users by name or group during check-in process
 
-Perfect for organizations, teams, and communities that need to coordinate attendance for meetings, events, and activities.]]></description>
-	<description lang="de"><![CDATA[Eine kleine Nextcloud-App zur Verwaltung der Veranstaltungsanwesenheit mit Vorab-RSVP-Funktionalität.
+Perfect for organizations, teams, and communities that need to coordinate attendance for meetings, events, and activities with both advance planning and real-time attendance tracking.]]></description>
+	<description lang="de"><![CDATA[Eine kleine Nextcloud-App zur Verwaltung der Veranstaltungsanwesenheit mit Vorab-RSVP-Funktionalität und Echtzeit-Check-in-Funktionen.
 
 **Für Administratoren:**
 - Termine erstellen und verwalten mit Name, Beschreibung und Datum/Uhrzeit
 - Antworten verfolgen mit detaillierten Anwesenheitszusammenfassungen nach Benutzergruppen organisiert
 - Nicht-Antwortende identifizieren zum Nachfassen
 - Zwischen bevorstehenden und vergangenen Terminen wechseln
+- **Check-in-Verwaltung:** Dedizierte Benutzeroberfläche zur Verfolgung der tatsächlichen Anwesenheit während Veranstaltungen
+- **Massenoperationen:** Mehrere Benutzer gleichzeitig als anwesend/abwesend markieren
+- **Admin-Kommentare:** Check-in-spezifische Kommentare für detaillierte Anwesenheitsverfolgung hinzufügen
+- **Gruppen-Whitelist:** Konfigurieren, welche Benutzergruppen in Anwesenheitsstatistiken und Check-in-Listen enthalten sind
 
 **Für alle Benutzer:**
 - Einfache RSVP mit Ja/Nein/Vielleicht-Antworten auf jeden Termin
@@ -44,8 +53,9 @@ Perfect for organizations, teams, and communities that need to coordinate attend
 - Statistiken automatisch nach Nextcloud-Benutzergruppen organisiert
 - Sehen, welche Gruppenmitglieder noch nicht geantwortet haben
 - Vollständige Admin-Sichtbarkeit der Anwesenheit über alle Gruppen hinweg
+- **Gefilterte Check-in:** Benutzer nach Name oder Gruppe während des Check-in-Prozesses suchen und filtern
 
-Perfekt für Organisationen, Teams und Gemeinschaften, die die Anwesenheit bei Meetings, Veranstaltungen und Aktivitäten koordinieren müssen.]]></description>
+Perfekt für Organisationen, Teams und Gemeinschaften, die die Anwesenheit bei Meetings, Veranstaltungen und Aktivitäten sowohl im Voraus planen als auch in Echtzeit verfolgen müssen.]]></description>
 	<screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/screen-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/screen.jpg</screenshot>
     <screenshot>https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/admin.jpg</screenshot>
     <screenshot>https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/checkin.jpg</screenshot>
