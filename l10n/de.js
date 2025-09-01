@@ -5,6 +5,7 @@ OC.L10N.register(
         "Appointment Management": "Terminverwaltung",
         "Loading appointments...": "Termine werden geladen...",
         "By Group": "Nach Gruppe",
+        "Others": "Andere",
         "Show Past Appointments": "Vergangene Termine anzeigen",
         "Hide Past Appointments": "Vergangene Termine ausblenden",
         "Create Appointment": "+ Termin erstellen",
