@@ -2,10 +2,10 @@
 	<div id="attendance">
 		<div class="attendance-header">
 			<div class="header-buttons">
-				<NcButton v-if="isAdmin" type="primary" @click="showCreateForm = true">
+				<NcButton v-if="canManageAppointments" type="primary" @click="showCreateForm = true">
 					{{ t('attendance', 'Create Appointment') }}
 				</NcButton>
-				<NcActions v-if="isAdmin" :force-menu="true">
+				<NcActions v-if="canManageAppointments" :force-menu="true">
 					<NcActionButton @click="togglePastAppointments" :close-after-click="true">
 						<template #icon>
 							<History :size="20" />
@@ -82,20 +82,20 @@
 					<div class="appointment-header">
 						<h3>{{ appointment.name }}</h3>
 						<div class="appointment-actions">
-							<NcActions v-if="isAdmin || canEdit(appointment)" :force-menu="true">
-								<NcActionButton v-if="isAdmin" @click="startCheckin(appointment.id)" :close-after-click="true">
+							<NcActions v-if="canManageAppointments || canCheckin" :force-menu="true">
+								<NcActionButton v-if="canCheckin" @click="startCheckin(appointment.id)" :close-after-click="true">
 									<template #icon>
 										<ListStatusIcon :size="20" />
 									</template>
 									{{ t('attendance', 'Start check-in') }}
 								</NcActionButton>
-								<NcActionButton v-if="canEdit(appointment)" @click="editAppointment(appointment)" :close-after-click="true">
+								<NcActionButton v-if="canManageAppointments" @click="editAppointment(appointment)" :close-after-click="true">
 									<template #icon>
 										<Pencil :size="20" />
 									</template>
 									{{ t('attendance', 'Edit') }}
 								</NcActionButton>
-								<NcActionButton v-if="canEdit(appointment)" @click="deleteAppointment(appointment.id)" :close-after-click="true">
+								<NcActionButton v-if="canManageAppointments" @click="deleteAppointment(appointment.id)" :close-after-click="true">
 									<template #icon>
 										<Delete :size="20" />
 									</template>
@@ -325,14 +325,22 @@ export default {
 			currentUser: getCurrentUser(),
 			showPastAppointments: false,
 			expandedGroups: {},
+			permissions: {
+				canManageAppointments: false,
+				canCheckin: false,
+			},
 		}
 	},
 	computed: {
-		isAdmin() {
-			return this.currentUser?.isAdmin || false
+		canManageAppointments() {
+			return this.permissions.canManageAppointments
+		},
+		canCheckin() {
+			return this.permissions.canCheckin
 		},
 	},
 	async mounted() {
+		await this.loadPermissions()
 		await this.loadAppointments()
 	},
 	methods: {
@@ -353,8 +361,8 @@ export default {
 					}
 				})
 
-				// Load detailed responses for admins
-				if (this.isAdmin) {
+				// Load detailed responses for users who can manage appointments
+				if (this.canManageAppointments) {
 					await this.loadDetailedResponses()
 				}
 			} catch (error) {
@@ -419,8 +427,13 @@ export default {
 		getUserResponse(appointment) {
 			return appointment.userResponse?.response || null
 		},
-		canEdit(appointment) {
-			return this.isAdmin || appointment.createdBy === this.currentUser?.uid
+		async loadPermissions() {
+			try {
+				const response = await axios.get(generateUrl('/apps/attendance/api/user/permissions'))
+				this.permissions = response.data
+			} catch (error) {
+				console.error('Failed to load permissions:', error)
+			}
 		},
 		formatDateTime(dateTime) {
 			const options = {dateStyle:'short', timeStyle:'short'}

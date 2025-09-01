@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\Attendance\Controller;
 
 use OCA\Attendance\Settings\AdminSettings;
+use OCA\Attendance\Service\PermissionService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
@@ -13,12 +14,14 @@ use OCP\IUserSession;
 
 class AdminController extends Controller {
 	private AdminSettings $adminSettings;
+	private PermissionService $permissionService;
 	private IGroupManager $groupManager;
 	private IUserSession $userSession;
 
-	public function __construct(string $appName, IRequest $request, AdminSettings $adminSettings, IGroupManager $groupManager, IUserSession $userSession) {
+	public function __construct(string $appName, IRequest $request, AdminSettings $adminSettings, PermissionService $permissionService, IGroupManager $groupManager, IUserSession $userSession) {
 		parent::__construct($appName, $request);
 		$this->adminSettings = $adminSettings;
+		$this->permissionService = $permissionService;
 		$this->groupManager = $groupManager;
 		$this->userSession = $userSession;
 	}
@@ -39,23 +42,20 @@ class AdminController extends Controller {
 		}
 
 		try {
-			// Get all available groups
-			$allGroups = $this->groupManager->search('');
-			$groupOptions = [];
-			foreach ($allGroups as $group) {
-				$groupOptions[] = [
-					'id' => $group->getGID(),
-					'displayName' => $group->getDisplayName()
-				];
-			}
+			// Get all available groups (including admin)
+			$groupOptions = $this->permissionService->getAvailableGroups();
 
 			// Get currently configured whitelisted groups
 			$whitelistedGroups = $this->adminSettings->getWhitelistedGroups();
 
+			// Get permission settings
+			$permissionSettings = $this->permissionService->getAllPermissionSettings();
+
 			return new JSONResponse([
 				'success' => true,
 				'groups' => $groupOptions,
-				'whitelistedGroups' => $whitelistedGroups
+				'whitelistedGroups' => $whitelistedGroups,
+				'permissions' => $permissionSettings
 			]);
 		} catch (\Exception $e) {
 			return new JSONResponse(['success' => false, 'error' => $e->getMessage()]);
@@ -78,9 +78,16 @@ class AdminController extends Controller {
 		}
 
 		$whitelistedGroups = $this->request->getParam('whitelistedGroups', []);
+		$permissions = $this->request->getParam('permissions', []);
 		
 		try {
 			$this->adminSettings->setWhitelistedGroups($whitelistedGroups);
+			
+			// Save permission settings
+			if (!empty($permissions)) {
+				$this->permissionService->setAllPermissionSettings($permissions);
+			}
+			
 			return new JSONResponse(['success' => true]);
 		} catch (\Exception $e) {
 			return new JSONResponse(['success' => false, 'error' => $e->getMessage()]);

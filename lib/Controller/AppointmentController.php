@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\Attendance\Controller;
 
 use OCA\Attendance\Service\AppointmentService;
+use OCA\Attendance\Service\PermissionService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
@@ -13,6 +14,7 @@ use OCP\IGroupManager;
 
 class AppointmentController extends Controller {
 	private AppointmentService $appointmentService;
+	private PermissionService $permissionService;
 	private IUserSession $userSession;
 	private IGroupManager $groupManager;
 
@@ -20,11 +22,13 @@ class AppointmentController extends Controller {
 		string $appName,
 		IRequest $request,
 		AppointmentService $appointmentService,
+		PermissionService $permissionService,
 		IUserSession $userSession,
 		IGroupManager $groupManager
 	) {
 		parent::__construct($appName, $request);
 		$this->appointmentService = $appointmentService;
+		$this->permissionService = $permissionService;
 		$this->userSession = $userSession;
 		$this->groupManager = $groupManager;
 	}
@@ -57,9 +61,9 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
-		// Check if user is admin
-		if (!$this->groupManager->isAdmin($user->getUID())) {
-			return new DataResponse(['error' => 'Only administrators can create appointments'], 403);
+		// Check if user can manage appointments
+		if (!$this->permissionService->canManageAppointments($user->getUID())) {
+			return new DataResponse(['error' => 'Insufficient permissions to create appointments'], 403);
 		}
 
 		try {
@@ -91,6 +95,16 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
+		// Check if user can manage appointments or is creator
+		try {
+			$appointment = $this->appointmentService->getAppointment($id);
+			if (!$this->permissionService->canManageAppointments($user->getUID()) && $appointment->getCreatedBy() !== $user->getUID()) {
+				return new DataResponse(['error' => 'Insufficient permissions to update appointments'], 403);
+			}
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => 'Appointment not found'], 404);
+		}
+
 		try {
 			$appointment = $this->appointmentService->updateAppointment(
 				$id,
@@ -115,6 +129,16 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
+		// Check if user can manage appointments or is creator
+		try {
+			$appointment = $this->appointmentService->getAppointment($id);
+			if (!$this->permissionService->canManageAppointments($user->getUID()) && $appointment->getCreatedBy() !== $user->getUID()) {
+				return new DataResponse(['error' => 'Insufficient permissions to delete appointments'], 403);
+			}
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => 'Appointment not found'], 404);
+		}
+
 		try {
 			$this->appointmentService->deleteAppointment($id, $user->getUID());
 			return new DataResponse(['success' => true]);
@@ -131,6 +155,11 @@ class AppointmentController extends Controller {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		// Check if user can manage appointments
+		if (!$this->permissionService->canManageAppointments($user->getUID())) {
+			return new DataResponse(['error' => 'Insufficient permissions to view detailed responses'], 403);
 		}
 
 		try {
@@ -187,6 +216,16 @@ class AppointmentController extends Controller {
 	 * @NoAdminRequired
 	 */
 	public function checkinResponse(int $appointmentId, string $targetUserId): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		// Check if user can do checkins
+		if (!$this->permissionService->canCheckin($user->getUID())) {
+			return new DataResponse(['error' => 'Insufficient permissions to checkin responses'], 403);
+		}
+
 		$response = $this->request->getParam('response');
 		$comment = $this->request->getParam('comment');
 
@@ -196,7 +235,7 @@ class AppointmentController extends Controller {
 				$targetUserId,
 				$response,
 				$comment,
-				$this->userSession->getUser()->getUID()
+				$user->getUID()
 			);
 
 			return new DataResponse($result);
@@ -208,14 +247,16 @@ class AppointmentController extends Controller {
 	/**
 	 * @NoAdminRequired
 	 */
-	public function getAdminStatus(): DataResponse {
+	public function getPermissions(): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
-		$isAdmin = $this->groupManager->isAdmin($user->getUID());
-		return new DataResponse(['isAdmin' => $isAdmin]);
+		return new DataResponse([
+			'canManageAppointments' => $this->permissionService->canManageAppointments($user->getUID()),
+			'canCheckin' => $this->permissionService->canCheckin($user->getUID()),
+		]);
 	}
 
 	/**
@@ -227,9 +268,9 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
-		// Check if user is admin
-		if (!$this->groupManager->isAdmin($user->getUID())) {
-			return new DataResponse(['error' => 'Only administrators can access check-in data'], 403);
+		// Check if user can do checkins
+		if (!$this->permissionService->canCheckin($user->getUID())) {
+			return new DataResponse(['error' => 'Insufficient permissions to access check-in data'], 403);
 		}
 
 		try {
