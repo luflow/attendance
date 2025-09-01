@@ -6,6 +6,16 @@
 
 - Nightly changes here
 
+## 1.3.0 – 2025-09-02
+
+### Added
+
+- Added "Others" section to group responses in all appointment list for users not in whitelisted groups
+- Better behavior of lists no not jump back to beginning when clicking buttons
+- Added check-in status indicator with improved dark theme contrast for "maybe" buttons
+- Added group-based permissions for managing appointments and check-ins
+
+
 ## 1.2.0 – 2025-08-31
 
 ### Added
