@@ -437,7 +437,7 @@ class AppointmentService {
 		int $appointmentId,
 		string $targetUserId,
 		?string $response,
-		string $comment,
+		?string $comment,
 		string $adminUserId
 	): AttendanceResponse {
 		// Check if requesting user is admin
@@ -464,7 +464,9 @@ class AppointmentService {
 		if ($response !== null) {
 			$attendanceResponse->setCheckinState($response);
 		}
-		$attendanceResponse->setCheckinComment($comment);
+		if ($comment !== null) {
+			$attendanceResponse->setCheckinComment($comment);
+		}
 		$attendanceResponse->setCheckinBy($adminUserId);
 		$attendanceResponse->setCheckinAt(date('Y-m-d H:i:s'));
 
@@ -511,6 +513,9 @@ class AppointmentService {
 			$userGroups = $whitelistedGroups;
 		}
 		
+		// Add "Others" group to the list for filtering
+		$userGroups[] = 'Others';
+		
 		// Categorize users
 		foreach ($allUsers as $user) {
 			$userId = $user->getUID();
@@ -530,9 +535,10 @@ class AppointmentService {
 				}
 			}
 			
-			// Skip users not in whitelisted groups
+			// Add "Others" group for users not in whitelisted groups
+			$effectiveGroups = $userGroupIds;
 			if (!$userInWhitelistedGroup) {
-				continue;
+				$effectiveGroups = ['Others'];
 			}
 			
 			if (isset($userResponseMap[$userId])) {
@@ -548,13 +554,13 @@ class AppointmentService {
 					'checkinComment' => $response->getCheckinComment(),
 					'checkinBy' => $response->getCheckinBy(),
 					'checkinAt' => $response->getCheckinAt(),
-					'groups' => $userGroupIds,
+					'groups' => $effectiveGroups,
 				];
 			} else {
 				$nonRespondingUsers[] = [
 					'userId' => $userId,
 					'displayName' => $displayName,
-					'groups' => $userGroupIds,
+					'groups' => $effectiveGroups,
 				];
 			}
 		}

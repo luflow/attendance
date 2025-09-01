@@ -7,7 +7,6 @@
 				</template>
 				{{ t('attendance', 'Back') }}
 			</NcButton>
-			<h1>{{ t('attendance', 'Check-in') }}</h1>
 		</div>
 
 		<div v-if="loading" class="loading-container">
@@ -29,12 +28,24 @@
 		<div v-if="!loading && !error" class="checkin-content">
 			<!-- Appointment info -->
 			<div class="appointment-info">
-				<h2>{{ appointment.name }}</h2>
+				<h2>{{ t('attendance', 'Check-in') }}: {{ appointment.name }}</h2>
 				<p class="appointment-details">
 					<strong>{{ t('attendance', 'Start') }}:</strong> {{ formatDateTime(appointment.startDatetime) }}<br>
 					<strong>{{ t('attendance', 'End') }}:</strong> {{ formatDateTime(appointment.endDatetime) }}
 				</p>
 				<p v-if="appointment.description" class="appointment-description">{{ appointment.description }}</p>
+			</div>
+
+			<!-- Check-in status indicator -->
+			<div class="checkin-status">
+				<div v-if="checkinStatus.allCheckedIn" class="status-complete">
+					<CheckIcon :size="20" />
+					<span>{{ t('attendance', 'All attendees checked in') }}</span>
+				</div>
+				<div v-else class="status-pending">
+					<AlertIcon :size="20" />
+					<span>{{ t('attendance', '{count} attendees not yet checked in', { count: checkinStatus.notCheckedIn }) }}</span>
+				</div>
 			</div>
 
 			<!-- Search and filter controls -->
@@ -174,6 +185,7 @@
 <script>
 import ArrowLeftIcon from 'vue-material-design-icons/ArrowLeft.vue'
 import AlertIcon from 'vue-material-design-icons/Alert.vue'
+import CheckIcon from 'vue-material-design-icons/Check.vue'
 import MagnifyIcon from 'vue-material-design-icons/Magnify.vue'
 import CommentIcon from 'vue-material-design-icons/Comment.vue'
 
@@ -194,6 +206,7 @@ export default {
 	components: {
 		ArrowLeftIcon,
 		AlertIcon,
+		CheckIcon,
 		MagnifyIcon,
 		CommentIcon,
 		NcButton,
@@ -236,7 +249,7 @@ export default {
 		groupOptions() {
 			return this.userGroups.map(group => ({
 				id: group,
-				label: group
+				label: this.t('attendance', group),
 			}))
 		},
 
@@ -245,6 +258,19 @@ export default {
 			const filtered = this.filterUsers(allUsers)
 			// Always sort by display name alphabetically
 			return filtered.sort((a, b) => a.displayName.localeCompare(b.displayName))
+		},
+
+		checkinStatus() {
+			const allUsers = [...this.respondingUsers, ...this.nonRespondingUsers]
+			const checkedInUsers = allUsers.filter(user => user.checkinState)
+			const notCheckedInCount = allUsers.length - checkedInUsers.length
+			
+			return {
+				total: allUsers.length,
+				checkedIn: checkedInUsers.length,
+				notCheckedIn: notCheckedInCount,
+				allCheckedIn: notCheckedInCount === 0
+			}
 		},
 	},
 
@@ -463,7 +489,7 @@ export default {
 }
 
 .appointment-info {
-	margin-bottom: 30px;
+	margin-bottom: 20px;
 	padding: 20px;
 	background: var(--color-background-hover);
 	border-radius: var(--border-radius-large);
@@ -482,6 +508,42 @@ export default {
 		margin: 15px 0 0 0;
 		color: var(--color-main-text);
 		font-style: italic;
+	}
+}
+
+.checkin-status {
+	margin-bottom: 20px;
+	padding: 16px 20px;
+	background: var(--color-background-hover);
+	border-radius: var(--border-radius-large);
+	border-left: 4px solid transparent;
+
+	.status-complete {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		color: var(--color-success);
+		border-left-color: var(--color-success);
+
+		span {
+			font-weight: 600;
+		}
+	}
+
+	.status-pending {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		background: #ff8c00;
+		color: white;
+		border-left-color: #ff6600;
+		border-radius: var(--border-radius-large);
+		padding: 16px 20px;
+		margin: -16px -20px;
+
+		span {
+			font-weight: 600;
+		}
 	}
 }
 
@@ -573,25 +635,32 @@ export default {
 				border-radius: 12px;
 				font-size: 12px;
 				font-weight: bold;
+				color: white;
 
 				&.yes {
 					background: var(--color-success);
-					color: white;
 				}
 
 				&.maybe {
 					background: var(--color-warning);
-					color: white;
+				}
+				
+				body[data-theme-dark] &.maybe {
+					color: black;
+				}
+				
+				@media (prefers-color-scheme: dark) {
+					body[data-theme-default] &.maybe {
+						color: black;
+					}
 				}
 
 				&.no {
 					background: var(--color-error);
-					color: white;
 				}
 
 				&.no-response {
 					background: var(--color-text-maxcontrast);
-					color: white;
 				}
 			}
 
@@ -691,7 +760,16 @@ export default {
 
 					&.maybe {
 						background: var(--color-warning);
-						color: white;
+					}
+					
+					body[data-theme-dark] &.maybe {
+						color: black;
+					}
+					
+					@media (prefers-color-scheme: dark) {
+						body[data-theme-default] &.maybe {
+							color: black;
+						}
 					}
 
 					&.no {

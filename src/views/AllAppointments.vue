@@ -25,10 +25,10 @@
 						required />
 					<NcTextArea v-model="newAppointment.description" :label="t('attendance', 'Description')" />
 					<NcDateTimePickerNative v-model="newAppointment.startDatetime"
-						:label="t('attendance', 'Start Date & Time')" type="datetime-local" required 
+						:label="t('attendance', 'Start')" type="datetime-local" required 
 						@blur="onStartDatetimeBlur" />
 					<NcDateTimePickerNative ref="endDatetimePicker" v-model="newAppointment.endDatetime"
-						:label="t('attendance', 'End Date & Time')" type="datetime-local" required 
+						:label="t('attendance', 'End')" type="datetime-local" required 
 						:key="newAppointment.endDatetime" />
 					<div class="form-actions">
 						<NcButton type="secondary" @click="showCreateForm = false">
@@ -51,11 +51,11 @@
 						required />
 					<NcTextArea v-model="editingAppointment.description" :label="t('attendance', 'Description')" />
 					<div class="form-field">
-						<label>{{ t('attendance', 'Start Date & Time') }}</label>
+						<label>{{ t('attendance', 'Start') }}</label>
 						<input v-model="editingAppointment.startDatetime" type="datetime-local" required>
 					</div>
 					<div class="form-field">
-						<label>{{ t('attendance', 'End Date & Time') }}</label>
+						<label>{{ t('attendance', 'End') }}</label>
 						<input v-model="editingAppointment.endDatetime" type="datetime-local" required>
 					</div>
 					<div class="form-actions">
@@ -682,6 +682,16 @@ export default {
 				font-weight: bold;
 				opacity: 1;
 			}
+			
+			body[data-theme-dark] &.active.button-vue--vue-warning {
+				color: black !important;
+			}
+			
+			@media (prefers-color-scheme: dark) {
+				body[data-theme-default] &.active.button-vue--vue-warning {
+					color: black !important;
+				}
+			}
 		}
 	}
 
@@ -779,6 +789,16 @@ export default {
 		&.maybe {
 			background: var(--color-warning);
 		}
+		
+		body[data-theme-dark] &.maybe {
+			color: black;
+		}
+		
+		@media (prefers-color-scheme: dark) {
+			body[data-theme-default] &.maybe {
+				color: black;
+			}
+		}
 
 		&.no {
 			background: var(--color-error);
@@ -836,6 +856,16 @@ export default {
 
 				&.maybe {
 					background: var(--color-warning);
+				}
+				
+				body[data-theme-dark] &.maybe {
+					color: black;
+				}
+				
+				@media (prefers-color-scheme: dark) {
+					body[data-theme-default] &.maybe {
+						color: black;
+					}
 				}
 
 				&.no {
@@ -930,6 +960,16 @@ export default {
 
 				&.maybe {
 					background: var(--color-warning);
+				}
+				
+				body[data-theme-dark] &.maybe {
+					color: black;
+				}
+				
+				@media (prefers-color-scheme: dark) {
+					body[data-theme-default] &.maybe {
+						color: black;
+					}
 				}
 
 				&.no {
@@ -1054,6 +1094,16 @@ export default {
 
 					&.maybe {
 						background: var(--color-warning);
+					}
+					
+					body[data-theme-dark] &.maybe {
+						color: black;
+					}
+					
+					@media (prefers-color-scheme: dark) {
+						body[data-theme-default] &.maybe {
+							color: black;
+						}
 					}
 
 					&.no {
