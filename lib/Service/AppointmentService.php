@@ -266,7 +266,14 @@ class AppointmentService {
 		$usersInWhitelistedGroups = [];
 		
 		foreach ($responses as $response) {
-			$summary[$response->getResponse()]++;
+			$responseValue = $response->getResponse();
+			
+			// Skip invalid or empty responses
+			if (!in_array($responseValue, ['yes', 'no', 'maybe'], true)) {
+				continue;
+			}
+			
+			$summary[$responseValue]++;
 			$respondedUserIds[] = $response->getUserId();
 			
 			// Get user groups for this response
@@ -292,7 +299,7 @@ class AppointmentService {
 								'responses' => []
 							];
 						}
-						$summary['by_group'][$groupId][$response->getResponse()]++;
+						$summary['by_group'][$groupId][$responseValue]++;
 						
 						// Add the detailed response to this group
 						$responseData = $response->jsonSerialize();
@@ -303,7 +310,7 @@ class AppointmentService {
 				
 				// If user is not in any whitelisted group, add to "others"
 				if (!$userInWhitelistedGroup) {
-					$summary['others'][$response->getResponse()]++;
+					$summary['others'][$responseValue]++;
 					$responseData = $response->jsonSerialize();
 					$responseData['userName'] = $user->getDisplayName();
 					$summary['others']['responses'][] = $responseData;

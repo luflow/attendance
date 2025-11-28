@@ -53,6 +53,7 @@ const props = defineProps({
 const appointments = ref([])
 const loading = ref(true)
 const showEditForm = ref(false)
+const responseComments = reactive({})
 const editingAppointment = reactive({
 	id: null,
 	name: '',
