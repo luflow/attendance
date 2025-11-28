@@ -122,6 +122,9 @@ OC.L10N.register(
         "Do you really want to set all {count} users to {action}?": "Möchten Sie wirklich alle {count} Benutzer auf {action} setzen?",
         "attending": "anwesend",
         "not attending": "nicht anwesend",
+        "Export": "Exportieren",
+        "Export created successfully: {filename}": "Export erfolgreich erstellt: {filename}",
+        "Failed to export appointments": "Fehler beim Exportieren der Termine",
     },
     "nplurals=2; plural=(n != 1);"
 );

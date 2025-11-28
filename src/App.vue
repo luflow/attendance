@@ -60,6 +60,14 @@
 						<PlusIcon :size="20" />
 					</template>
 				</NcAppNavigationItem>
+				<NcAppNavigationItem
+					v-if="canManageAppointments"
+					:name="t('attendance', 'Export')"
+					@click.prevent="exportAppointments">
+					<template #icon>
+						<DownloadIcon :size="20" />
+					</template>
+				</NcAppNavigationItem>
 			</template>
 		</NcAppNavigation>
 
@@ -106,6 +114,7 @@ import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import CalendarClockIcon from 'vue-material-design-icons/CalendarClock.vue'
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
 import PlusIcon from 'vue-material-design-icons/Plus.vue'
+import DownloadIcon from 'vue-material-design-icons/Download.vue'
 
 const currentView = ref(null) // 'current', 'past', 'appointment', 'checkin', or null
 const checkinAppointmentId = ref(null)
@@ -218,6 +227,26 @@ const handleCreateModalSubmit = async (formData) => {
 	} catch (error) {
 		console.error('Failed to create appointment:', error)
 		showError(t('attendance', 'Error creating appointment'))
+	}
+}
+
+const exportAppointments = async () => {
+	try {
+		const response = await axios.post(generateUrl('/apps/attendance/api/export'))
+		
+		if (response.data.success) {
+			showSuccess(t('attendance', 'Export created successfully: {filename}', { filename: response.data.filename }))
+			
+			// Navigate to the Attendance folder in Files app
+			const filesUrl = generateUrl('/apps/files/?dir=/Attendance')
+			window.location.href = filesUrl
+		} else {
+			showError(t('attendance', 'Failed to export appointments'))
+		}
+	} catch (error) {
+		console.error('Failed to export appointments:', error)
+		const errorMessage = error.response?.data?.error || t('attendance', 'Failed to export appointments')
+		showError(errorMessage)
 	}
 }
 
