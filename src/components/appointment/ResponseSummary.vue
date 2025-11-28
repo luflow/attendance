@@ -220,6 +220,11 @@ const getResponseVariant = (response) => {
 		.group-counts {
 			display: flex;
 			gap: 6px;
+
+			:deep(.nc-chip) {
+				min-width: 35px;
+				text-align: center;
+			}
 		}
 	}
 
