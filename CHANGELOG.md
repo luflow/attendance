@@ -6,6 +6,25 @@
 
 - Nightly changes here
 
+## 1.4.0 – 2025-11-28
+
+### Added
+
+- Adds main menu for app for faster access to single appointments
+- Appointments are now directly linkable, new action "Share Link" in each appointment available
+- Markdown rendering support for appointment descriptions in check-in view
+- Global Nextcloud version detection for CSS compatibility layers
+
+### Changed
+
+- Appointment creation form now accessible from main navigation menu
+- Updated all dependencies to be compatible with NextCloud 32
+- Updated all buttons to use modern `variant` API instead of deprecated `type` prop
+
+### Fixed
+
+- Textarea placeholders now remain visible until text is entered in comment sections
+
 ## 1.3.0 – 2025-09-02
 
 ### Added

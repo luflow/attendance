@@ -1,6 +1,6 @@
 module.exports = {
 	extends: [
-		'@nextcloud',
+		'@nextcloud/eslint-config/vue3',
 	],
 	rules: {
 		'jsdoc/require-jsdoc': 'off',

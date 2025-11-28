@@ -42,7 +42,7 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
-		$showPastAppointments = $this->request->getParam('showPast', 'false') === 'true';
+		$showPastAppointments = $this->request->getParam('showPastAppointments', 'false') === 'true';
 		$appointments = $this->appointmentService->getAppointmentsWithUserResponses($user->getUID(), $showPastAppointments);
 		return new DataResponse($appointments);
 	}

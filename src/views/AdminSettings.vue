@@ -93,120 +93,106 @@
 	</div>
 </template>
 
-<script>
+<script setup>
+import { ref, onMounted } from 'vue'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
-import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
+import { NcSelect, NcButton, NcLoadingIcon } from '@nextcloud/vue'
 
-export default {
-	name: 'AdminSettings',
+// State
+const availableGroups = ref([])
+const selectedGroups = ref([])
+const selectedManageAppointmentsRoles = ref([])
+const selectedCheckinRoles = ref([])
+const loading = ref(false)
+const loadingData = ref(true)
 
-	components: {
-		NcSelect,
-		NcButton,
-		NcLoadingIcon,
-	},
+// Methods
+const loadSettings = async () => {
+	loadingData.value = true
 
-	data() {
-		return {
-			availableGroups: [],
-			selectedGroups: [],
-			selectedManageAppointmentsRoles: [],
-			selectedCheckinRoles: [],
-			loading: false,
-			loadingData: true,
+	try {
+		const response = await axios.get(
+			generateUrl('/apps/attendance/api/admin/settings')
+		)
+
+		if (response.data.success) {
+			availableGroups.value = response.data.groups
+			// Convert selected IDs to selected group objects for NcSelect
+			selectedGroups.value = response.data.groups.filter(group => 
+				response.data.whitelistedGroups.includes(group.id)
+			)
+			
+			// Load permission settings
+			if (response.data.permissions) {
+				selectedManageAppointmentsRoles.value = response.data.groups.filter(group => 
+					response.data.permissions.manage_appointments.includes(group.id)
+				)
+				selectedCheckinRoles.value = response.data.groups.filter(group => 
+					response.data.permissions.checkin.includes(group.id)
+				)
+			}
+		} else {
+			showError(window.t('attendance', 'Failed to load settings') + 
+				(response.data.error ? ': ' + response.data.error : ''))
 		}
-	},
-
-	async mounted() {
-		await this.loadSettings()
-	},
-
-	methods: {
-		async loadSettings() {
-			this.loadingData = true
-
-			try {
-				const response = await axios.get(
-					generateUrl('/apps/attendance/api/admin/settings')
-				)
-
-				if (response.data.success) {
-					this.availableGroups = response.data.groups
-					// Convert selected IDs to selected group objects for NcSelect
-					this.selectedGroups = response.data.groups.filter(group => 
-						response.data.whitelistedGroups.includes(group.id)
-					)
-					
-					// Load permission settings
-					if (response.data.permissions) {
-						this.selectedManageAppointmentsRoles = response.data.groups.filter(group => 
-							response.data.permissions.manage_appointments.includes(group.id)
-						)
-						this.selectedCheckinRoles = response.data.groups.filter(group => 
-							response.data.permissions.checkin.includes(group.id)
-						)
-					}
-				} else {
-					showError(this.t('attendance', 'Failed to load settings') + 
-						(response.data.error ? ': ' + response.data.error : ''))
-				}
-			} catch (error) {
-				console.error('Error loading settings:', error)
-				showError(this.t('attendance', 'Failed to load settings'))
-			} finally {
-				this.loadingData = false
-			}
-		},
-
-		onGroupSelectionChange(selectedGroups) {
-			this.selectedGroups = selectedGroups || []
-		},
-
-		onManageAppointmentsRolesChange(selectedRoles) {
-			this.selectedManageAppointmentsRoles = selectedRoles || []
-		},
-
-		onCheckinRolesChange(selectedRoles) {
-			this.selectedCheckinRoles = selectedRoles || []
-		},
-
-		async saveSettings() {
-			this.loading = true
-
-			try {
-				// Convert selected group objects to IDs for API
-				const selectedGroupIds = this.selectedGroups.map(group => group.id)
-				
-				const response = await axios.post(
-					generateUrl('/apps/attendance/api/admin/settings'),
-					{
-						whitelistedGroups: selectedGroupIds,
-						permissions: {
-							manage_appointments: this.selectedManageAppointmentsRoles.map(role => role.id),
-							checkin: this.selectedCheckinRoles.map(role => role.id)
-						}
-					}
-				)
-
-				if (response.data.success) {
-					showSuccess(this.t('attendance', 'Settings saved successfully'))
-				} else {
-					showError(this.t('attendance', 'Failed to save settings') + 
-						(response.data.error ? ': ' + response.data.error : ''))
-				}
-			} catch (error) {
-				console.error('Error saving settings:', error)
-				showError(this.t('attendance', 'Failed to save settings'))
-			} finally {
-				this.loading = false
-			}
-		},
-	},
+	} catch (error) {
+		console.error('Error loading settings:', error)
+		showError(window.t('attendance', 'Failed to load settings'))
+	} finally {
+		loadingData.value = false
+	}
 }
+
+const onGroupSelectionChange = (selected) => {
+	selectedGroups.value = selected || []
+}
+
+const onManageAppointmentsRolesChange = (selected) => {
+	selectedManageAppointmentsRoles.value = selected || []
+}
+
+const onCheckinRolesChange = (selected) => {
+	selectedCheckinRoles.value = selected || []
+}
+
+const saveSettings = async () => {
+	loading.value = true
+
+	try {
+		// Convert selected group objects to IDs for API
+		const selectedGroupIds = selectedGroups.value.map(group => group.id)
+		
+		const response = await axios.post(
+			generateUrl('/apps/attendance/api/admin/settings'),
+			{
+				whitelistedGroups: selectedGroupIds,
+				permissions: {
+					manage_appointments: selectedManageAppointmentsRoles.value.map(role => role.id),
+					checkin: selectedCheckinRoles.value.map(role => role.id)
+				}
+			}
+		)
+
+		if (response.data.success) {
+			showSuccess(window.t('attendance', 'Settings saved successfully'))
+		} else {
+			showError(window.t('attendance', 'Failed to save settings') + 
+				(response.data.error ? ': ' + response.data.error : ''))
+		}
+	} catch (error) {
+		console.error('Error saving settings:', error)
+		showError(window.t('attendance', 'Failed to save settings'))
+	} finally {
+		loading.value = false
+	}
+}
+
+// Lifecycle
+onMounted(async () => {
+	await loadSettings()
+})
 </script>
 
 <style scoped>

@@ -1,74 +1,11 @@
 <template>
-	<div id="attendance">
-		<div class="attendance-header">
-			<div class="header-buttons">
-				<NcButton v-if="canManageAppointments" type="primary" @click="showCreateForm = true">
-					{{ t('attendance', 'Create Appointment') }}
-				</NcButton>
-				<NcActions v-if="canManageAppointments" :force-menu="true">
-					<NcActionButton @click="togglePastAppointments" :close-after-click="true">
-						<template #icon>
-							<History :size="20" />
-						</template>
-						{{ showPastAppointments ? t('attendance', 'Hide Past Appointments') : t('attendance', 'Show Past Appointments') }}
-					</NcActionButton>
-				</NcActions>
-			</div>
-		</div>
-
-		<!-- Create Appointment Modal -->
-		<NcModal v-if="showCreateForm" @close="showCreateForm = false">
-			<div class="modal-content">
-				<h2>{{ t('attendance', 'Create Appointment') }}</h2>
-				<form @submit.prevent="createAppointment">
-					<NcTextField v-model="newAppointment.name" :label="t('attendance', 'Appointment Name')"
-						required />
-					<NcTextArea v-model="newAppointment.description" :label="t('attendance', 'Description')" />
-					<NcDateTimePickerNative v-model="newAppointment.startDatetime"
-						:label="t('attendance', 'Start')" type="datetime-local" required 
-						@blur="onStartDatetimeBlur" />
-					<NcDateTimePickerNative ref="endDatetimePicker" v-model="newAppointment.endDatetime"
-						:label="t('attendance', 'End')" type="datetime-local" required 
-						:key="newAppointment.endDatetime" />
-					<div class="form-actions">
-						<NcButton type="secondary" @click="showCreateForm = false">
-							{{ t('attendance', 'Cancel') }}
-						</NcButton>
-						<NcButton type="primary" native-type="submit">
-							{{ t('attendance', 'Save') }}
-						</NcButton>
-					</div>
-				</form>
-			</div>
-		</NcModal>
-
+	<div class="attendance-container">
 		<!-- Edit Appointment Modal -->
-		<NcModal v-if="showEditForm" @close="showEditForm = false">
-			<div class="modal-content">
-				<h2>{{ t('attendance', 'Edit') }}</h2>
-				<form @submit.prevent="updateAppointment">
-					<NcTextField v-model="editingAppointment.name" :label="t('attendance', 'Appointment Name')"
-						required />
-					<NcTextArea v-model="editingAppointment.description" :label="t('attendance', 'Description')" />
-					<div class="form-field">
-						<label>{{ t('attendance', 'Start') }}</label>
-						<input v-model="editingAppointment.startDatetime" type="datetime-local" required>
-					</div>
-					<div class="form-field">
-						<label>{{ t('attendance', 'End') }}</label>
-						<input v-model="editingAppointment.endDatetime" type="datetime-local" required>
-					</div>
-					<div class="form-actions">
-						<NcButton type="secondary" @click="showEditForm = false">
-							{{ t('attendance', 'Cancel') }}
-						</NcButton>
-						<NcButton type="primary" native-type="submit">
-							{{ t('attendance', 'Save') }}
-						</NcButton>
-					</div>
-				</form>
-			</div>
-		</NcModal>
+		<AppointmentFormModal
+			:show="showEditForm"
+			:appointment="editingAppointment.id ? editingAppointment : null"
+			@close="handleModalClose"
+			@submit="handleModalSubmit" />
 		<!-- Appointments List -->
 		<div class="appointments-list">
 			<div v-if="loading" class="loading">
@@ -78,492 +15,232 @@
 				{{ t('attendance', 'No appointments found') }}
 			</div>
 			<div v-else>
-				<div v-for="appointment in appointments" :key="appointment.id" class="appointment-card">
-					<div class="appointment-header">
-						<h3>{{ appointment.name }}</h3>
-						<div class="appointment-actions">
-							<NcActions v-if="canManageAppointments || canCheckin" :force-menu="true">
-								<NcActionButton v-if="canCheckin" @click="startCheckin(appointment.id)" :close-after-click="true">
-									<template #icon>
-										<ListStatusIcon :size="20" />
-									</template>
-									{{ t('attendance', 'Start check-in') }}
-								</NcActionButton>
-								<NcActionButton v-if="canManageAppointments" @click="editAppointment(appointment)" :close-after-click="true">
-									<template #icon>
-										<Pencil :size="20" />
-									</template>
-									{{ t('attendance', 'Edit') }}
-								</NcActionButton>
-								<NcActionButton v-if="canManageAppointments" @click="deleteAppointment(appointment.id)" :close-after-click="true">
-									<template #icon>
-										<Delete :size="20" />
-									</template>
-									{{ t('attendance', 'Delete') }}
-								</NcActionButton>
-							</NcActions>
-						</div>
-					</div>
-					<p v-if="appointment.description" class="appointment-description">
-						{{ appointment.description }}
-					</p>
-					<div class="appointment-time">
-						<strong>{{ t('attendance', 'Start Date & Time') }}:</strong> {{
-							formatDateTime(appointment.startDatetime) }}<br>
-						<strong>{{ t('attendance', 'End Date & Time') }}:</strong> {{
-							formatDateTime(appointment.endDatetime) }}
-					</div>
-
-					<!-- Response Section -->
-					<div class="response-section">
-						<h4>{{ t('attendance', 'Your Response') }}</h4>
-						<div class="response-buttons">
-							<NcButton :class="{ active: getUserResponse(appointment) === 'yes' }" type="success"
-								@click="submitResponse(appointment.id, 'yes')">
-								{{ t('attendance', 'Yes') }}
-							</NcButton>
-							<NcButton :class="{ active: getUserResponse(appointment) === 'maybe' }" type="warning"
-								@click="submitResponse(appointment.id, 'maybe')">
-								{{ t('attendance', 'Maybe') }}
-							</NcButton>
-							<NcButton :class="{ active: getUserResponse(appointment) === 'no' }" type="error"
-								@click="submitResponse(appointment.id, 'no')">
-								{{ t('attendance', 'No') }}
-							</NcButton>
-						</div>
-
-						<!-- Comment Section -->
-						<div v-if="getUserResponse(appointment)" class="comment-section">
-							<NcTextArea v-model="responseComments[appointment.id]"
-								:label="t('attendance', 'Comment (optional)')" />
-							<div class="comment-actions">
-								<NcButton type="primary" @click="updateComment(appointment.id)">
-									{{ t('attendance', 'Save') }}
-								</NcButton>
-							</div>
-						</div>
-					</div>
-
-					<!-- Response Summary -->
-					<div v-if="appointment.responseSummary" class="response-summary">
-						<h4>{{ t('attendance', 'Response Summary') }}</h4>
-						<div class="summary-stats">
-							<span class="stat yes">{{ t('attendance', 'Yes') }}: {{
-							appointment.responseSummary.yes }}</span>
-							<span class="stat maybe">{{ t('attendance', 'Maybe') }}: {{
-							appointment.responseSummary.maybe }}</span>
-							<span class="stat no">{{ t('attendance', 'No') }}: {{
-							appointment.responseSummary.no }}</span>
-							<span class="stat no-response">{{ t('attendance', 'No Response') }}: {{
-							appointment.responseSummary.no_response }}</span>
-						</div>
-
-						<!-- Group-based Summary -->
-						<div v-if="appointment.responseSummary.by_group && Object.keys(appointment.responseSummary.by_group).length > 0"
-							class="group-summary">
-							<h5>{{ t('attendance', 'By Group') }}</h5>
-							<div v-for="(groupStats, groupId) in appointment.responseSummary.by_group"
-								:key="groupId" class="group-container">
-								<div class="group-stats clickable"
-									@click="toggleGroupExpansion(appointment.id, groupId)">
-									<div class="group-name">
-										<span class="expand-icon"
-											:class="{ expanded: isGroupExpanded(appointment.id, groupId) }">▶</span>
-										{{ groupId }}
-									</div>
-									<div class="group-counts">
-										<span class="stat yes">{{ groupStats.yes }}</span>
-										<span class="stat maybe">{{ groupStats.maybe }}</span>
-										<span class="stat no">{{ groupStats.no }}</span>
-										<span class="stat no-response">{{ groupStats.no_response }}</span>
-									</div>
-								</div>
-
-								<!-- Expanded Group Details -->
-								<div v-if="isGroupExpanded(appointment.id, groupId)" class="group-details">
-									<!-- Show responses if any exist -->
-									<div v-if="getGroupResponses(appointment, groupId).length > 0" class="group-responses">
-										<div v-for="response in getGroupResponses(appointment, groupId)"
-											:key="response.id" class="response-item">
-											<div class="response-header">
-												<div class="user-info">
-													<strong>{{ response.userName }}</strong>
-													<span class="response-badge" :class="response.response">{{
-														getResponseText(response.response) }}</span>
-												</div>
-												<div v-if="response.isCheckedIn" class="checkin-info">
-													<span class="checkin-badge">Anwesend?</span>
-													<span class="response-badge" :class="response.checkinState">
-														{{ getResponseText(response.checkinState) }}
-													</span>
-												</div>
-											</div>
-											<div v-if="response.comment && response.comment.trim()"
-												class="response-comment">
-												{{ response.comment }}
-											</div>
-										</div>
-									</div>
-
-									<!-- Always show non-responding users if any exist -->
-									<div v-if="appointment.responseSummary.by_group[groupId].non_responding_users && appointment.responseSummary.by_group[groupId].non_responding_users.length > 0"
-										class="non-responding-users">
-										<div class="non-responding-header">
-											{{ t('attendance', 'No response yet:') }}
-										</div>
-										<div class="non-responding-list">
-											{{ appointment.responseSummary.by_group[groupId].non_responding_users.map(u => u.displayName).join(', ') }}
-										</div>
-									</div>
-								</div>
-							</div>
-
-							<!-- Others Section -->
-							<div v-if="appointment.responseSummary.others && hasOthersResponses(appointment)"
-								class="group-container">
-								<div class="group-stats clickable"
-									@click="toggleGroupExpansion(appointment.id, 'others')">
-									<div class="group-name">
-										<span class="expand-icon"
-											:class="{ expanded: isGroupExpanded(appointment.id, 'others') }">▶</span>
-										{{ t('attendance', 'Others') }}
-									</div>
-									<div class="group-counts">
-										<span class="stat yes">{{ appointment.responseSummary.others.yes }}</span>
-										<span class="stat maybe">{{ appointment.responseSummary.others.maybe }}</span>
-										<span class="stat no">{{ appointment.responseSummary.others.no }}</span>
-									</div>
-								</div>
-
-								<!-- Expanded Others Details -->
-								<div v-if="isGroupExpanded(appointment.id, 'others')" class="group-details">
-									<div v-if="appointment.responseSummary.others.responses.length > 0" class="group-responses">
-										<div v-for="response in appointment.responseSummary.others.responses"
-											:key="response.id" class="response-item">
-											<div class="response-header">
-												<div class="user-info">
-													<strong>{{ response.userName }}</strong>
-													<span class="response-badge" :class="response.response">{{
-														getResponseText(response.response) }}</span>
-												</div>
-												<div v-if="response.isCheckedIn" class="checkin-info">
-													<span class="checkin-badge">Anwesend?</span>
-													<span class="response-badge" :class="response.checkinState">
-														{{ getResponseText(response.checkinState) }}
-													</span>
-												</div>
-											</div>
-											<div v-if="response.comment && response.comment.trim()"
-												class="response-comment">
-												{{ response.comment }}
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-
-					<!-- Non-responding users section -->
-					<div v-if="appointment.responseSummary && appointment.responseSummary.non_responding_users && appointment.responseSummary.non_responding_users.length > 0"
-						class="non-responding-users-section">
-						<h4>{{ t('attendance', 'Non-responding users') }}</h4>
-						<div class="non-responding-users-list">
-							{{ appointment.responseSummary.non_responding_users.map(u => u.displayName).join(', ') }}
-						</div>
-					</div>
-				</div>
+				<!-- Use reusable AppointmentCard component -->
+				<AppointmentCard
+					v-for="appointment in appointments"
+					:key="appointment.id"
+					:appointment="appointment"
+					:can-manage-appointments="canManageAppointments"
+					:can-checkin="canCheckin"
+					@start-checkin="startCheckin"
+					@edit="editAppointment"
+					@delete="deleteAppointment"
+					@submit-response="submitResponse"
+					@update-comment="updateComment" />
 			</div>
 		</div>
 	</div>
 </template>
 
-<script>
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
-import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
-import NcTextArea from '@nextcloud/vue/dist/Components/NcTextArea.js'
-import NcDateTimePickerNative from '@nextcloud/vue/dist/Components/NcDateTimePickerNative.js'
-import NcActions from '@nextcloud/vue/dist/Components/NcActions.js'
-import NcActionButton from '@nextcloud/vue/dist/Components/NcActionButton.js'
+<script setup>
+import { ref, reactive, computed, onMounted } from 'vue'
+import AppointmentCard from '../components/appointment/AppointmentCard.vue'
+import AppointmentFormModal from '../components/appointment/AppointmentFormModal.vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { getCurrentUser } from '@nextcloud/auth'
+import { showSuccess, showError } from '@nextcloud/dialogs'
 import { fromZonedTime } from 'date-fns-tz'
-import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
-import Pencil from 'vue-material-design-icons/Pencil.vue'
-import Delete from 'vue-material-design-icons/Delete.vue'
-import History from 'vue-material-design-icons/History.vue'
 
-export default {
-	name: 'AllAppointments',
-	components: {
-		NcButton,
-		NcModal,
-		NcTextField,
-		NcTextArea,
-		NcDateTimePickerNative,
-		NcActions,
-		NcActionButton,
-		ListStatusIcon,
-		Pencil,
-		Delete,
-		History,
+// Props
+const props = defineProps({
+	showPast: {
+		type: Boolean,
+		default: false,
 	},
-	data() {
-		return {
-			appointments: [],
-			loading: true,
-			showCreateForm: false,
-			showEditForm: false,
-			newAppointment: {
-				name: '',
-				description: '',
-				startDatetime: '',
-				endDatetime: '',
-			},
-			editingAppointment: {
-				id: null,
-				name: '',
-				description: '',
-				startDatetime: '',
-				endDatetime: '',
-			},
-			responseComments: {},
-			currentUser: getCurrentUser(),
-			showPastAppointments: false,
-			expandedGroups: {},
-			permissions: {
-				canManageAppointments: false,
-				canCheckin: false,
-			},
-		}
-	},
-	computed: {
-		canManageAppointments() {
-			return this.permissions.canManageAppointments
-		},
-		canCheckin() {
-			return this.permissions.canCheckin
-		},
-	},
-	async mounted() {
-		await this.loadPermissions()
-		await this.loadAppointments()
-	},
-	methods: {
-		async loadAppointments(skipLoadingSpinner = false) {
-			try {
-				// Don't show loading spinner when refreshing data
-				if (!skipLoadingSpinner) {
-					this.loading = true
-				}
-				const params = this.showPastAppointments ? '?showPast=true' : ''
-				const response = await axios.get(generateUrl('/apps/attendance/api/appointments') + params)
-				this.appointments = response.data
+})
 
-				// Initialize response comments
-				this.appointments.forEach(appointment => {
-					if (appointment.userResponse) {
-						this.$set(this.responseComments, appointment.id, appointment.userResponse.comment || '')
-					}
-				})
+// State
+const appointments = ref([])
+const loading = ref(true)
+const showEditForm = ref(false)
+const editingAppointment = reactive({
+	id: null,
+	name: '',
+	description: '',
+	startDatetime: '',
+	endDatetime: '',
+})
+const permissions = reactive({
+	canManageAppointments: false,
+	canCheckin: false,
+})
 
-				// Load detailed responses for users who can manage appointments
-				if (this.canManageAppointments) {
-					await this.loadDetailedResponses()
-				}
-			} catch (error) {
-				console.error('Failed to load appointments:', error)
-			} finally {
-				this.loading = false
-			}
-		},
-		async loadDetailedResponses() {
-			for (const appointment of this.appointments) {
-				try {
-					const response = await axios.get(generateUrl(`/apps/attendance/api/appointments/${appointment.id}/responses`))
-					this.$set(appointment, 'detailedResponses', response.data)
-				} catch (error) {
-					console.error(`Failed to load detailed responses for appointment ${appointment.id}:`, error)
-				}
-			}
-		},
-		async createAppointment() {
-			try {
-				await axios.post(generateUrl('/apps/attendance/api/appointments'), this.newAppointment)
-				this.showCreateForm = false
-				this.newAppointment = {
-					name: '',
-					description: '',
-					startDatetime: '',
-					endDatetime: '',
-				}
-				await this.loadAppointments(true)
-			} catch (error) {
-				console.error('Failed to create appointment:', error)
-			}
-		},
-		async submitResponse(appointmentId, response) {
-			try {
-				const comment = this.responseComments[appointmentId] || ''
-				await axios.post(generateUrl(`/apps/attendance/api/appointments/${appointmentId}/respond`), {
-					response,
-					comment,
-				})
-				await this.loadAppointments(true)
-			} catch (error) {
-				console.error('Failed to submit response:', error)
-			}
-		},
-		async updateComment(appointmentId) {
-			const appointment = this.appointments.find(a => a.id === appointmentId)
-			if (appointment && appointment.userResponse) {
-				await this.submitResponse(appointmentId, appointment.userResponse.response)
-			}
-		},
-		async deleteAppointment(appointmentId) {
-			if (confirm(this.t('attendance', 'Are you sure you want to delete this appointment?'))) {
-				try {
-					await axios.delete(generateUrl(`/apps/attendance/api/appointments/${appointmentId}`))
-					await this.loadAppointments(true)
-				} catch (error) {
-					console.error('Failed to delete appointment:', error)
-				}
-			}
-		},
-		getUserResponse(appointment) {
-			return appointment.userResponse?.response || null
-		},
-		async loadPermissions() {
-			try {
-				const response = await axios.get(generateUrl('/apps/attendance/api/user/permissions'))
-				this.permissions = response.data
-			} catch (error) {
-				console.error('Failed to load permissions:', error)
-			}
-		},
-		formatDateTime(dateTime) {
-			const options = {dateStyle:'short', timeStyle:'short'}
-			return new Date(dateTime).toLocaleString(['de-DE','en-EN'], options)
-		}, 
-		getResponseText(response) {
-			const responses = {
-				yes: this.t('attendance', 'Yes'),
-				maybe: this.t('attendance', 'Maybe'),
-				no: this.t('attendance', 'No'),
-			}
-			return responses[response] || response
-		},
-		editAppointment(appointment) {
-			const formattedStart = this.formatDateTimeForInput(appointment.startDatetime)
-			const formattedEnd = this.formatDateTimeForInput(appointment.endDatetime)
+// Computed
+const canManageAppointments = computed(() => permissions.canManageAppointments)
+const canCheckin = computed(() => permissions.canCheckin)
 
-			this.editingAppointment = {
-				id: appointment.id,
-				name: appointment.name,
-				description: appointment.description || '',
-				startDatetime: formattedStart,
-				endDatetime: formattedEnd,
-			}
-
-			this.showEditForm = true
-		},
-		async updateAppointment() {
-			try {
-				// Convert datetime to Europe/Berlin timezone using date-fns-tz
-				const startDatetimeWithTz = fromZonedTime(this.editingAppointment.startDatetime, 'Europe/Berlin');
-				const endDatetimeWithTz = fromZonedTime(this.editingAppointment.endDatetime, 'Europe/Berlin');
-
-				await axios.put(generateUrl(`/apps/attendance/api/appointments/${this.editingAppointment.id}`), {
-					name: this.editingAppointment.name,
-					description: this.editingAppointment.description,
-					startDatetime: startDatetimeWithTz,
-					endDatetime: endDatetimeWithTz,
-				})
-				this.showEditForm = false
-				this.editingAppointment = {
-					id: null,
-					name: '',
-					description: '',
-					startDatetime: '',
-					endDatetime: '',
-				}
-				await this.loadAppointments(true)
-			} catch (error) {
-				console.error('Failed to update appointment:', error)
-			}
-		},
-		formatDateTimeForInput(dateTime) {
-			// Convert datetime to format "yyyy-MM-ddThh:mm" required by datetime-local input
-			if (!dateTime) return ''
-
-			const date = new Date(dateTime)
-
-			// Check if date is valid
-			if (isNaN(date.getTime())) {
-				console.warn('Invalid date:', dateTime)
-				return ''
-			}
-
-			// Format as YYYY-MM-DDTHH:MM (required by datetime-local input)
-			const year = date.getFullYear()
-			const month = String(date.getMonth() + 1).padStart(2, '0')
-			const day = String(date.getDate()).padStart(2, '0')
-			const hours = String(date.getHours()).padStart(2, '0')
-			const minutes = String(date.getMinutes()).padStart(2, '0')
-
-			return `${year}-${month}-${day}T${hours}:${minutes}`
-		},
-		async togglePastAppointments() {
-			this.showPastAppointments = !this.showPastAppointments
-			await this.loadAppointments(true)
-		},
-		toggleGroupExpansion(appointmentId, groupId) {
-			const key = `${appointmentId}-${groupId}`
-			this.$set(this.expandedGroups, key, !this.expandedGroups[key])
-		},
-		isGroupExpanded(appointmentId, groupId) {
-			const key = `${appointmentId}-${groupId}`
-			return !!this.expandedGroups[key]
-		},
-		getGroupResponses(appointment, groupId) {
-			if (!appointment.responseSummary?.by_group?.[groupId]?.responses) return []
-
-			// Return pre-filtered responses from backend
-			return appointment.responseSummary.by_group[groupId].responses
-		},
-		hasOthersResponses(appointment) {
-			return appointment.responseSummary.others && appointment.responseSummary.others.responses.length > 0
-		},
-		onStartDatetimeBlur() {
-			// Auto-set endDatetime if it's empty and startDatetime is set
-			if (this.newAppointment.startDatetime && !this.newAppointment.endDatetime) {
-				const startDate = new Date(this.newAppointment.startDatetime)
-				const endDate = new Date(startDate.getTime() + 2.5 * 60 * 60 * 1000) // Add 2,5 hours
-				const formattedEndDate = this.formatDateTimeForInput(endDate.toISOString())
-				
-				// Set input value and let the input event update Vue state
-				// Could not do it via state change, so we have to do it via DOM
-				if (this.$refs.endDatetimePicker && this.$refs.endDatetimePicker.$el) {
-					const input = this.$refs.endDatetimePicker.$el.querySelector('input[type="datetime-local"]')
-					if (input) {
-						input.value = formattedEndDate
-						input.dispatchEvent(new Event('input', { bubbles: true }))
-					}
-				}
-			}
-		},
-		startCheckin(appointmentId) {
-			// Navigate to check-in page for this appointment
-			window.location.href = generateUrl(`/apps/attendance/checkin/${appointmentId}`)
-		},
-	},
+// Methods
+const loadPermissions = async () => {
+	try {
+		const response = await axios.get(generateUrl('/apps/attendance/api/user/permissions'))
+		permissions.canManageAppointments = response.data.canManageAppointments
+		permissions.canCheckin = response.data.canCheckin
+	} catch (error) {
+		console.error('Failed to load permissions:', error)
+	}
 }
+
+const loadAppointments = async (skipLoadingSpinner = false) => {
+	try {
+		// Don't show loading spinner when refreshing data
+		if (!skipLoadingSpinner) {
+			loading.value = true
+		}
+		const params = props.showPast ? '?showPast=true' : ''
+		const response = await axios.get(generateUrl('/apps/attendance/api/appointments') + params)
+		appointments.value = response.data
+
+		// Initialize response comments
+		appointments.value.forEach(appointment => {
+			if (appointment.userResponse) {
+				responseComments[appointment.id] = appointment.userResponse.comment || ''
+			}
+		})
+
+		// Load detailed responses for users who can manage appointments
+		if (canManageAppointments.value) {
+			await loadDetailedResponses()
+		}
+	} catch (error) {
+		console.error('Failed to load appointments:', error)
+	} finally {
+		loading.value = false
+	}
+}
+
+const loadDetailedResponses = async () => {
+	for (const appointment of appointments.value) {
+		try {
+			const response = await axios.get(generateUrl(`/apps/attendance/api/appointments/${appointment.id}/responses`))
+			appointment.detailedResponses = response.data
+		} catch (error) {
+			console.error(`Failed to load detailed responses for appointment ${appointment.id}:`, error)
+		}
+	}
+}
+
+const handleModalClose = () => {
+	showEditForm.value = false
+	Object.assign(editingAppointment, {
+		id: null,
+		name: '',
+		description: '',
+		startDatetime: '',
+		endDatetime: '',
+	})
+}
+
+const handleModalSubmit = async (formData) => {
+	try {
+		const startDatetimeWithTz = fromZonedTime(formData.startDatetime, 'Europe/Berlin')
+		const endDatetimeWithTz = fromZonedTime(formData.endDatetime, 'Europe/Berlin')
+		
+		// Update existing appointment
+		await axios.put(generateUrl(`/apps/attendance/api/appointments/${formData.id}`), {
+			name: formData.name,
+			description: formData.description,
+			startDatetime: startDatetimeWithTz,
+			endDatetime: endDatetimeWithTz,
+		})
+		
+		showSuccess(t('attendance', 'Appointment updated successfully'))
+		handleModalClose()
+		await loadAppointments(true)
+	} catch (error) {
+		console.error('Failed to update appointment:', error)
+		showError(t('attendance', 'Error updating appointment'))
+	}
+}
+
+const submitResponse = async (appointmentId, response) => {
+	try {
+		// Get existing comment from appointment if available
+		const appointment = appointments.value.find(a => a.id === appointmentId)
+		const comment = appointment?.userResponse?.comment || ''
+		
+		await axios.post(generateUrl(`/apps/attendance/api/appointments/${appointmentId}/respond`), {
+			response,
+			comment,
+		})
+		showSuccess(t('attendance', 'Response updated successfully'))
+		await loadAppointments(true)
+	} catch (error) {
+		console.error('Failed to submit response:', error)
+		showError(t('attendance', 'Error updating response'))
+	}
+}
+
+const updateComment = async (appointmentId, comment) => {
+	try {
+		const appointment = appointments.value.find(a => a.id === appointmentId)
+		const response = appointment?.userResponse?.response || 'yes'
+		
+		await axios.post(generateUrl(`/apps/attendance/api/appointments/${appointmentId}/respond`), {
+			response,
+			comment,
+		})
+		showSuccess(t('attendance', 'Comment updated successfully'))
+		await loadAppointments(true)
+	} catch (error) {
+		console.error('Failed to update comment:', error)
+		showError(t('attendance', 'Error updating comment'))
+	}
+}
+
+const deleteAppointment = async (appointmentId) => {
+	if (confirm(window.t('attendance', 'Are you sure you want to delete this appointment?'))) {
+		try {
+			await axios.delete(generateUrl(`/apps/attendance/api/appointments/${appointmentId}`))
+			await loadAppointments(true)
+		} catch (error) {
+			console.error('Failed to delete appointment:', error)
+		}
+	}
+}
+
+const editAppointment = (appointment) => {
+	const formatDateTimeForInput = (dateTime) => {
+		if (!dateTime) return ''
+		const date = new Date(dateTime)
+		if (isNaN(date.getTime())) return ''
+		
+		const year = date.getFullYear()
+		const month = String(date.getMonth() + 1).padStart(2, '0')
+		const day = String(date.getDate()).padStart(2, '0')
+		const hours = String(date.getHours()).padStart(2, '0')
+		const minutes = String(date.getMinutes()).padStart(2, '0')
+		
+		return `${year}-${month}-${day}T${hours}:${minutes}`
+	}
+	
+	const formattedStart = formatDateTimeForInput(appointment.startDatetime)
+	const formattedEnd = formatDateTimeForInput(appointment.endDatetime)
+
+	Object.assign(editingAppointment, {
+		id: appointment.id,
+		name: appointment.name,
+		description: appointment.description || '',
+		startDatetime: formattedStart,
+		endDatetime: formattedEnd,
+	})
+
+	showEditForm.value = true
+}
+
+const startCheckin = (appointmentId) => {
+	// Navigate to check-in page for this appointment
+	window.location.href = generateUrl(`/apps/attendance/checkin/${appointmentId}`)
+}
+
+// Lifecycle
+onMounted(async () => {
+	await loadPermissions()
+	await loadAppointments()
+})
 </script>
 
 <style scoped lang="scss">
-#attendance {
+.attendance-container {
 	padding: 20px;
 	max-width: 1200px;
 	margin: 0 auto;
@@ -687,32 +364,39 @@ export default {
 		gap: 10px;
 		margin-bottom: 15px;
 
-		button {
-			&:not(.active) {
-				background: var(--color-background-dark) !important;
+		// Apply colors to all buttons based on type attribute
+		:deep(button[type="success"]) {
+			background-color: var(--color-success) !important;
+			border-color: var(--color-success) !important;
+		}
+
+		:deep(button[type="warning"]) {
+			background-color: var(--color-warning) !important;
+			border-color: var(--color-warning) !important;
+		}
+
+		:deep(button[type="error"]) {
+			background-color: var(--color-error) !important;
+			border-color: var(--color-error) !important;
+		}
+
+		// When a response exists, gray out non-active buttons
+		&.has-response {
+			:deep(button:not(.active)) {
+				background-color: var(--color-background-dark) !important;
 				color: var(--color-text-lighter) !important;
 				border-color: var(--color-border-dark) !important;
 
 				&:hover {
-					background: var(--color-background-hover) !important;
+					background-color: var(--color-background-hover) !important;
 					color: var(--color-text) !important;
 				}
 			}
+		}
 
-			&.active {
-				font-weight: bold;
-				opacity: 1;
-			}
-			
-			body[data-theme-dark] &.active.button-vue--vue-warning {
-				color: black !important;
-			}
-			
-			@media (prefers-color-scheme: dark) {
-				body[data-theme-default] &.active.button-vue--vue-warning {
-					color: black !important;
-				}
-			}
+		// Active button styles - keep bold
+		:deep(button.active) {
+			font-weight: bold;
 		}
 	}
 

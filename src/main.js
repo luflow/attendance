@@ -1,8 +1,11 @@
-import Vue from 'vue'
+import { createApp } from 'vue'
+import { translate, translatePlural } from '@nextcloud/l10n'
 import App from './App.vue'
-import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 
-Vue.mixin({ methods: { t, n } })
+const app = createApp(App)
 
-const View = Vue.extend(App)
-new View().$mount('#attendance')
+// Make translation functions available globally
+app.config.globalProperties.t = translate
+app.config.globalProperties.n = translatePlural
+
+app.mount('#attendance')

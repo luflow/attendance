@@ -144,6 +144,13 @@ class AppointmentService {
 	}
 
 	/**
+	 * Get past appointments
+	 */
+	public function getPastAppointments(): array {
+		return $this->appointmentMapper->findPast();
+	}
+
+	/**
 	 * Get appointments created by a specific user
 	 */
 	public function getAppointmentsByCreator(string $userId): array {
@@ -382,9 +389,10 @@ class AppointmentService {
 	 * Get appointments with user responses
 	 */
 	public function getAppointmentsWithUserResponses(string $userId, bool $showPastAppointments = false): array {
-		// Users with manage appointments permission can choose to see all or only upcoming appointments, regular users see only upcoming ones
-		if ($this->permissionService->canManageAppointments($userId) && $showPastAppointments) {
-			$appointments = $this->getAllAppointments();
+		// When showPastAppointments is true, return ONLY past appointments
+		// When false, return ONLY upcoming appointments
+		if ($showPastAppointments) {
+			$appointments = $this->getPastAppointments();
 		} else {
 			$appointments = $this->getUpcomingAppointments();
 		}
