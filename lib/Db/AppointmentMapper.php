@@ -86,4 +86,24 @@ class AppointmentMapper extends QBMapper {
 
 		return $this->findEntities($qb);
 	}
+
+	/**
+	 * Find past appointments (end_datetime < now)
+	 * @return array
+	 */
+	public function findPast(): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->andX(
+					$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
+					$qb->expr()->lt('end_datetime', $qb->createNamedParameter(date('Y-m-d H:i:s')))
+				)
+			)
+			->orderBy('start_datetime', 'DESC'); // Newest first for past appointments
+
+		return $this->findEntities($qb);
+	}
 }

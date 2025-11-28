@@ -4,6 +4,8 @@ return [
 	'routes' => [
 		// Vue pages
 		['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
+		['name' => 'page#past', 'url' => '/past', 'verb' => 'GET'],
+		['name' => 'page#appointment', 'url' => '/appointment/{id}', 'verb' => 'GET'],
 		['name' => 'page#checkin', 'url' => '/checkin/{id}', 'verb' => 'GET'],
 		
 		// Appointment management routes

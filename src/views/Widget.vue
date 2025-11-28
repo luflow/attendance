@@ -18,7 +18,7 @@
 					<!-- Check-in Section (for admins when appointment is ready for check-in) -->
 					<div v-if="showCheckinButton(item)" class="checkin-section">
 						<NcButton
-							type="primary"
+							variant="primary"
 							class="checkin-button"
 							@click="openCheckinView(item.id)">
 							<template #icon>
@@ -28,11 +28,11 @@
 						</NcButton>
 					</div>
 					<div class="appointment-header">
-						<h3>{{ item.mainText }}</h3>
+						<h3 class="clickable" @click="openAppointmentDetail(item.id)">{{ item.mainText }}</h3>
 						<span class="appointment-time">{{ formatDate(item.subText) }}</span>
 					</div>
-					<div v-if="item.description" class="appointment-description">
-						{{ item.description }}
+					<div v-if="item.description" class="appointment-description clickable" @click="openAppointmentDetail(item.id)">
+						{{ renderDescriptionMarkdown(item.description) }}
 					</div>
 
 					<!-- Response Section -->
@@ -40,22 +40,19 @@
 						<div class="response-buttons" :class="{ 'has-response': item.userResponse }">
 							<NcButton
 								:class="{ active: item.userResponse?.response === 'yes' }"
-								type="success"
-								@click="respond(item.id, 'yes')">
-								{{ t('attendance', 'Yes') }}
-							</NcButton>
+								variant="success"
+								:text="t('attendance', 'Yes')"
+								@click="respond(item.id, 'yes')" />
 							<NcButton
 								:class="{ active: item.userResponse?.response === 'maybe' }"
-								type="warning"
-								@click="respond(item.id, 'maybe')">
-								{{ t('attendance', 'Maybe') }}
-							</NcButton>
+								variant="warning"
+								:text="t('attendance', 'Maybe')"
+								@click="respond(item.id, 'maybe')" />
 							<NcButton
 								:class="{ active: item.userResponse?.response === 'no' }"
-								type="error"
-								@click="respond(item.id, 'no')">
-								{{ t('attendance', 'No') }}
-							</NcButton>
+								variant="error"
+								:text="t('attendance', 'No')"
+								@click="respond(item.id, 'no')" />
 						</div>
 
 						<!-- Comment Section -->
@@ -79,7 +76,10 @@
 
 		<!-- Show All Button -->
 		<div class="widget-footer">
-			<NcButton type="primary" wide @click="goToAttendanceApp">
+			<NcButton 
+				variant="primary" 
+				wide 
+				@click="goToAttendanceApp">
 				{{ t('attendance', 'Show all appointments') }}
 			</NcButton>
 		</div>
@@ -105,267 +105,237 @@
 	</NcModal>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive, computed, onMounted } from 'vue'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
-import CloseIcon from 'vue-material-design-icons/Close.vue'
-import HelpIcon from 'vue-material-design-icons/Help.vue'
 
-import NcDashboardWidget from '@nextcloud/vue/dist/Components/NcDashboardWidget.js'
-import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import NcModal from '@nextcloud/vue/dist/Components/NcModal.js'
-import NcTextArea from '@nextcloud/vue/dist/Components/NcTextArea.js'
+import { NcDashboardWidget, NcEmptyContent, NcButton, NcModal, NcTextArea } from '@nextcloud/vue'
 
 import { generateUrl } from '@nextcloud/router'
 import { loadState } from '@nextcloud/initial-state'
 import axios from '@nextcloud/axios'
 
-export default {
-	name: 'AppointmentWidget',
-
-	components: {
-		CalendarIcon,
-		ListStatusIcon,
-		CloseIcon,
-		HelpIcon,
-		NcDashboardWidget,
-		NcEmptyContent,
-		NcButton,
-		NcModal,
-		NcTextArea,
+// Props
+defineProps({
+	title: {
+		type: String,
+		required: true,
 	},
+})
 
-	props: {
-		title: {
-			type: String,
-			required: true,
-		},
-	},
+// State initialization
+let initialAppointments = []
+let initialState = 'ok'
 
-	data() {
-		try {
-			const appointments = loadState('attendance', 'dashboard-widget-items')
-			return {
-				appointments,
-				showMoreUrl: generateUrl('/apps/attendance'),
-				state: 'ok',
-				showDialog: false,
-				comment: '',
-				selectedAppointmentId: null,
-				selectedResponse: null,
-				responseComments: {},
-				savingComments: {},
-				commentTimeouts: {},
-				title: t('attendance', 'Attendance'),
-				permissions: {
-					canManageAppointments: false,
-					canCheckin: false,
-				},
-			}
-		} catch (error) {
-			console.error('Error loading appointments:', error)
-			return {
-				appointments: [],
-				showMoreUrl: generateUrl('/apps/attendance'),
-				state: 'error',
-				showDialog: false,
-				comment: '',
-				selectedAppointmentId: null,
-				selectedResponse: null,
-				responseComments: {},
-				savingComments: {},
-				commentTimeouts: {},
-				title: t('attendance', 'Attendance'),
-				permissions: {
-					canManageAppointments: false,
-					canCheckin: false,
-				},
+try {
+	initialAppointments = loadState('attendance', 'dashboard-widget-items')
+} catch (error) {
+	console.error('Error loading appointments:', error)
+	initialState = 'error'
+}
+
+const appointments = ref(initialAppointments)
+const showMoreUrl = ref(generateUrl('/apps/attendance'))
+const state = ref(initialState)
+const showDialog = ref(false)
+const comment = ref('')
+const selectedAppointmentId = ref(null)
+const selectedResponse = ref(null)
+const responseComments = reactive({})
+const savingComments = reactive({})
+const commentTimeouts = reactive({})
+const permissions = reactive({
+	canManageAppointments: false,
+	canCheckin: false,
+})
+
+// Computed
+const items = computed(() => {
+	return appointments.value.map((appointment) => {
+		return {
+			id: appointment.id,
+			mainText: appointment.name,
+			subText: appointment.startDatetime,
+			description: appointment.description,
+			link: generateUrl('/apps/attendance'),
+			iconUrl: generateUrl('/svg/attendance/calendar'),
+			userResponse: appointment.userResponse,
+		}
+	})
+})
+
+// Methods
+const respond = (appointmentId, response) => {
+	submitResponseToServer(appointmentId, response, '')
+}
+
+const showCommentDialog = (appointmentId, response) => {
+	selectedAppointmentId.value = appointmentId
+	selectedResponse.value = response
+	comment.value = ''
+	showDialog.value = true
+}
+
+const closeDialog = () => {
+	showDialog.value = false
+	selectedAppointmentId.value = null
+	selectedResponse.value = null
+	comment.value = ''
+}
+
+const submitResponse = () => {
+	if (selectedAppointmentId.value && selectedResponse.value) {
+		submitResponseToServer(selectedAppointmentId.value, selectedResponse.value, comment.value)
+		closeDialog()
+	}
+}
+
+const submitResponseToServer = async (appointmentId, response, commentText) => {
+	try {
+		const url = generateUrl('/apps/attendance/api/appointments/{id}/respond', { id: appointmentId })
+		await axios.post(url, {
+			response,
+			comment: commentText,
+		})
+
+		// Update local state
+		const appointmentIndex = appointments.value.findIndex(a => a.id === appointmentId)
+		if (appointmentIndex !== -1) {
+			appointments.value[appointmentIndex].userResponse = {
+				response,
+				comment: commentText,
 			}
 		}
-	},
 
-	computed: {
-		items() {
-			const items = this.appointments.map((appointment) => {
-				return {
-					id: appointment.id,
-					mainText: appointment.name,
-					subText: appointment.startDatetime,
-					description: appointment.description,
-					link: generateUrl('/apps/attendance'),
-					iconUrl: generateUrl('/svg/attendance/calendar'),
-					userResponse: appointment.userResponse,
-				}
-			})
-			return items
-		},
-	},
-
-	created() {
-	},
-
-	beforeMount() {
-	},
-
-	mounted() {
-		this.loadPermissions()
-	},
-
-	methods: {
-		respond(appointmentId, response) {
-			this.submitResponseToServer(appointmentId, response, '')
-		},
-
-		showCommentDialog(appointmentId, response) {
-			this.selectedAppointmentId = appointmentId
-			this.selectedResponse = response
-			this.comment = ''
-			this.showDialog = true
-		},
-
-		closeDialog() {
-			this.showDialog = false
-			this.selectedAppointmentId = null
-			this.selectedResponse = null
-			this.comment = ''
-		},
-
-		submitResponse() {
-			if (this.selectedAppointmentId && this.selectedResponse) {
-				this.submitResponseToServer(this.selectedAppointmentId, this.selectedResponse, this.comment)
-				this.closeDialog()
-			}
-		},
-
-		async submitResponseToServer(appointmentId, response, comment) {
-			try {
-				const url = generateUrl('/apps/attendance/api/appointments/{id}/respond', { id: appointmentId })
-				await axios.post(url, {
-					response,
-					comment,
-				})
-
-				// Update local state
-				const appointmentIndex = this.appointments.findIndex(a => a.id === appointmentId)
-				if (appointmentIndex !== -1) {
-					this.appointments[appointmentIndex].userResponse = {
-						response,
-						comment,
-					}
-				}
-
-				// Response saved successfully
-			} catch (error) {
-				// Failed to save response
-			}
-		},
-
-		getResponseText(response) {
-			switch (response) {
-			case 'yes': return this.t('attendance', 'Yes')
-			case 'no': return this.t('attendance', 'No')
-			case 'maybe': return this.t('attendance', 'Maybe')
-			default: return response
-			}
-		},
-
-		formatDate(datetime) {
-			try {
-				const date = new Date(datetime)
-				const options = {dateStyle:'short', timeStyle:'short'}
-				return date.toLocaleString(['de-DE','en-EN'], options)
-			} catch (error) {
-				return datetime
-			}
-		},
-
-		onCommentInput(appointmentId, value) {
-			// Update the comment value immediately for UI responsiveness
-			this.$set(this.responseComments, appointmentId, value)
-
-			// Clear existing timeout for this appointment
-			if (this.commentTimeouts[appointmentId]) {
-				clearTimeout(this.commentTimeouts[appointmentId])
-			}
-
-			// Set new timeout to auto-save after 1.5 seconds of no typing
-			this.commentTimeouts[appointmentId] = setTimeout(() => {
-				this.autoSaveComment(appointmentId, value)
-			}, 500)
-		},
-
-		async autoSaveComment(appointmentId, comment) {
-			const appointment = this.appointments.find(a => a.id === appointmentId)
-			if (appointment && appointment.userResponse) {
-				// Set saving indicator
-				this.$set(this.savingComments, appointmentId, true)
-
-				try {
-					await this.submitResponseToServer(appointmentId, appointment.userResponse.response, comment)
-				} catch (error) {
-					console.error('Auto-save failed:', error)
-				} finally {
-					// Remove saving indicator after a short delay
-					setTimeout(() => {
-						this.$set(this.savingComments, appointmentId, false)
-					}, 500)
-				}
-			}
-		},
-
-		async updateComment(appointmentId) {
-			const comment = this.responseComments[appointmentId] || ''
-			const appointment = this.appointments.find(a => a.id === appointmentId)
-			if (appointment && appointment.userResponse) {
-				await this.submitResponseToServer(appointmentId, appointment.userResponse.response, comment)
-			}
-		},
-
-		initializeComment(appointmentId) {
-			if (!(appointmentId in this.responseComments)) {
-				this.$set(this.responseComments, appointmentId, '')
-			}
-		},
-
-		goToAttendanceApp() {
-			window.location.href = generateUrl('/apps/attendance/')
-		},
-
-		async loadPermissions() {
-			try {
-				const url = generateUrl('/apps/attendance/api/user/permissions')
-				const response = await axios.get(url)
-				this.permissions = response.data
-			} catch (error) {
-				console.error('Failed to load permissions:', error)
-				this.permissions = {
-					canManageAppointments: false,
-					canCheckin: false,
-				}
-			}
-		},
-
-		showCheckinButton(item) {
-			if (!this.permissions.canCheckin) {
-				return false
-			}
-
-			// Show check-in button 30 minutes before start time
-			const now = new Date()
-			const startTime = new Date(item.subText)
-			const checkinTime = new Date(startTime.getTime() - 30 * 60 * 1000) // 30 minutes before
-
-			return now >= checkinTime
-		},
-
-		openCheckinView(appointmentId) {
-			// Navigate to check-in view
-			const checkinUrl = generateUrl('/apps/attendance/checkin/{id}', { id: appointmentId })
-			window.location.href = checkinUrl
-		},
-	},
+		// Response saved successfully
+	} catch (error) {
+		// Failed to save response
+	}
 }
+
+const getResponseText = (response) => {
+	switch (response) {
+		case 'yes': return window.t('attendance', 'Yes')
+		case 'no': return window.t('attendance', 'No')
+		case 'maybe': return window.t('attendance', 'Maybe')
+		default: return response
+	}
+}
+
+const formatDate = (datetime) => {
+	try {
+		const date = new Date(datetime)
+		const options = { dateStyle: 'short', timeStyle: 'short' }
+		return date.toLocaleString(['de-DE', 'en-EN'], options)
+	} catch (error) {
+		return datetime
+	}
+}
+
+const renderDescriptionMarkdown = (description) => {
+	if (!description) return ''
+	// Strip markdown formatting for compact widget display
+	let text = description
+		.replace(/\*\*([^*]+)\*\*/g, '$1')  // Remove bold: **text** -> text
+		.replace(/\*([^*]+)\*/g, '$1')      // Remove italic: *text* -> text
+		.replace(/\n/g, ' ')                 // Remove newlines
+		.trim()
+	return text
+}
+
+const onCommentInput = (appointmentId, value) => {
+	// Update the comment value immediately for UI responsiveness
+	responseComments[appointmentId] = value
+
+	// Clear existing timeout for this appointment
+	if (commentTimeouts[appointmentId]) {
+		clearTimeout(commentTimeouts[appointmentId])
+	}
+
+	// Set new timeout to auto-save after 0.5 seconds of no typing
+	commentTimeouts[appointmentId] = setTimeout(() => {
+		autoSaveComment(appointmentId, value)
+	}, 500)
+}
+
+const autoSaveComment = async (appointmentId, commentText) => {
+	const appointment = appointments.value.find(a => a.id === appointmentId)
+	if (appointment && appointment.userResponse) {
+		// Set saving indicator
+		savingComments[appointmentId] = true
+
+		try {
+			await submitResponseToServer(appointmentId, appointment.userResponse.response, commentText)
+		} catch (error) {
+			console.error('Auto-save failed:', error)
+		} finally {
+			// Remove saving indicator after a short delay
+			setTimeout(() => {
+				savingComments[appointmentId] = false
+			}, 500)
+		}
+	}
+}
+
+const updateComment = async (appointmentId) => {
+	const commentText = responseComments[appointmentId] || ''
+	const appointment = appointments.value.find(a => a.id === appointmentId)
+	if (appointment && appointment.userResponse) {
+		await submitResponseToServer(appointmentId, appointment.userResponse.response, commentText)
+	}
+}
+
+const initializeComment = (appointmentId) => {
+	if (!(appointmentId in responseComments)) {
+		responseComments[appointmentId] = ''
+	}
+}
+
+const goToAttendanceApp = () => {
+	window.location.href = generateUrl('/apps/attendance/')
+}
+
+const openAppointmentDetail = (appointmentId) => {
+	window.location.href = generateUrl(`/apps/attendance/appointment/${appointmentId}`)
+}
+
+const loadPermissions = async () => {
+	try {
+		const url = generateUrl('/apps/attendance/api/user/permissions')
+		const response = await axios.get(url)
+		permissions.canManageAppointments = response.data.canManageAppointments
+		permissions.canCheckin = response.data.canCheckin
+	} catch (error) {
+		console.error('Failed to load permissions:', error)
+		permissions.canManageAppointments = false
+		permissions.canCheckin = false
+	}
+}
+
+const showCheckinButton = (item) => {
+	if (!permissions.canCheckin) {
+		return false
+	}
+
+	// Show check-in button 30 minutes before start time
+	const now = new Date()
+	const startTime = new Date(item.subText)
+	const checkinTime = new Date(startTime.getTime() - 30 * 60 * 1000) // 30 minutes before
+
+	return now >= checkinTime
+}
+
+const openCheckinView = (appointmentId) => {
+	// Navigate to check-in view
+	const checkinUrl = generateUrl('/apps/attendance/checkin/{id}', { id: appointmentId })
+	window.location.href = checkinUrl
+}
+
+// Lifecycle
+onMounted(() => {
+	loadPermissions()
+})
 </script>
 
 <style scoped lang="scss">
@@ -384,7 +354,7 @@ export default {
 
 .widget-footer {
 	flex-shrink: 0;
-	padding: 12px;
+	padding: 12px 12px 20px 12px;
 }
 
 .appointment-item {
@@ -405,13 +375,21 @@ export default {
 
 	h3 {
 		margin: 0;
-		font-size: 14px;
+		font-size: 18px;
 		font-weight: 600;
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
 		flex: 1;
 		margin-right: 8px;
+		
+		&.clickable {
+			cursor: pointer;
+			
+			&:hover {
+				text-decoration: underline;
+			}
+		}
 	}
 
 	.appointment-time {
@@ -425,9 +403,18 @@ export default {
 	font-size: 12px;
 	color: var(--color-text-light);
 	margin-bottom: 8px;
-	word-wrap: break-word;
-	overflow-wrap: break-word;
-	hyphens: auto;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	
+	&.clickable {
+		cursor: pointer;
+		
+		&:hover {
+			text-decoration: underline;
+			color: var(--color-text-maxcontrast);
+		}
+	}
 }
 
 .checkin-section {
@@ -457,27 +444,29 @@ export default {
 		margin-bottom: 8px;
 		flex-wrap: wrap;
 
-		.button-vue {
+		:deep(.button-vue) {
 			font-size: 11px;
 			padding: 4px 12px;
 			min-height: 28px;
-
-			&.active {
-				font-weight: bold;
-				opacity: 1;
-			}
 		}
 
 		// Apply neutral styling to non-active buttons only when there's a response
-		&.has-response .button-vue:not(.active) {
-			background: var(--color-background-dark) !important;
-			color: var(--color-text-lighter) !important;
-			border-color: var(--color-border-dark) !important;
+		&.has-response {
+			:deep(.button-vue:not(.active)) {
+				background-color: var(--color-background-dark) !important;
+				color: var(--color-text-lighter) !important;
+				border-color: var(--color-border-dark) !important;
 
-			&:hover {
-				background: var(--color-background-hover) !important;
-				color: var(--color-text) !important;
+				&:hover {
+					background-color: var(--color-background-hover) !important;
+					color: var(--color-text) !important;
+				}
 			}
+		}
+
+		// Active button styles - keep bold
+		:deep(.button-vue.active) {
+			font-weight: bold;
 		}
 	}
 

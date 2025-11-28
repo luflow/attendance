@@ -33,7 +33,7 @@
 					<strong>{{ t('attendance', 'Start') }}:</strong> {{ formatDateTime(appointment.startDatetime) }}<br>
 					<strong>{{ t('attendance', 'End') }}:</strong> {{ formatDateTime(appointment.endDatetime) }}
 				</p>
-				<p v-if="appointment.description" class="appointment-description">{{ appointment.description }}</p>
+				<div v-if="appointment.description" class="appointment-description" v-html="renderedDescription"></div>
 			</div>
 
 			<!-- Check-in status indicator -->
@@ -75,15 +75,13 @@
 					<div class="section-header">
 						<div class="section-actions">
 							<NcButton
-								size="small"
-								type="success"
+								variant="success"
 								:disabled="bulkProcessing"
 								@click="confirmBulkCheckin('yes')">
 								{{ t('attendance', 'All Present') }}
 							</NcButton>
 							<NcButton
-								size="small"
-								type="error"
+								variant="error"
 								:disabled="bulkProcessing"
 								@click="confirmBulkCheckin('no')">
 								{{ t('attendance', 'All Absent') }}
@@ -99,10 +97,16 @@
 									<div class="user-details">
 										<div class="user-name">{{ user.displayName }}</div>
 										<div class="response-row">
-											<span v-if="user.response" class="response-badge" :class="user.response">
-												{{ getResponseText(user.response) }}
-											</span>
-											<span v-else class="response-badge no-response">{{ t('attendance', 'No response') }}</span>
+											<NcChip 
+												v-if="user.response"
+												:text="getResponseText(user.response)" 
+												:variant="getResponseVariant(user.response)" 
+												no-close />
+											<NcChip 
+												v-else
+												:text="t('attendance', 'No response')" 
+												variant="tertiary" 
+												no-close />
 										</div>
 										<div v-if="user.comment && user.comment.trim()" class="user-comment">
 											<CommentIcon :size="14" class="comment-icon" />
@@ -113,20 +117,17 @@
 								<div class="user-actions">
 									<div class="action-buttons">
 										<NcButton
-											:type="user.checkinState === 'yes' || !user.checkinState ? 'success' : 'tertiary'"
-											size="small"
+											:variant="user.checkinState === 'yes' || !user.checkinState ? 'success' : 'tertiary'"
 											@click="checkinUser(user.userId, 'yes')">
 											{{ t('attendance', 'Present') }}
 										</NcButton>
 										<NcButton
-											:type="user.checkinState === 'no' || !user.checkinState ? 'error' : 'tertiary'"
-											size="small"
+											:variant="user.checkinState === 'no' || !user.checkinState ? 'error' : 'tertiary'"
 											@click="checkinUser(user.userId, 'no')">
 											{{ t('attendance', 'Absent') }}
 										</NcButton>
 										<NcButton
-											type="tertiary"
-											size="small"
+											variant="tertiary"
 											@click="toggleCommentInput(user.userId)"
 											:aria-label="t('attendance', 'Add comment')">
 											<template #icon>
@@ -150,10 +151,16 @@
 										<div class="comment-overlay-info">
 											<div class="user-name">{{ user.displayName }}</div>
 											<div class="response-row">
-												<span v-if="user.response" class="response-badge" :class="user.response">
-													{{ getResponseText(user.response) }}
-												</span>
-												<span v-else class="response-badge no-response">{{ t('attendance', 'No response') }}</span>
+												<NcChip 
+													v-if="user.response"
+													:text="getResponseText(user.response)" 
+													:variant="getResponseVariant(user.response)" 
+													no-close />
+												<NcChip 
+													v-else
+													:text="t('attendance', 'No response')" 
+													variant="tertiary" 
+													no-close />
 											</div>
 										</div>
 									</div>
@@ -164,10 +171,10 @@
 											:placeholder="t('attendance', 'Add a comment for this check-in...')"
 											rows="2" />
 										<div class="comment-actions">
-											<NcButton type="primary" size="small" @click="saveCheckinComment(user.userId)">
+											<NcButton variant="primary" @click="saveCheckinComment(user.userId)">
 												{{ t('attendance', 'Save') }}
 											</NcButton>
-											<NcButton type="tertiary" size="small" @click="cancelCommentInput(user.userId)">
+											<NcButton variant="tertiary" @click="cancelCommentInput(user.userId)">
 												{{ t('attendance', 'Cancel') }}
 											</NcButton>
 										</div>
@@ -191,7 +198,7 @@
 					{{ t('attendance', 'Cancel') }}
 				</NcButton>
 				<NcButton
-					:type="pendingBulkAction === 'yes' ? 'success' : 'error'"
+					:variant="pendingBulkAction === 'yes' ? 'success' : 'error'"
 					@click="executeBulkAction">
 					{{ t('attendance', 'Confirm') }}
 				</NcButton>
@@ -200,283 +207,263 @@
 	</div>
 </template>
 
-<script>
+<script setup>
+import { ref, reactive, computed, onMounted } from 'vue'
+import { NcButton, NcTextField, NcTextArea, NcSelect, NcAvatar, NcLoadingIcon, NcEmptyContent, NcDialog, NcChip } from '@nextcloud/vue'
 import ArrowLeftIcon from 'vue-material-design-icons/ArrowLeft.vue'
 import AlertIcon from 'vue-material-design-icons/Alert.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
 import MagnifyIcon from 'vue-material-design-icons/Magnify.vue'
 import CommentIcon from 'vue-material-design-icons/Comment.vue'
-
-import NcButton from '@nextcloud/vue/dist/Components/NcButton.js'
-import NcTextField from '@nextcloud/vue/dist/Components/NcTextField.js'
-import NcTextArea from '@nextcloud/vue/dist/Components/NcTextArea.js'
-import NcSelect from '@nextcloud/vue/dist/Components/NcSelect.js'
-import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar.js'
-import NcLoadingIcon from '@nextcloud/vue/dist/Components/NcLoadingIcon.js'
-import NcEmptyContent from '@nextcloud/vue/dist/Components/NcEmptyContent.js'
-import NcDialog from '@nextcloud/vue/dist/Components/NcDialog.js'
-
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
+import { renderMarkdown, sanitizeHtml } from '../utils/markdown.js'
 
-export default {
-	name: 'CheckinView',
-
-	components: {
-		ArrowLeftIcon,
-		AlertIcon,
-		CheckIcon,
-		MagnifyIcon,
-		CommentIcon,
-		NcButton,
-		NcTextField,
-		NcTextArea,
-		NcSelect,
-		NcAvatar,
-		NcLoadingIcon,
-		NcEmptyContent,
-		NcDialog,
+// Props
+const props = defineProps({
+	appointmentId: {
+		type: [String, Number],
+		required: true,
 	},
+})
 
-	props: {
-		appointmentId: {
-			type: [String, Number],
-			required: true,
-		},
-	},
+// State
+const loading = ref(true)
+const error = ref(null)
+const appointment = ref(null)
+const users = ref([])
+const bulkProcessing = ref(false)
+const searchQuery = ref('')
+const selectedGroup = ref(null)
+const userGroups = ref([])
+const showCommentInput = reactive({})
+const checkinComments = reactive({})
+const showConfirmDialog = ref(false)
+const pendingBulkAction = ref(null)
+const confirmMessage = ref('')
 
-		data() {
-		return {
-			loading: true,
-			error: null,
-			appointment: null,
-			users: [],
-			bulkProcessing: false,
-			searchQuery: '',
-			selectedGroup: null,
-			userGroups: [],
-			showCommentInput: {},
-			checkinComments: {},
-			showConfirmDialog: false,
-			pendingBulkAction: null,
-			confirmMessage: '',
+// Computed
+const totalUsers = computed(() => users.value.length)
+
+const groupOptions = computed(() => {
+	return userGroups.value.map(group => ({
+		id: group,
+		label: window.t('attendance', group),
+	}))
+})
+
+const filteredAllUsers = computed(() => {
+	const filtered = filterUsers(users.value)
+	// Always sort by display name alphabetically
+	return filtered.sort((a, b) => a.displayName.localeCompare(b.displayName))
+})
+
+const checkinStatus = computed(() => {
+	const checkedInUsers = users.value.filter(user => user.checkinState)
+	const notCheckedInCount = users.value.length - checkedInUsers.length
+	
+	return {
+		total: users.value.length,
+		checkedIn: checkedInUsers.length,
+		notCheckedIn: notCheckedInCount,
+		allCheckedIn: notCheckedInCount === 0
+	}
+})
+
+// Methods
+const loadAppointmentData = async (skipLoadingSpinner = false) => {
+	try {
+		// Don't show loading spinner when refreshing data
+		if (!skipLoadingSpinner) {
+			loading.value = true
 		}
-	},
+		error.value = null
 
-		computed: {
-		totalUsers() {
-			return this.users.length
-		},
+		const url = generateUrl('/apps/attendance/api/appointments/{id}/checkin-data', { id: props.appointmentId })
+		const response = await axios.get(url)
 
-		groupOptions() {
-			return this.userGroups.map(group => ({
-				id: group,
-				label: this.t('attendance', group),
-			}))
-		},
-
-		filteredAllUsers() {
-			const filtered = this.filterUsers(this.users)
-			// Always sort by display name alphabetically
-			return filtered.sort((a, b) => a.displayName.localeCompare(b.displayName))
-		},
-
-		checkinStatus() {
-			const checkedInUsers = this.users.filter(user => user.checkinState)
-			const notCheckedInCount = this.users.length - checkedInUsers.length
-			
-			return {
-				total: this.users.length,
-				checkedIn: checkedInUsers.length,
-				notCheckedIn: notCheckedInCount,
-				allCheckedIn: notCheckedInCount === 0
-			}
-		},
-	},
-
-	async mounted() {
-		await this.loadAppointmentData()
-	},
-
-	methods: {
-		async loadAppointmentData(skipLoadingSpinner = false) {
-			try {
-				// Don't show loading spinner when refreshing data
-				if (!skipLoadingSpinner) {
-					this.loading = true
-				}
-				this.error = null
-
-				const url = generateUrl('/apps/attendance/api/appointments/{id}/checkin-data', { id: this.appointmentId })
-				const response = await axios.get(url)
-
-				this.appointment = response.data.appointment
-				this.users = response.data.users || []
-				this.userGroups = response.data.userGroups || []
-			} catch (error) {
-				console.error('Failed to load appointment data:', error)
-				this.error = error.response?.data?.message || t('attendance', 'Failed to load appointment data')
-			} finally {
-				this.loading = false
-			}
-		},
-
-		async checkinUser(userId, response, reloadData = true) {
-			try {
-				const url = generateUrl('/apps/attendance/api/appointments/{id}/checkin/{userId}', {
-					id: this.appointmentId,
-					userId: userId,
-				})
-				
-				await axios.post(url, {
-					response: response,
-				})
-
-				// Reload data to reflect changes (unless bulk operation)
-				if (reloadData) {
-					await this.loadAppointmentData(true)
-				}
-			} catch (error) {
-				console.error('Failed to check in user:', error)
-				// Could add a toast notification here
-			}
-		},
-
-
-		formatDateTime(datetime) {
-			try {
-				const date = new Date(datetime)
-				const options = { dateStyle: 'medium', timeStyle: 'short' }
-				return date.toLocaleString(['de-DE', 'en-EN'], options)
-			} catch (error) {
-				return datetime
-			}
-		},
-
-
-		confirmBulkCheckin(response) {
-			const userCount = this.filteredAllUsers.length
-			const actionText = response === 'yes' ? this.t('attendance', 'attending') : this.t('attendance', 'not attending')
-			
-			// Use string replacement for proper translation
-			this.confirmMessage = this.t('attendance', 'Do you really want to set all {count} users to {action}?')
-				.replace('{count}', userCount)
-				.replace('{action}', actionText)
-			
-			this.pendingBulkAction = response
-			this.showConfirmDialog = true
-		},
-
-		async executeBulkAction() {
-			if (this.bulkProcessing) return
-
-			this.bulkProcessing = true
-			this.showConfirmDialog = false
-			
-			try {
-				for (const user of this.filteredAllUsers) {
-					await this.checkinUser(user.userId, this.pendingBulkAction, false)
-				}
-				
-				// Reload data after bulk operation
-				await this.loadAppointmentData(true)
-			} catch (error) {
-				console.error('Failed to bulk checkin users:', error)
-			} finally {
-				this.bulkProcessing = false
-				this.pendingBulkAction = null
-			}
-		},
-
-		cancelBulkAction() {
-			this.showConfirmDialog = false
-			this.pendingBulkAction = null
-			this.confirmMessage = ''
-		},
-
-		filterUsers(users) {
-			let filtered = users
-			
-			// Filter by search query
-			if (this.searchQuery) {
-				const query = this.searchQuery.toLowerCase()
-				filtered = filtered.filter(user => 
-					user.displayName.toLowerCase().includes(query) ||
-					user.userId.toLowerCase().includes(query)
-				)
-			}
-			
-			// Filter by selected group
-			if (this.selectedGroup) {
-				filtered = filtered.filter(user => 
-					user.groups && user.groups.includes(this.selectedGroup.id)
-				)
-			}
-			
-			return filtered
-		},
-
-		onSearchInput() {
-			// Search is reactive through computed properties
-		},
-
-		onGroupFilterChange() {
-			// Group filter is reactive through computed properties
-		},
-
-		getResponseText(response) {
-			const responses = {
-				yes: this.t('attendance', 'Yes'),
-				maybe: this.t('attendance', 'Maybe'),
-				no: this.t('attendance', 'No'),
-			}
-			return responses[response] || response
-		},
-
-		goBack() {
-			window.history.back()
-		},
-
-		toggleCommentInput(userId) {
-			this.$set(this.showCommentInput, userId, !this.showCommentInput[userId])
-			// Initialize comment with existing value or empty
-			if (!this.checkinComments[userId]) {
-				const user = this.filteredAllUsers.find(u => u.userId === userId)
-				const existingComment = user?.checkinComment || ''
-				this.$set(this.checkinComments, userId, existingComment)
-			}
-		},
-
-		async saveCheckinComment(userId) {
-			try {
-				const url = generateUrl('/apps/attendance/api/appointments/{id}/checkin/{userId}', {
-					id: this.appointmentId,
-					userId: userId,
-				})
-				
-				await axios.post(url, {
-					response: null, // Don't change the check-in response
-					comment: this.checkinComments[userId] || '',
-				})
-
-				// Hide comment input and reload data
-				this.$set(this.showCommentInput, userId, false)
-				await this.loadAppointmentData(true)
-			} catch (error) {
-				console.error('Failed to save admin comment:', error)
-				// Could add a toast notification here
-			}
-		},
-
-		cancelCommentInput(userId) {
-			// Reset comment to original value
-			const user = this.filteredAllUsers.find(u => u.userId === userId)
-			const originalComment = user?.checkinComment || ''
-			this.$set(this.checkinComments, userId, originalComment)
-			this.$set(this.showCommentInput, userId, false)
-		},
-	},
+		appointment.value = response.data.appointment
+		users.value = response.data.users || []
+		userGroups.value = response.data.userGroups || []
+	} catch (error) {
+		console.error('Failed to load appointment data:', error)
+		error.value = error.response?.data?.message || window.t('attendance', 'Failed to load appointment data')
+	} finally {
+		loading.value = false
+	}
 }
+
+const checkinUser = async (userId, response, reloadData = true) => {
+	try {
+		const url = generateUrl('/apps/attendance/api/appointments/{id}/checkin/{userId}', {
+			id: props.appointmentId,
+			userId: userId,
+		})
+		
+		await axios.post(url, {
+			response: response,
+		})
+
+		// Reload data to reflect changes (unless bulk operation)
+		if (reloadData) {
+			await loadAppointmentData(true)
+		}
+	} catch (err) {
+		console.error('Failed to check in user:', err)
+		// Could add a toast notification here
+	}
+}
+
+const formatDateTime = (datetime) => {
+	try {
+		const date = new Date(datetime)
+		const options = { dateStyle: 'medium', timeStyle: 'short' }
+		return date.toLocaleString(['de-DE', 'en-EN'], options)
+	} catch (err) {
+		return datetime
+	}
+}
+
+const confirmBulkCheckin = (response) => {
+	const userCount = filteredAllUsers.value.length
+	const actionText = response === 'yes' ? window.t('attendance', 'attending') : window.t('attendance', 'not attending')
+	
+	// Use string replacement for proper translation
+	confirmMessage.value = window.t('attendance', 'Do you really want to set all {count} users to {action}?')
+		.replace('{count}', userCount)
+		.replace('{action}', actionText)
+	
+	pendingBulkAction.value = response
+	showConfirmDialog.value = true
+}
+
+const executeBulkAction = async () => {
+	if (bulkProcessing.value) return
+
+	bulkProcessing.value = true
+	showConfirmDialog.value = false
+	
+	try {
+		for (const user of filteredAllUsers.value) {
+			await checkinUser(user.userId, pendingBulkAction.value, false)
+		}
+		
+		// Reload data after bulk operation
+		await loadAppointmentData(true)
+	} catch (err) {
+		console.error('Failed to bulk checkin users:', err)
+	} finally {
+		bulkProcessing.value = false
+		pendingBulkAction.value = null
+	}
+}
+
+const cancelBulkAction = () => {
+	showConfirmDialog.value = false
+	pendingBulkAction.value = null
+	confirmMessage.value = ''
+}
+
+const filterUsers = (usersArray) => {
+	let filtered = usersArray
+	
+	// Filter by search query
+	if (searchQuery.value) {
+		const query = searchQuery.value.toLowerCase()
+		filtered = filtered.filter(user => 
+			user.displayName.toLowerCase().includes(query) ||
+			user.userId.toLowerCase().includes(query)
+		)
+	}
+	
+	// Filter by selected group
+	if (selectedGroup.value) {
+		filtered = filtered.filter(user => 
+			user.groups && user.groups.includes(selectedGroup.value.id)
+		)
+	}
+	
+	return filtered
+}
+
+const onSearchInput = () => {
+	// Search is reactive through computed properties
+}
+
+const onGroupFilterChange = () => {
+	// Group filter is reactive through computed properties
+}
+
+const getResponseText = (response) => {
+	const responses = {
+		yes: window.t('attendance', 'Yes'),
+		maybe: window.t('attendance', 'Maybe'),
+		no: window.t('attendance', 'No'),
+	}
+	return responses[response] || response
+}
+
+const getResponseVariant = (response) => {
+	const variants = {
+		yes: 'success',
+		maybe: 'warning',
+		no: 'error',
+	}
+	return variants[response] || 'tertiary'
+}
+
+const renderedDescription = computed(() => {
+	if (!appointment.value?.description) return ''
+	return sanitizeHtml(renderMarkdown(appointment.value.description, true))
+})
+
+const goBack = () => {
+	window.history.back()
+}
+
+const toggleCommentInput = (userId) => {
+	showCommentInput[userId] = !showCommentInput[userId]
+	// Initialize comment with existing value or empty
+	if (!checkinComments[userId]) {
+		const user = filteredAllUsers.value.find(u => u.userId === userId)
+		const existingComment = user?.checkinComment || ''
+		checkinComments[userId] = existingComment
+	}
+}
+
+const saveCheckinComment = async (userId) => {
+	try {
+		const url = generateUrl('/apps/attendance/api/appointments/{id}/checkin/{userId}', {
+			id: props.appointmentId,
+			userId: userId,
+		})
+		
+		await axios.post(url, {
+			response: null, // Don't change the check-in response
+			comment: checkinComments[userId] || '',
+		})
+
+		// Hide comment input and reload data
+		showCommentInput[userId] = false
+		await loadAppointmentData(true)
+	} catch (err) {
+		console.error('Failed to save admin comment:', err)
+		// Could add a toast notification here
+	}
+}
+
+const cancelCommentInput = (userId) => {
+	// Reset comment to original value
+	const user = filteredAllUsers.value.find(u => u.userId === userId)
+	const originalComment = user?.checkinComment || ''
+	checkinComments[userId] = originalComment
+	showCommentInput[userId] = false
+}
+
+// Lifecycle
+onMounted(async () => {
+	await loadAppointmentData()
+})
 </script>
 
 <style scoped lang="scss">
@@ -528,7 +515,17 @@ export default {
 	.appointment-description {
 		margin: 15px 0 0 0;
 		color: var(--color-main-text);
-		font-style: italic;
+		white-space: pre-wrap;
+		
+		// Markdown formatting
+		:deep(strong) {
+			font-weight: bold;
+			color: var(--color-main-text);
+		}
+		
+		:deep(em) {
+			font-style: italic;
+		}
 	}
 }
 
@@ -543,7 +540,7 @@ export default {
 		display: flex;
 		align-items: center;
 		gap: 12px;
-		color: var(--color-success);
+		color: black;
 		border-left-color: var(--color-success);
 
 		span {
@@ -651,39 +648,6 @@ export default {
 				margin-bottom: 5px;
 			}
 
-			.response-badge {
-				padding: 2px 8px;
-				border-radius: 12px;
-				font-size: 12px;
-				font-weight: bold;
-				color: white;
-
-				&.yes {
-					background: var(--color-success);
-				}
-
-				&.maybe {
-					background: var(--color-warning);
-				}
-				
-				body[data-theme-dark] &.maybe {
-					color: black;
-				}
-				
-				@media (prefers-color-scheme: dark) {
-					body[data-theme-default] &.maybe {
-						color: black;
-					}
-				}
-
-				&.no {
-					background: var(--color-error);
-				}
-
-				&.no-response {
-					background: var(--color-text-maxcontrast);
-				}
-			}
 
 			.checkin-badge {
 				padding: 2px 6px;
@@ -767,42 +731,6 @@ export default {
 				.user-name {
 					font-weight: 600;
 					color: var(--color-main-text);
-				}
-
-				.response-badge {
-					padding: 2px 8px;
-					border-radius: 12px;
-					font-size: 12px;
-					font-weight: bold;
-
-					&.yes {
-						background: var(--color-success);
-						color: white;
-					}
-
-					&.maybe {
-						background: var(--color-warning);
-					}
-					
-					body[data-theme-dark] &.maybe {
-						color: black;
-					}
-					
-					@media (prefers-color-scheme: dark) {
-						body[data-theme-default] &.maybe {
-							color: black;
-						}
-					}
-
-					&.no {
-						background: var(--color-error);
-						color: white;
-					}
-
-					&.no-response {
-						background: var(--color-text-maxcontrast);
-						color: white;
-					}
 				}
 			}
 		}
