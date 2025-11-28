@@ -1,6 +1,11 @@
 {
     "translations": {
-        "Attendance": "Anwesenheit"
+        "Attendance": "Anwesenheit",
+        "Yes": "Ja",
+        "No": "Nein",
+        "Maybe": "Vielleicht",
+        "Group": "Gruppe",
+        "Others": "Andere"
     },
     "pluralForm": "nplurals=2; plural=(n != 1);"
 }

@@ -6,6 +6,7 @@ namespace OCA\Attendance\Controller;
 
 use OCA\Attendance\Service\AppointmentService;
 use OCA\Attendance\Service\PermissionService;
+use OCA\Attendance\Service\ExportService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
@@ -15,6 +16,7 @@ use OCP\IGroupManager;
 class AppointmentController extends Controller {
 	private AppointmentService $appointmentService;
 	private PermissionService $permissionService;
+	private ExportService $exportService;
 	private IUserSession $userSession;
 	private IGroupManager $groupManager;
 
@@ -23,12 +25,14 @@ class AppointmentController extends Controller {
 		IRequest $request,
 		AppointmentService $appointmentService,
 		PermissionService $permissionService,
+		ExportService $exportService,
 		IUserSession $userSession,
 		IGroupManager $groupManager
 	) {
 		parent::__construct($appName, $request);
 		$this->appointmentService = $appointmentService;
 		$this->permissionService = $permissionService;
+		$this->exportService = $exportService;
 		$this->userSession = $userSession;
 		$this->groupManager = $groupManager;
 	}
@@ -276,6 +280,33 @@ class AppointmentController extends Controller {
 		try {
 			$checkinData = $this->appointmentService->getCheckinData($id);
 			return new DataResponse($checkinData);
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => $e->getMessage()], 400);
+		}
+	}
+
+	/**
+	 * Export all appointments to ODS file
+	 * @NoAdminRequired
+	 */
+	public function export(): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		// Check if user can manage appointments
+		if (!$this->permissionService->canManageAppointments($user->getUID())) {
+			return new DataResponse(['error' => 'Insufficient permissions to export appointments'], 403);
+		}
+
+		try {
+			$result = $this->exportService->exportToOds($user->getUID());
+			return new DataResponse([
+				'success' => true,
+				'path' => $result['path'],
+				'filename' => $result['filename'],
+			]);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 400);
 		}
