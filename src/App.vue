@@ -20,7 +20,8 @@
 							:active="currentView === 'appointment' && appointmentDetailId === appointment.id"
 							@click.prevent="navigateToAppointment(appointment.id)">
 							<template #icon>
-								<ChevronRightIcon :size="20" />
+								<HelpCircleOutline v-if="!appointment.userResponse" :size="20" />
+								<ChevronRightIcon v-else :size="20" />
 							</template>
 						</NcAppNavigationItem>
 					</template>
@@ -113,6 +114,7 @@ import { fromZonedTime } from 'date-fns-tz'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import CalendarClockIcon from 'vue-material-design-icons/CalendarClock.vue'
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
+import HelpCircleOutline from 'vue-material-design-icons/HelpCircleOutline.vue'
 import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import DownloadIcon from 'vue-material-design-icons/Download.vue'
 
@@ -285,11 +287,6 @@ onMounted(async () => {
 	window.addEventListener('popstate', () => {
 		checkRouting()
 	})
-})
-
-// Watch for view changes to trigger component reload via :key
-watch(currentView, (newView) => {
-	console.log('View changed to:', newView)
 })
 </script>
 
