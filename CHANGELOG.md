@@ -6,6 +6,17 @@
 
 - Nightly changes here
 
+## 1.5.0 – 2025-11-28
+
+### Added
+
+- Export functionality: Export all appointments to ODS (spreadsheet) format
+  - Generates table with user names, groups, and RSVP/Check-in status per appointment
+  - Automatically navigates to Attendance folder in Files app after export
+  - Translated response values (Yes/No/Maybe) based on user language
+  - Three-row header structure: appointment names, dates, and RSVP/CheckIn labels
+- Danish (da) translation with complete localization coverage for all UI elements
+
 ## 1.4.0 – 2025-11-28
 
 ### Added
