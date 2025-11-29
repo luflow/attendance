@@ -15,6 +15,8 @@
 				:appointment="appointment"
 				:can-manage-appointments="canManageAppointments"
 				:can-checkin="canCheckin"
+				:can-see-response-overview="canSeeResponseOverview"
+				:can-see-comments="canSeeComments"
 				@start-checkin="startCheckin"
 				@edit="editAppointment"
 				@delete="deleteAppointment"
@@ -56,6 +58,8 @@ const loading = ref(true)
 const error = ref(null)
 const canManageAppointments = ref(false)
 const canCheckin = ref(false)
+const canSeeResponseOverview = ref(false)
+const canSeeComments = ref(false)
 const showEditForm = ref(false)
 const editingAppointment = reactive({
 	id: null,
@@ -156,10 +160,16 @@ const submitResponse = async (appointmentId, response) => {
 		}
 		appointment.value.userResponse.response = response
 		
-		await axios.post(generateUrl(`/apps/attendance/api/appointments/${appointmentId}/respond`), {
+		const axiosResponse = await axios.post(generateUrl(`/apps/attendance/api/appointments/${appointmentId}/respond`), {
 			response,
 			comment,
 		})
+		
+		// Check if response status is 2xx
+		if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
+			throw new Error(`API returned status ${axiosResponse.status}`)
+		}
+		
 		showSuccess(t('attendance', 'Response updated successfully'))
 		
 		emit('response-updated')
@@ -180,10 +190,15 @@ const updateComment = async (appointmentId, comment, silent = false) => {
 		}
 		appointment.value.userResponse.comment = comment
 		
-		await axios.post(generateUrl(`/apps/attendance/api/appointments/${appointmentId}/respond`), {
+		const axiosResponse = await axios.post(generateUrl(`/apps/attendance/api/appointments/${appointmentId}/respond`), {
 			response,
 			comment,
 		})
+		
+		// Check if response status is 2xx
+		if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
+			throw new Error(`API returned status ${axiosResponse.status}`)
+		}
 		
 		if (!silent) {
 			showSuccess(t('attendance', 'Comment updated successfully'))
@@ -259,6 +274,8 @@ const loadPermissions = async () => {
 		const response = await axios.get(generateUrl('/apps/attendance/api/user/permissions'))
 		canManageAppointments.value = response.data.canManageAppointments
 		canCheckin.value = response.data.canCheckin
+		canSeeResponseOverview.value = response.data.canSeeResponseOverview
+		canSeeComments.value = response.data.canSeeComments
 	} catch (error) {
 		console.error('Failed to load permissions:', error)
 	}

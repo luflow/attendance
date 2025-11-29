@@ -69,15 +69,18 @@
 							<div class="textarea-container">
 								<NcTextArea
 									resize="vertical"
-									:value="responseComments[item.id] || item.userResponse?.comment || undefined"
+									v-model="responseComments[item.id]"
 									:placeholder="t('attendance', 'Comment (optional)')"
-									@input="onCommentInput(item.id, $event.target.value)" />
+									@input="onCommentInput(item.id)" />
 								
 								<div v-if="savingComments[item.id]" class="saving-spinner">
 									<div class="spinner"></div>
 								</div>
 								<div v-else-if="savedComments[item.id]" class="saved-indicator">
 									<CheckIcon :size="16" class="check-icon" />
+								</div>
+								<div v-else-if="errorComments[item.id]" class="error-indicator">
+									<CloseCircle :size="16" class="error-icon" />
 								</div>
 							</div>
 						</div>
@@ -118,17 +121,19 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
 import CommentIcon from 'vue-material-design-icons/Comment.vue'
+import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
 
 import { NcDashboardWidget, NcEmptyContent, NcButton, NcModal, NcTextArea } from '@nextcloud/vue'
 
 import { generateUrl } from '@nextcloud/router'
 import { loadState } from '@nextcloud/initial-state'
 import axios from '@nextcloud/axios'
+import { showError } from '@nextcloud/dialogs'
 
 // Props
 defineProps({
@@ -159,6 +164,7 @@ const selectedResponse = ref(null)
 const responseComments = reactive({})
 const savingComments = reactive({})
 const savedComments = reactive({})
+const errorComments = reactive({})
 const commentTimeouts = reactive({})
 const commentExpanded = reactive({})
 const permissions = reactive({
@@ -182,8 +188,12 @@ const items = computed(() => {
 })
 
 // Methods
-const respond = (appointmentId, response) => {
-	submitResponseToServer(appointmentId, response, '')
+const respond = async (appointmentId, response) => {
+	try {
+		await submitResponseToServer(appointmentId, response, '')
+	} catch (error) {
+		showError(t('attendance', 'Failed to save response'))
+	}
 }
 
 const showCommentDialog = (appointmentId, response) => {
@@ -200,20 +210,29 @@ const closeDialog = () => {
 	comment.value = ''
 }
 
-const submitResponse = () => {
+const submitResponse = async () => {
 	if (selectedAppointmentId.value && selectedResponse.value) {
-		submitResponseToServer(selectedAppointmentId.value, selectedResponse.value, comment.value)
-		closeDialog()
+		try {
+			await submitResponseToServer(selectedAppointmentId.value, selectedResponse.value, comment.value)
+			closeDialog()
+		} catch (error) {
+			showError(t('attendance', 'Failed to save response'))
+		}
 	}
 }
 
 const submitResponseToServer = async (appointmentId, response, commentText) => {
 	try {
 		const url = generateUrl('/apps/attendance/api/appointments/{id}/respond', { id: appointmentId })
-		await axios.post(url, {
+		const axiosResponse = await axios.post(url, {
 			response,
 			comment: commentText,
 		})
+
+		// Check if response status is 2xx
+		if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
+			throw new Error(`API returned status ${axiosResponse.status}`)
+		}
 
 		// Update local state
 		const appointmentIndex = appointments.value.findIndex(a => a.id === appointmentId)
@@ -226,7 +245,8 @@ const submitResponseToServer = async (appointmentId, response, commentText) => {
 
 		// Response saved successfully
 	} catch (error) {
-		// Failed to save response
+		console.error('Failed to save response:', error)
+		throw error
 	}
 }
 
@@ -261,17 +281,25 @@ const renderDescriptionMarkdown = (description) => {
 }
 
 const toggleComment = (appointmentId) => {
-	commentExpanded[appointmentId] = !commentExpanded[appointmentId]
+	const isExpanding = !commentExpanded[appointmentId]
+	commentExpanded[appointmentId] = isExpanding
+	
+	// Initialize comment with existing value when expanding
+	if (isExpanding && !(appointmentId in responseComments)) {
+		const appointment = appointments.value.find(a => a.id === appointmentId)
+		responseComments[appointmentId] = appointment?.userResponse?.comment || ''
+	}
 }
 
-const onCommentInput = (appointmentId, value) => {
-	responseComments[appointmentId] = value
-
+const onCommentInput = (appointmentId) => {
 	if (commentTimeouts[appointmentId]) {
 		clearTimeout(commentTimeouts[appointmentId])
 	}
 
-	commentTimeouts[appointmentId] = setTimeout(() => {
+	commentTimeouts[appointmentId] = setTimeout(async () => {
+		// Wait for Vue to update the DOM and reactive values
+		await nextTick()
+		const value = responseComments[appointmentId]
 		autoSaveComment(appointmentId, value)
 	}, 500)
 }
@@ -281,6 +309,7 @@ const autoSaveComment = async (appointmentId, commentText) => {
 	if (appointment && appointment.userResponse) {
 		savingComments[appointmentId] = true
 		savedComments[appointmentId] = false
+		errorComments[appointmentId] = false
 
 		try {
 			await submitResponseToServer(appointmentId, appointment.userResponse.response, commentText)
@@ -295,6 +324,12 @@ const autoSaveComment = async (appointmentId, commentText) => {
 			}, 500)
 		} catch (error) {
 			savingComments[appointmentId] = false
+			errorComments[appointmentId] = true
+			showError(t('attendance', 'Comment could not be saved'))
+			
+			setTimeout(() => {
+				errorComments[appointmentId] = false
+			}, 3000)
 		}
 	}
 }
@@ -515,7 +550,8 @@ onMounted(() => {
 		}
 
 		.saving-spinner,
-		.saved-indicator {
+		.saved-indicator,
+		.error-indicator {
 			position: absolute;
 			top: 15px;
 			right: 15px;
@@ -546,6 +582,19 @@ onMounted(() => {
 
 			.check-icon {
 				color: white;
+			}
+		}
+
+		.error-indicator {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 16px;
+			height: 16px;
+			animation: fadeIn 0.3s ease-in;
+
+			.error-icon {
+				color: var(--color-error);
 			}
 		}
 

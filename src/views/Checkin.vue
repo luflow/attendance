@@ -108,7 +108,7 @@
 												variant="tertiary" 
 												no-close />
 										</div>
-										<div v-if="user.comment && user.comment.trim()" class="user-comment">
+										<div v-if="canSeeComments && user.comment && user.comment.trim()" class="user-comment">
 											<CommentIcon :size="14" class="comment-icon" />
 											{{ user.comment }}
 										</div>
@@ -236,6 +236,7 @@ const bulkProcessing = ref(false)
 const searchQuery = ref('')
 const selectedGroup = ref(null)
 const userGroups = ref([])
+const canSeeComments = ref(false)
 const showCommentInput = reactive({})
 const checkinComments = reactive({})
 const showConfirmDialog = ref(false)
@@ -417,6 +418,15 @@ const renderedDescription = computed(() => {
 	return sanitizeHtml(renderMarkdown(appointment.value.description, true))
 })
 
+const loadPermissions = async () => {
+	try {
+		const response = await axios.get(generateUrl('/apps/attendance/api/user/permissions'))
+		canSeeComments.value = response.data.canSeeComments
+	} catch (error) {
+		console.error('Failed to load permissions:', error)
+	}
+}
+
 const goBack = () => {
 	window.history.back()
 }
@@ -462,6 +472,7 @@ const cancelCommentInput = (userId) => {
 
 // Lifecycle
 onMounted(async () => {
+	await loadPermissions()
 	await loadAppointmentData()
 })
 </script>

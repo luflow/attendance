@@ -22,6 +22,8 @@
 					:appointment="appointment"
 					:can-manage-appointments="canManageAppointments"
 					:can-checkin="canCheckin"
+					:can-see-response-overview="canSeeResponseOverview"
+					:can-see-comments="canSeeComments"
 					@start-checkin="startCheckin"
 					@edit="editAppointment"
 					@delete="deleteAppointment"
@@ -66,11 +68,15 @@ const editingAppointment = reactive({
 const permissions = reactive({
 	canManageAppointments: false,
 	canCheckin: false,
+	canSeeResponseOverview: false,
+	canSeeComments: false,
 })
 
 // Computed
 const canManageAppointments = computed(() => permissions.canManageAppointments)
 const canCheckin = computed(() => permissions.canCheckin)
+const canSeeResponseOverview = computed(() => permissions.canSeeResponseOverview)
+const canSeeComments = computed(() => permissions.canSeeComments)
 
 // Methods
 const loadPermissions = async () => {
@@ -78,6 +84,8 @@ const loadPermissions = async () => {
 		const response = await axios.get(generateUrl('/apps/attendance/api/user/permissions'))
 		permissions.canManageAppointments = response.data.canManageAppointments
 		permissions.canCheckin = response.data.canCheckin
+		permissions.canSeeResponseOverview = response.data.canSeeResponseOverview
+		permissions.canSeeComments = response.data.canSeeComments
 	} catch (error) {
 		console.error('Failed to load permissions:', error)
 	}
@@ -89,7 +97,7 @@ const loadAppointments = async (skipLoadingSpinner = false) => {
 		if (!skipLoadingSpinner) {
 			loading.value = true
 		}
-		const params = props.showPast ? '?showPast=true' : ''
+		const params = props.showPast ? '?showPastAppointments=true' : ''
 		const response = await axios.get(generateUrl('/apps/attendance/api/appointments') + params)
 		appointments.value = response.data
 
@@ -161,10 +169,16 @@ const submitResponse = async (appointmentId, response) => {
 		const appointment = appointments.value.find(a => a.id === appointmentId)
 		const comment = appointment?.userResponse?.comment || ''
 		
-		await axios.post(generateUrl(`/apps/attendance/api/appointments/${appointmentId}/respond`), {
+		const axiosResponse = await axios.post(generateUrl(`/apps/attendance/api/appointments/${appointmentId}/respond`), {
 			response,
 			comment,
 		})
+		
+		// Check if response status is 2xx
+		if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
+			throw new Error(`API returned status ${axiosResponse.status}`)
+		}
+		
 		showSuccess(t('attendance', 'Response updated successfully'))
 		
 		// Emit event to update sidebar
@@ -182,10 +196,15 @@ const updateComment = async (appointmentId, comment, silent = false) => {
 		const appointment = appointments.value.find(a => a.id === appointmentId)
 		const response = appointment?.userResponse?.response || 'yes'
 		
-		await axios.post(generateUrl(`/apps/attendance/api/appointments/${appointmentId}/respond`), {
+		const axiosResponse = await axios.post(generateUrl(`/apps/attendance/api/appointments/${appointmentId}/respond`), {
 			response,
 			comment,
 		})
+		
+		// Check if response status is 2xx
+		if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
+			throw new Error(`API returned status ${axiosResponse.status}`)
+		}
 		
 		if (!silent) {
 			showSuccess(t('attendance', 'Comment updated successfully'))
