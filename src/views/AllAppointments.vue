@@ -49,6 +49,8 @@ const props = defineProps({
 	},
 })
 
+const emit = defineEmits(['response-updated'])
+
 // State
 const appointments = ref([])
 const loading = ref(true)
@@ -164,6 +166,10 @@ const submitResponse = async (appointmentId, response) => {
 			comment,
 		})
 		showSuccess(t('attendance', 'Response updated successfully'))
+		
+		// Emit event to update sidebar
+		emit('response-updated')
+		
 		await loadAppointments(true)
 	} catch (error) {
 		console.error('Failed to submit response:', error)
@@ -171,7 +177,7 @@ const submitResponse = async (appointmentId, response) => {
 	}
 }
 
-const updateComment = async (appointmentId, comment) => {
+const updateComment = async (appointmentId, comment, silent = false) => {
 	try {
 		const appointment = appointments.value.find(a => a.id === appointmentId)
 		const response = appointment?.userResponse?.response || 'yes'
@@ -180,11 +186,17 @@ const updateComment = async (appointmentId, comment) => {
 			response,
 			comment,
 		})
-		showSuccess(t('attendance', 'Comment updated successfully'))
+		
+		if (!silent) {
+			showSuccess(t('attendance', 'Comment updated successfully'))
+		}
+		
 		await loadAppointments(true)
 	} catch (error) {
 		console.error('Failed to update comment:', error)
-		showError(t('attendance', 'Error updating comment'))
+		if (!silent) {
+			showError(t('attendance', 'Error updating comment'))
+		}
 	}
 }
 

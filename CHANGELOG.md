@@ -6,6 +6,19 @@
 
 - Nightly changes here
 
+## 1.6.0 – 2025-11-29
+
+### Added
+
+- Auto-save functionality for comments with visual feedback (spinner while saving, green checkmark on success)
+- Collapsible comment field in dashboard widget with toggle button for cleaner interface
+- Added Response status icons in sidebar navigation (checkmark for Yes, circle for Maybe or No Answer yet, X for No)
+- Dashboard widget now shows up to 10 appointments instead of 5
+
+### Fixed
+
+- Small issues leading to log spamming fixed
+
 ## 1.5.0 – 2025-11-28
 
 ### Added

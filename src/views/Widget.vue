@@ -53,10 +53,19 @@
 								variant="error"
 								:text="t('attendance', 'No')"
 								@click="respond(item.id, 'no')" />
+							<!-- Comment Toggle Button -->
+							<NcButton
+								:class="{ 'comment-active': commentExpanded[item.id], 'comment-toggle': true }"
+								type="tertiary"
+								@click="toggleComment(item.id)">
+								<template #icon>
+									<CommentIcon :size="14" />
+								</template>
+							</NcButton>
 						</div>
 
 						<!-- Comment Section -->
-						<div v-if="item.userResponse" class="comment-section">
+						<div v-if="commentExpanded[item.id]" class="comment-section">
 							<div class="textarea-container">
 								<NcTextArea
 									resize="vertical"
@@ -66,6 +75,9 @@
 								
 								<div v-if="savingComments[item.id]" class="saving-spinner">
 									<div class="spinner"></div>
+								</div>
+								<div v-else-if="savedComments[item.id]" class="saved-indicator">
+									<CheckIcon :size="16" class="check-icon" />
 								</div>
 							</div>
 						</div>
@@ -109,6 +121,8 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
+import CheckIcon from 'vue-material-design-icons/Check.vue'
+import CommentIcon from 'vue-material-design-icons/Comment.vue'
 
 import { NcDashboardWidget, NcEmptyContent, NcButton, NcModal, NcTextArea } from '@nextcloud/vue'
 
@@ -144,7 +158,9 @@ const selectedAppointmentId = ref(null)
 const selectedResponse = ref(null)
 const responseComments = reactive({})
 const savingComments = reactive({})
+const savedComments = reactive({})
 const commentTimeouts = reactive({})
+const commentExpanded = reactive({})
 const permissions = reactive({
 	canManageAppointments: false,
 	canCheckin: false,
@@ -244,16 +260,17 @@ const renderDescriptionMarkdown = (description) => {
 	return text
 }
 
+const toggleComment = (appointmentId) => {
+	commentExpanded[appointmentId] = !commentExpanded[appointmentId]
+}
+
 const onCommentInput = (appointmentId, value) => {
-	// Update the comment value immediately for UI responsiveness
 	responseComments[appointmentId] = value
 
-	// Clear existing timeout for this appointment
 	if (commentTimeouts[appointmentId]) {
 		clearTimeout(commentTimeouts[appointmentId])
 	}
 
-	// Set new timeout to auto-save after 0.5 seconds of no typing
 	commentTimeouts[appointmentId] = setTimeout(() => {
 		autoSaveComment(appointmentId, value)
 	}, 500)
@@ -262,18 +279,22 @@ const onCommentInput = (appointmentId, value) => {
 const autoSaveComment = async (appointmentId, commentText) => {
 	const appointment = appointments.value.find(a => a.id === appointmentId)
 	if (appointment && appointment.userResponse) {
-		// Set saving indicator
 		savingComments[appointmentId] = true
+		savedComments[appointmentId] = false
 
 		try {
 			await submitResponseToServer(appointmentId, appointment.userResponse.response, commentText)
-		} catch (error) {
-			console.error('Auto-save failed:', error)
-		} finally {
-			// Remove saving indicator after a short delay
+			
 			setTimeout(() => {
 				savingComments[appointmentId] = false
+				savedComments[appointmentId] = true
+				
+				setTimeout(() => {
+					savedComments[appointmentId] = false
+				}, 2000)
 			}, 500)
+		} catch (error) {
+			savingComments[appointmentId] = false
 		}
 	}
 }
@@ -447,12 +468,13 @@ onMounted(() => {
 		:deep(.button-vue) {
 			font-size: 11px;
 			padding: 4px 12px;
-			min-height: 28px;
+			height: 32px;
 		}
 
 		// Apply neutral styling to non-active buttons only when there's a response
+		// Exclude the comment toggle button from this styling
 		&.has-response {
-			:deep(.button-vue:not(.active)) {
+			:deep(.button-vue:not(.active):not(.comment-toggle)) {
 				background-color: var(--color-background-dark) !important;
 				color: var(--color-text-lighter) !important;
 				border-color: var(--color-border-dark) !important;
@@ -467,6 +489,12 @@ onMounted(() => {
 		// Active button styles - keep bold
 		:deep(.button-vue.active) {
 			font-weight: bold;
+		}
+
+		// Comment toggle button
+		:deep(.button-vue.comment-active) {
+			background-color: var(--color-primary-element) !important;
+			color: white !important;
 		}
 	}
 
@@ -486,13 +514,16 @@ onMounted(() => {
 			height: calc(var(--default-clickable-area) * 1.4);
 		}
 
-		.saving-spinner {
+		.saving-spinner,
+		.saved-indicator {
 			position: absolute;
 			top: 15px;
 			right: 15px;
 			pointer-events: none;
 			z-index: 10;
+		}
 
+		.saving-spinner {
 			.spinner {
 				width: 16px;
 				height: 16px;
@@ -503,9 +534,29 @@ onMounted(() => {
 			}
 		}
 
+		.saved-indicator {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 16px;
+			height: 16px;
+			background-color: green;
+			border-radius: 50%;
+			animation: fadeIn 0.3s ease-in;
+
+			.check-icon {
+				color: white;
+			}
+		}
+
 		@keyframes spin {
 			0% { transform: rotate(0deg); }
 			100% { transform: rotate(360deg); }
+		}
+
+		@keyframes fadeIn {
+			from { opacity: 0; transform: scale(0.5); }
+			to { opacity: 1; transform: scale(1); }
 		}
 
 		.comment-actions {

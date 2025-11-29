@@ -49,6 +49,8 @@ const props = defineProps({
 	},
 })
 
+const emit = defineEmits(['response-updated'])
+
 const appointment = ref(null)
 const loading = ref(true)
 const error = ref(null)
@@ -149,7 +151,6 @@ const submitResponse = async (appointmentId, response) => {
 	try {
 		const comment = appointment.value.userResponse?.comment || ''
 		
-		// Optimistically update the UI
 		if (!appointment.value.userResponse) {
 			appointment.value.userResponse = {}
 		}
@@ -161,21 +162,19 @@ const submitResponse = async (appointmentId, response) => {
 		})
 		showSuccess(t('attendance', 'Response updated successfully'))
 		
-		// Silently reload in background to get updated summary
+		emit('response-updated')
 		await loadAppointmentSilently()
 	} catch (error) {
 		console.error('Failed to submit response:', error)
 		showError(t('attendance', 'Error updating response'))
-		// Reload on error to reset state
 		await loadAppointment()
 	}
 }
 
-const updateComment = async (appointmentId, comment) => {
+const updateComment = async (appointmentId, comment, silent = false) => {
 	try {
 		const response = appointment.value.userResponse?.response || 'yes'
 		
-		// Optimistically update the UI
 		if (!appointment.value.userResponse) {
 			appointment.value.userResponse = {}
 		}
@@ -185,20 +184,20 @@ const updateComment = async (appointmentId, comment) => {
 			response,
 			comment,
 		})
-		showSuccess(t('attendance', 'Comment updated successfully'))
 		
-		// Silently reload in background to get updated summary
+		if (!silent) {
+			showSuccess(t('attendance', 'Comment updated successfully'))
+		}
+		
 		await loadAppointmentSilently()
 	} catch (error) {
 		console.error('Failed to update comment:', error)
 		showError(t('attendance', 'Error updating comment'))
-		// Reload on error to reset state
 		await loadAppointment()
 	}
 }
 
 const loadAppointmentSilently = async () => {
-	// Load appointment without showing loading state
 	try {
 		let response = await axios.get(generateUrl('/apps/attendance/api/appointments'), {
 			params: { showPastAppointments: false },
