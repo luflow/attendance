@@ -39,8 +39,7 @@
 - "Others" section for users without whitelisted group
 - Expandable sections for detailed response view
 
-### API Documentation
-- Document API endpoints in `openapi.json`
+### API Conventions
 - Follow RESTful conventions
 - Use proper HTTP status codes
 
