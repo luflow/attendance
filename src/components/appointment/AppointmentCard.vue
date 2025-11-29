@@ -62,14 +62,19 @@
 
 			<!-- Comment Section -->
 			<div v-if="userResponse" class="comment-section">
-				<NcTextArea 
-					:value="localComment"
-					@update:value="updateLocalComment"
-					:placeholder="t('attendance', 'Comment (optional)')" />
-				<div class="comment-actions">
-					<NcButton type="primary" @click="handleSaveComment">
-						{{ t('attendance', 'Save') }}
-					</NcButton>
+				<div class="textarea-container">
+					<NcTextArea 
+						resize="vertical"
+						v-model="localComment"
+						@input="handleCommentInputEvent"
+						:placeholder="t('attendance', 'Comment (optional)')" />
+					
+					<div v-if="savingComment" class="saving-spinner">
+						<div class="spinner"></div>
+					</div>
+					<div v-else-if="commentSaved" class="saved-indicator">
+						<CheckIcon :size="16" class="check-icon" />
+					</div>
 				</div>
 			</div>
 		</div>
@@ -90,6 +95,7 @@ import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
 import ShareVariantIcon from 'vue-material-design-icons/ShareVariant.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
+import CheckIcon from 'vue-material-design-icons/Check.vue'
 
 const props = defineProps({
 	appointment: {
@@ -108,7 +114,10 @@ const props = defineProps({
 
 const emit = defineEmits(['start-checkin', 'edit', 'delete', 'submit-response', 'update-comment'])
 
-const localComment = ref('')
+const localComment = ref(props.appointment.userResponse?.comment || '')
+const savingComment = ref(false)
+const commentSaved = ref(false)
+let commentTimeout = null
 
 const userResponse = computed(() => {
 	return props.appointment.userResponse?.response || null
@@ -120,12 +129,11 @@ const renderedDescription = computed(() => {
 	return sanitizeHtml(html)
 })
 
-// Initialize comment from appointment
-watch(() => props.appointment.userResponse?.comment, (newComment) => {
-	if (newComment !== undefined) {
-		localComment.value = newComment || ''
+watch(() => props.appointment.userResponse, (newResponse) => {
+	if (!commentTimeout) {
+		localComment.value = newResponse?.comment || ''
 	}
-}, { immediate: true })
+}, { immediate: true, deep: true })
 
 const formatDateTime = (dateTime) => {
 	const date = new Date(dateTime)
@@ -165,12 +173,32 @@ const handleResponse = (response) => {
 	emit('submit-response', props.appointment.id, response)
 }
 
-const updateLocalComment = (value) => {
-	localComment.value = value
+const handleCommentInputEvent = () => {
+	if (commentTimeout) {
+		clearTimeout(commentTimeout)
+	}
+
+	commentTimeout = setTimeout(() => {
+		autoSaveComment(localComment.value)
+	}, 500)
 }
 
-const handleSaveComment = () => {
-	emit('update-comment', props.appointment.id, localComment.value)
+const autoSaveComment = (commentText) => {
+	if (!userResponse.value) return
+
+	savingComment.value = true
+	commentSaved.value = false
+
+	emit('update-comment', props.appointment.id, commentText, true)
+
+	setTimeout(() => {
+		savingComment.value = false
+		commentSaved.value = true
+		
+		setTimeout(() => {
+			commentSaved.value = false
+		}, 2000)
+	}, 800)
 }
 </script>
 
@@ -266,11 +294,53 @@ const handleSaveComment = () => {
 	.comment-section {
 		margin-top: 10px;
 
-		.comment-actions {
-			margin-top: 10px;
+		.textarea-container {
+			position: relative;
+		}
+
+		.saving-spinner,
+		.saved-indicator {
+			position: absolute;
+			top: 15px;
+			right: 15px;
+			pointer-events: none;
+			z-index: 10;
+		}
+
+		.saving-spinner {
+			.spinner {
+				width: 16px;
+				height: 16px;
+				border: 2px solid var(--color-border);
+				border-top: 2px solid var(--color-primary);
+				border-radius: 50%;
+				animation: spin 1s linear infinite;
+			}
+		}
+
+		.saved-indicator {
 			display: flex;
-			justify-content: flex-start;
-			gap: 10px;
+			align-items: center;
+			justify-content: center;
+			width: 16px;
+			height: 16px;
+			background-color: green;
+			border-radius: 50%;
+			animation: fadeIn 0.3s ease-in;
+
+			.check-icon {
+				color: white;
+			}
+		}
+
+		@keyframes spin {
+			0% { transform: rotate(0deg); }
+			100% { transform: rotate(360deg); }
+		}
+
+		@keyframes fadeIn {
+			from { opacity: 0; transform: scale(0.5); }
+			to { opacity: 1; transform: scale(1); }
 		}
 	}
 }

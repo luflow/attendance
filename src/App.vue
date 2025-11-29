@@ -20,8 +20,9 @@
 							:active="currentView === 'appointment' && appointmentDetailId === appointment.id"
 							@click.prevent="navigateToAppointment(appointment.id)">
 							<template #icon>
-								<HelpCircleOutline v-if="!appointment.userResponse" :size="20" />
-								<ChevronRightIcon v-else :size="20" />
+								<CheckCircle v-if="appointment.userResponse?.response === 'yes'" :size="20" />
+								<HelpCircleOutline v-else-if="!appointment.userResponse || appointment.userResponse?.response === 'maybe'" :size="20" />
+								<CloseCircle v-else-if="appointment.userResponse?.response === 'no'" :size="20" />
 							</template>
 						</NcAppNavigationItem>
 					</template>
@@ -78,12 +79,17 @@
 			<CheckinView v-if="currentView === 'checkin'" :appointment-id="checkinAppointmentId" />
 			
 			<!-- Appointment Detail View -->
-			<AppointmentDetail v-else-if="currentView === 'appointment'" :appointment-id="appointmentDetailId" />
+			<AppointmentDetail 
+				v-else-if="currentView === 'appointment'" 
+				:appointment-id="appointmentDetailId"
+				@response-updated="loadAppointments" />
 			
 			<!-- All Appointments View -->
-			<AllAppointments v-else-if="currentView === 'current' || currentView === 'past'" 
+			<AllAppointments 
+				v-else-if="currentView === 'current' || currentView === 'past'" 
 				:show-past="currentView === 'past'" 
-				:key="currentView" />
+				:key="currentView"
+				@response-updated="loadAppointments" />
 			
 			<!-- Loading state while routing is determined -->
 			<div v-else class="loading-state">
@@ -115,6 +121,8 @@ import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import CalendarClockIcon from 'vue-material-design-icons/CalendarClock.vue'
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
 import HelpCircleOutline from 'vue-material-design-icons/HelpCircleOutline.vue'
+import CheckCircle from 'vue-material-design-icons/CheckCircle.vue'
+import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
 import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import DownloadIcon from 'vue-material-design-icons/Download.vue'
 
@@ -131,7 +139,6 @@ const showCreateForm = ref(false)
 const setView = (view) => {
 	currentView.value = view
 	
-	// Update URL based on view
 	const baseUrl = window.location.pathname.replace(/\/(past|appointment\/\d+|checkin\/\d+)?$/, '')
 	let newUrl = baseUrl
 	
@@ -141,7 +148,6 @@ const setView = (view) => {
 		newUrl = baseUrl
 	}
 	
-	// Update browser history
 	window.history.pushState({ view }, '', newUrl)
 }
 
@@ -149,35 +155,28 @@ const navigateToAppointment = (appointmentId) => {
 	currentView.value = 'appointment'
 	appointmentDetailId.value = appointmentId
 	
-	// Determine which section this appointment belongs to and open it
 	const isCurrentAppointment = currentAppointments.value.some(apt => apt.id === appointmentId)
 	const isPastAppointment = pastAppointments.value.some(apt => apt.id === appointmentId)
 	
 	if (isCurrentAppointment) {
 		currentAppointmentsOpen.value = true
-		pastAppointmentsOpen.value = false
 	} else if (isPastAppointment) {
-		currentAppointmentsOpen.value = false
 		pastAppointmentsOpen.value = true
 	}
 	
-	// Update URL
 	const baseUrl = window.location.pathname.replace(/\/(past|appointment\/\d+|checkin\/\d+)?$/, '')
 	const newUrl = baseUrl + '/appointment/' + appointmentId
 	
-	// Update browser history
 	window.history.pushState({ view: 'appointment', appointmentId }, '', newUrl)
 }
 
 const loadAppointments = async () => {
 	try {
-		// Load current/upcoming appointments (end_datetime >= now)
 		const currentResponse = await axios.get(generateUrl('/apps/attendance/api/appointments'), {
 			params: { showPastAppointments: false },
 		})
 		currentAppointments.value = currentResponse.data
 		
-		// Load past appointments (end_datetime < now)
 		const pastResponse = await axios.get(generateUrl('/apps/attendance/api/appointments'), {
 			params: { showPastAppointments: true },
 		})
@@ -219,10 +218,8 @@ const handleCreateModalSubmit = async (formData) => {
 		showSuccess(t('attendance', 'Appointment created successfully'))
 		handleCreateModalClose()
 		
-		// Reload appointments in sidebar and refresh current view
 		await loadAppointments()
 		
-		// If not on current view, navigate there
 		if (currentView.value !== 'current') {
 			setView('current')
 		}
@@ -239,7 +236,6 @@ const exportAppointments = async () => {
 		if (response.data.success) {
 			showSuccess(t('attendance', 'Export created successfully: {filename}', { filename: response.data.filename }))
 			
-			// Navigate to the Attendance folder in Files app
 			const filesUrl = generateUrl('/apps/files/?dir=/Attendance')
 			window.location.href = filesUrl
 		} else {
@@ -253,7 +249,6 @@ const exportAppointments = async () => {
 }
 
 const checkRouting = () => {
-	// Check current URL path
 	const path = window.location.pathname
 	const checkinMatch = path.match(/\/checkin\/(\d+)/)
 	const appointmentMatch = path.match(/\/appointment\/(\d+)/)
@@ -272,7 +267,7 @@ const checkRouting = () => {
 		checkinAppointmentId.value = null
 		appointmentDetailId.value = null
 	} else {
-		currentView.value = 'current' // Default to current appointments
+		currentView.value = 'current'
 		checkinAppointmentId.value = null
 		appointmentDetailId.value = null
 	}
@@ -283,7 +278,6 @@ onMounted(async () => {
 	await loadPermissions()
 	await loadAppointments()
 	
-	// Listen for browser back/forward navigation
 	window.addEventListener('popstate', () => {
 		checkRouting()
 	})

@@ -91,6 +91,6 @@ class Widget implements IAPIWidget {
 	 * @inheritDoc
 	 */
 	public function getItems(string $userId, ?string $since = null, int $limit = 7): array {
-		return $this->appointmentService->getUpcomingAppointmentsForWidget($userId, 5);
+		return $this->appointmentService->getUpcomingAppointmentsForWidget($userId, 10);
 	}
 }
