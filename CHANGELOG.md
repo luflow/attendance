@@ -6,6 +6,22 @@
 
 - Nightly changes here
 
+## 1.7.0 – 2025-11-29
+
+### Added
+
+- Granular permission controls for viewing response overview and comments
+  - New "See Response Overview" permission setting in admin settings to control who can view detailed response statistics
+  - New "See Comments" permission setting to control who can view and add comments on appointments
+  - Response overview and comment sections are now hidden based on user permissions
+- Navigate automatically to newly created appointment detail view after creation for better UX
+
+### Fixed
+
+- Comments not being saved or displayed correctly with new autosave functionality introduced in last version
+- Added error handling with visual feedback (red X icon) for failed comment saves
+- Better handling of error when using the response (yes, no, maybe) buttons
+
 ## 1.6.0 – 2025-11-29
 
 ### Added
