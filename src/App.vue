@@ -208,7 +208,7 @@ const handleCreateModalSubmit = async (formData) => {
 		const startDatetimeWithTz = fromZonedTime(formData.startDatetime, 'Europe/Berlin')
 		const endDatetimeWithTz = fromZonedTime(formData.endDatetime, 'Europe/Berlin')
 		
-		await axios.post(generateUrl('/apps/attendance/api/appointments'), {
+		const response = await axios.post(generateUrl('/apps/attendance/api/appointments'), {
 			name: formData.name,
 			description: formData.description,
 			startDatetime: startDatetimeWithTz,
@@ -220,7 +220,10 @@ const handleCreateModalSubmit = async (formData) => {
 		
 		await loadAppointments()
 		
-		if (currentView.value !== 'current') {
+		// Navigate to the newly created appointment's detail view
+		if (response.data && response.data.id) {
+			navigateToAppointment(response.data.id)
+		} else if (currentView.value !== 'current') {
 			setView('current')
 		}
 	} catch (error) {
