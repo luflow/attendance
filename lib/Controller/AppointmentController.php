@@ -260,6 +260,8 @@ class AppointmentController extends Controller {
 		return new DataResponse([
 			'canManageAppointments' => $this->permissionService->canManageAppointments($user->getUID()),
 			'canCheckin' => $this->permissionService->canCheckin($user->getUID()),
+			'canSeeResponseOverview' => $this->permissionService->canSeeResponseOverview($user->getUID()),
+			'canSeeComments' => $this->permissionService->canSeeComments($user->getUID()),
 		]);
 	}
 

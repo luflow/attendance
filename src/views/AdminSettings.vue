@@ -30,7 +30,7 @@
 
 				<h2>{{ t('attendance', 'Permissions') }}</h2>
 				<p class="settings-hint">
-					{{ t('attendance', 'Configure which groups can perform specific actions. Users must belong to at least one of the selected groups to access the feature.') }}
+					{{ t('attendance', 'Configure which groups can perform specific actions. Users must belong to at least one of the selected groups to access the feature. If no group is selected, all users have access to the feature.') }}
 				</p>
 
 				<div class="permission-section">
@@ -77,6 +77,50 @@
 					</div>
 				</div>
 
+				<div class="permission-section">
+					<h3>{{ t('attendance', 'See Response Overview') }}</h3>
+					<p class="permission-hint">
+						{{ t('attendance', 'Groups that can see the response overview with details') }}
+					</p>
+					<div class="form-group">
+						<NcSelect
+							v-model="selectedSeeResponseOverviewRoles"
+							:options="availableGroups"
+							:placeholder="t('attendance', 'Select groups...')"
+							:multiple="true"
+							:disabled="loading"
+							label="displayName"
+							track-by="id"
+							@input="onSeeResponseOverviewRolesChange">
+						</NcSelect>
+						<p class="form-hint">
+							{{ n('attendance', '%n group selected', '%n groups selected', selectedSeeResponseOverviewRoles.length, { n: selectedSeeResponseOverviewRoles.length }) }}
+						</p>
+					</div>
+				</div>
+
+				<div class="permission-section">
+					<h3>{{ t('attendance', 'See Comments') }}</h3>
+					<p class="permission-hint">
+						{{ t('attendance', 'Groups that can see comments in the response overview') }}
+					</p>
+					<div class="form-group">
+						<NcSelect
+							v-model="selectedSeeCommentsRoles"
+							:options="availableGroups"
+							:placeholder="t('attendance', 'Select groups...')"
+							:multiple="true"
+							:disabled="loading"
+							label="displayName"
+							track-by="id"
+							@input="onSeeCommentsRolesChange">
+						</NcSelect>
+						<p class="form-hint">
+							{{ n('attendance', '%n group selected', '%n groups selected', selectedSeeCommentsRoles.length, { n: selectedSeeCommentsRoles.length }) }}
+						</p>
+					</div>
+				</div>
+
 				<div class="form-actions">
 					<NcButton
 						type="primary"
@@ -105,6 +149,8 @@ const availableGroups = ref([])
 const selectedGroups = ref([])
 const selectedManageAppointmentsRoles = ref([])
 const selectedCheckinRoles = ref([])
+const selectedSeeResponseOverviewRoles = ref([])
+const selectedSeeCommentsRoles = ref([])
 const loading = ref(false)
 const loadingData = ref(true)
 
@@ -132,6 +178,12 @@ const loadSettings = async () => {
 				selectedCheckinRoles.value = response.data.groups.filter(group => 
 					response.data.permissions.checkin.includes(group.id)
 				)
+				selectedSeeResponseOverviewRoles.value = response.data.groups.filter(group => 
+					response.data.permissions.see_response_overview?.includes(group.id)
+				)
+				selectedSeeCommentsRoles.value = response.data.groups.filter(group => 
+					response.data.permissions.see_comments?.includes(group.id)
+				)
 			}
 		} else {
 			showError(window.t('attendance', 'Failed to load settings') + 
@@ -157,6 +209,14 @@ const onCheckinRolesChange = (selected) => {
 	selectedCheckinRoles.value = selected || []
 }
 
+const onSeeResponseOverviewRolesChange = (selected) => {
+	selectedSeeResponseOverviewRoles.value = selected || []
+}
+
+const onSeeCommentsRolesChange = (selected) => {
+	selectedSeeCommentsRoles.value = selected || []
+}
+
 const saveSettings = async () => {
 	loading.value = true
 
@@ -170,7 +230,9 @@ const saveSettings = async () => {
 				whitelistedGroups: selectedGroupIds,
 				permissions: {
 					manage_appointments: selectedManageAppointmentsRoles.value.map(role => role.id),
-					checkin: selectedCheckinRoles.value.map(role => role.id)
+					checkin: selectedCheckinRoles.value.map(role => role.id),
+					see_response_overview: selectedSeeResponseOverviewRoles.value.map(role => role.id),
+					see_comments: selectedSeeCommentsRoles.value.map(role => role.id)
 				}
 			}
 		)

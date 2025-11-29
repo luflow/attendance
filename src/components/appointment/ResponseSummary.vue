@@ -48,7 +48,7 @@
 										no-close />
 								</div>
 							</div>
-							<div v-if="response.comment && response.comment.trim()" class="response-comment">
+							<div v-if="canSeeComments && response.comment && response.comment.trim()" class="response-comment">
 								{{ response.comment }}
 							</div>
 						</div>
@@ -100,7 +100,7 @@
 										no-close />
 								</div>
 							</div>
-							<div v-if="response.comment && response.comment.trim()" class="response-comment">
+							<div v-if="canSeeComments && response.comment && response.comment.trim()" class="response-comment">
 								{{ response.comment }}
 							</div>
 						</div>
@@ -119,6 +119,10 @@ const props = defineProps({
 	responseSummary: {
 		type: Object,
 		default: null,
+	},
+	canSeeComments: {
+		type: Boolean,
+		default: true,
 	},
 })
 

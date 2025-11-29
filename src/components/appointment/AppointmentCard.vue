@@ -75,27 +75,35 @@
 					<div v-else-if="commentSaved" class="saved-indicator">
 						<CheckIcon :size="16" class="check-icon" />
 					</div>
+					<div v-else-if="errorComment" class="error-indicator">
+						<CloseCircle :size="16" class="error-icon" />
+					</div>
 				</div>
 			</div>
 		</div>
 
 		<!-- Detailed Response Summary -->
-		<ResponseSummary :response-summary="appointment.responseSummary" />
+		<ResponseSummary 
+			v-if="canSeeResponseOverview && appointment.responseSummary"
+			:response-summary="appointment.responseSummary"
+			:can-see-comments="canSeeComments" />
 	</div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { NcButton, NcActions, NcActionButton, NcTextArea } from '@nextcloud/vue'
 import ResponseSummary from './ResponseSummary.vue'
 import { renderMarkdown, sanitizeHtml } from '../../utils/markdown.js'
 import { generateUrl } from '@nextcloud/router'
-import { showSuccess } from '@nextcloud/dialogs'
+import { showSuccess, showError } from '@nextcloud/dialogs'
+import axios from '@nextcloud/axios'
 import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
 import ShareVariantIcon from 'vue-material-design-icons/ShareVariant.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
+import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
 
 const props = defineProps({
 	appointment: {
@@ -110,6 +118,14 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
+	canSeeResponseOverview: {
+		type: Boolean,
+		default: true,
+	},
+	canSeeComments: {
+		type: Boolean,
+		default: true,
+	},
 })
 
 const emit = defineEmits(['start-checkin', 'edit', 'delete', 'submit-response', 'update-comment'])
@@ -117,6 +133,7 @@ const emit = defineEmits(['start-checkin', 'edit', 'delete', 'submit-response', 
 const localComment = ref(props.appointment.userResponse?.comment || '')
 const savingComment = ref(false)
 const commentSaved = ref(false)
+const errorComment = ref(false)
 let commentTimeout = null
 
 const userResponse = computed(() => {
@@ -178,27 +195,50 @@ const handleCommentInputEvent = () => {
 		clearTimeout(commentTimeout)
 	}
 
-	commentTimeout = setTimeout(() => {
+	commentTimeout = setTimeout(async () => {
+		// Wait for Vue to update the DOM and reactive values
+		await nextTick()
 		autoSaveComment(localComment.value)
 	}, 500)
 }
 
-const autoSaveComment = (commentText) => {
+const autoSaveComment = async (commentText) => {
 	if (!userResponse.value) return
 
 	savingComment.value = true
 	commentSaved.value = false
+	errorComment.value = false
 
-	emit('update-comment', props.appointment.id, commentText, true)
+	try {
+		const url = generateUrl('/apps/attendance/api/appointments/{id}/respond', { id: props.appointment.id })
+		const axiosResponse = await axios.post(url, {
+			response: userResponse.value,
+			comment: commentText,
+		})
 
-	setTimeout(() => {
+		// Check if response status is 2xx
+		if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
+			throw new Error(`API returned status ${axiosResponse.status}`)
+		}
+
+		setTimeout(() => {
+			savingComment.value = false
+			commentSaved.value = true
+			
+			setTimeout(() => {
+				commentSaved.value = false
+			}, 2000)
+		}, 500)
+	} catch (error) {
+		console.error('Failed to save comment:', error)
 		savingComment.value = false
-		commentSaved.value = true
+		errorComment.value = true
+		showError(t('attendance', 'Comment could not be saved'))
 		
 		setTimeout(() => {
-			commentSaved.value = false
-		}, 2000)
-	}, 800)
+			errorComment.value = false
+		}, 3000)
+	}
 }
 </script>
 
@@ -299,7 +339,8 @@ const autoSaveComment = (commentText) => {
 		}
 
 		.saving-spinner,
-		.saved-indicator {
+		.saved-indicator,
+		.error-indicator {
 			position: absolute;
 			top: 15px;
 			right: 15px;
@@ -330,6 +371,19 @@ const autoSaveComment = (commentText) => {
 
 			.check-icon {
 				color: white;
+			}
+		}
+
+		.error-indicator {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 16px;
+			height: 16px;
+			animation: fadeIn 0.3s ease-in;
+
+			.error-icon {
+				color: var(--color-error);
 			}
 		}
 

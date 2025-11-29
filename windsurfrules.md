@@ -65,5 +65,6 @@
 ## Avoid
 - No hardcoded admin checks - use PermissionService
 - No German strings in t() calls
+- Do NOT add translations to de.json, if the changes are only made in the frontend!
 - No direct database access without Mapper
 - No client-side file operations (use server-side Nextcloud APIs)

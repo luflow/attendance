@@ -17,6 +17,8 @@ class PermissionService {
 
 	public const PERMISSION_MANAGE_APPOINTMENTS = 'manage_appointments';
 	public const PERMISSION_CHECKIN = 'checkin';
+	public const PERMISSION_SEE_RESPONSE_OVERVIEW = 'see_response_overview';
+	public const PERMISSION_SEE_COMMENTS = 'see_comments';
 
 	public function __construct(IConfig $config, IGroupManager $groupManager, IUserSession $userSession, IUserManager $userManager) {
 		$this->config = $config;
@@ -101,7 +103,9 @@ class PermissionService {
 	public function getAllPermissionSettings(): array {
 		return [
 			self::PERMISSION_MANAGE_APPOINTMENTS => $this->getRolesForPermission(self::PERMISSION_MANAGE_APPOINTMENTS),
-			self::PERMISSION_CHECKIN => $this->getRolesForPermission(self::PERMISSION_CHECKIN)
+			self::PERMISSION_CHECKIN => $this->getRolesForPermission(self::PERMISSION_CHECKIN),
+			self::PERMISSION_SEE_RESPONSE_OVERVIEW => $this->getRolesForPermission(self::PERMISSION_SEE_RESPONSE_OVERVIEW),
+			self::PERMISSION_SEE_COMMENTS => $this->getRolesForPermission(self::PERMISSION_SEE_COMMENTS)
 		];
 	}
 
@@ -110,7 +114,12 @@ class PermissionService {
 	 */
 	public function setAllPermissionSettings(array $permissions): void {
 		foreach ($permissions as $permission => $roles) {
-			if (in_array($permission, [self::PERMISSION_MANAGE_APPOINTMENTS, self::PERMISSION_CHECKIN])) {
+			if (in_array($permission, [
+				self::PERMISSION_MANAGE_APPOINTMENTS,
+				self::PERMISSION_CHECKIN,
+				self::PERMISSION_SEE_RESPONSE_OVERVIEW,
+				self::PERMISSION_SEE_COMMENTS
+			])) {
 				$this->setRolesForPermission($permission, $roles);
 			}
 		}
@@ -142,5 +151,19 @@ class PermissionService {
 	 */
 	public function currentUserCanCheckin(): bool {
 		return $this->currentUserHasPermission(self::PERMISSION_CHECKIN);
+	}
+
+	/**
+	 * Check if user can see response overview
+	 */
+	public function canSeeResponseOverview(string $userId): bool {
+		return $this->hasPermission($userId, self::PERMISSION_SEE_RESPONSE_OVERVIEW);
+	}
+
+	/**
+	 * Check if user can see comments
+	 */
+	public function canSeeComments(string $userId): bool {
+		return $this->hasPermission($userId, self::PERMISSION_SEE_COMMENTS);
 	}
 }
