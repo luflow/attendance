@@ -104,7 +104,7 @@
 												no-close />
 											<NcChip 
 												v-else
-												:text="t('attendance', 'No response')" 
+												:text="t('attendance', 'No Response')" 
 												variant="tertiary" 
 												no-close />
 										</div>
@@ -158,7 +158,7 @@
 													no-close />
 												<NcChip 
 													v-else
-													:text="t('attendance', 'No response')" 
+													:text="t('attendance', 'No Response')" 
 													variant="tertiary" 
 													no-close />
 											</div>
