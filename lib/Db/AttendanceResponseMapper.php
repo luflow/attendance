@@ -104,9 +104,10 @@ class AttendanceResponseMapper extends QBMapper {
 			->groupBy('response');
 
 		$result = $qb->executeQuery();
+		$rows = $result->fetchAll();
+		
 		$summary = ['yes' => 0, 'no' => 0, 'maybe' => 0];
-
-		while ($row = $result->fetch()) {
+		foreach ($rows as $row) {
 			$summary[$row['response']] = (int)$row['count'];
 		}
 
