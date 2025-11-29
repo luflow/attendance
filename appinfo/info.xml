@@ -69,6 +69,7 @@ Perfekt für Organisationen, Teams und Gemeinschaften, die die Anwesenheit bei M
 	<bugs>https://github.com/luflow/attendance/issues</bugs>
 	<repository type="git">https://github.com/luflow/attendance</repository>
 	<dependencies>
+		<php min-version="8.1"/>
 		<nextcloud min-version="31" max-version="32"/>
 	</dependencies>
 	<navigations>
