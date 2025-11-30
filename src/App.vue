@@ -16,7 +16,7 @@
 						<NcAppNavigationItem
 							v-for="appointment in currentAppointments"
 							:key="appointment.id"
-							:name="appointment.name"
+							:name="formatAppointmentDisplay(appointment)"
 							:active="currentView === 'appointment' && appointmentDetailId === appointment.id"
 							@click.prevent="navigateToAppointment(appointment.id)">
 							<template #icon>
@@ -41,7 +41,7 @@
 						<NcAppNavigationItem
 							v-for="appointment in pastAppointments"
 							:key="appointment.id"
-							:name="appointment.name"
+							:name="formatAppointmentDisplay(appointment)"
 							:active="currentView === 'appointment' && appointmentDetailId === appointment.id"
 							@click.prevent="navigateToAppointment(appointment.id)">
 							<template #icon>
@@ -232,6 +232,19 @@ const handleCreateModalSubmit = async (formData) => {
 	}
 }
 
+const formatDateTime = (datetime) => {
+	const date = new Date(datetime)
+	return date.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })
+}
+
+const formatAppointmentDisplay = (appointment) => {
+	if (!appointment.startDatetime) {
+		return appointment.name
+	}
+	const dateTimeStr = formatDateTime(appointment.startDatetime)
+	return `${appointment.name}\n${dateTimeStr}`
+}
+
 const exportAppointments = async () => {
 	try {
 		const response = await axios.post(generateUrl('/apps/attendance/api/export'))
@@ -307,6 +320,13 @@ onMounted(async () => {
 @keyframes spin {
 	0% { transform: rotate(0deg); }
 	100% { transform: rotate(360deg); }
+}
+
+/* Style for appointment navigation items - only for nested items */
+:deep(.app-navigation-entry__children .app-navigation-entry__name) {
+	white-space: pre-line !important;
+	line-height: 1.3;
+	margin: 6px 0;
 }
 </style>
 
