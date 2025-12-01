@@ -6,10 +6,12 @@ namespace OCA\Attendance\Controller;
 
 use OCA\Attendance\Settings\AdminSettings;
 use OCA\Attendance\Service\PermissionService;
+use OCP\App\IAppManager;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\JSONResponse;
-use OCP\IRequest;
+use OCP\IConfig;
 use OCP\IGroupManager;
+use OCP\IRequest;
 use OCP\IUserSession;
 
 class AdminController extends Controller {
@@ -17,13 +19,26 @@ class AdminController extends Controller {
 	private PermissionService $permissionService;
 	private IGroupManager $groupManager;
 	private IUserSession $userSession;
+	private IConfig $config;
+	private IAppManager $appManager;
 
-	public function __construct(string $appName, IRequest $request, AdminSettings $adminSettings, PermissionService $permissionService, IGroupManager $groupManager, IUserSession $userSession) {
+	public function __construct(
+		string $appName,
+		IRequest $request,
+		IGroupManager $groupManager,
+		IUserSession $userSession,
+		AdminSettings $adminSettings,
+		PermissionService $permissionService,
+		IConfig $config,
+		IAppManager $appManager
+	) {
 		parent::__construct($appName, $request);
-		$this->adminSettings = $adminSettings;
-		$this->permissionService = $permissionService;
 		$this->groupManager = $groupManager;
 		$this->userSession = $userSession;
+		$this->adminSettings = $adminSettings;
+		$this->permissionService = $permissionService;
+		$this->config = $config;
+		$this->appManager = $appManager;
 	}
 
 	/**
@@ -51,11 +66,19 @@ class AdminController extends Controller {
 			// Get permission settings
 			$permissionSettings = $this->permissionService->getAllPermissionSettings();
 
+			// Get reminder settings
+			$reminderSettings = [
+				'enabled' => $this->config->getAppValue('attendance', 'reminders_enabled', 'no') === 'yes',
+				'reminderDays' => (int)$this->config->getAppValue('attendance', 'reminder_days', '7'),
+				'notificationsAppEnabled' => $this->appManager->isEnabledForUser('notifications'),
+			];
+
 			return new JSONResponse([
 				'success' => true,
 				'groups' => $groupOptions,
 				'whitelistedGroups' => $whitelistedGroups,
-				'permissions' => $permissionSettings
+				'permissions' => $permissionSettings,
+				'reminders' => $reminderSettings
 			]);
 		} catch (\Exception $e) {
 			return new JSONResponse(['success' => false, 'error' => $e->getMessage()]);
@@ -79,15 +102,27 @@ class AdminController extends Controller {
 
 		$whitelistedGroups = $this->request->getParam('whitelistedGroups', []);
 		$permissions = $this->request->getParam('permissions', []);
+		$reminders = $this->request->getParam('reminders', []);
 		
 		try {
 			$this->adminSettings->setWhitelistedGroups($whitelistedGroups);
 			
-			// Save permission settings
-			if (!empty($permissions)) {
-				$this->permissionService->setAllPermissionSettings($permissions);
+			// Save permissions
+			if (isset($permissions) && is_array($permissions)) {
+				foreach ($permissions as $permissionKey => $groupIds) {
+					$this->permissionService->setPermission($permissionKey, $groupIds);
+				}
 			}
-			
+		
+			// Save reminder settings
+			if (isset($reminders['enabled'])) {
+				$this->config->setAppValue('attendance', 'reminders_enabled', $reminders['enabled'] ? 'yes' : 'no');
+			}
+			if (isset($reminders['reminderDays'])) {
+				$reminderDays = max(1, min(30, (int)$reminders['reminderDays'])); // Clamp between 1-30
+				$this->config->setAppValue('attendance', 'reminder_days', (string)$reminderDays);
+			}
+		
 			return new JSONResponse(['success' => true]);
 		} catch (\Exception $e) {
 			return new JSONResponse(['success' => false, 'error' => $e->getMessage()]);

@@ -5,7 +5,9 @@
         "No": "Nein",
         "Maybe": "Vielleicht",
         "Group": "Gruppe",
-        "Others": "Andere"
+        "Others": "Andere",
+        "%s on %s": "%s am %s",
+        "Please respond to the upcoming appointment!": "Bitte gib eine Rückmeldung für den kommenden Termin!"
     },
     "pluralForm": "nplurals=2; plural=(n != 1);"
 }
