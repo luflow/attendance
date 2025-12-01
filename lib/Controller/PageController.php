@@ -30,6 +30,16 @@ class PageController extends Controller {
 	#[NoCSRFRequired]
 	#[NoAdminRequired]
 	#[OpenAPI(OpenAPI::SCOPE_IGNORE)]
+	public function unanswered(): TemplateResponse {
+		return new TemplateResponse(
+			Application::APP_ID,
+			'index',
+		);
+	}
+
+	#[NoCSRFRequired]
+	#[NoAdminRequired]
+	#[OpenAPI(OpenAPI::SCOPE_IGNORE)]
 	public function past(): TemplateResponse {
 		return new TemplateResponse(
 			Application::APP_ID,
