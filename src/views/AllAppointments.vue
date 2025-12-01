@@ -49,6 +49,10 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
+	showUnanswered: {
+		type: Boolean,
+		default: false,
+	},
 })
 
 const emit = defineEmits(['response-updated'])
@@ -99,7 +103,15 @@ const loadAppointments = async (skipLoadingSpinner = false) => {
 		}
 		const params = props.showPast ? '?showPastAppointments=true' : ''
 		const response = await axios.get(generateUrl('/apps/attendance/api/appointments') + params)
-		appointments.value = response.data
+		
+		// Filter for unanswered appointments if needed
+		if (props.showUnanswered) {
+			appointments.value = response.data.filter(appointment => {
+				return !appointment.userResponse || appointment.userResponse === null
+			})
+		} else {
+			appointments.value = response.data
+		}
 
 		// Initialize response comments
 		appointments.value.forEach(appointment => {

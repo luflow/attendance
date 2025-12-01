@@ -3,25 +3,48 @@
 		<!-- Navigation sidebar (hidden during checkin) -->
 		<NcAppNavigation v-if="currentView !== 'checkin'">
 			<template #list>
+				<!-- Unanswered Appointments Section -->
 				<NcAppNavigationItem 
-					:name="t('attendance', 'Current Appointments')"
-					:open="currentAppointmentsOpen"
+					v-if="unansweredAppointments.length > 0"
+					:name="t('attendance', 'Unanswered')"
+					:active="currentView === 'unanswered'"
+					@click.prevent="setView('unanswered')">
+					<template #icon>
+						<BellAlertIcon :size="20" />
+					</template>
+					<!-- Nested unanswered appointments -->
+					<template v-if="unansweredAppointments.length > 0">
+						<NcAppNavigationItem
+							v-for="appointment in unansweredAppointments"
+							:key="appointment.id"
+							:name="formatAppointmentDisplay(appointment)"
+							:active="currentView === 'appointment' && appointmentDetailId === appointment.id"
+							@click.prevent="navigateToAppointment(appointment.id)">
+							<template #icon>
+								<HelpCircleOutline :size="20" />
+							</template>
+						</NcAppNavigationItem>
+					</template>
+				</NcAppNavigationItem>
+				
+				<NcAppNavigationItem 
+					:name="t('attendance', 'Upcoming Appointments')"
 					:active="currentView === 'current'"
 					@click.prevent="setView('current')">
 					<template #icon>
 						<CalendarIcon :size="20" />
 					</template>
-					<!-- Nested current/upcoming appointments -->
-					<template v-if="currentAppointments.length > 0">
+					<!-- Nested current/upcoming appointments (only answered ones) -->
+					<template v-if="answeredAppointments.length > 0">
 						<NcAppNavigationItem
-							v-for="appointment in currentAppointments"
+							v-for="appointment in answeredAppointments"
 							:key="appointment.id"
 							:name="formatAppointmentDisplay(appointment)"
 							:active="currentView === 'appointment' && appointmentDetailId === appointment.id"
 							@click.prevent="navigateToAppointment(appointment.id)">
 							<template #icon>
 								<CheckCircle v-if="appointment.userResponse?.response === 'yes'" :size="20" />
-								<HelpCircleOutline v-else-if="!appointment.userResponse || appointment.userResponse?.response === 'maybe'" :size="20" />
+								<HelpCircleOutline v-else-if="appointment.userResponse?.response === 'maybe'" :size="20" />
 								<CloseCircle v-else-if="appointment.userResponse?.response === 'no'" :size="20" />
 							</template>
 						</NcAppNavigationItem>
@@ -30,7 +53,6 @@
 				
 				<NcAppNavigationItem 
 					:name="t('attendance', 'Past Appointments')"
-					:open="pastAppointmentsOpen"
 					:active="currentView === 'past'"
 					@click.prevent="setView('past')">
 					<template #icon>
@@ -86,8 +108,9 @@
 			
 			<!-- All Appointments View -->
 			<AllAppointments 
-				v-else-if="currentView === 'current' || currentView === 'past'" 
-				:show-past="currentView === 'past'" 
+				v-else-if="currentView === 'current' || currentView === 'past' || currentView === 'unanswered'" 
+				:show-past="currentView === 'past'"
+				:show-unanswered="currentView === 'unanswered'" 
 				:key="currentView"
 				@response-updated="loadAppointments" />
 			
@@ -107,7 +130,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import CheckinView from './views/Checkin.vue'
 import AllAppointments from './views/AllAppointments.vue'
 import AppointmentDetail from './views/AppointmentDetail.vue'
@@ -125,25 +148,40 @@ import CheckCircle from 'vue-material-design-icons/CheckCircle.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
 import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import DownloadIcon from 'vue-material-design-icons/Download.vue'
+import BellAlertIcon from 'vue-material-design-icons/BellAlert.vue'
 
-const currentView = ref(null) // 'current', 'past', 'appointment', 'checkin', or null
+const currentView = ref(null) // 'current', 'past', 'unanswered', 'appointment', 'checkin', or null
 const checkinAppointmentId = ref(null)
 const appointmentDetailId = ref(null)
 const currentAppointments = ref([])
 const pastAppointments = ref([])
-const currentAppointmentsOpen = ref(true)
-const pastAppointmentsOpen = ref(false)
 const canManageAppointments = ref(false)
 const showCreateForm = ref(false)
+
+// Computed property for unanswered appointments
+const unansweredAppointments = computed(() => {
+	return currentAppointments.value.filter(appointment => {
+		return !appointment.userResponse || appointment.userResponse === null
+	})
+})
+
+// Computed property for answered appointments (to show under "Upcoming")
+const answeredAppointments = computed(() => {
+	return currentAppointments.value.filter(appointment => {
+		return appointment.userResponse && appointment.userResponse !== null
+	})
+})
 
 const setView = (view) => {
 	currentView.value = view
 	
-	const baseUrl = window.location.pathname.replace(/\/(past|appointment\/\d+|checkin\/\d+)?$/, '')
+	const baseUrl = window.location.pathname.replace(/\/(past|unanswered|appointment\/\d+|checkin\/\d+)?$/, '')
 	let newUrl = baseUrl
 	
 	if (view === 'past') {
 		newUrl = baseUrl + '/past'
+	} else if (view === 'unanswered') {
+		newUrl = baseUrl + '/unanswered'
 	} else if (view === 'current') {
 		newUrl = baseUrl
 	}
@@ -155,16 +193,7 @@ const navigateToAppointment = (appointmentId) => {
 	currentView.value = 'appointment'
 	appointmentDetailId.value = appointmentId
 	
-	const isCurrentAppointment = currentAppointments.value.some(apt => apt.id === appointmentId)
-	const isPastAppointment = pastAppointments.value.some(apt => apt.id === appointmentId)
-	
-	if (isCurrentAppointment) {
-		currentAppointmentsOpen.value = true
-	} else if (isPastAppointment) {
-		pastAppointmentsOpen.value = true
-	}
-	
-	const baseUrl = window.location.pathname.replace(/\/(past|appointment\/\d+|checkin\/\d+)?$/, '')
+	const baseUrl = window.location.pathname.replace(/\/(past|unanswered|appointment\/\d+|checkin\/\d+)?$/, '')
 	const newUrl = baseUrl + '/appointment/' + appointmentId
 	
 	window.history.pushState({ view: 'appointment', appointmentId }, '', newUrl)
@@ -269,6 +298,7 @@ const checkRouting = () => {
 	const checkinMatch = path.match(/\/checkin\/(\d+)/)
 	const appointmentMatch = path.match(/\/appointment\/(\d+)/)
 	const isPastRoute = path.endsWith('/past')
+	const isUnansweredRoute = path.endsWith('/unanswered')
 	
 	if (checkinMatch) {
 		currentView.value = 'checkin'
@@ -280,6 +310,10 @@ const checkRouting = () => {
 		checkinAppointmentId.value = null
 	} else if (isPastRoute) {
 		currentView.value = 'past'
+		checkinAppointmentId.value = null
+		appointmentDetailId.value = null
+	} else if (isUnansweredRoute) {
+		currentView.value = 'unanswered'
 		checkinAppointmentId.value = null
 		appointmentDetailId.value = null
 	} else {

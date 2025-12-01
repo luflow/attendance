@@ -3,7 +3,8 @@ OC.L10N.register(
     {
         "Attendance": "Deltagelse",
         "Appointments": "Aftaler",
-        "Current Appointments": "Aktuelle aftaler",
+        "Upcoming Appointments": "Kommende aftaler",
+        "Unanswered": "Ubesvaret",
         "Appointment Management": "Aftalehåndtering",
         "Loading appointments...": "Indlæser aftaler...",
         "By Group": "Efter gruppe",

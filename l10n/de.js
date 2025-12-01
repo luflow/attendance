@@ -3,7 +3,8 @@ OC.L10N.register(
     {
         "Attendance": "Anwesenheit",
         "Appointments": "Termine",
-        "Current Appointments": "Aktuelle Termine",
+        "Upcoming Appointments": "Kommende Termine",
+        "Unanswered": "Unbeantwortet",
         "Appointment Management": "Terminverwaltung",
         "Loading appointments...": "Termine werden geladen...",
         "By Group": "Nach Gruppe",
