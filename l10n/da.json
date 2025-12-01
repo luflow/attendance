@@ -5,7 +5,9 @@
         "No": "Nej",
         "Maybe": "Måske",
         "Group": "Gruppe",
-        "Others": "Andre"
+        "Others": "Andre",
+        "%s on %s": "%s den %s",
+        "Please respond to the upcoming appointment!": "Venligst svar på den kommende aftale!"
     },
     "pluralForm": "nplurals=2; plural=(n != 1);"
 }
