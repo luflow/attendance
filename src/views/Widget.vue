@@ -1,5 +1,5 @@
 <template>
-	<div class="appointment-widget-container">
+	<div class="appointment-widget-container" :data-nc-version="ncVersion">
 		<NcDashboardWidget :items="items"
 			:show-more-url="showMoreUrl"
 			:show-more-text="title"
@@ -99,25 +99,6 @@
 			</NcButton>
 		</div>
 	</div>
-
-	<!-- Comment Dialog -->
-	<NcModal v-if="showDialog" @close="closeDialog">
-		<div class="comment-dialog">
-			<h2>{{ t('attendance', 'Add comment') }}</h2>
-			<NcTextArea
-				v-model="comment"
-				:placeholder="t('attendance', 'Optional: Reason for your response')"
-				rows="3" />
-			<div class="dialog-buttons">
-				<NcButton type="secondary" @click="closeDialog">
-					{{ t('attendance', 'Cancel') }}
-				</NcButton>
-				<NcButton type="primary" @click="submitResponse">
-					{{ t('attendance', 'Confirm') }}
-				</NcButton>
-			</div>
-		</div>
-	</NcModal>
 </template>
 
 <script setup>
@@ -146,6 +127,7 @@ defineProps({
 // State initialization
 let initialAppointments = []
 let initialState = 'ok'
+let ncVersionState = 31
 
 try {
 	initialAppointments = loadState('attendance', 'dashboard-widget-items')
@@ -154,13 +136,16 @@ try {
 	initialState = 'error'
 }
 
+try {
+	ncVersionState = loadState('attendance', 'nc-version')
+} catch (error) {
+	console.debug('nc-version not available, defaulting to 31')
+}
+
 const appointments = ref(initialAppointments)
 const showMoreUrl = ref(generateUrl('/apps/attendance'))
 const state = ref(initialState)
-const showDialog = ref(false)
-const comment = ref('')
-const selectedAppointmentId = ref(null)
-const selectedResponse = ref(null)
+const ncVersion = ref(ncVersionState)
 const responseComments = reactive({})
 const savingComments = reactive({})
 const savedComments = reactive({})
@@ -196,30 +181,6 @@ const respond = async (appointmentId, response) => {
 	}
 }
 
-const showCommentDialog = (appointmentId, response) => {
-	selectedAppointmentId.value = appointmentId
-	selectedResponse.value = response
-	comment.value = ''
-	showDialog.value = true
-}
-
-const closeDialog = () => {
-	showDialog.value = false
-	selectedAppointmentId.value = null
-	selectedResponse.value = null
-	comment.value = ''
-}
-
-const submitResponse = async () => {
-	if (selectedAppointmentId.value && selectedResponse.value) {
-		try {
-			await submitResponseToServer(selectedAppointmentId.value, selectedResponse.value, comment.value)
-			closeDialog()
-		} catch (error) {
-			showError(t('attendance', 'Failed to save response'))
-		}
-	}
-}
 
 const submitResponseToServer = async (appointmentId, response, commentText) => {
 	try {
@@ -247,15 +208,6 @@ const submitResponseToServer = async (appointmentId, response, commentText) => {
 	} catch (error) {
 		console.error('Failed to save response:', error)
 		throw error
-	}
-}
-
-const getResponseText = (response) => {
-	switch (response) {
-		case 'yes': return window.t('attendance', 'Yes')
-		case 'no': return window.t('attendance', 'No')
-		case 'maybe': return window.t('attendance', 'Maybe')
-		default: return response
 	}
 }
 
@@ -334,20 +286,6 @@ const autoSaveComment = async (appointmentId, commentText) => {
 	}
 }
 
-const updateComment = async (appointmentId) => {
-	const commentText = responseComments[appointmentId] || ''
-	const appointment = appointments.value.find(a => a.id === appointmentId)
-	if (appointment && appointment.userResponse) {
-		await submitResponseToServer(appointmentId, appointment.userResponse.response, commentText)
-	}
-}
-
-const initializeComment = (appointmentId) => {
-	if (!(appointmentId in responseComments)) {
-		responseComments[appointmentId] = ''
-	}
-}
-
 const goToAttendanceApp = () => {
 	window.location.href = generateUrl('/apps/attendance/')
 }
@@ -395,6 +333,14 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
+
+// Fallback for Nextcloud 31 dark mode 
+@media (prefers-color-scheme: dark) {
+	.appointment-widget-container[data-nc-version="31"] :deep(.button-vue--warning) {
+		color: black !important;
+	}
+}
+
 .appointment-widget-container {
 	display: flex;
 	flex-direction: column;

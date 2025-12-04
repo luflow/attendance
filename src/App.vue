@@ -21,7 +21,7 @@
 							:active="currentView === 'appointment' && appointmentDetailId === appointment.id"
 							@click.prevent="navigateToAppointment(appointment.id)">
 							<template #icon>
-								<HelpCircleOutline :size="20" />
+								<ProgressQuestion :size="20" />
 							</template>
 						</NcAppNavigationItem>
 					</template>
@@ -44,7 +44,7 @@
 							@click.prevent="navigateToAppointment(appointment.id)">
 							<template #icon>
 								<CheckCircle v-if="appointment.userResponse?.response === 'yes'" :size="20" />
-								<HelpCircleOutline v-else-if="appointment.userResponse?.response === 'maybe'" :size="20" />
+								<HelpCircle v-else-if="appointment.userResponse?.response === 'maybe'" :size="20" />
 								<CloseCircle v-else-if="appointment.userResponse?.response === 'no'" :size="20" />
 							</template>
 						</NcAppNavigationItem>
@@ -143,7 +143,8 @@ import { fromZonedTime } from 'date-fns-tz'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import CalendarClockIcon from 'vue-material-design-icons/CalendarClock.vue'
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
-import HelpCircleOutline from 'vue-material-design-icons/HelpCircleOutline.vue'
+import HelpCircle from 'vue-material-design-icons/HelpCircle.vue'
+import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
 import CheckCircle from 'vue-material-design-icons/CheckCircle.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
 import PlusIcon from 'vue-material-design-icons/Plus.vue'
@@ -378,7 +379,9 @@ body[data-theme-dark] #attendance[data-nc-version="31"] .nc-chip--warning .nc-ch
 	color: black !important;
 }
 
-body[data-theme-dark] #attendance[data-nc-version="31"] .button-vue--warning .button-vue__text {
+/* Only apply black color to warning buttons when no response exists OR when the maybe button is active */
+body[data-theme-dark] #attendance[data-nc-version="31"] .response-buttons:not(.has-response) .button-vue--warning .button-vue__text,
+body[data-theme-dark] #attendance[data-nc-version="31"] .response-buttons .button-vue--warning.active .button-vue__text {
 	color: black !important;
 }
 
@@ -388,7 +391,9 @@ body[data-theme-dark] #attendance[data-nc-version="31"] .button-vue--warning .bu
 		color: black !important;
 	}
 	
-	body[data-theme-default] #attendance[data-nc-version="31"] .button-vue--warning .button-vue__text {
+	/* Only apply black color to warning buttons when no response exists OR when the maybe button is active */
+	body[data-theme-default] #attendance[data-nc-version="31"] .response-buttons:not(.has-response) .button-vue--warning .button-vue__text,
+	body[data-theme-default] #attendance[data-nc-version="31"] .response-buttons .button-vue--warning.active .button-vue__text {
 		color: black !important;
 	}
 }

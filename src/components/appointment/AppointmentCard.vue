@@ -259,7 +259,6 @@ const autoSaveComment = async (commentText) => {
 
 	h3 {
 		margin: 0;
-		font-size: 18px;
 		color: var(--color-main-text);
 		flex: 1;
 	}
