@@ -70,6 +70,7 @@ class AdminController extends Controller {
 			$reminderSettings = [
 				'enabled' => $this->config->getAppValue('attendance', 'reminders_enabled', 'no') === 'yes',
 				'reminderDays' => (int)$this->config->getAppValue('attendance', 'reminder_days', '7'),
+				'reminderFrequency' => (int)$this->config->getAppValue('attendance', 'reminder_frequency', '0'),
 				'notificationsAppEnabled' => $this->appManager->isEnabledForUser('notifications'),
 			];
 
@@ -109,9 +110,7 @@ class AdminController extends Controller {
 			
 			// Save permissions
 			if (isset($permissions) && is_array($permissions)) {
-				foreach ($permissions as $permissionKey => $groupIds) {
-					$this->permissionService->setPermission($permissionKey, $groupIds);
-				}
+				$this->permissionService->setAllPermissionSettings($permissions);
 			}
 		
 			// Save reminder settings
@@ -121,6 +120,11 @@ class AdminController extends Controller {
 			if (isset($reminders['reminderDays'])) {
 				$reminderDays = max(1, min(30, (int)$reminders['reminderDays'])); // Clamp between 1-30
 				$this->config->setAppValue('attendance', 'reminder_days', (string)$reminderDays);
+			}
+			if (isset($reminders['reminderFrequency'])) {
+				// Frequency: 0 = once, 1-30 = days between reminders
+				$reminderFrequency = max(0, min(30, (int)$reminders['reminderFrequency']));
+				$this->config->setAppValue('attendance', 'reminder_frequency', (string)$reminderFrequency);
 			}
 		
 			return new JSONResponse(['success' => true]);

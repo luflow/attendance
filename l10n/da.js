@@ -52,6 +52,8 @@ OC.L10N.register(
         "Loading settings...": "Indlæser indstillinger...",
         "Days before appointment": "Dage før aftalen",
         "Send reminders this many days before the appointment (1-30 days)": "Send påmindelser dette antal dage før aftalen (1-30 dage)",
+        "Reminder frequency (days)": "Påmindelsesfrekvens (dage)",
+        "How often to remind users who haven't responded. Set to 0 to only remind once, or 1-30 to repeat reminders every N days.": "Hvor ofte brugere skal påmindes, hvis de ikke har svaret. Sæt til 0 for kun at minde én gang, eller 1-30 for at gentage påmindelser hver N. dag.",
         "Whitelisted Groups": "Godkendte grupper",
         "Select user groups that should be included in attendance statistics and check-in list filters. If no groups are selected, all groups are included.": "Vælg brugergrupper, der skal inkluderes i deltagelsesstatistikker og check-in listefiltre. Hvis ingen grupper er valgt, inkluderes alle grupper.",
         "The Notifications app is not enabled. Please enable it to use appointment reminders.": "Notifications-appen er ikke aktiveret. Aktivér den for at bruge aftalepåmindelser.",

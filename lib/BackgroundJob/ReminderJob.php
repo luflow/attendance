@@ -6,6 +6,8 @@ namespace OCA\Attendance\BackgroundJob;
 
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponseMapper;
+use OCA\Attendance\Db\ReminderLog;
+use OCA\Attendance\Db\ReminderLogMapper;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\TimedJob;
 use OCP\IConfig;
@@ -17,6 +19,7 @@ use Psr\Log\LoggerInterface;
 class ReminderJob extends TimedJob {
 	private AppointmentMapper $appointmentMapper;
 	private AttendanceResponseMapper $responseMapper;
+	private ReminderLogMapper $reminderLogMapper;
 	private IUserManager $userManager;
 	private IConfig $config;
 	private INotificationManager $notificationManager;
@@ -27,6 +30,7 @@ class ReminderJob extends TimedJob {
 		ITimeFactory $time,
 		AppointmentMapper $appointmentMapper,
 		AttendanceResponseMapper $responseMapper,
+		ReminderLogMapper $reminderLogMapper,
 		IUserManager $userManager,
 		IConfig $config,
 		INotificationManager $notificationManager,
@@ -37,6 +41,7 @@ class ReminderJob extends TimedJob {
 		
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
+		$this->reminderLogMapper = $reminderLogMapper;
 		$this->userManager = $userManager;
 		$this->config = $config;
 		$this->notificationManager = $notificationManager;
@@ -59,9 +64,13 @@ class ReminderJob extends TimedJob {
 			return;
 		}
 
-		// Get reminder days setting
+		// Get reminder days setting (how far in advance to remind)
 		$reminderDays = (int)$this->config->getAppValue('attendance', 'reminder_days', '7');
 		$this->logger->info('Reminder days configuration', ['days' => $reminderDays]);
+
+		// Get reminder frequency setting (how often to remind in days)
+		$reminderFrequency = (int)$this->config->getAppValue('attendance', 'reminder_frequency', '0');
+		$this->logger->info('Reminder frequency configuration', ['frequency_days' => $reminderFrequency]);
 
 		// Calculate date range: today until X days in the future
 		$today = new \DateTime();
@@ -136,6 +145,31 @@ class ReminderJob extends TimedJob {
 					continue;
 				}
 
+				// Check if user was recently reminded
+				$lastReminder = $this->reminderLogMapper->findLatestForUser($appointment->getId(), $userId);
+				if ($lastReminder !== null && $reminderFrequency > 0) {
+					$lastReminderDate = new \DateTime($lastReminder->getRemindedAt());
+					$daysSinceReminder = (int)$today->diff($lastReminderDate)->days;
+					
+					if ($daysSinceReminder < $reminderFrequency) {
+						$skippedCount++;
+						$this->logger->debug('Skipping user - recently reminded', [
+							'userId' => $userId,
+							'daysSinceReminder' => $daysSinceReminder,
+							'requiredFrequency' => $reminderFrequency,
+						]);
+						continue;
+					}
+				} elseif ($lastReminder !== null && $reminderFrequency === 0) {
+					// Frequency 0 means only remind once
+					$skippedCount++;
+					$this->logger->debug('Skipping user - already reminded once', [
+						'userId' => $userId,
+						'remindedAt' => $lastReminder->getRemindedAt(),
+					]);
+					continue;
+				}
+
 				$this->logger->info('Sending notification to user', [
 					'userId' => $userId,
 					'appointmentId' => $appointment->getId(),
@@ -161,9 +195,17 @@ class ReminderJob extends TimedJob {
 						->setLink($appointmentUrl);
 					
 					$this->notificationManager->notify($notification);
+					
+					// Log the reminder
+					$reminderLog = new ReminderLog();
+					$reminderLog->setAppointmentId($appointment->getId());
+					$reminderLog->setUserId($userId);
+					$reminderLog->setRemindedAt(date('Y-m-d H:i:s'));
+					$this->reminderLogMapper->insert($reminderLog);
+					
 					$sentCount++;
 					
-					$this->logger->info('Successfully sent notification', [
+					$this->logger->info('Successfully sent notification and logged reminder', [
 						'userId' => $userId,
 						'appointmentId' => $appointment->getId(),
 					]);
