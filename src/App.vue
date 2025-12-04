@@ -329,6 +329,11 @@ onMounted(async () => {
 	await loadPermissions()
 	await loadAppointments()
 	
+	// Auto-navigate to unanswered appointments if any exist and we're on the default route
+	if (currentView.value === 'current' && unansweredAppointments.value.length > 0) {
+		setView('unanswered')
+	}
+	
 	window.addEventListener('popstate', () => {
 		checkRouting()
 	})
