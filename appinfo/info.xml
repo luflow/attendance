@@ -9,57 +9,63 @@
 	<description><![CDATA[A small Nextcloud app for managing event attendance with advance RSVP functionality and real-time check-in capabilities. 
 
 **For Administrators:**
-- Create and manage appointments with name, description, and date/time
+- Create and manage appointments with name, description (with Markdown support), and date/time
 - Track responses with detailed attendance summaries organized by user groups
-- Identify non-responders to follow up
-- Toggle between upcoming and past appointments
+- **Unanswered View:** Dedicated section to quickly identify appointments without responses
+- **Reminder System:** Automated Nextcloud notifications for upcoming appointments
 - **Check-in Management:** Dedicated interface to track actual attendance during events
 - **Bulk Operations:** Mark multiple users as present/absent with bulk check-in actions
 - **Admin Comments:** Add check-in specific comments for detailed attendance tracking
 - **Group Whitelisting:** Configure which user groups are included in attendance statistics and check-in lists
+- **Export Functionality:** Export all appointment data to ODS spreadsheet format for further analysis
+- **Granular Permissions:** Control who can view response overviews, comments, manage appointments, and access check-in features
 
 **For All Users:**
 - Easy RSVP with Yes/No/Maybe responses to any appointment
 - Add optional comments with your response
 - Update responses anytime until the event date
 - Quick access via dashboard widget
+- Share appointment links for easy access
 
 **Group-Based Organization:**
 - Statistics automatically organized by Nextcloud user groups
 - See which group members haven't responded yet
-- Complete admin visibility into attendance across all groups
+- Complete visibility into attendance across all groups
 - **Filtered Check-in:** Search and filter users by name or group during check-in process
 
-Perfect for organizations, teams, and communities that need to coordinate attendance for meetings, events, and activities with both advance planning and real-time attendance tracking.]]></description>
+Perfect for organizations, teams, and communities that want to coordinate attendance for meetings, events, and activities with both advance planning and real-time attendance tracking.]]></description>
 	<description lang="de"><![CDATA[Eine kleine Nextcloud-App zur Verwaltung der Veranstaltungsanwesenheit mit Vorab-RSVP-Funktionalität und Echtzeit-Check-in-Funktionen.
 
 **Für Administratoren:**
-- Termine erstellen und verwalten mit Name, Beschreibung und Datum/Uhrzeit
+- Termine erstellen und verwalten mit Name, Beschreibung (mit Markdown-Unterstützung) und Datum/Uhrzeit
 - Antworten verfolgen mit detaillierten Anwesenheitszusammenfassungen nach Benutzergruppen organisiert
-- Nicht-Antwortende identifizieren zum Nachfassen
-- Zwischen bevorstehenden und vergangenen Terminen wechseln
+- **Unbeantwortet-Ansicht:** Dedizierter Bereich zur schnellen Identifizierung von Terminen ohne Rückmeldungen
+- **Erinnerungssystem:** Automatische Nextcloud-Benachrichtigungen für bevorstehende Termine
 - **Check-in-Verwaltung:** Dedizierte Benutzeroberfläche zur Verfolgung der tatsächlichen Anwesenheit während Veranstaltungen
 - **Massenoperationen:** Mehrere Benutzer gleichzeitig als anwesend/abwesend markieren
 - **Admin-Kommentare:** Check-in-spezifische Kommentare für detaillierte Anwesenheitsverfolgung hinzufügen
 - **Gruppen-Whitelist:** Konfigurieren, welche Benutzergruppen in Anwesenheitsstatistiken und Check-in-Listen enthalten sind
+- **Export-Funktion:** Alle Termindaten zur weiteren Analyse in ODS-Tabellenformat exportieren
+- **Granulare Berechtigungen:** Steuern Sie, wer Antwortübersichten, Kommentare einsehen, Termine verwalten und Check-in-Funktionen nutzen kann
 
 **Für alle Benutzer:**
 - Einfache RSVP mit Ja/Nein/Vielleicht-Antworten auf jeden Termin
 - Optionale Kommentare zu Ihrer Antwort hinzufügen
 - Antworten jederzeit bis zum Veranstaltungsdatum aktualisieren
 - Schneller Zugriff über Dashboard-Widget
+- Termin-Links zum einfachen Teilen
 
 **Gruppenbasierte Organisation:**
 - Statistiken automatisch nach Nextcloud-Benutzergruppen organisiert
 - Sehen, welche Gruppenmitglieder noch nicht geantwortet haben
-- Vollständige Admin-Sichtbarkeit der Anwesenheit über alle Gruppen hinweg
+- Vollständige Sichtbarkeit der Anwesenheit über alle Gruppen hinweg
 - **Gefilterte Check-in:** Benutzer nach Name oder Gruppe während des Check-in-Prozesses suchen und filtern
 
-Perfekt für Organisationen, Teams und Gemeinschaften, die die Anwesenheit bei Meetings, Veranstaltungen und Aktivitäten sowohl im Voraus planen als auch in Echtzeit verfolgen müssen.]]></description>
+Perfekt für Organisationen, Teams und Gemeinschaften, die die Anwesenheit bei Meetings, Veranstaltungen und Aktivitäten sowohl im Voraus planen als auch in Echtzeit verfolgen möchten.]]></description>
 	<screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/screen-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/screen.jpg</screenshot>
     <screenshot>https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/admin.jpg</screenshot>
     <screenshot>https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/checkin.jpg</screenshot>
-	<version>1.7.0</version>
+	<version>1.8.0</version>
 	<licence>AGPL-3.0-or-later</licence>
 	<author mail="florian@krautnerds.de" homepage="https://krautnerds.de">Florian Ludwig</author>
 	<namespace>Attendance</namespace>

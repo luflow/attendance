@@ -6,6 +6,24 @@
 
 - Nightly changes here
 
+## 1.8.0 – 2024-12-04
+
+### Added
+
+- Dedicated "Unanswered" appointments view with navigation section to quickly identify appointments without responses
+- Display appointment start date and time in sidebar navigation items for better overview
+- Appointment reminder system via Nextcloud notifications to notify users about upcoming appointments
+
+### Fixed
+
+- Improved icon clarity and dark mode styling for appointment responses
+
+### Maintenance
+
+- Removed unused translation strings and fixed inconsistent capitalization in Danish and German locales
+- Removed unused OpenAPI extractor tooling and documentation
+- Removed unused GitHub workflow files for linting and npm audit automation
+
 ## 1.7.0 – 2025-11-29
 
 ### Added
