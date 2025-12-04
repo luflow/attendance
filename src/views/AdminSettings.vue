@@ -130,6 +130,14 @@
 							:label="t('attendance', 'Days before appointment')"
 							:helper-text="t('attendance', 'Send reminders this many days before the appointment (1-30 days)')"
 							:input-props="{ min: 1, max: 30 }" />
+						
+						<NcInputField
+							v-model.number="reminderFrequency"
+							type="number"
+							class="reminder-frequency-field"
+							:label="t('attendance', 'Reminder frequency (days)')"
+							:helper-text="t('attendance', 'How often to remind users who haven\'t responded. Set to 0 to only remind once, or 1-30 to repeat reminders every N days.')"
+							:input-props="{ min: 0, max: 30 }" />
 					</div>
 				</template>
 			</NcSettingsSection>
@@ -173,6 +181,7 @@ const selectedSeeResponseOverviewRoles = ref([])
 const selectedSeeCommentsRoles = ref([])
 const remindersEnabled = ref(false)
 const reminderDays = ref(7)
+const reminderFrequency = ref(0)
 const notificationsAppEnabled = ref(true)
 const loading = ref(false)
 const loadingData = ref(true)
@@ -213,6 +222,7 @@ const loadSettings = async () => {
 			if (response.data.reminders) {
 				remindersEnabled.value = response.data.reminders.enabled || false
 				reminderDays.value = response.data.reminders.reminderDays || 7
+				reminderFrequency.value = response.data.reminders.reminderFrequency || 0
 				notificationsAppEnabled.value = response.data.reminders.notificationsAppEnabled !== false
 			}
 		} else {
@@ -261,11 +271,13 @@ const saveSettings = async () => {
 				permissions: {
 					PERMISSION_MANAGE_APPOINTMENTS: selectedManageAppointmentsRoles.value.map(g => g.id),
 					PERMISSION_CHECKIN: selectedCheckinRoles.value.map(g => g.id),
+					PERMISSION_SEE_RESPONSE_OVERVIEW: selectedSeeResponseOverviewRoles.value.map(g => g.id),
 					PERMISSION_SEE_COMMENTS: selectedSeeCommentsRoles.value.map(g => g.id)
 				},
 				reminders: {
 					enabled: remindersEnabled.value,
-					reminderDays: reminderDays.value
+					reminderDays: reminderDays.value,
+					reminderFrequency: reminderFrequency.value
 				}
 			}
 		)
@@ -337,5 +349,9 @@ onMounted(async () => {
 	margin-top: 16px;
 	margin-bottom: 16px;
 	max-width: 300px;
+}
+
+.input-field.reminder-frequency-field {
+	margin-block-start: 40px;
 }
 </style>

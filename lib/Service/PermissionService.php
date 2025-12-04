@@ -113,14 +113,25 @@ class PermissionService {
 	 * Set all permission settings
 	 */
 	public function setAllPermissionSettings(array $permissions): void {
+		// Map of uppercase constant names to actual permission values
+		$permissionMap = [
+			'PERMISSION_MANAGE_APPOINTMENTS' => self::PERMISSION_MANAGE_APPOINTMENTS,
+			'PERMISSION_CHECKIN' => self::PERMISSION_CHECKIN,
+			'PERMISSION_SEE_RESPONSE_OVERVIEW' => self::PERMISSION_SEE_RESPONSE_OVERVIEW,
+			'PERMISSION_SEE_COMMENTS' => self::PERMISSION_SEE_COMMENTS,
+		];
+		
 		foreach ($permissions as $permission => $roles) {
-			if (in_array($permission, [
+			// Convert uppercase constant name to actual value if needed
+			$permissionValue = $permissionMap[$permission] ?? $permission;
+			
+			if (in_array($permissionValue, [
 				self::PERMISSION_MANAGE_APPOINTMENTS,
 				self::PERMISSION_CHECKIN,
 				self::PERMISSION_SEE_RESPONSE_OVERVIEW,
 				self::PERMISSION_SEE_COMMENTS
 			])) {
-				$this->setRolesForPermission($permission, $roles);
+				$this->setRolesForPermission($permissionValue, $roles);
 			}
 		}
 	}

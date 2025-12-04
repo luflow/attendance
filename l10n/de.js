@@ -52,6 +52,8 @@ OC.L10N.register(
         "Loading settings...": "Einstellungen werden geladen...",
         "Days before appointment": "Tage vor dem Termin",
         "Send reminders this many days before the appointment (1-30 days)": "Erinnerungen diese Anzahl von Tagen vor dem Termin senden (1-30 Tage)",
+        "Reminder frequency (days)": "Erinnerungshäufigkeit (Tage)",
+        "How often to remind users who haven't responded. Set to 0 to only remind once, or 1-30 to repeat reminders every N days.": "Wie oft Benutzer erinnert werden sollen, die noch nicht geantwortet haben. Auf 0 setzen, um nur einmal zu erinnern, oder 1-30, um alle N Tage zu erinnern.",
         "Whitelisted Groups": "Freigegebene Gruppen",
         "Select user groups that should be included in attendance statistics and check-in list filters. If no groups are selected, all groups are included.": "Wählen Sie Benutzergruppen aus, die in Anwesenheitsstatistiken und Check-in-Listenfiltern enthalten sein sollen. Wenn keine Gruppen ausgewählt sind, werden alle Gruppen einbezogen.",
         "The Notifications app is not enabled. Please enable it to use appointment reminders.": "Die Benachrichtigungs-App ist nicht aktiviert. Bitte aktivieren Sie sie, um Termin-Erinnerungen zu nutzen.",
