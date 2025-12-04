@@ -6,6 +6,18 @@
 
 - Nightly changes here
 
+## 1.8.1 – 2024-12-04
+
+### Added
+
+- Configurable reminder frequency setting (0-30 days) to control notification frequency and prevent spam
+- Reminder logging system to track when users were last notified about appointments
+- Auto-navigation to unanswered appointments view on app load when unanswered appointments exist
+
+### Fixed
+
+- Fixed permission mapping issue in PermissionService handling uppercase constants
+
 ## 1.8.0 – 2024-12-04
 
 ### Added
