@@ -135,6 +135,7 @@ OC.L10N.register(
         "Settings saved successfully": "Indstillinger gemt",
         "Failed to load settings": "Kunne ikke indlæse indstillinger",
         "Failed to save settings": "Kunne ikke gemme indstillinger",
+        "Start check-in": "Start check-in",
         "All attendees checked in": "Alle deltagere tjekket ind",
         "{count} attendees not yet checked in": "{count} deltagere endnu ikke tjekket ind",
         "Confirm Bulk Action": "Bekræft massehandling",
@@ -143,7 +144,7 @@ OC.L10N.register(
         "not attending": "ikke tilstede",
         "Export": "Eksporter",
         "Export created successfully: {filename}": "Eksport oprettet: {filename}",
-        "Failed to export appointments": "Kunne ikke eksportere aftaler"
+        "Failed to export appointments": "Kunne ikke eksportere aftaler",
     },
     "nplurals=2; plural=(n != 1);"
 );
