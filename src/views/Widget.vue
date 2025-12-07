@@ -312,8 +312,14 @@ onMounted(async () => {
 <style scoped lang="scss">
 @use '../styles/shared.scss';
 
+/* Dark mode: explicit dark theme */
+body[data-theme-dark] .appointment-widget-container[data-nc-version="31"] :deep(.button-vue--warning) {
+	color: black !important;
+}
+
+/* Dark mode: system preference when using default theme */
 @media (prefers-color-scheme: dark) {
-	.appointment-widget-container[data-nc-version="31"] :deep(.button-vue--warning) {
+	body[data-theme-default] .appointment-widget-container[data-nc-version="31"] :deep(.button-vue--warning) {
 		color: black !important;
 	}
 }
