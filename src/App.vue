@@ -77,7 +77,7 @@
 			<!-- Bottom button for creating new appointment -->
 			<template #footer>
 				<NcAppNavigationItem
-					v-if="canManageAppointments"
+					v-if="permissions.canManageAppointments"
 					:name="t('attendance', 'Create Appointment')"
 					@click.prevent="createNewAppointment">
 					<template #icon>
@@ -85,7 +85,7 @@
 					</template>
 				</NcAppNavigationItem>
 				<NcAppNavigationItem
-					v-if="canManageAppointments"
+					v-if="permissions.canManageAppointments"
 					:name="t('attendance', 'Export')"
 					@click.prevent="exportAppointments">
 					<template #icon>
@@ -150,14 +150,17 @@ import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
 import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import DownloadIcon from 'vue-material-design-icons/Download.vue'
 import BellAlertIcon from 'vue-material-design-icons/BellAlert.vue'
+import { usePermissions } from './composables/usePermissions.js'
 
 const currentView = ref(null) // 'current', 'past', 'unanswered', 'appointment', 'checkin', or null
 const checkinAppointmentId = ref(null)
 const appointmentDetailId = ref(null)
 const currentAppointments = ref([])
 const pastAppointments = ref([])
-const canManageAppointments = ref(false)
 const showCreateForm = ref(false)
+
+// Use the shared permissions composable
+const { permissions, loadPermissions } = usePermissions()
 
 // Computed property for unanswered appointments
 const unansweredAppointments = computed(() => {
@@ -213,15 +216,6 @@ const loadAppointments = async () => {
 		pastAppointments.value = pastResponse.data
 	} catch (error) {
 		console.error('Failed to load appointments for navigation:', error)
-	}
-}
-
-const loadPermissions = async () => {
-	try {
-		const response = await axios.get(generateUrl('/apps/attendance/api/user/permissions'))
-		canManageAppointments.value = response.data.canManageAppointments
-	} catch (error) {
-		console.error('Failed to load permissions:', error)
 	}
 }
 
