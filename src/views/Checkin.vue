@@ -220,7 +220,6 @@ import axios from '@nextcloud/axios'
 import { renderMarkdown, sanitizeHtml } from '../utils/markdown.js'
 import { usePermissions } from '../composables/usePermissions.js'
 
-// Props
 const props = defineProps({
 	appointmentId: {
 		type: [String, Number],
@@ -228,7 +227,6 @@ const props = defineProps({
 	},
 })
 
-// State
 const loading = ref(true)
 const error = ref(null)
 const appointment = ref(null)
@@ -244,13 +242,10 @@ const showConfirmDialog = ref(false)
 const pendingBulkAction = ref(null)
 const confirmMessage = ref('')
 
-// Computed
-const groupOptions = computed(() => {
-	return userGroups.value.map(group => ({
-		id: group,
-		label: window.t('attendance', group),
-	}))
-})
+const groupOptions = computed(() => userGroups.value.map(group => ({
+	id: group,
+	label: window.t('attendance', group),
+})))
 
 const filteredAllUsers = computed(() => {
 	const filtered = filterUsers(users.value)
