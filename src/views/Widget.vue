@@ -1,8 +1,6 @@
 <template>
 	<div class="appointment-widget-container" :data-nc-version="ncVersion">
 		<NcDashboardWidget :items="items"
-			:show-more-url="showMoreUrl"
-			:show-more-text="title"
 			:loading="state === 'loading'"
 			class="appointment-widget">
 			<template #empty-content>
@@ -32,7 +30,7 @@
 						<span class="appointment-time">{{ formatDate(item.subText) }}</span>
 					</div>
 					<div v-if="item.description" class="appointment-description clickable" @click="openAppointmentDetail(item.id)">
-						{{ renderDescriptionMarkdown(item.description) }}
+						{{ renderStrippedDescription(item.description) }}
 					</div>
 
 					<!-- Response Section -->
@@ -143,7 +141,6 @@ try {
 }
 
 const appointments = ref(initialAppointments)
-const showMoreUrl = ref(generateUrl('/apps/attendance'))
 const state = ref(initialState)
 const ncVersion = ref(ncVersionState)
 const responseComments = reactive({})
@@ -221,7 +218,7 @@ const formatDate = (datetime) => {
 	}
 }
 
-const renderDescriptionMarkdown = (description) => {
+const renderStrippedDescription = (description) => {
 	if (!description) return ''
 	// Strip markdown formatting for compact widget display
 	let text = description
