@@ -39,7 +39,7 @@ jobs:
         run: npm run build
       
       - name: Start test server
-        run: npm run test:e2e:server &
+        run: npm run test:e2e:server
         env:
           CI: true
       
