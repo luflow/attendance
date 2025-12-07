@@ -249,7 +249,7 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-@import '../styles/shared.scss';
+@use '../styles/shared.scss';
 
 .attendance-container {
 	padding: 20px;

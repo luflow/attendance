@@ -1,7 +1,7 @@
 <template>
-	<div class="checkin-view">
+	<div class="checkin-view" data-test="checkin-view">
 		<div class="checkin-header">
-			<NcButton type="tertiary" @click="goBack">
+			<NcButton type="tertiary" @click="goBack" data-test="button-back">
 				<template #icon>
 					<ArrowLeftIcon />
 				</template>
@@ -54,6 +54,7 @@
 					<NcTextField
 						:value.sync="searchQuery"
 						:label="t('attendance', 'Search by name...')"
+						data-test="input-search"
 						@input="onSearchInput">
 						<MagnifyIcon :size="16" />
 					</NcTextField>
@@ -64,6 +65,7 @@
 						:options="groupOptions"
 						:placeholder="t('attendance', 'Filter by group')"
 						:clearable="true"
+						data-test="select-group-filter"
 						@input="onGroupFilterChange">
 					</NcSelect>
 				</div>
@@ -77,19 +79,21 @@
 							<NcButton
 								variant="success"
 								:disabled="bulkProcessing"
+								data-test="button-bulk-present"
 								@click="confirmBulkCheckin('yes')">
 								{{ t('attendance', 'All Present') }}
 							</NcButton>
 							<NcButton
 								variant="error"
 								:disabled="bulkProcessing"
+								data-test="button-bulk-absent"
 								@click="confirmBulkCheckin('no')">
 								{{ t('attendance', 'All Absent') }}
 							</NcButton>
 						</div>
 					</div>
 					<div class="user-list">
-						<div v-for="user in filteredAllUsers" :key="user.userId" class="user-item">
+						<div v-for="user in filteredAllUsers" :key="user.userId" class="user-item" :data-test="`user-item-${user.userId}`">
 							<!-- Normal view when not in comment mode -->
 							<template v-if="!showCommentInput[user.userId]">
 								<div class="user-info">
@@ -118,16 +122,19 @@
 									<div class="action-buttons">
 										<NcButton
 											:variant="user.checkinState === 'yes' || !user.checkinState ? 'success' : 'tertiary'"
+											data-test="button-present"
 											@click="checkinUser(user.userId, 'yes')">
 											{{ t('attendance', 'Present') }}
 										</NcButton>
 										<NcButton
 											:variant="user.checkinState === 'no' || !user.checkinState ? 'error' : 'tertiary'"
+											data-test="button-absent"
 											@click="checkinUser(user.userId, 'no')">
 											{{ t('attendance', 'Absent') }}
 										</NcButton>
 										<NcButton
 											variant="tertiary"
+											data-test="button-add-comment"
 											@click="toggleCommentInput(user.userId)"
 											:aria-label="t('attendance', 'Add comment')">
 											<template #icon>
@@ -169,12 +176,13 @@
 											v-model="checkinComments[user.userId]"
 											:label="t('attendance', 'Check-in comment')"
 											:placeholder="t('attendance', 'Add a comment for this check-in...')"
+											data-test="textarea-checkin-comment"
 											rows="2" />
 										<div class="comment-actions">
-											<NcButton variant="primary" @click="saveCheckinComment(user.userId)">
+											<NcButton variant="primary" @click="saveCheckinComment(user.userId)" data-test="button-save-comment">
 												{{ t('attendance', 'Save') }}
 											</NcButton>
-											<NcButton variant="tertiary" @click="cancelCommentInput(user.userId)">
+											<NcButton variant="tertiary" @click="cancelCommentInput(user.userId)" data-test="button-cancel-comment">
 												{{ t('attendance', 'Cancel') }}
 											</NcButton>
 										</div>
@@ -192,13 +200,15 @@
 			:open="showConfirmDialog"
 			:name="t('attendance', 'Confirm Bulk Action')"
 			:message="confirmMessage"
+			data-test="dialog-confirm-bulk"
 			@closing="cancelBulkAction">
 			<template #actions>
-				<NcButton @click="cancelBulkAction">
+				<NcButton @click="cancelBulkAction" data-test="button-bulk-cancel">
 					{{ t('attendance', 'Cancel') }}
 				</NcButton>
 				<NcButton
 					:variant="pendingBulkAction === 'yes' ? 'success' : 'error'"
+					data-test="button-bulk-confirm"
 					@click="executeBulkAction">
 					{{ t('attendance', 'Confirm') }}
 				</NcButton>

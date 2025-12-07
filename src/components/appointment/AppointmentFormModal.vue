@@ -1,17 +1,19 @@
 <template>
-	<NcModal v-if="show" @close="handleClose">
+	<NcModal v-if="show" @close="handleClose" data-test="appointment-form-modal">
 		<div class="modal-content">
-			<h2>{{ isEdit ? t('attendance', 'Edit Appointment') : t('attendance', 'Create Appointment') }}</h2>
-			<form @submit.prevent="handleSubmit">
+			<h2 data-test="form-title">{{ isEdit ? t('attendance', 'Edit Appointment') : t('attendance', 'Create Appointment') }}</h2>
+			<form @submit.prevent="handleSubmit" data-test="appointment-form">
 				<NcTextField 
 					v-model="formData.name" 
 					:label="t('attendance', 'Appointment Name')"
+					data-test="input-appointment-name"
 					required />
 				
 				<NcTextArea 
 					v-model="formData.description" 
 					:label="t('attendance', 'Description')"
 					:placeholder="t('attendance', 'You can use **bold** and *italic* formatting')"
+					data-test="input-appointment-description"
 					:rows="6" />
 				
 				<div class="form-field">
@@ -20,6 +22,7 @@
 						id="start-datetime"
 						v-model="formData.startDatetime"
 						type="datetime-local" 
+						data-test="input-start-datetime"
 						required 
 						@blur="handleStartDateBlur" />
 				</div>
@@ -31,14 +34,15 @@
 						ref="endDatetimePicker"
 						v-model="formData.endDatetime"
 						type="datetime-local" 
+						data-test="input-end-datetime"
 						required />
 				</div>
 				
 				<div class="form-actions">
-					<NcButton type="secondary" @click="handleClose">
+					<NcButton type="secondary" @click="handleClose" data-test="button-cancel">
 						{{ t('attendance', 'Cancel') }}
 					</NcButton>
-					<NcButton type="primary" native-type="submit">
+					<NcButton type="primary" native-type="submit" data-test="button-save">
 						{{ t('attendance', 'Save') }}
 					</NcButton>
 				</div>

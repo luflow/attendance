@@ -1,8 +1,9 @@
 <template>
-	<div class="appointment-widget-container" :data-nc-version="ncVersion">
+	<div class="appointment-widget-container" :data-nc-version="ncVersion" data-test="widget-container">
 		<NcDashboardWidget :items="items"
 			:loading="state === 'loading'"
-			class="appointment-widget">
+			class="appointment-widget"
+			data-test="appointment-widget">
 			<template #empty-content>
 				<NcEmptyContent :title="t('attendance', 'No appointments found')">
 					<template #icon>
@@ -11,13 +12,14 @@
 				</NcEmptyContent>
 			</template>
 			<template #default="{ item }">
-				<div class="appointment-item">
+				<div class="appointment-item" data-test="widget-appointment-item">
 
 					<!-- Check-in Section (for admins when appointment is ready for check-in) -->
 					<div v-if="showCheckinButton(item)" class="checkin-section">
 						<NcButton
 							variant="primary"
 							class="checkin-button"
+							data-test="button-widget-checkin"
 							@click="openCheckinView(item.id)">
 							<template #icon>
 								<ListStatusIcon />
@@ -26,7 +28,7 @@
 						</NcButton>
 					</div>
 					<div class="appointment-header">
-						<h3 class="clickable" @click="openAppointmentDetail(item.id)">{{ item.mainText }}</h3>
+						<h3 class="clickable" data-test="widget-appointment-title" @click="openAppointmentDetail(item.id)">{{ item.mainText }}</h3>
 						<span class="appointment-time">{{ formatDate(item.subText) }}</span>
 					</div>
 					<div v-if="item.description" class="appointment-description clickable" @click="openAppointmentDetail(item.id)">
@@ -40,21 +42,25 @@
 								:class="{ active: item.userResponse?.response === 'yes' }"
 								variant="success"
 								:text="t('attendance', 'Yes')"
+								data-test="widget-response-yes"
 								@click="respond(item.id, 'yes')" />
 							<NcButton
 								:class="{ active: item.userResponse?.response === 'maybe' }"
 								variant="warning"
 								:text="t('attendance', 'Maybe')"
+								data-test="widget-response-maybe"
 								@click="respond(item.id, 'maybe')" />
 							<NcButton
 								:class="{ active: item.userResponse?.response === 'no' }"
 								variant="error"
 								:text="t('attendance', 'No')"
+								data-test="widget-response-no"
 								@click="respond(item.id, 'no')" />
 							<!-- Comment Toggle Button -->
 							<NcButton
 								:class="{ 'comment-active': commentExpanded[item.id], 'comment-toggle': true }"
 								type="tertiary"
+								data-test="button-widget-toggle-comment"
 								@click="toggleComment(item.id)">
 								<template #icon>
 									<CommentIcon :size="14" />
@@ -69,6 +75,7 @@
 									resize="vertical"
 									v-model="responseComments[item.id]"
 									:placeholder="t('attendance', 'Comment (optional)')"
+									data-test="widget-response-comment"
 									@input="onCommentInput(item.id)" />
 								
 								<div v-if="savingComments[item.id]" class="saving-spinner">
@@ -92,6 +99,7 @@
 			<NcButton 
 				variant="primary" 
 				wide 
+				data-test="button-show-all"
 				@click="goToAttendanceApp">
 				{{ t('attendance', 'Show all appointments') }}
 			</NcButton>
@@ -302,7 +310,7 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-@import '../styles/shared.scss';
+@use '../styles/shared.scss';
 
 @media (prefers-color-scheme: dark) {
 	.appointment-widget-container[data-nc-version="31"] :deep(.button-vue--warning) {

@@ -11,5 +11,11 @@ export default createAppConfig(
     createEmptyCSSEntryPoints: true,
     extractLicenseInformation: true,
     thirdPartyLicense: false,
+    config: {
+      build: {
+        // Suppress chunk size warning - Nextcloud apps typically have large chunks
+        chunkSizeWarningLimit: 1500,
+      },
+    },
   }
 );

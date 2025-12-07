@@ -1,28 +1,28 @@
 <template>
-	<div class="appointment-card">
+	<div class="appointment-card" data-test="appointment-card">
 		<div class="appointment-header">
-			<h3>{{ appointment.name }}</h3>
+			<h3 data-test="appointment-title">{{ appointment.name }}</h3>
 			<div class="appointment-actions">
-				<NcActions :force-menu="true">
-					<NcActionButton @click="copyShareLink" :close-after-click="true">
+				<NcActions :force-menu="true" data-test="appointment-actions-menu">
+					<NcActionButton @click="copyShareLink" :close-after-click="true" data-test="action-share-link">
 						<template #icon>
 							<ShareVariantIcon :size="20" />
 						</template>
 						{{ t('attendance', 'Share Link') }}
 					</NcActionButton>
-					<NcActionButton v-if="canCheckin" @click="handleStartCheckin" :close-after-click="true">
+					<NcActionButton v-if="canCheckin" @click="handleStartCheckin" :close-after-click="true" data-test="action-start-checkin">
 						<template #icon>
 							<ListStatusIcon :size="20" />
 						</template>
 						{{ t('attendance', 'Start check-in') }}
 					</NcActionButton>
-					<NcActionButton v-if="canManageAppointments" @click="handleEdit" :close-after-click="true">
+					<NcActionButton v-if="canManageAppointments" @click="handleEdit" :close-after-click="true" data-test="action-edit">
 						<template #icon>
 							<Pencil :size="20" />
 						</template>
 						{{ t('attendance', 'Edit') }}
 					</NcActionButton>
-					<NcActionButton v-if="canManageAppointments" @click="handleDelete" :close-after-click="true">
+					<NcActionButton v-if="canManageAppointments" @click="handleDelete" :close-after-click="true" data-test="action-delete">
 						<template #icon>
 							<Delete :size="20" />
 						</template>
@@ -40,23 +40,26 @@
 		</div>
 
 		<!-- Response Section -->
-		<div class="response-section">
+		<div class="response-section" data-test="response-section">
 			<h4>{{ t('attendance', 'Your Response') }}</h4>
 			<div class="response-buttons" :class="{ 'has-response': userResponse }">
 				<NcButton 
 					:class="{ active: userResponse === 'yes' }" 
 					variant="success"
 					:text="t('attendance', 'Yes')"
+					data-test="response-yes"
 					@click="handleResponse('yes')" />
 				<NcButton 
 					:class="{ active: userResponse === 'maybe' }" 
 					variant="warning"
 					:text="t('attendance', 'Maybe')"
+					data-test="response-maybe"
 					@click="handleResponse('maybe')" />
 				<NcButton 
 					:class="{ active: userResponse === 'no' }" 
 					variant="error"
 					:text="t('attendance', 'No')"
+					data-test="response-no"
 					@click="handleResponse('no')" />
 			</div>
 
@@ -66,6 +69,7 @@
 					<NcTextArea 
 						resize="vertical"
 						v-model="localComment"
+						data-test="response-comment"
 						@input="handleCommentInputEvent"
 						:placeholder="t('attendance', 'Comment (optional)')" />
 					
@@ -243,7 +247,7 @@ const autoSaveComment = async (commentText) => {
 </script>
 
 <style scoped lang="scss">
-@import '../../styles/shared.scss';
+@use '../../styles/shared.scss';
 
 .appointment-card {
 	background: var(--color-main-background);
