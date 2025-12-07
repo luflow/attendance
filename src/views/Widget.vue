@@ -115,7 +115,6 @@ import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
 import { usePermissions } from '../composables/usePermissions.js'
 
-// Props
 defineProps({
 	title: {
 		type: String,
@@ -123,7 +122,6 @@ defineProps({
 	},
 })
 
-// State initialization
 let initialAppointments = []
 let initialState = 'ok'
 let ncVersionState = 31
@@ -151,10 +149,8 @@ const errorComments = reactive({})
 const commentTimeouts = reactive({})
 const commentExpanded = reactive({})
 
-// Use the shared permissions composable
 const { permissions, loadPermissions } = usePermissions()
 
-// Computed
 const items = computed(() => {
 	return appointments.value.map((appointment) => {
 		return {
@@ -169,7 +165,6 @@ const items = computed(() => {
 	})
 })
 
-// Methods
 const respond = async (appointmentId, response) => {
 	try {
 		await submitResponseToServer(appointmentId, response, '')
@@ -187,12 +182,10 @@ const submitResponseToServer = async (appointmentId, response, commentText) => {
 			comment: commentText,
 		})
 
-		// Check if response status is 2xx
 		if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
 			throw new Error(`API returned status ${axiosResponse.status}`)
 		}
 
-		// Update local state
 		const appointmentIndex = appointments.value.findIndex(a => a.id === appointmentId)
 		if (appointmentIndex !== -1) {
 			appointments.value[appointmentIndex].userResponse = {
@@ -200,8 +193,6 @@ const submitResponseToServer = async (appointmentId, response, commentText) => {
 				comment: commentText,
 			}
 		}
-
-		// Response saved successfully
 	} catch (error) {
 		console.error('Failed to save response:', error)
 		throw error
@@ -220,7 +211,6 @@ const formatDate = (datetime) => {
 
 const renderStrippedDescription = (description) => {
 	if (!description) return ''
-	// Strip markdown formatting for compact widget display
 	let text = description
 		.replace(/\*\*([^*]+)\*\*/g, '$1')  // Remove bold: **text** -> text
 		.replace(/\*([^*]+)\*/g, '$1')      // Remove italic: *text* -> text
@@ -233,7 +223,6 @@ const toggleComment = (appointmentId) => {
 	const isExpanding = !commentExpanded[appointmentId]
 	commentExpanded[appointmentId] = isExpanding
 	
-	// Initialize comment with existing value when expanding
 	if (isExpanding && !(appointmentId in responseComments)) {
 		const appointment = appointments.value.find(a => a.id === appointmentId)
 		responseComments[appointmentId] = appointment?.userResponse?.comment || ''
@@ -246,7 +235,6 @@ const onCommentInput = (appointmentId) => {
 	}
 
 	commentTimeouts[appointmentId] = setTimeout(async () => {
-		// Wait for Vue to update the DOM and reactive values
 		await nextTick()
 		const value = responseComments[appointmentId]
 		autoSaveComment(appointmentId, value)
@@ -296,7 +284,6 @@ const showCheckinButton = (item) => {
 		return false
 	}
 
-	// Show check-in button 30 minutes before start time
 	const now = new Date()
 	const startTime = new Date(item.subText)
 	const checkinTime = new Date(startTime.getTime() - 30 * 60 * 1000) // 30 minutes before
@@ -305,20 +292,18 @@ const showCheckinButton = (item) => {
 }
 
 const openCheckinView = (appointmentId) => {
-	// Navigate to check-in view
 	const checkinUrl = generateUrl('/apps/attendance/checkin/{id}', { id: appointmentId })
 	window.location.href = checkinUrl
 }
 
-// Lifecycle
 onMounted(async () => {
 	await loadPermissions()
 })
 </script>
 
 <style scoped lang="scss">
+@import '../styles/shared.scss';
 
-// Fallback for Nextcloud 31 dark mode 
 @media (prefers-color-scheme: dark) {
 	.appointment-widget-container[data-nc-version="31"] :deep(.button-vue--warning) {
 		color: black !important;
@@ -436,8 +421,6 @@ onMounted(async () => {
 			height: 32px;
 		}
 
-		// Apply neutral styling to non-active buttons only when there's a response
-		// Exclude the comment toggle button from this styling
 		&.has-response {
 			:deep(.button-vue:not(.active):not(.comment-toggle)) {
 				background-color: var(--color-background-dark) !important;
@@ -451,12 +434,10 @@ onMounted(async () => {
 			}
 		}
 
-		// Active button styles - keep bold
 		:deep(.button-vue.active) {
 			font-weight: bold;
 		}
 
-		// Comment toggle button
 		:deep(.button-vue.comment-active) {
 			background-color: var(--color-primary-element) !important;
 			color: white !important;
@@ -470,72 +451,12 @@ onMounted(async () => {
 			position: relative;
 		}
 
-		// Override Nextcloud Vue's placeholder hiding behavior
 		:deep(.textarea__input:not(:focus)::placeholder) {
 			opacity: 1 !important;
 		}
 
 		:deep(.textarea__input) {
 			height: calc(var(--default-clickable-area) * 1.4);
-		}
-
-		.saving-spinner,
-		.saved-indicator,
-		.error-indicator {
-			position: absolute;
-			top: 15px;
-			right: 15px;
-			pointer-events: none;
-			z-index: 10;
-		}
-
-		.saving-spinner {
-			.spinner {
-				width: 16px;
-				height: 16px;
-				border: 2px solid var(--color-border);
-				border-top: 2px solid var(--color-primary);
-				border-radius: 50%;
-				animation: spin 1s linear infinite;
-			}
-		}
-
-		.saved-indicator {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			width: 16px;
-			height: 16px;
-			background-color: green;
-			border-radius: 50%;
-			animation: fadeIn 0.3s ease-in;
-
-			.check-icon {
-				color: white;
-			}
-		}
-
-		.error-indicator {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			width: 16px;
-			height: 16px;
-			animation: fadeIn 0.3s ease-in;
-
-			.error-icon {
-				color: var(--color-error);
-			}
-		}
-
-		@keyframes spin {
-			0% { transform: rotate(0deg); }
-			100% { transform: rotate(360deg); }
-		}
-
-		@keyframes fadeIn {
-			from { opacity: 0; transform: scale(0.5); }
-			to { opacity: 1; transform: scale(1); }
 		}
 
 		.comment-actions {

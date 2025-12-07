@@ -243,6 +243,8 @@ const autoSaveComment = async (commentText) => {
 </script>
 
 <style scoped lang="scss">
+@import '../../styles/shared.scss';
+
 .appointment-card {
 	background: var(--color-main-background);
 	border: 1px solid var(--color-border);
@@ -335,65 +337,6 @@ const autoSaveComment = async (commentText) => {
 
 		.textarea-container {
 			position: relative;
-		}
-
-		.saving-spinner,
-		.saved-indicator,
-		.error-indicator {
-			position: absolute;
-			top: 15px;
-			right: 15px;
-			pointer-events: none;
-			z-index: 10;
-		}
-
-		.saving-spinner {
-			.spinner {
-				width: 16px;
-				height: 16px;
-				border: 2px solid var(--color-border);
-				border-top: 2px solid var(--color-primary);
-				border-radius: 50%;
-				animation: spin 1s linear infinite;
-			}
-		}
-
-		.saved-indicator {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			width: 16px;
-			height: 16px;
-			background-color: green;
-			border-radius: 50%;
-			animation: fadeIn 0.3s ease-in;
-
-			.check-icon {
-				color: white;
-			}
-		}
-
-		.error-indicator {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			width: 16px;
-			height: 16px;
-			animation: fadeIn 0.3s ease-in;
-
-			.error-icon {
-				color: var(--color-error);
-			}
-		}
-
-		@keyframes spin {
-			0% { transform: rotate(0deg); }
-			100% { transform: rotate(360deg); }
-		}
-
-		@keyframes fadeIn {
-			from { opacity: 0; transform: scale(0.5); }
-			to { opacity: 1; transform: scale(1); }
 		}
 	}
 }

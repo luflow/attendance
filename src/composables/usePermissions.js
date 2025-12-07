@@ -2,7 +2,6 @@ import { reactive, readonly } from 'vue'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 
-// Shared state - will be initialized only once
 const state = reactive({
 	permissions: {
 		canManageAppointments: false,
@@ -25,12 +24,10 @@ export function usePermissions() {
 	 * Will only make the API call once unless force=true
 	 */
 	const loadPermissions = async (force = false) => {
-		// Skip if already loaded and not forcing reload
 		if (state.loaded && !force) {
 			return state.permissions
 		}
 
-		// Skip if already loading
 		if (state.loading) {
 			return state.permissions
 		}
@@ -42,7 +39,6 @@ export function usePermissions() {
 			const url = generateUrl('/apps/attendance/api/user/permissions')
 			const response = await axios.get(url)
 			
-			// Update all permission flags
 			state.permissions.canManageAppointments = response.data.canManageAppointments || false
 			state.permissions.canCheckin = response.data.canCheckin || false
 			state.permissions.canSeeResponseOverview = response.data.canSeeResponseOverview || false
@@ -53,7 +49,6 @@ export function usePermissions() {
 			console.error('Failed to load permissions:', error)
 			state.error = error
 			
-			// Set all permissions to false on error
 			state.permissions.canManageAppointments = false
 			state.permissions.canCheckin = false
 			state.permissions.canSeeResponseOverview = false

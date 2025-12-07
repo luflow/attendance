@@ -44,7 +44,6 @@ import { showSuccess, showError } from '@nextcloud/dialogs'
 import { fromZonedTime } from 'date-fns-tz'
 import { usePermissions } from '../composables/usePermissions.js'
 
-// Props
 const props = defineProps({
 	showPast: {
 		type: Boolean,
@@ -58,7 +57,6 @@ const props = defineProps({
 
 const emit = defineEmits(['response-updated'])
 
-// State
 const appointments = ref([])
 const loading = ref(true)
 const showEditForm = ref(false)
@@ -71,20 +69,16 @@ const editingAppointment = reactive({
 	endDatetime: '',
 })
 
-// Use the shared permissions composable
 const { permissions, loadPermissions } = usePermissions()
 
-// Methods
 const loadAppointments = async (skipLoadingSpinner = false) => {
 	try {
-		// Don't show loading spinner when refreshing data
 		if (!skipLoadingSpinner) {
 			loading.value = true
 		}
 		const params = props.showPast ? '?showPastAppointments=true' : ''
 		const response = await axios.get(generateUrl('/apps/attendance/api/appointments') + params)
 		
-		// Filter for unanswered appointments if needed
 		if (props.showUnanswered) {
 			appointments.value = response.data.filter(appointment => {
 				return !appointment.userResponse || appointment.userResponse === null
@@ -93,14 +87,12 @@ const loadAppointments = async (skipLoadingSpinner = false) => {
 			appointments.value = response.data
 		}
 
-		// Initialize response comments
 		appointments.value.forEach(appointment => {
 			if (appointment.userResponse) {
 				responseComments[appointment.id] = appointment.userResponse.comment || ''
 			}
 		})
 
-		// Load detailed responses for users who can manage appointments
 		if (permissions.canManageAppointments) {
 			await loadDetailedResponses()
 		}
@@ -138,7 +130,6 @@ const handleModalSubmit = async (formData) => {
 		const startDatetimeWithTz = fromZonedTime(formData.startDatetime, 'Europe/Berlin')
 		const endDatetimeWithTz = fromZonedTime(formData.endDatetime, 'Europe/Berlin')
 		
-		// Update existing appointment
 		await axios.put(generateUrl(`/apps/attendance/api/appointments/${formData.id}`), {
 			name: formData.name,
 			description: formData.description,
@@ -157,7 +148,6 @@ const handleModalSubmit = async (formData) => {
 
 const submitResponse = async (appointmentId, response) => {
 	try {
-		// Get existing comment from appointment if available
 		const appointment = appointments.value.find(a => a.id === appointmentId)
 		const comment = appointment?.userResponse?.comment || ''
 		
@@ -166,14 +156,12 @@ const submitResponse = async (appointmentId, response) => {
 			comment,
 		})
 		
-		// Check if response status is 2xx
 		if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
 			throw new Error(`API returned status ${axiosResponse.status}`)
 		}
 		
 		showSuccess(t('attendance', 'Response updated successfully'))
 		
-		// Emit event to update sidebar
 		emit('response-updated')
 		
 		await loadAppointments(true)
@@ -193,7 +181,6 @@ const updateComment = async (appointmentId, comment, silent = false) => {
 			comment,
 		})
 		
-		// Check if response status is 2xx
 		if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
 			throw new Error(`API returned status ${axiosResponse.status}`)
 		}
@@ -252,11 +239,9 @@ const editAppointment = (appointment) => {
 }
 
 const startCheckin = (appointmentId) => {
-	// Navigate to check-in page for this appointment
 	window.location.href = generateUrl(`/apps/attendance/checkin/${appointmentId}`)
 }
 
-// Lifecycle
 onMounted(async () => {
 	await loadPermissions()
 	await loadAppointments()
@@ -264,63 +249,12 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
+@import '../styles/shared.scss';
+
 .attendance-container {
 	padding: 20px;
 	max-width: 1200px;
 	margin: 0 auto;
-}
-
-.attendance-header {
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	margin-bottom: 30px;
-
-	.header-buttons {
-		display: flex;
-		gap: 10px;
-		align-items: center;
-	}
-
-	h1 {
-		margin: 0;
-	}
-}
-.modal-content {
-	padding: 20px;
-
-	h2 {
-		margin-top: 0;
-	}
-
-	.input-field,
-	.textarea,
-	.native-datetime-picker {
-		margin-bottom: 15px;
-	}
-
-	input[type="datetime-local"] {
-		width: 100%;
-		padding: 8px 12px;
-		border: 1px solid var(--color-border);
-		border-radius: 4px;
-		background: var(--color-main-background);
-		color: var(--color-text);
-		font-size: 14px;
-
-		&:focus {
-			outline: none;
-			border-color: var(--color-primary);
-			box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2);
-		}
-	}
-
-	.form-actions {
-		display: flex;
-		gap: 10px;
-		justify-content: flex-end;
-		margin-top: 20px;
-	}
 }
 
 .appointments-list {
@@ -332,547 +266,6 @@ onMounted(async () => {
 		text-align: center;
 		padding: 40px;
 		color: var(--color-text-lighter);
-	}
-}
-
-.appointment-card {
-	border: 1px solid var(--color-border);
-	border-radius: 8px;
-	padding: 20px;
-	margin-bottom: 20px;
-	background: var(--color-main-background);
-
-	.appointment-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: 10px;
-
-		h3 {
-			margin: 0;
-		}
-
-		.appointment-actions {
-			display: flex;
-			gap: 10px;
-		}
-	}
-
-	.appointment-description {
-		color: var(--color-text-lighter);
-		margin-bottom: 15px;
-	}
-
-	.appointment-time {
-		margin-bottom: 20px;
-		font-size: 14px;
-	}
-}
-
-.response-summary {
-	border-top: 1px solid var(--color-border);
-    margin-top: 30px;
-}
-
-.response-section {
-	border-top: 1px solid var(--color-border);
-	padding-top: 20px;
-	margin-top: 25px;
-
-	h4 {
-		margin: 0 0 10px 0;
-	}
-
-	.response-buttons {
-		display: flex;
-		gap: 10px;
-		margin-bottom: 15px;
-
-		// Apply colors to all buttons based on type attribute
-		:deep(button[type="success"]) {
-			background-color: var(--color-success) !important;
-			border-color: var(--color-success) !important;
-		}
-
-		:deep(button[type="warning"]) {
-			background-color: var(--color-warning) !important;
-			border-color: var(--color-warning) !important;
-		}
-
-		:deep(button[type="error"]) {
-			background-color: var(--color-error) !important;
-			border-color: var(--color-error) !important;
-		}
-
-		// When a response exists, gray out non-active buttons
-		&.has-response {
-			:deep(button:not(.active)) {
-				background-color: var(--color-background-dark) !important;
-				color: var(--color-text-lighter) !important;
-				border-color: var(--color-border-dark) !important;
-
-				&:hover {
-					background-color: var(--color-background-hover) !important;
-					color: var(--color-text) !important;
-				}
-			}
-		}
-
-		// Active button styles - keep bold
-		:deep(button.active) {
-			font-weight: bold;
-		}
-	}
-
-	.comment-section {
-		margin-top: 10px;
-
-		.comment-actions {
-			margin-top: 10px;
-			display: flex;
-			justify-content: flex-start;
-		}
-	}
-}
-
-
-.non-responding-header {
-	font-weight: bold;
-	margin-bottom: 5px;
-	color: var(--color-text-lighter);
-}
-
-
-.non-responding-users {
-	padding: 10px;
-	background-color: var(--color-background-hover);
-	border-radius: var(--border-radius);
-	font-size: 0.9em;
-
-	.non-responding-list {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 5px;
-
-		.non-responding-user {
-			color: var(--color-text-lighter);
-
-			&:not(:last-child)::after {
-				content: ",";
-			}
-
-			&:last-child::after {
-				content: "";
-			}
-		}
-	}
-
-	.non-responding-users-section {
-		margin-top: 20px;
-		padding: 15px;
-		background: var(--color-background-hover);
-		border-radius: var(--border-radius);
-
-		h4 {
-			margin-top: 0;
-			margin-bottom: 10px;
-			color: var(--color-text-lighter);
-		}
-
-		.non-responding-users-list {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 8px;
-
-			.non-responding-user {
-				background: var(--color-background-darker);
-				padding: 4px 10px;
-				border-radius: 12px;
-				font-size: 0.9em;
-				color: var(--color-text-lighter);
-
-				&:not(:last-child)::after {
-					content: "";
-				}
-			}
-		}
-	}
-}
-
-
-.summary-stats {
-
-	.stat {
-		display: inline-block;
-		padding: 5px 10px;
-		border-radius: 4px;
-		font-size: 14px;
-		color: #fff;
-		margin-right: 5px;
-		margin-bottom: 5px;
-
-		&.yes {
-			background: var(--color-success);
-		}
-
-		&.maybe {
-			background: var(--color-warning);
-		}
-		
-		body[data-theme-dark] &.maybe {
-			color: black;
-		}
-		
-		@media (prefers-color-scheme: dark) {
-			body[data-theme-default] &.maybe {
-				color: black;
-			}
-		}
-
-		&.no {
-			background: var(--color-error);
-		}
-
-		&.no-response {
-			background: var(--color-background-dark);
-			color: var(--color-text-lighter);
-		}
-	}
-}
-
-.group-details {
-	margin-top: 8px;
-	margin-left: 20px;
-	padding: 12px;
-	background: var(--color-main-background);
-	border: 1px solid var(--color-border);
-	border-radius: 4px;
-}
-
-
-.no-responses {
-	color: var(--color-text-lighter);
-	font-style: italic;
-	text-align: center;
-	padding: 10px;
-}
-
-.group-responses {
-	.response-item {
-		border-bottom: 1px solid var(--color-border);
-		padding: 10px 0;
-
-		&:last-child {
-			border-bottom: none;
-		}
-
-		.response-header {
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-			margin-bottom: 5px;
-			gap: 10px;
-
-			.user-info {
-				display: flex;
-				align-items: center;
-				gap: 10px;
-			}
-
-			.checkin-info {
-				display: flex;
-				align-items: center;
-				gap: 8px;
-			}
-
-			.checkin-badge {
-				font-size: 12px;
-				font-weight: bold;
-			}
-
-			.response-badge {
-				padding: 2px 8px;
-				border-radius: 12px;
-				font-size: 12px;
-				font-weight: bold;
-				color: #fff;
-
-				&.yes {
-					background: var(--color-success);
-				}
-
-				&.maybe {
-					background: var(--color-warning);
-				}
-				
-				body[data-theme-dark] &.maybe {
-					color: black;
-				}
-				
-				@media (prefers-color-scheme: dark) {
-					body[data-theme-default] &.maybe {
-						color: black;
-					}
-				}
-
-				&.no {
-					background: var(--color-error);
-				}
-			}
-		}
-
-		.response-comment {
-			margin: 8px 0;
-			padding: 8px;
-			background: var(--color-background-hover);
-			border-radius: 4px;
-			border-left: 3px solid var(--color-primary);
-			font-style: italic;
-		}
-
-		.response-date {
-			font-size: 12px;
-			color: var(--color-text-lighter);
-			text-align: right;
-		}
-	}
-}
-
-
-.group-summary {
-	margin-top: 20px;
-
-	h5 {
-		margin: 0 0 10px 0;
-		font-size: 16px;
-		color: var(--color-text);
-	}
-
-	.group-container {
-		margin-bottom: 8px;
-	}
-
-	.group-stats {
-		display: flex;
-		align-items: center;
-		padding: 8px;
-		background: var(--color-background-hover);
-		border-radius: 4px;
-		transition: background-color 0.2s ease;
-
-		&.clickable {
-			cursor: pointer;
-
-			&:hover {
-				background: var(--color-background-dark);
-			}
-		}
-
-		.group-name {
-			min-width: 100px;
-			font-weight: 500;
-			color: var(--color-text);
-			margin-right: 15px;
-			display: flex;
-			align-items: center;
-			gap: 8px;
-
-			.expand-icon {
-				font-size: 12px;
-				transition: transform 0.2s ease;
-				color: var(--color-text-lighter);
-
-				&.expanded {
-					transform: rotate(90deg);
-				}
-			}
-		}
-
-		.group-counts {
-			display: flex;
-			gap: 10px;
-
-			.stat {
-				color: #ffffff;
-				padding: 3px 8px;
-				border-radius: 3px;
-				font-size: 12px;
-				font-weight: bold;
-				min-width: 35px;
-				text-align: center;
-
-				&.yes {
-					background: var(--color-success);
-				}
-
-				&.maybe {
-					background: var(--color-warning);
-				}
-				
-				body[data-theme-dark] &.maybe {
-					color: black;
-				}
-				
-				@media (prefers-color-scheme: dark) {
-					body[data-theme-default] &.maybe {
-						color: black;
-					}
-				}
-
-				&.no {
-					background: var(--color-error);
-				}
-
-				&.no-response {
-					background: var(--color-background-dark);
-					color: var(--color-text-lighter);
-				}
-			}
-		}
-	}
-
-	.group-details {
-		margin-top: 8px;
-		margin-left: 20px;
-		padding: 12px;
-		background: var(--color-main-background);
-		border: 1px solid var(--color-border);
-		border-radius: 4px;
-
-		.no-responses {
-			color: var(--color-text-lighter);
-			font-style: italic;
-			text-align: center;
-			padding: 10px;
-		}
-
-		.group-responses {
-			.response-item {
-				border-bottom: 1px solid var(--color-border);
-				padding: 10px 0;
-
-				&:last-child {
-					border-bottom: none;
-				}
-
-				.response-header {
-					display: flex;
-					align-items: center;
-					margin-bottom: 5px;
-					gap: 10px;
-
-					.response-badge {
-						padding: 2px 8px;
-						border-radius: 12px;
-						font-size: 12px;
-						font-weight: bold;
-
-						&.yes {
-							background: var(--color-success);
-						}
-
-						&.maybe {
-							background: var(--color-warning);
-						}
-
-						&.no {
-							background: var(--color-error);
-						}
-					}
-				}
-
-				.response-comment {
-					margin: 8px 0;
-					padding: 8px;
-					background: var(--color-background-hover);
-					border-radius: 4px;
-					border-left: 3px solid var(--color-primary);
-					font-style: italic;
-				}
-
-				.response-date {
-					font-size: 12px;
-					color: var(--color-text-lighter);
-					text-align: right;
-				}
-			}
-		}
-	}
-}
-
-.admin-comments {
-	border-top: 1px solid var(--color-border);
-	padding-top: 15px;
-	margin-top: 15px;
-
-	h4 {
-		margin: 0 0 10px 0;
-	}
-
-	.no-comments {
-		color: var(--color-text-lighter);
-		font-style: italic;
-		padding: 10px 0;
-	}
-
-	.comments-list {
-		.comment-item {
-			border: 1px solid var(--color-border);
-			border-radius: 4px;
-			padding: 10px;
-			margin-bottom: 10px;
-			background: var(--color-background-hover);
-
-			.comment-header {
-				display: flex;
-				align-items: center;
-				margin-bottom: 5px;
-				gap: 10px;
-
-				.response-badge {
-					padding: 2px 8px;
-					border-radius: 12px;
-					font-size: 12px;
-					font-weight: bold;
-
-					&.yes {
-						background: var(--color-success);
-					}
-
-					&.maybe {
-						background: var(--color-warning);
-					}
-					
-					body[data-theme-dark] &.maybe {
-						color: black;
-					}
-					
-					@media (prefers-color-scheme: dark) {
-						body[data-theme-default] &.maybe {
-							color: black;
-						}
-					}
-
-					&.no {
-						background: var(--color-error);
-					}
-				}
-			}
-
-			.comment-text {
-				margin: 8px 0;
-				padding: 8px;
-				background: var(--color-main-background);
-				border-radius: 4px;
-				border-left: 3px solid var(--color-primary);
-			}
-
-			.comment-date {
-				font-size: 12px;
-				color: var(--color-text-lighter);
-				text-align: right;
-			}
-		}
 	}
 }
 </style>
