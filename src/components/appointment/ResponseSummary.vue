@@ -31,7 +31,7 @@
 				<div v-if="expandedGroups[groupId]" class="group-details">
 					<!-- Show responses if any exist -->
 					<div v-if="groupStats.responses && groupStats.responses.length > 0" class="group-responses">
-						<div v-for="response in groupStats.responses" :key="response.id" class="response-item">
+						<div v-for="response in getSortedResponses(groupStats.responses)" :key="response.id" class="response-item">
 							<div class="response-header">
 								<div class="user-info">
 									<strong>{{ response.userName }}</strong>
@@ -60,7 +60,7 @@
 							{{ t('attendance', 'No response yet:') }}
 						</div>
 						<div class="non-responding-list">
-							{{ groupStats.non_responding_users.map(u => u.displayName).join(', ') }}
+							{{ getSortedNonRespondingUsers(groupStats.non_responding_users).map(u => u.displayName).join(', ') }}
 						</div>
 					</div>
 				</div>
@@ -83,7 +83,7 @@
 				<!-- Expanded Others Details -->
 				<div v-if="expandedGroups['others']" class="group-details">
 					<div v-if="responseSummary.others.responses.length > 0" class="group-responses">
-						<div v-for="response in responseSummary.others.responses" :key="response.id" class="response-item">
+						<div v-for="response in getSortedResponses(responseSummary.others.responses)" :key="response.id" class="response-item">
 							<div class="response-header">
 								<div class="user-info">
 									<strong>{{ response.userName }}</strong>
@@ -130,6 +130,16 @@ const expandedGroups = ref({})
 
 const toggleGroup = (groupId) => {
 	expandedGroups.value[groupId] = !expandedGroups.value[groupId]
+}
+
+const getSortedResponses = (responses) => {
+	if (!responses || responses.length === 0) return []
+	return [...responses].sort((a, b) => a.userName.localeCompare(b.userName))
+}
+
+const getSortedNonRespondingUsers = (users) => {
+	if (!users || users.length === 0) return []
+	return [...users].sort((a, b) => a.displayName.localeCompare(b.displayName))
 }
 
 const getResponseText = (response) => {

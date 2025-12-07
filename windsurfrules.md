@@ -57,7 +57,9 @@
 ## Release Management
 - When I ask you to prepare a release, check if everything is commited
 - Then check all changes since last release (use git log --oneline)
+- Disable the app via occ command in the running docker container
 - Update version numbers in info.xml
+- Enable the app via occ command in the running docker container
 - Write release notes in CHANGELOG.md
 - Ask me to review the release notes and version number afterwards
 
