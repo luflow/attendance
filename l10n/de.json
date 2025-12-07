@@ -8,7 +8,7 @@
         "Others": "Andere",
         "Unanswered": "Unbeantwortet",
         "%s on %s": "%s am %s",
-        "Please respond to the upcoming appointment!": "Bitte gib eine Rückmeldung für den kommenden Termin!"
+        "Please respond to the upcoming appointment!": "Bitte gib eine Rückmeldung zum kommenden Termin!"
     },
     "pluralForm": "nplurals=2; plural=(n != 1);"
 }
