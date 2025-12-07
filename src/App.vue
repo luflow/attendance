@@ -381,24 +381,22 @@ onMounted(async () => {
 	color: white !important;
 }
 
-/* Nextcloud 31 Dark Mode: Warning elements need black text for better contrast */
+/* Dark Mode (explicit): Warning elements need black text for better contrast */
 body[data-theme-dark] #attendance[data-nc-version="31"] .nc-chip--warning .nc-chip__text {
 	color: black !important;
 }
 
-/* Only apply black color to warning buttons when no response exists OR when the maybe button is active */
 body[data-theme-dark] #attendance[data-nc-version="31"] .response-buttons:not(.has-response) .button-vue--warning .button-vue__text,
 body[data-theme-dark] #attendance[data-nc-version="31"] .response-buttons .button-vue--warning.active .button-vue__text {
 	color: black !important;
 }
 
-/* Also handle default dark mode preference */
+/* Dark Mode (system preference): Only when using default theme */
 @media (prefers-color-scheme: dark) {
 	body[data-theme-default] #attendance[data-nc-version="31"] .nc-chip--warning .nc-chip__text {
 		color: black !important;
 	}
 	
-	/* Only apply black color to warning buttons when no response exists OR when the maybe button is active */
 	body[data-theme-default] #attendance[data-nc-version="31"] .response-buttons:not(.has-response) .button-vue--warning .button-vue__text,
 	body[data-theme-default] #attendance[data-nc-version="31"] .response-buttons .button-vue--warning.active .button-vue__text {
 		color: black !important;
