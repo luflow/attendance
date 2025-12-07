@@ -14,6 +14,11 @@
 			"OCA\\Attendance\\": "lib/"
 		}
 	},
+	"autoload-dev": {
+		"psr-4": {
+			"OCA\\Attendance\\Tests\\Unit\\": "tests/unit/"
+		}
+	},
 	"scripts": {
 		"post-install-cmd": [
 			"@composer bin all install --ansi"
@@ -25,7 +30,7 @@
 		"cs:check": "php-cs-fixer fix --dry-run --diff",
 		"cs:fix": "php-cs-fixer fix",
 		"psalm": "psalm --threads=1 --no-cache",
-		"test:unit": "phpunit tests -c tests/phpunit.xml --colors=always --fail-on-warning --fail-on-risky",
+		"test:unit": "vendor-bin/phpunit/vendor/phpunit/phpunit/phpunit tests -c tests/phpunit.xml --colors=always --fail-on-warning --fail-on-risky",
 		"rector": "rector && composer cs:fix"
 	},
 	"require": {

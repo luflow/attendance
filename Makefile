@@ -108,28 +108,28 @@ appstore:
 
 .PHONY: test
 test:
-	$(CURDIR)/vendor/phpunit/phpunit/phpunit -c phpunit.xml
-	$(CURDIR)/vendor/phpunit/phpunit/phpunit -c phpunit.integration.xml
+	$(CURDIR)/vendor-bin/phpunit/vendor/phpunit/phpunit/phpunit -c tests/phpunit.xml
+	$(CURDIR)/vendor-bin/phpunit/vendor/phpunit/phpunit/phpunit -c phpunit.integration.xml
 
 .PHONY: unittest
 unittest:
-	$(CURDIR)/vendor/phpunit/phpunit/phpunit -c phpunit.xml
+	$(CURDIR)/vendor-bin/phpunit/vendor/phpunit/phpunit/phpunit -c tests/phpunit.xml
 
 .PHONY: integrationtest
 integrationtest:
-	$(CURDIR)/vendor/phpunit/phpunit/phpunit -c phpunit.integration.xml
+	$(CURDIR)/vendor-bin/phpunit/vendor/phpunit/phpunit/phpunit -c phpunit.integration.xml
 
 .PHONY: coverage
 coverage:
-	XDEBUG_MODE=coverage $(CURDIR)/vendor/phpunit/phpunit/phpunit -c phpunit.xml --coverage-php coverage_unittests.cov
-	XDEBUG_MODE=coverage $(CURDIR)/vendor/phpunit/phpunit/phpunit -c phpunit.integration.xml --coverage-php coverage_integrationtests.cov
-	XDEBUG_MODE=coverage $(CURDIR)/vendor/phpunit/phpcov/phpcov merge --clover coverage.xml .
+	XDEBUG_MODE=coverage $(CURDIR)/vendor-bin/phpunit/vendor/phpunit/phpunit/phpunit -c tests/phpunit.xml --coverage-php coverage_unittests.cov
+	XDEBUG_MODE=coverage $(CURDIR)/vendor-bin/phpunit/vendor/phpunit/phpunit/phpunit -c phpunit.integration.xml --coverage-php coverage_integrationtests.cov
+	XDEBUG_MODE=coverage $(CURDIR)/vendor-bin/phpunit/vendor/phpunit/phpcov/phpcov merge --clover coverage.xml .
 
 .PHONY: html-coverage
 html-coverage:
-	XDEBUG_MODE=coverage $(CURDIR)/vendor/phpunit/phpunit/phpunit -c phpunit.xml --coverage-php coverage_unittests.cov
-	XDEBUG_MODE=coverage $(CURDIR)/vendor/phpunit/phpunit/phpunit -c phpunit.integration.xml --coverage-php coverage_integrationtests.cov
-	XDEBUG_MODE=coverage $(CURDIR)/vendor/phpunit/phpcov/phpcov merge --html coverage_html .
+	XDEBUG_MODE=coverage $(CURDIR)/vendor-bin/phpunit/vendor/phpunit/phpunit/phpunit -c tests/phpunit.xml --coverage-php coverage_unittests.cov
+	XDEBUG_MODE=coverage $(CURDIR)/vendor-bin/phpunit/vendor/phpunit/phpunit/phpunit -c phpunit.integration.xml --coverage-php coverage_integrationtests.cov
+	XDEBUG_MODE=coverage $(CURDIR)/vendor-bin/phpunit/vendor/phpunit/phpcov/phpcov merge --html coverage_html .
 
 .PHONY: lint
 lint: composer
