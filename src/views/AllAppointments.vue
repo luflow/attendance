@@ -20,10 +20,10 @@
 					v-for="appointment in appointments"
 					:key="appointment.id"
 					:appointment="appointment"
-					:can-manage-appointments="canManageAppointments"
-					:can-checkin="canCheckin"
-					:can-see-response-overview="canSeeResponseOverview"
-					:can-see-comments="canSeeComments"
+					:can-manage-appointments="permissions.canManageAppointments"
+					:can-checkin="permissions.canCheckin"
+					:can-see-response-overview="permissions.canSeeResponseOverview"
+					:can-see-comments="permissions.canSeeComments"
 					@start-checkin="startCheckin"
 					@edit="editAppointment"
 					@delete="deleteAppointment"
@@ -35,13 +35,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import AppointmentCard from '../components/appointment/AppointmentCard.vue'
 import AppointmentFormModal from '../components/appointment/AppointmentFormModal.vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
 import { fromZonedTime } from 'date-fns-tz'
+import { usePermissions } from '../composables/usePermissions.js'
 
 // Props
 const props = defineProps({
@@ -69,32 +70,11 @@ const editingAppointment = reactive({
 	startDatetime: '',
 	endDatetime: '',
 })
-const permissions = reactive({
-	canManageAppointments: false,
-	canCheckin: false,
-	canSeeResponseOverview: false,
-	canSeeComments: false,
-})
 
-// Computed
-const canManageAppointments = computed(() => permissions.canManageAppointments)
-const canCheckin = computed(() => permissions.canCheckin)
-const canSeeResponseOverview = computed(() => permissions.canSeeResponseOverview)
-const canSeeComments = computed(() => permissions.canSeeComments)
+// Use the shared permissions composable
+const { permissions, loadPermissions } = usePermissions()
 
 // Methods
-const loadPermissions = async () => {
-	try {
-		const response = await axios.get(generateUrl('/apps/attendance/api/user/permissions'))
-		permissions.canManageAppointments = response.data.canManageAppointments
-		permissions.canCheckin = response.data.canCheckin
-		permissions.canSeeResponseOverview = response.data.canSeeResponseOverview
-		permissions.canSeeComments = response.data.canSeeComments
-	} catch (error) {
-		console.error('Failed to load permissions:', error)
-	}
-}
-
 const loadAppointments = async (skipLoadingSpinner = false) => {
 	try {
 		// Don't show loading spinner when refreshing data
@@ -121,7 +101,7 @@ const loadAppointments = async (skipLoadingSpinner = false) => {
 		})
 
 		// Load detailed responses for users who can manage appointments
-		if (canManageAppointments.value) {
+		if (permissions.canManageAppointments) {
 			await loadDetailedResponses()
 		}
 	} catch (error) {

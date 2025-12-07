@@ -113,6 +113,7 @@ import { generateUrl } from '@nextcloud/router'
 import { loadState } from '@nextcloud/initial-state'
 import axios from '@nextcloud/axios'
 import { showError } from '@nextcloud/dialogs'
+import { usePermissions } from '../composables/usePermissions.js'
 
 // Props
 defineProps({
@@ -149,10 +150,9 @@ const savedComments = reactive({})
 const errorComments = reactive({})
 const commentTimeouts = reactive({})
 const commentExpanded = reactive({})
-const permissions = reactive({
-	canManageAppointments: false,
-	canCheckin: false,
-})
+
+// Use the shared permissions composable
+const { permissions, loadPermissions } = usePermissions()
 
 // Computed
 const items = computed(() => {
@@ -291,19 +291,6 @@ const openAppointmentDetail = (appointmentId) => {
 	window.location.href = generateUrl(`/apps/attendance/appointment/${appointmentId}`)
 }
 
-const loadPermissions = async () => {
-	try {
-		const url = generateUrl('/apps/attendance/api/user/permissions')
-		const response = await axios.get(url)
-		permissions.canManageAppointments = response.data.canManageAppointments
-		permissions.canCheckin = response.data.canCheckin
-	} catch (error) {
-		console.error('Failed to load permissions:', error)
-		permissions.canManageAppointments = false
-		permissions.canCheckin = false
-	}
-}
-
 const showCheckinButton = (item) => {
 	if (!permissions.canCheckin) {
 		return false
@@ -324,8 +311,8 @@ const openCheckinView = (appointmentId) => {
 }
 
 // Lifecycle
-onMounted(() => {
-	loadPermissions()
+onMounted(async () => {
+	await loadPermissions()
 })
 </script>
 

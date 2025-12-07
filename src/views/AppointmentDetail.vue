@@ -13,10 +13,10 @@
 			<!-- Use reusable AppointmentCard component -->
 			<AppointmentCard
 				:appointment="appointment"
-				:can-manage-appointments="canManageAppointments"
-				:can-checkin="canCheckin"
-				:can-see-response-overview="canSeeResponseOverview"
-				:can-see-comments="canSeeComments"
+				:can-manage-appointments="permissions.canManageAppointments"
+				:can-checkin="permissions.canCheckin"
+				:can-see-response-overview="permissions.canSeeResponseOverview"
+				:can-see-comments="permissions.canSeeComments"
 				@start-checkin="startCheckin"
 				@edit="editAppointment"
 				@delete="deleteAppointment"
@@ -43,6 +43,7 @@ import { fromZonedTime } from 'date-fns-tz'
 import ArrowLeftIcon from 'vue-material-design-icons/ArrowLeft.vue'
 import AppointmentCard from '../components/appointment/AppointmentCard.vue'
 import AppointmentFormModal from '../components/appointment/AppointmentFormModal.vue'
+import { usePermissions } from '../composables/usePermissions.js'
 
 const props = defineProps({
 	appointmentId: {
@@ -56,11 +57,11 @@ const emit = defineEmits(['response-updated'])
 const appointment = ref(null)
 const loading = ref(true)
 const error = ref(null)
-const canManageAppointments = ref(false)
-const canCheckin = ref(false)
-const canSeeResponseOverview = ref(false)
-const canSeeComments = ref(false)
 const showEditForm = ref(false)
+
+// Use the shared permissions composable
+const { permissions, loadPermissions } = usePermissions()
+
 const editingAppointment = reactive({
 	id: null,
 	name: '',
@@ -266,18 +267,6 @@ const loadAppointment = async () => {
 		error.value = t('attendance', 'Error loading appointment')
 	} finally {
 		loading.value = false
-	}
-}
-
-const loadPermissions = async () => {
-	try {
-		const response = await axios.get(generateUrl('/apps/attendance/api/user/permissions'))
-		canManageAppointments.value = response.data.canManageAppointments
-		canCheckin.value = response.data.canCheckin
-		canSeeResponseOverview.value = response.data.canSeeResponseOverview
-		canSeeComments.value = response.data.canSeeComments
-	} catch (error) {
-		console.error('Failed to load permissions:', error)
 	}
 }
 

@@ -108,7 +108,7 @@
 												variant="tertiary" 
 												no-close />
 										</div>
-										<div v-if="canSeeComments && user.comment && user.comment.trim()" class="user-comment">
+										<div v-if="permissions.canSeeComments && user.comment && user.comment.trim()" class="user-comment">
 											<CommentIcon :size="14" class="comment-icon" />
 											{{ user.comment }}
 										</div>
@@ -218,6 +218,7 @@ import CommentIcon from 'vue-material-design-icons/Comment.vue'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import { renderMarkdown, sanitizeHtml } from '../utils/markdown.js'
+import { usePermissions } from '../composables/usePermissions.js'
 
 // Props
 const props = defineProps({
@@ -236,16 +237,14 @@ const bulkProcessing = ref(false)
 const searchQuery = ref('')
 const selectedGroup = ref(null)
 const userGroups = ref([])
-const canSeeComments = ref(false)
 const showCommentInput = reactive({})
+const { permissions, loadPermissions } = usePermissions()
 const checkinComments = reactive({})
 const showConfirmDialog = ref(false)
 const pendingBulkAction = ref(null)
 const confirmMessage = ref('')
 
 // Computed
-const totalUsers = computed(() => users.value.length)
-
 const groupOptions = computed(() => {
 	return userGroups.value.map(group => ({
 		id: group,
@@ -417,15 +416,6 @@ const renderedDescription = computed(() => {
 	if (!appointment.value?.description) return ''
 	return sanitizeHtml(renderMarkdown(appointment.value.description, true))
 })
-
-const loadPermissions = async () => {
-	try {
-		const response = await axios.get(generateUrl('/apps/attendance/api/user/permissions'))
-		canSeeComments.value = response.data.canSeeComments
-	} catch (error) {
-		console.error('Failed to load permissions:', error)
-	}
-}
 
 const goBack = () => {
 	window.history.back()
