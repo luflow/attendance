@@ -1,5 +1,5 @@
 <template>
-	<div id="attendance-admin-settings">
+	<div id="attendance-admin-settings" data-test="admin-settings">
 		<NcSettingsSection :name="t('attendance', 'Attendance')"
 			:description="t('attendance', 'Configure attendance management and reminders')">
 		</NcSettingsSection>
@@ -20,6 +20,7 @@
 					:disabled="loading"
 					label="displayName"
 					track-by="id"
+					data-test="select-whitelisted-groups"
 					@input="onGroupSelectionChange" />
 				<p class="hint-text">
 					{{ n('attendance', '%n group selected', '%n groups selected', selectedGroups.length, { n: selectedGroups.length }) }}
@@ -42,6 +43,7 @@
 						:disabled="loading"
 						label="displayName"
 						track-by="id"
+						data-test="select-manage-appointments-roles"
 						@input="onManageAppointmentsRolesChange" />
 					<p class="hint-text">
 						{{ n('attendance', '%n group selected', '%n groups selected', selectedManageAppointmentsRoles.length, { n: selectedManageAppointmentsRoles.length }) }}
@@ -61,6 +63,7 @@
 						:disabled="loading"
 						label="displayName"
 						track-by="id"
+						data-test="select-checkin-roles"
 						@input="onCheckinRolesChange" />
 					<p class="hint-text">
 						{{ n('attendance', '%n group selected', '%n groups selected', selectedCheckinRoles.length, { n: selectedCheckinRoles.length }) }}
@@ -80,6 +83,7 @@
 						:disabled="loading"
 						label="displayName"
 						track-by="id"
+						data-test="select-see-response-overview-roles"
 						@input="onSeeResponseOverviewRolesChange" />
 					<p class="hint-text">
 						{{ n('attendance', '%n group selected', '%n groups selected', selectedSeeResponseOverviewRoles.length, { n: selectedSeeResponseOverviewRoles.length }) }}
@@ -99,6 +103,7 @@
 						:disabled="loading"
 						label="displayName"
 						track-by="id"
+						data-test="select-see-comments-roles"
 						@input="onSeeCommentsRolesChange" />
 					<p class="hint-text">
 						{{ n('attendance', '%n group selected', '%n groups selected', selectedSeeCommentsRoles.length, { n: selectedSeeCommentsRoles.length }) }}
@@ -119,7 +124,8 @@
 				<template v-else>
 					<NcCheckboxRadioSwitch
 						v-model="remindersEnabled"
-						type="switch">
+						type="switch"
+						data-test="switch-reminders-enabled">
 						{{ t('attendance', 'Enable automatic reminders') }}
 					</NcCheckboxRadioSwitch>
 
@@ -129,6 +135,7 @@
 							type="number"
 							:label="t('attendance', 'Days before appointment')"
 							:helper-text="t('attendance', 'Send reminders this many days before the appointment (1-30 days)')"
+							data-test="input-reminder-days"
 							:input-props="{ min: 1, max: 30 }" />
 						
 						<NcInputField
@@ -137,6 +144,7 @@
 							class="reminder-frequency-field"
 							:label="t('attendance', 'Reminder frequency (days)')"
 							:helper-text="t('attendance', 'How often to remind users who haven\'t responded. Set to 0 to only remind once, or 1-30 to repeat reminders every N days.')"
+							data-test="input-reminder-frequency"
 							:input-props="{ min: 0, max: 30 }" />
 					</div>
 				</template>
@@ -146,6 +154,7 @@
 				<NcButton
 					type="primary"
 					:disabled="loading"
+					data-test="button-save-settings"
 					@click="saveSettings">
 					<template #icon>
 						<NcLoadingIcon v-if="loading" />

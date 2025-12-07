@@ -8,6 +8,7 @@
 					v-if="unansweredAppointments.length > 0"
 					:name="t('attendance', 'Unanswered')"
 					:active="currentView === 'unanswered'"
+					data-test="nav-unanswered"
 					@click.prevent="setView('unanswered')">
 					<template #icon>
 						<BellAlertIcon :size="20" />
@@ -19,6 +20,7 @@
 							:key="appointment.id"
 							:name="formatAppointmentDisplay(appointment)"
 							:active="currentView === 'appointment' && appointmentDetailId === appointment.id"
+							data-test="nav-unanswered-appointment"
 							@click.prevent="navigateToAppointment(appointment.id)">
 							<template #icon>
 								<ProgressQuestion :size="20" />
@@ -30,6 +32,7 @@
 				<NcAppNavigationItem 
 					:name="t('attendance', 'Upcoming Appointments')"
 					:active="currentView === 'current'"
+					data-test="nav-upcoming"
 					@click.prevent="setView('current')">
 					<template #icon>
 						<CalendarIcon :size="20" />
@@ -41,6 +44,7 @@
 							:key="appointment.id"
 							:name="formatAppointmentDisplay(appointment)"
 							:active="currentView === 'appointment' && appointmentDetailId === appointment.id"
+							data-test="nav-upcoming-appointment"
 							@click.prevent="navigateToAppointment(appointment.id)">
 							<template #icon>
 								<CheckCircle v-if="appointment.userResponse?.response === 'yes'" :size="20" />
@@ -54,6 +58,7 @@
 				<NcAppNavigationItem 
 					:name="t('attendance', 'Past Appointments')"
 					:active="currentView === 'past'"
+					data-test="nav-past"
 					@click.prevent="setView('past')">
 					<template #icon>
 						<CalendarClockIcon :size="20" />
@@ -65,6 +70,7 @@
 							:key="appointment.id"
 							:name="formatAppointmentDisplay(appointment)"
 							:active="currentView === 'appointment' && appointmentDetailId === appointment.id"
+							:data-test="`nav-past-appointment-${appointment.id}`"
 							@click.prevent="navigateToAppointment(appointment.id)">
 							<template #icon>
 								<ChevronRightIcon :size="20" />
@@ -79,6 +85,7 @@
 				<NcAppNavigationItem
 					v-if="permissions.canManageAppointments"
 					:name="t('attendance', 'Create Appointment')"
+					data-test="button-create-appointment"
 					@click.prevent="createNewAppointment">
 					<template #icon>
 						<PlusIcon :size="20" />
@@ -87,6 +94,7 @@
 				<NcAppNavigationItem
 					v-if="permissions.canManageAppointments"
 					:name="t('attendance', 'Export')"
+					data-test="button-export"
 					@click.prevent="exportAppointments">
 					<template #icon>
 						<DownloadIcon :size="20" />

@@ -1,5 +1,5 @@
 <template>
-	<div v-if="responseSummary" class="response-summary-detailed">
+	<div v-if="responseSummary" class="response-summary-detailed" data-test="response-summary">
 		<h4>{{ t('attendance', 'Response Summary') }}</h4>
 		
 		<!-- Overall Stats -->
@@ -11,10 +11,10 @@
 		</div>
 
 		<!-- Group-based Summary -->
-		<div v-if="responseSummary.by_group && Object.keys(responseSummary.by_group).length > 0" class="group-summary">
+		<div v-if="responseSummary.by_group && Object.keys(responseSummary.by_group).length > 0" class="group-summary" data-test="group-summary">
 			<h5>{{ t('attendance', 'By Group') }}</h5>
-			<div v-for="(groupStats, groupId) in responseSummary.by_group" :key="groupId" class="group-container">
-				<div class="group-stats clickable" @click="toggleGroup(groupId)">
+			<div v-for="(groupStats, groupId) in responseSummary.by_group" :key="groupId" class="group-container" :data-test="`group-container-${groupId}`">
+				<div class="group-stats clickable" @click="toggleGroup(groupId)" data-test="group-header">
 					<div class="group-name">
 						<span class="expand-icon" :class="{ expanded: expandedGroups[groupId] }">▶</span>
 						{{ groupId }}

@@ -11,7 +11,14 @@
     "dev": "vite --mode development build",
     "watch": "vite --mode development build --watch",
     "lint": "eslint src",
-    "stylelint": "stylelint src/**/*.vue src/**/*.scss src/**/*.css"
+    "stylelint": "stylelint src/**/*.vue src/**/*.scss src/**/*.css",
+    "test:e2e:server": "node tests/e2e/setup/server.js",
+    "test:e2e:server-cleanup": "docker stop nextcloud-e2e-test-server_attendance 2>/dev/null || true && docker rm -f nextcloud-e2e-test-server_attendance 2>/dev/null || true && docker volume prune -f",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:install": "playwright install --with-deps chromium"
   },
   "type": "module",
   "browserslist": [
@@ -32,9 +39,11 @@
   },
   "devDependencies": {
     "@nextcloud/browserslist-config": "^3.0.1",
+    "@nextcloud/e2e-test-server": "^0.4.0",
     "@nextcloud/eslint-config": "^8.4.2",
     "@nextcloud/stylelint-config": "^3.1.0",
     "@nextcloud/vite-config": "^2.5.2",
+    "@playwright/test": "^1.57.0",
     "@vue/tsconfig": "^0.8.1",
     "sass-embedded": "^1.83.0",
     "typescript": "^5.7.2",

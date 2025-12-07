@@ -1,11 +1,11 @@
 <template>
-	<div class="appointment-detail">
-		<div v-if="loading" class="loading-state">
+	<div class="appointment-detail" data-test="appointment-detail-view">
+		<div v-if="loading" class="loading-state" data-test="loading-state">
 			{{ t('attendance', 'Loading...') }}
 		</div>
-		<div v-else-if="error" class="error-state">
+		<div v-else-if="error" class="error-state" data-test="error-state">
 			<p>{{ error }}</p>
-			<NcButton @click="goBack">
+			<NcButton @click="goBack" data-test="button-back">
 				{{ t('attendance', 'Back') }}
 			</NcButton>
 		</div>
