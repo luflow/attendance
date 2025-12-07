@@ -2,8 +2,15 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../../../tests/bootstrap.php';
+// Load composer autoloader
 require_once __DIR__ . '/../vendor/autoload.php';
 
-\OC_App::loadApp(OCA\Attendance\AppInfo\Application::APP_ID);
-OC_Hook::clear();
+// Manually register OCP namespace since nextcloud/ocp doesn't define autoloading
+spl_autoload_register(function ($class) {
+	if (strpos($class, 'OCP\\') === 0 || strpos($class, 'NCU\\') === 0) {
+		$path = __DIR__ . '/../vendor/nextcloud/ocp/' . str_replace('\\', '/', $class) . '.php';
+		if (file_exists($path)) {
+			require_once $path;
+		}
+	}
+});
