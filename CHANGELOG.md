@@ -6,6 +6,24 @@
 
 - Nightly changes here
 
+## 1.9.0 – 2024-12-07
+
+### Added
+
+- End-to-end testing infrastructure with Playwright for improved code quality and reliability
+- Automated e2e tests in release workflow to ensure quality before publishing
+
+### Fixed
+
+- Dashboard widget: Removed unnecessary "show more" link
+- Improved dark mode styling for warning button text color with better CSS selectors
+
+### Maintenance
+
+- Refactored permissions loading into shared composable for better code organization
+- Extracted shared styles for comment auto-save indicators
+- Improved German translation consistency by using informal "du" form throughout the app
+
 ## 1.8.1 – 2024-12-04
 
 ### Added
