@@ -6,6 +6,22 @@
 
 - Nightly changes here
 
+## 1.10.0 – 2024-12-08
+
+### Added
+
+- Alphabetical sorting for responses and non-responding users in response summary for better organization
+
+### Fixed
+
+- E2E test server execution in release workflow to prevent race conditions
+
+### Maintenance
+
+- Migrated to vendor-bin for PHPUnit dependency management
+- Added comprehensive unit tests for Appointment and AttendanceResponse entities
+- Removed unused CSS styles from AppointmentDetail and ResponseSummary components
+
 ## 1.9.0 – 2024-12-07
 
 ### Added
