@@ -417,53 +417,5 @@ watch(() => props.appointmentId, async (newId, oldId) => {
 	h4 {
 		margin: 0 0 15px 0;
 	}
-
-	.summary-stats {
-		display: flex;
-		gap: 20px;
-		justify-content: space-around;
-
-		.stat-item {
-			text-align: center;
-			padding: 15px;
-			border-radius: var(--border-radius);
-			flex: 1;
-
-			strong {
-				display: block;
-				font-size: 28px;
-				margin-bottom: 5px;
-			}
-
-			span {
-				font-size: 14px;
-				color: var(--color-text-lighter);
-			}
-
-			&.yes {
-				background: var(--color-success-light);
-				
-				strong {
-					color: var(--color-success-text);
-				}
-			}
-
-			&.maybe {
-				background: var(--color-warning-light);
-				
-				strong {
-					color: var(--color-warning-text);
-				}
-			}
-
-			&.no {
-				background: var(--color-error-light);
-				
-				strong {
-					color: var(--color-error-text);
-				}
-			}
-		}
-	}
 }
 </style>

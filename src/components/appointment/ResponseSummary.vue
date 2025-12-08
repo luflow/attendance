@@ -263,7 +263,6 @@ const getResponseVariant = (response) => {
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
-				margin-bottom: 5px;
 
 				.user-info {
 					display: flex;
