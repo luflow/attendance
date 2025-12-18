@@ -147,7 +147,7 @@ const handleSubmit = () => {
 <style scoped lang="scss">
 .modal-content {
 	padding: 20px;
-	min-width: 500px;
+	min-width: min(500px, 90vw);
 	max-height: 90vh;
 	overflow-y: auto;
 	
@@ -204,6 +204,37 @@ const handleSubmit = () => {
 		justify-content: flex-end;
 		gap: 10px;
 		margin-top: 10px;
+	}
+	
+	@media (max-width: 768px) {
+		min-width: unset !important;
+		width: 100% !important;
+		padding: 15px !important;
+		
+		h2 {
+			font-size: 18px;
+			margin-bottom: 15px;
+		}
+		
+		form {
+			gap: 12px;
+		}
+		
+		.form-field {
+			input[type="datetime-local"] {
+				padding: 8px;
+				font-size: 16px;
+				max-width: 100%;
+			}
+		}
+		
+		.form-actions {
+			flex-direction: column-reverse;
+			
+			:deep(button) {
+				width: 100%;
+			}
+		}
 	}
 }
 </style>
