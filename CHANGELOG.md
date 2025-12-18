@@ -6,6 +6,13 @@
 
 - Nightly changes here
 
+## 1.11.0 – 2024-12-18
+
+### Added
+
+- Group ordering in response summary now follows the configured order of the admin settings
+- Mobile-optimized appointment creation and edit forms
+
 ## 1.10.0 – 2024-12-08
 
 ### Added
