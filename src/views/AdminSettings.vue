@@ -206,25 +206,25 @@ const loadSettings = async () => {
 
 		if (response.data.success) {
 			availableGroups.value = response.data.groups
-			// Convert selected IDs to selected group objects for NcSelect
-			selectedGroups.value = response.data.groups.filter(group => 
-				response.data.whitelistedGroups.includes(group.id)
-			)
+			// Convert selected IDs to selected group objects for NcSelect, preserving database order
+			selectedGroups.value = response.data.whitelistedGroups
+				.map(id => response.data.groups.find(group => group.id === id))
+				.filter(group => group !== undefined)
 			
-			// Load permission settings
+			// Load permission settings, preserving database order
 			if (response.data.permissions) {
-				selectedManageAppointmentsRoles.value = response.data.groups.filter(group => 
-					response.data.permissions.manage_appointments.includes(group.id)
-				)
-				selectedCheckinRoles.value = response.data.groups.filter(group => 
-					response.data.permissions.checkin.includes(group.id)
-				)
-				selectedSeeResponseOverviewRoles.value = response.data.groups.filter(group => 
-					response.data.permissions.see_response_overview?.includes(group.id)
-				)
-				selectedSeeCommentsRoles.value = response.data.groups.filter(group => 
-					response.data.permissions.see_comments?.includes(group.id)
-				)
+				selectedManageAppointmentsRoles.value = response.data.permissions.manage_appointments
+					.map(id => response.data.groups.find(group => group.id === id))
+					.filter(group => group !== undefined)
+				selectedCheckinRoles.value = response.data.permissions.checkin
+					.map(id => response.data.groups.find(group => group.id === id))
+					.filter(group => group !== undefined)
+				selectedSeeResponseOverviewRoles.value = (response.data.permissions.see_response_overview || [])
+					.map(id => response.data.groups.find(group => group.id === id))
+					.filter(group => group !== undefined)
+				selectedSeeCommentsRoles.value = (response.data.permissions.see_comments || [])
+					.map(id => response.data.groups.find(group => group.id === id))
+					.filter(group => group !== undefined)
 			}
 			
 			// Load reminder settings

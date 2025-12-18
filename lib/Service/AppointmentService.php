@@ -389,6 +389,34 @@ class AppointmentService {
 		$summary['no_response'] = count($nonRespondingUsers);
 		$summary['non_responding_users'] = $nonRespondingUsers;
 
+		// Sort by_group based on whitelisted groups order or alphabetically
+		$whitelistedGroups = $this->getWhitelistedGroups();
+		$sortedByGroup = [];
+		
+		if (!empty($whitelistedGroups)) {
+			// First add groups in the order they appear in settings
+			foreach ($whitelistedGroups as $groupId) {
+				if (isset($summary['by_group'][$groupId])) {
+					$sortedByGroup[$groupId] = $summary['by_group'][$groupId];
+				}
+			}
+			// Then add any remaining groups alphabetically
+			$remainingGroups = array_diff(array_keys($summary['by_group']), $whitelistedGroups);
+			sort($remainingGroups);
+			foreach ($remainingGroups as $groupId) {
+				$sortedByGroup[$groupId] = $summary['by_group'][$groupId];
+			}
+		} else {
+			// No whitelist configured, sort alphabetically
+			$groupIds = array_keys($summary['by_group']);
+			sort($groupIds);
+			foreach ($groupIds as $groupId) {
+				$sortedByGroup[$groupId] = $summary['by_group'][$groupId];
+			}
+		}
+		
+		$summary['by_group'] = $sortedByGroup;
+
 		return $summary;
 	}
 
