@@ -147,6 +147,9 @@ OC.L10N.register(
         "Export": "Exportieren",
         "Export created successfully: {filename}": "Export erfolgreich erstellt: {filename}",
         "Failed to export appointments": "Fehler beim Exportieren der Termine",
+        "Visible to": "Sichtbar für",
+        "Leave empty to show appointment to all users": "Leer lassen, um den Termin allen Benutzern anzuzeigen",
+        "Search users or groups...": "Benutzer oder Gruppen suchen...",
     },
     "nplurals=2; plural=(n != 1);"
 );

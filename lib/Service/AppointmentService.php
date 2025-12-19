@@ -63,7 +63,9 @@ class AppointmentService {
 		string $description,
 		string $startDatetime,
 		string $endDatetime,
-		string $createdBy
+		string $createdBy,
+		array $visibleUsers = [],
+		array $visibleGroups = []
 	): Appointment {
 
 		// Convert ISO 8601 datetime to MySQL format
@@ -79,6 +81,10 @@ class AppointmentService {
 		$appointment->setCreatedAt(date('Y-m-d H:i:s'));
 		$appointment->setUpdatedAt(date('Y-m-d H:i:s'));
 		$appointment->setIsActive(1);
+		
+		// Set visibility - store as JSON, empty array means visible to all
+		$appointment->setVisibleUsers(empty($visibleUsers) ? null : json_encode($visibleUsers));
+		$appointment->setVisibleGroups(empty($visibleGroups) ? null : json_encode($visibleGroups));
 
 		return $this->appointmentMapper->insert($appointment);
 	}
@@ -92,7 +98,9 @@ class AppointmentService {
 		string $description,
 		string $startDatetime,
 		string $endDatetime,
-		string $userId
+		string $userId,
+		array $visibleUsers = [],
+		array $visibleGroups = []
 	): Appointment {
 		$appointment = $this->appointmentMapper->find($id);
 		
@@ -106,6 +114,10 @@ class AppointmentService {
 		$appointment->setStartDatetime($startFormatted);
 		$appointment->setEndDatetime($endFormatted);
 		$appointment->setUpdatedAt(date('Y-m-d H:i:s'));
+		
+		// Update visibility - store as JSON, empty array means visible to all
+		$appointment->setVisibleUsers(empty($visibleUsers) ? null : json_encode($visibleUsers));
+		$appointment->setVisibleGroups(empty($visibleGroups) ? null : json_encode($visibleGroups));
 
 		return $this->appointmentMapper->update($appointment);
 	}
@@ -435,6 +447,11 @@ class AppointmentService {
 		$result = [];
 
 		foreach ($appointments as $appointment) {
+			// Filter based on visibility settings
+			if (!$this->canUserSeeAppointment($appointment, $userId)) {
+				continue;
+			}
+			
 			$appointmentData = $appointment->jsonSerialize();
 			$appointmentData['userResponse'] = $this->getUserResponse($appointment->getId(), $userId);
 			$appointmentData['responseSummary'] = $this->getResponseSummary($appointment->getId());
@@ -455,6 +472,11 @@ class AppointmentService {
 		foreach ($appointments as $appointment) {
 			if ($count >= $limit) {
 				break;
+			}
+
+			// Filter based on visibility settings
+			if (!$this->canUserSeeAppointment($appointment, $userId)) {
+				continue;
 			}
 
 			$appointmentData = $appointment->jsonSerialize();
@@ -606,6 +628,79 @@ class AppointmentService {
 			'users' => $users,
 			'userGroups' => array_values($userGroups),
 		];
+	}
+
+	/**
+	 * Search for users and groups
+	 */
+	public function searchUsersAndGroups(string $search = ''): array {
+		$results = [];
+		
+		// Search users
+		$users = $this->userManager->search($search, 20);
+		foreach ($users as $user) {
+			$results[] = [
+				'id' => $user->getUID(),
+				'label' => $user->getDisplayName(),
+				'type' => 'user',
+				'icon' => 'icon-user',
+			];
+		}
+		
+		// Search groups
+		$groups = $this->groupManager->search($search);
+		foreach ($groups as $group) {
+			$results[] = [
+				'id' => $group->getGID(),
+				'label' => $group->getDisplayName(),
+				'type' => 'group',
+				'icon' => 'icon-group',
+			];
+		}
+		
+		return $results;
+	}
+
+	/**
+	 * Check if a user can see an appointment based on visibility settings
+	 */
+	public function canUserSeeAppointment(Appointment $appointment, string $userId): bool {
+		// Users with manage_appointments permission can always see all appointments
+		if ($this->permissionService->hasPermission($userId, PermissionService::PERMISSION_MANAGE_APPOINTMENTS)) {
+			return true;
+		}
+		
+		$visibleUsers = $appointment->getVisibleUsers();
+		$visibleGroups = $appointment->getVisibleGroups();
+		
+		// Decode JSON fields
+		$visibleUsersList = $visibleUsers ? json_decode($visibleUsers, true) : [];
+		$visibleGroupsList = $visibleGroups ? json_decode($visibleGroups, true) : [];
+		
+		// If both are empty/null, appointment is visible to all
+		if (empty($visibleUsersList) && empty($visibleGroupsList)) {
+			return true;
+		}
+		
+		// Check if user is in visible users list
+		if (!empty($visibleUsersList) && in_array($userId, $visibleUsersList)) {
+			return true;
+		}
+		
+		// Check if user is in any of the visible groups
+		if (!empty($visibleGroupsList)) {
+			$user = $this->userManager->get($userId);
+			if ($user) {
+				$userGroupIds = $this->groupManager->getUserGroupIds($user);
+				foreach ($visibleGroupsList as $groupId) {
+					if (in_array($groupId, $userGroupIds)) {
+						return true;
+					}
+				}
+			}
+		}
+		
+		return false;
 	}
 
 	/**

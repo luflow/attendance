@@ -147,6 +147,9 @@ OC.L10N.register(
         "Export": "Eksporter",
         "Export created successfully: {filename}": "Eksport oprettet: {filename}",
         "Failed to export appointments": "Kunne ikke eksportere aftaler",
+        "Visible to": "Synlig for",
+        "Leave empty to show appointment to all users": "Lad stå tomt for at vise aftalen til alle brugere",
+        "Search users or groups...": "Søg brugere eller grupper...",
     },
     "nplurals=2; plural=(n != 1);"
 );

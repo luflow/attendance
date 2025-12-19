@@ -38,6 +38,38 @@
 						required />
 				</div>
 				
+				<div class="form-field">
+					<label>{{ t('attendance', 'Visible to') }}</label>
+					<p class="hint-text">{{ t('attendance', 'Leave empty to show appointment to all users') }}</p>
+					<NcSelect
+						v-model="visibilityItems"
+						:options="searchResults"
+						:loading="isSearching"
+						:multiple="true"
+						:close-on-select="false"
+						:filterable="false"
+						label="label"
+						track-by="id"
+						:placeholder="t('attendance', 'Search users or groups...')"
+						data-test="select-visibility"
+						@search="onSearch">
+						<template #option="option">
+							<span style="display: flex; align-items: center; gap: 8px;">
+								<AccountGroup v-if="option.type === 'group'" :size="20" />
+								<Account v-else :size="20" />
+								<span>{{ option.label }}</span>
+							</span>
+						</template>
+						<template #selected-option="option">
+							<span style="display: flex; align-items: center; gap: 8px;">
+								<AccountGroup v-if="option.type === 'group'" :size="16" />
+								<Account v-else :size="16" />
+								<span>{{ option.label }}</span>
+							</span>
+						</template>
+					</NcSelect>
+				</div>
+				
 				<div class="form-actions">
 					<NcButton type="secondary" @click="handleClose" data-test="button-cancel">
 						{{ t('attendance', 'Cancel') }}
@@ -53,7 +85,11 @@
 
 <script setup>
 import { ref, reactive, computed, watch } from 'vue'
-import { NcModal, NcButton, NcTextField, NcTextArea } from '@nextcloud/vue'
+import { NcModal, NcButton, NcTextField, NcTextArea, NcSelect } from '@nextcloud/vue'
+import { generateUrl } from '@nextcloud/router'
+import axios from '@nextcloud/axios'
+import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
+import Account from 'vue-material-design-icons/Account.vue'
 
 const props = defineProps({
 	show: {
@@ -75,6 +111,20 @@ const formData = reactive({
 	description: '',
 	startDatetime: '',
 	endDatetime: '',
+	visibleUsers: [],
+	visibleGroups: [],
+})
+
+const visibilityItems = ref([])
+const searchResults = ref([])
+const isSearching = ref(false)
+
+// Watch for changes to visibilityItems to update formData
+watch(visibilityItems, (selected) => {
+	const selectedArray = Array.isArray(selected) ? selected : (selected ? [selected] : [])
+	// Split into users and groups based on the type property
+	formData.visibleUsers = selectedArray.filter(item => item && item.type === 'user').map(item => item.id)
+	formData.visibleGroups = selectedArray.filter(item => item && item.type === 'group').map(item => item.id)
 })
 
 const isEdit = computed(() => !!props.appointment)
@@ -94,29 +144,101 @@ const formatDateTimeForInput = (dateTime) => {
 }
 
 // Watch for appointment changes to populate form
-watch(() => props.appointment, (newAppointment) => {
+watch(() => props.appointment, async (newAppointment) => {
 	if (newAppointment) {
+		console.log('Loading appointment for edit:', newAppointment)
 		formData.name = newAppointment.name || ''
 		formData.description = newAppointment.description || ''
 		formData.startDatetime = formatDateTimeForInput(newAppointment.startDatetime)
 		formData.endDatetime = formatDateTimeForInput(newAppointment.endDatetime)
+		
+		// Load visibility settings
+		const users = newAppointment.visibleUsers || []
+		const groups = newAppointment.visibleGroups || []
+		console.log('Visibility data from backend - users:', users, 'groups:', groups)
+		formData.visibleUsers = users
+		formData.visibleGroups = groups
+		
+		// Convert to visibility items for NcSelect
+		// Fetch proper display names for the stored IDs
+		const items = []
+		const allIds = [...users, ...groups]
+		
+		if (allIds.length > 0) {
+			try {
+				// Search for each ID to get proper display names
+				for (const userId of users) {
+					const response = await axios.get(
+						generateUrl('/apps/attendance/api/search/users-groups'),
+						{ params: { search: userId } }
+					)
+					const found = response.data.find(item => item.id === userId)
+					if (found) {
+						items.push({
+							id: found.id,
+							label: found.label,
+							type: 'user',
+						})
+					}
+				}
+				
+				for (const groupId of groups) {
+					const response = await axios.get(
+						generateUrl('/apps/attendance/api/search/users-groups'),
+						{ params: { search: groupId } }
+					)
+					const found = response.data.find(item => item.id === groupId)
+					if (found) {
+						items.push({
+							id: found.id,
+							label: found.label,
+							type: 'group',
+						})
+					}
+				}
+			} catch (error) {
+				console.error('Failed to load user/group names:', error)
+				// Fallback: use IDs as display labels
+				for (const userId of users) {
+					items.push({ id: userId, label: userId, type: 'user' })
+				}
+				for (const groupId of groups) {
+					items.push({ id: groupId, label: groupId, type: 'group' })
+				}
+			}
+		}
+		
+		console.log('Setting visibilityItems to:', items)
+		visibilityItems.value = items
+		searchResults.value = items
 	} else {
+		console.log('Resetting form for create mode')
 		// Reset form for create
 		formData.name = ''
 		formData.description = ''
 		formData.startDatetime = ''
 		formData.endDatetime = ''
+		formData.visibleUsers = []
+		formData.visibleGroups = []
+		visibilityItems.value = []
+		searchResults.value = []
 	}
 }, { immediate: true })
 
 // Reset form when modal opens in create mode
 watch(() => props.show, (isShowing) => {
+	console.log('Modal show changed:', isShowing, 'appointment:', props.appointment)
 	if (isShowing && !props.appointment) {
 		// Modal opened in create mode - ensure form is reset
+		console.log('Resetting form for create mode in show watcher')
 		formData.name = ''
 		formData.description = ''
 		formData.startDatetime = ''
 		formData.endDatetime = ''
+		formData.visibleUsers = []
+		formData.visibleGroups = []
+		visibilityItems.value = []
+		searchResults.value = []
 	}
 })
 
@@ -133,6 +255,49 @@ const handleClose = () => {
 	emit('close')
 }
 
+const onSearch = async (query) => {
+	// Always keep selected items in the options list
+	if (!query || query.length < 1) {
+		searchResults.value = [...visibilityItems.value]
+		return
+	}
+	
+	isSearching.value = true
+	try {
+		const response = await axios.get(
+			generateUrl('/apps/attendance/api/search/users-groups'),
+			{ params: { search: query } }
+		)
+		
+		// Format response for NcSelect
+		// Backend returns: { id, label, type, icon }
+		// NcSelect expects: { id, label, type }
+		const newResults = response.data.map(item => ({
+			id: item.id,
+			label: item.label,
+			type: item.type,
+		}))
+		
+		// Merge search results with already selected items to prevent them from disappearing
+		const selectedIds = visibilityItems.value.map(item => item.id)
+		const mergedResults = [...visibilityItems.value]
+		
+		// Add new search results that aren't already selected
+		for (const result of newResults) {
+			if (!selectedIds.includes(result.id)) {
+				mergedResults.push(result)
+			}
+		}
+		
+		searchResults.value = mergedResults
+	} catch (error) {
+		console.error('Failed to search users/groups:', error)
+		searchResults.value = [...visibilityItems.value]
+	} finally {
+		isSearching.value = false
+	}
+}
+
 const handleSubmit = () => {
 	emit('submit', {
 		id: props.appointment?.id,
@@ -140,6 +305,8 @@ const handleSubmit = () => {
 		description: formData.description,
 		startDatetime: formData.startDatetime,
 		endDatetime: formData.endDatetime,
+		visibleUsers: formData.visibleUsers,
+		visibleGroups: formData.visibleGroups,
 	})
 }
 </script>
@@ -196,6 +363,12 @@ const handleSubmit = () => {
 			&:hover {
 				border-color: var(--color-primary-element-light);
 			}
+		}
+		
+		.hint-text {
+			font-size: 12px;
+			color: var(--color-text-maxcontrast);
+			margin: 5px 0;
 		}
 	}
 	

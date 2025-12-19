@@ -26,6 +26,10 @@ use OCP\AppFramework\Db\Entity;
  * @method void setUpdatedAt(string $updatedAt)
  * @method bool getIsActive()
  * @method void setIsActive(bool $isActive)
+ * @method string getVisibleUsers()
+ * @method void setVisibleUsers(string $visibleUsers)
+ * @method string getVisibleGroups()
+ * @method void setVisibleGroups(string $visibleGroups)
  */
 class Appointment extends Entity implements JsonSerializable {
 	protected $name = '';
@@ -36,6 +40,8 @@ class Appointment extends Entity implements JsonSerializable {
 	protected $createdAt = '';
 	protected $updatedAt = '';
 	protected $isActive = 1;
+	protected $visibleUsers = null;
+	protected $visibleGroups = null;
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -47,6 +53,8 @@ class Appointment extends Entity implements JsonSerializable {
 		$this->addType('createdAt', 'string');
 		$this->addType('updatedAt', 'string');
 		$this->addType('isActive', 'integer');
+		$this->addType('visibleUsers', 'string');
+		$this->addType('visibleGroups', 'string');
 	}
 
 	public function jsonSerialize(): array {
@@ -60,7 +68,20 @@ class Appointment extends Entity implements JsonSerializable {
 			'createdAt' => $this->formatDatetimeToUtc($this->getCreatedAt()),
 			'updatedAt' => $this->formatDatetimeToUtc($this->getUpdatedAt()),
 			'isActive' => $this->getIsActive(),
+			'visibleUsers' => $this->parseJsonField($this->getVisibleUsers()),
+			'visibleGroups' => $this->parseJsonField($this->getVisibleGroups()),
 		];
+	}
+
+	/**
+	 * Parse JSON field to array, return empty array if null or invalid
+	 */
+	private function parseJsonField(?string $field): array {
+		if ($field === null || $field === '') {
+			return [];
+		}
+		$decoded = json_decode($field, true);
+		return is_array($decoded) ? $decoded : [];
 	}
 
 	/**
