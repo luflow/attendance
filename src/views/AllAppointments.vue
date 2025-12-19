@@ -79,6 +79,8 @@ const loadAppointments = async (skipLoadingSpinner = false) => {
 		const params = props.showPast ? '?showPastAppointments=true' : ''
 		const response = await axios.get(generateUrl('/apps/attendance/api/appointments') + params)
 		
+		console.log('Raw API response for appointments:', response.data)
+		
 		if (props.showUnanswered) {
 			appointments.value = response.data.filter(appointment => {
 				return !appointment.userResponse || appointment.userResponse === null
@@ -135,6 +137,8 @@ const handleModalSubmit = async (formData) => {
 			description: formData.description,
 			startDatetime: startDatetimeWithTz,
 			endDatetime: endDatetimeWithTz,
+			visibleUsers: formData.visibleUsers || [],
+			visibleGroups: formData.visibleGroups || [],
 		})
 		
 		showSuccess(t('attendance', 'Appointment updated successfully'))

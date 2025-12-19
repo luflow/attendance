@@ -33,6 +33,9 @@ return [
 		// User data
 		['name' => 'appointment#getPermissions', 'url' => '/api/user/permissions', 'verb' => 'GET'],
 
+		// Search
+		['name' => 'appointment#searchUsersAndGroups', 'url' => '/api/search/users-groups', 'verb' => 'GET'],
+
 		// Export
 		['name' => 'appointment#export', 'url' => '/api/export', 'verb' => 'POST'],
 	]

@@ -245,6 +245,8 @@ const handleCreateModalSubmit = async (formData) => {
 			description: formData.description,
 			startDatetime: startDatetimeWithTz,
 			endDatetime: endDatetimeWithTz,
+			visibleUsers: formData.visibleUsers || [],
+			visibleGroups: formData.visibleGroups || [],
 		})
 		
 		showSuccess(t('attendance', 'Appointment created successfully'))

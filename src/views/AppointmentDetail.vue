@@ -68,6 +68,8 @@ const editingAppointment = reactive({
 	description: '',
 	startDatetime: '',
 	endDatetime: '',
+	visibleUsers: [],
+	visibleGroups: [],
 })
 
 const goBack = () => {
@@ -102,6 +104,8 @@ const editAppointment = (apt) => {
 		description: apt.description || '',
 		startDatetime: formattedStart,
 		endDatetime: formattedEnd,
+		visibleUsers: apt.visibleUsers || [],
+		visibleGroups: apt.visibleGroups || [],
 	})
 	
 	showEditForm.value = true
@@ -115,6 +119,8 @@ const handleModalClose = () => {
 		description: '',
 		startDatetime: '',
 		endDatetime: '',
+		visibleUsers: [],
+		visibleGroups: [],
 	})
 }
 
@@ -128,6 +134,8 @@ const handleModalSubmit = async (formData) => {
 			description: formData.description,
 			startDatetime: startDatetimeWithTz,
 			endDatetime: endDatetimeWithTz,
+			visibleUsers: formData.visibleUsers || [],
+			visibleGroups: formData.visibleGroups || [],
 		})
 		
 		showSuccess(t('attendance', 'Appointment updated successfully'))
@@ -261,6 +269,7 @@ const loadAppointment = async () => {
 			return
 		}
 		
+		console.log('Raw appointment object from API (AppointmentDetail):', found)
 		appointment.value = found
 	} catch (err) {
 		console.error('Failed to load appointment:', err)

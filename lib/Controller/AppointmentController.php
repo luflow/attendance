@@ -58,7 +58,9 @@ class AppointmentController extends Controller {
 		string $name,
 		string $description,
 		string $startDatetime,
-		string $endDatetime
+		string $endDatetime,
+		array $visibleUsers = [],
+		array $visibleGroups = []
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -76,7 +78,9 @@ class AppointmentController extends Controller {
 				$description,
 				$startDatetime,
 				$endDatetime,
-				$user->getUID()
+				$user->getUID(),
+				$visibleUsers,
+				$visibleGroups
 			);
 			return new DataResponse($appointment);
 		} catch (\Exception $e) {
@@ -92,7 +96,9 @@ class AppointmentController extends Controller {
 		string $name,
 		string $description,
 		string $startDatetime,
-		string $endDatetime
+		string $endDatetime,
+		array $visibleUsers = [],
+		array $visibleGroups = []
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -116,7 +122,9 @@ class AppointmentController extends Controller {
 				$description,
 				$startDatetime,
 				$endDatetime,
-				$user->getUID()
+				$user->getUID(),
+				$visibleUsers,
+				$visibleGroups
 			);
 			return new DataResponse($appointment);
 		} catch (\Exception $e) {
@@ -309,6 +317,29 @@ class AppointmentController extends Controller {
 				'path' => $result['path'],
 				'filename' => $result['filename'],
 			]);
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => $e->getMessage()], 400);
+		}
+	}
+
+	/**
+	 * Search for users and groups
+	 * @NoAdminRequired
+	 */
+	public function searchUsersAndGroups(string $search = ''): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		// Check if user can manage appointments
+		if (!$this->permissionService->canManageAppointments($user->getUID())) {
+			return new DataResponse(['error' => 'Insufficient permissions'], 403);
+		}
+
+		try {
+			$results = $this->appointmentService->searchUsersAndGroups($search);
+			return new DataResponse($results);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 400);
 		}
