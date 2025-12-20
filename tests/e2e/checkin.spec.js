@@ -51,10 +51,8 @@ test.describe('Attendance App - Check-in Workflow', () => {
 				// Click "Present" button
 				await userItem.locator('[data-test="button-present"]').click()
 				
-				// Wait for update
-				await page.waitForTimeout(500)
-				
-				// Verify state changed (button should have success variant)
+				// Wait for update and verify state changed
+				await page.waitForLoadState('networkidle')
 				const presentButton = userItem.locator('[data-test="button-present"]')
 				await expect(presentButton).toBeVisible()
 			}
@@ -72,7 +70,7 @@ test.describe('Attendance App - Check-in Workflow', () => {
 				await userItem.locator('[data-test="button-absent"]').click()
 				
 				// Wait for update
-				await page.waitForTimeout(500)
+				await page.waitForLoadState('networkidle')
 			}
 		}
 	})
@@ -130,7 +128,7 @@ test.describe('Attendance App - Check-in Workflow', () => {
 			await searchInput.fill('test')
 			
 			// Wait for filtering
-			await page.waitForTimeout(300)
+			await page.waitForLoadState('networkidle')
 			
 			// Verify user list updated (implementation depends on your data)
 			const userItems = page.locator('[data-test^="user-item-"]')
@@ -174,10 +172,7 @@ test.describe('Attendance App - Bulk Operations', () => {
 			// Confirm action
 			await page.locator('[data-test="button-bulk-confirm"]').click()
 			
-			// Wait for processing
-			await page.waitForTimeout(1000)
-			
-			// Dialog should close
+			// Dialog should close after processing
 			await expect(page.locator('[data-test="dialog-confirm-bulk"]')).not.toBeVisible()
 		}
 	})

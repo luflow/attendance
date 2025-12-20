@@ -31,16 +31,15 @@ test.describe('Attendance App - Admin Settings', () => {
 			
 			// Click on the combobox to open dropdown
 			await managePermissionSelect.getByRole('searchbox').click()
-			await page.waitForTimeout(500)
+			const adminOption = page.getByRole('option', { name: 'admin' })
+			await adminOption.waitFor({ state: 'visible' })
 			
 			// Select admin option from dropdown
-			await page.getByRole('option', { name: 'admin' }).click()
-			await page.waitForTimeout(300)
+			await adminOption.click()
 			
 			// Save settings
 			const saveButton = page.locator('[data-test="button-save-settings"]')
 			await saveButton.click()
-			await page.waitForTimeout(1000)
 			
 			// Verify success message or settings saved
 			await page.waitForLoadState('networkidle')
@@ -93,14 +92,13 @@ test.describe('Attendance App - Admin Settings', () => {
 			await expect(checkinPermissionSelect).toBeVisible()
 			
 			await checkinPermissionSelect.getByRole('searchbox').click()
-			await page.waitForTimeout(500)
+			const adminOption = page.getByRole('option', { name: 'admin' })
+			await adminOption.waitFor({ state: 'visible' })
 			
-			await page.getByRole('option', { name: 'admin' }).click()
-			await page.waitForTimeout(300)
+			await adminOption.click()
 			
 			const saveButton = page.locator('[data-test="button-save-settings"]')
 			await saveButton.click()
-			await page.waitForTimeout(1000)
 			
 			// Login as test user
 			await loginAsUser('test', 'test')
@@ -110,7 +108,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			// Open appointment actions menu
 			const actionsButton = page.getByRole('button', { name: 'Actions' }).first()
 			await actionsButton.click()
-			await page.waitForTimeout(300)
+			await page.waitForLoadState('networkidle')
 			
 			// Verify test user CANNOT see "Start check-in" option
 			const checkinAction = page.locator('[data-test="action-start-checkin"]')
@@ -126,7 +124,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			
 			const adminActionsButton = page.getByRole('button', { name: 'Actions' }).first()
 			await adminActionsButton.click()
-			await page.waitForTimeout(300)
+			await page.waitForLoadState('networkidle')
 			
 			const adminCheckinAction = page.locator('[data-test="action-start-checkin"]')
 			await expect(adminCheckinAction).toBeVisible()
@@ -144,14 +142,13 @@ test.describe('Attendance App - Admin Settings', () => {
 			await expect(responseOverviewSelect).toBeVisible()
 			
 			await responseOverviewSelect.getByRole('searchbox').click()
-			await page.waitForTimeout(500)
+			const adminOption = page.getByRole('option', { name: 'admin' })
+			await adminOption.waitFor({ state: 'visible' })
 			
-			await page.getByRole('option', { name: 'admin' }).click()
-			await page.waitForTimeout(300)
+			await adminOption.click()
 			
 			const saveButton = page.locator('[data-test="button-save-settings"]')
 			await saveButton.click()
-			await page.waitForTimeout(1000)
 			
 			// Create appointment as admin
 			await attendanceApp()
@@ -202,14 +199,13 @@ test.describe('Attendance App - Admin Settings', () => {
 			await expect(seeCommentsSelect).toBeVisible()
 			
 			await seeCommentsSelect.getByRole('searchbox').click()
-			await page.waitForTimeout(500)
+			const adminOption = page.getByRole('option', { name: 'admin' })
+			await adminOption.waitFor({ state: 'visible' })
 			
-			await page.getByRole('option', { name: 'admin' }).click()
-			await page.waitForTimeout(300)
+			await adminOption.click()
 			
 			const saveButton = page.locator('[data-test="button-save-settings"]')
 			await saveButton.click()
-			await page.waitForTimeout(1000)
 			
 			// Navigate to app and verify settings applied
 			await attendanceApp()
@@ -233,16 +229,15 @@ test.describe('Attendance App - Admin Settings', () => {
 			await expect(groupsSelect).toBeVisible()
 			
 			await groupsSelect.getByRole('searchbox').click()
-			await page.waitForTimeout(500)
+			const adminOption = page.getByRole('option', { name: 'admin' })
+			await adminOption.waitFor({ state: 'visible' })
 			
 			// Select 'admin' group
-			await page.getByRole('option', { name: 'admin' }).click()
-			await page.waitForTimeout(300)
+			await adminOption.click()
 			
 			// Save settings
 			const saveButton = page.locator('[data-test="button-save-settings"]')
 			await saveButton.click()
-			await page.waitForTimeout(1000)
 			
 			// Verify settings were saved (could check for success message)
 			await page.waitForLoadState('networkidle')
@@ -265,7 +260,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			if (!isChecked) {
 				// Click the label wrapper instead of the checkbox itself
 				await page.getByText('Enable automatic reminders').click()
-				await page.waitForTimeout(500)
+				await page.waitForLoadState('networkidle')
 			}
 			
 			// Configure reminder days using spinbutton role
@@ -281,7 +276,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			// Save settings
 			const saveButton = page.locator('[data-test="button-save-settings"]')
 			await saveButton.click()
-			await page.waitForTimeout(1000)
+			await page.waitForLoadState('networkidle')
 			
 			// Verify settings persisted by reloading page
 			await page.reload()
@@ -308,7 +303,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			// Save settings
 			const saveButton = page.locator('[data-test="button-save-settings"]')
 			await saveButton.click()
-			await page.waitForTimeout(1000)
+			await page.waitForLoadState('networkidle')
 			
 			// Reload page
 			await page.reload()

@@ -52,14 +52,14 @@ test.describe('Attendance App - Appointment Management', () => {
 		// Grant clipboard permissions
 		await context.grantPermissions(['clipboard-read', 'clipboard-write'])
 		
-		// Open Actions menu
-		await page.getByRole('button', { name: 'Actions' }).click()
-		
+		// Open Actions menu (use first() since multiple appointments may exist)
+		await page.getByRole('button', { name: 'Actions' }).first().click()
+
 		// Click Share Link
 		await page.getByRole('menuitem', { name: 'Share Link' }).click()
 		
-		// Wait and verify clipboard
-		await page.waitForTimeout(500)
+		// Wait for clipboard to be written and verify
+		await page.waitForLoadState('networkidle')
 		const clipboardText = await page.evaluate(() => navigator.clipboard.readText())
 		expect(clipboardText).toContain('/apps/attendance')
 		expect(clipboardText).toMatch(/http/)
@@ -70,8 +70,8 @@ test.describe('Attendance App - Appointment Management', () => {
 		const titleElement = page.getByRole('heading', { level: 3 }).first()
 		const originalTitle = await titleElement.textContent()
 		
-		// Open actions and click Edit
-		await page.getByRole('button', { name: 'Actions' }).click()
+		// Open actions and click Edit (use first() since multiple appointments may exist)
+		await page.getByRole('button', { name: 'Actions' }).first().click()
 		await page.getByRole('menuitem', { name: 'Edit' }).click()
 		
 		// Wait for modal and verify it's Edit mode
@@ -93,13 +93,12 @@ test.describe('Attendance App - Appointment Management', () => {
 	})
 
 	test('should delete an appointment', async ({ page }) => {
-		// Open actions and click Delete
-		await page.getByRole('button', { name: 'Actions' }).click()
+		// Open actions and click Delete (use first() since multiple appointments may exist)
+		await page.getByRole('button', { name: 'Actions' }).first().click()
 		await page.getByRole('menuitem', { name: 'Delete' }).click()
 		
 		// Wait for deletion
 		await page.waitForLoadState('networkidle')
-		await page.waitForTimeout(1000)
 		
 		// Should navigate away or show empty state
 		const emptyState = page.getByText('No appointments found')
@@ -119,8 +118,6 @@ test.describe('Attendance App - Appointment Management', () => {
 		
 		for (const appt of appointments) {
 			await createAppointment(page, appt)
-			// Small delay between creations
-			await page.waitForTimeout(500)
 		}
 		
 		// Verify all were created by checking navigation (use .first() since items may appear in multiple sections)
@@ -138,10 +135,7 @@ test.describe('Attendance App - User Responses', () => {
 		// Click Yes button (use first() since multiple appointments may be on page)
 		await page.getByRole('button', { name: 'Yes', exact: true }).first().click()
 		
-		// Wait for response to be saved
-		await page.waitForTimeout(1000)
-		
-		// Verify button state changed (look for active class or check summary updated)
+		// Wait for response to be saved by checking summary is visible
 		const summary = page.getByRole('heading', { name: 'Response Summary' }).first()
 		await expect(summary).toBeVisible()
 	})
@@ -153,11 +147,11 @@ test.describe('Attendance App - User Responses', () => {
 		
 		// Click Yes (use first() since multiple appointments may be on page)
 		await page.getByRole('button', { name: 'Yes', exact: true }).first().click()
-		await page.waitForTimeout(500)
+		await page.waitForLoadState('networkidle')
 		
 		// Change to Maybe
 		await page.getByRole('button', { name: 'Maybe' }).first().click()
-		await page.waitForTimeout(500)
+		await page.waitForLoadState('networkidle')
 		
 		// Verify by checking response summary or button states (use .first() since multiple appointment cards exist)
 		await expect(page.getByRole('heading', { name: 'Response Summary' }).first()).toBeVisible()

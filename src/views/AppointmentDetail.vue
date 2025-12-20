@@ -269,7 +269,6 @@ const loadAppointment = async () => {
 			return
 		}
 		
-		console.log('Raw appointment object from API (AppointmentDetail):', found)
 		appointment.value = found
 	} catch (err) {
 		console.error('Failed to load appointment:', err)
