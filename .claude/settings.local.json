@@ -5,7 +5,8 @@
       "mcp__playwright-test__test_run",
       "mcp__playwright-test__test_debug",
       "mcp__playwright-test__browser_snapshot",
-      "mcp__playwright-test__browser_close"
+      "mcp__playwright-test__browser_close",
+      "mcp__playwright-test__browser_navigate"
     ]
   },
   "enableAllProjectMcpServers": true,

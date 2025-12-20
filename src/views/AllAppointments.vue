@@ -67,6 +67,8 @@ const editingAppointment = reactive({
 	description: '',
 	startDatetime: '',
 	endDatetime: '',
+	visibleUsers: [],
+	visibleGroups: [],
 })
 
 const { permissions, loadPermissions } = usePermissions()
@@ -122,6 +124,8 @@ const handleModalClose = () => {
 		description: '',
 		startDatetime: '',
 		endDatetime: '',
+		visibleUsers: [],
+		visibleGroups: [],
 	})
 }
 
@@ -235,6 +239,8 @@ const editAppointment = (appointment) => {
 		description: appointment.description || '',
 		startDatetime: formattedStart,
 		endDatetime: formattedEnd,
+		visibleUsers: appointment.visibleUsers || [],
+		visibleGroups: appointment.visibleGroups || [],
 	})
 
 	showEditForm.value = true

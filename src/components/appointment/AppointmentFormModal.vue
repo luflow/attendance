@@ -49,7 +49,6 @@
 						:close-on-select="false"
 						:filterable="false"
 						label="label"
-						track-by="id"
 						:placeholder="t('attendance', 'Search users or groups...')"
 						data-test="select-visibility"
 						@search="onSearch">
@@ -123,8 +122,9 @@ const isSearching = ref(false)
 watch(visibilityItems, (selected) => {
 	const selectedArray = Array.isArray(selected) ? selected : (selected ? [selected] : [])
 	// Split into users and groups based on the type property
-	formData.visibleUsers = selectedArray.filter(item => item && item.type === 'user').map(item => item.id)
-	formData.visibleGroups = selectedArray.filter(item => item && item.type === 'group').map(item => item.id)
+	// Use 'value' property which contains the original user/group ID
+	formData.visibleUsers = selectedArray.filter(item => item && item.type === 'user').map(item => item.value)
+	formData.visibleGroups = selectedArray.filter(item => item && item.type === 'group').map(item => item.value)
 })
 
 const isEdit = computed(() => !!props.appointment)
@@ -158,56 +158,65 @@ watch(() => props.appointment, async (newAppointment) => {
 		formData.visibleGroups = groups
 		
 		// Convert to visibility items for NcSelect
-		// Fetch proper display names for the stored IDs
+		// Create items directly from stored IDs, then optionally fetch display names
 		const items = []
-		const allIds = [...users, ...groups]
-		
-		if (allIds.length > 0) {
+
+		for (const userId of users) {
+			items.push({ id: `user:${userId}`, value: userId, label: userId, type: 'user' })
+		}
+		for (const groupId of groups) {
+			items.push({ id: `group:${groupId}`, value: groupId, label: groupId, type: 'group' })
+		}
+
+		// Set options first, then selected values
+		searchResults.value = [...items]
+		visibilityItems.value = [...items]
+
+		// Optionally fetch display names in background
+		if (items.length > 0) {
 			try {
-				// Search for each ID to get proper display names
+				const updatedItems = []
 				for (const userId of users) {
 					const response = await axios.get(
 						generateUrl('/apps/attendance/api/search/users-groups'),
 						{ params: { search: userId } }
 					)
-					const found = response.data.find(item => item.id === userId)
+					const found = response.data.find(item => item.id === userId && item.type === 'user')
 					if (found) {
-						items.push({
-							id: found.id,
+						updatedItems.push({
+							id: `user:${found.id}`,
+							value: found.id,
 							label: found.label,
 							type: 'user',
 						})
+					} else {
+						updatedItems.push({ id: `user:${userId}`, value: userId, label: userId, type: 'user' })
 					}
 				}
-				
 				for (const groupId of groups) {
 					const response = await axios.get(
 						generateUrl('/apps/attendance/api/search/users-groups'),
 						{ params: { search: groupId } }
 					)
-					const found = response.data.find(item => item.id === groupId)
+					const found = response.data.find(item => item.id === groupId && item.type === 'group')
 					if (found) {
-						items.push({
-							id: found.id,
+						updatedItems.push({
+							id: `group:${found.id}`,
+							value: found.id,
 							label: found.label,
 							type: 'group',
 						})
+					} else {
+						updatedItems.push({ id: `group:${groupId}`, value: groupId, label: groupId, type: 'group' })
 					}
 				}
+				// Update with proper display names
+				searchResults.value = [...updatedItems]
+				visibilityItems.value = [...updatedItems]
 			} catch (error) {
-				console.error('Failed to load user/group names:', error)
-				// Fallback: use IDs as display labels
-				for (const userId of users) {
-					items.push({ id: userId, label: userId, type: 'user' })
-				}
-				for (const groupId of groups) {
-					items.push({ id: groupId, label: groupId, type: 'group' })
-				}
+				console.error('Failed to load user/group display names:', error)
 			}
 		}
-		
-		visibilityItems.value = items
-		searchResults.value = items
 	} else {
 		// Reset form for create
 		formData.name = ''
@@ -265,20 +274,25 @@ const onSearch = async (query) => {
 		
 		// Format response for NcSelect
 		// Backend returns: { id, label, type, icon }
-		// NcSelect expects: { id, label, type }
+		// NcSelect expects: { id, value, label, type }
+		// id combines type and original id since a user and group can have the same id
 		const newResults = response.data.map(item => ({
-			id: item.id,
+			id: `${item.type}:${item.id}`,
+			value: item.id,
 			label: item.label,
 			type: item.type,
 		}))
 		
 		// Merge search results with already selected items to prevent them from disappearing
-		const selectedIds = visibilityItems.value.map(item => item.id)
 		const mergedResults = [...visibilityItems.value]
-		
+
 		// Add new search results that aren't already selected
+		// Compare by id which now includes type prefix (e.g., "user:admin" vs "group:admin")
 		for (const result of newResults) {
-			if (!selectedIds.includes(result.id)) {
+			const isAlreadySelected = visibilityItems.value.some(
+				item => item.id === result.id
+			)
+			if (!isAlreadySelected) {
 				mergedResults.push(result)
 			}
 		}
