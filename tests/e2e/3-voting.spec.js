@@ -43,7 +43,7 @@ test.describe('Attendance App - Dashboard Widget Voting', () => {
 		await widget.getByRole('button', { name: 'Yes', exact: true }).first().click()
 		
 		// Wait for vote to be saved
-		await page.waitForTimeout(1000)
+		await page.waitForLoadState('networkidle')
 		
 		// Verify vote was registered (button should change state or show active)
 		// The exact verification depends on your UI feedback
@@ -60,22 +60,19 @@ test.describe('Attendance App - Dashboard Widget Voting', () => {
 		// Click Yes first (comment section appears after voting)
 		const yesButton = widget.getByRole('button', { name: 'Yes', exact: true }).first()
 		await yesButton.click()
-		await page.waitForTimeout(500)
+		await page.waitForLoadState('networkidle')
 		
 		// Click comment toggle button using data-test attribute
 		const commentToggle = widget.locator('[data-test="button-widget-toggle-comment"]').first()
 		await commentToggle.click()
 		
 		// Wait for comment textarea to appear
-		await page.waitForTimeout(500)
-		
-		// Find and fill comment field using data-test attribute
 		const commentField = widget.locator('[data-test="widget-response-comment"]').first()
 		await expect(commentField).toBeVisible({ timeout: 5000 })
 		await commentField.fill('Great meeting, looking forward to it!')
 		
 		// Wait for auto-save
-		await page.waitForTimeout(1500)
+		await page.waitForLoadState('networkidle')
 	})
 
 	test('should open detail view by clicking appointment title', async ({ page }) => {
@@ -147,7 +144,7 @@ test.describe('Attendance App - Dashboard Widget Voting', () => {
 		await widget.getByRole('button', { name: 'Maybe' }).first().click()
 		
 		// Wait for save
-		await page.waitForTimeout(1000)
+		await page.waitForLoadState('networkidle')
 		
 		// Verify button is visible (indicates vote was accepted)
 		await expect(widget.getByRole('button', { name: 'Maybe' }).first()).toBeVisible()
@@ -164,7 +161,7 @@ test.describe('Attendance App - Dashboard Widget Voting', () => {
 		await widget.getByRole('button', { name: 'No', exact: true }).first().click()
 		
 		// Wait for save
-		await page.waitForTimeout(1000)
+		await page.waitForLoadState('networkidle')
 		
 		// Verify button is visible
 		await expect(widget.getByRole('button', { name: 'No', exact: true }).first()).toBeVisible()
@@ -179,11 +176,11 @@ test.describe('Attendance App - Dashboard Widget Voting', () => {
 		
 		// Click Yes first
 		await widget.getByRole('button', { name: 'Yes', exact: true }).first().click()
-		await page.waitForTimeout(500)
+		await page.waitForLoadState('networkidle')
 		
 		// Change to No
 		await widget.getByRole('button', { name: 'No', exact: true }).first().click()
-		await page.waitForTimeout(500)
+		await page.waitForLoadState('networkidle')
 		
 		// Verify both buttons are still accessible (vote changed)
 		await expect(widget.getByRole('button', { name: 'Yes', exact: true }).first()).toBeVisible()

@@ -53,18 +53,18 @@
 						:placeholder="t('attendance', 'Search users or groups...')"
 						data-test="select-visibility"
 						@search="onSearch">
-						<template #option="option">
+						<template #option="{ label, type }">
 							<span style="display: flex; align-items: center; gap: 8px;">
-								<AccountGroup v-if="option.type === 'group'" :size="20" />
+								<AccountGroup v-if="type === 'group'" :size="20" />
 								<Account v-else :size="20" />
-								<span>{{ option.label }}</span>
+								<span>{{ label }}</span>
 							</span>
 						</template>
-						<template #selected-option="option">
+						<template #selected-option="{ label, type }">
 							<span style="display: flex; align-items: center; gap: 8px;">
-								<AccountGroup v-if="option.type === 'group'" :size="16" />
+								<AccountGroup v-if="type === 'group'" :size="16" />
 								<Account v-else :size="16" />
-								<span>{{ option.label }}</span>
+								<span>{{ label }}</span>
 							</span>
 						</template>
 					</NcSelect>
@@ -146,7 +146,6 @@ const formatDateTimeForInput = (dateTime) => {
 // Watch for appointment changes to populate form
 watch(() => props.appointment, async (newAppointment) => {
 	if (newAppointment) {
-		console.log('Loading appointment for edit:', newAppointment)
 		formData.name = newAppointment.name || ''
 		formData.description = newAppointment.description || ''
 		formData.startDatetime = formatDateTimeForInput(newAppointment.startDatetime)
@@ -155,7 +154,6 @@ watch(() => props.appointment, async (newAppointment) => {
 		// Load visibility settings
 		const users = newAppointment.visibleUsers || []
 		const groups = newAppointment.visibleGroups || []
-		console.log('Visibility data from backend - users:', users, 'groups:', groups)
 		formData.visibleUsers = users
 		formData.visibleGroups = groups
 		
@@ -208,11 +206,9 @@ watch(() => props.appointment, async (newAppointment) => {
 			}
 		}
 		
-		console.log('Setting visibilityItems to:', items)
 		visibilityItems.value = items
 		searchResults.value = items
 	} else {
-		console.log('Resetting form for create mode')
 		// Reset form for create
 		formData.name = ''
 		formData.description = ''
@@ -227,10 +223,8 @@ watch(() => props.appointment, async (newAppointment) => {
 
 // Reset form when modal opens in create mode
 watch(() => props.show, (isShowing) => {
-	console.log('Modal show changed:', isShowing, 'appointment:', props.appointment)
 	if (isShowing && !props.appointment) {
 		// Modal opened in create mode - ensure form is reset
-		console.log('Resetting form for create mode in show watcher')
 		formData.name = ''
 		formData.description = ''
 		formData.startDatetime = ''

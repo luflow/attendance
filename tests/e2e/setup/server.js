@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { startNextcloud, configureNextcloud, waitOnNextcloud, createSnapshot, getContainer } from '@nextcloud/e2e-test-server'
+import { startNextcloud, configureNextcloud, waitOnNextcloud, createSnapshot, getContainer, setupUsers } from '@nextcloud/e2e-test-server'
 
 /**
  * Start Nextcloud test server for e2e tests
@@ -27,6 +27,8 @@ async function main() {
 
 		// Create snapshot of clean database state
 		const container = getContainer()
+
+		await setupUsers(container)
 		await createSnapshot('init', container)
 		
 		console.log('✅ Snapshot "init" created successfully!')
@@ -35,6 +37,11 @@ async function main() {
 		console.log('Test users available:')
 		console.log('  - admin / admin (Administrator)')
 		console.log('  - test / test (Regular user for e2e tests)')
+		console.log('  - test1 / test1 (Regular user for e2e tests)')
+		console.log('  - test2 / test2 (Regular user for e2e tests)')
+		console.log('  - test3 / test3 (Regular user for e2e tests)')
+		console.log('  - test4 / test4 (Regular user for e2e tests)')
+		console.log('  - test5 / test5 (Regular user for e2e tests)')
 		console.log('\nYou can now run tests with: npm run test:e2e')
 		
 		// Keep the process running

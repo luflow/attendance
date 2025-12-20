@@ -257,6 +257,7 @@ class AppointmentService {
 	 * Get response summary for an appointment
 	 */
 	public function getResponseSummary(int $appointmentId): array {
+		$appointment = $this->appointmentMapper->find($appointmentId);
 		$responses = $this->responseMapper->findByAppointment($appointmentId);
 		
 		$summary = [
@@ -278,6 +279,11 @@ class AppointmentService {
 		$usersInWhitelistedGroups = [];
 		
 		foreach ($responses as $response) {
+			// Filter: Only include responses from users who can see this appointment
+			if (!$this->canUserSeeAppointment($appointment, $response->getUserId())) {
+				continue;
+			}
+			
 			$responseValue = $response->getResponse();
 			
 			// Skip invalid or empty responses
@@ -369,11 +375,18 @@ class AppointmentService {
 			}
 		}
 
-		// Calculate total users who haven't responded (only users who belong to relevant groups)
+		// Calculate total users who haven't responded (only users who belong to relevant groups AND can see this appointment)
 		$allUsers = $this->userManager->search('');
 		$usersInGroups = [];
 		$nonRespondingUsers = [];
 		foreach ($allUsers as $user) {
+			$userId = $user->getUID();
+			
+			// Filter: Only include users who can see this appointment
+			if (!$this->canUserSeeAppointment($appointment, $userId)) {
+				continue;
+			}
+			
 			$userGroups = $this->groupManager->getUserGroups($user);
 			$relevantGroups = [];
 			
@@ -387,11 +400,11 @@ class AppointmentService {
 			
 			// Only count users who belong to at least one relevant group
 			if (count($relevantGroups) > 0) {
-				$usersInGroups[] = $user->getUID();
+				$usersInGroups[] = $userId;
 				// Check if this user hasn't responded
-				if (!in_array($user->getUID(), $respondedUserIds)) {
+				if (!in_array($userId, $respondedUserIds)) {
 					$nonRespondingUsers[] = [
-						'userId' => $user->getUID(),
+						'userId' => $userId,
 						'displayName' => $user->getDisplayName()
 					];
 				}
@@ -572,6 +585,12 @@ class AppointmentService {
 		// Build unified user list
 		foreach ($allUsers as $user) {
 			$userId = $user->getUID();
+			
+			// Filter: Only include users who can see this appointment
+			if (!$this->canUserSeeAppointment($appointment, $userId)) {
+				continue;
+			}
+			
 			$displayName = $user->getDisplayName();
 			
 			// Get user's groups
