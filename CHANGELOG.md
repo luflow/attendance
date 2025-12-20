@@ -6,6 +6,14 @@
 
 - Nightly changes here
 
+## 1.12.0 – 2024-12-20
+
+### Added
+
+- Appointment visibility controls with user and group filtering
+- Filter response summary and user lists based on appointment visibility settings
+- Granular control over who can see specific appointments
+
 ## 1.11.0 – 2024-12-18
 
 ### Added
