@@ -147,7 +147,6 @@ import { NcContent, NcAppNavigation, NcAppNavigationItem, NcAppContent } from '@
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
-import { fromZonedTime } from 'date-fns-tz'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import CalendarClockIcon from 'vue-material-design-icons/CalendarClock.vue'
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
@@ -159,6 +158,7 @@ import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import DownloadIcon from 'vue-material-design-icons/Download.vue'
 import BellAlertIcon from 'vue-material-design-icons/BellAlert.vue'
 import { usePermissions } from './composables/usePermissions.js'
+import { formatDateTime, toServerTimezone } from './utils/datetime.js'
 
 const currentView = ref(null) // 'current', 'past', 'unanswered', 'appointment', 'checkin', or null
 const checkinAppointmentId = ref(null)
@@ -213,15 +213,10 @@ const navigateToAppointment = (appointmentId) => {
 
 const loadAppointments = async () => {
 	try {
-		const currentResponse = await axios.get(generateUrl('/apps/attendance/api/appointments'), {
-			params: { showPastAppointments: false },
-		})
-		currentAppointments.value = currentResponse.data
-		
-		const pastResponse = await axios.get(generateUrl('/apps/attendance/api/appointments'), {
-			params: { showPastAppointments: true },
-		})
-		pastAppointments.value = pastResponse.data
+		// Use lightweight navigation endpoint (single call, minimal data)
+		const response = await axios.get(generateUrl('/apps/attendance/api/appointments/navigation'))
+		currentAppointments.value = response.data.current
+		pastAppointments.value = response.data.past
 	} catch (error) {
 		console.error('Failed to load appointments for navigation:', error)
 	}
@@ -237,9 +232,9 @@ const handleCreateModalClose = () => {
 
 const handleCreateModalSubmit = async (formData) => {
 	try {
-		const startDatetimeWithTz = fromZonedTime(formData.startDatetime, 'Europe/Berlin')
-		const endDatetimeWithTz = fromZonedTime(formData.endDatetime, 'Europe/Berlin')
-		
+		const startDatetimeWithTz = toServerTimezone(formData.startDatetime)
+		const endDatetimeWithTz = toServerTimezone(formData.endDatetime)
+
 		const response = await axios.post(generateUrl('/apps/attendance/api/appointments'), {
 			name: formData.name,
 			description: formData.description,
@@ -264,11 +259,6 @@ const handleCreateModalSubmit = async (formData) => {
 		console.error('Failed to create appointment:', error)
 		showError(t('attendance', 'Error creating appointment'))
 	}
-}
-
-const formatDateTime = (datetime) => {
-	const date = new Date(datetime)
-	return date.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })
 }
 
 const formatAppointmentDisplay = (appointment) => {
@@ -328,16 +318,41 @@ const checkRouting = () => {
 	}
 }
 
+// Track if appointments have been loaded for navigation
+const appointmentsLoaded = ref(false)
+
+// Load appointments for navigation if not already loaded
+const ensureAppointmentsLoaded = async () => {
+	if (!appointmentsLoaded.value) {
+		await loadAppointments()
+		appointmentsLoaded.value = true
+	}
+}
+
+// Watch for view changes to load appointments when needed for navigation
+watch(currentView, async (newView, oldView) => {
+	// If switching from checkin to a view that shows navigation, load appointments
+	if (oldView === 'checkin' && newView !== 'checkin') {
+		await ensureAppointmentsLoaded()
+	}
+})
+
 onMounted(async () => {
 	checkRouting()
 	await loadPermissions()
-	await loadAppointments()
-	
-	// Auto-navigate to unanswered appointments if any exist and we're on the default route
-	if (currentView.value === 'current' && unansweredAppointments.value.length > 0) {
-		setView('unanswered')
+
+	// Skip loading appointments only for checkin view (no navigation sidebar)
+	// All other views show navigation and need appointment data
+	if (currentView.value !== 'checkin') {
+		await loadAppointments()
+		appointmentsLoaded.value = true
+
+		// Auto-navigate to unanswered appointments if any exist and we're on the default route
+		if (currentView.value === 'current' && unansweredAppointments.value.length > 0) {
+			setView('unanswered')
+		}
 	}
-	
+
 	window.addEventListener('popstate', () => {
 		checkRouting()
 	})

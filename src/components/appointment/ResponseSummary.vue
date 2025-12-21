@@ -114,6 +114,7 @@
 <script setup>
 import { ref } from 'vue'
 import { NcChip } from '@nextcloud/vue'
+import { getResponseText, getResponseVariant } from '../../utils/response.js'
 
 const props = defineProps({
 	responseSummary: {
@@ -142,29 +143,11 @@ const getSortedNonRespondingUsers = (users) => {
 	return [...users].sort((a, b) => a.displayName.localeCompare(b.displayName))
 }
 
-const getResponseText = (response) => {
-	const texts = {
-		yes: 'Ja',
-		no: 'Nein',
-		maybe: 'Vielleicht',
-	}
-	return texts[response] || response
-}
-
 const hasOthersResponses = () => {
 	if (!props.responseSummary?.others) return false
-	return props.responseSummary.others.yes > 0 ||
-		props.responseSummary.others.maybe > 0 ||
-		props.responseSummary.others.no > 0
-}
-
-const getResponseVariant = (response) => {
-	const variants = {
-		yes: 'success',
-		maybe: 'warning',
-		no: 'error',
-	}
-	return variants[response] || 'tertiary'
+	return props.responseSummary.others.yes > 0
+		|| props.responseSummary.others.maybe > 0
+		|| props.responseSummary.others.no > 0
 }
 </script>
 

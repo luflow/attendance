@@ -142,6 +142,24 @@ class AppointmentService {
 	}
 
 	/**
+	 * Get a single appointment with user response and summary
+	 */
+	public function getAppointmentWithUserResponse(int $id, string $userId): ?array {
+		$appointment = $this->appointmentMapper->find($id);
+
+		// Check if user can see this appointment
+		if (!$this->canUserSeeAppointment($appointment, $userId)) {
+			return null;
+		}
+
+		$appointmentData = $appointment->jsonSerialize();
+		$appointmentData['userResponse'] = $this->getUserResponse($appointment->getId(), $userId);
+		$appointmentData['responseSummary'] = $this->getResponseSummary($appointment->getId());
+
+		return $appointmentData;
+	}
+
+	/**
 	 * Get all appointments
 	 */
 	public function getAllAppointments(): array {
@@ -443,6 +461,67 @@ class AppointmentService {
 		$summary['by_group'] = $sortedByGroup;
 
 		return $summary;
+	}
+
+	/**
+	 * Get minimal appointment data for navigation menu
+	 * Returns only fields needed for sidebar: id, name, startDatetime, userResponse
+	 */
+	public function getAppointmentsForNavigation(string $userId): array {
+		$currentAppointments = $this->getUpcomingAppointments();
+		$pastAppointments = $this->getPastAppointments();
+
+		$result = [
+			'current' => [],
+			'past' => [],
+		];
+
+		// Process current appointments
+		foreach ($currentAppointments as $appointment) {
+			if (!$this->canUserSeeAppointment($appointment, $userId)) {
+				continue;
+			}
+
+			$userResponse = $this->getUserResponse($appointment->getId(), $userId);
+
+			$result['current'][] = [
+				'id' => $appointment->getId(),
+				'name' => $appointment->getName(),
+				'startDatetime' => $this->formatDatetimeToUtc($appointment->getStartDatetime()),
+				'userResponse' => $userResponse ? ['response' => $userResponse->getResponse()] : null,
+			];
+		}
+
+		// Process past appointments
+		foreach ($pastAppointments as $appointment) {
+			if (!$this->canUserSeeAppointment($appointment, $userId)) {
+				continue;
+			}
+
+			$userResponse = $this->getUserResponse($appointment->getId(), $userId);
+
+			$result['past'][] = [
+				'id' => $appointment->getId(),
+				'name' => $appointment->getName(),
+				'startDatetime' => $this->formatDatetimeToUtc($appointment->getStartDatetime()),
+				'userResponse' => $userResponse ? ['response' => $userResponse->getResponse()] : null,
+			];
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Format datetime to UTC ISO 8601 format (for service-level use)
+	 */
+	private function formatDatetimeToUtc(string $datetime): string {
+		try {
+			$utcTimezone = new \DateTimeZone('UTC');
+			$date = new \DateTime($datetime, $utcTimezone);
+			return $date->format('Y-m-d\TH:i:s\Z');
+		} catch (\Exception $e) {
+			return $datetime;
+		}
 	}
 
 	/**

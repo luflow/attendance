@@ -10,13 +10,14 @@ return [
 		['name' => 'page#checkin', 'url' => '/checkin/{id}', 'verb' => 'GET'],
 		
 		// Appointment management routes
+		// NOTE: Specific routes must come BEFORE wildcard {id} routes
 		['name' => 'appointment#index', 'url' => '/api/appointments', 'verb' => 'GET'],
+		['name' => 'appointment#navigation', 'url' => '/api/appointments/navigation', 'verb' => 'GET'],
+		['name' => 'appointment#widget', 'url' => '/api/appointments/widget', 'verb' => 'GET'],
+		['name' => 'appointment#show', 'url' => '/api/appointments/{id}', 'verb' => 'GET'],
 		['name' => 'appointment#create', 'url' => '/api/appointments', 'verb' => 'POST'],
 		['name' => 'appointment#update', 'url' => '/api/appointments/{id}', 'verb' => 'PUT'],
 		['name' => 'appointment#destroy', 'url' => '/api/appointments/{id}', 'verb' => 'DELETE'],
-
-		// Dashboard widget route
-		['name' => 'appointment#widget', 'url' => '/api/appointments/widget', 'verb' => 'GET'],
 				
 		// Attendance response routes
 		['name' => 'appointment#respond', 'url' => '/api/appointments/{id}/respond', 'verb' => 'POST'],
