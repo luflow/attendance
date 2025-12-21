@@ -41,8 +41,8 @@ import AppointmentFormModal from '../components/appointment/AppointmentFormModal
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
-import { fromZonedTime } from 'date-fns-tz'
 import { usePermissions } from '../composables/usePermissions.js'
+import { formatDateTimeForInput, toServerTimezone } from '../utils/datetime.js'
 
 const props = defineProps({
 	showPast: {
@@ -131,9 +131,9 @@ const handleModalClose = () => {
 
 const handleModalSubmit = async (formData) => {
 	try {
-		const startDatetimeWithTz = fromZonedTime(formData.startDatetime, 'Europe/Berlin')
-		const endDatetimeWithTz = fromZonedTime(formData.endDatetime, 'Europe/Berlin')
-		
+		const startDatetimeWithTz = toServerTimezone(formData.startDatetime)
+		const endDatetimeWithTz = toServerTimezone(formData.endDatetime)
+
 		await axios.put(generateUrl(`/apps/attendance/api/appointments/${formData.id}`), {
 			name: formData.name,
 			description: formData.description,
@@ -216,20 +216,6 @@ const deleteAppointment = async (appointmentId) => {
 }
 
 const editAppointment = (appointment) => {
-	const formatDateTimeForInput = (dateTime) => {
-		if (!dateTime) return ''
-		const date = new Date(dateTime)
-		if (isNaN(date.getTime())) return ''
-		
-		const year = date.getFullYear()
-		const month = String(date.getMonth() + 1).padStart(2, '0')
-		const day = String(date.getDate()).padStart(2, '0')
-		const hours = String(date.getHours()).padStart(2, '0')
-		const minutes = String(date.getMinutes()).padStart(2, '0')
-		
-		return `${year}-${month}-${day}T${hours}:${minutes}`
-	}
-	
 	const formattedStart = formatDateTimeForInput(appointment.startDatetime)
 	const formattedEnd = formatDateTimeForInput(appointment.endDatetime)
 

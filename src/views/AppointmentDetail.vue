@@ -39,11 +39,10 @@ import { NcButton } from '@nextcloud/vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
-import { fromZonedTime } from 'date-fns-tz'
-import ArrowLeftIcon from 'vue-material-design-icons/ArrowLeft.vue'
 import AppointmentCard from '../components/appointment/AppointmentCard.vue'
 import AppointmentFormModal from '../components/appointment/AppointmentFormModal.vue'
 import { usePermissions } from '../composables/usePermissions.js'
+import { formatDateTimeForInput, toServerTimezone } from '../utils/datetime.js'
 
 const props = defineProps({
 	appointmentId: {
@@ -81,20 +80,6 @@ const startCheckin = (appointmentId) => {
 }
 
 const editAppointment = (apt) => {
-	const formatDateTimeForInput = (dateTime) => {
-		if (!dateTime) return ''
-		const date = new Date(dateTime)
-		if (isNaN(date.getTime())) return ''
-		
-		const year = date.getFullYear()
-		const month = String(date.getMonth() + 1).padStart(2, '0')
-		const day = String(date.getDate()).padStart(2, '0')
-		const hours = String(date.getHours()).padStart(2, '0')
-		const minutes = String(date.getMinutes()).padStart(2, '0')
-		
-		return `${year}-${month}-${day}T${hours}:${minutes}`
-	}
-	
 	const formattedStart = formatDateTimeForInput(apt.startDatetime)
 	const formattedEnd = formatDateTimeForInput(apt.endDatetime)
 	
@@ -126,9 +111,9 @@ const handleModalClose = () => {
 
 const handleModalSubmit = async (formData) => {
 	try {
-		const startDatetimeWithTz = fromZonedTime(formData.startDatetime, 'Europe/Berlin')
-		const endDatetimeWithTz = fromZonedTime(formData.endDatetime, 'Europe/Berlin')
-		
+		const startDatetimeWithTz = toServerTimezone(formData.startDatetime)
+		const endDatetimeWithTz = toServerTimezone(formData.endDatetime)
+
 		await axios.put(generateUrl(`/apps/attendance/api/appointments/${formData.id}`), {
 			name: formData.name,
 			description: formData.description,
@@ -223,22 +208,8 @@ const updateComment = async (appointmentId, comment, silent = false) => {
 
 const loadAppointmentSilently = async () => {
 	try {
-		let response = await axios.get(generateUrl('/apps/attendance/api/appointments'), {
-			params: { showPastAppointments: false },
-		})
-		
-		let found = response.data.find(apt => apt.id === props.appointmentId)
-		
-		if (!found) {
-			response = await axios.get(generateUrl('/apps/attendance/api/appointments'), {
-				params: { showPastAppointments: true },
-			})
-			found = response.data.find(apt => apt.id === props.appointmentId)
-		}
-		
-		if (found) {
-			appointment.value = found
-		}
+		const response = await axios.get(generateUrl(`/apps/attendance/api/appointments/${props.appointmentId}`))
+		appointment.value = response.data
 	} catch (err) {
 		console.error('Failed to reload appointment silently:', err)
 	}
@@ -247,32 +218,17 @@ const loadAppointmentSilently = async () => {
 const loadAppointment = async () => {
 	loading.value = true
 	error.value = null
-	
+
 	try {
-		// Try loading from current appointments first
-		let response = await axios.get(generateUrl('/apps/attendance/api/appointments'), {
-			params: { showPastAppointments: false },
-		})
-		
-		let found = response.data.find(apt => apt.id === props.appointmentId)
-		
-		// If not found in current, try past appointments
-		if (!found) {
-			response = await axios.get(generateUrl('/apps/attendance/api/appointments'), {
-				params: { showPastAppointments: true },
-			})
-			found = response.data.find(apt => apt.id === props.appointmentId)
-		}
-		
-		if (!found) {
-			error.value = t('attendance', 'Appointment not found')
-			return
-		}
-		
-		appointment.value = found
+		const response = await axios.get(generateUrl(`/apps/attendance/api/appointments/${props.appointmentId}`))
+		appointment.value = response.data
 	} catch (err) {
 		console.error('Failed to load appointment:', err)
-		error.value = t('attendance', 'Error loading appointment')
+		if (err.response?.status === 404) {
+			error.value = t('attendance', 'Appointment not found')
+		} else {
+			error.value = t('attendance', 'Error loading appointment')
+		}
 	} finally {
 		loading.value = false
 	}
@@ -307,123 +263,10 @@ watch(() => props.appointmentId, async (newId, oldId) => {
 .error-state {
 	text-align: center;
 	padding: 40px;
-	
+
 	p {
 		color: var(--color-error);
 		margin-bottom: 20px;
-	}
-}
-
-.appointment-detail-header {
-	margin-bottom: 20px;
-}
-
-.appointment-card {
-	background: var(--color-main-background);
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius-large);
-	padding: 20px;
-	margin-bottom: 20px;
-}
-
-.appointment-header {
-	display: flex;
-	justify-content: space-between;
-	align-items: flex-start;
-	margin-bottom: 15px;
-
-	h2 {
-		margin: 0;
-		font-size: 24px;
-		color: var(--color-main-text);
-		flex: 1;
-	}
-
-	.appointment-actions {
-		margin-left: 10px;
-	}
-}
-
-.appointment-description {
-	color: var(--color-text-lighter);
-	margin-bottom: 15px;
-	white-space: pre-wrap;
-}
-
-.appointment-time {
-	padding: 10px;
-	background: var(--color-background-hover);
-	border-radius: var(--border-radius);
-	margin-bottom: 20px;
-	font-size: 14px;
-
-	strong {
-		color: var(--color-main-text);
-	}
-}
-
-.response-section {
-	border-top: 1px solid var(--color-border);
-	padding-top: 20px;
-	margin-top: 20px;
-
-	h4 {
-		margin: 0 0 10px 0;
-	}
-
-	.response-buttons {
-		display: flex;
-		gap: 10px;
-		margin-bottom: 15px;
-
-		// Apply colors to all buttons based on type attribute
-		:deep(button[type="success"]) {
-			background-color: var(--color-success) !important;
-			border-color: var(--color-success) !important;
-		}
-
-		:deep(button[type="warning"]) {
-			background-color: var(--color-warning) !important;
-			border-color: var(--color-warning) !important;
-		}
-
-		:deep(button[type="error"]) {
-			background-color: var(--color-error) !important;
-			border-color: var(--color-error) !important;
-		}
-
-		// When a response exists, gray out non-active buttons
-		&.has-response {
-			:deep(button:not(.active)) {
-				background-color: var(--color-background-dark) !important;
-				color: var(--color-text-lighter) !important;
-				border-color: var(--color-border-dark) !important;
-
-				&:hover {
-					background-color: var(--color-background-hover) !important;
-					color: var(--color-text) !important;
-				}
-			}
-		}
-
-		// Active button styles - keep bold
-		:deep(button.active) {
-			font-weight: bold;
-		}
-	}
-
-	.comment-section {
-		margin-top: 10px;
-	}
-}
-
-.response-summary {
-	border-top: 1px solid var(--color-border);
-	padding-top: 20px;
-	margin-top: 20px;
-
-	h4 {
-		margin: 0 0 15px 0;
 	}
 }
 </style>

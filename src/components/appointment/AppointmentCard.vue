@@ -108,6 +108,7 @@ import Pencil from 'vue-material-design-icons/Pencil.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
+import { formatDateTime } from '../../utils/datetime.js'
 
 const props = defineProps({
 	appointment: {
@@ -155,17 +156,6 @@ watch(() => props.appointment.userResponse, (newResponse) => {
 		localComment.value = newResponse?.comment || ''
 	}
 }, { immediate: true, deep: true })
-
-const formatDateTime = (dateTime) => {
-	const date = new Date(dateTime)
-	return date.toLocaleString('de-DE', {
-		day: '2-digit',
-		month: '2-digit',
-		year: '2-digit',
-		hour: '2-digit',
-		minute: '2-digit',
-	})
-}
 
 const copyShareLink = async () => {
 	const appointmentUrl = window.location.origin + generateUrl(`/apps/attendance/appointment/${props.appointment.id}`)

@@ -4,10 +4,13 @@ test.describe('Attendance App - Basic Navigation', () => {
 	test('should load the attendance app', async ({ page, loginAsUser, attendanceApp }) => {
 		// Login as admin
 		await loginAsUser('admin', 'admin')
-		
+
 		// Navigate to attendance app
 		await attendanceApp()
-		
+
+		// Wait for app to fully load
+		await page.waitForLoadState('networkidle')
+
 		// Verify the app loaded
 		await expect(page).toHaveTitle(/Attendance.*Nextcloud/)
 		

@@ -52,6 +52,20 @@ class AppointmentController extends Controller {
 	}
 
 	/**
+	 * Get minimal appointment data for navigation menu
+	 * @NoAdminRequired
+	 */
+	public function navigation(): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		$appointments = $this->appointmentService->getAppointmentsForNavigation($user->getUID());
+		return new DataResponse($appointments);
+	}
+
+	/**
 	 * @NoAdminRequired
 	 */
 	public function create(
@@ -129,6 +143,27 @@ class AppointmentController extends Controller {
 			return new DataResponse($appointment);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 400);
+		}
+	}
+
+	/**
+	 * Get a single appointment with user response
+	 * @NoAdminRequired
+	 */
+	public function show(int $id): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		try {
+			$appointment = $this->appointmentService->getAppointmentWithUserResponse($id, $user->getUID());
+			if ($appointment === null) {
+				return new DataResponse(['error' => 'Appointment not found or not visible'], 404);
+			}
+			return new DataResponse($appointment);
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => 'Appointment not found'], 404);
 		}
 	}
 
