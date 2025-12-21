@@ -46,12 +46,13 @@
 					:text="t('attendance', 'No')"
 					data-test="widget-response-no"
 					@click="$emit('respond', item.id, 'no')" />
-				<!-- Comment Toggle Button -->
+				<!-- Comment Toggle Button (only show when user has responded) -->
 				<NcButton
+					v-if="item.userResponse"
 					:class="{ 'comment-active': commentExpanded, 'comment-toggle': true }"
 					type="tertiary"
 					data-test="button-widget-toggle-comment"
-					@click="$emit('toggle-comment', item.id)">
+					@click="toggleComment">
 					<template #icon>
 						<CommentIcon :size="14" />
 					</template>
@@ -63,11 +64,10 @@
 				<div class="textarea-container">
 					<NcTextArea
 						resize="vertical"
-						:value="commentValue"
+						v-model="localComment"
 						:placeholder="t('attendance', 'Comment (optional)')"
 						data-test="widget-response-comment"
-						@update:value="$emit('update:commentValue', $event)"
-						@input="$emit('comment-input', item.id)" />
+						@input="handleCommentInput" />
 
 					<div v-if="saving" class="saving-spinner">
 						<div class="spinner"></div>
@@ -85,8 +85,11 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { NcButton, NcTextArea } from '@nextcloud/vue'
+import { generateUrl } from '@nextcloud/router'
+import { showError } from '@nextcloud/dialogs'
+import axios from '@nextcloud/axios'
 import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
 import CommentIcon from 'vue-material-design-icons/Comment.vue'
@@ -98,33 +101,83 @@ const props = defineProps({
 		type: Object,
 		required: true,
 	},
-	commentExpanded: {
-		type: Boolean,
-		default: false,
-	},
-	commentValue: {
-		type: String,
-		default: '',
-	},
-	saving: {
-		type: Boolean,
-		default: false,
-	},
-	saved: {
-		type: Boolean,
-		default: false,
-	},
-	error: {
-		type: Boolean,
-		default: false,
-	},
 	showCheckinButton: {
 		type: Boolean,
 		default: false,
 	},
 })
 
-defineEmits(['respond', 'toggle-comment', 'comment-input', 'update:commentValue', 'open-checkin', 'open-detail'])
+const emit = defineEmits(['respond', 'open-checkin', 'open-detail'])
+
+// Local state for comment
+const commentExpanded = ref(false)
+const localComment = ref(props.item.userResponse?.comment || '')
+const saving = ref(false)
+const saved = ref(false)
+const error = ref(false)
+let commentTimeout = null
+
+// Watch for external changes to userResponse
+watch(() => props.item.userResponse, (newResponse) => {
+	if (!commentTimeout) {
+		localComment.value = newResponse?.comment || ''
+	}
+}, { deep: true })
+
+const toggleComment = () => {
+	commentExpanded.value = !commentExpanded.value
+}
+
+const handleCommentInput = () => {
+	if (commentTimeout) {
+		clearTimeout(commentTimeout)
+	}
+
+	commentTimeout = setTimeout(() => {
+		autoSaveComment()
+		commentTimeout = null
+	}, 500)
+}
+
+const autoSaveComment = async () => {
+	const userResponse = props.item.userResponse
+	if (!userResponse) return
+
+	saving.value = true
+	saved.value = false
+	error.value = false
+
+	try {
+		const url = generateUrl('/apps/attendance/api/appointments/{id}/respond', { id: props.item.id })
+		const response = await axios.post(url, {
+			response: userResponse.response,
+			comment: localComment.value,
+		})
+
+		if (response.status < 200 || response.status >= 300) {
+			throw new Error(`API returned status ${response.status}`)
+		}
+
+		setTimeout(() => {
+			saving.value = false
+			saved.value = true
+
+			setTimeout(() => {
+				saved.value = false
+			}, 2000)
+		}, 500)
+	} catch (err) {
+		console.error('Failed to save comment:', err)
+		saving.value = false
+		error.value = true
+		const t = window.t || ((app, text) => text)
+		showError(t('attendance', 'Comment could not be saved'))
+
+		setTimeout(() => {
+			error.value = false
+		}, 3000)
+	}
+}
 
 const formattedDate = computed(() => {
 	return formatDateTime(props.item.subText)

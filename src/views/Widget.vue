@@ -15,16 +15,8 @@
 			<template #default="{ item }">
 				<WidgetAppointmentItem
 					:item="item"
-					:comment-expanded="commentExpanded[item.id]"
-					:comment-value="responseComments[item.id] || ''"
-					:saving="savingComments[item.id]"
-					:saved="savedComments[item.id]"
-					:error="errorComments[item.id]"
 					:show-checkin-button="showCheckinButton(item)"
 					@respond="respond"
-					@toggle-comment="toggleComment"
-					@comment-input="onCommentInput"
-					@update:comment-value="updateCommentValue(item.id, $event)"
 					@open-checkin="openCheckinView"
 					@open-detail="openAppointmentDetail" />
 			</template>
@@ -44,7 +36,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import { NcDashboardWidget, NcEmptyContent, NcButton } from '@nextcloud/vue'
 import { generateUrl } from '@nextcloud/router'
@@ -84,12 +76,6 @@ try {
 const appointments = ref(initialAppointments)
 const state = ref(initialState)
 const ncVersion = ref(ncVersionState)
-const responseComments = reactive({})
-const savingComments = reactive({})
-const savedComments = reactive({})
-const errorComments = reactive({})
-const commentTimeouts = reactive({})
-const commentExpanded = reactive({})
 
 const { permissions, loadPermissions } = usePermissions()
 
@@ -132,64 +118,6 @@ const submitResponseToServer = async (appointmentId, response, commentText) => {
 		appointments.value[appointmentIndex].userResponse = {
 			response,
 			comment: commentText,
-		}
-	}
-}
-
-const toggleComment = (appointmentId) => {
-	const isExpanding = !commentExpanded[appointmentId]
-	commentExpanded[appointmentId] = isExpanding
-
-	if (isExpanding && !(appointmentId in responseComments)) {
-		const appointment = appointments.value.find(a => a.id === appointmentId)
-		responseComments[appointmentId] = appointment?.userResponse?.comment || ''
-	}
-}
-
-const updateCommentValue = (appointmentId, value) => {
-	responseComments[appointmentId] = value
-}
-
-const onCommentInput = (appointmentId) => {
-	if (commentTimeouts[appointmentId]) {
-		clearTimeout(commentTimeouts[appointmentId])
-	}
-
-	commentTimeouts[appointmentId] = setTimeout(async () => {
-		await nextTick()
-		const value = responseComments[appointmentId]
-		autoSaveComment(appointmentId, value)
-	}, 500)
-}
-
-const autoSaveComment = async (appointmentId, commentText) => {
-	const t = window.t || ((app, text) => text)
-	const appointment = appointments.value.find(a => a.id === appointmentId)
-
-	if (appointment && appointment.userResponse) {
-		savingComments[appointmentId] = true
-		savedComments[appointmentId] = false
-		errorComments[appointmentId] = false
-
-		try {
-			await submitResponseToServer(appointmentId, appointment.userResponse.response, commentText)
-
-			setTimeout(() => {
-				savingComments[appointmentId] = false
-				savedComments[appointmentId] = true
-
-				setTimeout(() => {
-					savedComments[appointmentId] = false
-				}, 2000)
-			}, 500)
-		} catch (error) {
-			savingComments[appointmentId] = false
-			errorComments[appointmentId] = true
-			showError(t('attendance', 'Comment could not be saved'))
-
-			setTimeout(() => {
-				errorComments[appointmentId] = false
-			}, 3000)
 		}
 	}
 }
