@@ -150,6 +150,12 @@ OC.L10N.register(
         "Visible to": "Sichtbar für",
         "Leave empty to show appointment to all users": "Leer lassen, um den Termin allen Benutzern anzuzeigen",
         "Search users or groups...": "Benutzer oder Gruppen suchen...",
+        "Response Summary Groups": "Gruppen für Antwortübersicht",
+        "Select which groups to include in response summaries. Users outside these groups will appear under Others. Leave empty to include all groups.": "Wähle aus, welche Gruppen in der Antwortübersicht angezeigt werden. Nutzer außerhalb dieser Gruppen erscheinen unter Andere. Leer lassen, um alle Gruppen einzubeziehen.",
+        "Restrict Access": "Zugriff einschränken",
+        "Controls who can see and respond to this appointment. Leave empty to allow all users.": "Legt fest, wer diesen Termin sehen und darauf antworten kann. Leer lassen, um allen Nutzern Zugriff zu gewähren.",
+        "Some selections are not in the Response Summary Groups and may therefore appear under \"Others\".": "Einige Auswahlen sind nicht in den Gruppen für Antwortübersicht und können daher unter \"Andere\" erscheinen.",
+        "Configure in Admin Settings": "In Admineinstellungen konfigurieren",
     },
     "nplurals=2; plural=(n != 1);"
 );

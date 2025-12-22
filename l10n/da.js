@@ -150,6 +150,12 @@ OC.L10N.register(
         "Visible to": "Synlig for",
         "Leave empty to show appointment to all users": "Lad stå tomt for at vise aftalen til alle brugere",
         "Search users or groups...": "Søg brugere eller grupper...",
+        "Response Summary Groups": "Grupper til svaroversigt",
+        "Select which groups to include in response summaries. Users outside these groups will appear under Others. Leave empty to include all groups.": "Vælg hvilke grupper der skal vises i svaroversigten. Brugere uden for disse grupper vises under Andre. Efterlad tomt for at inkludere alle grupper.",
+        "Restrict Access": "Begræns adgang",
+        "Controls who can see and respond to this appointment. Leave empty to allow all users.": "Styrer hvem der kan se og svare på denne aftale. Efterlad tomt for at tillade alle brugere.",
+        "Some selections are not in the Response Summary Groups and may therefore appear under \"Others\".": "Nogle valg er ikke i svaroversigt-grupperne og kan derfor blive vist under \"Andre\".",
+        "Configure in Admin Settings": "Konfigurer i adminindstillinger",
     },
     "nplurals=2; plural=(n != 1);"
 );

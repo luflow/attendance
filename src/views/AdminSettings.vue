@@ -10,8 +10,9 @@
 		</div>
 
 		<template v-else>
-			<NcSettingsSection :name="t('attendance', 'Whitelisted Groups')"
-				:description="t('attendance', 'Select user groups that should be included in attendance statistics and check-in list filters. If no groups are selected, all groups are included.')">
+			<NcSettingsSection :name="t('attendance', 'Response Summary Groups')"
+				:description="t('attendance', 'Select which groups to include in response summaries. Users outside these groups will appear under Others. Leave empty to include all groups.')"
+				data-test="section-tracking-groups">
 				<NcSelect
 					v-model="selectedGroups"
 					:options="availableGroups"
