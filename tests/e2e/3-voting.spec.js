@@ -53,26 +53,45 @@ test.describe('Attendance App - Dashboard Widget Voting', () => {
 	test('should add comment on appointment from dashboard', async ({ page }) => {
 		await page.goto('/apps/dashboard/')
 		await page.waitForLoadState('networkidle')
-		
+
 		// Find the Attendance widget
 		const widget = page.locator('.appointment-widget-container').or(page.getByRole('heading', { name: 'Attendance' }).locator('..'))
-		
+
 		// Click Yes first (comment section appears after voting)
 		const yesButton = widget.getByRole('button', { name: 'Yes', exact: true }).first()
 		await yesButton.click()
 		await page.waitForLoadState('networkidle')
-		
+
 		// Click comment toggle button using data-test attribute
 		const commentToggle = widget.locator('[data-test="button-widget-toggle-comment"]').first()
 		await commentToggle.click()
-		
+
 		// Wait for comment textarea to appear
 		const commentField = widget.locator('[data-test="widget-response-comment"]').first()
 		await expect(commentField).toBeVisible({ timeout: 5000 })
-		await commentField.fill('Great meeting, looking forward to it!')
-		
-		// Wait for auto-save
+		const commentText = 'Great meeting, looking forward to it!'
+		await commentField.fill(commentText)
+
+		// Wait for auto-save to complete (500ms debounce + API call)
+		// The saved indicator (checkmark icon) appears when save is successful
+		const savedIndicator = widget.locator('.saved-indicator').first()
+		await expect(savedIndicator).toBeVisible({ timeout: 5000 })
+
+		// Reload the page to verify persistence
+		await page.reload()
 		await page.waitForLoadState('networkidle')
+
+		// Find the widget again after reload
+		const reloadedWidget = page.locator('.appointment-widget-container').or(page.getByRole('heading', { name: 'Attendance' }).locator('..'))
+
+		// Click comment toggle button to show the comment field
+		const reloadedCommentToggle = reloadedWidget.locator('[data-test="button-widget-toggle-comment"]').first()
+		await reloadedCommentToggle.click()
+
+		// Verify the comment is still there after reload
+		const reloadedCommentField = reloadedWidget.locator('[data-test="widget-response-comment"]').first()
+		await expect(reloadedCommentField).toBeVisible({ timeout: 5000 })
+		await expect(reloadedCommentField).toHaveValue(commentText)
 	})
 
 	test('should open detail view by clicking appointment title', async ({ page }) => {

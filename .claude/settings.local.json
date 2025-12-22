@@ -8,7 +8,9 @@
       "mcp__playwright-test__browser_close",
       "mcp__playwright-test__browser_navigate",
       "Bash(npm run build:*)",
-      "Bash(php -l:*)"
+      "Bash(php -l:*)",
+      "Bash(npm run test:e2e:*)",
+      "Skill(sc:save)"
     ]
   },
   "enableAllProjectMcpServers": true,
