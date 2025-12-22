@@ -76,27 +76,68 @@ test.describe('Attendance App - Check-in Workflow', () => {
 	})
 
 	test('should add comment to check-in', async ({ page }) => {
+		// First, navigate to check-in view
+		const appointmentCard = page.locator('[data-test="appointment-card"]').first()
+
+		if (await appointmentCard.isVisible()) {
+			// Open actions menu
+			await appointmentCard.locator('[data-test="appointment-actions-menu"]').click()
+
+			// Click check-in if available
+			const checkinAction = page.locator('[data-test="action-start-checkin"]')
+			if (await checkinAction.isVisible()) {
+				await checkinAction.click()
+				await expect(page.locator('[data-test="checkin-view"]')).toBeVisible()
+			}
+		}
+
 		const checkinView = page.locator('[data-test="checkin-view"]')
-		
+
 		if (await checkinView.isVisible()) {
 			const userItem = page.locator('[data-test^="user-item-"]').first()
-			
+
 			if (await userItem.isVisible()) {
+				// Get user item data-test attribute to find it again after reload
+				const userItemTestId = await userItem.getAttribute('data-test')
+
 				// Click add comment button
 				await userItem.locator('[data-test="button-add-comment"]').click()
-				
+
 				// Wait for comment textarea to appear
 				const commentTextarea = page.locator('[data-test="textarea-checkin-comment"]')
 				await expect(commentTextarea).toBeVisible()
-				
+
 				// Fill in comment
-				await commentTextarea.fill('User arrived late')
-				
+				const commentText = 'User arrived late'
+				await commentTextarea.fill(commentText)
+
 				// Save comment
 				await page.locator('[data-test="button-save-comment"]').click()
-				
+
 				// Verify comment saved (textarea should close)
 				await expect(commentTextarea).not.toBeVisible()
+				await page.waitForLoadState('networkidle')
+
+				// Reload the page to verify persistence
+				await page.reload()
+				await page.waitForLoadState('networkidle')
+
+				// Navigate back to check-in view
+				const reloadedAppointmentCard = page.locator('[data-test="appointment-card"]').first()
+				await reloadedAppointmentCard.locator('[data-test="appointment-actions-menu"]').click()
+				await page.locator('[data-test="action-start-checkin"]').click()
+				await expect(page.locator('[data-test="checkin-view"]')).toBeVisible()
+
+				// Find the same user item again
+				const reloadedUserItem = page.locator(`[data-test="${userItemTestId}"]`)
+
+				// Click add comment button to open comment section
+				await reloadedUserItem.locator('[data-test="button-add-comment"]').click()
+
+				// Verify the comment is still there after reload
+				const reloadedCommentTextarea = page.locator('[data-test="textarea-checkin-comment"]')
+				await expect(reloadedCommentTextarea).toBeVisible()
+				await expect(reloadedCommentTextarea).toHaveValue(commentText)
 			}
 		}
 	})
