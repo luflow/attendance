@@ -39,8 +39,8 @@
 				</div>
 				
 				<div class="form-field">
-					<label>{{ t('attendance', 'Visible to') }}</label>
-					<p class="hint-text">{{ t('attendance', 'Leave empty to show appointment to all users') }}</p>
+					<label>{{ t('attendance', 'Restrict Access') }}</label>
+					<p class="hint-text">{{ t('attendance', 'Controls who can see and respond to this appointment. Leave empty to allow all users.') }}</p>
 					<NcSelect
 						v-model="visibilityItems"
 						:options="searchResults"
@@ -67,8 +67,12 @@
 							</span>
 						</template>
 					</NcSelect>
+					<NcNoteCard v-if="hasTrackingMismatch" type="warning" class="visibility-warning">
+						{{ t('attendance', 'Some selections are not in the Response Summary Groups and may therefore appear under "Others".') }}
+						<a :href="adminSettingsUrl" target="_blank">{{ t('attendance', 'Configure in Admin Settings') }}</a>
+					</NcNoteCard>
 				</div>
-				
+
 				<div class="form-actions">
 					<NcButton type="secondary" @click="handleClose" data-test="button-cancel">
 						{{ t('attendance', 'Cancel') }}
@@ -83,8 +87,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
-import { NcModal, NcButton, NcTextField, NcTextArea, NcSelect } from '@nextcloud/vue'
+import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { NcModal, NcButton, NcTextField, NcTextArea, NcSelect, NcNoteCard } from '@nextcloud/vue'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
@@ -117,6 +121,49 @@ const formData = reactive({
 const visibilityItems = ref([])
 const searchResults = ref([])
 const isSearching = ref(false)
+const trackingGroups = ref([])
+
+// Fetch tracking groups from admin settings
+const loadTrackingGroups = async () => {
+	try {
+		const response = await axios.get(
+			generateUrl('/apps/attendance/api/admin/settings')
+		)
+		if (response.data.success && response.data.whitelistedGroups) {
+			trackingGroups.value = response.data.whitelistedGroups
+		}
+	} catch (error) {
+		// If user doesn't have admin access, that's fine - they won't see the warning
+		console.debug('Could not load tracking groups (user may not be admin):', error)
+	}
+}
+
+// Check if selected visibility groups overlap with tracking groups
+const hasTrackingMismatch = computed(() => {
+	// No mismatch if no visibility restriction is set
+	if (formData.visibleGroups.length === 0 && formData.visibleUsers.length === 0) {
+		return false
+	}
+	// No mismatch if no tracking groups are configured (all groups are tracked)
+	if (trackingGroups.value.length === 0) {
+		return false
+	}
+	// Check if any selected group is in the tracking groups
+	const hasOverlappingGroup = formData.visibleGroups.some(
+		groupId => trackingGroups.value.includes(groupId)
+	)
+	// If only users are selected (no groups), responses will go to "Others" unless users are in tracking groups
+	// We can't easily check this, so show warning if no groups overlap
+	return !hasOverlappingGroup
+})
+
+const adminSettingsUrl = computed(() => {
+	return generateUrl('/settings/admin/attendance')
+})
+
+onMounted(() => {
+	loadTrackingGroups()
+})
 
 // Watch for changes to visibilityItems to update formData
 watch(visibilityItems, (selected) => {
@@ -378,8 +425,17 @@ const handleSubmit = () => {
 			color: var(--color-text-maxcontrast);
 			margin: 5px 0;
 		}
+
+		.visibility-warning {
+			margin-top: 8px;
+
+			a {
+				text-decoration: underline;
+				color: inherit;
+			}
+		}
 	}
-	
+
 	.form-actions {
 		display: flex;
 		justify-content: flex-end;
