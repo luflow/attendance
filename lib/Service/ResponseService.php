@@ -18,17 +18,20 @@ use OCP\IUserManager;
 class ResponseService {
 	private AppointmentMapper $appointmentMapper;
 	private AttendanceResponseMapper $responseMapper;
+	private VisibilityService $visibilityService;
 	private IGroupManager $groupManager;
 	private IUserManager $userManager;
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
 		AttendanceResponseMapper $responseMapper,
+		VisibilityService $visibilityService,
 		IGroupManager $groupManager,
 		IUserManager $userManager
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
+		$this->visibilityService = $visibilityService;
 		$this->groupManager = $groupManager;
 		$this->userManager = $userManager;
 	}
@@ -109,10 +112,16 @@ class ResponseService {
 	 * @return array List of responses with user details
 	 */
 	public function getAppointmentResponsesWithUsers(int $appointmentId): array {
+		$appointment = $this->appointmentMapper->find($appointmentId);
 		$responses = $this->responseMapper->findByAppointment($appointmentId);
 		$result = [];
 
 		foreach ($responses as $response) {
+			// Filter: Only include responses from users who can see this appointment
+			if (!$this->visibilityService->canUserSeeAppointment($appointment, $response->getUserId())) {
+				continue;
+			}
+
 			$user = $this->userManager->get($response->getUserId());
 			$responseData = $response->jsonSerialize();
 			$responseData['userName'] = $user ? $user->getDisplayName() : $response->getUserId();

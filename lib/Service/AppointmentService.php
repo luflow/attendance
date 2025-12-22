@@ -246,15 +246,20 @@ class AppointmentService {
 	 * Get all responses for an appointment with user details (admin only)
 	 */
 	public function getAppointmentResponsesWithUsers(int $appointmentId, string $requestingUserId): array {
-
+		$appointment = $this->appointmentMapper->find($appointmentId);
 		$responses = $this->responseMapper->findByAppointment($appointmentId);
 		$result = [];
 
 		foreach ($responses as $response) {
+			// Filter: Only include responses from users who can see this appointment
+			if (!$this->canUserSeeAppointment($appointment, $response->getUserId())) {
+				continue;
+			}
+
 			$user = $this->userManager->get($response->getUserId());
 			$responseData = $response->jsonSerialize();
 			$responseData['userName'] = $user ? $user->getDisplayName() : $response->getUserId();
-			
+
 			// Add user groups
 			if ($user) {
 				$userGroups = $this->groupManager->getUserGroups($user);
@@ -264,7 +269,7 @@ class AppointmentService {
 			} else {
 				$responseData['userGroups'] = [];
 			}
-			
+
 			$result[] = $responseData;
 		}
 
@@ -378,9 +383,15 @@ class AppointmentService {
 			// Get users in this group who haven't responded
 			$groupUsers = $this->groupManager->get($groupId)->getUsers();
 			$groupUserIds = array_map(function($user) { return $user->getUID(); }, $groupUsers);
-			$nonRespondedInGroup = array_diff($groupUserIds, $respondedUserIds);
+
+			// Filter to only users who can see this appointment
+			$visibleGroupUserIds = array_filter($groupUserIds, function ($userId) use ($appointment) {
+				return $this->canUserSeeAppointment($appointment, $userId);
+			});
+
+			$nonRespondedInGroup = array_diff($visibleGroupUserIds, $respondedUserIds);
 			$summary['by_group'][$groupId]['no_response'] += count($nonRespondedInGroup);
-			
+
 			// Add names and IDs of non-responding users
 			foreach ($nonRespondedInGroup as $userId) {
 				$user = $this->userManager->get($userId);
