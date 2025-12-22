@@ -6,6 +6,19 @@
 
 - Nightly changes here
 
+## 1.12.1 – 2024-12-22
+
+### Fixed
+
+- Appointment responses and non-responders now properly filtered based on visibility restrictions
+- Improved admin settings labels with visibility restriction warnings to clarify feature distinctions
+
+### Maintenance
+
+- Refactored comment handling in dashboard widget for better code organization
+- Simplified and centralized API calls to reduce repetition
+- Added e2e test for comment persistence verification
+
 ## 1.12.0 – 2024-12-20
 
 ### Added
