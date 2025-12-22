@@ -3,7 +3,7 @@
 		<!-- Normal view when not in comment mode -->
 		<template v-if="!showCommentInput">
 			<div class="user-info">
-				<NcAvatar :user="user.userId" :size="32" :show-user-status="false" />
+				<NcAvatar :user="user.userId" :size="80" :show-user-status="false" />
 				<div class="user-details">
 					<div class="user-name">{{ user.displayName }}</div>
 					<div class="response-row">
