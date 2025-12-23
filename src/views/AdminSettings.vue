@@ -21,8 +21,7 @@
 					:disabled="loading"
 					label="displayName"
 					track-by="id"
-					data-test="select-whitelisted-groups"
-					@input="onGroupSelectionChange" />
+					data-test="select-whitelisted-groups" />
 				<p class="hint-text">
 					{{ n('attendance', '%n group selected', '%n groups selected', selectedGroups.length, { n: selectedGroups.length }) }}
 				</p>
@@ -44,8 +43,7 @@
 						:disabled="loading"
 						label="displayName"
 						track-by="id"
-						data-test="select-manage-appointments-roles"
-						@input="onManageAppointmentsRolesChange" />
+						data-test="select-manage-appointments-roles" />
 					<p class="hint-text">
 						{{ n('attendance', '%n group selected', '%n groups selected', selectedManageAppointmentsRoles.length, { n: selectedManageAppointmentsRoles.length }) }}
 					</p>
@@ -64,8 +62,7 @@
 						:disabled="loading"
 						label="displayName"
 						track-by="id"
-						data-test="select-checkin-roles"
-						@input="onCheckinRolesChange" />
+						data-test="select-checkin-roles" />
 					<p class="hint-text">
 						{{ n('attendance', '%n group selected', '%n groups selected', selectedCheckinRoles.length, { n: selectedCheckinRoles.length }) }}
 					</p>
@@ -84,8 +81,7 @@
 						:disabled="loading"
 						label="displayName"
 						track-by="id"
-						data-test="select-see-response-overview-roles"
-						@input="onSeeResponseOverviewRolesChange" />
+						data-test="select-see-response-overview-roles" />
 					<p class="hint-text">
 						{{ n('attendance', '%n group selected', '%n groups selected', selectedSeeResponseOverviewRoles.length, { n: selectedSeeResponseOverviewRoles.length }) }}
 					</p>
@@ -104,8 +100,7 @@
 						:disabled="loading"
 						label="displayName"
 						track-by="id"
-						data-test="select-see-comments-roles"
-						@input="onSeeCommentsRolesChange" />
+						data-test="select-see-comments-roles" />
 					<p class="hint-text">
 						{{ n('attendance', '%n group selected', '%n groups selected', selectedSeeCommentsRoles.length, { n: selectedSeeCommentsRoles.length }) }}
 					</p>
@@ -247,33 +242,10 @@ const loadSettings = async () => {
 	}
 }
 
-const onGroupSelectionChange = (selected) => {
-	selectedGroups.value = selected || []
-}
-
-const onManageAppointmentsRolesChange = (selected) => {
-	selectedManageAppointmentsRoles.value = selected || []
-}
-
-const onCheckinRolesChange = (selected) => {
-	selectedCheckinRoles.value = selected || []
-}
-
-const onSeeResponseOverviewRolesChange = (selected) => {
-	selectedSeeResponseOverviewRoles.value = selected || []
-}
-
-const onSeeCommentsRolesChange = (selected) => {
-	selectedSeeCommentsRoles.value = selected || []
-}
-
 const saveSettings = async () => {
 	loading.value = true
 
 	try {
-		// Convert selected group objects to IDs for API
-		const selectedGroupIds = selectedGroups.value.map(group => group.id)
-		
 		const response = await axios.post(
 			generateUrl('/apps/attendance/api/admin/settings'),
 			{
