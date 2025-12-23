@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\Attendance\Controller;
 
 use OCA\Attendance\Service\AppointmentService;
+use OCA\Attendance\Service\CheckinService;
 use OCA\Attendance\Service\PermissionService;
 use OCA\Attendance\Service\ExportService;
 use OCP\AppFramework\Controller;
@@ -15,6 +16,7 @@ use OCP\IGroupManager;
 
 class AppointmentController extends Controller {
 	private AppointmentService $appointmentService;
+	private CheckinService $checkinService;
 	private PermissionService $permissionService;
 	private ExportService $exportService;
 	private IUserSession $userSession;
@@ -24,6 +26,7 @@ class AppointmentController extends Controller {
 		string $appName,
 		IRequest $request,
 		AppointmentService $appointmentService,
+		CheckinService $checkinService,
 		PermissionService $permissionService,
 		ExportService $exportService,
 		IUserSession $userSession,
@@ -31,6 +34,7 @@ class AppointmentController extends Controller {
 	) {
 		parent::__construct($appName, $request);
 		$this->appointmentService = $appointmentService;
+		$this->checkinService = $checkinService;
 		$this->permissionService = $permissionService;
 		$this->exportService = $exportService;
 		$this->userSession = $userSession;
@@ -279,7 +283,7 @@ class AppointmentController extends Controller {
 		$comment = $this->request->getParam('comment');
 
 		try {
-			$result = $this->appointmentService->checkinResponse(
+			$result = $this->checkinService->checkinResponse(
 				$appointmentId,
 				$targetUserId,
 				$response,
@@ -325,7 +329,7 @@ class AppointmentController extends Controller {
 		}
 
 		try {
-			$checkinData = $this->appointmentService->getCheckinData($id);
+			$checkinData = $this->checkinService->getCheckinData($id);
 			return new DataResponse($checkinData);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 400);
