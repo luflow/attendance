@@ -6,6 +6,22 @@
 
 - Nightly changes here
 
+## 1.13.0 – 2025-12-23
+
+### Added
+
+- Notification support for new appointments: Users now optionally receive a Nextcloud notification when a new appointment is created
+
+### Fixed
+
+- Export functionality now works reliably by fixing variable shadowing in ExportService
+- Select components in AdminSettings now work better also when searching for a group name with already selected groups
+- Avatar size increased in CheckinUserItem for better visibility of attendee images
+
+### Maintenance
+
+- Standardized translation file format with auto-generation support
+
 ## 1.12.1 – 2024-12-22
 
 ### Fixed
