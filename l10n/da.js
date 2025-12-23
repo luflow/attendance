@@ -1,3 +1,7 @@
+/**
+ * This file is auto-generated from translationfiles/da/attendance.po
+ * Do not edit directly - edit the .po file instead and run: npm run l10n:convert
+ */
 OC.L10N.register(
     "attendance",
     {
@@ -24,7 +28,6 @@ OC.L10N.register(
         "End Date & Time": "Slutdato og -tid",
         "Save": "Gem",
         "Cancel": "Annuller",
-        "Delete": "Slet",
         "Yes": "Ja",
         "No": "Nej",
         "Maybe": "Måske",
@@ -54,11 +57,10 @@ OC.L10N.register(
         "Send reminders this many days before the appointment (1-30 days)": "Send påmindelser dette antal dage før aftalen (1-30 dage)",
         "Reminder frequency (days)": "Påmindelsesfrekvens (dage)",
         "How often to remind users who haven't responded. Set to 0 to only remind once, or 1-30 to repeat reminders every N days.": "Hvor ofte brugere skal påmindes, hvis de ikke har svaret. Sæt til 0 for kun at minde én gang, eller 1-30 for at gentage påmindelser hver N. dag.",
-        "Whitelisted Groups": "Godkendte grupper",
-        "Select user groups that should be included in attendance statistics and check-in list filters. If no groups are selected, all groups are included.": "Vælg brugergrupper, der skal inkluderes i deltagelsesstatistikker og check-in listefiltre. Hvis ingen grupper er valgt, inkluderes alle grupper.",
+        "Whitelisted Groups": "Gruppebegrænsning",
+        "Select user groups that should be included in attendance statistics and check-in list filters. If no groups are selected, all groups are included.": "Vælg brugergrupper der skal inkluderes i deltagelsesstatistikker og check-in listefiltre. Hvis ingen grupper er valgt, inkluderes alle grupper.",
         "The Notifications app is not enabled. Please enable it to use appointment reminders.": "Notifications-appen er ikke aktiveret. Aktivér den for at bruge aftalepåmindelser.",
         "You can enable it in the Apps section of your Nextcloud settings.": "Du kan aktivere den i Apps-sektionen i dine Nextcloud-indstillinger.",
-        "Save": "Gem",
         "Select groups...": "Vælg grupper...",
         "%n group selected": "%n gruppe valgt",
         "%n groups selected": "%n grupper valgt",
@@ -90,8 +92,6 @@ OC.L10N.register(
         "Link copied to clipboard": "Link kopieret til udklipsholder",
         "Check-in:": "Check-in:",
         "Comment:": "Kommentar:",
-        "Save": "Gem",
-        "Cancel": "Annuller",
         "All": "Alle",
         "All Present": "Alle tilstede",
         "All Absent": "Alle fraværende",
@@ -112,8 +112,6 @@ OC.L10N.register(
         "Appointment deleted successfully": "Aftale slettet",
         "Response updated successfully": "Svar opdateret",
         "Are you sure you want to delete this appointment?": "Er du sikker på, at du vil slette denne aftale?",
-        "No Response": "Intet svar",
-        "Upcoming Appointments": "Kommende aftaler",
         "Past Appointments": "Tidligere aftaler",
         "Created by": "Oprettet af",
         "Created on": "Oprettet den",
@@ -127,17 +125,10 @@ OC.L10N.register(
         "Confirm": "Bekræft",
         "Attendance Settings": "Deltagelsesindstillinger",
         "Group Access Control": "Gruppeadgangskontrol",
-        "Loading settings...": "Indlæser indstillinger...",
-        "Whitelisted Groups": "Gruppebegrænsning",
-        "Select user groups that should be included in attendance statistics and check-in list filters. If no groups are selected, all groups are included.": "Vælg brugergrupper der skal inkluderes i deltagelsesstatistikker og check-in listefiltre. Hvis ingen grupper er valgt, inkluderes alle grupper.",
         "Groups": "Grupper",
-        "Select groups...": "Vælg grupper...",
-        "%n group selected": "%n gruppe valgt",
-        "%n groups selected": "%n grupper valgt",
         "Settings saved successfully": "Indstillinger gemt",
         "Failed to load settings": "Kunne ikke indlæse indstillinger",
         "Failed to save settings": "Kunne ikke gemme indstillinger",
-        "Start check-in": "Start check-in",
         "All attendees checked in": "Alle deltagere tjekket ind",
         "{count} attendees not yet checked in": "{count} deltagere endnu ikke tjekket ind",
         "Confirm Bulk Action": "Bekræft massehandling",
@@ -162,7 +153,7 @@ OC.L10N.register(
         "New appointment: %s on %s": "Ny aftale: %s den %s",
         "A new appointment has been created. Please respond soon.": "En ny aftale er oprettet. Svar venligst snart.",
         "Response missing: %s on %s": "Svar mangler: %s den %s",
-        "Please respond to the upcoming appointment!": "Venligst svar på den kommende aftale!",
+        "Please respond to the upcoming appointment!": "Venligst svar på den kommende aftale!"
     },
     "nplurals=2; plural=(n != 1);"
 );

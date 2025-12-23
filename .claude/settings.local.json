@@ -15,10 +15,11 @@
       "WebFetch(domain:nextcloud-vue-components.netlify.app)",
       "Bash(npm run lint:*)",
       "Bash(npx eslint:*)",
-      "Bash(npm run lint:fix:*)",
-      "Bash(npm run:*)",
+      "Bash(npm run lint:*)",
       "WebFetch(domain:docs.nextcloud.com)",
-      "WebFetch(domain:help.nextcloud.com)"
+      "WebFetch(domain:help.nextcloud.com)",
+      "Bash(mkdir:*)",
+      "Bash(docker logs:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

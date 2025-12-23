@@ -40,6 +40,8 @@ jobs:
               - 'package.json'
               - 'package-lock.json'
               - 'tsconfig.json'
+              - 'translationfiles/**'
+              - 'scripts/**'
               - '**.js'
               - '**.ts'
               - '**.vue'
