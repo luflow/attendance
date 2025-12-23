@@ -19,7 +19,8 @@
       "WebFetch(domain:docs.nextcloud.com)",
       "WebFetch(domain:help.nextcloud.com)",
       "Bash(mkdir:*)",
-      "Bash(docker logs:*)"
+      "Bash(docker logs:*)",
+      "Bash(git tag:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
