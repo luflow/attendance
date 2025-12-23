@@ -17,6 +17,15 @@ use OCP\Notification\IManager as INotificationManager;
 use Psr\Log\LoggerInterface;
 
 class ReminderJob extends TimedJob {
+	/** @var int Interval in seconds (24 hours) */
+	private const INTERVAL_DAILY = 86400;
+
+	/** @var int Default number of days before appointment to start reminding */
+	private const DEFAULT_REMINDER_DAYS = 7;
+
+	/** @var int Default reminder frequency (0 = remind once only) */
+	private const DEFAULT_REMINDER_FREQUENCY = 0;
+
 	private AppointmentMapper $appointmentMapper;
 	private AttendanceResponseMapper $responseMapper;
 	private ReminderLogMapper $reminderLogMapper;
@@ -38,7 +47,7 @@ class ReminderJob extends TimedJob {
 		LoggerInterface $logger
 	) {
 		parent::__construct($time);
-		
+
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
 		$this->reminderLogMapper = $reminderLogMapper;
@@ -48,8 +57,7 @@ class ReminderJob extends TimedJob {
 		$this->urlGenerator = $urlGenerator;
 		$this->logger = $logger;
 
-		// Run daily
-		$this->setInterval(24 * 60 * 60);
+		$this->setInterval(self::INTERVAL_DAILY);
 	}
 
 	protected function run($argument): void {
@@ -65,11 +73,11 @@ class ReminderJob extends TimedJob {
 		}
 
 		// Get reminder days setting (how far in advance to remind)
-		$reminderDays = (int)$this->config->getAppValue('attendance', 'reminder_days', '7');
+		$reminderDays = (int)$this->config->getAppValue('attendance', 'reminder_days', (string)self::DEFAULT_REMINDER_DAYS);
 		$this->logger->info('Reminder days configuration', ['days' => $reminderDays]);
 
 		// Get reminder frequency setting (how often to remind in days)
-		$reminderFrequency = (int)$this->config->getAppValue('attendance', 'reminder_frequency', '0');
+		$reminderFrequency = (int)$this->config->getAppValue('attendance', 'reminder_frequency', (string)self::DEFAULT_REMINDER_FREQUENCY);
 		$this->logger->info('Reminder frequency configuration', ['frequency_days' => $reminderFrequency]);
 
 		// Calculate date range: today until X days in the future
