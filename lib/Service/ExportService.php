@@ -59,7 +59,7 @@ class ExportService {
 	public function exportToOds(string $userId): array {
 		// Get all appointments
 		$appointments = $this->appointmentMapper->findAll('');
-		
+
 		if (empty($appointments)) {
 			throw new \Exception('No appointments found to export');
 		}
@@ -78,9 +78,9 @@ class ExportService {
 			$appointmentResponses[$appointment->getId()] = [];
 			
 			foreach ($responses as $response) {
-				$userId = $response->getUserId();
-				$allUserIds[$userId] = true;
-				$appointmentResponses[$appointment->getId()][$userId] = $response;
+				$respUserId = $response->getUserId();
+				$allUserIds[$respUserId] = true;
+				$appointmentResponses[$appointment->getId()][$respUserId] = $response;
 			}
 		}
 		
@@ -122,14 +122,14 @@ class ExportService {
 		
 		// Generate ODS content
 		$odsContent = $this->generateOdsContent($appointments, $users, $appointmentResponses);
-		
+
 		// Create the Attendance folder
 		try {
 			$userFolder = $this->rootFolder->getUserFolder($userId);
 		} catch (\Exception $e) {
 			throw new \Exception('Failed to get user folder: ' . $e->getMessage());
 		}
-		
+
 		try {
 			$attendanceFolder = $userFolder->get('Attendance');
 			if (!$attendanceFolder instanceof Folder) {
@@ -142,11 +142,11 @@ class ExportService {
 				throw new \Exception('Failed to create Attendance folder: ' . $e->getMessage());
 			}
 		}
-		
+
 		// Generate filename with timestamp
 		$timestamp = date('Y-m-d_His');
 		$filename = "attendance_export_{$timestamp}.ods";
-		
+
 		// Check if file exists, if so, delete it
 		if ($attendanceFolder->nodeExists($filename)) {
 			try {
@@ -156,7 +156,7 @@ class ExportService {
 				throw new \Exception('Failed to delete existing file: ' . $e->getMessage());
 			}
 		}
-		
+
 		// Create new file
 		try {
 			$file = $attendanceFolder->newFile($filename);
@@ -164,7 +164,7 @@ class ExportService {
 		} catch (\Exception $e) {
 			throw new \Exception('Failed to create export file: ' . $e->getMessage());
 		}
-		
+
 		return [
 			'path' => '/Attendance/' . $filename,
 			'filename' => $filename,
