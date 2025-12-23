@@ -121,36 +121,50 @@ class ReminderJob extends TimedJob {
 
 			// Get all responses for this appointment
 			$responses = $this->responseMapper->findByAppointment($appointment->getId());
-			$respondedUserIds = array_map(fn($response) => $response->getUserId(), $responses);
-		
+			$respondedUserIds = [];
+			foreach ($responses as $response) {
+				$respondedUserIds[$response->getUserId()] = true;
+			}
+
 			$this->logger->info('Responses found for appointment', [
 				'appointmentId' => $appointment->getId(),
 				'responseCount' => count($responses),
-				'respondedUsers' => $respondedUserIds,
+				'respondedUsers' => array_keys($respondedUserIds),
 			]);
+
+			// Batch fetch all reminder logs for this appointment (N+1 fix)
+			$allReminderLogs = $this->reminderLogMapper->findByAppointment($appointment->getId());
+			$latestReminderByUser = [];
+			foreach ($allReminderLogs as $log) {
+				$userId = $log->getUserId();
+				// Keep only the latest reminder per user (already sorted DESC by reminded_at)
+				if (!isset($latestReminderByUser[$userId])) {
+					$latestReminderByUser[$userId] = $log;
+				}
+			}
 
 			// Get all users from the system
 			$allUsers = $this->userManager->search('');
 			$this->logger->info('Total users in system', ['count' => count($allUsers)]);
-		
+
 			$skippedCount = 0;
-		
+
 			foreach ($allUsers as $user) {
 				$userId = $user->getUID();
-			
-				// Skip if user already responded
-				if (in_array($userId, $respondedUserIds)) {
+
+				// Skip if user already responded (O(1) lookup with hash map)
+				if (isset($respondedUserIds[$userId])) {
 					$skippedCount++;
 					$this->logger->debug('Skipping user - already responded', ['userId' => $userId]);
 					continue;
 				}
 
-				// Check if user was recently reminded
-				$lastReminder = $this->reminderLogMapper->findLatestForUser($appointment->getId(), $userId);
+				// Check if user was recently reminded (O(1) lookup from pre-fetched map)
+				$lastReminder = $latestReminderByUser[$userId] ?? null;
 				if ($lastReminder !== null && $reminderFrequency > 0) {
 					$lastReminderDate = new \DateTime($lastReminder->getRemindedAt());
 					$daysSinceReminder = (int)$today->diff($lastReminderDate)->days;
-					
+
 					if ($daysSinceReminder < $reminderFrequency) {
 						$skippedCount++;
 						$this->logger->debug('Skipping user - recently reminded', [
