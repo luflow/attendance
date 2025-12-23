@@ -35,10 +35,9 @@ class AppointmentMapper extends QBMapper {
 	}
 
 	/**
-	 * @param string $userId
 	 * @return array
 	 */
-	public function findAll(string $userId = ''): array {
+	public function findAll(): array {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')

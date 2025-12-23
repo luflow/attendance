@@ -58,7 +58,7 @@ class ExportService {
 	 */
 	public function exportToOds(string $userId): array {
 		// Get all appointments
-		$appointments = $this->appointmentMapper->findAll('');
+		$appointments = $this->appointmentMapper->findAll();
 
 		if (empty($appointments)) {
 			throw new \Exception('No appointments found to export');
