@@ -10,7 +10,11 @@
       "Bash(npm run build:*)",
       "Bash(php -l:*)",
       "Bash(npm run test:e2e:*)",
-      "Skill(sc:save)"
+      "Skill(sc:save)",
+      "WebSearch",
+      "WebFetch(domain:nextcloud-vue-components.netlify.app)",
+      "Bash(npm run lint:*)",
+      "Bash(npx eslint:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
