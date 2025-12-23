@@ -463,3 +463,6 @@ msgstr "Rückmeldung fehlt: %s am %s"
 msgid "Please respond to the upcoming appointment!"
 msgstr "Bitte gib eine Rückmeldung zum kommenden Termin!"
 
+msgid "Group"
+msgstr "Gruppe"
+
