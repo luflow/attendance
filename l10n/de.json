@@ -7,8 +7,13 @@
         "Group": "Gruppe",
         "Others": "Andere",
         "Unanswered": "Unbeantwortet",
-        "%s on %s": "%s am %s",
-        "Please respond to the upcoming appointment!": "Bitte gib eine Rückmeldung zum kommenden Termin!"
+        "Response missing: %s on %s": "Rückmeldung fehlt: %s am %s",
+        "Please respond to the upcoming appointment!": "Bitte gib eine Rückmeldung zum kommenden Termin!",
+        "Notification": "Benachrichtigung",
+        "Send notification": "Benachrichtigung senden",
+        "Notify users who can see this appointment about its creation": "Benutzer, die diesen Termin sehen können, über die Erstellung benachrichtigen",
+        "New appointment: %s on %s": "Neuer Termin: %s am %s",
+        "A new appointment has been created. Please respond soon.": "Ein neuer Termin wurde erstellt. Bitte antworte zeitnah."
     },
     "pluralForm": "nplurals=2; plural=(n != 1);"
 }

@@ -14,7 +14,11 @@
       "WebSearch",
       "WebFetch(domain:nextcloud-vue-components.netlify.app)",
       "Bash(npm run lint:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(npm run lint:fix:*)",
+      "Bash(npm run:*)",
+      "WebFetch(domain:docs.nextcloud.com)",
+      "WebFetch(domain:help.nextcloud.com)"
     ]
   },
   "enableAllProjectMcpServers": true,
