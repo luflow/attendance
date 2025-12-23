@@ -153,7 +153,8 @@ OC.L10N.register(
         "New appointment: %s on %s": "Neuer Termin: %s am %s",
         "A new appointment has been created. Please respond soon.": "Ein neuer Termin wurde erstellt. Bitte antworte zeitnah.",
         "Response missing: %s on %s": "Rückmeldung fehlt: %s am %s",
-        "Please respond to the upcoming appointment!": "Bitte gib eine Rückmeldung zum kommenden Termin!"
+        "Please respond to the upcoming appointment!": "Bitte gib eine Rückmeldung zum kommenden Termin!",
+        "Group": "Gruppe"
     },
     "nplurals=2; plural=(n != 1);"
 );

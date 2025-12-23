@@ -153,7 +153,8 @@ OC.L10N.register(
         "New appointment: %s on %s": "Ny aftale: %s den %s",
         "A new appointment has been created. Please respond soon.": "En ny aftale er oprettet. Svar venligst snart.",
         "Response missing: %s on %s": "Svar mangler: %s den %s",
-        "Please respond to the upcoming appointment!": "Venligst svar på den kommende aftale!"
+        "Please respond to the upcoming appointment!": "Venligst svar på den kommende aftale!",
+        "Group": "Gruppe"
     },
     "nplurals=2; plural=(n != 1);"
 );
