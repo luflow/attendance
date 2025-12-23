@@ -7,8 +7,13 @@
         "Group": "Gruppe",
         "Others": "Andre",
         "Unanswered": "Ubesvaret",
-        "%s on %s": "%s den %s",
-        "Please respond to the upcoming appointment!": "Venligst svar på den kommende aftale!"
+        "Response missing: %s on %s": "Svar mangler: %s den %s",
+        "Please respond to the upcoming appointment!": "Venligst svar på den kommende aftale!",
+        "Notification": "Besked",
+        "Send notification": "Send besked",
+        "Notify users who can see this appointment about its creation": "Giv besked til brugere, der kan se denne aftale, om at den er oprettet",
+        "New appointment: %s on %s": "Ny aftale: %s den %s",
+        "A new appointment has been created. Please respond soon.": "En ny aftale er oprettet. Svar venligst snart."
     },
     "pluralForm": "nplurals=2; plural=(n != 1);"
 }

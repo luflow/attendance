@@ -74,7 +74,8 @@ class AppointmentController extends Controller {
 		string $startDatetime,
 		string $endDatetime,
 		array $visibleUsers = [],
-		array $visibleGroups = []
+		array $visibleGroups = [],
+		bool $sendNotification = false
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -94,7 +95,8 @@ class AppointmentController extends Controller {
 				$endDatetime,
 				$user->getUID(),
 				$visibleUsers,
-				$visibleGroups
+				$visibleGroups,
+				$sendNotification
 			);
 			return new DataResponse($appointment);
 		} catch (\Exception $e) {

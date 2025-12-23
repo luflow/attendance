@@ -20,14 +20,16 @@ class AppointmentService {
 	private IUserManager $userManager;
 	private IConfig $config;
 	private PermissionService $permissionService;
+	private NotificationService $notificationService;
 
-	public function __construct(AppointmentMapper $appointmentMapper, AttendanceResponseMapper $responseMapper, IGroupManager $groupManager, IUserManager $userManager, IConfig $config, PermissionService $permissionService) {
+	public function __construct(AppointmentMapper $appointmentMapper, AttendanceResponseMapper $responseMapper, IGroupManager $groupManager, IUserManager $userManager, IConfig $config, PermissionService $permissionService, NotificationService $notificationService) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
 		$this->groupManager = $groupManager;
 		$this->userManager = $userManager;
 		$this->config = $config;
 		$this->permissionService = $permissionService;
+		$this->notificationService = $notificationService;
 	}
 
 	/**
@@ -65,7 +67,8 @@ class AppointmentService {
 		string $endDatetime,
 		string $createdBy,
 		array $visibleUsers = [],
-		array $visibleGroups = []
+		array $visibleGroups = [],
+		bool $sendNotification = false
 	): Appointment {
 
 		// Convert ISO 8601 datetime to MySQL format
@@ -81,12 +84,22 @@ class AppointmentService {
 		$appointment->setCreatedAt(date('Y-m-d H:i:s'));
 		$appointment->setUpdatedAt(date('Y-m-d H:i:s'));
 		$appointment->setIsActive(1);
-		
+
 		// Set visibility - store as JSON, empty array means visible to all
 		$appointment->setVisibleUsers(empty($visibleUsers) ? null : json_encode($visibleUsers));
 		$appointment->setVisibleGroups(empty($visibleGroups) ? null : json_encode($visibleGroups));
 
-		return $this->appointmentMapper->insert($appointment);
+		$appointment = $this->appointmentMapper->insert($appointment);
+
+		// Send notifications to affected users if requested
+		if ($sendNotification) {
+			$affectedUsers = $this->getAffectedUsers($appointment);
+			// Exclude the creator from notifications
+			$affectedUsers = array_filter($affectedUsers, fn($userId) => $userId !== $createdBy);
+			$this->notificationService->sendNewAppointmentNotifications($appointment, array_values($affectedUsers));
+		}
+
+		return $appointment;
 	}
 
 	/**
@@ -499,7 +512,7 @@ class AppointmentService {
 				'id' => $appointment->getId(),
 				'name' => $appointment->getName(),
 				'startDatetime' => $this->formatDatetimeToUtc($appointment->getStartDatetime()),
-				'userResponse' => $userResponse ? ['response' => $userResponse->getResponse()] : null,
+				'userResponse' => ($userResponse && $userResponse->getResponse() !== null) ? ['response' => $userResponse->getResponse()] : null,
 			];
 		}
 
@@ -515,7 +528,7 @@ class AppointmentService {
 				'id' => $appointment->getId(),
 				'name' => $appointment->getName(),
 				'startDatetime' => $this->formatDatetimeToUtc($appointment->getStartDatetime()),
-				'userResponse' => $userResponse ? ['response' => $userResponse->getResponse()] : null,
+				'userResponse' => ($userResponse && $userResponse->getResponse() !== null) ? ['response' => $userResponse->getResponse()] : null,
 			];
 		}
 
@@ -556,7 +569,8 @@ class AppointmentService {
 			}
 			
 			$appointmentData = $appointment->jsonSerialize();
-			$appointmentData['userResponse'] = $this->getUserResponse($appointment->getId(), $userId);
+			$userResponse = $this->getUserResponse($appointment->getId(), $userId);
+			$appointmentData['userResponse'] = ($userResponse && $userResponse->getResponse() !== null) ? $userResponse : null;
 			$appointmentData['responseSummary'] = $this->getResponseSummary($appointment->getId());
 			$result[] = $appointmentData;
 		}
@@ -583,7 +597,8 @@ class AppointmentService {
 			}
 
 			$appointmentData = $appointment->jsonSerialize();
-			$appointmentData['userResponse'] = $this->getUserResponse($appointment->getId(), $userId);
+			$userResponse = $this->getUserResponse($appointment->getId(), $userId);
+			$appointmentData['userResponse'] = ($userResponse && $userResponse->getResponse() !== null) ? $userResponse : null;
 			$result[] = $appointmentData;
 			$count++;
 		}
@@ -810,6 +825,66 @@ class AppointmentService {
 		}
 		
 		return false;
+	}
+
+	/**
+	 * Get all users who can see an appointment based on visibility settings
+	 * Used for sending notifications to affected users
+	 */
+	private function getAffectedUsers(Appointment $appointment): array {
+		$visibleUsers = $appointment->getVisibleUsers();
+		$visibleGroups = $appointment->getVisibleGroups();
+
+		// Decode JSON fields
+		$visibleUsersList = $visibleUsers ? json_decode($visibleUsers, true) : [];
+		$visibleGroupsList = $visibleGroups ? json_decode($visibleGroups, true) : [];
+
+		// If both are empty/null, appointment is visible to all users in whitelisted groups
+		if (empty($visibleUsersList) && empty($visibleGroupsList)) {
+			return $this->getAllWhitelistedUsers();
+		}
+
+		// Combine explicitly listed users + users from groups
+		$userIds = $visibleUsersList;
+		foreach ($visibleGroupsList as $groupId) {
+			$group = $this->groupManager->get($groupId);
+			if ($group) {
+				foreach ($group->getUsers() as $user) {
+					$userIds[] = $user->getUID();
+				}
+			}
+		}
+
+		return array_unique($userIds);
+	}
+
+	/**
+	 * Get all users in whitelisted groups
+	 * If no whitelist is configured, returns all users
+	 */
+	private function getAllWhitelistedUsers(): array {
+		$whitelistedGroups = $this->getWhitelistedGroups();
+		$userIds = [];
+
+		if (empty($whitelistedGroups)) {
+			// No whitelist configured - get all users
+			$allUsers = $this->userManager->search('');
+			foreach ($allUsers as $user) {
+				$userIds[] = $user->getUID();
+			}
+		} else {
+			// Get users from whitelisted groups
+			foreach ($whitelistedGroups as $groupId) {
+				$group = $this->groupManager->get($groupId);
+				if ($group) {
+					foreach ($group->getUsers() as $user) {
+						$userIds[] = $user->getUID();
+					}
+				}
+			}
+		}
+
+		return array_unique($userIds);
 	}
 
 	/**

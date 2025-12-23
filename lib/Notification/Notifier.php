@@ -41,9 +41,9 @@ class Notifier implements INotifier {
 				$parameters = $notification->getSubjectParameters();
 				$appointmentName = $parameters['name'] ?? 'Unknown';
 				$appointmentDate = $parameters['date'] ?? 'Unknown';
-				
+
 				$notification->setParsedSubject(
-					$l->t('%s on %s', [$appointmentName, $appointmentDate])
+					$l->t('Response missing: %s on %s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
 					$l->t('Please respond to the upcoming appointment!')
@@ -51,7 +51,24 @@ class Notifier implements INotifier {
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
 					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
 				));
-				
+
+				return $notification;
+
+			case 'appointment_created':
+				$parameters = $notification->getSubjectParameters();
+				$appointmentName = $parameters['name'] ?? 'Unknown';
+				$appointmentDate = $parameters['date'] ?? 'Unknown';
+
+				$notification->setParsedSubject(
+					$l->t('New appointment: %s on %s', [$appointmentName, $appointmentDate])
+				);
+				$notification->setParsedMessage(
+					$l->t('A new appointment has been created. Please respond soon.')
+				);
+				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
+					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
+				));
+
 				return $notification;
 
 			default:

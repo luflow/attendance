@@ -132,6 +132,7 @@
 		<AppointmentFormModal
 			:show="showCreateForm"
 			:appointment="null"
+			:notifications-app-enabled="notificationsAppEnabled"
 			@close="handleCreateModalClose"
 			@submit="handleCreateModalSubmit" />
 	</NcContent>
@@ -166,6 +167,7 @@ const appointmentDetailId = ref(null)
 const currentAppointments = ref([])
 const pastAppointments = ref([])
 const showCreateForm = ref(false)
+const notificationsAppEnabled = ref(false)
 
 // Use the shared permissions composable
 const { permissions, loadPermissions } = usePermissions()
@@ -222,6 +224,18 @@ const loadAppointments = async () => {
 	}
 }
 
+const loadNotificationsAppStatus = async () => {
+	try {
+		const response = await axios.get(generateUrl('/apps/attendance/api/admin/settings'))
+		if (response.data.success && response.data.reminders) {
+			notificationsAppEnabled.value = response.data.reminders.notificationsAppEnabled !== false
+		}
+	} catch (error) {
+		// If user doesn't have admin access, that's fine - notifications checkbox won't be shown
+		console.debug('Could not load notifications app status:', error)
+	}
+}
+
 const createNewAppointment = () => {
 	showCreateForm.value = true
 }
@@ -242,13 +256,14 @@ const handleCreateModalSubmit = async (formData) => {
 			endDatetime: endDatetimeWithTz,
 			visibleUsers: formData.visibleUsers || [],
 			visibleGroups: formData.visibleGroups || [],
+			sendNotification: formData.sendNotification || false,
 		})
-		
+
 		showSuccess(t('attendance', 'Appointment created successfully'))
 		handleCreateModalClose()
-		
+
 		await loadAppointments()
-		
+
 		// Navigate to the newly created appointment's detail view
 		if (response.data && response.data.id) {
 			navigateToAppointment(response.data.id)
@@ -340,6 +355,7 @@ watch(currentView, async (newView, oldView) => {
 onMounted(async () => {
 	checkRouting()
 	await loadPermissions()
+	await loadNotificationsAppStatus()
 
 	// Skip loading appointments only for checkin view (no navigation sidebar)
 	// All other views show navigation and need appointment data

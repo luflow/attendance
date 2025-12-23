@@ -14,7 +14,7 @@
 					:label="t('attendance', 'Description')"
 					:placeholder="t('attendance', 'You can use **bold** and *italic* formatting')"
 					data-test="input-appointment-description"
-					:rows="6" />
+					:rows="4" />
 				
 				<div class="form-field">
 					<label for="start-datetime">{{ t('attendance', 'Start Date & Time') }}</label>
@@ -38,9 +38,19 @@
 						required />
 				</div>
 				
+				<div v-if="props.notificationsAppEnabled && !isEdit" class="form-field">
+					<label>{{ t('attendance', 'Notification') }}</label>
+					<NcCheckboxRadioSwitch
+						v-model="sendNotification"
+						data-test="checkbox-send-notification">
+						{{ t('attendance', 'Send notification') }}
+					</NcCheckboxRadioSwitch>
+					<p class="hint-text">{{ t('attendance', 'Notify users who can see this appointment about its creation') }}</p>
+				</div>
+
 				<div class="form-field">
 					<label>{{ t('attendance', 'Restrict Access') }}</label>
-					<p class="hint-text">{{ t('attendance', 'Controls who can see and respond to this appointment. Leave empty to allow all users.') }}</p>
+					<p class="hint-text">{{ t('attendance', 'Limits who can see this appointment. Leave empty for all users.') }}</p>
 					<NcSelect
 						v-model="visibilityItems"
 						:options="searchResults"
@@ -88,7 +98,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue'
-import { NcModal, NcButton, NcTextField, NcTextArea, NcSelect, NcNoteCard } from '@nextcloud/vue'
+import { NcModal, NcButton, NcTextField, NcTextArea, NcSelect, NcNoteCard, NcCheckboxRadioSwitch } from '@nextcloud/vue'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
@@ -103,6 +113,10 @@ const props = defineProps({
 		type: Object,
 		default: null,
 	},
+	notificationsAppEnabled: {
+		type: Boolean,
+		default: false,
+	},
 })
 
 const emit = defineEmits(['close', 'submit'])
@@ -116,11 +130,13 @@ const formData = reactive({
 	endDatetime: '',
 	visibleUsers: [],
 	visibleGroups: [],
+	sendNotification: false,
 })
 
 const visibilityItems = ref([])
 const searchResults = ref([])
 const isSearching = ref(false)
+const sendNotification = ref(false)
 const trackingGroups = ref([])
 
 // Fetch tracking groups from admin settings
@@ -272,6 +288,7 @@ watch(() => props.appointment, async (newAppointment) => {
 		formData.endDatetime = ''
 		formData.visibleUsers = []
 		formData.visibleGroups = []
+		sendNotification.value = false
 		visibilityItems.value = []
 		searchResults.value = []
 	}
@@ -287,6 +304,7 @@ watch(() => props.show, (isShowing) => {
 		formData.endDatetime = ''
 		formData.visibleUsers = []
 		formData.visibleGroups = []
+		sendNotification.value = false
 		visibilityItems.value = []
 		searchResults.value = []
 	}
@@ -362,6 +380,7 @@ const handleSubmit = () => {
 		endDatetime: formData.endDatetime,
 		visibleUsers: formData.visibleUsers,
 		visibleGroups: formData.visibleGroups,
+		sendNotification: sendNotification.value,
 	})
 }
 </script>
@@ -374,8 +393,7 @@ const handleSubmit = () => {
 	overflow-y: auto;
 	
 	h2 {
-		margin-top: 0;
-		margin-bottom: 20px;
+		margin: 0 0 5px 0;
 	}
 	
 	form {
@@ -385,7 +403,7 @@ const handleSubmit = () => {
 		
 		// Override NcTextArea height
 		:deep(.textarea__main-wrapper) {
-			min-height: calc(var(--default-clickable-area) * 4);
+			min-height: calc(var(--default-clickable-area) * 2.8);
 		}
 	}
 	
@@ -423,7 +441,7 @@ const handleSubmit = () => {
 		.hint-text {
 			font-size: 12px;
 			color: var(--color-text-maxcontrast);
-			margin: 5px 0;
+			margin: 0 0 5px 0;
 		}
 
 		.visibility-warning {
@@ -450,7 +468,7 @@ const handleSubmit = () => {
 		
 		h2 {
 			font-size: 18px;
-			margin-bottom: 15px;
+			margin-bottom: 5px;
 		}
 		
 		form {

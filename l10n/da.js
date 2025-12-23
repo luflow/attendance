@@ -153,9 +153,16 @@ OC.L10N.register(
         "Response Summary Groups": "Grupper til svaroversigt",
         "Select which groups to include in response summaries. Users outside these groups will appear under Others. Leave empty to include all groups.": "Vælg hvilke grupper der skal vises i svaroversigten. Brugere uden for disse grupper vises under Andre. Efterlad tomt for at inkludere alle grupper.",
         "Restrict Access": "Begræns adgang",
-        "Controls who can see and respond to this appointment. Leave empty to allow all users.": "Styrer hvem der kan se og svare på denne aftale. Efterlad tomt for at tillade alle brugere.",
+        "Limits who can see this appointment. Leave empty for all users.": "Begrænser hvem der kan se denne aftale. Lad stå tomt for alle brugere.",
         "Some selections are not in the Response Summary Groups and may therefore appear under \"Others\".": "Nogle valg er ikke i svaroversigt-grupperne og kan derfor blive vist under \"Andre\".",
         "Configure in Admin Settings": "Konfigurer i adminindstillinger",
+        "Notification": "Besked",
+        "Send notification": "Send besked",
+        "Notify users who can see this appointment about its creation": "Giv besked til brugere, der kan se denne aftale, om at den er oprettet",
+        "New appointment: %s on %s": "Ny aftale: %s den %s",
+        "A new appointment has been created. Please respond soon.": "En ny aftale er oprettet. Svar venligst snart.",
+        "Response missing: %s on %s": "Svar mangler: %s den %s",
+        "Please respond to the upcoming appointment!": "Venligst svar på den kommende aftale!",
     },
     "nplurals=2; plural=(n != 1);"
 );
