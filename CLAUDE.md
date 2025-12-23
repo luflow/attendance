@@ -4,7 +4,7 @@
 
 ### Vue.js Frontend
 - Use Vue 3 Composition API (`<script setup>`)
-- All translations must be defined in `l10n/` files (for frontend only in de.js)
+- All translations must be defined in `translationfiles/` folder for all languages
 - **Always use English keys** for `t()` calls in Vue components, never German strings
 - Use and Import mainly Nextcloud components from `@nextcloud/vue`
 - Styling with CSS in `<style scoped>`
@@ -56,16 +56,18 @@
 
 ## Release Management
 - When I ask you to prepare a release, check if everything is commited
-- Then check all changes since last release (use git log --oneline)
-- Disable the app via occ command in the running docker container
-- Update version numbers in info.xml
-- Enable the app via occ command in the running docker container
+- Then check all changes since last release (use for example git log --oneline)
+- Disable the app via occ command in the running docker container (container name master-stable31-1)
+- Decide which version jump (fix, patch) based on the changes since last version to create and update version numbers in info.xml and package.json
+- Enable the app via occ command in the running docker container (container name master-stable31-1)
 - Write release notes in CHANGELOG.md
 - Ask me to review the release notes and version number afterwards
+- Create a new tag based on the version number
+- Push the tag to the remote repository
+- Create a new release on GitHub via GitHub MCP which triggers the release process and upload to nextcloud app store
 
 ## Avoid
 - No hardcoded admin checks - use PermissionService
 - No German strings in t() calls
-- Do NOT add translations to de.json, if the changes are only made in the frontend!
 - No direct database access without Mapper
 - No client-side file operations (use server-side Nextcloud APIs)
