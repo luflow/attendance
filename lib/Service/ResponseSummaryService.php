@@ -66,6 +66,9 @@ class ResponseSummaryService {
 		// Calculate total non-responding users
 		$this->calculateTotalNonResponding($appointment, $summary, $respondedUserIds, $cache);
 
+		// Filter out empty groups (can occur with visibility restrictions)
+		$summary['by_group'] = $this->filterEmptyGroups($summary['by_group']);
+
 		// Sort groups
 		$summary['by_group'] = $this->sortGroups($summary['by_group'], $cache['whitelistedGroups']);
 
@@ -356,6 +359,22 @@ class ResponseSummaryService {
 
 		$summary['no_response'] = count($nonRespondingUsers);
 		$summary['non_responding_users'] = $nonRespondingUsers;
+	}
+
+	/**
+	 * Filter out empty groups from the summary.
+	 *
+	 * When visibility settings restrict which users can see an appointment,
+	 * some whitelisted groups may end up with no target attendees.
+	 * This method removes those empty groups to clean up the response.
+	 */
+	private function filterEmptyGroups(array $byGroup): array {
+		return array_filter($byGroup, function (array $group): bool {
+			// A group is considered non-empty if it has any responses or non-responding users
+			$hasResponses = !empty($group['responses']);
+			$hasNonResponding = !empty($group['non_responding_users']);
+			return $hasResponses || $hasNonResponding;
+		});
 	}
 
 	/**
