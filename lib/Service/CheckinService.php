@@ -154,8 +154,9 @@ class CheckinService {
 		foreach ($allUsers as $user) {
 			$userId = $user->getUID();
 
-			// Filter: Only include users who can see this appointment
-			if (!$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
+			// Filter: Only include users who are target attendees for this appointment
+			// This excludes admins who can "see" all appointments but aren't actual attendees
+			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
 				continue;
 			}
 

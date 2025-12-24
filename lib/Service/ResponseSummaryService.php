@@ -50,7 +50,7 @@ class ResponseSummaryService {
 		$responses = $this->responseMapper->findByAppointment($appointmentId);
 
 		// Pre-fetch and cache data to avoid N+1 queries
-		$cache = $this->buildCache($responses);
+		$cache = $this->buildCache($appointment, $responses);
 
 		$summary = $this->initializeSummary();
 		$respondedUserIds = [];
@@ -74,8 +74,11 @@ class ResponseSummaryService {
 
 	/**
 	 * Build cache of users, groups, and settings to avoid N+1 queries.
+	 *
+	 * Optimized to only load relevant users based on appointment visibility
+	 * and whitelisted groups, avoiding loading ALL users in large instances.
 	 */
-	private function buildCache(array $responses): array {
+	private function buildCache(Appointment $appointment, array $responses): array {
 		// Cache whitelisted groups (called once instead of per-group)
 		$whitelistedGroups = $this->configService->getWhitelistedGroups();
 		$whitelistedGroupsLower = array_map('strtolower', $whitelistedGroups);
@@ -94,7 +97,7 @@ class ResponseSummaryService {
 			}
 		}
 
-		// Pre-fetch all whitelisted group objects and their users
+		// Pre-fetch whitelisted group objects and their users
 		$groupUsers = [];
 		if ($allowAllGroups) {
 			$allGroups = $this->groupManager->search('');
@@ -110,12 +113,16 @@ class ResponseSummaryService {
 			}
 		}
 
-		// Pre-fetch all system users for non-responding calculation
-		$allUsers = $this->userManager->search('');
+		// OPTIMIZATION: Only load relevant users based on appointment visibility
+		// instead of loading ALL users in the system
+		$relevantUsers = $this->visibilityService->getRelevantUsersForAppointment(
+			$appointment,
+			$whitelistedGroups
+		);
+
 		$allUsersMap = [];
 		$allUserGroups = [];
-		foreach ($allUsers as $user) {
-			$uid = $user->getUID();
+		foreach ($relevantUsers as $uid => $user) {
 			$allUsersMap[$uid] = $user;
 			if (!isset($userGroups[$uid])) {
 				$allUserGroups[$uid] = $this->groupManager->getUserGroups($user);
@@ -177,8 +184,9 @@ class ResponseSummaryService {
 	): void {
 		$userId = $response->getUserId();
 
-		// Filter: Only include responses from users who can see this appointment
-		if (!$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
+		// Filter: Only include responses from actual target attendees
+		// This excludes admins who can "see" all appointments but aren't actual attendees
+		if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
 			return;
 		}
 
@@ -288,8 +296,8 @@ class ResponseSummaryService {
 					continue;
 				}
 
-				// Filter to only users who can see this appointment
-				if (!$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
+				// Filter to only actual target attendees
+				if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
 					continue;
 				}
 
@@ -321,8 +329,8 @@ class ResponseSummaryService {
 				continue;
 			}
 
-			// Filter: Only include users who can see this appointment
-			if (!$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
+			// Filter: Only include actual target attendees
+			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
 				continue;
 			}
 
