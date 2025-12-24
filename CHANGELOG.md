@@ -6,6 +6,12 @@
 
 - Nightly changes here
 
+## 1.13.2 – 2025-12-24
+
+### Fixed
+
+- Empty groups no longer appear in response summaries when visibility restrictions filter out all users in a group
+
 ## 1.13.1 – 2025-12-24
 
 ### Fixed
