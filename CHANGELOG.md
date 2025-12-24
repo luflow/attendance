@@ -6,6 +6,17 @@
 
 - Nightly changes here
 
+## 1.13.1 – 2025-12-24
+
+### Fixed
+
+- Check-in lists now only show targeted users (users who should attend based on visibility settings) and no admin users additionally anymore
+
+### Maintenance
+
+- Performance optimizations
+- Better code organization
+
 ## 1.13.0 – 2025-12-23
 
 ### Added

@@ -62,6 +62,7 @@
 - Enable the app via occ command in the running docker container (container name master-stable31-1)
 - Write release notes in CHANGELOG.md
 - Ask me to review the release notes and version number afterwards
+- Commit everything you changed after my review WITHOUT claude co author in the commit
 - Create a new tag based on the version number
 - Push the tag to the remote repository
 - Create a new release on GitHub via GitHub MCP which triggers the release process and upload to nextcloud app store
