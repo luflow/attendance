@@ -40,6 +40,20 @@ class VisibilityService {
 			return true;
 		}
 
+		return $this->isUserTargetAttendee($appointment, $userId);
+	}
+
+	/**
+	 * Check if a user is a target attendee for an appointment.
+	 *
+	 * Unlike canUserSeeAppointment(), this does NOT include admin bypass.
+	 * Use this for check-in lists where you only want actual attendees.
+	 *
+	 * @param Appointment $appointment The appointment to check
+	 * @param string $userId The user ID to check
+	 * @return bool True if the user is a target attendee
+	 */
+	public function isUserTargetAttendee(Appointment $appointment, string $userId): bool {
 		$visibleUsers = $appointment->getVisibleUsers();
 		$visibleGroups = $appointment->getVisibleGroups();
 
@@ -87,22 +101,65 @@ class VisibilityService {
 	}
 
 	/**
-	 * Get all users who can see a specific appointment.
+	 * Get relevant users for an appointment efficiently.
+	 *
+	 * This method avoids loading ALL users in the system by:
+	 * - For restricted appointments: only loading users from visible_users and visible_groups
+	 * - For unrestricted appointments: loading users from specified whitelisted groups
 	 *
 	 * @param Appointment $appointment The appointment
-	 * @return array<\OCP\IUser> List of users who can see the appointment
+	 * @param array<string> $whitelistedGroups Groups to consider (from ConfigService)
+	 * @return array<string, \OCP\IUser> Map of userId => IUser for relevant users
 	 */
-	public function getUsersWhoCanSeeAppointment(Appointment $appointment): array {
-		$allUsers = $this->userManager->search('');
-		$visibleUsers = [];
+	public function getRelevantUsersForAppointment(Appointment $appointment, array $whitelistedGroups = []): array {
+		$settings = $this->getVisibilitySettings($appointment);
+		$relevantUsers = [];
 
-		foreach ($allUsers as $user) {
-			if ($this->canUserSeeAppointment($appointment, $user->getUID())) {
-				$visibleUsers[] = $user;
+		// Case 1: Appointment has restricted visibility
+		if ($this->hasRestrictedVisibility($appointment)) {
+			// Add explicitly visible users
+			foreach ($settings['users'] as $userId) {
+				$user = $this->userManager->get($userId);
+				if ($user) {
+					$relevantUsers[$userId] = $user;
+				}
 			}
+
+			// Add users from visible groups
+			foreach ($settings['groups'] as $groupId) {
+				$group = $this->groupManager->get($groupId);
+				if ($group) {
+					foreach ($group->getUsers() as $user) {
+						$relevantUsers[$user->getUID()] = $user;
+					}
+				}
+			}
+
+			return $relevantUsers;
 		}
 
-		return $visibleUsers;
+		// Case 2: Appointment is visible to all
+		// If whitelisted groups are configured, only load users from those groups
+		if (!empty($whitelistedGroups)) {
+			foreach ($whitelistedGroups as $groupId) {
+				$group = $this->groupManager->get($groupId);
+				if ($group) {
+					foreach ($group->getUsers() as $user) {
+						$relevantUsers[$user->getUID()] = $user;
+					}
+				}
+			}
+			return $relevantUsers;
+		}
+
+		// Case 3: No restrictions at all - must load all users
+		// This is unavoidable but should be rare in production (admins usually configure whitelisted groups)
+		$allUsers = $this->userManager->search('');
+		foreach ($allUsers as $user) {
+			$relevantUsers[$user->getUID()] = $user;
+		}
+
+		return $relevantUsers;
 	}
 
 	/**
