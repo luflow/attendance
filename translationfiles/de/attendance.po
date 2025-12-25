@@ -467,16 +467,16 @@ msgid "Group"
 msgstr "Gruppe"
 
 msgid "Calendar Subscription"
-msgstr "Kalender-Abonnement"
+msgstr "Kalender-Abo"
 
 msgid "Subscribe to your appointments in external calendar apps like Google Calendar, Apple Calendar, or Thunderbird."
 msgstr "Abonniere deine Termine in externen Kalender-Apps wie Google Kalender, Apple Kalender oder Thunderbird."
 
-msgid "Feed URL"
-msgstr "Feed-URL"
+msgid "Subscription URL"
+msgstr "Kalender-URL"
 
-msgid "iCal Feed URL"
-msgstr "iCal-Feed-URL"
+msgid "iCal Subscription URL"
+msgstr "iCal-Kalender-URL"
 
 msgid "Copy URL"
 msgstr "URL kopieren"
@@ -493,8 +493,8 @@ msgstr "Halte diese URL geheim! Jeder mit diesem Link kann deine Termine sehen."
 msgid "Regenerate URL"
 msgstr "URL neu generieren"
 
-msgid "Regenerate Feed URL?"
-msgstr "Feed-URL neu generieren?"
+msgid "Regenerate Subscription URL?"
+msgstr "Kalender-URL neu generieren?"
 
 msgid "This will invalidate your current calendar subscription URL. Any calendar apps using the old URL will need to be updated with the new URL."
 msgstr "Dadurch wird deine aktuelle Kalender-Abonnement-URL ungültig. Alle Kalender-Apps, die die alte URL verwenden, müssen mit der neuen URL aktualisiert werden."
@@ -508,14 +508,11 @@ msgstr "URL in Zwischenablage kopiert"
 msgid "Failed to copy URL"
 msgstr "Fehler beim Kopieren der URL"
 
-msgid "Feed URL regenerated successfully"
-msgstr "Feed-URL erfolgreich neu generiert"
+msgid "Subscription URL regenerated successfully"
+msgstr "Kalender-URL erfolgreich neu generiert"
 
-msgid "Failed to regenerate feed URL"
-msgstr "Fehler beim Neugenerieren der Feed-URL"
-
-msgid "Calendar Feed"
-msgstr "Kalender-Feed"
+msgid "Failed to regenerate subscription URL"
+msgstr "Fehler beim Neugenerieren der Kalender-URL"
 
 msgid "Attendance Appointments"
 msgstr "Anwesenheits-Termine"

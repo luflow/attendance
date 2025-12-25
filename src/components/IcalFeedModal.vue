@@ -13,7 +13,7 @@
 
 			<template v-else>
 				<div class="feed-url-section">
-					<label class="feed-url-label">{{ t('attendance', 'Feed URL') }}</label>
+					<label class="feed-url-label">{{ t('attendance', 'Subscription URL') }}</label>
 					<code class="feed-url-display" data-test="input-ical-feed-url">{{ feedUrl }}</code>
 					<NcButton type="secondary"
 						:aria-label="t('attendance', 'Copy URL')"
@@ -74,7 +74,7 @@
 
 		<!-- Regenerate confirmation dialog -->
 		<NcDialog :open="showRegenerateConfirm"
-			:name="t('attendance', 'Regenerate Feed URL?')"
+			:name="t('attendance', 'Regenerate Subscription URL?')"
 			@update:open="showRegenerateConfirm = false">
 			<p>{{ t('attendance', 'This will invalidate your current calendar subscription URL. Any calendar apps using the old URL will need to be updated with the new URL.') }}</p>
 			<template #actions>

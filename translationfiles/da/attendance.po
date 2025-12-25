@@ -472,11 +472,11 @@ msgstr "Kalenderabonnement"
 msgid "Subscribe to your appointments in external calendar apps like Google Calendar, Apple Calendar, or Thunderbird."
 msgstr "Abonner på dine aftaler i eksterne kalender-apps som Google Kalender, Apple Kalender eller Thunderbird."
 
-msgid "Feed URL"
-msgstr "Feed-URL"
+msgid "Subscription URL"
+msgstr "Abonnement-URL"
 
-msgid "iCal Feed URL"
-msgstr "iCal-feed-URL"
+msgid "iCal Subscription URL"
+msgstr "iCal-abonnement-URL"
 
 msgid "Copy URL"
 msgstr "Kopier URL"
@@ -493,8 +493,8 @@ msgstr "Hold denne URL hemmelig! Alle med dette link kan se dine aftaler."
 msgid "Regenerate URL"
 msgstr "Generer ny URL"
 
-msgid "Regenerate Feed URL?"
-msgstr "Generer ny feed-URL?"
+msgid "Regenerate Subscription URL?"
+msgstr "Generer ny abonnement-URL?"
 
 msgid "This will invalidate your current calendar subscription URL. Any calendar apps using the old URL will need to be updated with the new URL."
 msgstr "Dette vil ugyldiggøre din nuværende kalenderabonnement-URL. Alle kalender-apps, der bruger den gamle URL, skal opdateres med den nye URL."
@@ -508,14 +508,11 @@ msgstr "URL kopieret til udklipsholder"
 msgid "Failed to copy URL"
 msgstr "Kunne ikke kopiere URL"
 
-msgid "Feed URL regenerated successfully"
-msgstr "Feed-URL blev genereret succesfuldt"
+msgid "Subscription URL regenerated successfully"
+msgstr "Abonnement-URL blev genereret succesfuldt"
 
-msgid "Failed to regenerate feed URL"
-msgstr "Kunne ikke generere ny feed-URL"
-
-msgid "Calendar Feed"
-msgstr "Kalender-feed"
+msgid "Failed to regenerate subscription URL"
+msgstr "Kunne ikke generere ny abonnement-URL"
 
 msgid "Attendance Appointments"
 msgstr "Deltagelsesaftaler"
