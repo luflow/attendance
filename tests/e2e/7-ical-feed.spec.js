@@ -97,7 +97,7 @@ test.describe('Attendance App - iCal Feed', () => {
 		await page.locator('[data-test="button-regenerate-url"]').click()
 
 		// Confirmation dialog should appear
-		const confirmDialog = page.getByRole('dialog', { name: /regenerate feed url/i })
+		const confirmDialog = page.getByRole('dialog', { name: /regenerate subscription url/i })
 		await expect(confirmDialog).toBeVisible()
 
 		// Confirm regeneration (click the button inside the confirmation dialog)
@@ -132,7 +132,7 @@ test.describe('Attendance App - iCal Feed', () => {
 		await page.locator('[data-test="button-regenerate-url"]').click()
 
 		// Confirmation dialog should appear
-		await expect(page.getByRole('dialog', { name: /regenerate feed url/i })).toBeVisible()
+		await expect(page.getByRole('dialog', { name: /regenerate subscription url/i })).toBeVisible()
 
 		// Cancel regeneration
 		await page.getByRole('button', { name: /cancel/i }).click()
