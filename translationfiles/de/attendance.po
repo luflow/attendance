@@ -535,3 +535,12 @@ msgstr "Bitte antworte! Wir brauchen noch deine Rückmeldung."
 msgid "Me"
 msgstr "Ich"
 
+msgid "Quick subscribe"
+msgstr "Schnell abonnieren"
+
+msgid "Google Calendar"
+msgstr "Google Kalender"
+
+msgid "Apple Calendar"
+msgstr "Apple Kalender"
+
