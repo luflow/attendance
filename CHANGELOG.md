@@ -6,6 +6,16 @@
 
 - Nightly changes here
 
+## 1.15.1 – 2025-12-25
+
+### Fixed
+
+- iCal feed now properly syncs updates to Apple Calendar and other calendar apps
+  - Added LAST-MODIFIED and SEQUENCE properties to VEVENT for update detection
+  - DTSTAMP now reflects actual modification time instead of current time
+  - Response changes are now tracked and trigger calendar updates
+- Added URL property to iCal events for clickable link in calendar event details
+
 ## 1.15.0 – 2025-12-25
 
 ### Added

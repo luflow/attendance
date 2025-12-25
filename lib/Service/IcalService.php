@@ -237,15 +237,43 @@ class IcalService {
 		// Format dates
 		$startDt = new \DateTime($appointment->getStartDatetime(), new \DateTimeZone('UTC'));
 		$endDt = new \DateTime($appointment->getEndDatetime(), new \DateTimeZone('UTC'));
-		$now = new \DateTime('now', new \DateTimeZone('UTC'));
+		$createdDt = new \DateTime($appointment->getCreatedAt(), new \DateTimeZone('UTC'));
+		$updatedDt = new \DateTime($appointment->getUpdatedAt(), new \DateTimeZone('UTC'));
+
+		// Track the latest modification time (appointment or response)
+		$lastModifiedDt = $updatedDt;
+
+		// Calculate SEQUENCE: tracks revision count for calendar apps to detect changes
+		// 0 = base state, +1 for each type of change
+		$sequence = 0;
+
+		// +1 if appointment was modified after creation
+		if ($updatedDt > $createdDt) {
+			$sequence++;
+		}
+
+		// +1 if user has responded, and use respondedAt if it's newer
+		if ($response !== null && $response->getRespondedAt()) {
+			$sequence++;
+			$respondedDt = new \DateTime($response->getRespondedAt(), new \DateTimeZone('UTC'));
+			if ($respondedDt > $lastModifiedDt) {
+				$lastModifiedDt = $respondedDt;
+			}
+		}
+
+		// Build URL for direct access to appointment
+		$appointmentUrl = $this->urlGenerator->linkToRouteAbsolute('attendance.page.index') . '#/appointment/' . $appointment->getId();
 
 		$output = "BEGIN:VEVENT\r\n";
 		$output .= "UID:attendance-appointment-" . $appointment->getId() . "@" . $domain . "\r\n";
-		$output .= "DTSTAMP:" . $now->format('Ymd\THis\Z') . "\r\n";
+		$output .= "DTSTAMP:" . $lastModifiedDt->format('Ymd\THis\Z') . "\r\n";
+		$output .= "LAST-MODIFIED:" . $lastModifiedDt->format('Ymd\THis\Z') . "\r\n";
+		$output .= "SEQUENCE:" . $sequence . "\r\n";
 		$output .= "DTSTART:" . $startDt->format('Ymd\THis\Z') . "\r\n";
 		$output .= "DTEND:" . $endDt->format('Ymd\THis\Z') . "\r\n";
 		$output .= "SUMMARY:" . $this->escapeIcalText($summary) . "\r\n";
 		$output .= "DESCRIPTION:" . $this->escapeIcalText($description) . "\r\n";
+		$output .= "URL:" . $appointmentUrl . "\r\n";
 		$output .= "STATUS:" . $status . "\r\n";
 		$output .= "TRANSP:" . $transp . "\r\n";
 		$output .= "END:VEVENT\r\n";
