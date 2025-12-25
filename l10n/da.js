@@ -177,7 +177,10 @@ OC.L10N.register(
         "View or change your response": "Se eller ændr dit svar",
         "Not responded": "Ikke besvaret",
         "Please respond! We still need your answer.": "Venligst svar! Vi mangler stadig dit svar.",
-        "Me": "Mig"
+        "Me": "Mig",
+        "Quick subscribe": "Hurtig abonnering",
+        "Google Calendar": "Google Kalender",
+        "Apple Calendar": "Apple Kalender"
     },
     "nplurals=2; plural=(n != 1);"
 );

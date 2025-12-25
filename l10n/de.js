@@ -177,7 +177,10 @@ OC.L10N.register(
         "View or change your response": "Antwort anzeigen oder ändern",
         "Not responded": "Nicht beantwortet",
         "Please respond! We still need your answer.": "Bitte antworte! Wir brauchen noch deine Rückmeldung.",
-        "Me": "Ich"
+        "Me": "Ich",
+        "Quick subscribe": "Schnell abonnieren",
+        "Google Calendar": "Google Kalender",
+        "Apple Calendar": "Apple Kalender"
     },
     "nplurals=2; plural=(n != 1);"
 );

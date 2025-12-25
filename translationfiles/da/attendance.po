@@ -534,3 +534,12 @@ msgstr "Venligst svar! Vi mangler stadig dit svar."
 
 msgid "Me"
 msgstr "Mig"
+
+msgid "Quick subscribe"
+msgstr "Hurtig abonnering"
+
+msgid "Google Calendar"
+msgstr "Google Kalender"
+
+msgid "Apple Calendar"
+msgstr "Apple Kalender"

@@ -26,6 +26,29 @@
 					</NcButton>
 				</div>
 
+				<div class="quick-subscribe-section">
+					<label class="quick-subscribe-label">{{ t('attendance', 'Quick subscribe') }}</label>
+					<div class="quick-subscribe-buttons">
+						<NcButton type="secondary"
+							:href="googleCalendarUrl"
+							target="_blank"
+							data-test="button-google-calendar">
+							<template #icon>
+								<GoogleIcon :size="20" />
+							</template>
+							{{ t('attendance', 'Google Calendar') }}
+						</NcButton>
+						<NcButton type="secondary"
+							:href="webcalUrl"
+							data-test="button-apple-calendar">
+							<template #icon>
+								<AppleIcon :size="20" />
+							</template>
+							{{ t('attendance', 'Apple Calendar') }}
+						</NcButton>
+					</div>
+				</div>
+
 				<div v-if="lastUsedAt" class="last-used-info">
 					<span class="last-used-label">{{ t('attendance', 'Last accessed') }}:</span>
 					<span class="last-used-date">{{ formatDate(lastUsedAt) }}</span>
@@ -67,10 +90,12 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { NcDialog, NcButton, NcNoteCard, NcLoadingIcon } from '@nextcloud/vue'
 import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
 import Refresh from 'vue-material-design-icons/Refresh.vue'
+import GoogleIcon from 'vue-material-design-icons/Google.vue'
+import AppleIcon from 'vue-material-design-icons/Apple.vue'
 import { useIcalFeed } from '../composables/useIcalFeed.js'
 import { formatDateTime } from '../utils/datetime.js'
 
@@ -86,6 +111,18 @@ const emit = defineEmits(['close'])
 const showRegenerateConfirm = ref(false)
 
 const { feedUrl, lastUsedAt, loading, loadToken, regenerateToken, copyToClipboard } = useIcalFeed()
+
+// Convert https:// URL to webcal:// for Apple Calendar
+const webcalUrl = computed(() => {
+	if (!feedUrl.value) return ''
+	return feedUrl.value.replace(/^https?:\/\//, 'webcal://')
+})
+
+// Google Calendar subscription URL
+const googleCalendarUrl = computed(() => {
+	if (!webcalUrl.value) return ''
+	return `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcalUrl.value)}`
+})
 
 // Load token when modal opens
 watch(() => props.show, async (newValue) => {
@@ -161,6 +198,22 @@ const formatDate = (dateString) => {
 
 .last-used-label {
 	margin-right: 4px;
+}
+
+.quick-subscribe-section {
+	margin-bottom: 16px;
+}
+
+.quick-subscribe-label {
+	display: block;
+	margin-bottom: 8px;
+	font-weight: 600;
+}
+
+.quick-subscribe-buttons {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
 }
 
 .security-warning {
