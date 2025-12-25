@@ -6,6 +6,17 @@
 
 - Nightly changes here
 
+## 1.15.0 – 2025-12-25
+
+### Added
+
+- Quick subscribe buttons in iCal feed modal for one-click subscription to Google Calendar and Apple Calendar
+
+### Maintenance
+
+- E2E tests now compatible with Nextcloud 32
+- Refactored login helper for better test maintainability
+
 ## 1.14.0 – 2025-12-25
 
 ### Added
