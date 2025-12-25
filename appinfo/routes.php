@@ -39,5 +39,10 @@ return [
 
 		// Export
 		['name' => 'appointment#export', 'url' => '/api/export', 'verb' => 'POST'],
+
+		// iCal feed
+		['name' => 'ical#getToken', 'url' => '/api/ical/token', 'verb' => 'GET'],
+		['name' => 'ical#regenerateToken', 'url' => '/api/ical/token/regenerate', 'verb' => 'POST'],
+		['name' => 'ical#feed', 'url' => '/ical/{token}.ics', 'verb' => 'GET'],
 	]
 ];

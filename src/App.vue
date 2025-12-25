@@ -100,6 +100,14 @@
 						<DownloadIcon :size="20" />
 					</template>
 				</NcAppNavigationItem>
+				<NcAppNavigationItem
+					:name="t('attendance', 'Calendar Feed')"
+					data-test="button-calendar-feed"
+					@click.prevent="showIcalFeedModal = true">
+					<template #icon>
+						<CalendarSyncIcon :size="20" />
+					</template>
+				</NcAppNavigationItem>
 			</template>
 		</NcAppNavigation>
 
@@ -135,6 +143,11 @@
 			:notifications-app-enabled="notificationsAppEnabled"
 			@close="handleCreateModalClose"
 			@submit="handleCreateModalSubmit" />
+
+		<!-- iCal Feed Modal -->
+		<IcalFeedModal
+			:show="showIcalFeedModal"
+			@close="showIcalFeedModal = false" />
 	</NcContent>
 </template>
 
@@ -144,6 +157,7 @@ import CheckinView from './views/Checkin.vue'
 import AllAppointments from './views/AllAppointments.vue'
 import AppointmentDetail from './views/AppointmentDetail.vue'
 import AppointmentFormModal from './components/appointment/AppointmentFormModal.vue'
+import IcalFeedModal from './components/IcalFeedModal.vue'
 import { NcContent, NcAppNavigation, NcAppNavigationItem, NcAppContent } from '@nextcloud/vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -158,6 +172,7 @@ import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
 import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import DownloadIcon from 'vue-material-design-icons/Download.vue'
 import BellAlertIcon from 'vue-material-design-icons/BellAlert.vue'
+import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
 import { usePermissions } from './composables/usePermissions.js'
 import { formatDateTime, toServerTimezone } from './utils/datetime.js'
 
@@ -167,6 +182,7 @@ const appointmentDetailId = ref(null)
 const currentAppointments = ref([])
 const pastAppointments = ref([])
 const showCreateForm = ref(false)
+const showIcalFeedModal = ref(false)
 const notificationsAppEnabled = ref(false)
 
 // Use the shared permissions composable
