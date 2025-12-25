@@ -6,6 +6,12 @@
 
 - Nightly changes here
 
+## 1.15.2 – 2025-12-25
+
+### Added
+
+- Formal German translation (de_DE) with "Sie" form for professional environments
+
 ## 1.15.1 – 2025-12-25
 
 ### Fixed
