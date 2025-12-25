@@ -101,7 +101,7 @@
 					</template>
 				</NcAppNavigationItem>
 				<NcAppNavigationItem
-					:name="t('attendance', 'Calendar Feed')"
+					:name="t('attendance', 'Calendar Subscription')"
 					data-test="button-calendar-feed"
 					@click.prevent="showIcalFeedModal = true">
 					<template #icon>
