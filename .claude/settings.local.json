@@ -21,7 +21,8 @@
       "Bash(mkdir:*)",
       "Bash(docker logs:*)",
       "Bash(git tag:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(ls:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

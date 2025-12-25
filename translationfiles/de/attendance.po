@@ -466,3 +466,72 @@ msgstr "Bitte gib eine Rückmeldung zum kommenden Termin!"
 msgid "Group"
 msgstr "Gruppe"
 
+msgid "Calendar Subscription"
+msgstr "Kalender-Abonnement"
+
+msgid "Subscribe to your appointments in external calendar apps like Google Calendar, Apple Calendar, or Thunderbird."
+msgstr "Abonniere deine Termine in externen Kalender-Apps wie Google Kalender, Apple Kalender oder Thunderbird."
+
+msgid "Feed URL"
+msgstr "Feed-URL"
+
+msgid "iCal Feed URL"
+msgstr "iCal-Feed-URL"
+
+msgid "Copy URL"
+msgstr "URL kopieren"
+
+msgid "Copy"
+msgstr "Kopieren"
+
+msgid "Last accessed"
+msgstr "Zuletzt abgerufen"
+
+msgid "Keep this URL private! Anyone with this link can see your appointments."
+msgstr "Halte diese URL geheim! Jeder mit diesem Link kann deine Termine sehen."
+
+msgid "Regenerate URL"
+msgstr "URL neu generieren"
+
+msgid "Regenerate Feed URL?"
+msgstr "Feed-URL neu generieren?"
+
+msgid "This will invalidate your current calendar subscription URL. Any calendar apps using the old URL will need to be updated with the new URL."
+msgstr "Dadurch wird deine aktuelle Kalender-Abonnement-URL ungültig. Alle Kalender-Apps, die die alte URL verwenden, müssen mit der neuen URL aktualisiert werden."
+
+msgid "Regenerate"
+msgstr "Neu generieren"
+
+msgid "URL copied to clipboard"
+msgstr "URL in Zwischenablage kopiert"
+
+msgid "Failed to copy URL"
+msgstr "Fehler beim Kopieren der URL"
+
+msgid "Feed URL regenerated successfully"
+msgstr "Feed-URL erfolgreich neu generiert"
+
+msgid "Failed to regenerate feed URL"
+msgstr "Fehler beim Neugenerieren der Feed-URL"
+
+msgid "Calendar Feed"
+msgstr "Kalender-Feed"
+
+msgid "Attendance Appointments"
+msgstr "Anwesenheits-Termine"
+
+msgid "Your response"
+msgstr "Deine Antwort"
+
+msgid "View or change your response"
+msgstr "Antwort anzeigen oder ändern"
+
+msgid "Not responded"
+msgstr "Nicht beantwortet"
+
+msgid "Please respond! We still need your answer."
+msgstr "Bitte antworte! Wir brauchen noch deine Rückmeldung."
+
+msgid "Me"
+msgstr "Ich"
+
