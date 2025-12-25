@@ -6,6 +6,17 @@
 
 - Nightly changes here
 
+## 1.14.0 – 2025-12-25
+
+### Added
+
+- iCal feed for subscribing to appointments in external calendar apps (Google Calendar, Apple Calendar, Thunderbird)
+  - Personal feed URL with secure token authentication
+  - Response status shown in event title (Me: Yes/No/Maybe/?)
+  - Link to view or change response in event description
+  - Regenerate URL option to invalidate compromised tokens
+  - Respects user's Nextcloud language preference for translations
+
 ## 1.13.2 – 2025-12-24
 
 ### Fixed
