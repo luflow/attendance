@@ -12,7 +12,7 @@ async function main() {
 		
 		// Start Nextcloud container (uses Docker)
 		// stable31 branch, mount current app
-		const ip = await startNextcloud('stable31', true, {
+		const ip = await startNextcloud('stable32', true, {
 			exposePort: 8080,
 			forceRecreate: true
 		})

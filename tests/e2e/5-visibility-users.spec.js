@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures/nextcloud.js'
+import { test, expect, login } from './fixtures/nextcloud.js'
 
 // Helper function to create an appointment with visibility settings
 async function createAppointmentWithVisibility(page, { name, description, daysFromNow = 2, durationHours = 1, visibleUsers = [] }) {
@@ -56,13 +56,8 @@ test.describe('Attendance App - User Visibility Filtering', () => {
 	test.beforeAll(async ({ browser }) => {
 		const page = await browser.newPage()
 
-		// Login as admin
-		await page.goto('/login')
-		await page.waitForLoadState('networkidle')
-		await page.getByRole('textbox', { name: 'Account name or email' }).fill('admin')
-		await page.getByRole('textbox', { name: 'Password' }).fill('admin')
-		await page.getByRole('button', { name: 'Log in' }).click()
-		await page.waitForURL('**/apps/dashboard/**')
+		// Login as admin using the shared login helper
+		await login(page, 'admin', 'admin')
 
 		// Go to admin settings
 		await page.goto('/settings/admin/attendance')
