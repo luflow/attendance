@@ -117,18 +117,20 @@
 			<CheckinView v-if="currentView === 'checkin'" :appointment-id="checkinAppointmentId" />
 			
 			<!-- Appointment Detail View -->
-			<AppointmentDetail 
-				v-else-if="currentView === 'appointment'" 
+			<AppointmentDetail
+				v-else-if="currentView === 'appointment'"
 				:appointment-id="appointmentDetailId"
-				@response-updated="loadAppointments" />
+				@response-updated="loadAppointments"
+				@copy-appointment="copyExistingAppointment" />
 			
 			<!-- All Appointments View -->
-			<AllAppointments 
-				v-else-if="currentView === 'current' || currentView === 'past' || currentView === 'unanswered'" 
+			<AllAppointments
+				v-else-if="currentView === 'current' || currentView === 'past' || currentView === 'unanswered'"
 				:show-past="currentView === 'past'"
-				:show-unanswered="currentView === 'unanswered'" 
+				:show-unanswered="currentView === 'unanswered'"
 				:key="currentView"
-				@response-updated="loadAppointments" />
+				@response-updated="loadAppointments"
+				@copy-appointment="copyExistingAppointment" />
 			
 			<!-- Loading state while routing is determined -->
 			<div v-else class="loading-state">
@@ -140,6 +142,7 @@
 		<AppointmentFormModal
 			:show="showCreateForm"
 			:appointment="null"
+			:copy-from="copyFromAppointment"
 			:notifications-app-enabled="notificationsAppEnabled"
 			@close="handleCreateModalClose"
 			@submit="handleCreateModalSubmit" />
@@ -184,6 +187,7 @@ const pastAppointments = ref([])
 const showCreateForm = ref(false)
 const showIcalFeedModal = ref(false)
 const notificationsAppEnabled = ref(false)
+const copyFromAppointment = ref(null)
 
 // Use the shared permissions composable
 const { permissions, loadPermissions } = usePermissions()
@@ -253,11 +257,18 @@ const loadNotificationsAppStatus = async () => {
 }
 
 const createNewAppointment = () => {
+	copyFromAppointment.value = null
+	showCreateForm.value = true
+}
+
+const copyExistingAppointment = (appointment) => {
+	copyFromAppointment.value = appointment
 	showCreateForm.value = true
 }
 
 const handleCreateModalClose = () => {
 	showCreateForm.value = false
+	copyFromAppointment.value = null
 }
 
 const handleCreateModalSubmit = async (formData) => {

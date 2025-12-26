@@ -22,6 +22,12 @@
 						</template>
 						{{ t('attendance', 'Edit') }}
 					</NcActionButton>
+					<NcActionButton v-if="canManageAppointments" @click="handleCopy" :close-after-click="true" data-test="action-copy">
+						<template #icon>
+							<ContentCopy :size="20" />
+						</template>
+						{{ t('attendance', 'Copy') }}
+					</NcActionButton>
 					<NcActionButton v-if="canManageAppointments" @click="handleDelete" :close-after-click="true" data-test="action-delete">
 						<template #icon>
 							<Delete :size="20" />
@@ -106,6 +112,7 @@ import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
 import ShareVariantIcon from 'vue-material-design-icons/ShareVariant.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
+import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
 import { formatDateTime } from '../../utils/datetime.js'
@@ -133,7 +140,7 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['start-checkin', 'edit', 'delete', 'submit-response', 'update-comment'])
+const emit = defineEmits(['start-checkin', 'edit', 'copy', 'delete', 'submit-response', 'update-comment'])
 
 const localComment = ref(props.appointment.userResponse?.comment || '')
 const savingComment = ref(false)
@@ -174,6 +181,10 @@ const handleStartCheckin = () => {
 
 const handleEdit = () => {
 	emit('edit', props.appointment)
+}
+
+const handleCopy = () => {
+	emit('copy', props.appointment)
 }
 
 const handleDelete = () => {

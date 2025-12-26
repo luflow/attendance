@@ -19,6 +19,7 @@
 				:can-see-comments="permissions.canSeeComments"
 				@start-checkin="startCheckin"
 				@edit="editAppointment"
+				@copy="copyAppointment"
 				@delete="deleteAppointment"
 				@submit-response="submitResponse"
 				@update-comment="updateComment" />
@@ -51,7 +52,7 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['response-updated'])
+const emit = defineEmits(['response-updated', 'copy-appointment'])
 
 const appointment = ref(null)
 const loading = ref(true)
@@ -82,7 +83,7 @@ const startCheckin = (appointmentId) => {
 const editAppointment = (apt) => {
 	const formattedStart = formatDateTimeForInput(apt.startDatetime)
 	const formattedEnd = formatDateTimeForInput(apt.endDatetime)
-	
+
 	Object.assign(editingAppointment, {
 		id: apt.id,
 		name: apt.name,
@@ -92,8 +93,12 @@ const editAppointment = (apt) => {
 		visibleUsers: apt.visibleUsers || [],
 		visibleGroups: apt.visibleGroups || [],
 	})
-	
+
 	showEditForm.value = true
+}
+
+const copyAppointment = (apt) => {
+	emit('copy-appointment', apt)
 }
 
 const handleModalClose = () => {
