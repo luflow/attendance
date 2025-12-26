@@ -1,7 +1,7 @@
 <template>
 	<NcModal v-if="show" @close="handleClose" data-test="appointment-form-modal">
 		<div class="modal-content">
-			<h2 data-test="form-title">{{ isEdit ? t('attendance', 'Edit Appointment') : t('attendance', 'Create Appointment') }}</h2>
+			<h2 data-test="form-title">{{ isEdit ? t('attendance', 'Edit Appointment') : (isCopy ? t('attendance', 'Copy Appointment') : t('attendance', 'Create Appointment')) }}</h2>
 			<form @submit.prevent="handleSubmit" data-test="appointment-form">
 				<NcTextField 
 					v-model="formData.name" 
@@ -113,6 +113,10 @@ const props = defineProps({
 		type: Object,
 		default: null,
 	},
+	copyFrom: {
+		type: Object,
+		default: null,
+	},
 	notificationsAppEnabled: {
 		type: Boolean,
 		default: false,
@@ -191,6 +195,7 @@ watch(visibilityItems, (selected) => {
 })
 
 const isEdit = computed(() => !!props.appointment)
+const isCopy = computed(() => !!props.copyFrom)
 
 const formatDateTimeForInput = (dateTime) => {
 	if (!dateTime) return ''
@@ -294,10 +299,87 @@ watch(() => props.appointment, async (newAppointment) => {
 	}
 }, { immediate: true })
 
+// Watch for copyFrom changes to pre-fill form with copied data
+watch(() => props.copyFrom, async (copySource) => {
+	if (copySource) {
+		// Pre-fill form with copied data (except dates per spec)
+		formData.name = copySource.name ? `${copySource.name} (${t('attendance', 'Copy')})` : ''
+		formData.description = copySource.description || ''
+		// Dates are intentionally left empty - user must set new dates
+		formData.startDatetime = ''
+		formData.endDatetime = ''
+
+		// Load visibility settings from copied appointment
+		const users = copySource.visibleUsers || []
+		const groups = copySource.visibleGroups || []
+		formData.visibleUsers = users
+		formData.visibleGroups = groups
+
+		// Convert to visibility items for NcSelect
+		const items = []
+		for (const userId of users) {
+			items.push({ id: `user:${userId}`, value: userId, label: userId, type: 'user' })
+		}
+		for (const groupId of groups) {
+			items.push({ id: `group:${groupId}`, value: groupId, label: groupId, type: 'group' })
+		}
+
+		searchResults.value = [...items]
+		visibilityItems.value = [...items]
+
+		// Optionally fetch display names in background
+		if (items.length > 0) {
+			try {
+				const updatedItems = []
+				for (const userId of users) {
+					const response = await axios.get(
+						generateUrl('/apps/attendance/api/search/users-groups'),
+						{ params: { search: userId } }
+					)
+					const found = response.data.find(item => item.id === userId && item.type === 'user')
+					if (found) {
+						updatedItems.push({
+							id: `user:${found.id}`,
+							value: found.id,
+							label: found.label,
+							type: 'user',
+						})
+					} else {
+						updatedItems.push({ id: `user:${userId}`, value: userId, label: userId, type: 'user' })
+					}
+				}
+				for (const groupId of groups) {
+					const response = await axios.get(
+						generateUrl('/apps/attendance/api/search/users-groups'),
+						{ params: { search: groupId } }
+					)
+					const found = response.data.find(item => item.id === groupId && item.type === 'group')
+					if (found) {
+						updatedItems.push({
+							id: `group:${found.id}`,
+							value: found.id,
+							label: found.label,
+							type: 'group',
+						})
+					} else {
+						updatedItems.push({ id: `group:${groupId}`, value: groupId, label: groupId, type: 'group' })
+					}
+				}
+				searchResults.value = [...updatedItems]
+				visibilityItems.value = [...updatedItems]
+			} catch (error) {
+				console.error('Failed to load user/group display names:', error)
+			}
+		}
+
+		sendNotification.value = false
+	}
+}, { immediate: true })
+
 // Reset form when modal opens in create mode
 watch(() => props.show, (isShowing) => {
-	if (isShowing && !props.appointment) {
-		// Modal opened in create mode - ensure form is reset
+	if (isShowing && !props.appointment && !props.copyFrom) {
+		// Modal opened in create mode (not copy) - ensure form is reset
 		formData.name = ''
 		formData.description = ''
 		formData.startDatetime = ''

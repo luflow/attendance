@@ -92,14 +92,56 @@ test.describe('Attendance App - Appointment Management', () => {
 		await expect(page.getByText('(Edited)')).toBeVisible()
 	})
 
+	test('should copy an appointment', async ({ page }) => {
+		// Get the original appointment title
+		const titleElement = page.getByRole('heading', { level: 3 }).first()
+		const originalTitle = await titleElement.textContent()
+
+		// Open actions and click Copy
+		await page.getByRole('button', { name: 'Actions' }).first().click()
+		await page.getByRole('menuitem', { name: 'Copy' }).click()
+
+		// Wait for modal and verify it's Copy mode
+		await expect(page.getByRole('dialog')).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Copy Appointment' })).toBeVisible()
+
+		// Verify name is pre-filled with (Copy) suffix
+		const nameInput = page.getByRole('textbox', { name: 'Appointment Name' })
+		const nameValue = await nameInput.inputValue()
+		expect(nameValue).toContain(originalTitle)
+		expect(nameValue).toContain('(Copy)')
+
+		// Verify dates are empty (user must set new dates per spec)
+		const startInput = page.getByRole('textbox', { name: 'Start Date & Time' })
+		const endInput = page.getByRole('textbox', { name: 'End Date & Time' })
+		await expect(startInput).toHaveValue('')
+		await expect(endInput).toHaveValue('')
+
+		// Fill in dates for the copy
+		const now = new Date()
+		const startDate = new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000) // 10 days from now
+		const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000) // 2 hours duration
+
+		await startInput.fill(startDate.toISOString().slice(0, 16))
+		await endInput.fill(endDate.toISOString().slice(0, 16))
+
+		// Save
+		await page.getByRole('button', { name: 'Save' }).click()
+		await expect(page.getByRole('dialog')).not.toBeVisible()
+		await page.waitForLoadState('networkidle')
+
+		// Verify the copied appointment appears with (Copy) in the name
+		await expect(page.getByText('(Copy)').first()).toBeVisible()
+	})
+
 	test('should delete an appointment', async ({ page }) => {
 		// Open actions and click Delete (use first() since multiple appointments may exist)
 		await page.getByRole('button', { name: 'Actions' }).first().click()
 		await page.getByRole('menuitem', { name: 'Delete' }).click()
-		
+
 		// Wait for deletion
 		await page.waitForLoadState('networkidle')
-		
+
 		// Should navigate away or show empty state
 		const emptyState = page.getByText('No appointments found')
 		if (await emptyState.isVisible()) {

@@ -26,6 +26,7 @@
 					:can-see-comments="permissions.canSeeComments"
 					@start-checkin="startCheckin"
 					@edit="editAppointment"
+					@copy="copyAppointment"
 					@delete="deleteAppointment"
 					@submit-response="submitResponse"
 					@update-comment="updateComment" />
@@ -55,7 +56,7 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['response-updated'])
+const emit = defineEmits(['response-updated', 'copy-appointment'])
 
 const appointments = ref([])
 const loading = ref(true)
@@ -230,6 +231,10 @@ const editAppointment = (appointment) => {
 	})
 
 	showEditForm.value = true
+}
+
+const copyAppointment = (appointment) => {
+	emit('copy-appointment', appointment)
 }
 
 const startCheckin = (appointmentId) => {
