@@ -540,3 +540,54 @@ msgstr "Google Kalender"
 
 msgid "Apple Calendar"
 msgstr "Apple Kalender"
+
+msgid "Quick Response"
+msgstr "Hurtig svar"
+
+msgid "Confirm Response"
+msgstr "Bekræft svar"
+
+msgid "Thank you for your response!"
+msgstr "Tak for dit svar!"
+
+msgid "Your response has been saved successfully."
+msgstr "Dit svar er blevet gemt succesfuldt."
+
+msgid "Unable to process response"
+msgstr "Kunne ikke behandle svar"
+
+msgid "Invalid response type."
+msgstr "Ugyldig svartype."
+
+msgid "This link is invalid. Please use the link from your notification."
+msgstr "Dette link er ugyldigt. Brug venligst linket fra din notifikation."
+
+msgid "This link has expired. The appointment has already ended."
+msgstr "Dette link er udløbet. Aftalen er allerede afsluttet."
+
+msgid "This link is no longer valid."
+msgstr "Dette link er ikke længere gyldigt."
+
+msgid "This appointment no longer exists."
+msgstr "Denne aftale eksisterer ikke længere."
+
+msgid "An error occurred while recording your response. Please try again."
+msgstr "Der opstod en fejl ved registrering af dit svar. Prøv venligst igen."
+
+msgid "Your response:"
+msgstr "Dit svar:"
+
+msgid "You are about to respond with"
+msgstr "Du er ved at svare med"
+
+msgid "You are answering as"
+msgstr "Du svarer som"
+
+msgid "Open Attendance App"
+msgstr "Åbn Deltager-app"
+
+msgid "View Appointment Details"
+msgstr "Se aftaledetaljer"
+
+msgid "Confirm your response?"
+msgstr "Bekræft dit svar?"

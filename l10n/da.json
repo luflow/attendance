@@ -175,7 +175,24 @@
         "Me": "Mig",
         "Quick subscribe": "Hurtig abonnering",
         "Google Calendar": "Google Kalender",
-        "Apple Calendar": "Apple Kalender"
+        "Apple Calendar": "Apple Kalender",
+        "Quick Response": "Hurtig svar",
+        "Confirm Response": "Bekræft svar",
+        "Thank you for your response!": "Tak for dit svar!",
+        "Your response has been saved successfully.": "Dit svar er blevet gemt succesfuldt.",
+        "Unable to process response": "Kunne ikke behandle svar",
+        "Invalid response type.": "Ugyldig svartype.",
+        "This link is invalid. Please use the link from your notification.": "Dette link er ugyldigt. Brug venligst linket fra din notifikation.",
+        "This link has expired. The appointment has already ended.": "Dette link er udløbet. Aftalen er allerede afsluttet.",
+        "This link is no longer valid.": "Dette link er ikke længere gyldigt.",
+        "This appointment no longer exists.": "Denne aftale eksisterer ikke længere.",
+        "An error occurred while recording your response. Please try again.": "Der opstod en fejl ved registrering af dit svar. Prøv venligst igen.",
+        "Your response:": "Dit svar:",
+        "You are about to respond with": "Du er ved at svare med",
+        "You are answering as": "Du svarer som",
+        "Open Attendance App": "Åbn Deltager-app",
+        "View Appointment Details": "Se aftaledetaljer",
+        "Confirm your response?": "Bekræft dit svar?"
     },
     "pluralForm": "nplurals=2; plural=(n != 1);"
 }

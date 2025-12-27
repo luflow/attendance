@@ -28,6 +28,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setCheckinBy(string $checkinBy)
  * @method string getCheckinAt()
  * @method void setCheckinAt(string $checkinAt)
+ * @method string|null getResponseSource()
+ * @method void setResponseSource(?string $responseSource)
  */
 class AttendanceResponse extends Entity implements JsonSerializable {
 	protected $appointmentId = 0;
@@ -39,6 +41,7 @@ class AttendanceResponse extends Entity implements JsonSerializable {
 	protected $checkinComment = '';
 	protected $checkinBy = '';
 	protected $checkinAt = '';
+	protected $responseSource = null;
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -51,6 +54,7 @@ class AttendanceResponse extends Entity implements JsonSerializable {
 		$this->addType('checkinComment', 'string');
 		$this->addType('checkinBy', 'string');
 		$this->addType('checkinAt', 'string');
+		$this->addType('responseSource', 'string');
 	}
 
 	public function jsonSerialize(): array {
@@ -66,6 +70,7 @@ class AttendanceResponse extends Entity implements JsonSerializable {
 			'checkinBy' => $this->getCheckinBy(),
 			'checkinAt' => $this->getCheckinAt(),
 			'isCheckedIn' => $this->isCheckedIn(),
+			'responseSource' => $this->getResponseSource(),
 		];
 	}
 

@@ -179,7 +179,24 @@ OC.L10N.register(
         "Me": "Ich",
         "Quick subscribe": "Schnell abonnieren",
         "Google Calendar": "Google Kalender",
-        "Apple Calendar": "Apple Kalender"
+        "Apple Calendar": "Apple Kalender",
+        "Quick Response": "Schnelle Antwort",
+        "Confirm Response": "Antwort bestätigen",
+        "Thank you for your response!": "Danke für Deine Antwort!",
+        "Your response has been saved successfully.": "Deine Antwort wurde erfolgreich gespeichert.",
+        "Unable to process response": "Antwort konnte nicht verarbeitet werden",
+        "Invalid response type.": "Ungültiger Antworttyp.",
+        "This link is invalid. Please use the link from your notification.": "Dieser Link ist ungültig. Bitte benutze den Link aus deiner Benachrichtigung.",
+        "This link has expired. The appointment has already ended.": "Dieser Link ist abgelaufen. Der Termin ist bereits beendet.",
+        "This link is no longer valid.": "Dieser Link ist nicht mehr gültig.",
+        "This appointment no longer exists.": "Dieser Termin existiert nicht mehr.",
+        "An error occurred while recording your response. Please try again.": "Beim Speichern deiner Antwort ist ein Fehler aufgetreten. Bitte versuche es erneut.",
+        "Your response:": "Deine Antwort:",
+        "You are about to respond with": "Du bist dabei zu antworten mit",
+        "You are answering as": "Du antwortest als",
+        "Open Attendance App": "Anwesenheits-App öffnen",
+        "View Appointment Details": "Termindetails anzeigen",
+        "Confirm your response?": "Antwort bestätigen?"
     },
     "nplurals=2; plural=(n != 1);"
 );
