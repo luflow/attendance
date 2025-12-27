@@ -6,6 +6,21 @@
 
 - Nightly changes here
 
+## 1.16.0 – 2025-12-27
+
+### Added
+
+- Quick response links in appointment notifications allowing one-click RSVP directly from the notification panel
+  - Users can respond Yes/No/Maybe without logging in
+  - Secure token-based authentication with HMAC-SHA256 signing
+  - Confirmation page shows appointment details before submitting response
+  - Links automatically expire after appointment end time
+- Copy appointment functionality to quickly duplicate existing appointments with all settings
+
+### Security
+
+- Added brute force protection to quick response endpoints to prevent token guessing attacks
+
 ## 1.15.2 – 2025-12-25
 
 ### Added
