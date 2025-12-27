@@ -68,6 +68,7 @@
 - Create a new release on GitHub via GitHub MCP which triggers the release process and upload to nextcloud app store
 
 ## Avoid
+- NO coauthoring of commits with "claude"!
 - No hardcoded admin checks - use PermissionService
 - No German strings in t() calls
 - No direct database access without Mapper

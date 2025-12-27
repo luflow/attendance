@@ -541,3 +541,54 @@ msgstr "Google Kalender"
 msgid "Apple Calendar"
 msgstr "Apple Kalender"
 
+msgid "Quick Response"
+msgstr "Schnelle Antwort"
+
+msgid "Confirm Response"
+msgstr "Antwort bestätigen"
+
+msgid "Thank you for your response!"
+msgstr "Danke für Ihre Antwort!"
+
+msgid "Your response has been saved successfully."
+msgstr "Ihre Antwort wurde erfolgreich gespeichert."
+
+msgid "Unable to process response"
+msgstr "Antwort konnte nicht verarbeitet werden"
+
+msgid "Invalid response type."
+msgstr "Ungültiger Antworttyp."
+
+msgid "This link is invalid. Please use the link from your notification."
+msgstr "Dieser Link ist ungültig. Bitte benutzen Sie den Link aus Ihrer Benachrichtigung."
+
+msgid "This link has expired. The appointment has already ended."
+msgstr "Dieser Link ist abgelaufen. Der Termin ist bereits beendet."
+
+msgid "This link is no longer valid."
+msgstr "Dieser Link ist nicht mehr gültig."
+
+msgid "This appointment no longer exists."
+msgstr "Dieser Termin existiert nicht mehr."
+
+msgid "An error occurred while recording your response. Please try again."
+msgstr "Beim Speichern Ihrer Antwort ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut."
+
+msgid "Your response:"
+msgstr "Ihre Antwort:"
+
+msgid "You are about to respond with"
+msgstr "Sie sind dabei zu antworten mit"
+
+msgid "You are answering as"
+msgstr "Sie antworten als"
+
+msgid "Open Attendance App"
+msgstr "Anwesenheits-App öffnen"
+
+msgid "View Appointment Details"
+msgstr "Termindetails anzeigen"
+
+msgid "Confirm your response?"
+msgstr "Antwort bestätigen?"
+

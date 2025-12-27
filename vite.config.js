@@ -6,6 +6,7 @@ export default createAppConfig(
     main: resolve(join("src", "main.js")),
     dashboard: resolve(join("src", "dashboard.js")),
     settings: resolve(join("src", "settings.js")),
+    quickresponse: resolve(join("src", "quickresponse.js")),
   },
   {
     createEmptyCSSEntryPoints: true,

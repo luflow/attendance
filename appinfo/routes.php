@@ -44,5 +44,9 @@ return [
 		['name' => 'ical#getToken', 'url' => '/api/ical/token', 'verb' => 'GET'],
 		['name' => 'ical#regenerateToken', 'url' => '/api/ical/token/regenerate', 'verb' => 'POST'],
 		['name' => 'ical#feed', 'url' => '/ical/{token}.ics', 'verb' => 'GET'],
+
+		// Quick response (public endpoints for email/notification links)
+		['name' => 'quick_response#showConfirmation', 'url' => '/respond/{appointmentId}', 'verb' => 'GET'],
+		['name' => 'quick_response#confirmResponse', 'url' => '/respond/{appointmentId}/confirm', 'verb' => 'POST'],
 	]
 ];

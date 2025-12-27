@@ -36,6 +36,10 @@ class ResponseService {
 		$this->userManager = $userManager;
 	}
 
+	// Response source constants
+	public const SOURCE_APP = 'app';
+	public const SOURCE_QUICK_LINK = 'quick_link';
+
 	/**
 	 * Submit or update an attendance response.
 	 *
@@ -43,6 +47,7 @@ class ResponseService {
 	 * @param string $userId The user ID
 	 * @param string $response The response (yes, no, maybe)
 	 * @param string $comment Optional comment
+	 * @param string $source The source of the response (app, quick_link, ical)
 	 * @return AttendanceResponse The saved response
 	 * @throws \InvalidArgumentException If response is invalid
 	 */
@@ -50,7 +55,8 @@ class ResponseService {
 		int $appointmentId,
 		string $userId,
 		string $response,
-		string $comment = ''
+		string $comment = '',
+		string $source = self::SOURCE_APP
 	): AttendanceResponse {
 		// Validate response
 		if (!in_array($response, ['yes', 'no', 'maybe'])) {
@@ -67,6 +73,7 @@ class ResponseService {
 			$existingResponse->setResponse($response);
 			$existingResponse->setComment($comment);
 			$existingResponse->setRespondedAt(date('Y-m-d H:i:s'));
+			$existingResponse->setResponseSource($source);
 			return $this->responseMapper->update($existingResponse);
 		} catch (DoesNotExistException $e) {
 			// Create new response
@@ -76,6 +83,7 @@ class ResponseService {
 			$attendanceResponse->setResponse($response);
 			$attendanceResponse->setComment($comment);
 			$attendanceResponse->setRespondedAt(date('Y-m-d H:i:s'));
+			$attendanceResponse->setResponseSource($source);
 			return $this->responseMapper->insert($attendanceResponse);
 		}
 	}

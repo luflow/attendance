@@ -175,7 +175,24 @@
         "Me": "Ich",
         "Quick subscribe": "Schnell abonnieren",
         "Google Calendar": "Google Kalender",
-        "Apple Calendar": "Apple Kalender"
+        "Apple Calendar": "Apple Kalender",
+        "Quick Response": "Schnelle Antwort",
+        "Confirm Response": "Antwort bestätigen",
+        "Thank you for your response!": "Danke für Ihre Antwort!",
+        "Your response has been saved successfully.": "Ihre Antwort wurde erfolgreich gespeichert.",
+        "Unable to process response": "Antwort konnte nicht verarbeitet werden",
+        "Invalid response type.": "Ungültiger Antworttyp.",
+        "This link is invalid. Please use the link from your notification.": "Dieser Link ist ungültig. Bitte benutzen Sie den Link aus Ihrer Benachrichtigung.",
+        "This link has expired. The appointment has already ended.": "Dieser Link ist abgelaufen. Der Termin ist bereits beendet.",
+        "This link is no longer valid.": "Dieser Link ist nicht mehr gültig.",
+        "This appointment no longer exists.": "Dieser Termin existiert nicht mehr.",
+        "An error occurred while recording your response. Please try again.": "Beim Speichern Ihrer Antwort ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+        "Your response:": "Ihre Antwort:",
+        "You are about to respond with": "Sie sind dabei zu antworten mit",
+        "You are answering as": "Sie antworten als",
+        "Open Attendance App": "Anwesenheits-App öffnen",
+        "View Appointment Details": "Termindetails anzeigen",
+        "Confirm your response?": "Antwort bestätigen?"
     },
     "pluralForm": "nplurals=2; plural=(n != 1);"
 }

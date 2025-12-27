@@ -65,6 +65,7 @@ class NotificationService {
 					->setDateTime(new \DateTime())
 					->setObject('appointment', (string)$appointment->getId())
 					->setSubject('appointment_created', [
+						'appointmentId' => $appointment->getId(),
 						'name' => $appointment->getName(),
 						'date' => date('d.m.Y H:i', strtotime($appointment->getStartDatetime())),
 					])
