@@ -8,6 +8,7 @@ use OCA\Attendance\AppInfo\Application;
 use OCA\Attendance\Service\QuickResponseTokenService;
 use OCA\Attendance\Service\ResponseService;
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\Attribute\PublicPage;
@@ -60,6 +61,7 @@ class QuickResponseController extends Controller {
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
+	#[BruteForceProtection(action: 'attendance_quickresponse')]
 	#[OpenAPI(OpenAPI::SCOPE_IGNORE)]
 	public function showConfirmation(
 		int $appointmentId,
@@ -84,12 +86,14 @@ class QuickResponseController extends Controller {
 				$validationResult
 			);
 
-			return new TemplateResponse(
+			$errorResponse = new TemplateResponse(
 				Application::APP_ID,
 				'quickresponse',
 				[],
 				'guest'
 			);
+			$errorResponse->throttle();
+			return $errorResponse;
 		}
 
 		// Get appointment details
@@ -131,6 +135,7 @@ class QuickResponseController extends Controller {
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
+	#[BruteForceProtection(action: 'attendance_quickresponse')]
 	#[OpenAPI(OpenAPI::SCOPE_IGNORE)]
 	public function confirmResponse(
 		int $appointmentId,
@@ -150,10 +155,12 @@ class QuickResponseController extends Controller {
 				$this->request->getRemoteAddress()
 			);
 
-			return new DataResponse([
+			$errorResponse = new DataResponse([
 				'success' => false,
 				'message' => $validationResult['errorMessage'],
 			], 400);
+			$errorResponse->throttle();
+			return $errorResponse;
 		}
 
 		// Record the response
