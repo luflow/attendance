@@ -6,6 +6,13 @@
 
 - Nightly changes here
 
+## 1.16.1 – 2025-12-28
+
+### Changed
+
+- Updated project website URL to anwesenheit.app
+- Added Stripe donation link to app metadata
+
 ## 1.16.0 – 2025-12-27
 
 ### Added
