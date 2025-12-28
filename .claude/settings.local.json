@@ -22,7 +22,10 @@
       "Bash(docker logs:*)",
       "Bash(git tag:*)",
       "Bash(wc:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:nextcloud-libraries.github.io)"
     ]
   },
   "enableAllProjectMcpServers": true,
