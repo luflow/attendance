@@ -5,7 +5,7 @@
 			<strong>{{ t('attendance', 'Start') }}:</strong> {{ formatDateTime(appointment.startDatetime) }}<br>
 			<strong>{{ t('attendance', 'End') }}:</strong> {{ formatDateTime(appointment.endDatetime) }}
 		</p>
-		<div v-if="appointment.description" class="appointment-description" v-html="renderedDescription"></div>
+		<div v-if="appointment.description" class="appointment-description" v-html="renderedDescription" />
 	</div>
 </template>
 

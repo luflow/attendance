@@ -1,11 +1,5 @@
 <template>
 	<div class="attendance-container">
-		<!-- Edit Appointment Modal -->
-		<AppointmentFormModal
-			:show="showEditForm"
-			:appointment="editingAppointment.id ? editingAppointment : null"
-			@close="handleModalClose"
-			@submit="handleModalSubmit" />
 		<!-- Appointments List -->
 		<div class="appointments-list">
 			<div v-if="loading" class="loading">
@@ -38,12 +32,10 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import AppointmentCard from '../components/appointment/AppointmentCard.vue'
-import AppointmentFormModal from '../components/appointment/AppointmentFormModal.vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
 import { usePermissions } from '../composables/usePermissions.js'
-import { formatDateTimeForInput, toServerTimezone } from '../utils/datetime.js'
 
 const props = defineProps({
 	showPast: {
@@ -56,21 +48,11 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['response-updated', 'copy-appointment'])
+const emit = defineEmits(['response-updated', 'edit-appointment', 'copy-appointment'])
 
 const appointments = ref([])
 const loading = ref(true)
-const showEditForm = ref(false)
 const responseComments = reactive({})
-const editingAppointment = reactive({
-	id: null,
-	name: '',
-	description: '',
-	startDatetime: '',
-	endDatetime: '',
-	visibleUsers: [],
-	visibleGroups: [],
-})
 
 const { permissions, loadPermissions } = usePermissions()
 
@@ -81,7 +63,7 @@ const loadAppointments = async (skipLoadingSpinner = false) => {
 		}
 		const params = props.showPast ? '?showPastAppointments=true' : ''
 		const response = await axios.get(generateUrl('/apps/attendance/api/appointments') + params)
-		
+
 		if (props.showUnanswered) {
 			appointments.value = response.data.filter(appointment => {
 				return !appointment.userResponse || appointment.userResponse === null
@@ -117,60 +99,24 @@ const loadDetailedResponses = async () => {
 	}
 }
 
-const handleModalClose = () => {
-	showEditForm.value = false
-	Object.assign(editingAppointment, {
-		id: null,
-		name: '',
-		description: '',
-		startDatetime: '',
-		endDatetime: '',
-		visibleUsers: [],
-		visibleGroups: [],
-	})
-}
-
-const handleModalSubmit = async (formData) => {
-	try {
-		const startDatetimeWithTz = toServerTimezone(formData.startDatetime)
-		const endDatetimeWithTz = toServerTimezone(formData.endDatetime)
-
-		await axios.put(generateUrl(`/apps/attendance/api/appointments/${formData.id}`), {
-			name: formData.name,
-			description: formData.description,
-			startDatetime: startDatetimeWithTz,
-			endDatetime: endDatetimeWithTz,
-			visibleUsers: formData.visibleUsers || [],
-			visibleGroups: formData.visibleGroups || [],
-		})
-		
-		showSuccess(t('attendance', 'Appointment updated successfully'))
-		handleModalClose()
-		await loadAppointments(true)
-	} catch (error) {
-		console.error('Failed to update appointment:', error)
-		showError(t('attendance', 'Error updating appointment'))
-	}
-}
-
 const submitResponse = async (appointmentId, response) => {
 	try {
 		const appointment = appointments.value.find(a => a.id === appointmentId)
 		const comment = appointment?.userResponse?.comment || ''
-		
+
 		const axiosResponse = await axios.post(generateUrl(`/apps/attendance/api/appointments/${appointmentId}/respond`), {
 			response,
 			comment,
 		})
-		
+
 		if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
 			throw new Error(`API returned status ${axiosResponse.status}`)
 		}
-		
+
 		showSuccess(t('attendance', 'Response updated successfully'))
-		
+
 		emit('response-updated')
-		
+
 		await loadAppointments(true)
 	} catch (error) {
 		console.error('Failed to submit response:', error)
@@ -182,20 +128,20 @@ const updateComment = async (appointmentId, comment, silent = false) => {
 	try {
 		const appointment = appointments.value.find(a => a.id === appointmentId)
 		const response = appointment?.userResponse?.response || 'yes'
-		
+
 		const axiosResponse = await axios.post(generateUrl(`/apps/attendance/api/appointments/${appointmentId}/respond`), {
 			response,
 			comment,
 		})
-		
+
 		if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
 			throw new Error(`API returned status ${axiosResponse.status}`)
 		}
-		
+
 		if (!silent) {
 			showSuccess(t('attendance', 'Comment updated successfully'))
 		}
-		
+
 		await loadAppointments(true)
 	} catch (error) {
 		console.error('Failed to update comment:', error)
@@ -217,20 +163,7 @@ const deleteAppointment = async (appointmentId) => {
 }
 
 const editAppointment = (appointment) => {
-	const formattedStart = formatDateTimeForInput(appointment.startDatetime)
-	const formattedEnd = formatDateTimeForInput(appointment.endDatetime)
-
-	Object.assign(editingAppointment, {
-		id: appointment.id,
-		name: appointment.name,
-		description: appointment.description || '',
-		startDatetime: formattedStart,
-		endDatetime: formattedEnd,
-		visibleUsers: appointment.visibleUsers || [],
-		visibleGroups: appointment.visibleGroups || [],
-	})
-
-	showEditForm.value = true
+	emit('edit-appointment', appointment)
 }
 
 const copyAppointment = (appointment) => {

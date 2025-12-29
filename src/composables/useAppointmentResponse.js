@@ -14,7 +14,7 @@ import axios from '@nextcloud/axios'
  * @param {object} options - Configuration options
  * @param {Function} options.onSuccess - Callback after successful response
  * @param {Function} options.onError - Callback after failed response
- * @returns {object} Response handling functions and state
+ * @return {object} Response handling functions and state
  */
 export function useAppointmentResponse(options = {}) {
 	const { onSuccess, onError } = options
@@ -33,7 +33,7 @@ export function useAppointmentResponse(options = {}) {
 	 * @param {number} appointmentId - The appointment ID
 	 * @param {string} response - The response (yes, no, maybe)
 	 * @param {string} comment - Optional comment
-	 * @returns {Promise<object>} The API response
+	 * @return {Promise<object>} The API response
 	 */
 	const submitResponse = async (appointmentId, response, comment = '') => {
 		const t = window.t || ((app, text) => text)
@@ -76,7 +76,7 @@ export function useAppointmentResponse(options = {}) {
 	 * @param {string} currentResponse - The current response value
 	 * @param {string} commentText - The comment text
 	 * @param {boolean} silent - If true, don't show success message
-	 * @returns {Promise<void>}
+	 * @return {Promise<void>}
 	 */
 	const autoSaveComment = async (appointmentId, currentResponse, commentText, silent = true) => {
 		if (!currentResponse) return
@@ -144,7 +144,7 @@ export function useAppointmentResponse(options = {}) {
 	 * @param {Function} getCurrentResponse - Function to get current response
 	 * @param {number} appointmentId - The appointment ID
 	 * @param {number} delay - Debounce delay in ms (default: 500)
-	 * @returns {Function} Input event handler
+	 * @return {Function} Input event handler
 	 */
 	const createCommentInputHandler = (getCommentText, getCurrentResponse, appointmentId, delay = 500) => {
 		return () => {
@@ -215,7 +215,7 @@ export function useAppointmentResponse(options = {}) {
  * Useful for list views where multiple appointments are shown.
  *
  * @param {object} options - Configuration options
- * @returns {object} Response handling functions for multiple appointments
+ * @return {object} Response handling functions for multiple appointments
  */
 export function useMultiAppointmentResponse(options = {}) {
 	const { onSuccess, onError } = options
@@ -230,6 +230,9 @@ export function useMultiAppointmentResponse(options = {}) {
 
 	/**
 	 * Submit a response to an appointment.
+	 * @param appointmentId
+	 * @param response
+	 * @param comment
 	 */
 	const submitResponse = async (appointmentId, response, comment = '') => {
 		try {
@@ -264,6 +267,9 @@ export function useMultiAppointmentResponse(options = {}) {
 
 	/**
 	 * Auto-save comment for a specific appointment.
+	 * @param appointmentId
+	 * @param currentResponse
+	 * @param commentText
 	 */
 	const autoSaveComment = async (appointmentId, currentResponse, commentText) => {
 		if (!currentResponse) return
@@ -301,6 +307,10 @@ export function useMultiAppointmentResponse(options = {}) {
 
 	/**
 	 * Handle comment input with debouncing.
+	 * @param appointmentId
+	 * @param getCommentText
+	 * @param getCurrentResponse
+	 * @param delay
 	 */
 	const onCommentInput = (appointmentId, getCommentText, getCurrentResponse, delay = 500) => {
 		if (commentTimeouts[appointmentId]) {
@@ -317,16 +327,19 @@ export function useMultiAppointmentResponse(options = {}) {
 
 	/**
 	 * Check if comment is being saved for an appointment.
+	 * @param appointmentId
 	 */
 	const isSaving = (appointmentId) => !!savingComments[appointmentId]
 
 	/**
 	 * Check if comment was saved for an appointment.
+	 * @param appointmentId
 	 */
 	const isSaved = (appointmentId) => !!savedComments[appointmentId]
 
 	/**
 	 * Check if comment save failed for an appointment.
+	 * @param appointmentId
 	 */
 	const hasError = (appointmentId) => !!errorComments[appointmentId]
 

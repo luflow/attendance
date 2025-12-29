@@ -63,14 +63,14 @@
 			<div v-if="commentExpanded" class="comment-section">
 				<div class="textarea-container">
 					<NcTextArea
-						resize="vertical"
 						v-model="localComment"
+						resize="vertical"
 						:placeholder="t('attendance', 'Comment (optional)')"
 						data-test="widget-response-comment"
 						@input="handleCommentInput" />
 
 					<div v-if="saving" class="saving-spinner">
-						<div class="spinner"></div>
+						<div class="spinner" />
 					</div>
 					<div v-else-if="saved" class="saved-indicator">
 						<CheckIcon :size="16" class="check-icon" />
@@ -107,7 +107,7 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['respond', 'open-checkin', 'open-detail'])
+defineEmits(['respond', 'open-checkin', 'open-detail'])
 
 // Local state for comment
 const commentExpanded = ref(false)

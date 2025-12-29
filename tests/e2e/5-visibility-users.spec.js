@@ -2,25 +2,36 @@ import { test, expect, login } from './fixtures/nextcloud.js'
 
 // Helper function to create an appointment with visibility settings
 async function createAppointmentWithVisibility(page, { name, description, daysFromNow = 2, durationHours = 1, visibleUsers = [] }) {
-	// Click create button
-	await page.getByRole('link', { name: 'Create Appointment' }).click()
-	
-	// Wait for modal
-	await expect(page.getByRole('dialog')).toBeVisible()
+	// Wait for Create Appointment link to be ready
+	const createLink = page.getByRole('link', { name: 'Create Appointment' })
+	await createLink.waitFor({ state: 'visible' })
+
+	// Click create button (navigates to form page)
+	await createLink.click()
+
+	// Wait for form page to load
+	await page.waitForURL(/.*\/create$/)
+	await page.waitForLoadState('networkidle')
 	await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
-	
-	// Fill form
-	await page.getByRole('textbox', { name: 'Appointment Name' }).fill(name)
-	await page.getByRole('textbox', { name: 'Description' }).fill(description)
-	
+
+	// Wait for name field to be ready and fill it
+	const nameInput = page.getByRole('textbox', { name: 'Appointment Name' })
+	await nameInput.waitFor({ state: 'visible' })
+	await nameInput.fill(name)
+
+	// Wait for description field to be ready and fill it
+	const descInput = page.getByRole('textbox', { name: 'Description' })
+	await descInput.waitFor({ state: 'visible' })
+	await descInput.fill(description)
+
 	// Calculate dates
 	const now = new Date()
 	const startDate = new Date(now.getTime() + daysFromNow * 24 * 60 * 60 * 1000)
 	const endDate = new Date(startDate.getTime() + durationHours * 60 * 60 * 1000)
-	
+
 	await page.getByRole('textbox', { name: 'Start Date & Time' }).fill(startDate.toISOString().slice(0, 16))
 	await page.getByRole('textbox', { name: 'End Date & Time' }).fill(endDate.toISOString().slice(0, 16))
-	
+
 	// Add visible users if specified
 	if (visibleUsers.length > 0) {
 		for (const username of visibleUsers) {
@@ -28,25 +39,25 @@ async function createAppointmentWithVisibility(page, { name, description, daysFr
 			// The placeholder changes after first selection, so getByPlaceholder won't work
 			await page.getByRole('searchbox').click()
 			await page.getByRole('searchbox').fill(username)
-			
+
 			// Wait for search results option to appear
 			const userOption = page.getByRole('option', { name: username })
 			await userOption.waitFor({ state: 'visible' })
-			
+
 			// Select the user from dropdown
 			await userOption.click()
-			
+
 			// Verify the user is now shown as selected in .vs__selected span
 			const visibilitySelector = page.locator('[data-test="select-visibility"]')
 			await expect(visibilitySelector.locator('.vs__selected', { hasText: username })).toBeVisible()
 		}
 	}
-	
+
 	// Save
 	await page.getByRole('button', { name: 'Save' }).click()
-	
-	// Wait for modal to close
-	await expect(page.getByRole('dialog')).not.toBeVisible()
+
+	// Wait for navigation back to appointment list
+	await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 	await page.waitForLoadState('networkidle')
 }
 
@@ -193,38 +204,40 @@ test.describe('Attendance App - User Visibility Filtering', () => {
 	test('should allow editing visibility settings', async ({ page }) => {
 		// Open the "Private Meeting - Test1 Only" for editing
 		await page.getByText('Private Meeting - Test1 Only').first().click()
-		
+
 		// Wait for actions button to be ready and click Edit
 		const actionsButton = page.getByRole('button', { name: 'Actions' }).first()
 		await actionsButton.waitFor({ state: 'visible' })
 		await actionsButton.click()
 		await page.getByRole('menuitem', { name: 'Edit' }).click()
-		
-		// Wait for modal
-		await expect(page.getByRole('dialog')).toBeVisible()
+
+		// Wait for form page and verify it's Edit mode
+		await page.waitForURL(/.*\/edit\/\d+$/)
 		await expect(page.getByRole('heading', { name: 'Edit Appointment' })).toBeVisible()
-		
+
 		// Verify that "test1" is shown in the visibility field
 		// The visibility selector should show the selected user(s) in .vs__selected spans
 		// Scope to the visibility selector component to avoid ambiguity
 		const visibilitySelector = page.locator('[data-test="select-visibility"]')
 		await expect(visibilitySelector.locator('.vs__selected', { hasText: 'test1' })).toBeVisible()
-		
+
 		// Add another user to visibility
 		await page.getByRole('searchbox').click()
 		await page.getByRole('searchbox').fill('test2')
-		
+
 		// Wait for test2 option to appear and select it
 		const test2Option = page.getByRole('option', { name: 'test2' })
 		await test2Option.waitFor({ state: 'visible' })
 		await test2Option.click()
-		
+
 		// Verify test2 is now shown as selected in .vs__selected span
 		await expect(visibilitySelector.locator('.vs__selected', { hasText: 'test2' })).toBeVisible()
-		
+
 		// Save
 		await page.getByRole('button', { name: 'Save' }).click()
-		await expect(page.getByRole('dialog')).not.toBeVisible()
+
+		// Wait for navigation back to appointment list
+		await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 		await page.waitForLoadState('networkidle')
 	})
 })

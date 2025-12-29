@@ -25,6 +25,7 @@ class AppointmentService {
 	private VisibilityService $visibilityService;
 	private ResponseSummaryService $responseSummaryService;
 	private NotificationService $notificationService;
+	private AttachmentService $attachmentService;
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -34,7 +35,8 @@ class AppointmentService {
 		ConfigService $configService,
 		VisibilityService $visibilityService,
 		ResponseSummaryService $responseSummaryService,
-		NotificationService $notificationService
+		NotificationService $notificationService,
+		AttachmentService $attachmentService
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -44,6 +46,7 @@ class AppointmentService {
 		$this->visibilityService = $visibilityService;
 		$this->responseSummaryService = $responseSummaryService;
 		$this->notificationService = $notificationService;
+		$this->attachmentService = $attachmentService;
 	}
 
 	/**
@@ -144,6 +147,7 @@ class AppointmentService {
 		$appointmentData = $appointment->jsonSerialize();
 		$appointmentData['userResponse'] = $this->getUserResponse($appointment->getId(), $userId);
 		$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId());
+		$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
 
 		return $appointmentData;
 	}
@@ -314,6 +318,7 @@ class AppointmentService {
 			$userResponse = $this->getUserResponse($appointment->getId(), $userId);
 			$appointmentData['userResponse'] = ($userResponse && $userResponse->getResponse() !== null) ? $userResponse : null;
 			$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId());
+			$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
 			$result[] = $appointmentData;
 		}
 
@@ -340,6 +345,7 @@ class AppointmentService {
 			$appointmentData = $appointment->jsonSerialize();
 			$userResponse = $this->getUserResponse($appointment->getId(), $userId);
 			$appointmentData['userResponse'] = ($userResponse && $userResponse->getResponse() !== null) ? $userResponse : null;
+			$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
 			$result[] = $appointmentData;
 			$count++;
 		}

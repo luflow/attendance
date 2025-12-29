@@ -2,30 +2,41 @@ import { test, expect } from './fixtures/nextcloud.js'
 
 // Helper function to create an appointment
 async function createAppointment(page, { name, description, daysFromNow = 2, durationHours = 1 }) {
-	// Click create button
-	await page.getByRole('link', { name: 'Create Appointment' }).click()
-	
-	// Wait for modal
-	await expect(page.getByRole('dialog')).toBeVisible()
+	// Wait for Create Appointment link to be ready
+	const createLink = page.getByRole('link', { name: 'Create Appointment' })
+	await createLink.waitFor({ state: 'visible' })
+
+	// Click create button (navigates to form page)
+	await createLink.click()
+
+	// Wait for form page to load
+	await page.waitForURL(/.*\/create$/)
+	await page.waitForLoadState('networkidle')
 	await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
-	
-	// Fill form
-	await page.getByRole('textbox', { name: 'Appointment Name' }).fill(name)
-	await page.getByRole('textbox', { name: 'Description' }).fill(description)
-	
+
+	// Wait for name field to be ready and fill it
+	const nameInput = page.getByRole('textbox', { name: 'Appointment Name' })
+	await nameInput.waitFor({ state: 'visible' })
+	await nameInput.fill(name)
+
+	// Wait for description field to be ready and fill it
+	const descInput = page.getByRole('textbox', { name: 'Description' })
+	await descInput.waitFor({ state: 'visible' })
+	await descInput.fill(description)
+
 	// Calculate dates
 	const now = new Date()
 	const startDate = new Date(now.getTime() + daysFromNow * 24 * 60 * 60 * 1000)
 	const endDate = new Date(startDate.getTime() + durationHours * 60 * 60 * 1000)
-	
+
 	await page.getByRole('textbox', { name: 'Start Date & Time' }).fill(startDate.toISOString().slice(0, 16))
 	await page.getByRole('textbox', { name: 'End Date & Time' }).fill(endDate.toISOString().slice(0, 16))
-	
+
 	// Save
 	await page.getByRole('button', { name: 'Save' }).click()
-	
-	// Wait for modal to close
-	await expect(page.getByRole('dialog')).not.toBeVisible()
+
+	// Wait for navigation back to appointment list
+	await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 	await page.waitForLoadState('networkidle')
 }
 
@@ -69,27 +80,29 @@ test.describe('Attendance App - Appointment Management', () => {
 		// Get appointment title
 		const titleElement = page.getByRole('heading', { level: 3 }).first()
 		const originalTitle = await titleElement.textContent()
-		
+
 		// Open actions and click Edit (use first() since multiple appointments may exist)
 		await page.getByRole('button', { name: 'Actions' }).first().click()
 		await page.getByRole('menuitem', { name: 'Edit' }).click()
-		
-		// Wait for modal and verify it's Edit mode
-		await expect(page.getByRole('dialog')).toBeVisible()
+
+		// Wait for form page and verify it's Edit mode
+		await page.waitForURL(/.*\/edit\/\d+$/)
 		await expect(page.getByRole('heading', { name: 'Edit Appointment' })).toBeVisible()
-		
+
 		// Modify title
 		const nameInput = page.getByRole('textbox', { name: 'Appointment Name' })
 		await nameInput.clear()
 		await nameInput.fill(originalTitle + ' (Edited)')
-		
+
 		// Save
 		await page.getByRole('button', { name: 'Save' }).click()
-		await expect(page.getByRole('dialog')).not.toBeVisible()
+
+		// Wait for navigation back to appointment list
+		await page.waitForURL(/.*\/apps\/attendance(?!\/appointment)/)
 		await page.waitForLoadState('networkidle')
-		
-		// Verify update
-		await expect(page.getByText('(Edited)')).toBeVisible()
+
+		// Verify update (use first() since it appears in both nav and content)
+		await expect(page.getByText('(Edited)').first()).toBeVisible()
 	})
 
 	test('should copy an appointment', async ({ page }) => {
@@ -101,8 +114,8 @@ test.describe('Attendance App - Appointment Management', () => {
 		await page.getByRole('button', { name: 'Actions' }).first().click()
 		await page.getByRole('menuitem', { name: 'Copy' }).click()
 
-		// Wait for modal and verify it's Copy mode
-		await expect(page.getByRole('dialog')).toBeVisible()
+		// Wait for form page and verify it's Copy mode
+		await page.waitForURL(/.*\/copy\/\d+$/)
 		await expect(page.getByRole('heading', { name: 'Copy Appointment' })).toBeVisible()
 
 		// Verify name is pre-filled with (Copy) suffix
@@ -127,7 +140,9 @@ test.describe('Attendance App - Appointment Management', () => {
 
 		// Save
 		await page.getByRole('button', { name: 'Save' }).click()
-		await expect(page.getByRole('dialog')).not.toBeVisible()
+
+		// Wait for navigation back to appointment list
+		await page.waitForURL(/.*\/apps\/attendance(?!\/appointment)/)
 		await page.waitForLoadState('networkidle')
 
 		// Verify the copied appointment appears with (Copy) in the name

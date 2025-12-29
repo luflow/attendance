@@ -1,8 +1,7 @@
 <template>
 	<div id="attendance-admin-settings" data-test="admin-settings">
 		<NcSettingsSection :name="t('attendance', 'Attendance')"
-			:description="t('attendance', 'Configure attendance management and reminders')">
-		</NcSettingsSection>
+			:description="t('attendance', 'Configure attendance management and reminders')" />
 
 		<div v-if="loadingData" class="loading-section">
 			<NcLoadingIcon :size="32" />
@@ -29,7 +28,6 @@
 
 			<NcSettingsSection :name="t('attendance', 'Permissions')"
 				:description="t('attendance', 'Configure which groups can perform specific actions. Users must belong to at least one of the selected groups to access the feature. If no group is selected, all users have access to the feature.')">
-				
 				<div class="subsection">
 					<h4>{{ t('attendance', 'Manage Appointments') }}</h4>
 					<p class="subsection-hint">
@@ -109,7 +107,6 @@
 
 			<NcSettingsSection :name="t('attendance', 'Appointment Reminders')"
 				:description="t('attendance', 'Send automatic reminder notifications to users who haven\'t responded to appointments.')">
-				
 				<NcNoteCard v-if="!notificationsAppEnabled" type="warning">
 					<p>{{ t('attendance', 'The Notifications app is not enabled. Please enable it to use appointment reminders.') }}</p>
 					<p class="hint-text">
@@ -133,7 +130,7 @@
 							:helper-text="t('attendance', 'Send reminders this many days before the appointment (1-30 days)')"
 							data-test="input-reminder-days"
 							:input-props="{ min: 1, max: 30 }" />
-						
+
 						<NcInputField
 							v-model.number="reminderFrequency"
 							type="number"
@@ -167,14 +164,14 @@ import { ref, onMounted } from 'vue'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
-import { 
-	NcSelect, 
-	NcButton, 
-	NcLoadingIcon, 
+import {
+	NcSelect,
+	NcButton,
+	NcLoadingIcon,
 	NcSettingsSection,
 	NcCheckboxRadioSwitch,
 	NcInputField,
-	NcNoteCard
+	NcNoteCard,
 } from '@nextcloud/vue'
 
 // State
@@ -197,7 +194,7 @@ const loadSettings = async () => {
 
 	try {
 		const response = await axios.get(
-			generateUrl('/apps/attendance/api/admin/settings')
+			generateUrl('/apps/attendance/api/admin/settings'),
 		)
 
 		if (response.data.success) {
@@ -206,7 +203,7 @@ const loadSettings = async () => {
 			selectedGroups.value = response.data.whitelistedGroups
 				.map(id => response.data.groups.find(group => group.id === id))
 				.filter(group => group !== undefined)
-			
+
 			// Load permission settings, preserving database order
 			if (response.data.permissions) {
 				selectedManageAppointmentsRoles.value = response.data.permissions.manage_appointments
@@ -222,7 +219,7 @@ const loadSettings = async () => {
 					.map(id => response.data.groups.find(group => group.id === id))
 					.filter(group => group !== undefined)
 			}
-			
+
 			// Load reminder settings
 			if (response.data.reminders) {
 				remindersEnabled.value = response.data.reminders.enabled || false
@@ -231,8 +228,8 @@ const loadSettings = async () => {
 				notificationsAppEnabled.value = response.data.reminders.notificationsAppEnabled !== false
 			}
 		} else {
-			showError(window.t('attendance', 'Failed to load settings') + 
-				(response.data.error ? ': ' + response.data.error : ''))
+			showError(window.t('attendance', 'Failed to load settings')
+				+ (response.data.error ? ': ' + response.data.error : ''))
 		}
 	} catch (error) {
 		console.error('Error loading settings:', error)
@@ -254,21 +251,21 @@ const saveSettings = async () => {
 					PERMISSION_MANAGE_APPOINTMENTS: selectedManageAppointmentsRoles.value.map(g => g.id),
 					PERMISSION_CHECKIN: selectedCheckinRoles.value.map(g => g.id),
 					PERMISSION_SEE_RESPONSE_OVERVIEW: selectedSeeResponseOverviewRoles.value.map(g => g.id),
-					PERMISSION_SEE_COMMENTS: selectedSeeCommentsRoles.value.map(g => g.id)
+					PERMISSION_SEE_COMMENTS: selectedSeeCommentsRoles.value.map(g => g.id),
 				},
 				reminders: {
 					enabled: remindersEnabled.value,
 					reminderDays: reminderDays.value,
-					reminderFrequency: reminderFrequency.value
-				}
-			}
+					reminderFrequency: reminderFrequency.value,
+				},
+			},
 		)
 
 		if (response.data.success) {
 			showSuccess(window.t('attendance', 'Settings saved successfully'))
 		} else {
-			showError(window.t('attendance', 'Failed to save settings') + 
-				(response.data.error ? ': ' + response.data.error : ''))
+			showError(window.t('attendance', 'Failed to save settings')
+				+ (response.data.error ? ': ' + response.data.error : ''))
 		}
 	} catch (error) {
 		console.error('Error saving settings:', error)

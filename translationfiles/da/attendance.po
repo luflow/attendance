@@ -310,6 +310,15 @@ msgstr "Fejl ved indlæsning af aftaler"
 msgid "Error creating appointment"
 msgstr "Fejl ved oprettelse af aftale"
 
+msgid "Please enter an appointment name"
+msgstr "Indtast venligst et aftalenavn"
+
+msgid "Please select a start date and time"
+msgstr "Vælg venligst en startdato og -tid"
+
+msgid "Please select an end date and time"
+msgstr "Vælg venligst en slutdato og -tid"
+
 msgid "Error updating appointment"
 msgstr "Fejl ved opdatering af aftale"
 
@@ -591,3 +600,39 @@ msgstr "Se aftaledetaljer"
 
 msgid "Confirm your response?"
 msgstr "Bekræft dit svar?"
+
+msgid "Attachments"
+msgstr "Vedhæftede filer"
+
+msgid "Add from Files"
+msgstr "Tilføj fra Filer"
+
+msgid "Choose files to attach"
+msgstr "Vælg filer at vedhæfte"
+
+msgid "Attach"
+msgstr "Vedhæft"
+
+msgid "Attachment added"
+msgstr "Vedhæftet fil tilføjet"
+
+msgid "Attachment removed"
+msgstr "Vedhæftet fil fjernet"
+
+msgid "Failed to add attachment"
+msgstr "Kunne ikke tilføje vedhæftet fil"
+
+msgid "Failed to remove attachment"
+msgstr "Kunne ikke fjerne vedhæftet fil"
+
+msgid "No attachments"
+msgstr "Ingen vedhæftede filer"
+
+msgid "Files that are important for this appointment can be selected here."
+msgstr "Filer, der er vigtige for denne aftale, kan vælges her."
+
+msgid "Copy Appointment"
+msgstr "Kopiér aftale"
+
+msgid "Date & Time"
+msgstr "Dato og tid"

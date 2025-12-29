@@ -1,43 +1,76 @@
 <template>
-	<NcModal v-if="show" @close="handleClose" data-test="appointment-form-modal">
-		<div class="modal-content">
-			<h2 data-test="form-title">{{ isEdit ? t('attendance', 'Edit Appointment') : (isCopy ? t('attendance', 'Copy Appointment') : t('attendance', 'Create Appointment')) }}</h2>
-			<form @submit.prevent="handleSubmit" data-test="appointment-form">
-				<NcTextField 
-					v-model="formData.name" 
+	<NcModal v-model:show="internalShow"
+		:close-on-click-outside="false"
+		data-test="appointment-form-modal"
+		@close="handleClose">
+		<div ref="modalContentRef" class="modal-content">
+			<h2 data-test="form-title">
+				{{ isEdit ? t('attendance', 'Edit Appointment') : (isCopy ? t('attendance', 'Copy Appointment') : t('attendance', 'Create Appointment')) }}
+			</h2>
+			<form data-test="appointment-form" @submit.prevent="handleSubmit">
+				<NcTextField
+					v-model="formData.name"
 					:label="t('attendance', 'Appointment Name')"
 					data-test="input-appointment-name"
 					required />
-				
-				<NcTextArea 
-					v-model="formData.description" 
+
+				<NcTextArea
+					v-model="formData.description"
 					:label="t('attendance', 'Description')"
 					:placeholder="t('attendance', 'You can use **bold** and *italic* formatting')"
 					data-test="input-appointment-description"
 					:rows="4" />
-				
-				<div class="form-field">
-					<label for="start-datetime">{{ t('attendance', 'Start Date & Time') }}</label>
-					<input 
-						id="start-datetime"
-						v-model="formData.startDatetime"
-						type="datetime-local" 
-						data-test="input-start-datetime"
-						required 
-						@blur="handleStartDateBlur" />
+
+				<div class="form-field" data-test="attachment-section">
+					<label>{{ t('attendance', 'Attachments') }}</label>
+					<div class="attachment-list" data-test="attachment-list">
+						<NcChip
+							v-for="attachment in attachments"
+							:key="attachment.fileId"
+							:text="attachment.fileName"
+							:data-test="`attachment-chip-${attachment.fileId}`"
+							@close="removeAttachment(attachment.fileId)">
+							<template #icon>
+								<Paperclip :size="16" />
+							</template>
+						</NcChip>
+						<span v-if="attachments.length === 0" class="no-attachments">
+							{{ t('attendance', 'No attachments') }}
+						</span>
+					</div>
+					<NcButton variant="secondary"
+						native-type="button"
+						data-test="button-add-attachment"
+						@click.stop="openFilePicker">
+						<template #icon>
+							<Plus :size="20" />
+						</template>
+						{{ t('attendance', 'Add from Files') }}
+					</NcButton>
 				</div>
-				
-				<div class="form-field">
-					<label for="end-datetime">{{ t('attendance', 'End Date & Time') }}</label>
-					<input 
+
+				<div class="datetime-fields">
+					<NcDateTimePickerNative
+						id="start-datetime"
+						:model-value="startDateObject"
+						type="datetime-local"
+						:label="t('attendance', 'Start Date & Time')"
+						data-test="input-start-datetime"
+						required
+						@update:model-value="onStartDatetimeChange"
+						@blur="onStartDatetimeBlur" />
+
+					<NcDateTimePickerNative
 						id="end-datetime"
 						ref="endDatetimePicker"
-						v-model="formData.endDatetime"
-						type="datetime-local" 
+						:model-value="endDateObject"
+						type="datetime-local"
+						:label="t('attendance', 'End Date & Time')"
 						data-test="input-end-datetime"
-						required />
+						required
+						@update:model-value="onEndDatetimeChange" />
 				</div>
-				
+
 				<div v-if="props.notificationsAppEnabled && !isEdit" class="form-field">
 					<label>{{ t('attendance', 'Notification') }}</label>
 					<NcCheckboxRadioSwitch
@@ -45,12 +78,16 @@
 						data-test="checkbox-send-notification">
 						{{ t('attendance', 'Send notification') }}
 					</NcCheckboxRadioSwitch>
-					<p class="hint-text">{{ t('attendance', 'Notify users who can see this appointment about its creation') }}</p>
+					<p class="hint-text">
+						{{ t('attendance', 'Notify users who can see this appointment about its creation') }}
+					</p>
 				</div>
 
 				<div class="form-field">
 					<label>{{ t('attendance', 'Restrict Access') }}</label>
-					<p class="hint-text">{{ t('attendance', 'Limits who can see this appointment. Leave empty for all users.') }}</p>
+					<p class="hint-text">
+						{{ t('attendance', 'Limits who can see this appointment. Leave empty for all users.') }}
+					</p>
 					<NcSelect
 						v-model="visibilityItems"
 						:options="searchResults"
@@ -84,10 +121,10 @@
 				</div>
 
 				<div class="form-actions">
-					<NcButton type="secondary" @click="handleClose" data-test="button-cancel">
+					<NcButton variant="secondary" data-test="button-cancel" @click="handleClose">
 						{{ t('attendance', 'Cancel') }}
 					</NcButton>
-					<NcButton type="primary" native-type="submit" data-test="button-save">
+					<NcButton variant="primary" native-type="submit" data-test="button-save">
 						{{ t('attendance', 'Save') }}
 					</NcButton>
 				</div>
@@ -97,12 +134,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue'
-import { NcModal, NcButton, NcTextField, NcTextArea, NcSelect, NcNoteCard, NcCheckboxRadioSwitch } from '@nextcloud/vue'
+import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
+import { NcModal, NcButton, NcTextField, NcTextArea, NcSelect, NcNoteCard, NcCheckboxRadioSwitch, NcChip, NcDateTimePickerNative } from '@nextcloud/vue'
+import { getFilePickerBuilder, showSuccess, showError } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
 import Account from 'vue-material-design-icons/Account.vue'
+import Paperclip from 'vue-material-design-icons/Paperclip.vue'
+import Plus from 'vue-material-design-icons/Plus.vue'
+import '@nextcloud/dialogs/style.css'
 
 const props = defineProps({
 	show: {
@@ -126,6 +167,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'submit'])
 
 const endDatetimePicker = ref(null)
+const modalContentRef = ref(null)
 
 const formData = reactive({
 	name: '',
@@ -142,12 +184,34 @@ const searchResults = ref([])
 const isSearching = ref(false)
 const sendNotification = ref(false)
 const trackingGroups = ref([])
+const attachments = ref([]) // Array of { fileId, fileName, filePath, downloadUrl }
+const filePickerOpen = ref(false)
+
+// Internal show state that we control
+const internalShow = ref(false)
+
+// Sync internal state with prop, but only when file picker is not open
+watch(() => props.show, (newValue) => {
+	if (!filePickerOpen.value || newValue) {
+		internalShow.value = newValue
+	}
+}, { immediate: true })
+
+// When internal state changes to false (NcModal tries to close), check if we should allow it
+watch(internalShow, (newValue) => {
+	if (!newValue && filePickerOpen.value) {
+		// File picker is open, prevent close by resetting to true
+		nextTick(() => {
+			internalShow.value = true
+		})
+	}
+})
 
 // Fetch tracking groups from admin settings
 const loadTrackingGroups = async () => {
 	try {
 		const response = await axios.get(
-			generateUrl('/apps/attendance/api/admin/settings')
+			generateUrl('/apps/attendance/api/admin/settings'),
 		)
 		if (response.data.success && response.data.whitelistedGroups) {
 			trackingGroups.value = response.data.whitelistedGroups
@@ -170,7 +234,7 @@ const hasTrackingMismatch = computed(() => {
 	}
 	// Check if any selected group is in the tracking groups
 	const hasOverlappingGroup = formData.visibleGroups.some(
-		groupId => trackingGroups.value.includes(groupId)
+		groupId => trackingGroups.value.includes(groupId),
 	)
 	// If only users are selected (no groups), responses will go to "Others" unless users are in tracking groups
 	// We can't easily check this, so show warning if no groups overlap
@@ -197,17 +261,30 @@ watch(visibilityItems, (selected) => {
 const isEdit = computed(() => !!props.appointment)
 const isCopy = computed(() => !!props.copyFrom)
 
+// Convert string datetime to Date object for NcDateTimePickerNative
+const startDateObject = computed(() => {
+	if (!formData.startDatetime) return null
+	const date = new Date(formData.startDatetime)
+	return isNaN(date.getTime()) ? null : date
+})
+
+const endDateObject = computed(() => {
+	if (!formData.endDatetime) return null
+	const date = new Date(formData.endDatetime)
+	return isNaN(date.getTime()) ? null : date
+})
+
 const formatDateTimeForInput = (dateTime) => {
 	if (!dateTime) return ''
 	const date = new Date(dateTime)
 	if (isNaN(date.getTime())) return ''
-	
+
 	const year = date.getFullYear()
 	const month = String(date.getMonth() + 1).padStart(2, '0')
 	const day = String(date.getDate()).padStart(2, '0')
 	const hours = String(date.getHours()).padStart(2, '0')
 	const minutes = String(date.getMinutes()).padStart(2, '0')
-	
+
 	return `${year}-${month}-${day}T${hours}:${minutes}`
 }
 
@@ -218,13 +295,13 @@ watch(() => props.appointment, async (newAppointment) => {
 		formData.description = newAppointment.description || ''
 		formData.startDatetime = formatDateTimeForInput(newAppointment.startDatetime)
 		formData.endDatetime = formatDateTimeForInput(newAppointment.endDatetime)
-		
+
 		// Load visibility settings
 		const users = newAppointment.visibleUsers || []
 		const groups = newAppointment.visibleGroups || []
 		formData.visibleUsers = users
 		formData.visibleGroups = groups
-		
+
 		// Convert to visibility items for NcSelect
 		// Create items directly from stored IDs, then optionally fetch display names
 		const items = []
@@ -247,7 +324,7 @@ watch(() => props.appointment, async (newAppointment) => {
 				for (const userId of users) {
 					const response = await axios.get(
 						generateUrl('/apps/attendance/api/search/users-groups'),
-						{ params: { search: userId } }
+						{ params: { search: userId } },
 					)
 					const found = response.data.find(item => item.id === userId && item.type === 'user')
 					if (found) {
@@ -264,7 +341,7 @@ watch(() => props.appointment, async (newAppointment) => {
 				for (const groupId of groups) {
 					const response = await axios.get(
 						generateUrl('/apps/attendance/api/search/users-groups'),
-						{ params: { search: groupId } }
+						{ params: { search: groupId } },
 					)
 					const found = response.data.find(item => item.id === groupId && item.type === 'group')
 					if (found) {
@@ -285,6 +362,8 @@ watch(() => props.appointment, async (newAppointment) => {
 				console.error('Failed to load user/group display names:', error)
 			}
 		}
+		// Load attachments
+		attachments.value = newAppointment.attachments || []
 	} else {
 		// Reset form for create
 		formData.name = ''
@@ -296,6 +375,7 @@ watch(() => props.appointment, async (newAppointment) => {
 		sendNotification.value = false
 		visibilityItems.value = []
 		searchResults.value = []
+		attachments.value = []
 	}
 }, { immediate: true })
 
@@ -334,7 +414,7 @@ watch(() => props.copyFrom, async (copySource) => {
 				for (const userId of users) {
 					const response = await axios.get(
 						generateUrl('/apps/attendance/api/search/users-groups'),
-						{ params: { search: userId } }
+						{ params: { search: userId } },
 					)
 					const found = response.data.find(item => item.id === userId && item.type === 'user')
 					if (found) {
@@ -351,7 +431,7 @@ watch(() => props.copyFrom, async (copySource) => {
 				for (const groupId of groups) {
 					const response = await axios.get(
 						generateUrl('/apps/attendance/api/search/users-groups'),
-						{ params: { search: groupId } }
+						{ params: { search: groupId } },
 					)
 					const found = response.data.find(item => item.id === groupId && item.type === 'group')
 					if (found) {
@@ -372,6 +452,13 @@ watch(() => props.copyFrom, async (copySource) => {
 			}
 		}
 
+		// Copy attachments from source (for local display, actual copy happens on submit)
+		attachments.value = (copySource.attachments || []).map(a => ({
+			fileId: a.fileId,
+			fileName: a.fileName,
+			filePath: a.filePath,
+		}))
+
 		sendNotification.value = false
 	}
 }, { immediate: true })
@@ -389,19 +476,36 @@ watch(() => props.show, (isShowing) => {
 		sendNotification.value = false
 		visibilityItems.value = []
 		searchResults.value = []
+		attachments.value = []
 	}
 })
 
-const handleStartDateBlur = () => {
-	// Auto-set endDatetime if it's empty and startDatetime is set
+const onStartDatetimeChange = (newValue) => {
+	// newValue is a Date object from NcDateTimePickerNative
+	formData.startDatetime = newValue ? formatDateTimeForInput(newValue.toISOString()) : ''
+}
+
+const onStartDatetimeBlur = () => {
+	// Auto-fill end datetime if not set (only on blur)
 	if (formData.startDatetime && !formData.endDatetime) {
 		const startDate = new Date(formData.startDatetime)
-		const endDate = new Date(startDate.getTime() + 2.5 * 60 * 60 * 1000) // Add 2.5 hours
-		formData.endDatetime = formatDateTimeForInput(endDate.toISOString())
+		if (!isNaN(startDate.getTime())) {
+			const endDate = new Date(startDate.getTime() + 2.5 * 60 * 60 * 1000)
+			formData.endDatetime = formatDateTimeForInput(endDate.toISOString())
+		}
 	}
 }
 
+const onEndDatetimeChange = (newValue) => {
+	// newValue is a Date object from NcDateTimePickerNative
+	formData.endDatetime = newValue ? formatDateTimeForInput(newValue.toISOString()) : ''
+}
+
 const handleClose = () => {
+	// If file picker is open, don't actually close
+	if (filePickerOpen.value) {
+		return
+	}
 	emit('close')
 }
 
@@ -411,14 +515,14 @@ const onSearch = async (query) => {
 		searchResults.value = [...visibilityItems.value]
 		return
 	}
-	
+
 	isSearching.value = true
 	try {
 		const response = await axios.get(
 			generateUrl('/apps/attendance/api/search/users-groups'),
-			{ params: { search: query } }
+			{ params: { search: query } },
 		)
-		
+
 		// Format response for NcSelect
 		// Backend returns: { id, label, type, icon }
 		// NcSelect expects: { id, value, label, type }
@@ -429,7 +533,7 @@ const onSearch = async (query) => {
 			label: item.label,
 			type: item.type,
 		}))
-		
+
 		// Merge search results with already selected items to prevent them from disappearing
 		const mergedResults = [...visibilityItems.value]
 
@@ -437,19 +541,105 @@ const onSearch = async (query) => {
 		// Compare by id which now includes type prefix (e.g., "user:admin" vs "group:admin")
 		for (const result of newResults) {
 			const isAlreadySelected = visibilityItems.value.some(
-				item => item.id === result.id
+				item => item.id === result.id,
 			)
 			if (!isAlreadySelected) {
 				mergedResults.push(result)
 			}
 		}
-		
+
 		searchResults.value = mergedResults
 	} catch (error) {
 		console.error('Failed to search users/groups:', error)
 		searchResults.value = [...visibilityItems.value]
 	} finally {
 		isSearching.value = false
+	}
+}
+
+// File picker for attachments
+const openFilePicker = async () => {
+	// Set flag BEFORE any async operations
+	filePickerOpen.value = true
+
+	// Use nextTick to ensure the flag is set before the picker opens
+	await nextTick()
+
+	try {
+		const builder = getFilePickerBuilder(t('attendance', 'Choose files to attach'))
+			.setMultiSelect(true)
+			.allowDirectories(true)
+			.addButton({
+				label: t('attendance', 'Attach'),
+				callback: async (nodes) => {
+					for (const node of nodes) {
+						await addAttachment(node)
+					}
+				},
+			})
+
+		const picker = builder.build()
+		await picker.pick()
+	} catch (error) {
+		// User cancelled the picker
+		console.debug('File picker cancelled:', error)
+	} finally {
+		// Delay resetting the flag to ensure close events are properly blocked
+		setTimeout(() => {
+			filePickerOpen.value = false
+		}, 100)
+	}
+}
+
+// Add attachment (for new appointments, just add to local list; for editing, call API)
+const addAttachment = async (node) => {
+	// Check if already added
+	if (attachments.value.some(a => a.fileId === node.fileid)) {
+		return
+	}
+
+	const attachment = {
+		fileId: node.fileid,
+		fileName: node.basename,
+		filePath: node.path,
+	}
+
+	// If editing existing appointment, call API immediately
+	if (props.appointment?.id) {
+		try {
+			const response = await axios.post(
+				generateUrl(`/apps/attendance/api/appointments/${props.appointment.id}/attachments`),
+				{ fileId: node.fileid },
+			)
+			attachments.value.push(response.data)
+			showSuccess(t('attendance', 'Attachment added'))
+		} catch (error) {
+			console.error('Failed to add attachment:', error)
+			showError(t('attendance', 'Failed to add attachment'))
+		}
+	} else {
+		// For new appointments, just add to local list
+		attachments.value.push(attachment)
+	}
+}
+
+// Remove attachment
+const removeAttachment = async (fileId) => {
+	// If editing existing appointment, call API immediately
+	if (props.appointment?.id) {
+		try {
+			await axios.delete(
+				generateUrl(`/apps/attendance/api/appointments/${props.appointment.id}/attachments/${fileId}`),
+			)
+			attachments.value = attachments.value.filter(a => a.fileId !== fileId)
+			showSuccess(t('attendance', 'Attachment removed'))
+		} catch (error) {
+			console.error('Failed to remove attachment:', error)
+			showError(t('attendance', 'Failed to remove attachment'))
+		}
+	} else {
+		// For new appointments, just remove from local list
+		attachments.value = attachments.value.filter(a => a.fileId !== fileId)
 	}
 }
 
@@ -463,6 +653,7 @@ const handleSubmit = () => {
 		visibleUsers: formData.visibleUsers,
 		visibleGroups: formData.visibleGroups,
 		sendNotification: sendNotification.value,
+		attachmentFileIds: attachments.value.map(a => a.fileId),
 	})
 }
 </script>
@@ -473,53 +664,42 @@ const handleSubmit = () => {
 	min-width: min(500px, 90vw);
 	max-height: 90vh;
 	overflow-y: auto;
-	
+
 	h2 {
 		margin: 0 0 5px 0;
 	}
-	
+
 	form {
 		display: flex;
 		flex-direction: column;
 		gap: 15px;
-		
-		// Override NcTextArea height
-		:deep(.textarea__main-wrapper) {
-			min-height: calc(var(--default-clickable-area) * 2.8);
+	}
+
+	:deep(.textarea__main-wrapper) {
+		height: unset;
+	}
+
+	.datetime-fields {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 16px;
+
+		@media (max-width: 600px) {
+			grid-template-columns: 1fr;
 		}
 	}
-	
+
 	.form-field {
 		display: flex;
 		flex-direction: column;
 		gap: 5px;
-		
+
 		label {
 			font-weight: 600;
 			font-size: 14px;
 			color: var(--color-main-text);
 		}
-		
-		input[type="datetime-local"] {
-			width: 100%;
-			padding: 10px;
-			border: 2px solid var(--color-border-dark);
-			border-radius: var(--border-radius);
-			background-color: var(--color-main-background);
-			color: var(--color-main-text);
-			font-size: 14px;
-			font-family: inherit;
-			
-			&:focus {
-				border-color: var(--color-primary-element);
-				outline: none;
-			}
-			
-			&:hover {
-				border-color: var(--color-primary-element-light);
-			}
-		}
-		
+
 		.hint-text {
 			font-size: 12px;
 			color: var(--color-text-maxcontrast);
@@ -534,6 +714,19 @@ const handleSubmit = () => {
 				color: inherit;
 			}
 		}
+
+		.attachment-list {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 4px;
+			min-height: 32px;
+			padding: 4px 0;
+
+			.no-attachments {
+				color: var(--color-text-maxcontrast);
+				font-size: 13px;
+			}
+		}
 	}
 
 	.form-actions {
@@ -542,32 +735,24 @@ const handleSubmit = () => {
 		gap: 10px;
 		margin-top: 10px;
 	}
-	
+
 	@media (max-width: 768px) {
 		min-width: unset !important;
 		width: 100% !important;
 		padding: 15px !important;
-		
+
 		h2 {
 			font-size: 18px;
 			margin-bottom: 5px;
 		}
-		
+
 		form {
 			gap: 12px;
 		}
-		
-		.form-field {
-			input[type="datetime-local"] {
-				padding: 8px;
-				font-size: 16px;
-				max-width: 100%;
-			}
-		}
-		
+
 		.form-actions {
 			flex-direction: column-reverse;
-			
+
 			:deep(button) {
 				width: 100%;
 			}

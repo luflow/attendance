@@ -1,34 +1,48 @@
 <template>
 	<div class="appointment-card" data-test="appointment-card">
 		<div class="appointment-header">
-			<h3 data-test="appointment-title">{{ appointment.name }}</h3>
+			<h3 data-test="appointment-title">
+				{{ appointment.name }}
+			</h3>
 			<div class="appointment-actions">
 				<NcActions :force-menu="true" data-test="appointment-actions-menu">
-					<NcActionButton @click="copyShareLink" :close-after-click="true" data-test="action-share-link">
+					<NcActionButton :close-after-click="true" data-test="action-share-link" @click="copyShareLink">
 						<template #icon>
 							<ShareVariantIcon :size="20" />
 						</template>
 						{{ t('attendance', 'Share Link') }}
 					</NcActionButton>
-					<NcActionButton v-if="canCheckin" @click="handleStartCheckin" :close-after-click="true" data-test="action-start-checkin">
+					<NcActionButton v-if="canCheckin"
+						:close-after-click="true"
+						data-test="action-start-checkin"
+						@click="handleStartCheckin">
 						<template #icon>
 							<ListStatusIcon :size="20" />
 						</template>
 						{{ t('attendance', 'Start check-in') }}
 					</NcActionButton>
-					<NcActionButton v-if="canManageAppointments" @click="handleEdit" :close-after-click="true" data-test="action-edit">
+					<NcActionButton v-if="canManageAppointments"
+						:close-after-click="true"
+						data-test="action-edit"
+						@click="handleEdit">
 						<template #icon>
 							<Pencil :size="20" />
 						</template>
 						{{ t('attendance', 'Edit') }}
 					</NcActionButton>
-					<NcActionButton v-if="canManageAppointments" @click="handleCopy" :close-after-click="true" data-test="action-copy">
+					<NcActionButton v-if="canManageAppointments"
+						:close-after-click="true"
+						data-test="action-copy"
+						@click="handleCopy">
 						<template #icon>
 							<ContentCopy :size="20" />
 						</template>
 						{{ t('attendance', 'Copy') }}
 					</NcActionButton>
-					<NcActionButton v-if="canManageAppointments" @click="handleDelete" :close-after-click="true" data-test="action-delete">
+					<NcActionButton v-if="canManageAppointments"
+						:close-after-click="true"
+						data-test="action-delete"
+						@click="handleDelete">
 						<template #icon>
 							<Delete :size="20" />
 						</template>
@@ -37,9 +51,27 @@
 				</NcActions>
 			</div>
 		</div>
-		
-		<p v-if="appointment.description" class="appointment-description" v-html="renderedDescription"></p>
-		
+
+		<p v-if="appointment.description" class="appointment-description" v-html="renderedDescription" />
+
+		<div v-if="appointment.attachments?.length" class="attachment-chips" data-test="attachment-chips">
+			<a v-for="attachment in appointment.attachments"
+				:key="attachment.fileId"
+				:href="getAttachmentUrl(attachment)"
+				target="_blank"
+				rel="noopener noreferrer"
+				class="attachment-link"
+				:data-test="`attachment-link-${attachment.fileId}`">
+				<NcChip
+					:text="attachment.fileName"
+					no-close>
+					<template #icon>
+						<Paperclip :size="16" />
+					</template>
+				</NcChip>
+			</a>
+		</div>
+
 		<div class="appointment-time">
 			<strong>{{ t('attendance', 'Start Date & Time') }}:</strong> {{ formatDateTime(appointment.startDatetime) }}<br>
 			<strong>{{ t('attendance', 'End Date & Time') }}:</strong> {{ formatDateTime(appointment.endDatetime) }}
@@ -49,20 +81,20 @@
 		<div class="response-section" data-test="response-section">
 			<h4>{{ t('attendance', 'Your Response') }}</h4>
 			<div class="response-buttons" :class="{ 'has-response': userResponse }">
-				<NcButton 
-					:class="{ active: userResponse === 'yes' }" 
+				<NcButton
+					:class="{ active: userResponse === 'yes' }"
 					variant="success"
 					:text="t('attendance', 'Yes')"
 					data-test="response-yes"
 					@click="handleResponse('yes')" />
-				<NcButton 
-					:class="{ active: userResponse === 'maybe' }" 
+				<NcButton
+					:class="{ active: userResponse === 'maybe' }"
 					variant="warning"
 					:text="t('attendance', 'Maybe')"
 					data-test="response-maybe"
 					@click="handleResponse('maybe')" />
-				<NcButton 
-					:class="{ active: userResponse === 'no' }" 
+				<NcButton
+					:class="{ active: userResponse === 'no' }"
 					variant="error"
 					:text="t('attendance', 'No')"
 					data-test="response-no"
@@ -72,15 +104,15 @@
 			<!-- Comment Section -->
 			<div v-if="userResponse" class="comment-section">
 				<div class="textarea-container">
-					<NcTextArea 
-						resize="vertical"
+					<NcTextArea
 						v-model="localComment"
+						resize="vertical"
 						data-test="response-comment"
-						@input="handleCommentInputEvent"
-						:placeholder="t('attendance', 'Comment (optional)')" />
-					
+						:placeholder="t('attendance', 'Comment (optional)')"
+						@input="handleCommentInputEvent" />
+
 					<div v-if="savingComment" class="saving-spinner">
-						<div class="spinner"></div>
+						<div class="spinner" />
 					</div>
 					<div v-else-if="commentSaved" class="saved-indicator">
 						<CheckIcon :size="16" class="check-icon" />
@@ -93,7 +125,7 @@
 		</div>
 
 		<!-- Detailed Response Summary -->
-		<ResponseSummary 
+		<ResponseSummary
 			v-if="canSeeResponseOverview && appointment.responseSummary"
 			:response-summary="appointment.responseSummary"
 			:can-see-comments="canSeeComments" />
@@ -102,7 +134,7 @@
 
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue'
-import { NcButton, NcActions, NcActionButton, NcTextArea } from '@nextcloud/vue'
+import { NcButton, NcActions, NcActionButton, NcTextArea, NcChip } from '@nextcloud/vue'
 import ResponseSummary from './ResponseSummary.vue'
 import { renderMarkdown, sanitizeHtml } from '../../utils/markdown.js'
 import { generateUrl } from '@nextcloud/router'
@@ -115,6 +147,7 @@ import Delete from 'vue-material-design-icons/Delete.vue'
 import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
+import Paperclip from 'vue-material-design-icons/Paperclip.vue'
 import { formatDateTime } from '../../utils/datetime.js'
 
 const props = defineProps({
@@ -166,7 +199,7 @@ watch(() => props.appointment.userResponse, (newResponse) => {
 
 const copyShareLink = async () => {
 	const appointmentUrl = window.location.origin + generateUrl(`/apps/attendance/appointment/${props.appointment.id}`)
-	
+
 	try {
 		await navigator.clipboard.writeText(appointmentUrl)
 		showSuccess(window.t('attendance', 'Link copied to clipboard'))
@@ -193,6 +226,10 @@ const handleDelete = () => {
 
 const handleResponse = (response) => {
 	emit('submit-response', props.appointment.id, response)
+}
+
+const getAttachmentUrl = (attachment) => {
+	return attachment.downloadUrl || generateUrl(`/f/${attachment.fileId}`)
 }
 
 const handleCommentInputEvent = () => {
@@ -229,7 +266,7 @@ const autoSaveComment = async (commentText) => {
 		setTimeout(() => {
 			savingComment.value = false
 			commentSaved.value = true
-			
+
 			setTimeout(() => {
 				commentSaved.value = false
 			}, 2000)
@@ -239,7 +276,7 @@ const autoSaveComment = async (commentText) => {
 		savingComment.value = false
 		errorComment.value = true
 		showError(t('attendance', 'Comment could not be saved'))
-		
+
 		setTimeout(() => {
 			errorComment.value = false
 		}, 3000)
@@ -279,15 +316,31 @@ const autoSaveComment = async (commentText) => {
 	color: var(--color-text-lighter);
 	margin-bottom: 15px;
 	white-space: pre-wrap;
-	
+
 	// Markdown formatting
 	:deep(strong) {
 		font-weight: bold;
 		color: var(--color-main-text);
 	}
-	
+
 	:deep(em) {
 		font-style: italic;
+	}
+}
+
+.attachment-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	margin-bottom: 15px;
+
+	.attachment-link {
+		text-decoration: none;
+		color: inherit;
+
+		&:hover :deep(.nc-chip) {
+			background-color: var(--color-background-hover);
+		}
 	}
 }
 

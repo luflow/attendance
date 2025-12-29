@@ -49,7 +49,9 @@
 		<!-- Confirmation State -->
 		<template v-else>
 			<h2>{{ t('attendance', 'Confirm your response?') }}</h2>
-			<p class="responding-as">{{ t('attendance', 'You are answering as') }} <strong>{{ userName }}</strong></p>
+			<p class="responding-as">
+				{{ t('attendance', 'You are answering as') }} <strong>{{ userName }}</strong>
+			</p>
 
 			<div class="appointment-details">
 				<h3>{{ appointmentName }}</h3>

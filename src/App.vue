@@ -4,7 +4,7 @@
 		<NcAppNavigation v-if="currentView !== 'checkin'">
 			<template #list>
 				<!-- Unanswered Appointments Section -->
-				<NcAppNavigationItem 
+				<NcAppNavigationItem
 					v-if="unansweredAppointments.length > 0"
 					:name="t('attendance', 'Unanswered')"
 					:active="currentView === 'unanswered'"
@@ -28,8 +28,8 @@
 						</NcAppNavigationItem>
 					</template>
 				</NcAppNavigationItem>
-				
-				<NcAppNavigationItem 
+
+				<NcAppNavigationItem
 					:name="t('attendance', 'Upcoming Appointments')"
 					:active="currentView === 'current'"
 					data-test="nav-upcoming"
@@ -54,8 +54,8 @@
 						</NcAppNavigationItem>
 					</template>
 				</NcAppNavigationItem>
-				
-				<NcAppNavigationItem 
+
+				<NcAppNavigationItem
 					:name="t('attendance', 'Past Appointments')"
 					:active="currentView === 'past'"
 					data-test="nav-past"
@@ -79,7 +79,7 @@
 					</template>
 				</NcAppNavigationItem>
 			</template>
-			
+
 			<!-- Bottom button for creating new appointment -->
 			<template #footer>
 				<NcAppNavigationItem
@@ -115,37 +115,39 @@
 		<NcAppContent>
 			<!-- Check-in View -->
 			<CheckinView v-if="currentView === 'checkin'" :appointment-id="checkinAppointmentId" />
-			
+
+			<!-- Appointment Form View (Create/Edit/Copy) -->
+			<AppointmentForm
+				v-else-if="currentView === 'create' || currentView === 'edit' || currentView === 'copy'"
+				:mode="currentView"
+				:appointment-id="formAppointmentId"
+				:notifications-app-enabled="notificationsAppEnabled"
+				@saved="handleFormSaved"
+				@cancelled="handleFormCancelled" />
+
 			<!-- Appointment Detail View -->
 			<AppointmentDetail
 				v-else-if="currentView === 'appointment'"
 				:appointment-id="appointmentDetailId"
 				@response-updated="loadAppointments"
-				@copy-appointment="copyExistingAppointment" />
-			
+				@edit-appointment="editAppointment"
+				@copy-appointment="copyAppointment" />
+
 			<!-- All Appointments View -->
 			<AllAppointments
 				v-else-if="currentView === 'current' || currentView === 'past' || currentView === 'unanswered'"
+				:key="currentView"
 				:show-past="currentView === 'past'"
 				:show-unanswered="currentView === 'unanswered'"
-				:key="currentView"
 				@response-updated="loadAppointments"
-				@copy-appointment="copyExistingAppointment" />
-			
+				@edit-appointment="editAppointment"
+				@copy-appointment="copyAppointment" />
+
 			<!-- Loading state while routing is determined -->
 			<div v-else class="loading-state">
-				<div class="loading-spinner"></div>
+				<div class="loading-spinner" />
 			</div>
 		</NcAppContent>
-		
-		<!-- Create Appointment Modal -->
-		<AppointmentFormModal
-			:show="showCreateForm"
-			:appointment="null"
-			:copy-from="copyFromAppointment"
-			:notifications-app-enabled="notificationsAppEnabled"
-			@close="handleCreateModalClose"
-			@submit="handleCreateModalSubmit" />
 
 		<!-- iCal Feed Modal -->
 		<IcalFeedModal
@@ -159,7 +161,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import CheckinView from './views/Checkin.vue'
 import AllAppointments from './views/AllAppointments.vue'
 import AppointmentDetail from './views/AppointmentDetail.vue'
-import AppointmentFormModal from './components/appointment/AppointmentFormModal.vue'
+import AppointmentForm from './views/AppointmentForm.vue'
 import IcalFeedModal from './components/IcalFeedModal.vue'
 import { NcContent, NcAppNavigation, NcAppNavigationItem, NcAppContent } from '@nextcloud/vue'
 import axios from '@nextcloud/axios'
@@ -177,17 +179,16 @@ import DownloadIcon from 'vue-material-design-icons/Download.vue'
 import BellAlertIcon from 'vue-material-design-icons/BellAlert.vue'
 import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
 import { usePermissions } from './composables/usePermissions.js'
-import { formatDateTime, toServerTimezone } from './utils/datetime.js'
+import { formatDateTime } from './utils/datetime.js'
 
-const currentView = ref(null) // 'current', 'past', 'unanswered', 'appointment', 'checkin', or null
+const currentView = ref(null) // 'current', 'past', 'unanswered', 'appointment', 'checkin', 'create', 'edit', 'copy', or null
 const checkinAppointmentId = ref(null)
 const appointmentDetailId = ref(null)
+const formAppointmentId = ref(null) // For edit/copy modes
 const currentAppointments = ref([])
 const pastAppointments = ref([])
-const showCreateForm = ref(false)
 const showIcalFeedModal = ref(false)
 const notificationsAppEnabled = ref(false)
-const copyFromAppointment = ref(null)
 
 // Use the shared permissions composable
 const { permissions, loadPermissions } = usePermissions()
@@ -208,10 +209,10 @@ const answeredAppointments = computed(() => {
 
 const setView = (view) => {
 	currentView.value = view
-	
-	const baseUrl = window.location.pathname.replace(/\/(past|unanswered|appointment\/\d+|checkin\/\d+)?$/, '')
+
+	const baseUrl = window.location.pathname.replace(/\/(past|unanswered|appointment\/\d+|checkin\/\d+|create|edit\/\d+|copy\/\d+)?$/, '')
 	let newUrl = baseUrl
-	
+
 	if (view === 'past') {
 		newUrl = baseUrl + '/past'
 	} else if (view === 'unanswered') {
@@ -219,17 +220,17 @@ const setView = (view) => {
 	} else if (view === 'current') {
 		newUrl = baseUrl
 	}
-	
+
 	window.history.pushState({ view }, '', newUrl)
 }
 
 const navigateToAppointment = (appointmentId) => {
 	currentView.value = 'appointment'
 	appointmentDetailId.value = appointmentId
-	
-	const baseUrl = window.location.pathname.replace(/\/(past|unanswered|appointment\/\d+|checkin\/\d+)?$/, '')
+
+	const baseUrl = window.location.pathname.replace(/\/(past|unanswered|appointment\/\d+|checkin\/\d+|create|edit\/\d+|copy\/\d+)?$/, '')
 	const newUrl = baseUrl + '/appointment/' + appointmentId
-	
+
 	window.history.pushState({ view: 'appointment', appointmentId }, '', newUrl)
 }
 
@@ -257,49 +258,52 @@ const loadNotificationsAppStatus = async () => {
 }
 
 const createNewAppointment = () => {
-	copyFromAppointment.value = null
-	showCreateForm.value = true
+	currentView.value = 'create'
+	formAppointmentId.value = null
+
+	const baseUrl = window.location.pathname.replace(/\/(past|unanswered|appointment\/\d+|checkin\/\d+|create|edit\/\d+|copy\/\d+)?$/, '')
+	const newUrl = baseUrl + '/create'
+
+	window.history.pushState({ view: 'create' }, '', newUrl)
 }
 
-const copyExistingAppointment = (appointment) => {
-	copyFromAppointment.value = appointment
-	showCreateForm.value = true
+const editAppointment = (appointment) => {
+	currentView.value = 'edit'
+	formAppointmentId.value = appointment.id
+
+	const baseUrl = window.location.pathname.replace(/\/(past|unanswered|appointment\/\d+|checkin\/\d+|create|edit\/\d+|copy\/\d+)?$/, '')
+	const newUrl = baseUrl + '/edit/' + appointment.id
+
+	window.history.pushState({ view: 'edit', appointmentId: appointment.id }, '', newUrl)
 }
 
-const handleCreateModalClose = () => {
-	showCreateForm.value = false
-	copyFromAppointment.value = null
+const copyAppointment = (appointment) => {
+	currentView.value = 'copy'
+	formAppointmentId.value = appointment.id
+
+	const baseUrl = window.location.pathname.replace(/\/(past|unanswered|appointment\/\d+|checkin\/\d+|create|edit\/\d+|copy\/\d+)?$/, '')
+	const newUrl = baseUrl + '/copy/' + appointment.id
+
+	window.history.pushState({ view: 'copy', appointmentId: appointment.id }, '', newUrl)
 }
 
-const handleCreateModalSubmit = async (formData) => {
-	try {
-		const startDatetimeWithTz = toServerTimezone(formData.startDatetime)
-		const endDatetimeWithTz = toServerTimezone(formData.endDatetime)
+const handleFormSaved = async (appointmentId) => {
+	await loadAppointments()
 
-		const response = await axios.post(generateUrl('/apps/attendance/api/appointments'), {
-			name: formData.name,
-			description: formData.description,
-			startDatetime: startDatetimeWithTz,
-			endDatetime: endDatetimeWithTz,
-			visibleUsers: formData.visibleUsers || [],
-			visibleGroups: formData.visibleGroups || [],
-			sendNotification: formData.sendNotification || false,
-		})
+	// Navigate to the saved appointment's detail view
+	if (appointmentId) {
+		navigateToAppointment(appointmentId)
+	} else {
+		setView('current')
+	}
+}
 
-		showSuccess(t('attendance', 'Appointment created successfully'))
-		handleCreateModalClose()
-
-		await loadAppointments()
-
-		// Navigate to the newly created appointment's detail view
-		if (response.data && response.data.id) {
-			navigateToAppointment(response.data.id)
-		} else if (currentView.value !== 'current') {
-			setView('current')
-		}
-	} catch (error) {
-		console.error('Failed to create appointment:', error)
-		showError(t('attendance', 'Error creating appointment'))
+const handleFormCancelled = () => {
+	// Go back to the previous view or default to current
+	if (window.history.length > 1) {
+		window.history.back()
+	} else {
+		setView('current')
 	}
 }
 
@@ -314,10 +318,10 @@ const formatAppointmentDisplay = (appointment) => {
 const exportAppointments = async () => {
 	try {
 		const response = await axios.post(generateUrl('/apps/attendance/api/export'))
-		
+
 		if (response.data.success) {
 			showSuccess(t('attendance', 'Export created successfully: {filename}', { filename: response.data.filename }))
-			
+
 			const filesUrl = generateUrl('/apps/files/?dir=/Attendance')
 			window.location.href = filesUrl
 		} else {
@@ -334,29 +338,37 @@ const checkRouting = () => {
 	const path = window.location.pathname
 	const checkinMatch = path.match(/\/checkin\/(\d+)/)
 	const appointmentMatch = path.match(/\/appointment\/(\d+)/)
+	const editMatch = path.match(/\/edit\/(\d+)/)
+	const copyMatch = path.match(/\/copy\/(\d+)/)
+	const isCreateRoute = path.endsWith('/create')
 	const isPastRoute = path.endsWith('/past')
 	const isUnansweredRoute = path.endsWith('/unanswered')
-	
+
+	// Reset all state
+	checkinAppointmentId.value = null
+	appointmentDetailId.value = null
+	formAppointmentId.value = null
+
 	if (checkinMatch) {
 		currentView.value = 'checkin'
 		checkinAppointmentId.value = parseInt(checkinMatch[1])
-		appointmentDetailId.value = null
+	} else if (isCreateRoute) {
+		currentView.value = 'create'
+	} else if (editMatch) {
+		currentView.value = 'edit'
+		formAppointmentId.value = parseInt(editMatch[1])
+	} else if (copyMatch) {
+		currentView.value = 'copy'
+		formAppointmentId.value = parseInt(copyMatch[1])
 	} else if (appointmentMatch) {
 		currentView.value = 'appointment'
 		appointmentDetailId.value = parseInt(appointmentMatch[1])
-		checkinAppointmentId.value = null
 	} else if (isPastRoute) {
 		currentView.value = 'past'
-		checkinAppointmentId.value = null
-		appointmentDetailId.value = null
 	} else if (isUnansweredRoute) {
 		currentView.value = 'unanswered'
-		checkinAppointmentId.value = null
-		appointmentDetailId.value = null
 	} else {
 		currentView.value = 'current'
-		checkinAppointmentId.value = null
-		appointmentDetailId.value = null
 	}
 }
 
@@ -456,7 +468,7 @@ body[data-theme-dark] #attendance[data-nc-version="31"] .response-buttons .butto
 	body[data-theme-default] #attendance[data-nc-version="31"] .nc-chip--warning .nc-chip__text {
 		color: black !important;
 	}
-	
+
 	body[data-theme-default] #attendance[data-nc-version="31"] .response-buttons:not(.has-response) .button-vue--warning .button-vue__text,
 	body[data-theme-default] #attendance[data-nc-version="31"] .response-buttons .button-vue--warning.active .button-vue__text {
 		color: black !important;
