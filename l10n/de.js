@@ -103,6 +103,9 @@ OC.L10N.register(
         "No responses yet": "Noch keine Antworten",
         "Error loading appointments": "Fehler beim Laden der Termine",
         "Error creating appointment": "Fehler beim Erstellen des Termins",
+        "Please enter an appointment name": "Bitte geben Sie einen Terminnamen ein",
+        "Please select a start date and time": "Bitte wählen Sie ein Startdatum und eine Startzeit",
+        "Please select an end date and time": "Bitte wählen Sie ein Enddatum und eine Endzeit",
         "Error updating appointment": "Fehler beim Aktualisieren des Termins",
         "Error deleting appointment": "Fehler beim Löschen des Termins",
         "Error updating response": "Fehler beim Aktualisieren der Antwort",
@@ -196,7 +199,19 @@ OC.L10N.register(
         "You are answering as": "Du antwortest als",
         "Open Attendance App": "Anwesenheits-App öffnen",
         "View Appointment Details": "Termindetails anzeigen",
-        "Confirm your response?": "Antwort bestätigen?"
+        "Confirm your response?": "Antwort bestätigen?",
+        "Attachments": "Anhänge",
+        "Add from Files": "Aus Dateien hinzufügen",
+        "Choose files to attach": "Dateien zum Anhängen auswählen",
+        "Attach": "Anhängen",
+        "Attachment added": "Anhang hinzugefügt",
+        "Attachment removed": "Anhang entfernt",
+        "Failed to add attachment": "Anhang konnte nicht hinzugefügt werden",
+        "Failed to remove attachment": "Anhang konnte nicht entfernt werden",
+        "No attachments": "Keine Anhänge",
+        "Files that are important for this appointment can be selected here.": "Dateien, die für diesen Termin wichtig sind, können hier ausgewählt werden.",
+        "Copy Appointment": "Termin kopieren",
+        "Date & Time": "Datum & Zeit"
     },
     "nplurals=2; plural=(n != 1);"
 );

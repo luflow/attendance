@@ -15,7 +15,7 @@
 				<div class="feed-url-section">
 					<label class="feed-url-label">{{ t('attendance', 'Subscription URL') }}</label>
 					<code class="feed-url-display" data-test="input-ical-feed-url">{{ feedUrl }}</code>
-					<NcButton type="secondary"
+					<NcButton variant="secondary"
 						:aria-label="t('attendance', 'Copy URL')"
 						data-test="button-copy-url"
 						@click="handleCopy">
@@ -29,7 +29,7 @@
 				<div class="quick-subscribe-section">
 					<label class="quick-subscribe-label">{{ t('attendance', 'Quick subscribe') }}</label>
 					<div class="quick-subscribe-buttons">
-						<NcButton type="secondary"
+						<NcButton variant="secondary"
 							:href="googleCalendarUrl"
 							target="_blank"
 							data-test="button-google-calendar">
@@ -38,7 +38,7 @@
 							</template>
 							{{ t('attendance', 'Google Calendar') }}
 						</NcButton>
-						<NcButton type="secondary"
+						<NcButton variant="secondary"
 							:href="webcalUrl"
 							data-test="button-apple-calendar">
 							<template #icon>
@@ -59,7 +59,7 @@
 				</NcNoteCard>
 
 				<div class="regenerate-section">
-					<NcButton type="tertiary"
+					<NcButton variant="tertiary"
 						:disabled="loading"
 						data-test="button-regenerate-url"
 						@click="showRegenerateConfirm = true">
@@ -78,10 +78,10 @@
 			@update:open="showRegenerateConfirm = false">
 			<p>{{ t('attendance', 'This will invalidate your current calendar subscription URL. Any calendar apps using the old URL will need to be updated with the new URL.') }}</p>
 			<template #actions>
-				<NcButton type="secondary" @click="showRegenerateConfirm = false">
+				<NcButton variant="secondary" @click="showRegenerateConfirm = false">
 					{{ t('attendance', 'Cancel') }}
 				</NcButton>
-				<NcButton type="error" @click="handleRegenerate">
+				<NcButton variant="error" @click="handleRegenerate">
 					{{ t('attendance', 'Regenerate') }}
 				</NcButton>
 			</template>

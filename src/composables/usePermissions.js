@@ -22,6 +22,7 @@ export function usePermissions() {
 	/**
 	 * Load permissions from the server
 	 * Will only make the API call once unless force=true
+	 * @param force
 	 */
 	const loadPermissions = async (force = false) => {
 		if (state.loaded && !force) {
@@ -38,17 +39,17 @@ export function usePermissions() {
 		try {
 			const url = generateUrl('/apps/attendance/api/user/permissions')
 			const response = await axios.get(url)
-			
+
 			state.permissions.canManageAppointments = response.data.canManageAppointments || false
 			state.permissions.canCheckin = response.data.canCheckin || false
 			state.permissions.canSeeResponseOverview = response.data.canSeeResponseOverview || false
 			state.permissions.canSeeComments = response.data.canSeeComments || false
-			
+
 			state.loaded = true
 		} catch (error) {
 			console.error('Failed to load permissions:', error)
 			state.error = error
-			
+
 			state.permissions.canManageAppointments = false
 			state.permissions.canCheckin = false
 			state.permissions.canSeeResponseOverview = false

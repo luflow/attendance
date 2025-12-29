@@ -58,25 +58,36 @@ async function addUserToGroup(page, username, groupName) {
 
 // Helper function to create an appointment with group visibility
 async function createAppointmentWithGroupVisibility(page, { name, description, daysFromNow = 2, durationHours = 1, visibleGroups = [] }) {
-	// Click create button
-	await page.getByRole('link', { name: 'Create Appointment' }).click()
-	
-	// Wait for modal
-	await expect(page.getByRole('dialog')).toBeVisible()
+	// Wait for Create Appointment link to be ready
+	const createLink = page.getByRole('link', { name: 'Create Appointment' })
+	await createLink.waitFor({ state: 'visible' })
+
+	// Click create button (navigates to form page)
+	await createLink.click()
+
+	// Wait for form page to load
+	await page.waitForURL(/.*\/create$/)
+	await page.waitForLoadState('networkidle')
 	await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
-	
-	// Fill form
-	await page.getByRole('textbox', { name: 'Appointment Name' }).fill(name)
-	await page.getByRole('textbox', { name: 'Description' }).fill(description)
-	
+
+	// Wait for name field to be ready and fill it
+	const nameInput = page.getByRole('textbox', { name: 'Appointment Name' })
+	await nameInput.waitFor({ state: 'visible' })
+	await nameInput.fill(name)
+
+	// Wait for description field to be ready and fill it
+	const descInput = page.getByRole('textbox', { name: 'Description' })
+	await descInput.waitFor({ state: 'visible' })
+	await descInput.fill(description)
+
 	// Calculate dates
 	const now = new Date()
 	const startDate = new Date(now.getTime() + daysFromNow * 24 * 60 * 60 * 1000)
 	const endDate = new Date(startDate.getTime() + durationHours * 60 * 60 * 1000)
-	
+
 	await page.getByRole('textbox', { name: 'Start Date & Time' }).fill(startDate.toISOString().slice(0, 16))
 	await page.getByRole('textbox', { name: 'End Date & Time' }).fill(endDate.toISOString().slice(0, 16))
-	
+
 	// Add visible groups if specified
 	if (visibleGroups.length > 0) {
 		for (const groupName of visibleGroups) {
@@ -84,25 +95,25 @@ async function createAppointmentWithGroupVisibility(page, { name, description, d
 			// The placeholder changes after first selection, so getByPlaceholder won't work
 			await page.getByRole('searchbox').click()
 			await page.getByRole('searchbox').fill(groupName)
-			
+
 			// Wait for search results option to appear
 			const groupOption = page.getByRole('option', { name: groupName })
 			await groupOption.waitFor({ state: 'visible' })
-			
+
 			// Select the group from dropdown
 			await groupOption.click()
-			
+
 			// Verify the group is now shown as selected in .vs__selected span
 			const visibilitySelector = page.locator('[data-test="select-visibility"]')
 			await expect(visibilitySelector.locator('.vs__selected', { hasText: groupName })).toBeVisible()
 		}
 	}
-	
+
 	// Save
 	await page.getByRole('button', { name: 'Save' }).click()
-	
-	// Wait for modal to close
-	await expect(page.getByRole('dialog')).not.toBeVisible()
+
+	// Wait for navigation back to appointment list
+	await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 	await page.waitForLoadState('networkidle')
 }
 
@@ -203,31 +214,33 @@ test.describe('Attendance App - Group Visibility Filtering', () => {
 			await loginAsUser('admin', 'admin')
 			await attendanceApp()
 			await page.waitForLoadState('networkidle')
-			
+
 			// Click on "Cross-Team Sync" appointment
 			await page.getByText('Cross-Team Sync').first().click()
-			
+
 			// Wait for actions button to be ready and click Edit
 			const actionsButton = page.getByRole('button', { name: 'Actions' }).first()
 			await actionsButton.waitFor({ state: 'visible' })
 			await actionsButton.click()
 			await page.getByRole('menuitem', { name: 'Edit' }).click()
-			
-			// Wait for modal
-			await expect(page.getByRole('dialog')).toBeVisible()
+
+			// Wait for form page and verify it's Edit mode
+			await page.waitForURL(/.*\/edit\/\d+$/)
 			await expect(page.getByRole('heading', { name: 'Edit Appointment' })).toBeVisible()
-			
+
 			// Verify that the developers group is shown in the visibility field in .vs__selected span
 			// Scope to the visibility selector component to avoid ambiguity
 			const visibilitySelector = page.locator('[data-test="select-visibility"]')
 			await expect(visibilitySelector.locator('.vs__selected', { hasText: 'developers' })).toBeVisible()
-			
+
 			// Try to add another group (if available)
 			// For now, we'll just verify the current selection is preserved
-			
+
 			// Save without changes
 			await page.getByRole('button', { name: 'Save' }).click()
-			await expect(page.getByRole('dialog')).not.toBeVisible()
+
+			// Wait for navigation back to appointment list
+			await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 			await page.waitForLoadState('networkidle')
 		})
 
@@ -235,45 +248,53 @@ test.describe('Attendance App - Group Visibility Filtering', () => {
 			await loginAsUser('admin', 'admin')
 			await attendanceApp()
 			await page.waitForLoadState('networkidle')
-			
+
 			// Create appointment with both specific user and group
-			await page.getByRole('link', { name: 'Create Appointment' }).click()
-			await expect(page.getByRole('dialog')).toBeVisible()
-			
+			const createLink = page.getByRole('link', { name: 'Create Appointment' })
+			await createLink.waitFor({ state: 'visible' })
+			await createLink.click()
+
+			// Wait for form page to load
+			await page.waitForURL(/.*\/create$/)
+			await page.waitForLoadState('networkidle')
+			await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
+
 			// Fill form
 			await page.getByRole('textbox', { name: 'Appointment Name' }).fill('Mixed Visibility Meeting')
 			await page.getByRole('textbox', { name: 'Description' }).fill('Visible to developers group and test2 user')
-			
+
 			const now = new Date()
 			const startDate = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000)
 			const endDate = new Date(startDate.getTime() + 60 * 60 * 1000)
-			
+
 			await page.getByRole('textbox', { name: 'Start Date & Time' }).fill(startDate.toISOString().slice(0, 16))
 			await page.getByRole('textbox', { name: 'End Date & Time' }).fill(endDate.toISOString().slice(0, 16))
-			
+
 			// Add developers group (no ambiguity)
 			await page.getByRole('searchbox').click()
 			await page.getByRole('searchbox').fill('developers')
 			const developersOption = page.getByRole('option', { name: 'developers' })
 			await developersOption.waitFor({ state: 'visible' })
 			await developersOption.click()
-			
+
 			// Add test2 user
 			await page.getByRole('searchbox').click()
 			await page.getByRole('searchbox').fill('test2')
 			const test2Option = page.getByRole('option', { name: 'test2' })
 			await test2Option.waitFor({ state: 'visible' })
 			await test2Option.click()
-			
+
 			// Verify test2 is now shown as selected in .vs__selected span
 			const visibilitySelector = page.locator('[data-test="select-visibility"]')
 			await expect(visibilitySelector.locator('.vs__selected', { hasText: 'test2' })).toBeVisible()
-			
+
 			// Save
 			await page.getByRole('button', { name: 'Save' }).click()
-			await expect(page.getByRole('dialog')).not.toBeVisible()
+
+			// Wait for navigation back to appointment list
+			await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 			await page.waitForLoadState('networkidle')
-			
+
 			// Verify appointment appears
 			await expect(page.getByText('Mixed Visibility Meeting').first()).toBeVisible()
 		})

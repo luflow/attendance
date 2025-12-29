@@ -70,7 +70,9 @@ test.describe('Attendance App - Admin Settings', () => {
 
 			// Create test appointment
 			await page.getByRole('link', { name: 'Create Appointment' }).click()
-			await expect(page.getByRole('dialog')).toBeVisible()
+			await page.waitForURL(/.*\/create$/)
+			await page.waitForLoadState('networkidle')
+			await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
 			await page.getByRole('textbox', { name: 'Appointment Name' }).fill('Check-in Test Meeting')
 			await page.getByRole('textbox', { name: 'Description' }).fill('Testing check-in permissions')
 
@@ -81,7 +83,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.getByRole('textbox', { name: 'Start Date & Time' }).fill(startDate.toISOString().slice(0, 16))
 			await page.getByRole('textbox', { name: 'End Date & Time' }).fill(endDate.toISOString().slice(0, 16))
 			await page.getByRole('button', { name: 'Save' }).click()
-			await expect(page.getByRole('dialog')).not.toBeVisible()
+			await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 			await page.waitForLoadState('networkidle')
 
 			// Configure check-in permission to admin only
@@ -155,7 +157,9 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.waitForLoadState('networkidle')
 
 			await page.getByRole('link', { name: 'Create Appointment' }).click()
-			await expect(page.getByRole('dialog')).toBeVisible()
+			await page.waitForURL(/.*\/create$/)
+			await page.waitForLoadState('networkidle')
+			await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
 			await page.getByRole('textbox', { name: 'Appointment Name' }).fill('Response Overview Test')
 			await page.getByRole('textbox', { name: 'Description' }).fill('Testing response visibility')
 
@@ -166,7 +170,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.getByRole('textbox', { name: 'Start Date & Time' }).fill(startDate.toISOString().slice(0, 16))
 			await page.getByRole('textbox', { name: 'End Date & Time' }).fill(endDate.toISOString().slice(0, 16))
 			await page.getByRole('button', { name: 'Save' }).click()
-			await expect(page.getByRole('dialog')).not.toBeVisible()
+			await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 			await page.waitForLoadState('networkidle')
 
 			// Admin should see response summary

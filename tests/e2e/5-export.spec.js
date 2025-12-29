@@ -2,16 +2,27 @@ import { test, expect } from './fixtures/nextcloud.js'
 
 // Helper function to create an appointment
 async function createAppointment(page, { name, description, daysFromNow = 2, durationHours = 1 }) {
-	// Click create button
-	await page.getByRole('link', { name: 'Create Appointment' }).click()
+	// Wait for Create Appointment link to be ready
+	const createLink = page.getByRole('link', { name: 'Create Appointment' })
+	await createLink.waitFor({ state: 'visible' })
 
-	// Wait for modal
-	await expect(page.getByRole('dialog')).toBeVisible()
+	// Click create button (navigates to form page)
+	await createLink.click()
+
+	// Wait for form page to load
+	await page.waitForURL(/.*\/create$/)
+	await page.waitForLoadState('networkidle')
 	await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
 
-	// Fill form
-	await page.getByRole('textbox', { name: 'Appointment Name' }).fill(name)
-	await page.getByRole('textbox', { name: 'Description' }).fill(description)
+	// Wait for name field to be ready and fill it
+	const nameInput = page.getByRole('textbox', { name: 'Appointment Name' })
+	await nameInput.waitFor({ state: 'visible' })
+	await nameInput.fill(name)
+
+	// Wait for description field to be ready and fill it
+	const descInput = page.getByRole('textbox', { name: 'Description' })
+	await descInput.waitFor({ state: 'visible' })
+	await descInput.fill(description)
 
 	// Calculate dates
 	const now = new Date()
@@ -24,8 +35,8 @@ async function createAppointment(page, { name, description, daysFromNow = 2, dur
 	// Save
 	await page.getByRole('button', { name: 'Save' }).click()
 
-	// Wait for modal to close
-	await expect(page.getByRole('dialog')).not.toBeVisible()
+	// Wait for navigation back to appointment list
+	await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 	await page.waitForLoadState('networkidle')
 }
 

@@ -8,6 +8,9 @@ return [
 		['name' => 'page#past', 'url' => '/past', 'verb' => 'GET'],
 		['name' => 'page#appointment', 'url' => '/appointment/{id}', 'verb' => 'GET'],
 		['name' => 'page#checkin', 'url' => '/checkin/{id}', 'verb' => 'GET'],
+		['name' => 'page#create', 'url' => '/create', 'verb' => 'GET'],
+		['name' => 'page#edit', 'url' => '/edit/{id}', 'verb' => 'GET'],
+		['name' => 'page#copy', 'url' => '/copy/{id}', 'verb' => 'GET'],
 		
 		// Appointment management routes
 		// NOTE: Specific routes must come BEFORE wildcard {id} routes
@@ -22,6 +25,11 @@ return [
 		// Attendance response routes
 		['name' => 'appointment#respond', 'url' => '/api/appointments/{id}/respond', 'verb' => 'POST'],
 		['name' => 'appointment#getResponses', 'url' => '/api/appointments/{id}/responses', 'verb' => 'GET'],
+
+		// Attachment routes
+		['name' => 'attachment#list', 'url' => '/api/appointments/{appointmentId}/attachments', 'verb' => 'GET'],
+		['name' => 'attachment#add', 'url' => '/api/appointments/{appointmentId}/attachments', 'verb' => 'POST'],
+		['name' => 'attachment#remove', 'url' => '/api/appointments/{appointmentId}/attachments/{fileId}', 'verb' => 'DELETE'],
 		
 		// Check-in functionality routes
 		['name' => 'appointment#checkinResponse', 'url' => '/api/appointments/{appointmentId}/checkin/{targetUserId}', 'verb' => 'POST'],

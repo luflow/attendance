@@ -5,7 +5,9 @@
 			<div class="user-info">
 				<NcAvatar :user="user.userId" :size="80" :show-user-status="false" />
 				<div class="user-details">
-					<div class="user-name">{{ user.displayName }}</div>
+					<div class="user-name">
+						{{ user.displayName }}
+					</div>
 					<div class="response-row">
 						<NcChip
 							v-if="user.response"
@@ -62,7 +64,9 @@
 				<div class="comment-overlay-header">
 					<NcAvatar :user="user.userId" :size="32" :show-user-status="false" />
 					<div class="comment-overlay-info">
-						<div class="user-name">{{ user.displayName }}</div>
+						<div class="user-name">
+							{{ user.displayName }}
+						</div>
 						<div class="response-row">
 							<NcChip
 								v-if="user.response"

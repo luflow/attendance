@@ -103,6 +103,9 @@ OC.L10N.register(
         "No responses yet": "Ingen svar endnu",
         "Error loading appointments": "Fejl ved indlæsning af aftaler",
         "Error creating appointment": "Fejl ved oprettelse af aftale",
+        "Please enter an appointment name": "Indtast venligst et aftalenavn",
+        "Please select a start date and time": "Vælg venligst en startdato og -tid",
+        "Please select an end date and time": "Vælg venligst en slutdato og -tid",
         "Error updating appointment": "Fejl ved opdatering af aftale",
         "Error deleting appointment": "Fejl ved sletning af aftale",
         "Error updating response": "Fejl ved opdatering af svar",
@@ -196,7 +199,19 @@ OC.L10N.register(
         "You are answering as": "Du svarer som",
         "Open Attendance App": "Åbn Deltager-app",
         "View Appointment Details": "Se aftaledetaljer",
-        "Confirm your response?": "Bekræft dit svar?"
+        "Confirm your response?": "Bekræft dit svar?",
+        "Attachments": "Vedhæftede filer",
+        "Add from Files": "Tilføj fra Filer",
+        "Choose files to attach": "Vælg filer at vedhæfte",
+        "Attach": "Vedhæft",
+        "Attachment added": "Vedhæftet fil tilføjet",
+        "Attachment removed": "Vedhæftet fil fjernet",
+        "Failed to add attachment": "Kunne ikke tilføje vedhæftet fil",
+        "Failed to remove attachment": "Kunne ikke fjerne vedhæftet fil",
+        "No attachments": "Ingen vedhæftede filer",
+        "Files that are important for this appointment can be selected here.": "Filer, der er vigtige for denne aftale, kan vælges her.",
+        "Copy Appointment": "Kopiér aftale",
+        "Date & Time": "Dato og tid"
     },
     "nplurals=2; plural=(n != 1);"
 );

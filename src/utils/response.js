@@ -26,7 +26,7 @@ export const RESPONSE_VARIANTS = {
  * Uses the translation function if available.
  *
  * @param {string} response - The response value (yes, no, maybe)
- * @returns {string} The translated display text
+ * @return {string} The translated display text
  */
 export function getResponseText(response) {
 	const t = window.t || ((app, text) => text)
@@ -45,7 +45,7 @@ export function getResponseText(response) {
  * Used for NcButton and NcChip variant props.
  *
  * @param {string} response - The response value (yes, no, maybe)
- * @returns {string} The variant (success, error, warning, tertiary)
+ * @return {string} The variant (success, error, warning, tertiary)
  */
 export function getResponseVariant(response) {
 	return RESPONSE_VARIANTS[response] || 'tertiary'
@@ -55,7 +55,7 @@ export function getResponseVariant(response) {
  * Check if a response value is valid.
  *
  * @param {string} response - The response value to check
- * @returns {boolean} True if valid
+ * @return {boolean} True if valid
  */
 export function isValidResponse(response) {
 	return Object.values(RESPONSES).includes(response)
@@ -66,7 +66,7 @@ export function isValidResponse(response) {
  * For use with Material Design Icons.
  *
  * @param {string} response - The response value (yes, no, maybe)
- * @returns {string} The icon name
+ * @return {string} The icon name
  */
 export function getResponseIcon(response) {
 	const icons = {
@@ -82,7 +82,7 @@ export function getResponseIcon(response) {
  * Calculate response summary counts from a list of responses.
  *
  * @param {Array} responses - Array of response objects with 'response' property
- * @returns {object} Summary with yes, no, maybe, and total counts
+ * @return {object} Summary with yes, no, maybe, and total counts
  */
 export function calculateResponseCounts(responses) {
 	const counts = {
@@ -108,7 +108,7 @@ export function calculateResponseCounts(responses) {
  *
  * @param {Array} responses - Array of response objects
  * @param {string} responseKey - Key to use for response value (default: 'response')
- * @returns {Array} Sorted array
+ * @return {Array} Sorted array
  */
 export function sortResponsesByType(responses, responseKey = 'response') {
 	const order = { yes: 0, maybe: 1, no: 2 }
@@ -126,7 +126,7 @@ export function sortResponsesByType(responses, responseKey = 'response') {
  * @param {Array} responses - Array of response objects
  * @param {string} type - Response type to filter by (yes, no, maybe)
  * @param {string} responseKey - Key to use for response value (default: 'response')
- * @returns {Array} Filtered array
+ * @return {Array} Filtered array
  */
 export function filterResponsesByType(responses, type, responseKey = 'response') {
 	return responses.filter(r => r[responseKey] === type)
@@ -136,7 +136,7 @@ export function filterResponsesByType(responses, type, responseKey = 'response')
  * Check if an appointment has a user response.
  *
  * @param {object} appointment - The appointment object
- * @returns {boolean} True if user has responded
+ * @return {boolean} True if user has responded
  */
 export function hasUserResponse(appointment) {
 	return appointment?.userResponse?.response != null
@@ -146,7 +146,7 @@ export function hasUserResponse(appointment) {
  * Get the user's response from an appointment.
  *
  * @param {object} appointment - The appointment object
- * @returns {string|null} The response value or null
+ * @return {string|null} The response value or null
  */
 export function getUserResponse(appointment) {
 	return appointment?.userResponse?.response || null
@@ -156,7 +156,7 @@ export function getUserResponse(appointment) {
  * Get the user's comment from an appointment.
  *
  * @param {object} appointment - The appointment object
- * @returns {string} The comment or empty string
+ * @return {string} The comment or empty string
  */
 export function getUserComment(appointment) {
 	return appointment?.userResponse?.comment || ''

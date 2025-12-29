@@ -1,6 +1,6 @@
 <template>
 	<div class="checkin-header">
-		<NcButton type="tertiary" data-test="button-back" @click="$emit('back')">
+		<NcButton variant="tertiary" data-test="button-back" @click="$emit('back')">
 			<template #icon>
 				<ArrowLeftIcon />
 			</template>

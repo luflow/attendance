@@ -7,7 +7,7 @@ import { fromZonedTime } from 'date-fns-tz'
 
 /**
  * Get the user's timezone from browser or default to Europe/Berlin.
- * @returns {string} The timezone string
+ * @return {string} The timezone string
  */
 export function getUserTimezone() {
 	try {
@@ -26,7 +26,7 @@ export function getUserTimezone() {
  * @param {string} options.locale - Locale string (default: browser locale)
  * @param {string} options.dateStyle - Date style: 'short', 'medium', 'long' (default: 'short')
  * @param {string} options.timeStyle - Time style: 'short', 'medium', 'long' (default: 'short')
- * @returns {string} Formatted datetime string
+ * @return {string} Formatted datetime string
  */
 export function formatDateTime(datetime, options = {}) {
 	if (!datetime) return ''
@@ -51,7 +51,7 @@ export function formatDateTime(datetime, options = {}) {
  * Format a datetime for display with medium date style.
  *
  * @param {string|Date} datetime - The datetime to format
- * @returns {string} Formatted datetime string
+ * @return {string} Formatted datetime string
  */
 export function formatDateTimeMedium(datetime) {
 	return formatDateTime(datetime, { dateStyle: 'medium', timeStyle: 'short' })
@@ -62,7 +62,7 @@ export function formatDateTimeMedium(datetime) {
  * Returns format: YYYY-MM-DDTHH:MM
  *
  * @param {string|Date} datetime - The datetime to format
- * @returns {string} Formatted string for datetime-local input
+ * @return {string} Formatted string for datetime-local input
  */
 export function formatDateTimeForInput(datetime) {
 	if (!datetime) return ''
@@ -87,7 +87,7 @@ export function formatDateTimeForInput(datetime) {
  * Parse a datetime-local input value to a Date object.
  *
  * @param {string} inputValue - The value from datetime-local input
- * @returns {Date|null} Parsed Date or null if invalid
+ * @return {Date|null} Parsed Date or null if invalid
  */
 export function parseDateTimeInput(inputValue) {
 	if (!inputValue) return null
@@ -105,7 +105,7 @@ export function parseDateTimeInput(inputValue) {
  *
  * @param {string|Date} datetime - The local datetime
  * @param {string} timezone - Target timezone (default: Europe/Berlin for server)
- * @returns {Date} Date object adjusted for server timezone
+ * @return {Date} Date object adjusted for server timezone
  */
 export function toServerTimezone(datetime, timezone = 'Europe/Berlin') {
 	if (!datetime) return null
@@ -125,7 +125,7 @@ export function toServerTimezone(datetime, timezone = 'Europe/Berlin') {
  *
  * @param {string|Date} datetime - The datetime to format
  * @param {string} style - Date style: 'short', 'medium', 'long' (default: 'medium')
- * @returns {string} Formatted date string
+ * @return {string} Formatted date string
  */
 export function formatDate(datetime, style = 'medium') {
 	if (!datetime) return ''
@@ -145,7 +145,7 @@ export function formatDate(datetime, style = 'medium') {
  *
  * @param {string|Date} datetime - The datetime to format
  * @param {string} style - Time style: 'short', 'medium', 'long' (default: 'short')
- * @returns {string} Formatted time string
+ * @return {string} Formatted time string
  */
 export function formatTime(datetime, style = 'short') {
 	if (!datetime) return ''
@@ -164,7 +164,7 @@ export function formatTime(datetime, style = 'short') {
  * Check if a datetime is in the past.
  *
  * @param {string|Date} datetime - The datetime to check
- * @returns {boolean} True if datetime is in the past
+ * @return {boolean} True if datetime is in the past
  */
 export function isPast(datetime) {
 	if (!datetime) return false
@@ -181,7 +181,7 @@ export function isPast(datetime) {
  * Check if a datetime is in the future.
  *
  * @param {string|Date} datetime - The datetime to check
- * @returns {boolean} True if datetime is in the future
+ * @return {boolean} True if datetime is in the future
  */
 export function isFuture(datetime) {
 	if (!datetime) return false
@@ -199,7 +199,7 @@ export function isFuture(datetime) {
  *
  * @param {string|Date} startDatetime - The appointment start time
  * @param {number} minutesBefore - Minutes before start to allow check-in (default: 30)
- * @returns {boolean} True if check-in is allowed
+ * @return {boolean} True if check-in is allowed
  */
 export function canCheckinNow(startDatetime, minutesBefore = 30) {
 	if (!startDatetime) return false
@@ -218,7 +218,7 @@ export function canCheckinNow(startDatetime, minutesBefore = 30) {
  *
  * @param {string|Date} datetime - The base datetime
  * @param {number} hours - Hours to add
- * @returns {Date|null} New Date with hours added
+ * @return {Date|null} New Date with hours added
  */
 export function addHours(datetime, hours) {
 	if (!datetime) return null

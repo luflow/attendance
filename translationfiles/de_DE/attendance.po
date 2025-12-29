@@ -310,6 +310,15 @@ msgstr "Fehler beim Laden der Termine"
 msgid "Error creating appointment"
 msgstr "Fehler beim Erstellen des Termins"
 
+msgid "Please enter an appointment name"
+msgstr "Bitte geben Sie einen Terminnamen ein"
+
+msgid "Please select a start date and time"
+msgstr "Bitte wählen Sie ein Startdatum und eine Startzeit"
+
+msgid "Please select an end date and time"
+msgstr "Bitte wählen Sie ein Enddatum und eine Endzeit"
+
 msgid "Error updating appointment"
 msgstr "Fehler beim Aktualisieren des Termins"
 
@@ -591,4 +600,40 @@ msgstr "Termindetails anzeigen"
 
 msgid "Confirm your response?"
 msgstr "Antwort bestätigen?"
+
+msgid "Attachments"
+msgstr "Anhänge"
+
+msgid "Add from Files"
+msgstr "Aus Dateien hinzufügen"
+
+msgid "Choose files to attach"
+msgstr "Dateien zum Anhängen auswählen"
+
+msgid "Attach"
+msgstr "Anhängen"
+
+msgid "Attachment added"
+msgstr "Anhang hinzugefügt"
+
+msgid "Attachment removed"
+msgstr "Anhang entfernt"
+
+msgid "Failed to add attachment"
+msgstr "Anhang konnte nicht hinzugefügt werden"
+
+msgid "Failed to remove attachment"
+msgstr "Anhang konnte nicht entfernt werden"
+
+msgid "No attachments"
+msgstr "Keine Anhänge"
+
+msgid "Files that are important for this appointment can be selected here."
+msgstr "Dateien, die für diesen Termin wichtig sind, können hier ausgewählt werden."
+
+msgid "Copy Appointment"
+msgstr "Termin kopieren"
+
+msgid "Date & Time"
+msgstr "Datum & Zeit"
 

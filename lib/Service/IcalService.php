@@ -6,6 +6,7 @@ namespace OCA\Attendance\Service;
 
 use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
+use OCA\Attendance\Db\AppointmentAttachmentMapper;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Db\IcalToken;
 use OCA\Attendance\Db\IcalTokenMapper;
@@ -21,6 +22,7 @@ use OCP\Security\ISecureRandom;
 class IcalService {
 	private IcalTokenMapper $icalTokenMapper;
 	private AppointmentMapper $appointmentMapper;
+	private AppointmentAttachmentMapper $attachmentMapper;
 	private AttendanceResponseMapper $responseMapper;
 	private VisibilityService $visibilityService;
 	private ISecureRandom $secureRandom;
@@ -34,6 +36,7 @@ class IcalService {
 	public function __construct(
 		IcalTokenMapper $icalTokenMapper,
 		AppointmentMapper $appointmentMapper,
+		AppointmentAttachmentMapper $attachmentMapper,
 		AttendanceResponseMapper $responseMapper,
 		VisibilityService $visibilityService,
 		ISecureRandom $secureRandom,
@@ -43,6 +46,7 @@ class IcalService {
 	) {
 		$this->icalTokenMapper = $icalTokenMapper;
 		$this->appointmentMapper = $appointmentMapper;
+		$this->attachmentMapper = $attachmentMapper;
 		$this->responseMapper = $responseMapper;
 		$this->visibilityService = $visibilityService;
 		$this->secureRandom = $secureRandom;
@@ -276,6 +280,14 @@ class IcalService {
 		$output .= "URL:" . $appointmentUrl . "\r\n";
 		$output .= "STATUS:" . $status . "\r\n";
 		$output .= "TRANSP:" . $transp . "\r\n";
+
+		// Add attachments
+		$attachments = $this->attachmentMapper->findByAppointment($appointment->getId());
+		foreach ($attachments as $attachment) {
+			$attachUrl = $this->urlGenerator->getAbsoluteURL('/f/' . $attachment->getFileId());
+			$output .= "ATTACH:" . $attachUrl . "\r\n";
+		}
+
 		$output .= "END:VEVENT\r\n";
 
 		return $output;
