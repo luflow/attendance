@@ -141,7 +141,8 @@
 				:show-unanswered="currentView === 'unanswered'"
 				@response-updated="loadAppointments"
 				@edit-appointment="editAppointment"
-				@copy-appointment="copyAppointment" />
+				@copy-appointment="copyAppointment"
+				@navigate-to-upcoming="setView('current')" />
 
 			<!-- Loading state while routing is determined -->
 			<div v-else class="loading-state">

@@ -1,11 +1,26 @@
 <template>
 	<div class="attendance-container">
+		<!-- Unanswered Banner (only shown on unanswered view after loading) -->
+		<div v-if="showUnanswered && !loading" class="unanswered-banner-container">
+			<div v-if="appointments.length > 0" class="unanswered-banner pending">
+				<AlertIcon :size="20" />
+				<span>{{ n('attendance', '%n appointment awaiting your response', '%n appointments awaiting your response', appointments.length) }}</span>
+			</div>
+			<div v-else class="unanswered-banner complete">
+				<span>{{ t('attendance', 'Hurray! You responded to all appointments.') }}</span>
+				<NcButton
+					@click="goToUpcoming">
+					{{ t('attendance', 'Show upcoming appointments') }}
+				</NcButton>
+			</div>
+		</div>
+
 		<!-- Appointments List -->
 		<div class="appointments-list">
 			<div v-if="loading" class="loading">
 				{{ t('attendance', 'Loading...') }}
 			</div>
-			<div v-else-if="appointments.length === 0" class="empty-state">
+			<div v-else-if="appointments.length === 0 && !showUnanswered" class="empty-state">
 				{{ t('attendance', 'No appointments found') }}
 			</div>
 			<div v-else>
@@ -30,8 +45,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
+import { NcButton } from '@nextcloud/vue'
 import AppointmentCard from '../components/appointment/AppointmentCard.vue'
+import AlertIcon from 'vue-material-design-icons/Alert.vue'
+import confetti from 'canvas-confetti'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
@@ -48,9 +66,13 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['response-updated', 'edit-appointment', 'copy-appointment'])
+const emit = defineEmits(['response-updated', 'edit-appointment', 'copy-appointment', 'navigate-to-upcoming'])
 
 const appointments = ref([])
+
+const goToUpcoming = () => {
+	emit('navigate-to-upcoming')
+}
 const loading = ref(true)
 const responseComments = reactive({})
 
@@ -174,6 +196,30 @@ const startCheckin = (appointmentId) => {
 	window.location.href = generateUrl(`/apps/attendance/checkin/${appointmentId}`)
 }
 
+const triggerConfetti = () => {
+	confetti({
+		particleCount: 200,
+		spread: 100,
+		origin: { x: 0.5, y: 1 },
+		angle: 90,
+		startVelocity: 60,
+	})
+}
+
+// Watch for when all appointments are answered
+watch(loading, (isLoading) => {
+	if (!isLoading && props.showUnanswered && appointments.value.length === 0) {
+		triggerConfetti()
+	}
+})
+
+// Also trigger confetti when appointments list becomes empty (after responding to last one)
+watch(() => appointments.value.length, (newLength, oldLength) => {
+	if (props.showUnanswered && !loading.value && newLength === 0 && oldLength > 0) {
+		triggerConfetti()
+	}
+})
+
 onMounted(async () => {
 	await loadPermissions()
 	await loadAppointments()
@@ -198,6 +244,33 @@ onMounted(async () => {
 		text-align: center;
 		padding: 40px;
 		color: var(--color-text-lighter);
+	}
+}
+
+.unanswered-banner-container {
+	max-width: 800px;
+	margin: 0 auto 20px;
+}
+
+.unanswered-banner {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 16px 20px;
+	border-radius: var(--border-radius-large);
+
+	&.pending {
+		background: #ff8c00;
+		color: white;
+		border-left: 4px solid #ff6600;
+		font-weight: 600;
+	}
+
+	&.complete {
+		flex-direction: column;
+		text-align: center;
+		color: var(--color-text-maxcontrast);
+		gap: 16px;
 	}
 }
 </style>

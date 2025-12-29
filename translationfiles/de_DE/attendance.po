@@ -637,3 +637,14 @@ msgstr "Termin kopieren"
 msgid "Date & Time"
 msgstr "Datum & Zeit"
 
+msgid "%n appointment awaiting your response"
+msgid_plural "%n appointments awaiting your response"
+msgstr[0] "%n Termin wartet auf deine Antwort"
+msgstr[1] "%n Termine warten auf deine Antwort"
+
+msgid "Hurray! You responded to all appointments."
+msgstr "Hurra! Du hast auf alle Termine geantwortet."
+
+msgid "Show upcoming appointments"
+msgstr "Bevorstehende Termine anzeigen"
+

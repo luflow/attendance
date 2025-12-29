@@ -207,7 +207,13 @@
         "No attachments": "Ingen vedhæftede filer",
         "Files that are important for this appointment can be selected here.": "Filer, der er vigtige for denne aftale, kan vælges her.",
         "Copy Appointment": "Kopiér aftale",
-        "Date & Time": "Dato og tid"
+        "Date & Time": "Dato og tid",
+        "_%n appointment awaiting your response_::_%n appointments awaiting your response_": [
+            "%n aftale venter på dit svar",
+            "%n aftaler venter på dit svar"
+        ],
+        "Hurray! You responded to all appointments.": "Hurra! Du har svaret på alle aftaler.",
+        "Show upcoming appointments": "Vis kommende aftaler"
     },
     "pluralForm": "nplurals=2; plural=(n != 1);"
 }
