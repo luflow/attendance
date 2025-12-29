@@ -636,3 +636,14 @@ msgstr "Kopiér aftale"
 
 msgid "Date & Time"
 msgstr "Dato og tid"
+
+msgid "%n appointment awaiting your response"
+msgid_plural "%n appointments awaiting your response"
+msgstr[0] "%n aftale venter på dit svar"
+msgstr[1] "%n aftaler venter på dit svar"
+
+msgid "Hurray! You responded to all appointments."
+msgstr "Hurra! Du har svaret på alle aftaler."
+
+msgid "Show upcoming appointments"
+msgstr "Vis kommende aftaler"
