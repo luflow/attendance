@@ -6,6 +6,21 @@
 
 - Nightly changes here
 
+## 1.17.0 – 2025-12-30
+
+### Added
+
+- File attachment support for appointments
+  - Attach files from Nextcloud Files to appointments
+  - Attachments are displayed in appointment details for all users who can view the appointment
+- Unanswered appointments banner on the unanswered view
+  - Shows count of appointments awaiting response with proper singular/plural translations
+  - Confetti celebration when all appointments are answered
+  - Quick navigation button to upcoming appointments
+- Collapsible past appointments navigation
+  - Past appointments menu is now collapsed by default
+  - Expands only when user clicks on "Past Appointments"
+
 ## 1.16.1 – 2025-12-28
 
 ### Changed
