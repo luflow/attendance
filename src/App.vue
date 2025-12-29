@@ -58,13 +58,15 @@
 				<NcAppNavigationItem
 					:name="t('attendance', 'Past Appointments')"
 					:active="currentView === 'past'"
+					:open="pastAppointmentsExpanded"
 					data-test="nav-past"
-					@click.prevent="setView('past')">
+					@update:open="pastAppointmentsExpanded = $event"
+					@click.prevent="setView('past'); pastAppointmentsExpanded = true">
 					<template #icon>
 						<CalendarClockIcon :size="20" />
 					</template>
 					<!-- Nested past appointments -->
-					<template v-if="pastAppointments.length > 0">
+					<template v-if="pastAppointmentsExpanded && pastAppointments.length > 0">
 						<NcAppNavigationItem
 							v-for="appointment in pastAppointments"
 							:key="appointment.id"
@@ -190,6 +192,7 @@ const currentAppointments = ref([])
 const pastAppointments = ref([])
 const showIcalFeedModal = ref(false)
 const notificationsAppEnabled = ref(false)
+const pastAppointmentsExpanded = ref(false)
 
 // Use the shared permissions composable
 const { permissions, loadPermissions } = usePermissions()
