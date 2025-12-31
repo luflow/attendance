@@ -6,6 +6,19 @@
 
 - Nightly changes here
 
+## 1.18.0 – 2025-12-31
+
+### Added
+
+- Markdown editor for easier rich text formatting when creating or editing appointment descriptions
+  - Supports bold, italic, strikethrough, lists, links, quotes
+
+### Changed
+
+- Improved comment UX with collapsible input and focus management
+  - Comment input is now collapsed by default, saving vertical space
+  - Clicking the comment button expands the input and auto-focuses it
+
 ## 1.17.0 – 2025-12-30
 
 ### Added
