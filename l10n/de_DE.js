@@ -212,8 +212,8 @@ OC.L10N.register(
         "Files that are important for this appointment can be selected here.": "Dateien, die für diesen Termin wichtig sind, können hier ausgewählt werden.",
         "Copy Appointment": "Termin kopieren",
         "Date & Time": "Datum & Zeit",
-        "_%n appointment awaiting your response_::_%n appointments awaiting your response_": ["%n Termin wartet auf deine Antwort","%n Termine warten auf deine Antwort"],
-        "Hurray! You responded to all appointments.": "Hurra! Du hast auf alle Termine geantwortet.",
+        "_%n appointment awaiting your response_::_%n appointments awaiting your response_": ["%n Termin wartet auf Ihre Antwort","%n Termine warten auf Ihre Antwort"],
+        "Hurray! You responded to all appointments.": "Hurra! Sie haben auf alle Termine geantwortet.",
         "Show upcoming appointments": "Bevorstehende Termine anzeigen"
     },
     "nplurals=2; plural=(n != 1);"

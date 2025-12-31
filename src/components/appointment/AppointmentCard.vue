@@ -99,17 +99,30 @@
 					:text="t('attendance', 'No')"
 					data-test="response-no"
 					@click="handleResponse('no')" />
+				<!-- Comment Toggle Button (only show when user has responded) -->
+				<NcButton
+					v-if="userResponse"
+					:class="{ 'comment-active': commentExpanded, 'comment-toggle': true }"
+					type="tertiary"
+					data-test="button-toggle-comment"
+					@click="toggleComment">
+					<template #icon>
+						<CommentIcon :size="20" />
+					</template>
+				</NcButton>
 			</div>
 
 			<!-- Comment Section -->
-			<div v-if="userResponse" class="comment-section">
+			<div v-if="commentExpanded" class="comment-section">
 				<div class="textarea-container">
-					<NcTextArea
+					<NcInputField
+						ref="commentInput"
 						v-model="localComment"
-						resize="vertical"
+						type="text"
+						:label="t('attendance', 'Comment (optional)')"
+						placeholder=""
 						data-test="response-comment"
-						:placeholder="t('attendance', 'Comment (optional)')"
-						@input="handleCommentInputEvent" />
+						@update:model-value="handleCommentInputEvent" />
 
 					<div v-if="savingComment" class="saving-spinner">
 						<div class="spinner" />
@@ -134,7 +147,7 @@
 
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue'
-import { NcButton, NcActions, NcActionButton, NcTextArea, NcChip } from '@nextcloud/vue'
+import { NcButton, NcActions, NcActionButton, NcInputField, NcChip } from '@nextcloud/vue'
 import ResponseSummary from './ResponseSummary.vue'
 import { renderMarkdown, sanitizeHtml } from '../../utils/markdown.js'
 import { generateUrl } from '@nextcloud/router'
@@ -148,6 +161,7 @@ import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
 import Paperclip from 'vue-material-design-icons/Paperclip.vue'
+import CommentIcon from 'vue-material-design-icons/Comment.vue'
 import { formatDateTime } from '../../utils/datetime.js'
 
 const props = defineProps({
@@ -176,10 +190,20 @@ const props = defineProps({
 const emit = defineEmits(['start-checkin', 'edit', 'copy', 'delete', 'submit-response', 'update-comment'])
 
 const localComment = ref(props.appointment.userResponse?.comment || '')
+const commentExpanded = ref(false)
+const commentInput = ref(null)
 const savingComment = ref(false)
 const commentSaved = ref(false)
 const errorComment = ref(false)
 let commentTimeout = null
+
+const toggleComment = async () => {
+	commentExpanded.value = !commentExpanded.value
+	if (commentExpanded.value) {
+		await nextTick()
+		commentInput.value?.$el?.querySelector('input')?.focus()
+	}
+}
 
 const userResponse = computed(() => {
 	return props.appointment.userResponse?.response || null
@@ -370,9 +394,9 @@ const autoSaveComment = async (commentText) => {
 		gap: 10px;
 		margin-bottom: 15px;
 
-		// When a response exists, gray out non-active buttons
+		// When a response exists, gray out non-active buttons (except comment toggle)
 		&.has-response {
-			:deep(.button-vue:not(.active)) {
+			:deep(.button-vue:not(.active):not(.comment-toggle)) {
 				background-color: var(--color-background-dark) !important;
 				color: var(--color-text-lighter) !important;
 				border-color: var(--color-border-dark) !important;
@@ -387,6 +411,12 @@ const autoSaveComment = async (commentText) => {
 		// Active button styles - keep bold
 		:deep(.button-vue.active) {
 			font-weight: bold;
+		}
+
+		// Comment toggle active state
+		:deep(.button-vue.comment-active) {
+			background-color: var(--color-primary-element) !important;
+			color: white !important;
 		}
 	}
 

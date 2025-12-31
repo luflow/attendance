@@ -62,12 +62,14 @@
 			<!-- Comment Section -->
 			<div v-if="commentExpanded" class="comment-section">
 				<div class="textarea-container">
-					<NcTextArea
+					<NcInputField
+						ref="commentInput"
 						v-model="localComment"
-						resize="vertical"
-						:placeholder="t('attendance', 'Comment (optional)')"
+						type="text"
+						:label="t('attendance', 'Comment (optional)')"
+						placeholder=""
 						data-test="widget-response-comment"
-						@input="handleCommentInput" />
+						@update:model-value="handleCommentInput" />
 
 					<div v-if="saving" class="saving-spinner">
 						<div class="spinner" />
@@ -85,8 +87,8 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { NcButton, NcTextArea } from '@nextcloud/vue'
+import { ref, computed, watch, nextTick } from 'vue'
+import { NcButton, NcInputField } from '@nextcloud/vue'
 import { generateUrl } from '@nextcloud/router'
 import { showError } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
@@ -111,6 +113,7 @@ defineEmits(['respond', 'open-checkin', 'open-detail'])
 
 // Local state for comment
 const commentExpanded = ref(false)
+const commentInput = ref(null)
 const localComment = ref(props.item.userResponse?.comment || '')
 const saving = ref(false)
 const saved = ref(false)
@@ -124,8 +127,12 @@ watch(() => props.item.userResponse, (newResponse) => {
 	}
 }, { deep: true })
 
-const toggleComment = () => {
+const toggleComment = async () => {
 	commentExpanded.value = !commentExpanded.value
+	if (commentExpanded.value) {
+		await nextTick()
+		commentInput.value?.$el?.querySelector('input')?.focus()
+	}
 }
 
 const handleCommentInput = () => {
@@ -306,18 +313,10 @@ const strippedDescription = computed(() => {
 	}
 
 	.comment-section {
-		margin-top: 8px;
+		margin-top: 16px;
 
 		.textarea-container {
 			position: relative;
-		}
-
-		:deep(.textarea__input:not(:focus)::placeholder) {
-			opacity: 1 !important;
-		}
-
-		:deep(.textarea__input) {
-			height: calc(var(--default-clickable-area) * 1.4);
 		}
 	}
 }

@@ -188,10 +188,10 @@ test.describe('Attendance App - User Responses', () => {
 		await loginAsUser('test', 'test')
 		await attendanceApp()
 		await page.waitForLoadState('networkidle')
-		
+
 		// Click Yes button (use first() since multiple appointments may be on page)
 		await page.getByRole('button', { name: 'Yes', exact: true }).first().click()
-		
+
 		// Wait for response to be saved by checking summary is visible
 		const summary = page.getByRole('heading', { name: 'Response Summary' }).first()
 		await expect(summary).toBeVisible()
@@ -201,16 +201,53 @@ test.describe('Attendance App - User Responses', () => {
 		await loginAsUser('test', 'test')
 		await attendanceApp()
 		await page.waitForLoadState('networkidle')
-		
+
 		// Click Yes (use first() since multiple appointments may be on page)
 		await page.getByRole('button', { name: 'Yes', exact: true }).first().click()
 		await page.waitForLoadState('networkidle')
-		
+
 		// Change to Maybe
 		await page.getByRole('button', { name: 'Maybe' }).first().click()
 		await page.waitForLoadState('networkidle')
-		
+
 		// Verify by checking response summary or button states (use .first() since multiple appointment cards exist)
 		await expect(page.getByRole('heading', { name: 'Response Summary' }).first()).toBeVisible()
+	})
+
+	test('should add comment to response', async ({ page, loginAsUser, attendanceApp }) => {
+		await loginAsUser('test', 'test')
+		await attendanceApp()
+		await page.waitForLoadState('networkidle')
+
+		// Click Yes first (comment section appears after voting)
+		await page.getByRole('button', { name: 'Yes', exact: true }).first().click()
+		await page.waitForLoadState('networkidle')
+
+		// Click comment toggle button to open comment section
+		const commentToggle = page.locator('[data-test="button-toggle-comment"]').first()
+		await commentToggle.click()
+
+		// Wait for comment field to appear and fill it
+		const commentField = page.locator('[data-test="response-comment"]').first()
+		await expect(commentField).toBeVisible({ timeout: 5000 })
+		const commentText = 'Looking forward to this appointment!'
+		await commentField.fill(commentText)
+
+		// Wait for auto-save to complete (500ms debounce + API call)
+		const savedIndicator = page.locator('.saved-indicator').first()
+		await expect(savedIndicator).toBeVisible({ timeout: 5000 })
+
+		// Reload the page to verify persistence
+		await page.reload()
+		await page.waitForLoadState('networkidle')
+
+		// Click comment toggle button to show the comment field again
+		const reloadedCommentToggle = page.locator('[data-test="button-toggle-comment"]').first()
+		await reloadedCommentToggle.click()
+
+		// Verify the comment is still there after reload
+		const reloadedCommentField = page.locator('[data-test="response-comment"]').first()
+		await expect(reloadedCommentField).toBeVisible({ timeout: 5000 })
+		await expect(reloadedCommentField).toHaveValue(commentText)
 	})
 })
