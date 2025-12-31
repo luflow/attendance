@@ -214,7 +214,17 @@ OC.L10N.register(
         "Date & Time": "Datum & Zeit",
         "_%n appointment awaiting your response_::_%n appointments awaiting your response_": ["%n Termin wartet auf deine Antwort","%n Termine warten auf deine Antwort"],
         "Hurray! You responded to all appointments.": "Hurra! Du hast auf alle Termine geantwortet.",
-        "Show upcoming appointments": "Bevorstehende Termine anzeigen"
+        "Show upcoming appointments": "Bevorstehende Termine anzeigen",
+        "Add your comment...": "Dein Kommentar...",
+        "Bold": "Fett",
+        "Italic": "Kursiv",
+        "Strikethrough": "Durchgestrichen",
+        "Bullet list": "Aufzählungsliste",
+        "Numbered list": "Nummerierte Liste",
+        "Quote": "Zitat",
+        "Insert link": "Link einfügen",
+        "Supports Markdown formatting": "Unterstützt Markdown-Formatierung",
+        "Write your description here...": "Beschreibung hier eingeben..."
     },
     "nplurals=2; plural=(n != 1);"
 );

@@ -52,7 +52,7 @@
 			</div>
 		</div>
 
-		<p v-if="appointment.description" class="appointment-description" v-html="renderedDescription" />
+		<div v-if="appointment.description" class="appointment-description" v-html="renderedDescription" />
 
 		<div v-if="appointment.attachments?.length" class="attachment-chips" data-test="attachment-chips">
 			<a v-for="attachment in appointment.attachments"
@@ -120,7 +120,7 @@
 						v-model="localComment"
 						type="text"
 						:label="t('attendance', 'Comment (optional)')"
-						placeholder=""
+						:placeholder="t('attendance', 'Add your comment...')"
 						data-test="response-comment"
 						@update:model-value="handleCommentInputEvent" />
 
@@ -339,7 +339,6 @@ const autoSaveComment = async (commentText) => {
 .appointment-description {
 	color: var(--color-text-lighter);
 	margin-bottom: 15px;
-	white-space: pre-wrap;
 
 	// Markdown formatting
 	:deep(strong) {
@@ -349,6 +348,116 @@ const autoSaveComment = async (commentText) => {
 
 	:deep(em) {
 		font-style: italic;
+	}
+
+	:deep(del) {
+		text-decoration: line-through;
+	}
+
+	:deep(a) {
+		color: var(--color-primary-element);
+		text-decoration: none;
+
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+
+	:deep(code) {
+		background-color: var(--color-background-dark);
+		padding: 2px 6px;
+		border-radius: var(--border-radius-small);
+		font-family: monospace;
+		font-size: 0.9em;
+	}
+
+	:deep(pre) {
+		background-color: var(--color-background-dark);
+		padding: 12px;
+		border-radius: var(--border-radius);
+		overflow-x: auto;
+		margin: 10px 0;
+
+		code {
+			background: none;
+			padding: 0;
+		}
+	}
+
+	:deep(blockquote) {
+		border-left: 3px solid var(--color-primary-element);
+		margin: 10px 0;
+		padding-left: 15px;
+		color: var(--color-text-maxcontrast);
+	}
+
+	:deep(ul) {
+		margin: 10px 0;
+		padding-left: 25px;
+		list-style-type: disc;
+	}
+
+	:deep(ol) {
+		margin: 10px 0;
+		padding-left: 25px;
+		list-style-type: decimal;
+	}
+
+	:deep(li) {
+		margin: 5px 0;
+		display: list-item;
+	}
+
+	:deep(h1), :deep(h2), :deep(h3), :deep(h4), :deep(h5), :deep(h6) {
+		color: var(--color-main-text);
+		margin: 15px 0 10px 0;
+		font-weight: 600;
+	}
+
+	:deep(h1) { font-size: 1.5em; }
+	:deep(h2) { font-size: 1.3em; }
+	:deep(h3) { font-size: 1.15em; }
+	:deep(h4) { font-size: 1.05em; }
+
+	:deep(hr) {
+		border: none;
+		border-top: 1px solid var(--color-border);
+		margin: 15px 0;
+	}
+
+	:deep(table) {
+		border-collapse: collapse;
+		width: 100%;
+		margin: 10px 0;
+	}
+
+	:deep(th), :deep(td) {
+		border: 1px solid var(--color-border);
+		padding: 8px 12px;
+		text-align: left;
+	}
+
+	:deep(th) {
+		background-color: var(--color-background-dark);
+		font-weight: 600;
+	}
+
+	:deep(p) {
+		margin: 10px 0;
+
+		&:first-child {
+			margin-top: 0;
+		}
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+	}
+
+	:deep(img) {
+		max-width: 100%;
+		height: auto;
+		border-radius: var(--border-radius);
 	}
 }
 

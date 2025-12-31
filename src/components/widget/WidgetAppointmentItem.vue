@@ -67,7 +67,7 @@
 						v-model="localComment"
 						type="text"
 						:label="t('attendance', 'Comment (optional)')"
-						placeholder=""
+						:placeholder="t('attendance', 'Add your comment...')"
 						data-test="widget-response-comment"
 						@update:model-value="handleCommentInput" />
 
@@ -97,6 +97,7 @@ import CheckIcon from 'vue-material-design-icons/Check.vue'
 import CommentIcon from 'vue-material-design-icons/Comment.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
 import { formatDateTime } from '../../utils/datetime.js'
+import { stripMarkdown } from '../../utils/markdown.js'
 
 const props = defineProps({
 	item: {
@@ -191,12 +192,7 @@ const formattedDate = computed(() => {
 })
 
 const strippedDescription = computed(() => {
-	if (!props.item.description) return ''
-	return props.item.description
-		.replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
-		.replace(/\*([^*]+)\*/g, '$1') // Remove italic
-		.replace(/\n/g, ' ') // Remove newlines
-		.trim()
+	return stripMarkdown(props.item.description)
 })
 </script>
 

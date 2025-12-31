@@ -213,7 +213,16 @@
             "%n Termine warten auf Ihre Antwort"
         ],
         "Hurray! You responded to all appointments.": "Hurra! Sie haben auf alle Termine geantwortet.",
-        "Show upcoming appointments": "Bevorstehende Termine anzeigen"
+        "Show upcoming appointments": "Bevorstehende Termine anzeigen",
+        "Bold": "Fett",
+        "Italic": "Kursiv",
+        "Strikethrough": "Durchgestrichen",
+        "Bullet list": "Aufzählungsliste",
+        "Numbered list": "Nummerierte Liste",
+        "Quote": "Zitat",
+        "Insert link": "Link einfügen",
+        "Supports Markdown formatting": "Unterstützt Markdown-Formatierung",
+        "Write your description here...": "Beschreibung hier eingeben..."
     },
     "pluralForm": "nplurals=2; plural=(n != 1);"
 }

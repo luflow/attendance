@@ -14,12 +14,12 @@
 					data-test="input-appointment-name"
 					required />
 
-				<NcTextArea
+				<MarkdownEditor
 					v-model="formData.description"
 					:label="t('attendance', 'Description')"
-					:placeholder="t('attendance', 'You can use **bold** and *italic* formatting')"
+					:placeholder="t('attendance', 'Write your description here...')"
 					data-test="input-appointment-description"
-					:rows="4" />
+					min-height="120px" />
 
 				<div class="form-field" data-test="attachment-section">
 					<label>{{ t('attendance', 'Attachments') }}</label>
@@ -135,8 +135,9 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
-import { NcModal, NcButton, NcTextField, NcTextArea, NcSelect, NcNoteCard, NcCheckboxRadioSwitch, NcChip, NcDateTimePickerNative } from '@nextcloud/vue'
+import { NcModal, NcButton, NcTextField, NcSelect, NcNoteCard, NcCheckboxRadioSwitch, NcChip, NcDateTimePickerNative } from '@nextcloud/vue'
 import { getFilePickerBuilder, showSuccess, showError } from '@nextcloud/dialogs'
+import MarkdownEditor from '../common/MarkdownEditor.vue'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
@@ -673,10 +674,6 @@ const handleSubmit = () => {
 		display: flex;
 		flex-direction: column;
 		gap: 15px;
-	}
-
-	:deep(.textarea__main-wrapper) {
-		height: unset;
 	}
 
 	.datetime-fields {
