@@ -26,12 +26,12 @@
 					:label="t('attendance', 'Appointment Name')"
 					data-test="input-appointment-name" />
 
-				<NcTextArea
+				<MarkdownEditor
 					v-model="formData.description"
 					:label="t('attendance', 'Description')"
-					:placeholder="t('attendance', 'You can use **bold** and *italic* formatting')"
+					:placeholder="t('attendance', 'Write your description here...')"
 					data-test="input-appointment-description"
-					:rows="4" />
+					min-height="150px" />
 			</div>
 
 			<div class="form-section">
@@ -153,8 +153,9 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue'
-import { NcButton, NcTextField, NcTextArea, NcSelect, NcNoteCard, NcCheckboxRadioSwitch, NcChip, NcLoadingIcon, NcDateTimePickerNative } from '@nextcloud/vue'
+import { NcButton, NcTextField, NcSelect, NcNoteCard, NcCheckboxRadioSwitch, NcChip, NcLoadingIcon, NcDateTimePickerNative } from '@nextcloud/vue'
 import { getFilePickerBuilder, showSuccess, showError } from '@nextcloud/dialogs'
+import MarkdownEditor from '../components/common/MarkdownEditor.vue'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
@@ -621,10 +622,6 @@ onMounted(async () => {
 	display: flex;
 	flex-direction: column;
 	gap: 24px;
-
-	:deep(.textarea__main-wrapper) {
-		height: unset;
-	}
 }
 
 .form-section {

@@ -647,3 +647,33 @@ msgstr "Hurra! Du har svaret på alle aftaler."
 
 msgid "Show upcoming appointments"
 msgstr "Vis kommende aftaler"
+
+msgid "Add your comment..."
+msgstr "Din kommentar..."
+
+msgid "Bold"
+msgstr "Fed"
+
+msgid "Italic"
+msgstr "Kursiv"
+
+msgid "Strikethrough"
+msgstr "Gennemstreget"
+
+msgid "Bullet list"
+msgstr "Punktliste"
+
+msgid "Numbered list"
+msgstr "Nummereret liste"
+
+msgid "Quote"
+msgstr "Citat"
+
+msgid "Insert link"
+msgstr "Indsæt link"
+
+msgid "Supports Markdown formatting"
+msgstr "Understøtter Markdown-formatering"
+
+msgid "Write your description here..."
+msgstr "Skriv din beskrivelse her..."

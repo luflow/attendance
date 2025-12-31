@@ -214,7 +214,17 @@ OC.L10N.register(
         "Date & Time": "Dato og tid",
         "_%n appointment awaiting your response_::_%n appointments awaiting your response_": ["%n aftale venter på dit svar","%n aftaler venter på dit svar"],
         "Hurray! You responded to all appointments.": "Hurra! Du har svaret på alle aftaler.",
-        "Show upcoming appointments": "Vis kommende aftaler"
+        "Show upcoming appointments": "Vis kommende aftaler",
+        "Add your comment...": "Din kommentar...",
+        "Bold": "Fed",
+        "Italic": "Kursiv",
+        "Strikethrough": "Gennemstreget",
+        "Bullet list": "Punktliste",
+        "Numbered list": "Nummereret liste",
+        "Quote": "Citat",
+        "Insert link": "Indsæt link",
+        "Supports Markdown formatting": "Understøtter Markdown-formatering",
+        "Write your description here...": "Skriv din beskrivelse her..."
     },
     "nplurals=2; plural=(n != 1);"
 );

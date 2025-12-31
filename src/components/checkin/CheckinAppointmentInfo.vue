@@ -51,7 +51,6 @@ const renderedDescription = computed(() => {
 	.appointment-description {
 		margin: 15px 0 0 0;
 		color: var(--color-main-text);
-		white-space: pre-wrap;
 
 		:deep(strong) {
 			font-weight: bold;
@@ -60,6 +59,27 @@ const renderedDescription = computed(() => {
 
 		:deep(em) {
 			font-style: italic;
+		}
+
+		:deep(del) {
+			text-decoration: line-through;
+		}
+
+		:deep(a) {
+			color: var(--color-primary-element);
+			text-decoration: none;
+
+			&:hover {
+				text-decoration: underline;
+			}
+		}
+
+		:deep(code) {
+			background-color: var(--color-background-dark);
+			padding: 2px 6px;
+			border-radius: var(--border-radius-small);
+			font-family: monospace;
+			font-size: 0.9em;
 		}
 	}
 }
