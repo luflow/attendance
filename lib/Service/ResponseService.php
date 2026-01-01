@@ -27,7 +27,7 @@ class ResponseService {
 		AttendanceResponseMapper $responseMapper,
 		VisibilityService $visibilityService,
 		IGroupManager $groupManager,
-		IUserManager $userManager
+		IUserManager $userManager,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -56,7 +56,7 @@ class ResponseService {
 		string $userId,
 		string $response,
 		string $comment = '',
-		string $source = self::SOURCE_APP
+		string $source = self::SOURCE_APP,
 	): AttendanceResponse {
 		// Validate response
 		if (!in_array($response, ['yes', 'no', 'maybe'])) {
@@ -166,7 +166,7 @@ class ResponseService {
 		string $targetUserId,
 		?string $response,
 		?string $comment,
-		string $adminUserId
+		string $adminUserId,
 	): AttendanceResponse {
 		// Validate response if provided
 		if ($response !== null && !in_array($response, ['yes', 'no', 'maybe'])) {
@@ -220,6 +220,6 @@ class ResponseService {
 	 */
 	public function getRespondedUserIds(int $appointmentId): array {
 		$responses = $this->responseMapper->findByAppointment($appointmentId);
-		return array_map(fn($response) => $response->getUserId(), $responses);
+		return array_map(fn ($response) => $response->getUserId(), $responses);
 	}
 }

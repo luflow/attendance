@@ -36,7 +36,7 @@ class AppointmentService {
 		VisibilityService $visibilityService,
 		ResponseSummaryService $responseSummaryService,
 		NotificationService $notificationService,
-		AttachmentService $attachmentService
+		AttachmentService $attachmentService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -60,7 +60,7 @@ class AppointmentService {
 		string $createdBy,
 		array $visibleUsers = [],
 		array $visibleGroups = [],
-		bool $sendNotification = false
+		bool $sendNotification = false,
 	): Appointment {
 		$startFormatted = $this->formatDatetime($startDatetime);
 		$endFormatted = $this->formatDatetime($endDatetime);
@@ -81,7 +81,7 @@ class AppointmentService {
 
 		if ($sendNotification) {
 			$affectedUsers = $this->getAffectedUsers($appointment);
-			$affectedUsers = array_filter($affectedUsers, fn($userId) => $userId !== $createdBy);
+			$affectedUsers = array_filter($affectedUsers, fn ($userId) => $userId !== $createdBy);
 			$this->notificationService->sendNewAppointmentNotifications($appointment, array_values($affectedUsers));
 		}
 
@@ -99,7 +99,7 @@ class AppointmentService {
 		string $endDatetime,
 		string $userId,
 		array $visibleUsers = [],
-		array $visibleGroups = []
+		array $visibleGroups = [],
 	): Appointment {
 		$appointment = $this->appointmentMapper->find($id);
 
@@ -187,7 +187,7 @@ class AppointmentService {
 		int $appointmentId,
 		string $userId,
 		string $response,
-		string $comment = ''
+		string $comment = '',
 	): AttendanceResponse {
 		if (!in_array($response, ['yes', 'no', 'maybe'])) {
 			throw new \InvalidArgumentException('Invalid response. Must be yes, no, or maybe.');
@@ -249,7 +249,7 @@ class AppointmentService {
 
 			if ($user) {
 				$userGroups = $this->groupManager->getUserGroups($user);
-				$responseData['userGroups'] = array_map(fn($group) => $group->getGID(), $userGroups);
+				$responseData['userGroups'] = array_map(fn ($group) => $group->getGID(), $userGroups);
 			} else {
 				$responseData['userGroups'] = [];
 			}

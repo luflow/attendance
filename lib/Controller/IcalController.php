@@ -20,7 +20,7 @@ class IcalController extends Controller {
 		string $appName,
 		IRequest $request,
 		IcalService $icalService,
-		IUserSession $userSession
+		IUserSession $userSession,
 	) {
 		parent::__construct($appName, $request);
 		$this->icalService = $icalService;

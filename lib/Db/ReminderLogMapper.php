@@ -18,7 +18,7 @@ class ReminderLogMapper extends QBMapper {
 
 	/**
 	 * Find the most recent reminder for a user and appointment
-	 * 
+	 *
 	 * @param int $appointmentId
 	 * @param string $userId
 	 * @return ReminderLog|null
@@ -42,7 +42,7 @@ class ReminderLogMapper extends QBMapper {
 
 	/**
 	 * Find all reminders for an appointment
-	 * 
+	 *
 	 * @param int $appointmentId
 	 * @return ReminderLog[]
 	 */
@@ -59,7 +59,7 @@ class ReminderLogMapper extends QBMapper {
 
 	/**
 	 * Delete all reminders for an appointment (useful for cleanup)
-	 * 
+	 *
 	 * @param int $appointmentId
 	 * @return int Number of deleted rows
 	 */
@@ -74,7 +74,7 @@ class ReminderLogMapper extends QBMapper {
 
 	/**
 	 * Delete old reminder logs (older than a certain date)
-	 * 
+	 *
 	 * @param string $beforeDate Date in 'Y-m-d H:i:s' format
 	 * @return int Number of deleted rows
 	 */

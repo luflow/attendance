@@ -25,7 +25,7 @@ class Version000003Date20251218210000 extends SimpleMigrationStep {
 		// Add visibility settings to att_appointments table
 		if ($schema->hasTable('att_appointments')) {
 			$table = $schema->getTable('att_appointments');
-			
+
 			// JSON array of user IDs who can see this appointment
 			// Empty/null means visible to all users
 			if (!$table->hasColumn('visible_users')) {

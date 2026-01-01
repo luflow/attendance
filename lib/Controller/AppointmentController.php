@@ -6,13 +6,13 @@ namespace OCA\Attendance\Controller;
 
 use OCA\Attendance\Service\AppointmentService;
 use OCA\Attendance\Service\CheckinService;
-use OCA\Attendance\Service\PermissionService;
 use OCA\Attendance\Service\ExportService;
+use OCA\Attendance\Service\PermissionService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\DataResponse;
+use OCP\IGroupManager;
 use OCP\IRequest;
 use OCP\IUserSession;
-use OCP\IGroupManager;
 
 class AppointmentController extends Controller {
 	private AppointmentService $appointmentService;
@@ -30,7 +30,7 @@ class AppointmentController extends Controller {
 		PermissionService $permissionService,
 		ExportService $exportService,
 		IUserSession $userSession,
-		IGroupManager $groupManager
+		IGroupManager $groupManager,
 	) {
 		parent::__construct($appName, $request);
 		$this->appointmentService = $appointmentService;
@@ -79,7 +79,7 @@ class AppointmentController extends Controller {
 		string $endDatetime,
 		array $visibleUsers = [],
 		array $visibleGroups = [],
-		bool $sendNotification = false
+		bool $sendNotification = false,
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -118,7 +118,7 @@ class AppointmentController extends Controller {
 		string $startDatetime,
 		string $endDatetime,
 		array $visibleUsers = [],
-		array $visibleGroups = []
+		array $visibleGroups = [],
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {

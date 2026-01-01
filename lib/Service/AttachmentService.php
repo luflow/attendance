@@ -19,7 +19,7 @@ class AttachmentService {
 	public function __construct(
 		AppointmentAttachmentMapper $attachmentMapper,
 		IRootFolder $rootFolder,
-		IURLGenerator $urlGenerator
+		IURLGenerator $urlGenerator,
 	) {
 		$this->attachmentMapper = $attachmentMapper;
 		$this->rootFolder = $rootFolder;

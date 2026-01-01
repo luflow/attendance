@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace OCA\Attendance\Service;
 
 use OCA\Attendance\Db\Appointment;
-use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AppointmentAttachmentMapper;
+use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Db\IcalToken;
 use OCA\Attendance\Db\IcalTokenMapper;
-use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IConfig;
 use OCP\IURLGenerator;
 use OCP\L10N\IFactory as IL10NFactory;
@@ -42,7 +41,7 @@ class IcalService {
 		ISecureRandom $secureRandom,
 		IURLGenerator $urlGenerator,
 		IL10NFactory $l10nFactory,
-		IConfig $config
+		IConfig $config,
 	) {
 		$this->icalTokenMapper = $icalTokenMapper;
 		$this->appointmentMapper = $appointmentMapper;
@@ -142,7 +141,7 @@ class IcalService {
 		$output .= "PRODID:-//Nextcloud//Attendance App//EN\r\n";
 		$output .= "CALSCALE:GREGORIAN\r\n";
 		$output .= "METHOD:PUBLISH\r\n";
-		$output .= "X-WR-CALNAME:" . $this->escapeIcalText($l->t('Attendance Appointments')) . "\r\n";
+		$output .= 'X-WR-CALNAME:' . $this->escapeIcalText($l->t('Attendance Appointments')) . "\r\n";
 
 		foreach ($appointments as $appointment) {
 			$response = $userResponses[$appointment->getId()] ?? null;
@@ -184,7 +183,7 @@ class IcalService {
 		$response,
 		string $userId,
 		$l,
-		string $domain
+		string $domain,
 	): string {
 		$responseState = $response ? $response->getResponse() : null;
 		$responseComment = $response ? $response->getComment() : null;
@@ -269,23 +268,23 @@ class IcalService {
 		$appointmentUrl = $this->urlGenerator->linkToRouteAbsolute('attendance.page.index') . '#/appointment/' . $appointment->getId();
 
 		$output = "BEGIN:VEVENT\r\n";
-		$output .= "UID:attendance-appointment-" . $appointment->getId() . "@" . $domain . "\r\n";
-		$output .= "DTSTAMP:" . $lastModifiedDt->format('Ymd\THis\Z') . "\r\n";
-		$output .= "LAST-MODIFIED:" . $lastModifiedDt->format('Ymd\THis\Z') . "\r\n";
-		$output .= "SEQUENCE:" . $sequence . "\r\n";
-		$output .= "DTSTART:" . $startDt->format('Ymd\THis\Z') . "\r\n";
-		$output .= "DTEND:" . $endDt->format('Ymd\THis\Z') . "\r\n";
-		$output .= "SUMMARY:" . $this->escapeIcalText($summary) . "\r\n";
-		$output .= "DESCRIPTION:" . $this->escapeIcalText($description) . "\r\n";
-		$output .= "URL:" . $appointmentUrl . "\r\n";
-		$output .= "STATUS:" . $status . "\r\n";
-		$output .= "TRANSP:" . $transp . "\r\n";
+		$output .= 'UID:attendance-appointment-' . $appointment->getId() . '@' . $domain . "\r\n";
+		$output .= 'DTSTAMP:' . $lastModifiedDt->format('Ymd\THis\Z') . "\r\n";
+		$output .= 'LAST-MODIFIED:' . $lastModifiedDt->format('Ymd\THis\Z') . "\r\n";
+		$output .= 'SEQUENCE:' . $sequence . "\r\n";
+		$output .= 'DTSTART:' . $startDt->format('Ymd\THis\Z') . "\r\n";
+		$output .= 'DTEND:' . $endDt->format('Ymd\THis\Z') . "\r\n";
+		$output .= 'SUMMARY:' . $this->escapeIcalText($summary) . "\r\n";
+		$output .= 'DESCRIPTION:' . $this->escapeIcalText($description) . "\r\n";
+		$output .= 'URL:' . $appointmentUrl . "\r\n";
+		$output .= 'STATUS:' . $status . "\r\n";
+		$output .= 'TRANSP:' . $transp . "\r\n";
 
 		// Add attachments
 		$attachments = $this->attachmentMapper->findByAppointment($appointment->getId());
 		foreach ($attachments as $attachment) {
 			$attachUrl = $this->urlGenerator->getAbsoluteURL('/f/' . $attachment->getFileId());
-			$output .= "ATTACH:" . $attachUrl . "\r\n";
+			$output .= 'ATTACH:' . $attachUrl . "\r\n";
 		}
 
 		$output .= "END:VEVENT\r\n";

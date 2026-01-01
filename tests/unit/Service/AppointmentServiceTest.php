@@ -14,29 +14,28 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IUserManager;
-use OCP\IUser;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
 class AppointmentServiceTest extends TestCase {
 	/** @var AppointmentMapper|MockObject */
 	private $appointmentMapper;
-	
+
 	/** @var AttendanceResponseMapper|MockObject */
 	private $responseMapper;
-	
+
 	/** @var IGroupManager|MockObject */
 	private $groupManager;
-	
+
 	/** @var IUserManager|MockObject */
 	private $userManager;
-	
+
 	/** @var IConfig|MockObject */
 	private $config;
-	
+
 	/** @var PermissionService|MockObject */
 	private $permissionService;
-	
+
 	private AppointmentService $service;
 
 	protected function setUp(): void {
@@ -46,7 +45,7 @@ class AppointmentServiceTest extends TestCase {
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->permissionService = $this->createMock(PermissionService::class);
-		
+
 		$this->service = new AppointmentService(
 			$this->appointmentMapper,
 			$this->responseMapper,
@@ -210,7 +209,7 @@ class AppointmentServiceTest extends TestCase {
 	public function testGetUserResponseReturnsResponse(): void {
 		$appointmentId = 1;
 		$userId = 'testuser';
-		
+
 		$response = new AttendanceResponse();
 		$response->setAppointmentId($appointmentId);
 		$response->setUserId($userId);
@@ -258,7 +257,7 @@ class AppointmentServiceTest extends TestCase {
 
 		$this->appointmentMapper->expects($this->once())
 			->method('update')
-			->with($this->callback(function($app) {
+			->with($this->callback(function ($app) {
 				return $app->getIsActive() === 0;
 			}));
 

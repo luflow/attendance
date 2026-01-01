@@ -20,7 +20,7 @@ class VisibilityService {
 	public function __construct(
 		IGroupManager $groupManager,
 		IUserManager $userManager,
-		PermissionService $permissionService
+		PermissionService $permissionService,
 	) {
 		$this->groupManager = $groupManager;
 		$this->userManager = $userManager;

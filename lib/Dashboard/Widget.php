@@ -9,7 +9,6 @@ use OCA\Attendance\Service\AppointmentService;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\Dashboard\IAPIWidget;
 use OCP\IL10N;
-use OCP\IURLGenerator;
 use OCP\Util;
 
 class Widget implements IAPIWidget {
@@ -30,9 +29,9 @@ class Widget implements IAPIWidget {
 	private $userId;
 
 	public function __construct(IL10N $l10n,
-								AppointmentService $appointmentService,
-								IInitialState $initialStateService,
-								?string $userId) {
+		AppointmentService $appointmentService,
+		IInitialState $initialStateService,
+		?string $userId) {
 		$this->l10n = $l10n;
 		$this->appointmentService = $appointmentService;
 		$this->initialStateService = $initialStateService;

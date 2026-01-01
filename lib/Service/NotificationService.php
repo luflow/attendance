@@ -20,7 +20,7 @@ class NotificationService {
 		INotificationManager $notificationManager,
 		IAppManager $appManager,
 		IURLGenerator $urlGenerator,
-		LoggerInterface $logger
+		LoggerInterface $logger,
 	) {
 		$this->notificationManager = $notificationManager;
 		$this->appManager = $appManager;

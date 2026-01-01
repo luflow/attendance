@@ -29,7 +29,7 @@ class CheckinService {
 		ConfigService $configService,
 		VisibilityService $visibilityService,
 		IGroupManager $groupManager,
-		IUserManager $userManager
+		IUserManager $userManager,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -55,7 +55,7 @@ class CheckinService {
 		string $targetUserId,
 		?string $response,
 		?string $comment,
-		string $adminUserId
+		string $adminUserId,
 	): AttendanceResponse {
 		// Validate response if provided
 		if ($response !== null && !in_array($response, ['yes', 'no', 'maybe'])) {
@@ -129,7 +129,7 @@ class CheckinService {
 	private function buildGroupList(array $whitelistedGroups): array {
 		if (empty($whitelistedGroups)) {
 			$allGroups = $this->groupManager->search('');
-			$groups = array_map(fn($group) => $group->getGID(), $allGroups);
+			$groups = array_map(fn ($group) => $group->getGID(), $allGroups);
 		} else {
 			$groups = $whitelistedGroups;
 		}
@@ -147,7 +147,7 @@ class CheckinService {
 		$appointment,
 		$allUsers,
 		array $userResponseMap,
-		array $whitelistedGroups
+		array $whitelistedGroups,
 	): array {
 		$users = [];
 

@@ -41,7 +41,7 @@ class QuickResponseController extends Controller {
 		IInitialStateService $initialStateService,
 		IL10N $l,
 		IUserManager $userManager,
-		LoggerInterface $logger
+		LoggerInterface $logger,
 	) {
 		parent::__construct($appName, $request);
 		$this->tokenService = $tokenService;
@@ -67,7 +67,7 @@ class QuickResponseController extends Controller {
 		int $appointmentId,
 		string $response,
 		string $token,
-		string $userId
+		string $userId,
 	): TemplateResponse {
 		// Provide NC version for CSS compatibility
 		$ncVersion = Util::getVersion();
@@ -141,7 +141,7 @@ class QuickResponseController extends Controller {
 		int $appointmentId,
 		string $response,
 		string $token,
-		string $userId
+		string $userId,
 	): DataResponse {
 		$validationResult = $this->validateQuickResponse($appointmentId, $response, $token, $userId);
 
@@ -214,7 +214,7 @@ class QuickResponseController extends Controller {
 		int $appointmentId,
 		string $response,
 		string $token,
-		string $userId
+		string $userId,
 	): array {
 		// Validate response type
 		if (!in_array($response, ['yes', 'no', 'maybe'])) {

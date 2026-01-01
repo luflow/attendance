@@ -25,7 +25,7 @@ class Application extends App implements IBootstrap {
 
 	public function boot(IBootContext $context): void {
 		$container = $context->getAppContainer();
-		
+
 		// Register background job for reminders
 		$jobList = $container->get(\OCP\BackgroundJob\IJobList::class);
 		if (!$jobList->has(ReminderJob::class, null)) {

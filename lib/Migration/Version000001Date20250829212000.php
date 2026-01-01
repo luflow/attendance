@@ -25,7 +25,7 @@ class Version000001Date20250829212000 extends SimpleMigrationStep {
 		// Add response checkin columns to att_responses table
 		if ($schema->hasTable('att_responses')) {
 			$table = $schema->getTable('att_responses');
-			
+
 			if (!$table->hasColumn('checkin_state')) {
 				$table->addColumn('checkin_state', Types::STRING, [
 					'notnull' => false,
@@ -60,7 +60,7 @@ class Version000001Date20250829212000 extends SimpleMigrationStep {
 				$responseColumn = $table->getColumn('response');
 				$responseColumn->setNotnull(false);
 			}
-			
+
 			if ($table->hasColumn('responded_at')) {
 				$respondedAtColumn = $table->getColumn('responded_at');
 				$respondedAtColumn->setNotnull(false);

@@ -92,7 +92,7 @@ class Appointment extends Entity implements JsonSerializable {
 			// Database stores datetime in UTC, so create DateTime object with UTC timezone
 			$utcTimezone = new \DateTimeZone('UTC');
 			$date = new \DateTime($datetime, $utcTimezone);
-			
+
 			// Return in ISO 8601 format with UTC timezone indicator
 			return $date->format('Y-m-d\TH:i:s\Z');
 		} catch (\Exception $e) {

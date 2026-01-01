@@ -29,7 +29,7 @@ class ResponseSummaryService {
 		ConfigService $configService,
 		VisibilityService $visibilityService,
 		IGroupManager $groupManager,
-		IUserManager $userManager
+		IUserManager $userManager,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -88,7 +88,7 @@ class ResponseSummaryService {
 		$allowAllGroups = empty($whitelistedGroups);
 
 		// Pre-fetch all users from responses
-		$userIds = array_unique(array_map(fn($r) => $r->getUserId(), $responses));
+		$userIds = array_unique(array_map(fn ($r) => $r->getUserId(), $responses));
 		$users = [];
 		$userGroups = [];
 
@@ -183,7 +183,7 @@ class ResponseSummaryService {
 		$response,
 		array &$summary,
 		array &$respondedUserIds,
-		array $cache
+		array $cache,
 	): void {
 		$userId = $response->getUserId();
 
@@ -237,7 +237,7 @@ class ResponseSummaryService {
 		string $groupId,
 		string $responseValue,
 		$response,
-		$user
+		$user,
 	): void {
 		if (!isset($summary['by_group'][$groupId])) {
 			$summary['by_group'][$groupId] = [
@@ -264,7 +264,7 @@ class ResponseSummaryService {
 		Appointment $appointment,
 		array &$summary,
 		array $respondedUserIds,
-		array $cache
+		array $cache,
 	): void {
 		$groupsToProcess = $cache['allowAllGroups']
 			? array_keys($cache['groupUsers'])
@@ -322,7 +322,7 @@ class ResponseSummaryService {
 		Appointment $appointment,
 		array &$summary,
 		array $respondedUserIds,
-		array $cache
+		array $cache,
 	): void {
 		$nonRespondingUsers = [];
 
