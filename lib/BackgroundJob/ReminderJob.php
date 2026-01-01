@@ -8,11 +8,12 @@ use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Db\ReminderLog;
 use OCA\Attendance\Db\ReminderLogMapper;
+use OCA\Attendance\Service\ConfigService;
+use OCA\Attendance\Service\VisibilityService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\TimedJob;
 use OCP\IConfig;
 use OCP\IURLGenerator;
-use OCP\IUserManager;
 use OCP\Notification\IManager as INotificationManager;
 use Psr\Log\LoggerInterface;
 
@@ -29,7 +30,8 @@ class ReminderJob extends TimedJob {
 	private AppointmentMapper $appointmentMapper;
 	private AttendanceResponseMapper $responseMapper;
 	private ReminderLogMapper $reminderLogMapper;
-	private IUserManager $userManager;
+	private VisibilityService $visibilityService;
+	private ConfigService $configService;
 	private IConfig $config;
 	private INotificationManager $notificationManager;
 	private IURLGenerator $urlGenerator;
@@ -40,18 +42,20 @@ class ReminderJob extends TimedJob {
 		AppointmentMapper $appointmentMapper,
 		AttendanceResponseMapper $responseMapper,
 		ReminderLogMapper $reminderLogMapper,
-		IUserManager $userManager,
+		VisibilityService $visibilityService,
+		ConfigService $configService,
 		IConfig $config,
 		INotificationManager $notificationManager,
 		IURLGenerator $urlGenerator,
-		LoggerInterface $logger
+		LoggerInterface $logger,
 	) {
 		parent::__construct($time);
 
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
 		$this->reminderLogMapper = $reminderLogMapper;
-		$this->userManager = $userManager;
+		$this->visibilityService = $visibilityService;
+		$this->configService = $configService;
 		$this->config = $config;
 		$this->notificationManager = $notificationManager;
 		$this->urlGenerator = $urlGenerator;
@@ -62,11 +66,11 @@ class ReminderJob extends TimedJob {
 
 	protected function run($argument): void {
 		$this->logger->info('Reminder job starting...');
-		
+
 		// Check if reminders are enabled
 		$enabled = $this->config->getAppValue('attendance', 'reminders_enabled', 'no') === 'yes';
 		$this->logger->info('Reminders enabled check', ['enabled' => $enabled ? 'yes' : 'no']);
-		
+
 		if (!$enabled) {
 			$this->logger->info('Reminder job stopped - reminders are disabled');
 			return;
@@ -82,49 +86,31 @@ class ReminderJob extends TimedJob {
 
 		// Calculate date range: today until X days in the future
 		$today = new \DateTime();
-		$today->setTime(0, 0, 0);
-		$todayStr = $today->format('Y-m-d H:i:s');
-		
+		$todayStr = $today->format('Y-m-d');
+
 		$maxDate = new \DateTime();
 		$maxDate->modify("+{$reminderDays} days");
-		$maxDate->setTime(23, 59, 59);
-		$maxDateStr = $maxDate->format('Y-m-d H:i:s');
+		$maxDateStr = $maxDate->format('Y-m-d');
 
 		$this->logger->info('Checking appointments in date range', [
-			'today' => $today->format('Y-m-d'),
-			'maxDate' => $maxDate->format('Y-m-d'),
+			'today' => $todayStr,
+			'maxDate' => $maxDateStr,
 			'reminderDays' => $reminderDays,
 		]);
 
-		// Find all appointments in the next X days
-		$appointments = $this->appointmentMapper->findAll();
-		$this->logger->info('Found appointments in database', ['total' => count($appointments)]);
-		
+		// Find appointments starting in the next X days (query filters in database)
+		$appointments = $this->appointmentMapper->findStartingBetween($todayStr, $maxDateStr);
+		$this->logger->info('Found appointments in date range', ['count' => count($appointments)]);
+
 		$processedCount = 0;
 		$sentCount = 0;
 
 		foreach ($appointments as $appointment) {
-			$appointmentDate = $appointment->getStartDatetime();
-			
-			$inRange = ($appointmentDate >= $todayStr && $appointmentDate <= $maxDateStr);
-			
-			$this->logger->debug('Checking appointment', [
-				'id' => $appointment->getId(),
-				'name' => $appointment->getName(),
-				'startDatetime' => $appointmentDate,
-				'inRange' => $inRange ? 'true' : 'false',
-			]);
-			
-			// Check if appointment is in the next X days (including today)
-			if (!$inRange) {
-				continue;
-			}
-
 			$processedCount++;
 			$this->logger->info('Processing appointment for reminders', [
 				'id' => $appointment->getId(),
 				'name' => $appointment->getName(),
-				'startDatetime' => $appointmentDate,
+				'startDatetime' => $appointment->getStartDatetime(),
 			]);
 
 			// Get all responses for this appointment
@@ -151,13 +137,18 @@ class ReminderJob extends TimedJob {
 				}
 			}
 
-			// Get all users from the system
-			$allUsers = $this->userManager->search('');
-			$this->logger->info('Total users in system', ['count' => count($allUsers)]);
+			// Get only users who should see this appointment (respects visibility settings)
+			$whitelistedGroups = $this->configService->getWhitelistedGroups();
+			$relevantUsers = $this->visibilityService->getRelevantUsersForAppointment($appointment, $whitelistedGroups);
+			$this->logger->info('Relevant users for appointment', [
+				'appointmentId' => $appointment->getId(),
+				'count' => count($relevantUsers),
+				'hasRestrictedVisibility' => $this->visibilityService->hasRestrictedVisibility($appointment),
+			]);
 
 			$skippedCount = 0;
 
-			foreach ($allUsers as $user) {
+			foreach ($relevantUsers as $user) {
 				$userId = $user->getUID();
 
 				// Skip if user already responded (O(1) lookup with hash map)
@@ -205,7 +196,7 @@ class ReminderJob extends TimedJob {
 						'attendance.page.appointment',
 						['id' => $appointment->getId()]
 					);
-					
+
 					$notification->setApp('attendance')
 						->setUser($userId)
 						->setDateTime(new \DateTime())
@@ -216,18 +207,18 @@ class ReminderJob extends TimedJob {
 							'date' => date('d.m.Y H:i', strtotime($appointment->getStartDatetime())),
 						])
 						->setLink($appointmentUrl);
-					
+
 					$this->notificationManager->notify($notification);
-					
+
 					// Log the reminder
 					$reminderLog = new ReminderLog();
 					$reminderLog->setAppointmentId($appointment->getId());
 					$reminderLog->setUserId($userId);
 					$reminderLog->setRemindedAt(date('Y-m-d H:i:s'));
 					$this->reminderLogMapper->insert($reminderLog);
-					
+
 					$sentCount++;
-					
+
 					$this->logger->info('Successfully sent notification and logged reminder', [
 						'userId' => $userId,
 						'appointmentId' => $appointment->getId(),
@@ -240,10 +231,10 @@ class ReminderJob extends TimedJob {
 					]);
 				}
 			}
-		
+
 			$this->logger->info('Finished processing appointment', [
 				'appointmentId' => $appointment->getId(),
-				'totalUsers' => count($allUsers),
+				'relevantUsers' => count($relevantUsers),
 				'skippedResponded' => $skippedCount,
 				'sentNotifications' => $sentCount,
 			]);

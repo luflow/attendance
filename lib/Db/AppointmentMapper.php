@@ -105,4 +105,31 @@ class AppointmentMapper extends QBMapper {
 
 		return $this->findEntities($qb);
 	}
+
+	/**
+	 * Find appointments starting within a date range (for reminders)
+	 * @param string $startDate Start of range (Y-m-d)
+	 * @param string $endDate End of range (Y-m-d)
+	 * @return array
+	 */
+	public function findStartingBetween(string $startDate, string $endDate): array {
+		$qb = $this->db->getQueryBuilder();
+
+		// Normalize to full day range: start at 00:00:00, end at 23:59:59
+		$startDateTime = $startDate . ' 00:00:00';
+		$endDateTime = $endDate . ' 23:59:59';
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->andX(
+					$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
+					$qb->expr()->gte('start_datetime', $qb->createNamedParameter($startDateTime)),
+					$qb->expr()->lte('start_datetime', $qb->createNamedParameter($endDateTime))
+				)
+			)
+			->orderBy('start_datetime', 'ASC');
+
+		return $this->findEntities($qb);
+	}
 }
