@@ -6,6 +6,14 @@
 
 - Nightly changes here
 
+## 1.18.3 – 2026-01-01
+
+### Fixed
+
+- Removed unused preview styling in markdown editor
+- Fixed cursor visibility in markdown editor
+- Fixed selected text styling in markdown editor
+
 ## 1.18.2 – 2026-01-01
 
 ### Fixed
