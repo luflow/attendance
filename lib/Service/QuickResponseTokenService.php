@@ -25,7 +25,7 @@ class QuickResponseTokenService {
 		IConfig $config,
 		AppointmentMapper $appointmentMapper,
 		IURLGenerator $urlGenerator,
-		LoggerInterface $logger
+		LoggerInterface $logger,
 	) {
 		$this->config = $config;
 		$this->appointmentMapper = $appointmentMapper;
@@ -133,7 +133,7 @@ class QuickResponseTokenService {
 		string $response,
 		bool $success,
 		string $reason = '',
-		?string $ipAddress = null
+		?string $ipAddress = null,
 	): void {
 		$logData = [
 			'appointmentId' => $appointmentId,

@@ -29,7 +29,7 @@ class AttachmentController extends Controller {
 		AppointmentService $appointmentService,
 		PermissionService $permissionService,
 		VisibilityService $visibilityService,
-		IUserSession $userSession
+		IUserSession $userSession,
 	) {
 		parent::__construct($appName, $request);
 		$this->attachmentService = $attachmentService;

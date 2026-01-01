@@ -6,8 +6,8 @@ namespace OCA\Attendance\Service;
 
 use OCP\IConfig;
 use OCP\IGroupManager;
-use OCP\IUserSession;
 use OCP\IUserManager;
+use OCP\IUserSession;
 
 class PermissionService {
 	private IConfig $config;
@@ -34,7 +34,7 @@ class PermissionService {
 		$configKey = 'permission_' . $permission;
 		$rolesJson = $this->config->getAppValue('attendance', $configKey, '[]');
 		$roles = json_decode($rolesJson, true) ?: [];
-		
+
 		return $roles;
 	}
 
@@ -51,20 +51,20 @@ class PermissionService {
 	 */
 	public function hasPermission(string $userId, string $permission): bool {
 		$allowedRoles = $this->getRolesForPermission($permission);
-		
+
 		// If no roles are configured, allow all users
 		if (empty($allowedRoles)) {
 			return true;
 		}
-				
+
 		// Get user object and their groups
 		$user = $this->userManager->get($userId);
 		if (!$user) {
 			return false;
 		}
-		
+
 		$userGroups = $this->groupManager->getUserGroupIds($user);
-		
+
 		return !empty(array_intersect($allowedRoles, $userGroups));
 	}
 
@@ -76,7 +76,7 @@ class PermissionService {
 		if (!$user) {
 			return false;
 		}
-		
+
 		return $this->hasPermission($user->getUID(), $permission);
 	}
 
@@ -86,14 +86,14 @@ class PermissionService {
 	public function getAvailableGroups(): array {
 		$allGroups = $this->groupManager->search('');
 		$groupOptions = [];
-		
+
 		foreach ($allGroups as $group) {
 			$groupOptions[] = [
 				'id' => $group->getGID(),
 				'displayName' => $group->getDisplayName()
 			];
 		}
-		
+
 		return $groupOptions;
 	}
 
@@ -120,11 +120,11 @@ class PermissionService {
 			'PERMISSION_SEE_RESPONSE_OVERVIEW' => self::PERMISSION_SEE_RESPONSE_OVERVIEW,
 			'PERMISSION_SEE_COMMENTS' => self::PERMISSION_SEE_COMMENTS,
 		];
-		
+
 		foreach ($permissions as $permission => $roles) {
 			// Convert uppercase constant name to actual value if needed
 			$permissionValue = $permissionMap[$permission] ?? $permission;
-			
+
 			if (in_array($permissionValue, [
 				self::PERMISSION_MANAGE_APPOINTMENTS,
 				self::PERMISSION_CHECKIN,

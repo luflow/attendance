@@ -11,7 +11,7 @@ return [
 		['name' => 'page#create', 'url' => '/create', 'verb' => 'GET'],
 		['name' => 'page#edit', 'url' => '/edit/{id}', 'verb' => 'GET'],
 		['name' => 'page#copy', 'url' => '/copy/{id}', 'verb' => 'GET'],
-		
+
 		// Appointment management routes
 		// NOTE: Specific routes must come BEFORE wildcard {id} routes
 		['name' => 'appointment#index', 'url' => '/api/appointments', 'verb' => 'GET'],
@@ -21,7 +21,7 @@ return [
 		['name' => 'appointment#create', 'url' => '/api/appointments', 'verb' => 'POST'],
 		['name' => 'appointment#update', 'url' => '/api/appointments/{id}', 'verb' => 'PUT'],
 		['name' => 'appointment#destroy', 'url' => '/api/appointments/{id}', 'verb' => 'DELETE'],
-				
+
 		// Attendance response routes
 		['name' => 'appointment#respond', 'url' => '/api/appointments/{id}/respond', 'verb' => 'POST'],
 		['name' => 'appointment#getResponses', 'url' => '/api/appointments/{id}/responses', 'verb' => 'GET'],
@@ -30,11 +30,11 @@ return [
 		['name' => 'attachment#list', 'url' => '/api/appointments/{appointmentId}/attachments', 'verb' => 'GET'],
 		['name' => 'attachment#add', 'url' => '/api/appointments/{appointmentId}/attachments', 'verb' => 'POST'],
 		['name' => 'attachment#remove', 'url' => '/api/appointments/{appointmentId}/attachments/{fileId}', 'verb' => 'DELETE'],
-		
+
 		// Check-in functionality routes
 		['name' => 'appointment#checkinResponse', 'url' => '/api/appointments/{appointmentId}/checkin/{targetUserId}', 'verb' => 'POST'],
 		['name' => 'appointment#getCheckinData', 'url' => '/api/appointments/{id}/checkin-data', 'verb' => 'GET'],
-		
+
 		// Admin settings
 		['name' => 'admin#getSettings', 'url' => '/api/admin/settings', 'verb' => 'GET'],
 		['name' => 'admin#saveSettings', 'url' => '/api/admin/settings', 'verb' => 'POST'],

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Controller;
 
-use OCA\Attendance\Settings\AdminSettings;
 use OCA\Attendance\Service\PermissionService;
+use OCA\Attendance\Settings\AdminSettings;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\JSONResponse;
@@ -30,7 +30,7 @@ class AdminController extends Controller {
 		AdminSettings $adminSettings,
 		PermissionService $permissionService,
 		IConfig $config,
-		IAppManager $appManager
+		IAppManager $appManager,
 	) {
 		parent::__construct($appName, $request);
 		$this->groupManager = $groupManager;
@@ -104,15 +104,15 @@ class AdminController extends Controller {
 		$whitelistedGroups = $this->request->getParam('whitelistedGroups', []);
 		$permissions = $this->request->getParam('permissions', []);
 		$reminders = $this->request->getParam('reminders', []);
-		
+
 		try {
 			$this->adminSettings->setWhitelistedGroups($whitelistedGroups);
-			
+
 			// Save permissions
 			if (isset($permissions) && is_array($permissions)) {
 				$this->permissionService->setAllPermissionSettings($permissions);
 			}
-		
+
 			// Save reminder settings
 			if (isset($reminders['enabled'])) {
 				$this->config->setAppValue('attendance', 'reminders_enabled', $reminders['enabled'] ? 'yes' : 'no');
@@ -126,7 +126,7 @@ class AdminController extends Controller {
 				$reminderFrequency = max(0, min(30, (int)$reminders['reminderFrequency']));
 				$this->config->setAppValue('attendance', 'reminder_frequency', (string)$reminderFrequency);
 			}
-		
+
 			return new JSONResponse(['success' => true]);
 		} catch (\Exception $e) {
 			return new JSONResponse(['success' => false, 'error' => $e->getMessage()]);

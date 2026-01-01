@@ -6,13 +6,13 @@ namespace OCA\Attendance\Service;
 
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponseMapper;
-use OCP\Files\IRootFolder;
 use OCP\Files\Folder;
+use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
-use OCP\IUserManager;
-use OCP\IGroupManager;
 use OCP\IConfig;
+use OCP\IGroupManager;
 use OCP\IL10N;
+use OCP\IUserManager;
 
 class ExportService {
 	private AppointmentMapper $appointmentMapper;
@@ -30,7 +30,7 @@ class ExportService {
 		IUserManager $userManager,
 		IGroupManager $groupManager,
 		IConfig $config,
-		IL10N $l10n
+		IL10N $l10n,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -51,7 +51,7 @@ class ExportService {
 
 	/**
 	 * Export all appointments to an ODS file
-	 * 
+	 *
 	 * @param string $userId The user ID who is exporting
 	 * @return array Array with 'path' and 'filename' keys
 	 * @throws \Exception
@@ -63,27 +63,27 @@ class ExportService {
 		if (empty($appointments)) {
 			throw new \Exception('No appointments found to export');
 		}
-		
+
 		// Sort appointments by start datetime
-		usort($appointments, function($a, $b) {
+		usort($appointments, function ($a, $b) {
 			return strcmp($a->getStartDatetime(), $b->getStartDatetime());
 		});
-		
+
 		// Collect all unique users who have responded or checked in
 		$allUserIds = [];
 		$appointmentResponses = [];
-		
+
 		foreach ($appointments as $appointment) {
 			$responses = $this->responseMapper->findByAppointment($appointment->getId());
 			$appointmentResponses[$appointment->getId()] = [];
-			
+
 			foreach ($responses as $response) {
 				$respUserId = $response->getUserId();
 				$allUserIds[$respUserId] = true;
 				$appointmentResponses[$appointment->getId()][$respUserId] = $response;
 			}
 		}
-		
+
 		// Get user display names and groups
 		$whitelistedGroups = $this->getWhitelistedGroups();
 		$users = [];
@@ -92,7 +92,7 @@ class ExportService {
 			if ($user) {
 				// Get user's groups
 				$userGroups = $this->groupManager->getUserGroupIds($user);
-				
+
 				// Find first whitelisted group or use "Others"
 				$userGroup = $this->l10n->t('Others');
 				if (!empty($whitelistedGroups)) {
@@ -106,7 +106,7 @@ class ExportService {
 					// If no whitelist, use first group or "Others"
 					$userGroup = !empty($userGroups) ? $userGroups[0] : $this->l10n->t('Others');
 				}
-				
+
 				$users[] = [
 					'userId' => $uid,
 					'displayName' => $user->getDisplayName(),
@@ -114,12 +114,12 @@ class ExportService {
 				];
 			}
 		}
-		
+
 		// Sort users by display name
-		usort($users, function($a, $b) {
+		usort($users, function ($a, $b) {
 			return strcmp($a['displayName'], $b['displayName']);
 		});
-		
+
 		// Generate ODS content
 		$odsContent = $this->generateOdsContent($appointments, $users, $appointmentResponses);
 
@@ -173,7 +173,7 @@ class ExportService {
 
 	/**
 	 * Generate ODS file content
-	 * 
+	 *
 	 * @param array $appointments Array of Appointment entities
 	 * @param array $users Array of user data
 	 * @param array $appointmentResponses Map of appointment ID to user responses
@@ -184,45 +184,45 @@ class ExportService {
 		if (!class_exists('\ZipArchive')) {
 			throw new \Exception('ZipArchive extension is not available. Please install php-zip extension.');
 		}
-		
+
 		// Create temporary file for the ODS
 		$tempFile = tempnam(sys_get_temp_dir(), 'ods_');
 		if ($tempFile === false) {
 			throw new \Exception('Failed to create temporary file');
 		}
-		
+
 		$zip = new \ZipArchive();
 		$result = $zip->open($tempFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
 		if ($result !== true) {
 			throw new \Exception('Failed to create ODS file. ZipArchive error code: ' . $result);
 		}
-		
+
 		// Add mimetype (must be first and uncompressed)
 		$zip->addFromString('mimetype', 'application/vnd.oasis.opendocument.spreadsheet');
 		$zip->setCompressionName('mimetype', \ZipArchive::CM_STORE);
-		
+
 		// Add META-INF/manifest.xml
 		$zip->addFromString('META-INF/manifest.xml', $this->getManifestXml());
-		
+
 		// Add content.xml with the table
 		$zip->addFromString('content.xml', $this->getContentXml($appointments, $users, $appointmentResponses));
-		
+
 		// Add styles.xml
 		$zip->addFromString('styles.xml', $this->getStylesXml());
-		
+
 		// Add meta.xml
 		$zip->addFromString('meta.xml', $this->getMetaXml());
-		
+
 		$zip->close();
-		
+
 		// Read the file content
 		$content = file_get_contents($tempFile);
 		if ($content === false) {
 			throw new \Exception('Failed to read generated ODS file');
 		}
-		
+
 		unlink($tempFile);
-		
+
 		return $content;
 	}
 
@@ -313,16 +313,16 @@ class ExportService {
 	<office:body>
 		<office:spreadsheet>
 			<table:table table:name="Attendance" table:print="false">';
-		
+
 		// Calculate number of columns: 2 for Name+Group + (2 * number of appointments)
 		$columnCount = 2 + (count($appointments) * 2);
-		
+
 		// Add column definitions
 		$xml .= '
 				<table:table-column table:style-name="co1" table:number-columns-repeated="2"/>';
 		$xml .= '
 				<table:table-column table:style-name="co2" table:number-columns-repeated="' . (count($appointments) * 2) . '"/>';
-		
+
 		// Add first header row with appointment names only
 		$xml .= '
 				<table:table-row>
@@ -332,10 +332,10 @@ class ExportService {
 					<table:table-cell table:style-name="ce2" office:value-type="string">
 						<text:p>' . $this->l10n->t('Group') . '</text:p>
 					</table:table-cell>';
-		
+
 		foreach ($appointments as $appointment) {
 			$appointmentName = $this->escapeXml($appointment->getName());
-			
+
 			// Add merged cell for appointment name spanning 2 columns
 			$xml .= '
 					<table:table-cell table:style-name="ce2" office:value-type="string" table:number-columns-spanned="2">
@@ -343,10 +343,10 @@ class ExportService {
 					</table:table-cell>
 					<table:covered-table-cell/>';
 		}
-		
+
 		$xml .= '
 				</table:table-row>';
-		
+
 		// Add second header row with dates
 		$xml .= '
 				<table:table-row>
@@ -356,10 +356,10 @@ class ExportService {
 					<table:table-cell table:style-name="ce2" office:value-type="string">
 						<text:p></text:p>
 					</table:table-cell>';
-		
+
 		foreach ($appointments as $appointment) {
 			$startDate = date('Y-m-d', strtotime($appointment->getStartDatetime()));
-			
+
 			// Add date merged cell spanning 2 columns
 			$xml .= '
 					<table:table-cell table:style-name="ce2" office:value-type="string" table:number-columns-spanned="2">
@@ -367,10 +367,10 @@ class ExportService {
 					</table:table-cell>
 					<table:covered-table-cell/>';
 		}
-		
+
 		$xml .= '
 				</table:table-row>';
-		
+
 		// Add third header row with RSVP and CheckIn labels
 		$xml .= '
 				<table:table-row>
@@ -380,7 +380,7 @@ class ExportService {
 					<table:table-cell table:style-name="ce2" office:value-type="string">
 						<text:p></text:p>
 					</table:table-cell>';
-		
+
 		foreach ($appointments as $appointment) {
 			$xml .= '
 					<table:table-cell table:style-name="ce2" office:value-type="string">
@@ -390,10 +390,10 @@ class ExportService {
 						<text:p>CheckIn</text:p>
 					</table:table-cell>';
 		}
-		
+
 		$xml .= '
 				</table:table-row>';
-		
+
 		// Add data rows for each user
 		foreach ($users as $user) {
 			$xml .= '
@@ -404,18 +404,18 @@ class ExportService {
 					<table:table-cell table:style-name="ce1" office:value-type="string">
 						<text:p>' . $this->escapeXml($user['group']) . '</text:p>
 					</table:table-cell>';
-			
+
 			// Add RSVP and CheckIn data for each appointment
 			foreach ($appointments as $appointment) {
 				$response = $appointmentResponses[$appointment->getId()][$user['userId']] ?? null;
-				
+
 				// RSVP column
 				$rsvp = $response ? $this->formatResponse($response->getResponse()) : '-';
 				$xml .= '
 					<table:table-cell table:style-name="ce1" office:value-type="string">
 						<text:p>' . $rsvp . '</text:p>
 					</table:table-cell>';
-				
+
 				// CheckIn column
 				$checkin = $response ? $this->formatResponse($response->getCheckinState()) : '-';
 				$xml .= '
@@ -423,17 +423,17 @@ class ExportService {
 						<text:p>' . $checkin . '</text:p>
 					</table:table-cell>';
 			}
-			
+
 			$xml .= '
 				</table:table-row>';
 		}
-		
+
 		$xml .= '
 			</table:table>
 		</office:spreadsheet>
 	</office:body>
 </office:document-content>';
-		
+
 		return $xml;
 	}
 
@@ -444,7 +444,7 @@ class ExportService {
 		if ($response === null || $response === '') {
 			return '-';
 		}
-		
+
 		switch ($response) {
 			case 'yes':
 				return $this->l10n->t('Yes');

@@ -6,27 +6,27 @@ namespace OCA\Attendance\Tests\Unit\Service;
 
 use OCA\Attendance\Service\PermissionService;
 use OCP\IConfig;
-use OCP\IGroupManager;
-use OCP\IUserSession;
-use OCP\IUserManager;
-use OCP\IUser;
 use OCP\IGroup;
-use PHPUnit\Framework\TestCase;
+use OCP\IGroupManager;
+use OCP\IUser;
+use OCP\IUserManager;
+use OCP\IUserSession;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
 class PermissionServiceTest extends TestCase {
 	/** @var IConfig|MockObject */
 	private $config;
-	
+
 	/** @var IGroupManager|MockObject */
 	private $groupManager;
-	
+
 	/** @var IUserSession|MockObject */
 	private $userSession;
-	
+
 	/** @var IUserManager|MockObject */
 	private $userManager;
-	
+
 	private PermissionService $service;
 
 	protected function setUp(): void {
@@ -34,7 +34,7 @@ class PermissionServiceTest extends TestCase {
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->userManager = $this->createMock(IUserManager::class);
-		
+
 		$this->service = new PermissionService(
 			$this->config,
 			$this->groupManager,
@@ -50,7 +50,7 @@ class PermissionServiceTest extends TestCase {
 			->willReturn('["admin","managers"]');
 
 		$roles = $this->service->getRolesForPermission(PermissionService::PERMISSION_MANAGE_APPOINTMENTS);
-		
+
 		$this->assertEquals(['admin', 'managers'], $roles);
 	}
 
@@ -61,7 +61,7 @@ class PermissionServiceTest extends TestCase {
 			->willReturn('[]');
 
 		$roles = $this->service->getRolesForPermission(PermissionService::PERMISSION_CHECKIN);
-		
+
 		$this->assertEquals([], $roles);
 	}
 
@@ -83,7 +83,7 @@ class PermissionServiceTest extends TestCase {
 			->willReturn('[]');
 
 		$result = $this->service->hasPermission('testuser', PermissionService::PERMISSION_MANAGE_APPOINTMENTS);
-		
+
 		$this->assertTrue($result);
 	}
 
@@ -104,7 +104,7 @@ class PermissionServiceTest extends TestCase {
 			->willReturn(['managers', 'employees']);
 
 		$result = $this->service->hasPermission('testuser', PermissionService::PERMISSION_MANAGE_APPOINTMENTS);
-		
+
 		$this->assertTrue($result);
 	}
 
@@ -125,7 +125,7 @@ class PermissionServiceTest extends TestCase {
 			->willReturn(['employees']);
 
 		$result = $this->service->hasPermission('testuser', PermissionService::PERMISSION_MANAGE_APPOINTMENTS);
-		
+
 		$this->assertFalse($result);
 	}
 
@@ -140,7 +140,7 @@ class PermissionServiceTest extends TestCase {
 			->willReturn(null);
 
 		$result = $this->service->hasPermission('nonexistent', PermissionService::PERMISSION_MANAGE_APPOINTMENTS);
-		
+
 		$this->assertFalse($result);
 	}
 
@@ -159,7 +159,7 @@ class PermissionServiceTest extends TestCase {
 			->willReturn('[]');
 
 		$result = $this->service->currentUserHasPermission(PermissionService::PERMISSION_MANAGE_APPOINTMENTS);
-		
+
 		$this->assertTrue($result);
 	}
 
@@ -169,7 +169,7 @@ class PermissionServiceTest extends TestCase {
 			->willReturn(null);
 
 		$result = $this->service->currentUserHasPermission(PermissionService::PERMISSION_MANAGE_APPOINTMENTS);
-		
+
 		$this->assertFalse($result);
 	}
 
@@ -188,12 +188,12 @@ class PermissionServiceTest extends TestCase {
 			->willReturn([$group1, $group2]);
 
 		$result = $this->service->getAvailableGroups();
-		
+
 		$expected = [
 			['id' => 'admin', 'displayName' => 'Administrators'],
 			['id' => 'managers', 'displayName' => 'Managers']
 		];
-		
+
 		$this->assertEquals($expected, $result);
 	}
 
@@ -203,7 +203,7 @@ class PermissionServiceTest extends TestCase {
 			->willReturn('[]');
 
 		$result = $this->service->canManageAppointments('testuser');
-		
+
 		$this->assertTrue($result);
 	}
 
@@ -213,7 +213,7 @@ class PermissionServiceTest extends TestCase {
 			->willReturn('[]');
 
 		$result = $this->service->canCheckin('testuser');
-		
+
 		$this->assertTrue($result);
 	}
 
@@ -223,7 +223,7 @@ class PermissionServiceTest extends TestCase {
 			->willReturn('[]');
 
 		$result = $this->service->canSeeResponseOverview('testuser');
-		
+
 		$this->assertTrue($result);
 	}
 
@@ -233,7 +233,7 @@ class PermissionServiceTest extends TestCase {
 			->willReturn('[]');
 
 		$result = $this->service->canSeeComments('testuser');
-		
+
 		$this->assertTrue($result);
 	}
 
@@ -248,14 +248,14 @@ class PermissionServiceTest extends TestCase {
 			]);
 
 		$result = $this->service->getAllPermissionSettings();
-		
+
 		$expected = [
 			PermissionService::PERMISSION_MANAGE_APPOINTMENTS => ['admin'],
 			PermissionService::PERMISSION_CHECKIN => ['admin', 'staff'],
 			PermissionService::PERMISSION_SEE_RESPONSE_OVERVIEW => ['admin'],
 			PermissionService::PERMISSION_SEE_COMMENTS => ['admin', 'managers']
 		];
-		
+
 		$this->assertEquals($expected, $result);
 	}
 
@@ -268,7 +268,7 @@ class PermissionServiceTest extends TestCase {
 		$callCount = 0;
 		$this->config->expects($this->exactly(2))
 			->method('setAppValue')
-			->willReturnCallback(function($app, $key, $value) use (&$callCount) {
+			->willReturnCallback(function ($app, $key, $value) use (&$callCount) {
 				$callCount++;
 				if ($callCount === 1) {
 					$this->assertEquals('attendance', $app);

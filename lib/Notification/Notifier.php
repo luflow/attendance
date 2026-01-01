@@ -19,7 +19,7 @@ class Notifier implements INotifier {
 	public function __construct(
 		IFactory $l10nFactory,
 		IURLGenerator $urlGenerator,
-		QuickResponseTokenService $tokenService
+		QuickResponseTokenService $tokenService,
 	) {
 		$this->l10nFactory = $l10nFactory;
 		$this->urlGenerator = $urlGenerator;
@@ -107,7 +107,7 @@ class Notifier implements INotifier {
 		INotification $notification,
 		\OCP\IL10N $l,
 		int $appointmentId,
-		string $userId
+		string $userId,
 	): void {
 		// Actions are added in reverse order because the frontend displays them reversed
 		// No action (added first, displays last/right)
