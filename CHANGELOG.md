@@ -6,6 +6,15 @@
 
 - Nightly changes here
 
+## 1.18.1 – 2026-01-01
+
+### Fixed
+
+- Reminder notifications now respect appointment visibility settings
+  - Users who are not in the visible users/groups list will no longer receive reminders
+  - Previously, reminders were sent to all users in the system regardless of visibility
+- Improved reminder job performance by only querying appointments within the reminder window
+
 ## 1.18.0 – 2025-12-31
 
 ### Added
