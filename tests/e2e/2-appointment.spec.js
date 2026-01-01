@@ -19,10 +19,12 @@ async function createAppointment(page, { name, description, daysFromNow = 2, dur
 	await nameInput.waitFor({ state: 'visible' })
 	await nameInput.fill(name)
 
-	// Wait for description field to be ready and fill it
-	const descInput = page.getByRole('textbox', { name: 'Description' })
-	await descInput.waitFor({ state: 'visible' })
-	await descInput.fill(description)
+	// Wait for markdown editor (description field) to be ready and fill it
+	// The MarkdownEditor uses CodeMirror, so we need to interact with its textarea
+	const descEditor = page.locator('[data-test="input-appointment-description"] .CodeMirror')
+	await descEditor.waitFor({ state: 'visible' })
+	await descEditor.click()
+	await page.keyboard.type(description)
 
 	// Calculate dates
 	const now = new Date()
@@ -219,12 +221,17 @@ test.describe('Attendance App - User Responses', () => {
 		await attendanceApp()
 		await page.waitForLoadState('networkidle')
 
+		// Navigate to Upcoming Appointments (not Unanswered) to ensure appointment stays visible after voting
+		await page.getByRole('link', { name: 'Upcoming Appointments' }).click()
+		await page.waitForLoadState('networkidle')
+
 		// Click Yes first (comment section appears after voting)
 		await page.getByRole('button', { name: 'Yes', exact: true }).first().click()
 		await page.waitForLoadState('networkidle')
 
-		// Click comment toggle button to open comment section
+		// Wait for comment toggle button to appear (it only shows after user has responded)
 		const commentToggle = page.locator('[data-test="button-toggle-comment"]').first()
+		await expect(commentToggle).toBeVisible({ timeout: 5000 })
 		await commentToggle.click()
 
 		// Wait for comment field to appear and fill it
@@ -241,8 +248,13 @@ test.describe('Attendance App - User Responses', () => {
 		await page.reload()
 		await page.waitForLoadState('networkidle')
 
-		// Click comment toggle button to show the comment field again
+		// Navigate back to Upcoming Appointments after reload
+		await page.getByRole('link', { name: 'Upcoming Appointments' }).click()
+		await page.waitForLoadState('networkidle')
+
+		// Wait for comment toggle button to appear after reload
 		const reloadedCommentToggle = page.locator('[data-test="button-toggle-comment"]').first()
+		await expect(reloadedCommentToggle).toBeVisible({ timeout: 5000 })
 		await reloadedCommentToggle.click()
 
 		// Verify the comment is still there after reload

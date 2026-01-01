@@ -19,10 +19,11 @@ async function createAppointmentWithVisibility(page, { name, description, daysFr
 	await nameInput.waitFor({ state: 'visible' })
 	await nameInput.fill(name)
 
-	// Wait for description field to be ready and fill it
-	const descInput = page.getByRole('textbox', { name: 'Description' })
-	await descInput.waitFor({ state: 'visible' })
-	await descInput.fill(description)
+	// Wait for markdown editor (description field) to be ready and fill it
+	const descEditor = page.locator('[data-test="input-appointment-description"] .CodeMirror')
+	await descEditor.waitFor({ state: 'visible' })
+	await descEditor.click()
+	await page.keyboard.type(description)
 
 	// Calculate dates
 	const now = new Date()
