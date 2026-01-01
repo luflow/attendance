@@ -76,25 +76,23 @@ onMounted(() => {
 
 	editor = new EasyMDE({
 		element: textarea,
+		autoDownloadFontAwesome: false,
 		initialValue: props.modelValue,
 		placeholder: props.placeholder,
 		spellChecker: false,
-		nativeSpellcheck: true,
 		status: false,
 		minHeight: props.minHeight,
 		toolbar: [
-			{ name: 'bold', action: EasyMDE.toggleBold, className: 'mde-btn-bold', title: t('attendance', 'Bold') + ' (Ctrl+B)' },
-			{ name: 'italic', action: EasyMDE.toggleItalic, className: 'mde-btn-italic', title: t('attendance', 'Italic') + ' (Ctrl+I)' },
+			{ name: 'bold', action: EasyMDE.toggleBold, className: 'mde-btn-bold', title: t('attendance', 'Bold') },
+			{ name: 'italic', action: EasyMDE.toggleItalic, className: 'mde-btn-italic', title: t('attendance', 'Italic') },
 			{ name: 'strikethrough', action: EasyMDE.toggleStrikethrough, className: 'mde-btn-strikethrough', title: t('attendance', 'Strikethrough') },
 			'|',
 			{ name: 'unordered-list', action: EasyMDE.toggleUnorderedList, className: 'mde-btn-bullet', title: t('attendance', 'Bullet list') },
 			{ name: 'ordered-list', action: EasyMDE.toggleOrderedList, className: 'mde-btn-numbered', title: t('attendance', 'Numbered list') },
 			{ name: 'quote', action: EasyMDE.toggleBlockquote, className: 'mde-btn-quote', title: t('attendance', 'Quote') },
 			'|',
-			{ name: 'link', action: EasyMDE.drawLink, className: 'mde-btn-link', title: t('attendance', 'Insert link') + ' (Ctrl+K)' },
+			{ name: 'link', action: EasyMDE.drawLink, className: 'mde-btn-link', title: t('attendance', 'Insert link') },
 		],
-		autosave: { enabled: false },
-		uploadImage: false,
 		shortcuts: { toggleSideBySide: null, toggleFullScreen: null },
 	})
 
@@ -176,6 +174,14 @@ onBeforeUnmount(() => {
 	&__container {
 		border-radius: var(--border-radius-large);
 		overflow: hidden;
+	}
+
+	// Weird mobile style override of default nextcloud styles
+	div[contenteditable=true] {
+		padding: 0;
+		height: auto;
+		border: none;
+		width: auto;
 	}
 
 	// EasyMDE overrides to match Nextcloud style
