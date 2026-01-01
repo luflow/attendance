@@ -6,6 +6,13 @@
 
 - Nightly changes here
 
+## 1.18.2 – 2026-01-01
+
+### Fixed
+
+- Markdown editor styling on mobile devices now displays correctly
+- Disabled FontAwesome download (uses Nextcloud Material Design icons instead)
+
 ## 1.18.1 – 2026-01-01
 
 ### Fixed
