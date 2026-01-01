@@ -176,6 +176,11 @@ onBeforeUnmount(() => {
 		overflow: hidden;
 	}
 
+	span.CodeMirror-selectedtext {
+		background: var(--color-primary-element-hover);
+		color: var(--color-background-hover);
+	}
+
 	// Weird mobile style override of default nextcloud styles
 	div[contenteditable=true] {
 		padding: 0;
@@ -203,6 +208,10 @@ onBeforeUnmount(() => {
 
 			&-selected {
 				background: var(--color-primary-element-light) !important;
+			}
+
+			pre, span {
+				cursor: text;
 			}
 		}
 
@@ -255,95 +264,6 @@ onBeforeUnmount(() => {
 				margin: 6px 6px !important;
 				background-color: var(--color-border);
 				border: none;
-			}
-		}
-
-		// Preview mode styling
-		.editor-preview {
-			background-color: var(--color-main-background);
-			color: var(--color-main-text);
-			padding: 12px;
-
-			h1, h2, h3, h4, h5, h6 {
-				color: var(--color-main-text);
-				margin: 15px 0 10px 0;
-				font-weight: 600;
-			}
-
-			h1 { font-size: 1.5em; }
-			h2 { font-size: 1.3em; }
-			h3 { font-size: 1.15em; }
-
-			a {
-				color: var(--color-primary-element);
-			}
-
-			code {
-				background-color: var(--color-background-dark);
-				padding: 2px 6px;
-				border-radius: var(--border-radius-small);
-				font-family: monospace;
-			}
-
-			pre {
-				background-color: var(--color-background-dark);
-				padding: 12px;
-				border-radius: var(--border-radius);
-				overflow-x: auto;
-
-				code {
-					background: none;
-					padding: 0;
-				}
-			}
-
-			blockquote {
-				border-left: 3px solid var(--color-primary-element);
-				margin: 10px 0;
-				padding-left: 15px;
-				color: var(--color-text-maxcontrast);
-			}
-
-			ul, ol {
-				margin: 10px 0;
-				padding-left: 25px;
-			}
-
-			li {
-				margin: 5px 0;
-			}
-
-			hr {
-				border: none;
-				border-top: 1px solid var(--color-border);
-				margin: 15px 0;
-			}
-
-			table {
-				border-collapse: collapse;
-				width: 100%;
-				margin: 10px 0;
-			}
-
-			th, td {
-				border: 1px solid var(--color-border);
-				padding: 8px 12px;
-				text-align: left;
-			}
-
-			th {
-				background-color: var(--color-background-dark);
-				font-weight: 600;
-			}
-
-			// Task lists
-			.task-list-item {
-				list-style-type: none;
-				margin-left: -20px;
-
-				input[type="checkbox"] {
-					margin-right: 8px;
-				}
 			}
 		}
 	}
