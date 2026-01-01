@@ -58,10 +58,11 @@ async function createAppointment(page, { name, description, daysFromNow = 2, dur
 	await nameInput.waitFor({ state: 'visible' })
 	await nameInput.fill(name)
 
-	// Wait for description field to be ready and fill it
-	const descInput = page.getByRole('textbox', { name: 'Description' })
-	await descInput.waitFor({ state: 'visible' })
-	await descInput.fill(description)
+	// Wait for markdown editor (description field) to be ready and fill it
+	const descEditor = page.locator('[data-test="input-appointment-description"] .CodeMirror')
+	await descEditor.waitFor({ state: 'visible' })
+	await descEditor.click()
+	await page.keyboard.type(description)
 
 	// Calculate dates
 	const now = new Date()
@@ -144,7 +145,10 @@ test.describe.serial('Attendance App - Attachments', () => {
 
 			// Fill required fields first
 			await page.getByRole('textbox', { name: 'Appointment Name' }).fill('Attachment Test Meeting')
-			await page.getByRole('textbox', { name: 'Description' }).fill('Testing attachments')
+			const descEditor = page.locator('[data-test="input-appointment-description"] .CodeMirror')
+			await descEditor.waitFor({ state: 'visible' })
+			await descEditor.click()
+			await page.keyboard.type('Testing attachments')
 
 			const now = new Date()
 			const startDate = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000)

@@ -74,7 +74,10 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.waitForLoadState('networkidle')
 			await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
 			await page.getByRole('textbox', { name: 'Appointment Name' }).fill('Check-in Test Meeting')
-			await page.getByRole('textbox', { name: 'Description' }).fill('Testing check-in permissions')
+			const descEditor1 = page.locator('[data-test="input-appointment-description"] .CodeMirror')
+			await descEditor1.waitFor({ state: 'visible' })
+			await descEditor1.click()
+			await page.keyboard.type('Testing check-in permissions')
 
 			const now = new Date()
 			const startDate = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000)
@@ -161,7 +164,10 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.waitForLoadState('networkidle')
 			await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
 			await page.getByRole('textbox', { name: 'Appointment Name' }).fill('Response Overview Test')
-			await page.getByRole('textbox', { name: 'Description' }).fill('Testing response visibility')
+			const descEditor2 = page.locator('[data-test="input-appointment-description"] .CodeMirror')
+			await descEditor2.waitFor({ state: 'visible' })
+			await descEditor2.click()
+			await page.keyboard.type('Testing response visibility')
 
 			const now = new Date()
 			const startDate = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000)

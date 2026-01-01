@@ -75,10 +75,11 @@ async function createAppointmentWithGroupVisibility(page, { name, description, d
 	await nameInput.waitFor({ state: 'visible' })
 	await nameInput.fill(name)
 
-	// Wait for description field to be ready and fill it
-	const descInput = page.getByRole('textbox', { name: 'Description' })
-	await descInput.waitFor({ state: 'visible' })
-	await descInput.fill(description)
+	// Wait for markdown editor (description field) to be ready and fill it
+	const descEditor = page.locator('[data-test="input-appointment-description"] .CodeMirror')
+	await descEditor.waitFor({ state: 'visible' })
+	await descEditor.click()
+	await page.keyboard.type(description)
 
 	// Calculate dates
 	const now = new Date()
@@ -261,7 +262,10 @@ test.describe('Attendance App - Group Visibility Filtering', () => {
 
 			// Fill form
 			await page.getByRole('textbox', { name: 'Appointment Name' }).fill('Mixed Visibility Meeting')
-			await page.getByRole('textbox', { name: 'Description' }).fill('Visible to developers group and test2 user')
+			const descEditor = page.locator('[data-test="input-appointment-description"] .CodeMirror')
+			await descEditor.waitFor({ state: 'visible' })
+			await descEditor.click()
+			await page.keyboard.type('Visible to developers group and test2 user')
 
 			const now = new Date()
 			const startDate = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000)
