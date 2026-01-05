@@ -6,6 +6,21 @@
 
 - Nightly changes here
 
+## 1.19.0 – 2026-01-06
+
+### Added
+
+- Teams (Circles) support for visibility settings
+  - Appointments can now be restricted to specific teams in addition to users and groups
+  - Teams appear with a star icon to distinguish them from groups
+  - Requires the Circles/Teams app to be enabled
+- Teams support for Response Summary
+  - Configure teams in admin settings to organize responses by team membership
+  - Team sections display alongside group sections with star icons
+  - Users can appear in both group and team sections if they belong to both
+- Visibility mismatch warning now includes teams
+  - Warning appears when selected teams are not in Response Summary Teams configuration
+
 ## 1.18.3 – 2026-01-01
 
 ### Fixed
