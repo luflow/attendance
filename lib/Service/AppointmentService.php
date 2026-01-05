@@ -8,9 +8,12 @@ use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
+use OCP\App\IAppManager;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\Collaboration\Collaborators\ISearch as ICollaboratorSearch;
 use OCP\IGroupManager;
 use OCP\IUserManager;
+use OCP\Share\IShare;
 
 /**
  * Core service for managing appointments and responses.
@@ -26,6 +29,8 @@ class AppointmentService {
 	private ResponseSummaryService $responseSummaryService;
 	private NotificationService $notificationService;
 	private AttachmentService $attachmentService;
+	private ICollaboratorSearch $collaboratorSearch;
+	private IAppManager $appManager;
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -37,6 +42,8 @@ class AppointmentService {
 		ResponseSummaryService $responseSummaryService,
 		NotificationService $notificationService,
 		AttachmentService $attachmentService,
+		ICollaboratorSearch $collaboratorSearch,
+		IAppManager $appManager,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -47,6 +54,8 @@ class AppointmentService {
 		$this->responseSummaryService = $responseSummaryService;
 		$this->notificationService = $notificationService;
 		$this->attachmentService = $attachmentService;
+		$this->collaboratorSearch = $collaboratorSearch;
+		$this->appManager = $appManager;
 	}
 
 	/**
@@ -60,6 +69,7 @@ class AppointmentService {
 		string $createdBy,
 		array $visibleUsers = [],
 		array $visibleGroups = [],
+		array $visibleTeams = [],
 		bool $sendNotification = false,
 	): Appointment {
 		$startFormatted = $this->formatDatetime($startDatetime);
@@ -76,6 +86,7 @@ class AppointmentService {
 		$appointment->setIsActive(1);
 		$appointment->setVisibleUsers(empty($visibleUsers) ? null : json_encode($visibleUsers));
 		$appointment->setVisibleGroups(empty($visibleGroups) ? null : json_encode($visibleGroups));
+		$appointment->setVisibleTeams(empty($visibleTeams) ? null : json_encode($visibleTeams));
 
 		$appointment = $this->appointmentMapper->insert($appointment);
 
@@ -100,6 +111,7 @@ class AppointmentService {
 		string $userId,
 		array $visibleUsers = [],
 		array $visibleGroups = [],
+		array $visibleTeams = [],
 	): Appointment {
 		$appointment = $this->appointmentMapper->find($id);
 
@@ -113,6 +125,7 @@ class AppointmentService {
 		$appointment->setUpdatedAt(date('Y-m-d H:i:s'));
 		$appointment->setVisibleUsers(empty($visibleUsers) ? null : json_encode($visibleUsers));
 		$appointment->setVisibleGroups(empty($visibleGroups) ? null : json_encode($visibleGroups));
+		$appointment->setVisibleTeams(empty($visibleTeams) ? null : json_encode($visibleTeams));
 
 		return $this->appointmentMapper->update($appointment);
 	}
@@ -145,6 +158,7 @@ class AppointmentService {
 		}
 
 		$appointmentData = $appointment->jsonSerialize();
+		$appointmentData = $this->enrichVisibilityData($appointmentData);
 		$appointmentData['userResponse'] = $this->getUserResponse($appointment->getId(), $userId);
 		$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId());
 		$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
@@ -315,6 +329,7 @@ class AppointmentService {
 			}
 
 			$appointmentData = $appointment->jsonSerialize();
+			$appointmentData = $this->enrichVisibilityData($appointmentData);
 			$userResponse = $this->getUserResponse($appointment->getId(), $userId);
 			$appointmentData['userResponse'] = ($userResponse && $userResponse->getResponse() !== null) ? $userResponse : null;
 			$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId());
@@ -343,6 +358,7 @@ class AppointmentService {
 			}
 
 			$appointmentData = $appointment->jsonSerialize();
+			$appointmentData = $this->enrichVisibilityData($appointmentData);
 			$userResponse = $this->getUserResponse($appointment->getId(), $userId);
 			$appointmentData['userResponse'] = ($userResponse && $userResponse->getResponse() !== null) ? $userResponse : null;
 			$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
@@ -354,32 +370,108 @@ class AppointmentService {
 	}
 
 	/**
-	 * Search for users and groups.
+	 * Search for users, groups, and teams (circles).
+	 * Uses the ICollaboratorSearch interface to include all registered share types.
 	 */
-	public function searchUsersAndGroups(string $search = ''): array {
+	public function searchUsersGroupsTeams(string $search = ''): array {
+		$shareTypes = [
+			IShare::TYPE_USER,
+			IShare::TYPE_GROUP,
+		];
+
+		// Add circles/teams if the app is enabled
+		if ($this->appManager->isEnabledForUser('circles')) {
+			$shareTypes[] = IShare::TYPE_CIRCLE;
+		}
+
+		[$searchResult, $hasMore] = $this->collaboratorSearch->search(
+			$search,
+			$shareTypes,
+			false, // lookup
+			20,    // limit
+			0      // offset
+		);
+
+		return $this->formatCollaboratorResults($searchResult);
+	}
+
+	/**
+	 * Format collaborator search results into a consistent format.
+	 */
+	private function formatCollaboratorResults($searchResult): array {
 		$results = [];
+		// Handle both ISearchResult object and array returns
+		$resultData = is_array($searchResult) ? $searchResult : $searchResult->asArray();
 
-		$users = $this->userManager->search($search, 20);
-		foreach ($users as $user) {
-			$results[] = [
-				'id' => $user->getUID(),
-				'label' => $user->getDisplayName(),
-				'type' => 'user',
-				'icon' => 'icon-user',
-			];
+		// Process exact matches and regular matches
+		foreach (['exact', 'users', 'groups', 'circles'] as $category) {
+			$items = [];
+
+			if ($category === 'exact') {
+				// Exact matches are nested by type
+				$exactMatches = $resultData['exact'] ?? [];
+				foreach (['users', 'groups', 'circles'] as $subCategory) {
+					if (isset($exactMatches[$subCategory])) {
+						$items = array_merge($items, $exactMatches[$subCategory]);
+					}
+				}
+			} else {
+				$items = $resultData[$category] ?? [];
+			}
+
+			foreach ($items as $item) {
+				$shareType = $item['value']['shareType'] ?? null;
+				$type = $this->mapShareTypeToString($shareType);
+
+				if ($type === null) {
+					continue;
+				}
+
+				$results[] = [
+					'id' => $item['value']['shareWith'] ?? $item['shareWith'] ?? '',
+					'label' => $item['label'] ?? '',
+					'type' => $type,
+					'icon' => $this->getIconForType($type),
+				];
+			}
 		}
 
-		$groups = $this->groupManager->search($search);
-		foreach ($groups as $group) {
-			$results[] = [
-				'id' => $group->getGID(),
-				'label' => $group->getDisplayName(),
-				'type' => 'group',
-				'icon' => 'icon-group',
-			];
+		// Remove duplicates based on id + type
+		$seen = [];
+		$uniqueResults = [];
+		foreach ($results as $result) {
+			$key = $result['type'] . ':' . $result['id'];
+			if (!isset($seen[$key])) {
+				$seen[$key] = true;
+				$uniqueResults[] = $result;
+			}
 		}
 
-		return $results;
+		return $uniqueResults;
+	}
+
+	/**
+	 * Map share type integer to string type.
+	 */
+	private function mapShareTypeToString(?int $shareType): ?string {
+		return match ($shareType) {
+			IShare::TYPE_USER => 'user',
+			IShare::TYPE_GROUP => 'group',
+			IShare::TYPE_CIRCLE => 'team',
+			default => null,
+		};
+	}
+
+	/**
+	 * Get icon class for a given type.
+	 */
+	private function getIconForType(string $type): string {
+		return match ($type) {
+			'user' => 'icon-user',
+			'group' => 'icon-group',
+			'team' => 'icon-team',
+			default => 'icon-user',
+		};
 	}
 
 	/**
@@ -388,11 +480,13 @@ class AppointmentService {
 	private function getAffectedUsers(Appointment $appointment): array {
 		$visibleUsers = $appointment->getVisibleUsers();
 		$visibleGroups = $appointment->getVisibleGroups();
+		$visibleTeams = $appointment->getVisibleTeams();
 
 		$visibleUsersList = $visibleUsers ? json_decode($visibleUsers, true) : [];
 		$visibleGroupsList = $visibleGroups ? json_decode($visibleGroups, true) : [];
+		$visibleTeamsList = $visibleTeams ? json_decode($visibleTeams, true) : [];
 
-		if (empty($visibleUsersList) && empty($visibleGroupsList)) {
+		if (empty($visibleUsersList) && empty($visibleGroupsList) && empty($visibleTeamsList)) {
 			return $this->getAllWhitelistedUsers();
 		}
 
@@ -404,6 +498,12 @@ class AppointmentService {
 					$userIds[] = $user->getUID();
 				}
 			}
+		}
+
+		// Get users from teams via VisibilityService
+		foreach ($visibleTeamsList as $teamId) {
+			$teamUsers = $this->visibilityService->getTeamMembers($teamId);
+			$userIds = array_merge($userIds, $teamUsers);
 		}
 
 		return array_unique($userIds);
@@ -458,5 +558,53 @@ class AppointmentService {
 		} catch (\Exception $e) {
 			return $datetime;
 		}
+	}
+
+	/**
+	 * Enrich visibility data with display names.
+	 *
+	 * Converts raw user/group/team IDs to objects with id, label, and type.
+	 *
+	 * @param array $appointmentData The serialized appointment data
+	 * @return array The enriched appointment data
+	 */
+	public function enrichVisibilityData(array $appointmentData): array {
+		// Enrich visible users
+		$enrichedUsers = [];
+		foreach ($appointmentData['visibleUsers'] ?? [] as $userId) {
+			$user = $this->userManager->get($userId);
+			$enrichedUsers[] = [
+				'id' => $userId,
+				'label' => $user ? $user->getDisplayName() : $userId,
+				'type' => 'user',
+			];
+		}
+		$appointmentData['visibleUsers'] = $enrichedUsers;
+
+		// Enrich visible groups
+		$enrichedGroups = [];
+		foreach ($appointmentData['visibleGroups'] ?? [] as $groupId) {
+			$group = $this->groupManager->get($groupId);
+			$enrichedGroups[] = [
+				'id' => $groupId,
+				'label' => $group ? $group->getDisplayName() : $groupId,
+				'type' => 'group',
+			];
+		}
+		$appointmentData['visibleGroups'] = $enrichedGroups;
+
+		// Enrich visible teams
+		$enrichedTeams = [];
+		foreach ($appointmentData['visibleTeams'] ?? [] as $teamId) {
+			$teamInfo = $this->visibilityService->getTeamInfo($teamId);
+			$enrichedTeams[] = $teamInfo ?? [
+				'id' => $teamId,
+				'label' => $teamId,
+				'type' => 'team',
+			];
+		}
+		$appointmentData['visibleTeams'] = $enrichedTeams;
+
+		return $appointmentData;
 	}
 }

@@ -430,8 +430,8 @@ msgstr "Sichtbar für"
 msgid "Leave empty to show appointment to all users"
 msgstr "Leer lassen, um den Termin allen anzuzeigen"
 
-msgid "Search users or groups..."
-msgstr "Personen oder Gruppen suchen..."
+msgid "Search users, groups or teams..."
+msgstr "Personen, Gruppen oder Teams suchen..."
 
 msgid "Response Summary Groups"
 msgstr "Gruppen für Antwortübersicht"
@@ -677,3 +677,12 @@ msgstr "Unterstützt Markdown-Formatierung"
 
 msgid "Write your description here..."
 msgstr "Beschreibung hier eingeben..."
+
+msgid "User"
+msgstr "Benutzer"
+
+msgid "Group"
+msgstr "Gruppe"
+
+msgid "Team"
+msgstr "Team"

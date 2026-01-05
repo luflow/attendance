@@ -143,7 +143,7 @@ OC.L10N.register(
         "Failed to export appointments": "Kunne ikke eksportere aftaler",
         "Visible to": "Synlig for",
         "Leave empty to show appointment to all users": "Lad stå tomt for at vise aftalen til alle brugere",
-        "Search users or groups...": "Søg brugere eller grupper...",
+        "Search users, groups or teams...": "Søg brugere, grupper eller teams...",
         "Response Summary Groups": "Grupper til svaroversigt",
         "Select which groups to include in response summaries. Users outside these groups will appear under Others. Leave empty to include all groups.": "Vælg hvilke grupper der skal vises i svaroversigten. Brugere uden for disse grupper vises under Andre. Efterlad tomt for at inkludere alle grupper.",
         "Restrict Access": "Begræns adgang",
@@ -224,7 +224,9 @@ OC.L10N.register(
         "Quote": "Citat",
         "Insert link": "Indsæt link",
         "Supports Markdown formatting": "Understøtter Markdown-formatering",
-        "Write your description here...": "Skriv din beskrivelse her..."
+        "Write your description here...": "Skriv din beskrivelse her...",
+        "User": "Bruger",
+        "Team": "Hold"
     },
     "nplurals=2; plural=(n != 1);"
 );

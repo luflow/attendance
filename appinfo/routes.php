@@ -43,7 +43,7 @@ return [
 		['name' => 'appointment#getPermissions', 'url' => '/api/user/permissions', 'verb' => 'GET'],
 
 		// Search
-		['name' => 'appointment#searchUsersAndGroups', 'url' => '/api/search/users-groups', 'verb' => 'GET'],
+		['name' => 'appointment#searchUsersGroupsTeams', 'url' => '/api/search/users-groups-teams', 'verb' => 'GET'],
 
 		// Export
 		['name' => 'appointment#export', 'url' => '/api/export', 'verb' => 'POST'],

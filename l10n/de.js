@@ -143,7 +143,7 @@ OC.L10N.register(
         "Failed to export appointments": "Fehler beim Exportieren der Termine",
         "Visible to": "Sichtbar für",
         "Leave empty to show appointment to all users": "Leer lassen, um den Termin allen anzuzeigen",
-        "Search users or groups...": "Personen oder Gruppen suchen...",
+        "Search users, groups or teams...": "Personen, Gruppen oder Teams suchen...",
         "Response Summary Groups": "Gruppen für Antwortübersicht",
         "Select which groups to include in response summaries. Users outside these groups will appear under Others. Leave empty to include all groups.": "Wähle aus, welche Gruppen in der Antwortübersicht angezeigt werden. Personen außerhalb dieser Gruppen erscheinen unter Andere. Leer lassen, um alle Gruppen einzubeziehen.",
         "Restrict Access": "Zugriff einschränken",
@@ -224,7 +224,9 @@ OC.L10N.register(
         "Quote": "Zitat",
         "Insert link": "Link einfügen",
         "Supports Markdown formatting": "Unterstützt Markdown-Formatierung",
-        "Write your description here...": "Beschreibung hier eingeben..."
+        "Write your description here...": "Beschreibung hier eingeben...",
+        "User": "Benutzer",
+        "Team": "Team"
     },
     "nplurals=2; plural=(n != 1);"
 );
