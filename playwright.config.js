@@ -8,7 +8,7 @@ export default defineConfig({
 	testDir: './tests/e2e',
 	
 	// Maximum time one test can run for
-	timeout: 30 * 1000,
+	timeout: 12 * 1000,
 	
 	// Global setup to restore database snapshot before tests
 	globalSetup: './tests/e2e/setup/global-setup.js',
