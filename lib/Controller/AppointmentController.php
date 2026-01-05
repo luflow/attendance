@@ -79,6 +79,7 @@ class AppointmentController extends Controller {
 		string $endDatetime,
 		array $visibleUsers = [],
 		array $visibleGroups = [],
+		array $visibleTeams = [],
 		bool $sendNotification = false,
 	): DataResponse {
 		$user = $this->userSession->getUser();
@@ -100,6 +101,7 @@ class AppointmentController extends Controller {
 				$user->getUID(),
 				$visibleUsers,
 				$visibleGroups,
+				$visibleTeams,
 				$sendNotification
 			);
 			return new DataResponse($appointment);
@@ -119,6 +121,7 @@ class AppointmentController extends Controller {
 		string $endDatetime,
 		array $visibleUsers = [],
 		array $visibleGroups = [],
+		array $visibleTeams = [],
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -144,7 +147,8 @@ class AppointmentController extends Controller {
 				$endDatetime,
 				$user->getUID(),
 				$visibleUsers,
-				$visibleGroups
+				$visibleGroups,
+				$visibleTeams
 			);
 			return new DataResponse($appointment);
 		} catch (\Exception $e) {
@@ -364,10 +368,10 @@ class AppointmentController extends Controller {
 	}
 
 	/**
-	 * Search for users and groups
+	 * Search for users, groups, and teams
 	 * @NoAdminRequired
 	 */
-	public function searchUsersAndGroups(string $search = ''): DataResponse {
+	public function searchUsersGroupsTeams(string $search = ''): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
@@ -379,7 +383,7 @@ class AppointmentController extends Controller {
 		}
 
 		try {
-			$results = $this->appointmentService->searchUsersAndGroups($search);
+			$results = $this->appointmentService->searchUsersGroupsTeams($search);
 			return new DataResponse($results);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 400);

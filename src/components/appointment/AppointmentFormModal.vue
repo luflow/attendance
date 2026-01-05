@@ -96,19 +96,21 @@
 						:close-on-select="false"
 						:filterable="false"
 						label="label"
-						:placeholder="t('attendance', 'Search users or groups...')"
+						:placeholder="t('attendance', 'Search users, groups or teams...')"
 						data-test="select-visibility"
 						@search="onSearch">
 						<template #option="{ label, type }">
-							<span style="display: flex; align-items: center; gap: 8px;">
-								<AccountGroup v-if="type === 'group'" :size="20" />
+							<span style="display: flex; align-items: center; gap: 8px;" :title="getTypeLabel(type)">
+								<AccountStar v-if="type === 'team'" :size="20" />
+								<AccountGroup v-else-if="type === 'group'" :size="20" />
 								<Account v-else :size="20" />
 								<span>{{ label }}</span>
 							</span>
 						</template>
 						<template #selected-option="{ label, type }">
-							<span style="display: flex; align-items: center; gap: 8px;">
-								<AccountGroup v-if="type === 'group'" :size="16" />
+							<span style="display: flex; align-items: center; gap: 8px;" :title="getTypeLabel(type)">
+								<AccountStar v-if="type === 'team'" :size="16" />
+								<AccountGroup v-else-if="type === 'group'" :size="16" />
 								<Account v-else :size="16" />
 								<span>{{ label }}</span>
 							</span>
@@ -142,6 +144,7 @@ import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
 import Account from 'vue-material-design-icons/Account.vue'
+import AccountStar from 'vue-material-design-icons/AccountStar.vue'
 import Paperclip from 'vue-material-design-icons/Paperclip.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import '@nextcloud/dialogs/style.css'
@@ -177,6 +180,7 @@ const formData = reactive({
 	endDatetime: '',
 	visibleUsers: [],
 	visibleGroups: [],
+	visibleTeams: [],
 	sendNotification: false,
 })
 
@@ -225,26 +229,45 @@ const loadTrackingGroups = async () => {
 
 // Check if selected visibility groups overlap with tracking groups
 const hasTrackingMismatch = computed(() => {
-	// No mismatch if no visibility restriction is set
-	if (formData.visibleGroups.length === 0 && formData.visibleUsers.length === 0) {
+	// No selections at all - no warning needed
+	if (formData.visibleGroups.length === 0 && formData.visibleUsers.length === 0 && formData.visibleTeams.length === 0) {
 		return false
 	}
-	// No mismatch if no tracking groups are configured (all groups are tracked)
+	// No tracking groups configured - no warning needed
 	if (trackingGroups.value.length === 0) {
 		return false
 	}
-	// Check if any selected group is in the tracking groups
-	const hasOverlappingGroup = formData.visibleGroups.some(
-		groupId => trackingGroups.value.includes(groupId),
+	// Individual users selected - they might appear under "Others"
+	if (formData.visibleUsers.length > 0) {
+		return true
+	}
+	// Teams selected - team members might appear under "Others"
+	if (formData.visibleTeams.length > 0) {
+		return true
+	}
+	// Check if any selected group is NOT in tracking groups
+	const hasNonTrackingGroup = formData.visibleGroups.some(
+		groupId => !trackingGroups.value.includes(groupId),
 	)
-	// If only users are selected (no groups), responses will go to "Others" unless users are in tracking groups
-	// We can't easily check this, so show warning if no groups overlap
-	return !hasOverlappingGroup
+	return hasNonTrackingGroup
 })
 
 const adminSettingsUrl = computed(() => {
 	return generateUrl('/settings/admin/attendance')
 })
+
+const getTypeLabel = (type) => {
+	switch (type) {
+	case 'user':
+		return t('attendance', 'User')
+	case 'group':
+		return t('attendance', 'Group')
+	case 'team':
+		return t('attendance', 'Team')
+	default:
+		return ''
+	}
+}
 
 onMounted(() => {
 	loadTrackingGroups()
@@ -253,10 +276,11 @@ onMounted(() => {
 // Watch for changes to visibilityItems to update formData
 watch(visibilityItems, (selected) => {
 	const selectedArray = Array.isArray(selected) ? selected : (selected ? [selected] : [])
-	// Split into users and groups based on the type property
-	// Use 'value' property which contains the original user/group ID
+	// Split into users, groups and teams based on the type property
+	// Use 'value' property which contains the original user/group/team ID
 	formData.visibleUsers = selectedArray.filter(item => item && item.type === 'user').map(item => item.value)
 	formData.visibleGroups = selectedArray.filter(item => item && item.type === 'group').map(item => item.value)
+	formData.visibleTeams = selectedArray.filter(item => item && item.type === 'team').map(item => item.value)
 })
 
 const isEdit = computed(() => !!props.appointment)
@@ -297,72 +321,31 @@ watch(() => props.appointment, async (newAppointment) => {
 		formData.startDatetime = formatDateTimeForInput(newAppointment.startDatetime)
 		formData.endDatetime = formatDateTimeForInput(newAppointment.endDatetime)
 
-		// Load visibility settings
+		// Load visibility settings (enriched data with id, label, type)
 		const users = newAppointment.visibleUsers || []
 		const groups = newAppointment.visibleGroups || []
-		formData.visibleUsers = users
-		formData.visibleGroups = groups
+		const teams = newAppointment.visibleTeams || []
 
-		// Convert to visibility items for NcSelect
-		// Create items directly from stored IDs, then optionally fetch display names
+		// Store raw IDs for form submission
+		formData.visibleUsers = users.map(u => u.id)
+		formData.visibleGroups = groups.map(g => g.id)
+		formData.visibleTeams = teams.map(t => t.id)
+
+		// Convert enriched data to visibility items for NcSelect
 		const items = []
-
-		for (const userId of users) {
-			items.push({ id: `user:${userId}`, value: userId, label: userId, type: 'user' })
+		for (const user of users) {
+			items.push({ id: `user:${user.id}`, value: user.id, label: user.label, type: 'user' })
 		}
-		for (const groupId of groups) {
-			items.push({ id: `group:${groupId}`, value: groupId, label: groupId, type: 'group' })
+		for (const group of groups) {
+			items.push({ id: `group:${group.id}`, value: group.id, label: group.label, type: 'group' })
+		}
+		for (const team of teams) {
+			items.push({ id: `team:${team.id}`, value: team.id, label: team.label, type: 'team' })
 		}
 
-		// Set options first, then selected values
 		searchResults.value = [...items]
 		visibilityItems.value = [...items]
 
-		// Optionally fetch display names in background
-		if (items.length > 0) {
-			try {
-				const updatedItems = []
-				for (const userId of users) {
-					const response = await axios.get(
-						generateUrl('/apps/attendance/api/search/users-groups'),
-						{ params: { search: userId } },
-					)
-					const found = response.data.find(item => item.id === userId && item.type === 'user')
-					if (found) {
-						updatedItems.push({
-							id: `user:${found.id}`,
-							value: found.id,
-							label: found.label,
-							type: 'user',
-						})
-					} else {
-						updatedItems.push({ id: `user:${userId}`, value: userId, label: userId, type: 'user' })
-					}
-				}
-				for (const groupId of groups) {
-					const response = await axios.get(
-						generateUrl('/apps/attendance/api/search/users-groups'),
-						{ params: { search: groupId } },
-					)
-					const found = response.data.find(item => item.id === groupId && item.type === 'group')
-					if (found) {
-						updatedItems.push({
-							id: `group:${found.id}`,
-							value: found.id,
-							label: found.label,
-							type: 'group',
-						})
-					} else {
-						updatedItems.push({ id: `group:${groupId}`, value: groupId, label: groupId, type: 'group' })
-					}
-				}
-				// Update with proper display names
-				searchResults.value = [...updatedItems]
-				visibilityItems.value = [...updatedItems]
-			} catch (error) {
-				console.error('Failed to load user/group display names:', error)
-			}
-		}
 		// Load attachments
 		attachments.value = newAppointment.attachments || []
 	} else {
@@ -373,6 +356,7 @@ watch(() => props.appointment, async (newAppointment) => {
 		formData.endDatetime = ''
 		formData.visibleUsers = []
 		formData.visibleGroups = []
+		formData.visibleTeams = []
 		sendNotification.value = false
 		visibilityItems.value = []
 		searchResults.value = []
@@ -390,68 +374,30 @@ watch(() => props.copyFrom, async (copySource) => {
 		formData.startDatetime = ''
 		formData.endDatetime = ''
 
-		// Load visibility settings from copied appointment
+		// Load visibility settings (enriched data with id, label, type)
 		const users = copySource.visibleUsers || []
 		const groups = copySource.visibleGroups || []
-		formData.visibleUsers = users
-		formData.visibleGroups = groups
+		const teams = copySource.visibleTeams || []
 
-		// Convert to visibility items for NcSelect
+		// Store raw IDs for form submission
+		formData.visibleUsers = users.map(u => u.id)
+		formData.visibleGroups = groups.map(g => g.id)
+		formData.visibleTeams = teams.map(t => t.id)
+
+		// Convert enriched data to visibility items for NcSelect
 		const items = []
-		for (const userId of users) {
-			items.push({ id: `user:${userId}`, value: userId, label: userId, type: 'user' })
+		for (const user of users) {
+			items.push({ id: `user:${user.id}`, value: user.id, label: user.label, type: 'user' })
 		}
-		for (const groupId of groups) {
-			items.push({ id: `group:${groupId}`, value: groupId, label: groupId, type: 'group' })
+		for (const group of groups) {
+			items.push({ id: `group:${group.id}`, value: group.id, label: group.label, type: 'group' })
+		}
+		for (const team of teams) {
+			items.push({ id: `team:${team.id}`, value: team.id, label: team.label, type: 'team' })
 		}
 
 		searchResults.value = [...items]
 		visibilityItems.value = [...items]
-
-		// Optionally fetch display names in background
-		if (items.length > 0) {
-			try {
-				const updatedItems = []
-				for (const userId of users) {
-					const response = await axios.get(
-						generateUrl('/apps/attendance/api/search/users-groups'),
-						{ params: { search: userId } },
-					)
-					const found = response.data.find(item => item.id === userId && item.type === 'user')
-					if (found) {
-						updatedItems.push({
-							id: `user:${found.id}`,
-							value: found.id,
-							label: found.label,
-							type: 'user',
-						})
-					} else {
-						updatedItems.push({ id: `user:${userId}`, value: userId, label: userId, type: 'user' })
-					}
-				}
-				for (const groupId of groups) {
-					const response = await axios.get(
-						generateUrl('/apps/attendance/api/search/users-groups'),
-						{ params: { search: groupId } },
-					)
-					const found = response.data.find(item => item.id === groupId && item.type === 'group')
-					if (found) {
-						updatedItems.push({
-							id: `group:${found.id}`,
-							value: found.id,
-							label: found.label,
-							type: 'group',
-						})
-					} else {
-						updatedItems.push({ id: `group:${groupId}`, value: groupId, label: groupId, type: 'group' })
-					}
-				}
-				searchResults.value = [...updatedItems]
-				visibilityItems.value = [...updatedItems]
-			} catch (error) {
-				console.error('Failed to load user/group display names:', error)
-			}
-		}
 
 		// Copy attachments from source (for local display, actual copy happens on submit)
 		attachments.value = (copySource.attachments || []).map(a => ({
@@ -474,6 +420,7 @@ watch(() => props.show, (isShowing) => {
 		formData.endDatetime = ''
 		formData.visibleUsers = []
 		formData.visibleGroups = []
+		formData.visibleTeams = []
 		sendNotification.value = false
 		visibilityItems.value = []
 		searchResults.value = []
@@ -520,7 +467,7 @@ const onSearch = async (query) => {
 	isSearching.value = true
 	try {
 		const response = await axios.get(
-			generateUrl('/apps/attendance/api/search/users-groups'),
+			generateUrl('/apps/attendance/api/search/users-groups-teams'),
 			{ params: { search: query } },
 		)
 
@@ -653,6 +600,7 @@ const handleSubmit = () => {
 		endDatetime: formData.endDatetime,
 		visibleUsers: formData.visibleUsers,
 		visibleGroups: formData.visibleGroups,
+		visibleTeams: formData.visibleTeams,
 		sendNotification: sendNotification.value,
 		attachmentFileIds: attachments.value.map(a => a.fileId),
 	})

@@ -430,8 +430,8 @@ msgstr "Synlig for"
 msgid "Leave empty to show appointment to all users"
 msgstr "Lad stå tomt for at vise aftalen til alle brugere"
 
-msgid "Search users or groups..."
-msgstr "Søg brugere eller grupper..."
+msgid "Search users, groups or teams..."
+msgstr "Søg brugere, grupper eller teams..."
 
 msgid "Response Summary Groups"
 msgstr "Grupper til svaroversigt"
@@ -677,3 +677,12 @@ msgstr "Understøtter Markdown-formatering"
 
 msgid "Write your description here..."
 msgstr "Skriv din beskrivelse her..."
+
+msgid "User"
+msgstr "Bruger"
+
+msgid "Group"
+msgstr "Gruppe"
+
+msgid "Team"
+msgstr "Hold"

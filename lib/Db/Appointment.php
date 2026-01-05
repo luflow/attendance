@@ -30,6 +30,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setVisibleUsers(string $visibleUsers)
  * @method string getVisibleGroups()
  * @method void setVisibleGroups(string $visibleGroups)
+ * @method string getVisibleTeams()
+ * @method void setVisibleTeams(string $visibleTeams)
  */
 class Appointment extends Entity implements JsonSerializable {
 	protected $name = '';
@@ -42,6 +44,7 @@ class Appointment extends Entity implements JsonSerializable {
 	protected $isActive = 1;
 	protected $visibleUsers = null;
 	protected $visibleGroups = null;
+	protected $visibleTeams = null;
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -55,6 +58,7 @@ class Appointment extends Entity implements JsonSerializable {
 		$this->addType('isActive', 'integer');
 		$this->addType('visibleUsers', 'string');
 		$this->addType('visibleGroups', 'string');
+		$this->addType('visibleTeams', 'string');
 	}
 
 	public function jsonSerialize(): array {
@@ -70,6 +74,7 @@ class Appointment extends Entity implements JsonSerializable {
 			'isActive' => $this->getIsActive(),
 			'visibleUsers' => $this->parseJsonField($this->getVisibleUsers()),
 			'visibleGroups' => $this->parseJsonField($this->getVisibleGroups()),
+			'visibleTeams' => $this->parseJsonField($this->getVisibleTeams()),
 		];
 	}
 
