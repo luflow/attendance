@@ -10,16 +10,17 @@
 			<NcChip :text="`${t('attendance', 'No Response')}: ${responseSummary.no_response}`" variant="tertiary" no-close />
 		</div>
 
-		<!-- Group-based Summary -->
-		<div v-if="responseSummary.by_group && Object.keys(responseSummary.by_group).length > 0" class="group-summary" data-test="group-summary">
-			<h5>{{ t('attendance', 'By Group') }}</h5>
+		<!-- Unified Group/Team Summary -->
+		<div v-if="hasGroupsOrTeams" class="group-summary" data-test="group-summary">
+			<!-- Groups -->
 			<div v-for="(groupStats, groupId) in responseSummary.by_group"
-				:key="groupId"
+				:key="`group-${groupId}`"
 				class="group-container"
 				:data-test="`group-container-${groupId}`">
-				<div class="group-stats clickable" data-test="group-header" @click="toggleGroup(groupId)">
+				<div class="group-stats clickable" data-test="group-header" @click="toggleGroup(`group-${groupId}`)">
 					<div class="group-name">
-						<span class="expand-icon" :class="{ expanded: expandedGroups[groupId] }">▶</span>
+						<span class="expand-icon" :class="{ expanded: expandedGroups[`group-${groupId}`] }">▶</span>
+						<AccountGroup :size="18" class="type-icon" />
 						{{ groupId }}
 					</div>
 					<div class="group-counts">
@@ -31,7 +32,7 @@
 				</div>
 
 				<!-- Expanded Group Details -->
-				<div v-if="expandedGroups[groupId]" class="group-details">
+				<div v-if="expandedGroups[`group-${groupId}`]" class="group-details">
 					<!-- Show responses if any exist -->
 					<div v-if="groupStats.responses && groupStats.responses.length > 0" class="group-responses">
 						<div v-for="response in getSortedResponses(groupStats.responses)" :key="response.id" class="response-item">
@@ -64,6 +65,64 @@
 						</div>
 						<div class="non-responding-list">
 							{{ getSortedNonRespondingUsers(groupStats.non_responding_users).map(u => u.displayName).join(', ') }}
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Teams -->
+			<div v-for="(teamStats, teamId) in responseSummary.by_team"
+				:key="`team-${teamId}`"
+				class="group-container"
+				:data-test="`team-container-${teamId}`">
+				<div class="group-stats clickable" data-test="team-header" @click="toggleGroup(`team-${teamId}`)">
+					<div class="group-name">
+						<span class="expand-icon" :class="{ expanded: expandedGroups[`team-${teamId}`] }">▶</span>
+						<AccountStar :size="18" class="type-icon" />
+						{{ teamStats.displayName || teamId }}
+					</div>
+					<div class="group-counts">
+						<NcChip :text="String(teamStats.yes)" variant="success" no-close />
+						<NcChip :text="String(teamStats.maybe)" variant="warning" no-close />
+						<NcChip :text="String(teamStats.no)" variant="error" no-close />
+						<NcChip :text="String(teamStats.no_response)" variant="tertiary" no-close />
+					</div>
+				</div>
+
+				<!-- Expanded Team Details -->
+				<div v-if="expandedGroups[`team-${teamId}`]" class="group-details">
+					<!-- Show responses if any exist -->
+					<div v-if="teamStats.responses && teamStats.responses.length > 0" class="group-responses">
+						<div v-for="response in getSortedResponses(teamStats.responses)" :key="response.id" class="response-item">
+							<div class="response-header">
+								<div class="user-info">
+									<strong>{{ response.userName }}</strong>
+									<NcChip
+										:text="getResponseText(response.response)"
+										:variant="getResponseVariant(response.response)"
+										no-close />
+								</div>
+								<div v-if="response.isCheckedIn" class="checkin-info">
+									<span class="checkin-badge">{{ t('attendance', 'Checked in?') }}</span>
+									<NcChip
+										:text="getResponseText(response.checkinState)"
+										:variant="getResponseVariant(response.checkinState)"
+										no-close />
+								</div>
+							</div>
+							<div v-if="canSeeComments && response.comment && response.comment.trim()" class="response-comment">
+								{{ response.comment }}
+							</div>
+						</div>
+					</div>
+
+					<!-- Non-responding users -->
+					<div v-if="teamStats.non_responding_users && teamStats.non_responding_users.length > 0" class="non-responding-users">
+						<div class="non-responding-header">
+							{{ t('attendance', 'No response yet:') }}
+						</div>
+						<div class="non-responding-list">
+							{{ getSortedNonRespondingUsers(teamStats.non_responding_users).map(u => u.displayName).join(', ') }}
 						</div>
 					</div>
 				</div>
@@ -115,8 +174,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { NcChip } from '@nextcloud/vue'
+import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
+import AccountStar from 'vue-material-design-icons/AccountStar.vue'
 import { getResponseText, getResponseVariant } from '../../utils/response.js'
 
 const props = defineProps({
@@ -131,6 +192,13 @@ const props = defineProps({
 })
 
 const expandedGroups = ref({})
+
+const hasGroupsOrTeams = computed(() => {
+	if (!props.responseSummary) return false
+	const hasGroups = props.responseSummary.by_group && Object.keys(props.responseSummary.by_group).length > 0
+	const hasTeams = props.responseSummary.by_team && Object.keys(props.responseSummary.by_team).length > 0
+	return hasGroups || hasTeams
+})
 
 const toggleGroup = (groupId) => {
 	expandedGroups.value[groupId] = !expandedGroups.value[groupId]
@@ -214,6 +282,10 @@ const hasOthersResponses = () => {
 				&.expanded {
 					transform: rotate(90deg);
 				}
+			}
+
+			.type-icon {
+				color: var(--color-text-maxcontrast);
 			}
 		}
 

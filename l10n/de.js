@@ -148,7 +148,7 @@ OC.L10N.register(
         "Select which groups to include in response summaries. Users outside these groups will appear under Others. Leave empty to include all groups.": "Wähle aus, welche Gruppen in der Antwortübersicht angezeigt werden. Personen außerhalb dieser Gruppen erscheinen unter Andere. Leer lassen, um alle Gruppen einzubeziehen.",
         "Restrict Access": "Zugriff einschränken",
         "Limits who can see this appointment. Leave empty for all users.": "Beschränkt, wer diesen Termin sehen kann. Leer lassen für alle Personen.",
-        "Some selections are not in the Response Summary Groups and may therefore appear under \"Others\".": "Einige Auswahlen sind nicht in den Gruppen für Antwortübersicht und können daher unter \"Andere\" erscheinen.",
+        "Some selections are not in the Response Summary Groups/Teams and may therefore appear under \"Others\".": "Einige Auswahlen sind nicht in den Gruppen/Teams für Antwortübersicht und können daher unter \"Andere\" erscheinen.",
         "Configure in Admin Settings": "In Admineinstellungen konfigurieren",
         "Notification": "Benachrichtigung",
         "Send notification": "Benachrichtigung senden",
@@ -226,7 +226,12 @@ OC.L10N.register(
         "Supports Markdown formatting": "Unterstützt Markdown-Formatierung",
         "Write your description here...": "Beschreibung hier eingeben...",
         "User": "Benutzer",
-        "Team": "Team"
+        "Team": "Team",
+        "Response Summary Teams": "Teams für Antwortübersicht",
+        "Select which teams to include in response summaries. Team members will be grouped together like regular groups.": "Wähle aus, welche Teams in der Antwortübersicht angezeigt werden. Teammitglieder werden wie bei normalen Gruppen zusammengefasst.",
+        "Search and select teams...": "Teams suchen und auswählen...",
+        "%n team selected": "%n Team ausgewählt",
+        "%n teams selected": "%n Teams ausgewählt"
     },
     "nplurals=2; plural=(n != 1);"
 );

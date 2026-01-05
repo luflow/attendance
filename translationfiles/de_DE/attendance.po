@@ -445,8 +445,8 @@ msgstr "Zugriff einschränken"
 msgid "Limits who can see this appointment. Leave empty for all users."
 msgstr "Beschränkt, wer diesen Termin sehen kann. Leer lassen für alle Personen."
 
-msgid "Some selections are not in the Response Summary Groups and may therefore appear under \"Others\"."
-msgstr "Einige Auswahlen sind nicht in den Gruppen für Antwortübersicht und können daher unter \"Andere\" erscheinen."
+msgid "Some selections are not in the Response Summary Groups/Teams and may therefore appear under \"Others\"."
+msgstr "Einige Auswahlen sind nicht in den Gruppen/Teams für Antwortübersicht und können daher unter \"Andere\" erscheinen."
 
 msgid "Configure in Admin Settings"
 msgstr "In Admineinstellungen konfigurieren"
@@ -685,3 +685,18 @@ msgstr "Gruppe"
 
 msgid "Team"
 msgstr "Team"
+
+msgid "Response Summary Teams"
+msgstr "Teams für Antwortübersicht"
+
+msgid "Select which teams to include in response summaries. Team members will be grouped together like regular groups."
+msgstr "Wählen Sie aus, welche Teams in der Antwortübersicht angezeigt werden. Teammitglieder werden wie bei normalen Gruppen zusammengefasst."
+
+msgid "Search and select teams..."
+msgstr "Teams suchen und auswählen..."
+
+msgid "%n team selected"
+msgstr "%n Team ausgewählt"
+
+msgid "%n teams selected"
+msgstr "%n Teams ausgewählt"

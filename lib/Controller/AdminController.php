@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Controller;
 
+use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\PermissionService;
+use OCA\Attendance\Service\VisibilityService;
 use OCA\Attendance\Settings\AdminSettings;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Controller;
@@ -21,6 +23,8 @@ class AdminController extends Controller {
 	private IUserSession $userSession;
 	private IConfig $config;
 	private IAppManager $appManager;
+	private ConfigService $configService;
+	private VisibilityService $visibilityService;
 
 	public function __construct(
 		string $appName,
@@ -31,6 +35,8 @@ class AdminController extends Controller {
 		PermissionService $permissionService,
 		IConfig $config,
 		IAppManager $appManager,
+		ConfigService $configService,
+		VisibilityService $visibilityService,
 	) {
 		parent::__construct($appName, $request);
 		$this->groupManager = $groupManager;
@@ -39,6 +45,8 @@ class AdminController extends Controller {
 		$this->permissionService = $permissionService;
 		$this->config = $config;
 		$this->appManager = $appManager;
+		$this->configService = $configService;
+		$this->visibilityService = $visibilityService;
 	}
 
 	/**
@@ -63,6 +71,16 @@ class AdminController extends Controller {
 			// Get currently configured whitelisted groups
 			$whitelistedGroups = $this->adminSettings->getWhitelistedGroups();
 
+			// Get currently configured whitelisted teams with display names
+			$whitelistedTeamIds = $this->configService->getWhitelistedTeams();
+			$whitelistedTeams = [];
+			foreach ($whitelistedTeamIds as $teamId) {
+				$teamInfo = $this->visibilityService->getTeamInfo($teamId);
+				if ($teamInfo) {
+					$whitelistedTeams[] = $teamInfo;
+				}
+			}
+
 			// Get permission settings
 			$permissionSettings = $this->permissionService->getAllPermissionSettings();
 
@@ -78,6 +96,8 @@ class AdminController extends Controller {
 				'success' => true,
 				'groups' => $groupOptions,
 				'whitelistedGroups' => $whitelistedGroups,
+				'whitelistedTeams' => $whitelistedTeams,
+				'teamsAvailable' => $this->visibilityService->isTeamsAvailable(),
 				'permissions' => $permissionSettings,
 				'reminders' => $reminderSettings
 			]);
@@ -102,11 +122,13 @@ class AdminController extends Controller {
 		}
 
 		$whitelistedGroups = $this->request->getParam('whitelistedGroups', []);
+		$whitelistedTeams = $this->request->getParam('whitelistedTeams', []);
 		$permissions = $this->request->getParam('permissions', []);
 		$reminders = $this->request->getParam('reminders', []);
 
 		try {
 			$this->adminSettings->setWhitelistedGroups($whitelistedGroups);
+			$this->configService->setWhitelistedTeams($whitelistedTeams);
 
 			// Save permissions
 			if (isset($permissions) && is_array($permissions)) {

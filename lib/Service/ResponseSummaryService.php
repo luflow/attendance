@@ -12,7 +12,7 @@ use OCP\IUserManager;
 
 /**
  * Service for generating response summaries.
- * Handles the complex logic of aggregating responses by group.
+ * Handles the complex logic of aggregating responses by group and team.
  * Optimized to avoid N+1 query patterns through caching and batch operations.
  */
 class ResponseSummaryService {
@@ -60,32 +60,38 @@ class ResponseSummaryService {
 			$this->processResponse($appointment, $response, $summary, $respondedUserIds, $cache);
 		}
 
-		// Add non-responding users to groups
+		// Add non-responding users to groups and teams
 		$this->addNonRespondingUsers($appointment, $summary, $respondedUserIds, $cache);
+		$this->addNonRespondingTeamUsers($appointment, $summary, $respondedUserIds, $cache);
 
 		// Calculate total non-responding users
 		$this->calculateTotalNonResponding($appointment, $summary, $respondedUserIds, $cache);
 
-		// Filter out empty groups (can occur with visibility restrictions)
+		// Filter out empty groups and teams (can occur with visibility restrictions)
 		$summary['by_group'] = $this->filterEmptyGroups($summary['by_group']);
+		$summary['by_team'] = $this->filterEmptyGroups($summary['by_team']);
 
-		// Sort groups
+		// Sort groups and teams
 		$summary['by_group'] = $this->sortGroups($summary['by_group'], $cache['whitelistedGroups']);
+		$summary['by_team'] = $this->sortTeams($summary['by_team'], $cache['whitelistedTeams']);
 
 		return $summary;
 	}
 
 	/**
-	 * Build cache of users, groups, and settings to avoid N+1 queries.
+	 * Build cache of users, groups, teams, and settings to avoid N+1 queries.
 	 *
 	 * Optimized to only load relevant users based on appointment visibility
-	 * and whitelisted groups, avoiding loading ALL users in large instances.
+	 * and whitelisted groups/teams, avoiding loading ALL users in large instances.
 	 */
 	private function buildCache(Appointment $appointment, array $responses): array {
 		// Cache whitelisted groups (called once instead of per-group)
 		$whitelistedGroups = $this->configService->getWhitelistedGroups();
 		$whitelistedGroupsLower = array_map('strtolower', $whitelistedGroups);
 		$allowAllGroups = empty($whitelistedGroups);
+
+		// Cache whitelisted teams
+		$whitelistedTeams = $this->configService->getWhitelistedTeams();
 
 		// Pre-fetch all users from responses
 		$userIds = array_unique(array_map(fn ($r) => $r->getUserId(), $responses));
@@ -116,6 +122,17 @@ class ResponseSummaryService {
 			}
 		}
 
+		// Pre-fetch whitelisted team members and info
+		$teamMembers = [];
+		$teamInfo = [];
+		foreach ($whitelistedTeams as $teamId) {
+			$teamMembers[$teamId] = $this->visibilityService->getTeamMembers($teamId);
+			$info = $this->visibilityService->getTeamInfo($teamId);
+			if ($info) {
+				$teamInfo[$teamId] = $info;
+			}
+		}
+
 		// OPTIMIZATION: Only load relevant users based on appointment visibility
 		// instead of loading ALL users in the system
 		$relevantUsers = $this->visibilityService->getRelevantUsersForAppointment(
@@ -138,6 +155,9 @@ class ResponseSummaryService {
 			'whitelistedGroups' => $whitelistedGroups,
 			'whitelistedGroupsLower' => $whitelistedGroupsLower,
 			'allowAllGroups' => $allowAllGroups,
+			'whitelistedTeams' => $whitelistedTeams,
+			'teamMembers' => $teamMembers,
+			'teamInfo' => $teamInfo,
 			'users' => $users,
 			'userGroups' => $userGroups,
 			'groupUsers' => $groupUsers,
@@ -166,6 +186,7 @@ class ResponseSummaryService {
 			'maybe' => 0,
 			'no_response' => 0,
 			'by_group' => [],
+			'by_team' => [],
 			'others' => [
 				'yes' => 0,
 				'no' => 0,
@@ -206,8 +227,10 @@ class ResponseSummaryService {
 		// Get user from cache
 		$user = $cache['users'][$userId] ?? null;
 		$userInWhitelistedGroup = false;
+		$userInWhitelistedTeam = false;
 
 		if ($user) {
+			// Check groups
 			$userGroups = $cache['userGroups'][$userId] ?? [];
 			foreach ($userGroups as $group) {
 				$groupId = $group->getGID();
@@ -219,8 +242,17 @@ class ResponseSummaryService {
 				}
 			}
 
-			// If user is not in any whitelisted group, add to "others"
-			if (!$userInWhitelistedGroup) {
+			// Check teams (user can be in both groups AND teams - duplicates allowed)
+			foreach ($cache['whitelistedTeams'] as $teamId) {
+				$teamMemberIds = $cache['teamMembers'][$teamId] ?? [];
+				if (in_array($userId, $teamMemberIds)) {
+					$userInWhitelistedTeam = true;
+					$this->addResponseToTeam($summary, $teamId, $responseValue, $response, $user, $cache);
+				}
+			}
+
+			// If user is not in any whitelisted group or team, add to "others"
+			if (!$userInWhitelistedGroup && !$userInWhitelistedTeam) {
 				$summary['others'][$responseValue]++;
 				$responseData = $response->jsonSerialize();
 				$responseData['userName'] = $user->getDisplayName();
@@ -255,6 +287,37 @@ class ResponseSummaryService {
 		$responseData = $response->jsonSerialize();
 		$responseData['userName'] = $user->getDisplayName();
 		$summary['by_group'][$groupId]['responses'][] = $responseData;
+	}
+
+	/**
+	 * Add a response to a team's summary.
+	 */
+	private function addResponseToTeam(
+		array &$summary,
+		string $teamId,
+		string $responseValue,
+		$response,
+		$user,
+		array $cache,
+	): void {
+		if (!isset($summary['by_team'][$teamId])) {
+			$teamInfo = $cache['teamInfo'][$teamId] ?? null;
+			$summary['by_team'][$teamId] = [
+				'displayName' => $teamInfo ? $teamInfo['label'] : $teamId,
+				'yes' => 0,
+				'no' => 0,
+				'maybe' => 0,
+				'no_response' => 0,
+				'responses' => []
+			];
+		}
+
+		$summary['by_team'][$teamId][$responseValue]++;
+
+		// Add the detailed response to this team
+		$responseData = $response->jsonSerialize();
+		$responseData['userName'] = $user->getDisplayName();
+		$summary['by_team'][$teamId]['responses'][] = $responseData;
 	}
 
 	/**
@@ -316,6 +379,60 @@ class ResponseSummaryService {
 	}
 
 	/**
+	 * Add non-responding users to team summaries.
+	 */
+	private function addNonRespondingTeamUsers(
+		Appointment $appointment,
+		array &$summary,
+		array $respondedUserIds,
+		array $cache,
+	): void {
+		foreach ($cache['whitelistedTeams'] as $teamId) {
+			$teamInfo = $cache['teamInfo'][$teamId] ?? null;
+
+			if (!isset($summary['by_team'][$teamId])) {
+				$summary['by_team'][$teamId] = [
+					'displayName' => $teamInfo ? $teamInfo['label'] : $teamId,
+					'yes' => 0,
+					'no' => 0,
+					'maybe' => 0,
+					'no_response' => 0,
+					'responses' => [],
+					'non_responding_users' => []
+				];
+			}
+
+			// Get team members from cache
+			$teamMemberIds = $cache['teamMembers'][$teamId] ?? [];
+			$nonRespondingUsers = [];
+
+			foreach ($teamMemberIds as $userId) {
+				// Skip if already responded (O(1) lookup)
+				if (isset($respondedUserIds[$userId])) {
+					continue;
+				}
+
+				// Filter to only actual target attendees
+				if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
+					continue;
+				}
+
+				// Get user for display name
+				$user = $this->userManager->get($userId);
+				if ($user) {
+					$nonRespondingUsers[] = [
+						'userId' => $userId,
+						'displayName' => $user->getDisplayName()
+					];
+				}
+			}
+
+			$summary['by_team'][$teamId]['no_response'] = count($nonRespondingUsers);
+			$summary['by_team'][$teamId]['non_responding_users'] = $nonRespondingUsers;
+		}
+	}
+
+	/**
 	 * Calculate total non-responding users.
 	 */
 	private function calculateTotalNonResponding(
@@ -348,8 +465,20 @@ class ResponseSummaryService {
 				}
 			}
 
-			// Only count users who belong to at least one relevant group
-			if ($hasRelevantGroup) {
+			// Check if user belongs to at least one whitelisted team
+			$hasRelevantTeam = false;
+			if (!$hasRelevantGroup) {
+				foreach ($cache['whitelistedTeams'] as $teamId) {
+					$teamMemberIds = $cache['teamMembers'][$teamId] ?? [];
+					if (in_array($userId, $teamMemberIds)) {
+						$hasRelevantTeam = true;
+						break;
+					}
+				}
+			}
+
+			// Only count users who belong to at least one relevant group or team
+			if ($hasRelevantGroup || $hasRelevantTeam) {
 				$nonRespondingUsers[] = [
 					'userId' => $userId,
 					'displayName' => $user->getDisplayName()
@@ -406,5 +535,44 @@ class ResponseSummaryService {
 		}
 
 		return $sortedByGroup;
+	}
+
+	/**
+	 * Sort teams by whitelisted order or alphabetically by display name.
+	 */
+	private function sortTeams(array $byTeam, array $whitelistedTeams): array {
+		$sortedByTeam = [];
+
+		if (!empty($whitelistedTeams)) {
+			// First add teams in the order they appear in settings
+			foreach ($whitelistedTeams as $teamId) {
+				if (isset($byTeam[$teamId])) {
+					$sortedByTeam[$teamId] = $byTeam[$teamId];
+				}
+			}
+			// Then add any remaining teams alphabetically by display name
+			$remainingTeams = array_diff(array_keys($byTeam), $whitelistedTeams);
+			usort($remainingTeams, function ($a, $b) use ($byTeam) {
+				$nameA = $byTeam[$a]['displayName'] ?? $a;
+				$nameB = $byTeam[$b]['displayName'] ?? $b;
+				return strcasecmp($nameA, $nameB);
+			});
+			foreach ($remainingTeams as $teamId) {
+				$sortedByTeam[$teamId] = $byTeam[$teamId];
+			}
+		} else {
+			// No whitelist configured, sort alphabetically by display name
+			$teamIds = array_keys($byTeam);
+			usort($teamIds, function ($a, $b) use ($byTeam) {
+				$nameA = $byTeam[$a]['displayName'] ?? $a;
+				$nameB = $byTeam[$b]['displayName'] ?? $b;
+				return strcasecmp($nameA, $nameB);
+			});
+			foreach ($teamIds as $teamId) {
+				$sortedByTeam[$teamId] = $byTeam[$teamId];
+			}
+		}
+
+		return $sortedByTeam;
 	}
 }

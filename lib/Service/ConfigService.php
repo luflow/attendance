@@ -59,6 +59,26 @@ class ConfigService {
 	}
 
 	/**
+	 * Get whitelisted teams from app config.
+	 * If no teams are configured, returns empty array.
+	 *
+	 * @return array<string> List of team/circle IDs
+	 */
+	public function getWhitelistedTeams(): array {
+		$teamsJson = $this->config->getAppValue(self::APP_ID, 'whitelisted_teams', '[]');
+		return json_decode($teamsJson, true) ?: [];
+	}
+
+	/**
+	 * Set whitelisted teams in app config.
+	 *
+	 * @param array<string> $teams List of team/circle IDs
+	 */
+	public function setWhitelistedTeams(array $teams): void {
+		$this->config->setAppValue(self::APP_ID, 'whitelisted_teams', json_encode($teams));
+	}
+
+	/**
 	 * Check if reminders are enabled.
 	 *
 	 * @return bool True if reminders are enabled
