@@ -148,7 +148,7 @@ OC.L10N.register(
         "Select which groups to include in response summaries. Users outside these groups will appear under Others. Leave empty to include all groups.": "Vælg hvilke grupper der skal vises i svaroversigten. Brugere uden for disse grupper vises under Andre. Efterlad tomt for at inkludere alle grupper.",
         "Restrict Access": "Begræns adgang",
         "Limits who can see this appointment. Leave empty for all users.": "Begrænser hvem der kan se denne aftale. Lad stå tomt for alle brugere.",
-        "Some selections are not in the Response Summary Groups and may therefore appear under \"Others\".": "Nogle valg er ikke i svaroversigt-grupperne og kan derfor blive vist under \"Andre\".",
+        "Some selections are not in the Response Summary Groups/Teams and may therefore appear under \"Others\".": "Nogle valg er ikke i svaroversigt-grupperne/holdene og kan derfor blive vist under \"Andre\".",
         "Configure in Admin Settings": "Konfigurer i adminindstillinger",
         "Notification": "Besked",
         "Send notification": "Send besked",
@@ -226,7 +226,12 @@ OC.L10N.register(
         "Supports Markdown formatting": "Understøtter Markdown-formatering",
         "Write your description here...": "Skriv din beskrivelse her...",
         "User": "Bruger",
-        "Team": "Hold"
+        "Team": "Hold",
+        "Response Summary Teams": "Svaroversigt hold",
+        "Select which teams to include in response summaries. Team members will be grouped together like regular groups.": "Vælg hvilke hold der skal inkluderes i svaroversigter. Holdmedlemmer vil blive grupperet ligesom almindelige grupper.",
+        "Search and select teams...": "Søg og vælg hold...",
+        "%n team selected": "%n hold valgt",
+        "%n teams selected": "%n hold valgt"
     },
     "nplurals=2; plural=(n != 1);"
 );

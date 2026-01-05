@@ -445,8 +445,8 @@ msgstr "Begræns adgang"
 msgid "Limits who can see this appointment. Leave empty for all users."
 msgstr "Begrænser hvem der kan se denne aftale. Lad stå tomt for alle brugere."
 
-msgid "Some selections are not in the Response Summary Groups and may therefore appear under \"Others\"."
-msgstr "Nogle valg er ikke i svaroversigt-grupperne og kan derfor blive vist under \"Andre\"."
+msgid "Some selections are not in the Response Summary Groups/Teams and may therefore appear under \"Others\"."
+msgstr "Nogle valg er ikke i svaroversigt-grupperne/holdene og kan derfor blive vist under \"Andre\"."
 
 msgid "Configure in Admin Settings"
 msgstr "Konfigurer i adminindstillinger"
@@ -686,3 +686,18 @@ msgstr "Gruppe"
 
 msgid "Team"
 msgstr "Hold"
+
+msgid "Response Summary Teams"
+msgstr "Svaroversigt hold"
+
+msgid "Select which teams to include in response summaries. Team members will be grouped together like regular groups."
+msgstr "Vælg hvilke hold der skal inkluderes i svaroversigter. Holdmedlemmer vil blive grupperet ligesom almindelige grupper."
+
+msgid "Search and select teams..."
+msgstr "Søg og vælg hold..."
+
+msgid "%n team selected"
+msgstr "%n hold valgt"
+
+msgid "%n teams selected"
+msgstr "%n hold valgt"

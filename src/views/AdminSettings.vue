@@ -12,17 +12,48 @@
 			<NcSettingsSection :name="t('attendance', 'Response Summary Groups')"
 				:description="t('attendance', 'Select which groups to include in response summaries. Users outside these groups will appear under Others. Leave empty to include all groups.')"
 				data-test="section-tracking-groups">
-				<NcSelect
+				<GroupSelect
 					v-model="selectedGroups"
 					:options="availableGroups"
 					:placeholder="t('attendance', 'Select groups...')"
-					:multiple="true"
 					:disabled="loading"
-					label="displayName"
-					track-by="id"
 					data-test="select-whitelisted-groups" />
 				<p class="hint-text">
 					{{ n('attendance', '%n group selected', '%n groups selected', selectedGroups.length, { n: selectedGroups.length }) }}
+				</p>
+			</NcSettingsSection>
+
+			<NcSettingsSection v-if="teamsAvailable"
+				:name="t('attendance', 'Response Summary Teams')"
+				:description="t('attendance', 'Select which teams to include in response summaries. Team members will be grouped together like regular groups.')"
+				data-test="section-tracking-teams">
+				<NcSelect
+					v-model="selectedTeams"
+					:options="teamSearchResults"
+					:placeholder="t('attendance', 'Search and select teams...')"
+					:multiple="true"
+					:disabled="loading"
+					:loading="isSearchingTeams"
+					:filterable="false"
+					label="label"
+					track-by="id"
+					data-test="select-whitelisted-teams"
+					@search="searchTeams">
+					<template #option="{ label }">
+						<span style="display: flex; align-items: center; gap: 8px;">
+							<AccountStar :size="20" />
+							<span>{{ label }}</span>
+						</span>
+					</template>
+					<template #selected-option="{ label }">
+						<span style="display: flex; align-items: center; gap: 8px;">
+							<AccountStar :size="16" />
+							<span>{{ label }}</span>
+						</span>
+					</template>
+				</NcSelect>
+				<p class="hint-text">
+					{{ n('attendance', '%n team selected', '%n teams selected', selectedTeams.length, { n: selectedTeams.length }) }}
 				</p>
 			</NcSettingsSection>
 
@@ -33,14 +64,11 @@
 					<p class="subsection-hint">
 						{{ t('attendance', 'Groups that can create, update, and delete appointments') }}
 					</p>
-					<NcSelect
+					<GroupSelect
 						v-model="selectedManageAppointmentsRoles"
 						:options="availableGroups"
 						:placeholder="t('attendance', 'Select groups...')"
-						:multiple="true"
 						:disabled="loading"
-						label="displayName"
-						track-by="id"
 						data-test="select-manage-appointments-roles" />
 					<p class="hint-text">
 						{{ n('attendance', '%n group selected', '%n groups selected', selectedManageAppointmentsRoles.length, { n: selectedManageAppointmentsRoles.length }) }}
@@ -52,14 +80,11 @@
 					<p class="subsection-hint">
 						{{ t('attendance', 'Groups that can access the check-in interface and execute check-ins') }}
 					</p>
-					<NcSelect
+					<GroupSelect
 						v-model="selectedCheckinRoles"
 						:options="availableGroups"
 						:placeholder="t('attendance', 'Select groups...')"
-						:multiple="true"
 						:disabled="loading"
-						label="displayName"
-						track-by="id"
 						data-test="select-checkin-roles" />
 					<p class="hint-text">
 						{{ n('attendance', '%n group selected', '%n groups selected', selectedCheckinRoles.length, { n: selectedCheckinRoles.length }) }}
@@ -71,14 +96,11 @@
 					<p class="subsection-hint">
 						{{ t('attendance', 'Groups that can see the response overview with details') }}
 					</p>
-					<NcSelect
+					<GroupSelect
 						v-model="selectedSeeResponseOverviewRoles"
 						:options="availableGroups"
 						:placeholder="t('attendance', 'Select groups...')"
-						:multiple="true"
 						:disabled="loading"
-						label="displayName"
-						track-by="id"
 						data-test="select-see-response-overview-roles" />
 					<p class="hint-text">
 						{{ n('attendance', '%n group selected', '%n groups selected', selectedSeeResponseOverviewRoles.length, { n: selectedSeeResponseOverviewRoles.length }) }}
@@ -90,14 +112,11 @@
 					<p class="subsection-hint">
 						{{ t('attendance', 'Groups that can see comments in the response overview') }}
 					</p>
-					<NcSelect
+					<GroupSelect
 						v-model="selectedSeeCommentsRoles"
 						:options="availableGroups"
 						:placeholder="t('attendance', 'Select groups...')"
-						:multiple="true"
 						:disabled="loading"
-						label="displayName"
-						track-by="id"
 						data-test="select-see-comments-roles" />
 					<p class="hint-text">
 						{{ n('attendance', '%n group selected', '%n groups selected', selectedSeeCommentsRoles.length, { n: selectedSeeCommentsRoles.length }) }}
@@ -173,10 +192,16 @@ import {
 	NcInputField,
 	NcNoteCard,
 } from '@nextcloud/vue'
+import AccountStar from 'vue-material-design-icons/AccountStar.vue'
+import GroupSelect from '../components/common/GroupSelect.vue'
 
 // State
 const availableGroups = ref([])
 const selectedGroups = ref([])
+const selectedTeams = ref([])
+const teamSearchResults = ref([])
+const isSearchingTeams = ref(false)
+const teamsAvailable = ref(false)
 const selectedManageAppointmentsRoles = ref([])
 const selectedCheckinRoles = ref([])
 const selectedSeeResponseOverviewRoles = ref([])
@@ -203,6 +228,14 @@ const loadSettings = async () => {
 			selectedGroups.value = response.data.whitelistedGroups
 				.map(id => response.data.groups.find(group => group.id === id))
 				.filter(group => group !== undefined)
+
+			// Load teams settings
+			teamsAvailable.value = response.data.teamsAvailable || false
+			if (response.data.whitelistedTeams) {
+				selectedTeams.value = response.data.whitelistedTeams
+				// Also add to search results so they appear in the dropdown
+				teamSearchResults.value = [...response.data.whitelistedTeams]
+			}
 
 			// Load permission settings, preserving database order
 			if (response.data.permissions) {
@@ -239,6 +272,35 @@ const loadSettings = async () => {
 	}
 }
 
+const searchTeams = async (query) => {
+	if (!query || query.length < 1) {
+		// Keep selected teams visible in results
+		teamSearchResults.value = [...selectedTeams.value]
+		return
+	}
+
+	isSearchingTeams.value = true
+	try {
+		const response = await axios.get(
+			generateUrl('/apps/attendance/api/search/users-groups-teams'),
+			{ params: { search: query } },
+		)
+		// Filter to only show teams
+		const teams = response.data
+			.filter(item => item.type === 'team')
+			.map(item => ({ id: item.id, label: item.label, type: 'team' }))
+
+		// Merge with selected teams to keep them visible
+		const selectedIds = selectedTeams.value.map(t => t.id)
+		const newTeams = teams.filter(t => !selectedIds.includes(t.id))
+		teamSearchResults.value = [...selectedTeams.value, ...newTeams]
+	} catch (error) {
+		console.error('Error searching teams:', error)
+	} finally {
+		isSearchingTeams.value = false
+	}
+}
+
 const saveSettings = async () => {
 	loading.value = true
 
@@ -247,6 +309,7 @@ const saveSettings = async () => {
 			generateUrl('/apps/attendance/api/admin/settings'),
 			{
 				whitelistedGroups: selectedGroups.value.map(g => g.id),
+				whitelistedTeams: selectedTeams.value.map(t => t.id),
 				permissions: {
 					PERMISSION_MANAGE_APPOINTMENTS: selectedManageAppointmentsRoles.value.map(g => g.id),
 					PERMISSION_CHECKIN: selectedCheckinRoles.value.map(g => g.id),

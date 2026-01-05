@@ -130,7 +130,7 @@
 					</template>
 				</NcSelect>
 				<NcNoteCard v-if="hasTrackingMismatch" type="warning" class="visibility-warning">
-					{{ t('attendance', 'Some selections are not in the Response Summary Groups and may therefore appear under "Others".') }}
+					{{ t('attendance', 'Some selections are not in the Response Summary Groups/Teams and may therefore appear under "Others".') }}
 					<a :href="adminSettingsUrl" target="_blank">{{ t('attendance', 'Configure in Admin Settings') }}</a>
 				</NcNoteCard>
 			</div>
@@ -205,6 +205,7 @@ const searchResults = ref([])
 const isSearching = ref(false)
 const sendNotification = ref(false)
 const trackingGroups = ref([])
+const trackingTeams = ref([])
 const attachments = ref([])
 
 const pageTitle = computed(() => {
@@ -223,23 +224,33 @@ const hasTrackingMismatch = computed(() => {
 	if (formData.visibleGroups.length === 0 && formData.visibleUsers.length === 0 && formData.visibleTeams.length === 0) {
 		return false
 	}
-	// No tracking groups configured - no warning needed
-	if (trackingGroups.value.length === 0) {
+	// No tracking groups AND no tracking teams configured - no warning needed
+	if (trackingGroups.value.length === 0 && trackingTeams.value.length === 0) {
 		return false
 	}
 	// Individual users selected - they might appear under "Others"
 	if (formData.visibleUsers.length > 0) {
 		return true
 	}
-	// Teams selected - team members might appear under "Others"
+	// Check if any selected team is NOT in tracking teams
 	if (formData.visibleTeams.length > 0) {
-		return true
+		const hasNonTrackingTeam = formData.visibleTeams.some(
+			teamId => !trackingTeams.value.includes(teamId),
+		)
+		if (hasNonTrackingTeam) {
+			return true
+		}
 	}
 	// Check if any selected group is NOT in tracking groups
-	const hasNonTrackingGroup = formData.visibleGroups.some(
-		groupId => !trackingGroups.value.includes(groupId),
-	)
-	return hasNonTrackingGroup
+	if (formData.visibleGroups.length > 0) {
+		const hasNonTrackingGroup = formData.visibleGroups.some(
+			groupId => !trackingGroups.value.includes(groupId),
+		)
+		if (hasNonTrackingGroup) {
+			return true
+		}
+	}
+	return false
 })
 
 const adminSettingsUrl = computed(() => {
@@ -357,8 +368,14 @@ const loadAppointment = async () => {
 const loadTrackingGroups = async () => {
 	try {
 		const response = await axios.get(generateUrl('/apps/attendance/api/admin/settings'))
-		if (response.data.success && response.data.whitelistedGroups) {
-			trackingGroups.value = response.data.whitelistedGroups
+		if (response.data.success) {
+			if (response.data.whitelistedGroups) {
+				trackingGroups.value = response.data.whitelistedGroups
+			}
+			if (response.data.whitelistedTeams) {
+				// Extract team IDs from team objects
+				trackingTeams.value = response.data.whitelistedTeams.map(t => t.id)
+			}
 		}
 	} catch (error) {
 		console.debug('Could not load tracking groups:', error)
