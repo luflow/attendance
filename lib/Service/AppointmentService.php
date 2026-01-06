@@ -71,6 +71,8 @@ class AppointmentService {
 		array $visibleGroups = [],
 		array $visibleTeams = [],
 		bool $sendNotification = false,
+		?string $calendarUri = null,
+		?string $calendarEventUid = null,
 	): Appointment {
 		$startFormatted = $this->formatDatetime($startDatetime);
 		$endFormatted = $this->formatDatetime($endDatetime);
@@ -87,6 +89,8 @@ class AppointmentService {
 		$appointment->setVisibleUsers(empty($visibleUsers) ? null : json_encode($visibleUsers));
 		$appointment->setVisibleGroups(empty($visibleGroups) ? null : json_encode($visibleGroups));
 		$appointment->setVisibleTeams(empty($visibleTeams) ? null : json_encode($visibleTeams));
+		$appointment->setCalendarUri($calendarUri);
+		$appointment->setCalendarEventUid($calendarEventUid);
 
 		$appointment = $this->appointmentMapper->insert($appointment);
 

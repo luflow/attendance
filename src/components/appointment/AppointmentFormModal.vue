@@ -4,9 +4,20 @@
 		data-test="appointment-form-modal"
 		@close="handleClose">
 		<div ref="modalContentRef" class="modal-content">
-			<h2 data-test="form-title">
-				{{ isEdit ? t('attendance', 'Edit Appointment') : (isCopy ? t('attendance', 'Copy Appointment') : t('attendance', 'Create Appointment')) }}
-			</h2>
+			<div class="modal-header">
+				<h2 data-test="form-title">
+					{{ isEdit ? t('attendance', 'Edit Appointment') : (isCopy ? t('attendance', 'Copy Appointment') : t('attendance', 'Create Appointment')) }}
+				</h2>
+				<NcButton v-if="!isEdit && !isCopy && props.calendarAvailable"
+					variant="tertiary"
+					data-test="button-import-calendar"
+					@click="showCalendarPicker = true">
+					<template #icon>
+						<CalendarImport :size="20" />
+					</template>
+					{{ t('attendance', 'Import from Calendar') }}
+				</NcButton>
+			</div>
 			<form data-test="appointment-form" @submit.prevent="handleSubmit">
 				<NcTextField
 					v-model="formData.name"
@@ -132,6 +143,12 @@
 				</div>
 			</form>
 		</div>
+
+		<!-- Calendar Event Picker Modal -->
+		<CalendarEventPicker
+			:show="showCalendarPicker"
+			@close="showCalendarPicker = false"
+			@select="handleCalendarEventSelect" />
 	</NcModal>
 </template>
 
@@ -140,6 +157,7 @@ import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
 import { NcModal, NcButton, NcTextField, NcSelect, NcNoteCard, NcCheckboxRadioSwitch, NcChip, NcDateTimePickerNative } from '@nextcloud/vue'
 import { getFilePickerBuilder, showSuccess, showError } from '@nextcloud/dialogs'
 import MarkdownEditor from '../common/MarkdownEditor.vue'
+import CalendarEventPicker from '../calendar/CalendarEventPicker.vue'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
@@ -147,6 +165,7 @@ import Account from 'vue-material-design-icons/Account.vue'
 import AccountStar from 'vue-material-design-icons/AccountStar.vue'
 import Paperclip from 'vue-material-design-icons/Paperclip.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
+import CalendarImport from 'vue-material-design-icons/CalendarImport.vue'
 import '@nextcloud/dialogs/style.css'
 
 const props = defineProps({
@@ -163,6 +182,10 @@ const props = defineProps({
 		default: null,
 	},
 	notificationsAppEnabled: {
+		type: Boolean,
+		default: false,
+	},
+	calendarAvailable: {
 		type: Boolean,
 		default: false,
 	},
@@ -192,6 +215,8 @@ const trackingGroups = ref([])
 const trackingTeams = ref([])
 const attachments = ref([]) // Array of { fileId, fileName, filePath, downloadUrl }
 const filePickerOpen = ref(false)
+const showCalendarPicker = ref(false)
+const calendarReference = ref({ calendarUri: null, calendarEventUid: null })
 
 // Internal show state that we control
 const internalShow = ref(false)
@@ -378,6 +403,7 @@ watch(() => props.appointment, async (newAppointment) => {
 		visibilityItems.value = []
 		searchResults.value = []
 		attachments.value = []
+		calendarReference.value = { calendarUri: null, calendarEventUid: null }
 	}
 }, { immediate: true })
 
@@ -442,6 +468,7 @@ watch(() => props.show, (isShowing) => {
 		visibilityItems.value = []
 		searchResults.value = []
 		attachments.value = []
+		calendarReference.value = { calendarUri: null, calendarEventUid: null }
 	}
 })
 
@@ -608,6 +635,17 @@ const removeAttachment = async (fileId) => {
 	}
 }
 
+const handleCalendarEventSelect = (eventData) => {
+	formData.name = eventData.name
+	formData.description = eventData.description
+	formData.startDatetime = formatDateTimeForInput(eventData.startDatetime)
+	formData.endDatetime = formatDateTimeForInput(eventData.endDatetime)
+	calendarReference.value = {
+		calendarUri: eventData.calendarUri,
+		calendarEventUid: eventData.calendarEventUid,
+	}
+}
+
 const handleSubmit = () => {
 	emit('submit', {
 		id: props.appointment?.id,
@@ -620,6 +658,8 @@ const handleSubmit = () => {
 		visibleTeams: formData.visibleTeams,
 		sendNotification: sendNotification.value,
 		attachmentFileIds: attachments.value.map(a => a.fileId),
+		calendarUri: calendarReference.value.calendarUri,
+		calendarEventUid: calendarReference.value.calendarEventUid,
 	})
 }
 </script>
@@ -630,6 +670,18 @@ const handleSubmit = () => {
 	min-width: min(500px, 90vw);
 	max-height: 90vh;
 	overflow-y: auto;
+
+	.modal-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 5px;
+		gap: 12px;
+
+		h2 {
+			margin: 0;
+		}
+	}
 
 	h2 {
 		margin: 0 0 5px 0;

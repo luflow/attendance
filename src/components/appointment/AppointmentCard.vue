@@ -75,6 +75,17 @@
 		<div class="appointment-time">
 			<strong>{{ t('attendance', 'Start Date & Time') }}:</strong> {{ formatDateTime(appointment.startDatetime) }}<br>
 			<strong>{{ t('attendance', 'End Date & Time') }}:</strong> {{ formatDateTime(appointment.endDatetime) }}
+			<!-- Calendar Source Indicator -->
+			<template v-if="calendarLink">
+				<br>
+				<a :href="calendarLink"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="calendar-link">
+					<CalendarIcon :size="16" />
+					<span>{{ t('attendance', 'Imported from Calendar') }}</span>
+				</a>
+			</template>
 		</div>
 
 		<!-- Response Section -->
@@ -162,6 +173,7 @@ import CheckIcon from 'vue-material-design-icons/Check.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
 import Paperclip from 'vue-material-design-icons/Paperclip.vue'
 import CommentIcon from 'vue-material-design-icons/Comment.vue'
+import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import { formatDateTime } from '../../utils/datetime.js'
 
 const props = defineProps({
@@ -213,6 +225,37 @@ const renderedDescription = computed(() => {
 	if (!props.appointment.description) return ''
 	const html = renderMarkdown(props.appointment.description, false)
 	return sanitizeHtml(html)
+})
+
+const calendarLink = computed(() => {
+	if (!props.appointment.calendarUri || !props.appointment.calendarEventUid || !props.appointment.startDatetime) {
+		return null
+	}
+
+	// Generate deeplink to open the event popup directly in Calendar app
+	// URL format: /apps/calendar/{view}/{date}/edit/popover/{base64_dav_path}/{recurrenceId}
+	const dateObj = new Date(props.appointment.startDatetime)
+	const year = dateObj.getFullYear()
+	const month = String(dateObj.getMonth() + 1).padStart(2, '0')
+	const day = String(dateObj.getDate()).padStart(2, '0')
+	const dateStr = `${year}-${month}-${day}`
+
+	// Get current user from Nextcloud
+	const currentUser = window.OC?.currentUser || 'admin'
+
+	// calendarEventUid contains the filename (e.g., "70EB1F77-0025-44EB-88B3-B64F65CC3F84.ics")
+	const eventUri = props.appointment.calendarEventUid
+
+	// Build the DAV path: /remote.php/dav/calendars/{user}/{calendar}/{filename}
+	const davPath = `/remote.php/dav/calendars/${currentUser}/${props.appointment.calendarUri}/${eventUri}`
+
+	// Base64 encode the path
+	const base64Path = btoa(davPath)
+
+	// For non-recurring events, use "next" as recurrenceId
+	const recurrenceId = 'next'
+
+	return generateUrl(`/apps/calendar/dayGridMonth/${dateStr}/edit/popover/${base64Path}/${recurrenceId}`)
 })
 
 watch(() => props.appointment.userResponse, (newResponse) => {
@@ -486,6 +529,20 @@ const autoSaveComment = async (commentText) => {
 
 	strong {
 		color: var(--color-main-text);
+	}
+
+	.calendar-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		margin-top: 8px;
+		font-size: 13px;
+		color: var(--color-primary-element);
+		text-decoration: none;
+
+		&:hover {
+			text-decoration: underline;
+		}
 	}
 }
 

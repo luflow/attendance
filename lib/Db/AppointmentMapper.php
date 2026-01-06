@@ -132,4 +132,31 @@ class AppointmentMapper extends QBMapper {
 
 		return $this->findEntities($qb);
 	}
+
+	/**
+	 * Find appointments linked to a specific calendar event
+	 * @param string $calendarEventUid The iCal UID of the calendar event
+	 * @param string|null $calendarUri Optional calendar URI to narrow search
+	 * @return array<Appointment>
+	 */
+	public function findByCalendarEventUid(string $calendarEventUid, ?string $calendarUri = null): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->andX(
+					$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
+					$qb->expr()->eq('calendar_event_uid', $qb->createNamedParameter($calendarEventUid))
+				)
+			);
+
+		if ($calendarUri !== null) {
+			$qb->andWhere(
+				$qb->expr()->eq('calendar_uri', $qb->createNamedParameter($calendarUri))
+			);
+		}
+
+		return $this->findEntities($qb);
+	}
 }

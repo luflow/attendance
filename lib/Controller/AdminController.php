@@ -92,6 +92,16 @@ class AdminController extends Controller {
 				'notificationsAppEnabled' => $this->appManager->isEnabledForUser('notifications'),
 			];
 
+			// Get calendar sync settings
+			// Calendar sync is only available in NC 32+ when the calendar event classes exist
+			// Use version check as class_exists() can be unreliable with autoloading
+			$ncVersion = \OCP\Util::getVersion();
+			$calendarSyncAvailable = $ncVersion[0] >= 32;
+			$calendarSyncSettings = [
+				'enabled' => $this->configService->isCalendarSyncEnabled(),
+				'available' => $calendarSyncAvailable,
+			];
+
 			return new JSONResponse([
 				'success' => true,
 				'groups' => $groupOptions,
@@ -99,7 +109,8 @@ class AdminController extends Controller {
 				'whitelistedTeams' => $whitelistedTeams,
 				'teamsAvailable' => $this->visibilityService->isTeamsAvailable(),
 				'permissions' => $permissionSettings,
-				'reminders' => $reminderSettings
+				'reminders' => $reminderSettings,
+				'calendarSync' => $calendarSyncSettings,
 			]);
 		} catch (\Exception $e) {
 			return new JSONResponse(['success' => false, 'error' => $e->getMessage()]);
@@ -125,6 +136,7 @@ class AdminController extends Controller {
 		$whitelistedTeams = $this->request->getParam('whitelistedTeams', []);
 		$permissions = $this->request->getParam('permissions', []);
 		$reminders = $this->request->getParam('reminders', []);
+		$calendarSync = $this->request->getParam('calendarSync', []);
 
 		try {
 			$this->adminSettings->setWhitelistedGroups($whitelistedGroups);
@@ -147,6 +159,11 @@ class AdminController extends Controller {
 				// Frequency: 0 = once, 1-30 = days between reminders
 				$reminderFrequency = max(0, min(30, (int)$reminders['reminderFrequency']));
 				$this->config->setAppValue('attendance', 'reminder_frequency', (string)$reminderFrequency);
+			}
+
+			// Save calendar sync settings
+			if (isset($calendarSync['enabled'])) {
+				$this->configService->setCalendarSyncEnabled((bool)$calendarSync['enabled']);
 			}
 
 			return new JSONResponse(['success' => true]);

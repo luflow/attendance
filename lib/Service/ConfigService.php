@@ -187,4 +187,24 @@ class ConfigService {
 		$configKey = 'permission_' . $permission;
 		$this->config->setAppValue(self::APP_ID, $configKey, json_encode($roles));
 	}
+
+	/**
+	 * Check if calendar sync is enabled.
+	 * When enabled, changes to linked calendar events will automatically
+	 * update the corresponding attendance appointments.
+	 *
+	 * @return bool True if calendar sync is enabled
+	 */
+	public function isCalendarSyncEnabled(): bool {
+		return $this->config->getAppValue(self::APP_ID, 'calendar_sync_enabled', 'no') === 'yes';
+	}
+
+	/**
+	 * Set calendar sync enabled status.
+	 *
+	 * @param bool $enabled Whether calendar sync should be enabled
+	 */
+	public function setCalendarSyncEnabled(bool $enabled): void {
+		$this->config->setAppValue(self::APP_ID, 'calendar_sync_enabled', $enabled ? 'yes' : 'no');
+	}
 }

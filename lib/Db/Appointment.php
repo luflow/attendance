@@ -32,6 +32,10 @@ use OCP\AppFramework\Db\Entity;
  * @method void setVisibleGroups(string $visibleGroups)
  * @method string getVisibleTeams()
  * @method void setVisibleTeams(string $visibleTeams)
+ * @method string|null getCalendarUri()
+ * @method void setCalendarUri(?string $calendarUri)
+ * @method string|null getCalendarEventUid()
+ * @method void setCalendarEventUid(?string $calendarEventUid)
  */
 class Appointment extends Entity implements JsonSerializable {
 	protected $name = '';
@@ -45,6 +49,8 @@ class Appointment extends Entity implements JsonSerializable {
 	protected $visibleUsers = null;
 	protected $visibleGroups = null;
 	protected $visibleTeams = null;
+	protected $calendarUri = null;
+	protected $calendarEventUid = null;
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -59,6 +65,8 @@ class Appointment extends Entity implements JsonSerializable {
 		$this->addType('visibleUsers', 'string');
 		$this->addType('visibleGroups', 'string');
 		$this->addType('visibleTeams', 'string');
+		$this->addType('calendarUri', 'string');
+		$this->addType('calendarEventUid', 'string');
 	}
 
 	public function jsonSerialize(): array {
@@ -75,6 +83,8 @@ class Appointment extends Entity implements JsonSerializable {
 			'visibleUsers' => $this->parseJsonField($this->getVisibleUsers()),
 			'visibleGroups' => $this->parseJsonField($this->getVisibleGroups()),
 			'visibleTeams' => $this->parseJsonField($this->getVisibleTeams()),
+			'calendarUri' => $this->getCalendarUri(),
+			'calendarEventUid' => $this->getCalendarEventUid(),
 		];
 	}
 

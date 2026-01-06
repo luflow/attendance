@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace OCA\Attendance\Controller;
 
 use OCA\Attendance\Service\AppointmentService;
+use OCA\Attendance\Service\CalendarService;
 use OCA\Attendance\Service\CheckinService;
+use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\ExportService;
 use OCA\Attendance\Service\PermissionService;
 use OCP\AppFramework\Controller;
@@ -16,7 +18,9 @@ use OCP\IUserSession;
 
 class AppointmentController extends Controller {
 	private AppointmentService $appointmentService;
+	private CalendarService $calendarService;
 	private CheckinService $checkinService;
+	private ConfigService $configService;
 	private PermissionService $permissionService;
 	private ExportService $exportService;
 	private IUserSession $userSession;
@@ -26,7 +30,9 @@ class AppointmentController extends Controller {
 		string $appName,
 		IRequest $request,
 		AppointmentService $appointmentService,
+		CalendarService $calendarService,
 		CheckinService $checkinService,
+		ConfigService $configService,
 		PermissionService $permissionService,
 		ExportService $exportService,
 		IUserSession $userSession,
@@ -34,7 +40,9 @@ class AppointmentController extends Controller {
 	) {
 		parent::__construct($appName, $request);
 		$this->appointmentService = $appointmentService;
+		$this->calendarService = $calendarService;
 		$this->checkinService = $checkinService;
+		$this->configService = $configService;
 		$this->permissionService = $permissionService;
 		$this->exportService = $exportService;
 		$this->userSession = $userSession;
@@ -81,6 +89,8 @@ class AppointmentController extends Controller {
 		array $visibleGroups = [],
 		array $visibleTeams = [],
 		bool $sendNotification = false,
+		?string $calendarUri = null,
+		?string $calendarEventUid = null,
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -102,7 +112,9 @@ class AppointmentController extends Controller {
 				$visibleUsers,
 				$visibleGroups,
 				$visibleTeams,
-				$sendNotification
+				$sendNotification,
+				$calendarUri,
+				$calendarEventUid
 			);
 			return new DataResponse($appointment);
 		} catch (\Exception $e) {
@@ -315,6 +327,8 @@ class AppointmentController extends Controller {
 			'canCheckin' => $this->permissionService->canCheckin($user->getUID()),
 			'canSeeResponseOverview' => $this->permissionService->canSeeResponseOverview($user->getUID()),
 			'canSeeComments' => $this->permissionService->canSeeComments($user->getUID()),
+			'calendarAvailable' => $this->calendarService->isCalendarAvailable(),
+			'calendarSyncEnabled' => $this->configService->isCalendarSyncEnabled(),
 		]);
 	}
 

@@ -8,6 +8,8 @@ const state = reactive({
 		canCheckin: false,
 		canSeeResponseOverview: false,
 		canSeeComments: false,
+		calendarAvailable: false,
+		calendarSyncEnabled: false,
 	},
 	loading: false,
 	loaded: false,
@@ -44,6 +46,8 @@ export function usePermissions() {
 			state.permissions.canCheckin = response.data.canCheckin || false
 			state.permissions.canSeeResponseOverview = response.data.canSeeResponseOverview || false
 			state.permissions.canSeeComments = response.data.canSeeComments || false
+			state.permissions.calendarAvailable = response.data.calendarAvailable || false
+			state.permissions.calendarSyncEnabled = response.data.calendarSyncEnabled || false
 
 			state.loaded = true
 		} catch (error) {
@@ -54,6 +58,8 @@ export function usePermissions() {
 			state.permissions.canCheckin = false
 			state.permissions.canSeeResponseOverview = false
 			state.permissions.canSeeComments = false
+			state.permissions.calendarAvailable = false
+			state.permissions.calendarSyncEnabled = false
 		} finally {
 			state.loading = false
 		}
