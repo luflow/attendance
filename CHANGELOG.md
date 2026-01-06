@@ -6,6 +6,21 @@
 
 - Nightly changes here
 
+## 1.20.0 – 2026-01-06
+
+### Added
+
+- Calendar integration for importing appointments from Nextcloud Calendar
+  - Import calendar events via a new calendar picker when creating appointments
+  - Appointments are linked to their source calendar event (URI + UID stored)
+  - Deep link to the source event in Calendar app from appointment cards
+  - Optional automatic sync: when enabled, changes to calendar events update linked appointments (title, description, date/time)
+  - Admin setting to enable/disable calendar sync (requires Nextcloud 32+)
+
+### Fixed
+
+- Confetti celebration now works on Nextcloud 32+ (disabled Web Worker to comply with stricter CSP)
+
 ## 1.19.0 – 2026-01-06
 
 ### Added
