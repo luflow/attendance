@@ -49,7 +49,7 @@ import { ref, reactive, onMounted, watch } from 'vue'
 import { NcButton } from '@nextcloud/vue'
 import AppointmentCard from '../components/appointment/AppointmentCard.vue'
 import AlertIcon from 'vue-material-design-icons/Alert.vue'
-import confetti from 'canvas-confetti'
+import confettiLib from 'canvas-confetti'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
@@ -196,8 +196,26 @@ const startCheckin = (appointmentId) => {
 	window.location.href = generateUrl(`/apps/attendance/checkin/${appointmentId}`)
 }
 
+// Create confetti instance without worker to comply with NC 32+ CSP
+let confettiInstance = null
+const getConfetti = () => {
+	if (!confettiInstance) {
+		const canvas = document.createElement('canvas')
+		canvas.style.position = 'fixed'
+		canvas.style.top = '0'
+		canvas.style.left = '0'
+		canvas.style.width = '100%'
+		canvas.style.height = '100%'
+		canvas.style.pointerEvents = 'none'
+		canvas.style.zIndex = '9999'
+		document.body.appendChild(canvas)
+		confettiInstance = confettiLib.create(canvas, { resize: true, useWorker: false })
+	}
+	return confettiInstance
+}
+
 const triggerConfetti = () => {
-	confetti({
+	getConfetti()({
 		particleCount: 200,
 		spread: 100,
 		origin: { x: 0.5, y: 1 },
