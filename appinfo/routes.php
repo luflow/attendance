@@ -53,6 +53,11 @@ return [
 		['name' => 'ical#regenerateToken', 'url' => '/api/ical/token/regenerate', 'verb' => 'POST'],
 		['name' => 'ical#feed', 'url' => '/ical/{token}.ics', 'verb' => 'GET'],
 
+		// Calendar integration (for importing events)
+		['name' => 'calendar#isAvailable', 'url' => '/api/calendar/available', 'verb' => 'GET'],
+		['name' => 'calendar#getCalendars', 'url' => '/api/calendar/calendars', 'verb' => 'GET'],
+		['name' => 'calendar#getEvents', 'url' => '/api/calendar/events', 'verb' => 'GET'],
+
 		// Quick response (public endpoints for email/notification links)
 		['name' => 'quick_response#showConfirmation', 'url' => '/respond/{appointmentId}', 'verb' => 'GET'],
 		['name' => 'quick_response#confirmResponse', 'url' => '/respond/{appointmentId}/confirm', 'verb' => 'POST'],

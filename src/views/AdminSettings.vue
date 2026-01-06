@@ -162,6 +162,31 @@
 				</template>
 			</NcSettingsSection>
 
+			<div id="calendar-sync">
+				<NcSettingsSection
+					:name="t('attendance', 'Calendar Sync')"
+					:description="t('attendance', 'Automatically update attendance appointments when their linked calendar events are modified.')">
+					<NcNoteCard v-if="!calendarSyncAvailable" type="warning">
+						<p>{{ t('attendance', 'Calendar sync requires Nextcloud 32 or newer.') }}</p>
+						<p class="hint-text">
+							{{ t('attendance', 'This feature uses calendar event hooks that are only available in Nextcloud 32 and later versions.') }}
+						</p>
+					</NcNoteCard>
+
+					<template v-else>
+						<NcCheckboxRadioSwitch
+							v-model="calendarSyncEnabled"
+							type="switch"
+							data-test="switch-calendar-sync-enabled">
+							{{ t('attendance', 'Enable automatic calendar sync') }}
+						</NcCheckboxRadioSwitch>
+						<p class="hint-text">
+							{{ t('attendance', 'When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time).') }}
+						</p>
+					</template>
+				</NcSettingsSection>
+			</div>
+
 			<NcSettingsSection>
 				<NcButton
 					type="primary"
@@ -179,7 +204,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
@@ -210,6 +235,8 @@ const remindersEnabled = ref(false)
 const reminderDays = ref(7)
 const reminderFrequency = ref(0)
 const notificationsAppEnabled = ref(true)
+const calendarSyncEnabled = ref(false)
+const calendarSyncAvailable = ref(false)
 const loading = ref(false)
 const loadingData = ref(true)
 
@@ -259,6 +286,12 @@ const loadSettings = async () => {
 				reminderDays.value = response.data.reminders.reminderDays || 7
 				reminderFrequency.value = response.data.reminders.reminderFrequency || 0
 				notificationsAppEnabled.value = response.data.reminders.notificationsAppEnabled !== false
+			}
+
+			// Load calendar sync settings
+			if (response.data.calendarSync) {
+				calendarSyncEnabled.value = response.data.calendarSync.enabled || false
+				calendarSyncAvailable.value = response.data.calendarSync.available || false
 			}
 		} else {
 			showError(window.t('attendance', 'Failed to load settings')
@@ -321,6 +354,9 @@ const saveSettings = async () => {
 					reminderDays: reminderDays.value,
 					reminderFrequency: reminderFrequency.value,
 				},
+				calendarSync: {
+					enabled: calendarSyncEnabled.value,
+				},
 			},
 		)
 
@@ -341,6 +377,15 @@ const saveSettings = async () => {
 // Lifecycle
 onMounted(async () => {
 	await loadSettings()
+
+	// Handle hash navigation after content is loaded
+	await nextTick()
+	if (window.location.hash) {
+		const element = document.querySelector(window.location.hash)
+		if (element) {
+			element.scrollIntoView({ behavior: 'smooth' })
+		}
+	}
 })
 </script>
 

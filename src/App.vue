@@ -124,6 +124,8 @@
 				:mode="currentView"
 				:appointment-id="formAppointmentId"
 				:notifications-app-enabled="notificationsAppEnabled"
+				:calendar-available="permissions.calendarAvailable"
+				:calendar-sync-enabled="permissions.calendarSyncEnabled"
 				@saved="handleFormSaved"
 				@cancelled="handleFormCancelled" />
 

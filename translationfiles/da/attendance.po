@@ -701,3 +701,75 @@ msgstr "%n hold valgt"
 
 msgid "%n teams selected"
 msgstr "%n hold valgt"
+
+msgid "Import from Calendar"
+msgstr "Importer fra kalender"
+
+msgid "Select a calendar event to pre-fill the appointment form."
+msgstr "Vælg en kalenderbegivenhed for at udfylde aftaleformularen automatisk."
+
+msgid "Loading calendars..."
+msgstr "Indlæser kalendere..."
+
+msgid "Select Calendar"
+msgstr "Vælg kalender"
+
+msgid "No calendars found"
+msgstr "Ingen kalendere fundet"
+
+msgid "Loading events..."
+msgstr "Indlæser begivenheder..."
+
+msgid "Select Event"
+msgstr "Vælg begivenhed"
+
+msgid "Untitled Event"
+msgstr "Unavngivet begivenhed"
+
+msgid "No upcoming events in this calendar"
+msgstr "Ingen kommende begivenheder i denne kalender"
+
+msgid "Failed to load calendars"
+msgstr "Kunne ikke indlæse kalendere"
+
+msgid "Failed to load calendar events"
+msgstr "Kunne ikke indlæse kalenderbegivenheder"
+
+msgid "Imported from Calendar"
+msgstr "Importeret fra kalender"
+
+msgid "Calendar Sync"
+msgstr "Kalendersynkronisering"
+
+msgid "Automatically update attendance appointments when their linked calendar events are modified."
+msgstr "Opdater automatisk fremmødetermer, når deres tilknyttede kalenderbegivenheder ændres."
+
+msgid "Calendar sync requires Nextcloud 32 or newer."
+msgstr "Kalendersynkronisering kræver Nextcloud 32 eller nyere."
+
+msgid "This feature uses calendar event hooks that are only available in Nextcloud 32 and later versions."
+msgstr "Denne funktion bruger kalenderbegivenheds-hooks, som kun er tilgængelige i Nextcloud 32 og senere versioner."
+
+msgid "Enable automatic calendar sync"
+msgstr "Aktivér automatisk kalendersynkronisering"
+
+msgid "When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time)."
+msgstr "Når aktiveret, vil ændringer i kalenderbegivenheder automatisk opdatere tilknyttede fremmødeterminer (titel, beskrivelse, dato/tid)."
+
+msgid "Linked to Calendar"
+msgstr "Tilknyttet kalender"
+
+msgid "This appointment is linked to a calendar event."
+msgstr "Denne aftale er tilknyttet en kalenderbegivenhed."
+
+msgid "Auto-sync enabled"
+msgstr "Auto-synkronisering aktiveret"
+
+msgid "Changes to the calendar event will not be synced."
+msgstr "Ændringer i kalenderbegivenheden vil ikke blive synkroniseret."
+
+msgid "Enable auto-sync"
+msgstr "Aktivér auto-synkronisering"
+
+msgid "Changes to the calendar event will automatically overwrite title, description, and date/time of this appointment."
+msgstr "Ændringer i kalenderbegivenheden vil automatisk overskrive titel, beskrivelse og dato/tid for denne aftale."

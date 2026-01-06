@@ -1,12 +1,23 @@
 <template>
 	<div class="appointment-form-view" data-test="appointment-form-view">
 		<div class="form-header">
-			<NcButton variant="tertiary" data-test="button-back" @click="goBack">
-				<template #icon>
-					<ArrowLeft :size="20" />
-				</template>
-				{{ t('attendance', 'Back') }}
-			</NcButton>
+			<div class="header-actions">
+				<NcButton variant="tertiary" data-test="button-back" @click="goBack">
+					<template #icon>
+						<ArrowLeft :size="20" />
+					</template>
+					{{ t('attendance', 'Back') }}
+				</NcButton>
+				<NcButton v-if="mode === 'create' && props.calendarAvailable"
+					variant="tertiary"
+					data-test="button-import-calendar"
+					@click="showCalendarPicker = true">
+					<template #icon>
+						<CalendarImport :size="20" />
+					</template>
+					{{ t('attendance', 'Import from Calendar') }}
+				</NcButton>
+			</div>
 			<h2 data-test="form-title">
 				{{ pageTitle }}
 			</h2>
@@ -20,6 +31,34 @@
 			class="appointment-form"
 			data-test="appointment-form"
 			@submit.prevent="handleSubmit">
+			<!-- Calendar Link Info (shown when linked to calendar, not for copy mode) -->
+			<div v-if="hasCalendarReference && mode !== 'copy'" class="form-section">
+				<div class="calendar-link-header">
+					<LinkVariant :size="20" />
+					<h3>{{ t('attendance', 'Linked to Calendar') }}</h3>
+					<a :href="calendarSyncSettingsUrl" target="_blank" class="auto-sync-chip-link">
+						<NcChip v-if="props.calendarSyncEnabled"
+							type="success"
+							:text="t('attendance', 'Auto-sync enabled')"
+							no-close>
+							<template #icon>
+								<CalendarSync :size="16" />
+							</template>
+						</NcChip>
+					</a>
+				</div>
+				<p class="hint-text">
+					{{ t('attendance', 'This appointment is linked to a calendar event.') }}
+					<template v-if="props.calendarSyncEnabled">
+						{{ t('attendance', 'Changes to the calendar event will automatically overwrite title, description, and date/time of this appointment.') }}
+					</template>
+					<template v-else>
+						{{ t('attendance', 'Changes to the calendar event will not be synced.') }}
+						<a :href="calendarSyncSettingsUrl" target="_blank">{{ t('attendance', 'Enable auto-sync') }}</a>
+					</template>
+				</p>
+			</div>
+
 			<div class="form-section">
 				<NcTextField
 					v-model="formData.name"
@@ -150,6 +189,12 @@
 				</NcButton>
 			</div>
 		</form>
+
+		<!-- Calendar Event Picker Modal -->
+		<CalendarEventPicker
+			:show="showCalendarPicker"
+			@close="showCalendarPicker = false"
+			@select="handleCalendarEventSelect" />
 	</div>
 </template>
 
@@ -158,6 +203,7 @@ import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { NcButton, NcTextField, NcSelect, NcNoteCard, NcCheckboxRadioSwitch, NcChip, NcLoadingIcon, NcDateTimePickerNative } from '@nextcloud/vue'
 import { getFilePickerBuilder, showSuccess, showError } from '@nextcloud/dialogs'
 import MarkdownEditor from '../components/common/MarkdownEditor.vue'
+import CalendarEventPicker from '../components/calendar/CalendarEventPicker.vue'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
@@ -166,6 +212,9 @@ import AccountStar from 'vue-material-design-icons/AccountStar.vue'
 import Paperclip from 'vue-material-design-icons/Paperclip.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import ArrowLeft from 'vue-material-design-icons/ArrowLeft.vue'
+import CalendarImport from 'vue-material-design-icons/CalendarImport.vue'
+import CalendarSync from 'vue-material-design-icons/CalendarSync.vue'
+import LinkVariant from 'vue-material-design-icons/LinkVariant.vue'
 import '@nextcloud/dialogs/style.css'
 
 const props = defineProps({
@@ -179,6 +228,14 @@ const props = defineProps({
 		default: null,
 	},
 	notificationsAppEnabled: {
+		type: Boolean,
+		default: false,
+	},
+	calendarAvailable: {
+		type: Boolean,
+		default: false,
+	},
+	calendarSyncEnabled: {
 		type: Boolean,
 		default: false,
 	},
@@ -207,6 +264,8 @@ const sendNotification = ref(false)
 const trackingGroups = ref([])
 const trackingTeams = ref([])
 const attachments = ref([])
+const showCalendarPicker = ref(false)
+const calendarReference = ref({ calendarUri: null, calendarEventUid: null })
 
 const pageTitle = computed(() => {
 	switch (props.mode) {
@@ -255,6 +314,14 @@ const hasTrackingMismatch = computed(() => {
 
 const adminSettingsUrl = computed(() => {
 	return generateUrl('/settings/admin/attendance')
+})
+
+const calendarSyncSettingsUrl = computed(() => {
+	return generateUrl('/settings/admin/attendance#calendar-sync')
+})
+
+const hasCalendarReference = computed(() => {
+	return calendarReference.value.calendarUri && calendarReference.value.calendarEventUid
 })
 
 const getTypeLabel = (type) => {
@@ -357,6 +424,14 @@ const loadAppointment = async () => {
 			fileName: a.fileName,
 			filePath: a.filePath,
 		}))
+
+		// Load calendar reference (for edit mode, not copy)
+		if (props.mode === 'edit' && appointment.calendarUri && appointment.calendarEventUid) {
+			calendarReference.value = {
+				calendarUri: appointment.calendarUri,
+				calendarEventUid: appointment.calendarEventUid,
+			}
+		}
 	} catch (error) {
 		console.error('Failed to load appointment:', error)
 		showError(t('attendance', 'Error loading appointment'))
@@ -516,6 +591,17 @@ const toServerTimezone = (datetime) => {
 	return date.toISOString()
 }
 
+const handleCalendarEventSelect = (eventData) => {
+	formData.name = eventData.name
+	formData.description = eventData.description
+	formData.startDatetime = formatDateTimeForInput(eventData.startDatetime)
+	formData.endDatetime = formatDateTimeForInput(eventData.endDatetime)
+	calendarReference.value = {
+		calendarUri: eventData.calendarUri,
+		calendarEventUid: eventData.calendarEventUid,
+	}
+}
+
 const handleSubmit = async () => {
 	// Manual validation for datetime fields
 	if (!formData.name?.trim()) {
@@ -562,6 +648,8 @@ const handleSubmit = async () => {
 				visibleGroups: formData.visibleGroups || [],
 				visibleTeams: formData.visibleTeams || [],
 				sendNotification: sendNotification.value,
+				calendarUri: calendarReference.value.calendarUri,
+				calendarEventUid: calendarReference.value.calendarEventUid,
 			})
 			appointmentId = response.data?.id
 
@@ -609,9 +697,16 @@ onMounted(async () => {
 
 .form-header {
 	display: flex;
-	align-items: center;
-	gap: 16px;
+	flex-direction: column;
+	gap: 8px;
 	margin-bottom: 24px;
+
+	.header-actions {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+	}
 
 	h2 {
 		margin: 0;
@@ -704,5 +799,19 @@ onMounted(async () => {
 	gap: 10px;
 	padding-top: 16px;
 	border-top: 1px solid var(--color-border);
+}
+
+.calendar-link-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+
+	h3 {
+		margin: 0;
+	}
+
+	.auto-sync-chip-link {
+		text-decoration: none;
+	}
 }
 </style>

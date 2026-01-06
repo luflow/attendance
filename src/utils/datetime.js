@@ -232,3 +232,41 @@ export function addHours(datetime, hours) {
 		return null
 	}
 }
+
+/**
+ * Format a date range compactly.
+ * If same day: "Jan 7, 2026, 10:00 – 11:00"
+ * If different days: "Jan 7, 2026 10:00 – Jan 8, 2026 11:00"
+ *
+ * @param {string|Date} startDatetime - The start datetime
+ * @param {string|Date} endDatetime - The end datetime
+ * @return {string} Formatted date range string
+ */
+export function formatDateRange(startDatetime, endDatetime) {
+	if (!startDatetime) return ''
+	if (!endDatetime) return formatDateTime(startDatetime)
+
+	try {
+		const start = startDatetime instanceof Date ? startDatetime : new Date(startDatetime)
+		const end = endDatetime instanceof Date ? endDatetime : new Date(endDatetime)
+
+		if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+			return formatDateTime(startDatetime)
+		}
+
+		// Check if same day (compare year, month, day)
+		const sameDay = start.getFullYear() === end.getFullYear()
+			&& start.getMonth() === end.getMonth()
+			&& start.getDate() === end.getDate()
+
+		if (sameDay) {
+			// Same day: "Jan 7, 2026, 10:00 – 11:00"
+			return `${formatDate(start)}, ${formatTime(start)} – ${formatTime(end)}`
+		} else {
+			// Different days: "Jan 7, 2026 10:00 – Jan 8, 2026 11:00"
+			return `${formatDateTime(start)} – ${formatDateTime(end)}`
+		}
+	} catch {
+		return formatDateTime(startDatetime)
+	}
+}
