@@ -6,6 +6,18 @@
 
 - Nightly changes here
 
+## 1.21.0 – 2026-01-07
+
+### Added
+
+- Search filter for calendar list in import dialog (shown when more than 5 calendars)
+- Search filter for events list in import dialog (shown when more than 5 events)
+- Calendar names are now displayed in the user's language (e.g., "Personal" shows as "Persönlich" for German users)
+
+### Fixed
+
+- Deleted calendars (in trash bin) no longer appear in calendar import list
+
 ## 1.20.0 – 2026-01-06
 
 ### Added
