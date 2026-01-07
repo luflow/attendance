@@ -16,16 +16,23 @@
 
 				<template v-else-if="calendars.length > 0">
 					<label class="section-label">{{ t('attendance', 'Select Calendar') }}</label>
+					<NcTextField v-if="showSearch"
+						v-model="searchQuery"
+						:placeholder="t('attendance', 'Search calendars...')"
+						class="calendar-search" />
 					<ul class="calendar-list">
-						<li v-for="calendar in calendars"
+						<li v-for="calendar in filteredCalendars"
 							:key="calendar.uri"
 							class="calendar-item"
 							@click="selectCalendar(calendar)">
 							<span class="calendar-color" :style="{ backgroundColor: calendar.color }" />
-							<span class="calendar-name">{{ calendar.displayName }}</span>
+							<span class="calendar-name">{{ translateCalendarName(calendar.displayName) }}</span>
 							<ChevronRight :size="20" class="calendar-arrow" />
 						</li>
 					</ul>
+					<div v-if="showSearch && filteredCalendars.length === 0" class="empty-state">
+						<p>{{ t('attendance', 'No calendars match your search') }}</p>
+					</div>
 				</template>
 
 				<div v-else class="empty-state">
@@ -45,7 +52,7 @@
 					</NcButton>
 					<span class="selected-calendar-name">
 						<span class="calendar-color" :style="{ backgroundColor: selectedCalendar.color }" />
-						{{ selectedCalendar.displayName }}
+						{{ translateCalendarName(selectedCalendar.displayName) }}
 					</span>
 				</div>
 
@@ -81,7 +88,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { NcDialog, NcButton, NcLoadingIcon } from '@nextcloud/vue'
+import { NcDialog, NcButton, NcLoadingIcon, NcTextField } from '@nextcloud/vue'
 import { translate as t } from '@nextcloud/l10n'
 import ChevronRight from 'vue-material-design-icons/ChevronRight.vue'
 import ArrowLeft from 'vue-material-design-icons/ArrowLeft.vue'
@@ -99,8 +106,28 @@ const props = defineProps({
 const emit = defineEmits(['close', 'select'])
 
 const selectedCalendar = ref(null)
+const searchQuery = ref('')
 
 const { calendars, events, loadingCalendars, loadingEvents, loadCalendars, loadEvents, clearEvents, reset } = useCalendarEvents()
+
+const translateCalendarName = (name) => {
+	if (!name) return name
+	const translated = t('calendar', name)
+	return translated !== name ? translated : name
+}
+
+const showSearch = computed(() => calendars.value.length > 5)
+
+const filteredCalendars = computed(() => {
+	if (!searchQuery.value.trim()) {
+		return calendars.value
+	}
+	const query = searchQuery.value.toLowerCase().trim()
+	return calendars.value.filter(calendar => {
+		const translatedName = translateCalendarName(calendar.displayName)
+		return translatedName?.toLowerCase().includes(query)
+	})
+})
 
 const dialogTitle = computed(() => {
 	if (selectedCalendar.value) {
@@ -113,6 +140,7 @@ const dialogTitle = computed(() => {
 watch(() => props.show, async (newValue) => {
 	if (newValue) {
 		selectedCalendar.value = null
+		searchQuery.value = ''
 		reset()
 		await loadCalendars()
 	}
@@ -175,6 +203,10 @@ const selectEvent = (event) => {
 	display: block;
 	margin-bottom: 12px;
 	font-weight: 600;
+}
+
+.calendar-search {
+	margin-bottom: 12px;
 }
 
 .calendar-list,

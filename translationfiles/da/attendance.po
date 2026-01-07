@@ -773,3 +773,9 @@ msgstr "Aktivér auto-synkronisering"
 
 msgid "Changes to the calendar event will automatically overwrite title, description, and date/time of this appointment."
 msgstr "Ændringer i kalenderbegivenheden vil automatisk overskrive titel, beskrivelse og dato/tid for denne aftale."
+
+msgid "Search calendars..."
+msgstr "Søg kalendere..."
+
+msgid "No calendars match your search"
+msgstr "Ingen kalendere matcher din søgning"
