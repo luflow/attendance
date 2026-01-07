@@ -63,8 +63,12 @@
 
 				<template v-else-if="events.length > 0">
 					<label class="section-label">{{ t('attendance', 'Select Event') }}</label>
+					<NcTextField v-if="showEventSearch"
+						v-model="eventSearchQuery"
+						:placeholder="t('attendance', 'Search events...')"
+						class="calendar-search" />
 					<ul class="event-list">
-						<li v-for="event in events"
+						<li v-for="event in filteredEvents"
 							:key="event.uid"
 							class="event-item"
 							@click="selectEvent(event)">
@@ -75,6 +79,9 @@
 							<ChevronRight :size="20" class="event-arrow" />
 						</li>
 					</ul>
+					<div v-if="showEventSearch && filteredEvents.length === 0" class="empty-state">
+						<p>{{ t('attendance', 'No events match your search') }}</p>
+					</div>
 				</template>
 
 				<div v-else class="empty-state">
@@ -107,6 +114,7 @@ const emit = defineEmits(['close', 'select'])
 
 const selectedCalendar = ref(null)
 const searchQuery = ref('')
+const eventSearchQuery = ref('')
 
 const { calendars, events, loadingCalendars, loadingEvents, loadCalendars, loadEvents, clearEvents, reset } = useCalendarEvents()
 
@@ -127,6 +135,18 @@ const filteredCalendars = computed(() => {
 		const translatedName = translateCalendarName(calendar.displayName)
 		return translatedName?.toLowerCase().includes(query)
 	})
+})
+
+const showEventSearch = computed(() => events.value.length > 5)
+
+const filteredEvents = computed(() => {
+	if (!eventSearchQuery.value.trim()) {
+		return events.value
+	}
+	const query = eventSearchQuery.value.toLowerCase().trim()
+	return events.value.filter(event =>
+		event.summary?.toLowerCase().includes(query),
+	)
 })
 
 const dialogTitle = computed(() => {
@@ -152,6 +172,7 @@ const handleClose = () => {
 
 const selectCalendar = async (calendar) => {
 	selectedCalendar.value = calendar
+	eventSearchQuery.value = ''
 	await loadEvents(calendar.uri)
 }
 
