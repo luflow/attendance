@@ -779,3 +779,9 @@ msgstr "Søg kalendere..."
 
 msgid "No calendars match your search"
 msgstr "Ingen kalendere matcher din søgning"
+
+msgid "Search events..."
+msgstr "Søg begivenheder..."
+
+msgid "No events match your search"
+msgstr "Ingen begivenheder matcher din søgning"
