@@ -255,7 +255,9 @@ OC.L10N.register(
         "Auto-sync enabled": "Auto-Sync aktiviert",
         "Changes to the calendar event will not be synced.": "Änderungen am Kalenderereignis werden nicht synchronisiert.",
         "Enable auto-sync": "Auto-Sync aktivieren",
-        "Changes to the calendar event will automatically overwrite title, description, and date/time of this appointment.": "Änderungen am Kalenderereignis überschreiben automatisch Titel, Beschreibung und Datum/Uhrzeit dieses Termins."
+        "Changes to the calendar event will automatically overwrite title, description, and date/time of this appointment.": "Änderungen am Kalenderereignis überschreiben automatisch Titel, Beschreibung und Datum/Uhrzeit dieses Termins.",
+        "Search calendars...": "Kalender suchen...",
+        "No calendars match your search": "Keine Kalender entsprechen Ihrer Suche"
     },
     "nplurals=2; plural=(n != 1);"
 );
