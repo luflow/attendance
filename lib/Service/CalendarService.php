@@ -50,6 +50,9 @@ class CalendarService {
 
 		$result = [];
 		foreach ($calendars as $calendar) {
+			if ($calendar->isDeleted()) {
+				continue;
+			}
 			$result[] = [
 				'uri' => $calendar->getUri(),
 				'displayName' => $calendar->getDisplayName(),
