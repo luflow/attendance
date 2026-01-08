@@ -11,14 +11,14 @@
 			<template v-if="!selectedCalendar">
 				<div v-if="loadingCalendars" class="loading-container">
 					<NcLoadingIcon :size="32" />
-					<span class="loading-text">{{ t('attendance', 'Loading calendars...') }}</span>
+					<span class="loading-text">{{ t('attendance', 'Loading calendars…') }}</span>
 				</div>
 
 				<template v-else-if="calendars.length > 0">
 					<label class="section-label">{{ t('attendance', 'Select Calendar') }}</label>
 					<NcTextField v-if="showSearch"
 						v-model="searchQuery"
-						:placeholder="t('attendance', 'Search calendars...')"
+						:placeholder="t('attendance', 'Search calendars…')"
 						class="calendar-search" />
 					<ul class="calendar-list">
 						<li v-for="calendar in filteredCalendars"
@@ -58,14 +58,14 @@
 
 				<div v-if="loadingEvents" class="loading-container">
 					<NcLoadingIcon :size="32" />
-					<span class="loading-text">{{ t('attendance', 'Loading events...') }}</span>
+					<span class="loading-text">{{ t('attendance', 'Loading events…') }}</span>
 				</div>
 
 				<template v-else-if="events.length > 0">
 					<label class="section-label">{{ t('attendance', 'Select Event') }}</label>
 					<NcTextField v-if="showEventSearch"
 						v-model="eventSearchQuery"
-						:placeholder="t('attendance', 'Search events...')"
+						:placeholder="t('attendance', 'Search events…')"
 						class="calendar-search" />
 					<ul class="event-list">
 						<li v-for="event in filteredEvents"

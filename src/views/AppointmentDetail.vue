@@ -1,7 +1,7 @@
 <template>
 	<div class="appointment-detail" data-test="appointment-detail-view">
 		<div v-if="loading" class="loading-state" data-test="loading-state">
-			{{ t('attendance', 'Loading...') }}
+			{{ t('attendance', 'Loading…') }}
 		</div>
 		<div v-else-if="error" class="error-state" data-test="error-state">
 			<p>{{ error }}</p>

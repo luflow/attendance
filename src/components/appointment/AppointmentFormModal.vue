@@ -28,7 +28,7 @@
 				<MarkdownEditor
 					v-model="formData.description"
 					:label="t('attendance', 'Description')"
-					:placeholder="t('attendance', 'Write your description here...')"
+					:placeholder="t('attendance', 'Write your description here…')"
 					data-test="input-appointment-description"
 					min-height="120px" />
 
@@ -107,7 +107,7 @@
 						:close-on-select="false"
 						:filterable="false"
 						label="label"
-						:placeholder="t('attendance', 'Search users, groups or teams...')"
+						:placeholder="t('attendance', 'Search users, groups or teams…')"
 						data-test="select-visibility"
 						@search="onSearch">
 						<template #option="{ label, type }">
