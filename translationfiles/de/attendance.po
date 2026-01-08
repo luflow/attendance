@@ -31,8 +31,8 @@ msgstr "Unbeantwortet"
 msgid "Appointment Management"
 msgstr "Terminverwaltung"
 
-msgid "Loading appointments..."
-msgstr "Termine werden geladen..."
+msgid "Loading appointments…"
+msgstr "Termine werden geladen…"
 
 msgid "By Group"
 msgstr "Nach Gruppe"
@@ -157,8 +157,8 @@ msgstr "(1-30 Tage)"
 msgid "Configure attendance management and reminders"
 msgstr "Anwesenheitsverwaltung und Erinnerungen konfigurieren"
 
-msgid "Loading settings..."
-msgstr "Einstellungen werden geladen..."
+msgid "Loading settings…"
+msgstr "Einstellungen werden geladen…"
 
 msgid "Days before appointment"
 msgstr "Tage vor dem Termin"
@@ -184,8 +184,8 @@ msgstr "Die Benachrichtigungs-App ist nicht aktiviert. Bitte aktiviere sie, um T
 msgid "You can enable it in the Apps section of your Nextcloud settings."
 msgstr "Du kannst sie im Apps-Bereich deiner Nextcloud-Einstellungen aktivieren."
 
-msgid "Select groups..."
-msgstr "Gruppen auswählen..."
+msgid "Select groups…"
+msgstr "Gruppen auswählen…"
 
 msgid "%n group selected"
 msgstr "%n Gruppe ausgewählt"
@@ -202,8 +202,8 @@ msgstr "Check-in starten"
 msgid "Back"
 msgstr "Zurück"
 
-msgid "Loading appointment data..."
-msgstr "Lade Termin-Daten..."
+msgid "Loading appointment data…"
+msgstr "Lade Termin-Daten…"
 
 msgid "Error loading appointment"
 msgstr "Fehler beim Laden des Termins"
@@ -250,20 +250,20 @@ msgstr "Alle als abwesend markieren"
 msgid "Reset All"
 msgstr "Alle zurücksetzen"
 
-msgid "Search by name..."
-msgstr "Nach Namen suchen..."
+msgid "Search by name…"
+msgstr "Nach Namen suchen…"
 
 msgid "Filter by group"
 msgstr "Nach Gruppe filtern"
 
-msgid "Add admin comment..."
-msgstr "Admin-Kommentar hinzufügen..."
+msgid "Add admin comment…"
+msgstr "Admin-Kommentar hinzufügen…"
 
 msgid "Check-in comment"
 msgstr "Check-in-Kommentar"
 
-msgid "Add a comment for this check-in..."
-msgstr "Kommentar für diesen Check-in hinzufügen..."
+msgid "Add a comment for this check-in…"
+msgstr "Kommentar für diesen Check-in hinzufügen…"
 
 msgid "Share Link"
 msgstr "Link teilen"
@@ -289,8 +289,8 @@ msgstr "Alle abwesend"
 msgid "No appointments found"
 msgstr "Keine Termine gefunden"
 
-msgid "Loading..."
-msgstr "Laden..."
+msgid "Loading…"
+msgstr "Laden…"
 
 msgid "Comment (optional)"
 msgstr "Kommentar (optional)"
@@ -430,8 +430,8 @@ msgstr "Sichtbar für"
 msgid "Leave empty to show appointment to all users"
 msgstr "Leer lassen, um den Termin allen anzuzeigen"
 
-msgid "Search users, groups or teams..."
-msgstr "Personen, Gruppen oder Teams suchen..."
+msgid "Search users, groups or teams…"
+msgstr "Personen, Gruppen oder Teams suchen…"
 
 msgid "Response Summary Groups"
 msgstr "Gruppen für Antwortübersicht"
@@ -648,8 +648,8 @@ msgstr "Hurra! Du hast auf alle Termine geantwortet."
 msgid "Show upcoming appointments"
 msgstr "Bevorstehende Termine anzeigen"
 
-msgid "Add your comment..."
-msgstr "Dein Kommentar..."
+msgid "Add your comment…"
+msgstr "Dein Kommentar…"
 
 msgid "Bold"
 msgstr "Fett"
@@ -675,8 +675,8 @@ msgstr "Link einfügen"
 msgid "Supports Markdown formatting"
 msgstr "Unterstützt Markdown-Formatierung"
 
-msgid "Write your description here..."
-msgstr "Beschreibung hier eingeben..."
+msgid "Write your description here…"
+msgstr "Beschreibung hier eingeben…"
 
 msgid "User"
 msgstr "Benutzer"
@@ -693,8 +693,8 @@ msgstr "Teams für Antwortübersicht"
 msgid "Select which teams to include in response summaries. Team members will be grouped together like regular groups."
 msgstr "Wähle aus, welche Teams in der Antwortübersicht angezeigt werden. Teammitglieder werden wie bei normalen Gruppen zusammengefasst."
 
-msgid "Search and select teams..."
-msgstr "Teams suchen und auswählen..."
+msgid "Search and select teams…"
+msgstr "Teams suchen und auswählen…"
 
 msgid "%n team selected"
 msgstr "%n Team ausgewählt"
@@ -708,8 +708,8 @@ msgstr "Aus Kalender importieren"
 msgid "Select a calendar event to pre-fill the appointment form."
 msgstr "Wähle ein Kalenderereignis aus, um das Terminformular automatisch auszufüllen."
 
-msgid "Loading calendars..."
-msgstr "Kalender werden geladen..."
+msgid "Loading calendars…"
+msgstr "Kalender werden geladen…"
 
 msgid "Select Calendar"
 msgstr "Kalender auswählen"
@@ -717,8 +717,8 @@ msgstr "Kalender auswählen"
 msgid "No calendars found"
 msgstr "Keine Kalender gefunden"
 
-msgid "Loading events..."
-msgstr "Ereignisse werden geladen..."
+msgid "Loading events…"
+msgstr "Ereignisse werden geladen…"
 
 msgid "Select Event"
 msgstr "Ereignis auswählen"
@@ -774,14 +774,14 @@ msgstr "Auto-Sync aktivieren"
 msgid "Changes to the calendar event will automatically overwrite title, description, and date/time of this appointment."
 msgstr "Änderungen am Kalenderereignis überschreiben automatisch Titel, Beschreibung und Datum/Uhrzeit dieses Termins."
 
-msgid "Search calendars..."
-msgstr "Kalender suchen..."
+msgid "Search calendars…"
+msgstr "Kalender suchen…"
 
 msgid "No calendars match your search"
 msgstr "Keine Kalender entsprechen Ihrer Suche"
 
-msgid "Search events..."
-msgstr "Ereignisse suchen..."
+msgid "Search events…"
+msgstr "Ereignisse suchen…"
 
 msgid "No events match your search"
 msgstr "Keine Ereignisse entsprechen Ihrer Suche"

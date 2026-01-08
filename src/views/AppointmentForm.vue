@@ -24,7 +24,7 @@
 		</div>
 
 		<div v-if="loading" class="loading-state">
-			{{ t('attendance', 'Loading...') }}
+			{{ t('attendance', 'Loading…') }}
 		</div>
 
 		<form v-else
@@ -68,7 +68,7 @@
 				<MarkdownEditor
 					v-model="formData.description"
 					:label="t('attendance', 'Description')"
-					:placeholder="t('attendance', 'Write your description here...')"
+					:placeholder="t('attendance', 'Write your description here…')"
 					data-test="input-appointment-description"
 					min-height="150px" />
 			</div>
@@ -148,7 +148,7 @@
 					:close-on-select="false"
 					:filterable="false"
 					label="label"
-					:placeholder="t('attendance', 'Search users, groups or teams...')"
+					:placeholder="t('attendance', 'Search users, groups or teams…')"
 					data-test="select-visibility"
 					@search="onSearch">
 					<template #option="{ label, type }">

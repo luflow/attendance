@@ -18,7 +18,7 @@
 		<!-- Appointments List -->
 		<div class="appointments-list">
 			<div v-if="loading" class="loading">
-				{{ t('attendance', 'Loading...') }}
+				{{ t('attendance', 'Loading…') }}
 			</div>
 			<div v-else-if="appointments.length === 0 && !showUnanswered" class="empty-state">
 				{{ t('attendance', 'No appointments found') }}

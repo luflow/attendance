@@ -85,7 +85,7 @@
 					<NcTextArea
 						:value="commentValue"
 						:label="t('attendance', 'Check-in comment')"
-						:placeholder="t('attendance', 'Add a comment for this check-in...')"
+						:placeholder="t('attendance', 'Add a comment for this check-in…')"
 						data-test="textarea-checkin-comment"
 						rows="2"
 						@update:value="$emit('update:commentValue', $event)" />

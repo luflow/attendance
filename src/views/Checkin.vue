@@ -4,7 +4,7 @@
 
 		<div v-if="loading" class="loading-container">
 			<NcLoadingIcon />
-			<p>{{ t('attendance', 'Loading appointment data...') }}</p>
+			<p>{{ t('attendance', 'Loading appointment data…') }}</p>
 		</div>
 
 		<div v-else-if="error" class="error-container">

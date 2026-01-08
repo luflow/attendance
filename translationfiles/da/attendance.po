@@ -31,8 +31,8 @@ msgstr "Ubesvaret"
 msgid "Appointment Management"
 msgstr "Aftalehåndtering"
 
-msgid "Loading appointments..."
-msgstr "Indlæser aftaler..."
+msgid "Loading appointments…"
+msgstr "Indlæser aftaler…"
 
 msgid "By Group"
 msgstr "Efter gruppe"
@@ -157,8 +157,8 @@ msgstr "(1-30 dage)"
 msgid "Configure attendance management and reminders"
 msgstr "Konfigurer deltagelseshåndtering og påmindelser"
 
-msgid "Loading settings..."
-msgstr "Indlæser indstillinger..."
+msgid "Loading settings…"
+msgstr "Indlæser indstillinger…"
 
 msgid "Days before appointment"
 msgstr "Dage før aftalen"
@@ -184,8 +184,8 @@ msgstr "Notifications-appen er ikke aktiveret. Aktivér den for at bruge aftalep
 msgid "You can enable it in the Apps section of your Nextcloud settings."
 msgstr "Du kan aktivere den i Apps-sektionen i dine Nextcloud-indstillinger."
 
-msgid "Select groups..."
-msgstr "Vælg grupper..."
+msgid "Select groups…"
+msgstr "Vælg grupper…"
 
 msgid "%n group selected"
 msgstr "%n gruppe valgt"
@@ -202,8 +202,8 @@ msgstr "Start check-in"
 msgid "Back"
 msgstr "Tilbage"
 
-msgid "Loading appointment data..."
-msgstr "Indlæser aftaledata..."
+msgid "Loading appointment data…"
+msgstr "Indlæser aftaledata…"
 
 msgid "Error loading appointment"
 msgstr "Fejl ved indlæsning af aftale"
@@ -250,20 +250,20 @@ msgstr "Marker alle som fraværende"
 msgid "Reset All"
 msgstr "Nulstil alle"
 
-msgid "Search by name..."
-msgstr "Søg efter navn..."
+msgid "Search by name…"
+msgstr "Søg efter navn…"
 
 msgid "Filter by group"
 msgstr "Filtrer efter gruppe"
 
-msgid "Add admin comment..."
-msgstr "Tilføj administratorkommentar..."
+msgid "Add admin comment…"
+msgstr "Tilføj administratorkommentar…"
 
 msgid "Check-in comment"
 msgstr "Check-in kommentar"
 
-msgid "Add a comment for this check-in..."
-msgstr "Tilføj en kommentar til dette check-in..."
+msgid "Add a comment for this check-in…"
+msgstr "Tilføj en kommentar til dette check-in…"
 
 msgid "Share Link"
 msgstr "Del link"
@@ -289,8 +289,8 @@ msgstr "Alle fraværende"
 msgid "No appointments found"
 msgstr "Ingen aftaler fundet"
 
-msgid "Loading..."
-msgstr "Indlæser..."
+msgid "Loading…"
+msgstr "Indlæser…"
 
 msgid "Comment (optional)"
 msgstr "Kommentar (valgfri)"
@@ -430,8 +430,8 @@ msgstr "Synlig for"
 msgid "Leave empty to show appointment to all users"
 msgstr "Lad stå tomt for at vise aftalen til alle brugere"
 
-msgid "Search users, groups or teams..."
-msgstr "Søg brugere, grupper eller teams..."
+msgid "Search users, groups or teams…"
+msgstr "Søg brugere, grupper eller teams…"
 
 msgid "Response Summary Groups"
 msgstr "Grupper til svaroversigt"
@@ -648,8 +648,8 @@ msgstr "Hurra! Du har svaret på alle aftaler."
 msgid "Show upcoming appointments"
 msgstr "Vis kommende aftaler"
 
-msgid "Add your comment..."
-msgstr "Din kommentar..."
+msgid "Add your comment…"
+msgstr "Din kommentar…"
 
 msgid "Bold"
 msgstr "Fed"
@@ -675,8 +675,8 @@ msgstr "Indsæt link"
 msgid "Supports Markdown formatting"
 msgstr "Understøtter Markdown-formatering"
 
-msgid "Write your description here..."
-msgstr "Skriv din beskrivelse her..."
+msgid "Write your description here…"
+msgstr "Skriv din beskrivelse her…"
 
 msgid "User"
 msgstr "Bruger"
@@ -693,8 +693,8 @@ msgstr "Svaroversigt hold"
 msgid "Select which teams to include in response summaries. Team members will be grouped together like regular groups."
 msgstr "Vælg hvilke hold der skal inkluderes i svaroversigter. Holdmedlemmer vil blive grupperet ligesom almindelige grupper."
 
-msgid "Search and select teams..."
-msgstr "Søg og vælg hold..."
+msgid "Search and select teams…"
+msgstr "Søg og vælg hold…"
 
 msgid "%n team selected"
 msgstr "%n hold valgt"
@@ -708,8 +708,8 @@ msgstr "Importer fra kalender"
 msgid "Select a calendar event to pre-fill the appointment form."
 msgstr "Vælg en kalenderbegivenhed for at udfylde aftaleformularen automatisk."
 
-msgid "Loading calendars..."
-msgstr "Indlæser kalendere..."
+msgid "Loading calendars…"
+msgstr "Indlæser kalendere…"
 
 msgid "Select Calendar"
 msgstr "Vælg kalender"
@@ -717,8 +717,8 @@ msgstr "Vælg kalender"
 msgid "No calendars found"
 msgstr "Ingen kalendere fundet"
 
-msgid "Loading events..."
-msgstr "Indlæser begivenheder..."
+msgid "Loading events…"
+msgstr "Indlæser begivenheder…"
 
 msgid "Select Event"
 msgstr "Vælg begivenhed"
@@ -774,14 +774,14 @@ msgstr "Aktivér auto-synkronisering"
 msgid "Changes to the calendar event will automatically overwrite title, description, and date/time of this appointment."
 msgstr "Ændringer i kalenderbegivenheden vil automatisk overskrive titel, beskrivelse og dato/tid for denne aftale."
 
-msgid "Search calendars..."
-msgstr "Søg kalendere..."
+msgid "Search calendars…"
+msgstr "Søg kalendere…"
 
 msgid "No calendars match your search"
 msgstr "Ingen kalendere matcher din søgning"
 
-msgid "Search events..."
-msgstr "Søg begivenheder..."
+msgid "Search events…"
+msgstr "Søg begivenheder…"
 
 msgid "No events match your search"
 msgstr "Ingen begivenheder matcher din søgning"

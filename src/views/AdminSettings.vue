@@ -5,7 +5,7 @@
 
 		<div v-if="loadingData" class="loading-section">
 			<NcLoadingIcon :size="32" />
-			<p>{{ t('attendance', 'Loading settings...') }}</p>
+			<p>{{ t('attendance', 'Loading settings…') }}</p>
 		</div>
 
 		<template v-else>
@@ -15,7 +15,7 @@
 				<GroupSelect
 					v-model="selectedGroups"
 					:options="availableGroups"
-					:placeholder="t('attendance', 'Select groups...')"
+					:placeholder="t('attendance', 'Select groups…')"
 					:disabled="loading"
 					data-test="select-whitelisted-groups" />
 				<p class="hint-text">
@@ -30,7 +30,7 @@
 				<NcSelect
 					v-model="selectedTeams"
 					:options="teamSearchResults"
-					:placeholder="t('attendance', 'Search and select teams...')"
+					:placeholder="t('attendance', 'Search and select teams…')"
 					:multiple="true"
 					:disabled="loading"
 					:loading="isSearchingTeams"
@@ -67,7 +67,7 @@
 					<GroupSelect
 						v-model="selectedManageAppointmentsRoles"
 						:options="availableGroups"
-						:placeholder="t('attendance', 'Select groups...')"
+						:placeholder="t('attendance', 'Select groups…')"
 						:disabled="loading"
 						data-test="select-manage-appointments-roles" />
 					<p class="hint-text">
@@ -83,7 +83,7 @@
 					<GroupSelect
 						v-model="selectedCheckinRoles"
 						:options="availableGroups"
-						:placeholder="t('attendance', 'Select groups...')"
+						:placeholder="t('attendance', 'Select groups…')"
 						:disabled="loading"
 						data-test="select-checkin-roles" />
 					<p class="hint-text">
@@ -99,7 +99,7 @@
 					<GroupSelect
 						v-model="selectedSeeResponseOverviewRoles"
 						:options="availableGroups"
-						:placeholder="t('attendance', 'Select groups...')"
+						:placeholder="t('attendance', 'Select groups…')"
 						:disabled="loading"
 						data-test="select-see-response-overview-roles" />
 					<p class="hint-text">
@@ -115,7 +115,7 @@
 					<GroupSelect
 						v-model="selectedSeeCommentsRoles"
 						:options="availableGroups"
-						:placeholder="t('attendance', 'Select groups...')"
+						:placeholder="t('attendance', 'Select groups…')"
 						:disabled="loading"
 						data-test="select-see-comments-roles" />
 					<p class="hint-text">

@@ -67,7 +67,7 @@
 						v-model="localComment"
 						type="text"
 						:label="t('attendance', 'Comment (optional)')"
-						:placeholder="t('attendance', 'Add your comment...')"
+						:placeholder="t('attendance', 'Add your comment…')"
 						data-test="widget-response-comment"
 						@update:model-value="handleCommentInput" />
 
