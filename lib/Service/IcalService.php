@@ -232,6 +232,21 @@ class IcalService {
 			$descriptionParts[] = $responseText;
 		}
 
+		// Add attachments section if there are any
+		$attachments = $this->attachmentMapper->findByAppointment($appointment->getId());
+		if (count($attachments) > 0) {
+			$attachmentLines = [$l->t('Attachments') . ':'];
+			foreach ($attachments as $attachment) {
+				$attachUrl = $this->urlGenerator->getAbsoluteURL('/f/' . $attachment->getFileId());
+				$attachmentLines[] = $attachment->getFileName();
+				$attachmentLines[] = $attachUrl;
+				$attachmentLines[] = ''; // Empty line between attachments
+			}
+			// Remove trailing empty line
+			array_pop($attachmentLines);
+			$descriptionParts[] = implode("\n", $attachmentLines);
+		}
+
 		// Add link to respond
 		$descriptionParts[] = $l->t('View or change your response') . ":\n" . $this->urlGenerator->linkToRouteAbsolute('attendance.page.index') . '#/appointment/' . $appointment->getId();
 
@@ -280,8 +295,7 @@ class IcalService {
 		$output .= 'STATUS:' . $status . "\r\n";
 		$output .= 'TRANSP:' . $transp . "\r\n";
 
-		// Add attachments
-		$attachments = $this->attachmentMapper->findByAppointment($appointment->getId());
+		// Add attachments as ATTACH properties (using already loaded attachments)
 		foreach ($attachments as $attachment) {
 			$attachUrl = $this->urlGenerator->getAbsoluteURL('/f/' . $attachment->getFileId());
 			$output .= 'ATTACH:' . $attachUrl . "\r\n";
