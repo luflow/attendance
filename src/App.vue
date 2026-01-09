@@ -30,7 +30,7 @@
 				</NcAppNavigationItem>
 
 				<NcAppNavigationItem
-					:name="t('attendance', 'Upcoming Appointments')"
+					:name="t('attendance', 'Upcoming appointments')"
 					:active="currentView === 'current'"
 					data-test="nav-upcoming"
 					@click.prevent="setView('current')">
@@ -56,7 +56,7 @@
 				</NcAppNavigationItem>
 
 				<NcAppNavigationItem
-					:name="t('attendance', 'Past Appointments')"
+					:name="t('attendance', 'Past appointments')"
 					:active="currentView === 'past'"
 					:open="pastAppointmentsExpanded"
 					data-test="nav-past"
@@ -86,7 +86,7 @@
 			<template #footer>
 				<NcAppNavigationItem
 					v-if="permissions.canManageAppointments"
-					:name="t('attendance', 'Create Appointment')"
+					:name="t('attendance', 'Create appointment')"
 					data-test="button-create-appointment"
 					@click.prevent="createNewAppointment">
 					<template #icon>
@@ -103,7 +103,7 @@
 					</template>
 				</NcAppNavigationItem>
 				<NcAppNavigationItem
-					:name="t('attendance', 'Calendar Subscription')"
+					:name="t('attendance', 'Calendar subscription')"
 					data-test="button-calendar-feed"
 					@click.prevent="showIcalFeedModal = true">
 					<template #icon>
@@ -326,7 +326,7 @@ const exportAppointments = async () => {
 		const response = await axios.post(generateUrl('/apps/attendance/api/export'))
 
 		if (response.data.success) {
-			showSuccess(t('attendance', 'Export created successfully: {filename}', { filename: response.data.filename }))
+			showSuccess(t('attendance', 'Export created: {filename}', { filename: response.data.filename }))
 
 			const filesUrl = generateUrl('/apps/files/?dir=/Attendance')
 			window.location.href = filesUrl

@@ -4,7 +4,7 @@
 
 		<div v-if="loading" class="loading-container">
 			<NcLoadingIcon />
-			<p>{{ t('attendance', 'Loading appointment data…') }}</p>
+			<p>{{ t('attendance', 'Loading appointment data …') }}</p>
 		</div>
 
 		<div v-else-if="error" class="error-container">
@@ -57,7 +57,7 @@
 		<!-- Confirmation Dialog -->
 		<NcDialog
 			:open="showConfirmDialog"
-			:name="t('attendance', 'Confirm Bulk Action')"
+			:name="t('attendance', 'Confirm bulk action')"
 			:message="confirmMessage"
 			data-test="dialog-confirm-bulk"
 			@closing="cancelBulkAction">
@@ -204,9 +204,7 @@ const confirmBulkCheckin = (response) => {
 	const userCount = filteredAllUsers.value.length
 	const actionText = response === 'yes' ? window.t('attendance', 'attending') : window.t('attendance', 'not attending')
 
-	confirmMessage.value = window.t('attendance', 'Do you really want to set all {count} users to {action}?')
-		.replace('{count}', userCount)
-		.replace('{action}', actionText)
+	confirmMessage.value = window.t('attendance', 'Do you want to set {count} users to {action}?', { count: userCount, action: actionText })
 
 	pendingBulkAction.value = response
 	showConfirmDialog.value = true

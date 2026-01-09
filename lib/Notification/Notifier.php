@@ -50,7 +50,7 @@ class Notifier implements INotifier {
 				$userId = $notification->getUser();
 
 				$notification->setParsedSubject(
-					$l->t('Response missing: %s on %s', [$appointmentName, $appointmentDate])
+					$l->t('Response missing: %1$s on %2$s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
 					$l->t('Please respond to the upcoming appointment!')
@@ -74,7 +74,7 @@ class Notifier implements INotifier {
 				$userId = $notification->getUser();
 
 				$notification->setParsedSubject(
-					$l->t('New appointment: %s on %s', [$appointmentName, $appointmentDate])
+					$l->t('New appointment: %1$s on %2$s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
 					$l->t('A new appointment has been created. Please respond soon.')

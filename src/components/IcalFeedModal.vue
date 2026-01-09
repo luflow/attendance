@@ -1,6 +1,6 @@
 <template>
 	<NcDialog :open="show"
-		:name="t('attendance', 'Calendar Subscription')"
+		:name="t('attendance', 'Calendar subscription')"
 		@update:open="handleClose">
 		<div class="ical-feed-modal">
 			<p class="description">

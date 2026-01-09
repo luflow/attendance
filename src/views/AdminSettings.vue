@@ -5,17 +5,18 @@
 
 		<div v-if="loadingData" class="loading-section">
 			<NcLoadingIcon :size="32" />
-			<p>{{ t('attendance', 'Loading settings…') }}</p>
+			<p>{{ t('attendance', 'Loading settings …') }}</p>
 		</div>
 
 		<template v-else>
-			<NcSettingsSection :name="t('attendance', 'Response Summary Groups')"
+			<!-- TRANSLATORS: Admin settings section title. The "Response summary" is the main feature of this app - it shows attendance statistics on the appointment detail page, counting users by their Nextcloud group membership. Groups selected here will have their own sections in the summary; users not in these groups appear under "Others". -->
+			<NcSettingsSection :name="t('attendance', 'Response summary groups')"
 				:description="t('attendance', 'Select which groups to include in response summaries. Users outside these groups will appear under Others. Leave empty to include all groups.')"
 				data-test="section-tracking-groups">
 				<GroupSelect
 					v-model="selectedGroups"
 					:options="availableGroups"
-					:placeholder="t('attendance', 'Select groups…')"
+					:placeholder="t('attendance', 'Select groups …')"
 					:disabled="loading"
 					data-test="select-whitelisted-groups" />
 				<p class="hint-text">
@@ -23,14 +24,14 @@
 				</p>
 			</NcSettingsSection>
 
-			<NcSettingsSection v-if="teamsAvailable"
-				:name="t('attendance', 'Response Summary Teams')"
+			<!-- TRANSLATORS: Admin settings section title. Similar to groups above, but for Nextcloud Teams (formerly Circles). Teams selected here will have their own sections in the attendance statistics on the appointment detail page, showing how many team members responded yes/no/maybe. -->
+			<NcSettingsSection v-if="teamsAvailable" :name="t('attendance', 'Response summary teams')"
 				:description="t('attendance', 'Select which teams to include in response summaries. Team members will be grouped together like regular groups.')"
 				data-test="section-tracking-teams">
 				<NcSelect
 					v-model="selectedTeams"
 					:options="teamSearchResults"
-					:placeholder="t('attendance', 'Search and select teams…')"
+					:placeholder="t('attendance', 'Search and select teams …')"
 					:multiple="true"
 					:disabled="loading"
 					:loading="isSearchingTeams"
@@ -60,14 +61,14 @@
 			<NcSettingsSection :name="t('attendance', 'Permissions')"
 				:description="t('attendance', 'Configure which groups can perform specific actions. Users must belong to at least one of the selected groups to access the feature. If no group is selected, all users have access to the feature.')">
 				<div class="subsection">
-					<h4>{{ t('attendance', 'Manage Appointments') }}</h4>
+					<h4>{{ t('attendance', 'Manage appointments') }}</h4>
 					<p class="subsection-hint">
 						{{ t('attendance', 'Groups that can create, update, and delete appointments') }}
 					</p>
 					<GroupSelect
 						v-model="selectedManageAppointmentsRoles"
 						:options="availableGroups"
-						:placeholder="t('attendance', 'Select groups…')"
+						:placeholder="t('attendance', 'Select groups …')"
 						:disabled="loading"
 						data-test="select-manage-appointments-roles" />
 					<p class="hint-text">
@@ -76,14 +77,14 @@
 				</div>
 
 				<div class="subsection">
-					<h4>{{ t('attendance', 'Check-in Access') }}</h4>
+					<h4>{{ t('attendance', 'Check-in access') }}</h4>
 					<p class="subsection-hint">
 						{{ t('attendance', 'Groups that can access the check-in interface and execute check-ins') }}
 					</p>
 					<GroupSelect
 						v-model="selectedCheckinRoles"
 						:options="availableGroups"
-						:placeholder="t('attendance', 'Select groups…')"
+						:placeholder="t('attendance', 'Select groups …')"
 						:disabled="loading"
 						data-test="select-checkin-roles" />
 					<p class="hint-text">
@@ -92,14 +93,14 @@
 				</div>
 
 				<div class="subsection">
-					<h4>{{ t('attendance', 'See Response Overview') }}</h4>
+					<h4>{{ t('attendance', 'See response overview') }}</h4>
 					<p class="subsection-hint">
 						{{ t('attendance', 'Groups that can see the response overview with details') }}
 					</p>
 					<GroupSelect
 						v-model="selectedSeeResponseOverviewRoles"
 						:options="availableGroups"
-						:placeholder="t('attendance', 'Select groups…')"
+						:placeholder="t('attendance', 'Select groups …')"
 						:disabled="loading"
 						data-test="select-see-response-overview-roles" />
 					<p class="hint-text">
@@ -108,14 +109,14 @@
 				</div>
 
 				<div class="subsection">
-					<h4>{{ t('attendance', 'See Comments') }}</h4>
+					<h4>{{ t('attendance', 'See comments') }}</h4>
 					<p class="subsection-hint">
 						{{ t('attendance', 'Groups that can see comments in the response overview') }}
 					</p>
 					<GroupSelect
 						v-model="selectedSeeCommentsRoles"
 						:options="availableGroups"
-						:placeholder="t('attendance', 'Select groups…')"
+						:placeholder="t('attendance', 'Select groups …')"
 						:disabled="loading"
 						data-test="select-see-comments-roles" />
 					<p class="hint-text">
@@ -124,7 +125,7 @@
 				</div>
 			</NcSettingsSection>
 
-			<NcSettingsSection :name="t('attendance', 'Appointment Reminders')"
+			<NcSettingsSection :name="t('attendance', 'Appointment reminders')"
 				:description="t('attendance', 'Send automatic reminder notifications to users who haven\'t responded to appointments.')">
 				<NcNoteCard v-if="!notificationsAppEnabled" type="warning">
 					<p>{{ t('attendance', 'The Notifications app is not enabled. Please enable it to use appointment reminders.') }}</p>
@@ -164,7 +165,7 @@
 
 			<div id="calendar-sync">
 				<NcSettingsSection
-					:name="t('attendance', 'Calendar Sync')"
+					:name="t('attendance', 'Calendar sync')"
 					:description="t('attendance', 'Automatically update attendance appointments when their linked calendar events are modified.')">
 					<NcNoteCard v-if="!calendarSyncAvailable" type="warning">
 						<p>{{ t('attendance', 'Calendar sync requires Nextcloud 32 or newer.') }}</p>
@@ -189,7 +190,7 @@
 
 			<NcSettingsSection>
 				<NcButton
-					type="primary"
+					variant="primary"
 					:disabled="loading"
 					data-test="button-save-settings"
 					@click="saveSettings">
@@ -361,7 +362,7 @@ const saveSettings = async () => {
 		)
 
 		if (response.data.success) {
-			showSuccess(window.t('attendance', 'Settings saved successfully'))
+			showSuccess(window.t('attendance', 'Settings saved'))
 		} else {
 			showError(window.t('attendance', 'Failed to save settings')
 				+ (response.data.error ? ': ' + response.data.error : ''))

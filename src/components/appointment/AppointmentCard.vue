@@ -10,7 +10,7 @@
 						<template #icon>
 							<ShareVariantIcon :size="20" />
 						</template>
-						{{ t('attendance', 'Share Link') }}
+						{{ t('attendance', 'Share link') }}
 					</NcActionButton>
 					<NcActionButton v-if="canCheckin"
 						:close-after-click="true"
@@ -73,8 +73,8 @@
 		</div>
 
 		<div class="appointment-time">
-			<strong>{{ t('attendance', 'Start Date & Time') }}:</strong> {{ formatDateTime(appointment.startDatetime) }}<br>
-			<strong>{{ t('attendance', 'End Date & Time') }}:</strong> {{ formatDateTime(appointment.endDatetime) }}
+			<strong>{{ t('attendance', 'Start date & time') }}:</strong> {{ formatDateTime(appointment.startDatetime) }}<br>
+			<strong>{{ t('attendance', 'End date & time') }}:</strong> {{ formatDateTime(appointment.endDatetime) }}
 			<!-- Calendar Source Indicator -->
 			<template v-if="calendarLink">
 				<br>
@@ -83,14 +83,14 @@
 					rel="noopener noreferrer"
 					class="calendar-link">
 					<CalendarIcon :size="16" />
-					<span>{{ t('attendance', 'Imported from Calendar') }}</span>
+					<span>{{ t('attendance', 'Imported from calendar') }}</span>
 				</a>
 			</template>
 		</div>
 
 		<!-- Response Section -->
 		<div class="response-section" data-test="response-section">
-			<h4>{{ t('attendance', 'Your Response') }}</h4>
+			<h4>{{ t('attendance', 'Your response') }}</h4>
 			<div class="response-buttons" :class="{ 'has-response': userResponse }">
 				<NcButton
 					:class="{ active: userResponse === 'yes' }"
@@ -131,7 +131,7 @@
 						v-model="localComment"
 						type="text"
 						:label="t('attendance', 'Comment (optional)')"
-						:placeholder="t('attendance', 'Add your comment…')"
+						:placeholder="t('attendance', 'Add your comment …')"
 						data-test="response-comment"
 						@update:model-value="handleCommentInputEvent" />
 
@@ -162,8 +162,7 @@ import { NcButton, NcActions, NcActionButton, NcInputField, NcChip } from '@next
 import ResponseSummary from './ResponseSummary.vue'
 import { renderMarkdown, sanitizeHtml } from '../../utils/markdown.js'
 import { generateUrl } from '@nextcloud/router'
-import { showSuccess, showError } from '@nextcloud/dialogs'
-import axios from '@nextcloud/axios'
+import { showSuccess } from '@nextcloud/dialogs'
 import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
 import ShareVariantIcon from 'vue-material-design-icons/ShareVariant.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
@@ -175,6 +174,7 @@ import Paperclip from 'vue-material-design-icons/Paperclip.vue'
 import CommentIcon from 'vue-material-design-icons/Comment.vue'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import { formatDateTime } from '../../utils/datetime.js'
+import { useAppointmentResponse } from '../../composables/useAppointmentResponse.js'
 
 const props = defineProps({
 	appointment: {
@@ -204,10 +204,15 @@ const emit = defineEmits(['start-checkin', 'edit', 'copy', 'delete', 'submit-res
 const localComment = ref(props.appointment.userResponse?.comment || '')
 const commentExpanded = ref(false)
 const commentInput = ref(null)
-const savingComment = ref(false)
-const commentSaved = ref(false)
-const errorComment = ref(false)
 let commentTimeout = null
+
+// Use the shared response composable for comment auto-save
+const {
+	savingComment,
+	commentSaved,
+	errorComment,
+	autoSaveComment,
+} = useAppointmentResponse()
 
 const toggleComment = async () => {
 	commentExpanded.value = !commentExpanded.value
@@ -307,47 +312,8 @@ const handleCommentInputEvent = () => {
 	commentTimeout = setTimeout(async () => {
 		// Wait for Vue to update the DOM and reactive values
 		await nextTick()
-		autoSaveComment(localComment.value)
+		autoSaveComment(props.appointment.id, userResponse.value, localComment.value)
 	}, 500)
-}
-
-const autoSaveComment = async (commentText) => {
-	if (!userResponse.value) return
-
-	savingComment.value = true
-	commentSaved.value = false
-	errorComment.value = false
-
-	try {
-		const url = generateUrl('/apps/attendance/api/appointments/{id}/respond', { id: props.appointment.id })
-		const axiosResponse = await axios.post(url, {
-			response: userResponse.value,
-			comment: commentText,
-		})
-
-		// Check if response status is 2xx
-		if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
-			throw new Error(`API returned status ${axiosResponse.status}`)
-		}
-
-		setTimeout(() => {
-			savingComment.value = false
-			commentSaved.value = true
-
-			setTimeout(() => {
-				commentSaved.value = false
-			}, 2000)
-		}, 500)
-	} catch (error) {
-		console.error('Failed to save comment:', error)
-		savingComment.value = false
-		errorComment.value = true
-		showError(t('attendance', 'Comment could not be saved'))
-
-		setTimeout(() => {
-			errorComment.value = false
-		}, 3000)
-	}
 }
 </script>
 

@@ -1,0 +1,904 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Nextcloud package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Nextcloud 3.14159\n"
+"Report-Msgid-Bugs-To: translations\\@example.com\n"
+"POT-Creation-Date: 2026-01-09 19:04+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: attendance/lib/Controller/QuickResponseController.php:187
+msgid "Response recorded"
+msgstr ""
+
+#: attendance/lib/Controller/QuickResponseController.php:203
+msgid "An error occurred while recording your response. Please try again."
+msgstr ""
+
+#: attendance/lib/Controller/QuickResponseController.php:223
+msgid "Invalid response type."
+msgstr ""
+
+#: attendance/lib/Controller/QuickResponseController.php:231
+msgid "This link is invalid. Please use the link from your notification."
+msgstr ""
+
+#: attendance/lib/Controller/QuickResponseController.php:239
+msgid "This link has expired. The appointment has already ended."
+msgstr ""
+
+#: attendance/lib/Controller/QuickResponseController.php:248
+msgid "This link is no longer valid."
+msgstr ""
+
+#: attendance/lib/Controller/QuickResponseController.php:257
+msgid "This appointment no longer exists."
+msgstr ""
+
+#. TRANSLATORS src/components/appointment/AppointmentCard.vue:98
+#. TRANSLATORS src/components/appointment/ResponseSummary.vue:7
+#. TRANSLATORS src/components/widget/WidgetAppointmentItem.vue:34
+#: attendance/lib/Controller/QuickResponseController.php:270
+#: attendance/lib/Notification/Notifier.php:138
+#: attendance/lib/Service/ExportService.php:450
+#: attendance/lib/Service/IcalService.php:193
+#: attendance/src/utils/response.js:35
+msgid "Yes"
+msgstr ""
+
+#. TRANSLATORS src/components/appointment/AppointmentCard.vue:110
+#. TRANSLATORS src/components/appointment/ResponseSummary.vue:9
+#. TRANSLATORS src/components/widget/WidgetAppointmentItem.vue:46
+#: attendance/lib/Controller/QuickResponseController.php:272
+#: attendance/lib/Notification/Notifier.php:116
+#: attendance/lib/Service/ExportService.php:452
+#: attendance/lib/Service/IcalService.php:194
+#: attendance/src/utils/response.js:36
+msgid "No"
+msgstr ""
+
+#. TRANSLATORS src/components/appointment/AppointmentCard.vue:104
+#. TRANSLATORS src/components/appointment/ResponseSummary.vue:8
+#. TRANSLATORS src/components/widget/WidgetAppointmentItem.vue:40
+#: attendance/lib/Controller/QuickResponseController.php:274
+#: attendance/lib/Notification/Notifier.php:127
+#: attendance/lib/Service/ExportService.php:454
+#: attendance/lib/Service/IcalService.php:195
+#: attendance/src/utils/response.js:37
+msgid "Maybe"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:3
+#: attendance/lib/Dashboard/Widget.php:52
+#: attendance/lib/Notification/Notifier.php:34
+#: attendance/lib/Settings/AdminSection.php:36
+msgid "Attendance"
+msgstr ""
+
+#: attendance/lib/Notification/Notifier.php:53
+#, php-format
+msgid "Response missing: %1$s on %2$s"
+msgstr ""
+
+#: attendance/lib/Notification/Notifier.php:56
+msgid "Please respond to the upcoming appointment!"
+msgstr ""
+
+#: attendance/lib/Notification/Notifier.php:77
+#, php-format
+msgid "New appointment: %1$s on %2$s"
+msgstr ""
+
+#: attendance/lib/Notification/Notifier.php:80
+msgid "A new appointment has been created. Please respond soon."
+msgstr ""
+
+#. TRANSLATORS src/components/appointment/ResponseSummary.vue:136
+#: attendance/lib/Service/ExportService.php:97
+#: attendance/lib/Service/ExportService.php:107
+msgid "Others"
+msgstr ""
+
+#: attendance/lib/Service/ExportService.php:333
+msgid "Group"
+msgstr ""
+
+#: attendance/lib/Service/IcalService.php:144
+msgid "Attendance appointments"
+msgstr ""
+
+#: attendance/lib/Service/IcalService.php:213
+msgid "Me"
+msgstr ""
+
+#: attendance/lib/Service/IcalService.php:226
+msgid "Please respond! We still need your answer."
+msgstr ""
+
+#. TRANSLATORS src/components/appointment/AppointmentCard.vue:93
+#: attendance/lib/Service/IcalService.php:228
+msgid "Your response"
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:111
+#: attendance/lib/Service/IcalService.php:238
+msgid "Attachments"
+msgstr ""
+
+#: attendance/lib/Service/IcalService.php:251
+msgid "View or change your response"
+msgstr ""
+
+msgid "Export created: {filename}"
+msgstr ""
+
+msgid "Failed to export appointments"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:9
+msgid "Unanswered"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:33
+msgid "Upcoming appointments"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:59
+msgid "Past appointments"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:89
+msgid "Create appointment"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:98
+msgid "Export"
+msgstr ""
+
+#. TRANSLATORS src/App.vue:106
+#. TRANSLATORS src/components/IcalFeedModal.vue:3
+msgid "Calendar subscription"
+msgstr ""
+
+#. TRANSLATORS src/components/IcalFeedModal.vue:7
+msgid ""
+"Subscribe to your appointments in external calendar apps like Google "
+"Calendar, Apple Calendar, or Thunderbird."
+msgstr ""
+
+#. TRANSLATORS src/components/IcalFeedModal.vue:16
+msgid "Subscription URL"
+msgstr ""
+
+#. TRANSLATORS src/components/IcalFeedModal.vue:19
+msgid "Copy URL"
+msgstr ""
+
+#. TRANSLATORS src/components/IcalFeedModal.vue:25
+#. TRANSLATORS src/components/appointment/AppointmentCard.vue:40
+msgid "Copy"
+msgstr ""
+
+#. TRANSLATORS src/components/IcalFeedModal.vue:30
+msgid "Quick subscribe"
+msgstr ""
+
+#. TRANSLATORS src/components/IcalFeedModal.vue:39
+msgid "Google Calendar"
+msgstr ""
+
+#. TRANSLATORS src/components/IcalFeedModal.vue:47
+msgid "Apple Calendar"
+msgstr ""
+
+#. TRANSLATORS src/components/IcalFeedModal.vue:53
+msgid "Last accessed"
+msgstr ""
+
+#. TRANSLATORS src/components/IcalFeedModal.vue:58
+msgid "Keep this URL private! Anyone with this link can see your appointments."
+msgstr ""
+
+#. TRANSLATORS src/components/IcalFeedModal.vue:69
+msgid "Regenerate URL"
+msgstr ""
+
+#. TRANSLATORS src/components/IcalFeedModal.vue:77
+msgid "Regenerate Subscription URL?"
+msgstr ""
+
+#. TRANSLATORS src/components/IcalFeedModal.vue:79
+msgid ""
+"This will invalidate your current calendar subscription URL. Any calendar "
+"apps using the old URL will need to be updated with the new URL."
+msgstr ""
+
+#. TRANSLATORS src/components/IcalFeedModal.vue:82
+#. TRANSLATORS src/components/checkin/CheckinUserItem.vue:97
+#. TRANSLATORS src/views/AppointmentForm.vue:179
+#. TRANSLATORS src/views/Checkin.vue:66
+msgid "Cancel"
+msgstr ""
+
+#. TRANSLATORS src/components/IcalFeedModal.vue:85
+msgid "Regenerate"
+msgstr ""
+
+msgid "Link copied to clipboard"
+msgstr ""
+
+#. TRANSLATORS src/components/appointment/AppointmentCard.vue:13
+msgid "Share link"
+msgstr ""
+
+#. TRANSLATORS src/components/appointment/AppointmentCard.vue:22
+#. TRANSLATORS src/components/widget/WidgetAppointmentItem.vue:13
+msgid "Start check-in"
+msgstr ""
+
+#. TRANSLATORS src/components/appointment/AppointmentCard.vue:31
+msgid "Edit"
+msgstr ""
+
+#. TRANSLATORS src/components/appointment/AppointmentCard.vue:49
+msgid "Delete"
+msgstr ""
+
+#. TRANSLATORS src/components/appointment/AppointmentCard.vue:76
+#. TRANSLATORS src/views/AppointmentForm.vue:83
+msgid "Start date & time"
+msgstr ""
+
+#. TRANSLATORS src/components/appointment/AppointmentCard.vue:77
+#. TRANSLATORS src/views/AppointmentForm.vue:92
+msgid "End date & time"
+msgstr ""
+
+#. TRANSLATORS src/components/appointment/AppointmentCard.vue:86
+msgid "Imported from calendar"
+msgstr ""
+
+#. TRANSLATORS src/components/appointment/AppointmentCard.vue:133
+#. TRANSLATORS src/components/widget/WidgetAppointmentItem.vue:69
+msgid "Comment (optional)"
+msgstr ""
+
+#. TRANSLATORS src/components/appointment/AppointmentCard.vue:134
+#. TRANSLATORS src/components/widget/WidgetAppointmentItem.vue:70
+msgid "Add your comment …"
+msgstr ""
+
+#. TRANSLATORS src/components/appointment/ResponseSummary.vue:3
+msgid "Response summary"
+msgstr ""
+
+#. TRANSLATORS src/components/appointment/ResponseSummary.vue:10
+#. TRANSLATORS src/components/checkin/CheckinUserItem.vue:19
+msgid "No response"
+msgstr ""
+
+#. TRANSLATORS src/components/appointment/ResponseSummary.vue:48
+msgid "Checked in?"
+msgstr ""
+
+#. TRANSLATORS src/components/appointment/ResponseSummary.vue:64
+msgid "No response yet:"
+msgstr ""
+
+#. TRANSLATORS src/components/calendar/CalendarEventPicker.vue:65
+msgid "Select event"
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:18
+msgid "Import from calendar"
+msgstr ""
+
+#. TRANSLATORS src/components/calendar/CalendarEventPicker.vue:7
+msgid "Select a calendar event to pre-fill the appointment form."
+msgstr ""
+
+#. TRANSLATORS src/components/calendar/CalendarEventPicker.vue:14
+msgid "Loading calendars …"
+msgstr ""
+
+#. TRANSLATORS src/components/calendar/CalendarEventPicker.vue:18
+msgid "Select calendar"
+msgstr ""
+
+#. TRANSLATORS src/components/calendar/CalendarEventPicker.vue:21
+msgid "Search calendars …"
+msgstr ""
+
+#. TRANSLATORS src/components/calendar/CalendarEventPicker.vue:34
+msgid "No calendars match your search"
+msgstr ""
+
+#. TRANSLATORS src/components/calendar/CalendarEventPicker.vue:40
+msgid "No calendars found"
+msgstr ""
+
+#. TRANSLATORS src/components/calendar/CalendarEventPicker.vue:51
+#. TRANSLATORS src/components/checkin/CheckinHeader.vue:7
+#. TRANSLATORS src/views/AppointmentDetail.vue:9
+#. TRANSLATORS src/views/AppointmentForm.vue:9
+msgid "Back"
+msgstr ""
+
+#. TRANSLATORS src/components/calendar/CalendarEventPicker.vue:61
+msgid "Loading events …"
+msgstr ""
+
+#. TRANSLATORS src/components/calendar/CalendarEventPicker.vue:68
+msgid "Search events …"
+msgstr ""
+
+#. TRANSLATORS src/components/calendar/CalendarEventPicker.vue:76
+msgid "Untitled event"
+msgstr ""
+
+#. TRANSLATORS src/components/calendar/CalendarEventPicker.vue:83
+msgid "No events match your search"
+msgstr ""
+
+#. TRANSLATORS src/components/calendar/CalendarEventPicker.vue:89
+msgid "No upcoming events in this calendar"
+msgstr ""
+
+#. TRANSLATORS src/components/checkin/CheckinAppointmentInfo.vue:3
+msgid "Check-in"
+msgstr ""
+
+#. TRANSLATORS src/components/checkin/CheckinAppointmentInfo.vue:5
+msgid "Start"
+msgstr ""
+
+#. TRANSLATORS src/components/checkin/CheckinAppointmentInfo.vue:6
+msgid "End"
+msgstr ""
+
+#. TRANSLATORS src/components/checkin/CheckinBulkActions.vue:9
+msgid "All present"
+msgstr ""
+
+#. TRANSLATORS src/components/checkin/CheckinBulkActions.vue:16
+msgid "All absent"
+msgstr ""
+
+#. TRANSLATORS src/components/checkin/CheckinControls.vue:6
+msgid "Search by name …"
+msgstr ""
+
+#. TRANSLATORS src/components/checkin/CheckinControls.vue:16
+msgid "Filter by group"
+msgstr ""
+
+#. TRANSLATORS src/components/checkin/CheckinStatus.vue:5
+msgid "All attendees checked in"
+msgstr ""
+
+#. TRANSLATORS src/components/checkin/CheckinStatus.vue:9
+msgid "{count} attendee not yet checked in"
+msgid_plural "{count} attendees not yet checked in"
+msgstr[0] ""
+msgstr[1] ""
+
+#. TRANSLATORS src/components/checkin/CheckinUserItem.vue:35
+msgid "Present"
+msgstr ""
+
+#. TRANSLATORS src/components/checkin/CheckinUserItem.vue:41
+msgid "Absent"
+msgstr ""
+
+#. TRANSLATORS src/components/checkin/CheckinUserItem.vue:46
+msgid "Add comment"
+msgstr ""
+
+#. TRANSLATORS src/components/checkin/CheckinUserItem.vue:87
+msgid "Check-in comment"
+msgstr ""
+
+#. TRANSLATORS src/components/checkin/CheckinUserItem.vue:88
+msgid "Add a comment for this check-in …"
+msgstr ""
+
+#. TRANSLATORS src/components/checkin/CheckinUserItem.vue:94
+#. TRANSLATORS src/views/AdminSettings.vue:200
+#. TRANSLATORS src/views/AppointmentForm.vue:188
+msgid "Save"
+msgstr ""
+
+msgid "Bold"
+msgstr ""
+
+msgid "Italic"
+msgstr ""
+
+msgid "Strikethrough"
+msgstr ""
+
+msgid "Bullet list"
+msgstr ""
+
+msgid "Numbered list"
+msgstr ""
+
+msgid "Quote"
+msgstr ""
+
+msgid "Insert link"
+msgstr ""
+
+msgid "Failed to load settings"
+msgstr ""
+
+msgid "Settings saved"
+msgstr ""
+
+msgid "Failed to save settings"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:4
+msgid "Configure attendance management and reminders"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:8
+msgid "Loading settings …"
+msgstr ""
+
+#. TRANSLATORS Admin settings section title. The "Response summary" is the main feature of this app - it shows attendance statistics on the appointment detail page, counting users by their Nextcloud group membership. Groups selected here will have their own sections in the summary; users not in these groups appear under "Others". (src/views/AdminSettings.vue:13)
+msgid "Response summary groups"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:14
+msgid ""
+"Select which groups to include in response summaries. Users outside these "
+"groups will appear under Others. Leave empty to include all groups."
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:19
+msgid "Select groups …"
+msgstr ""
+
+#. TRANSLATORS Admin settings section title. Similar to groups above, but for Nextcloud Teams (formerly Circles). Teams selected here will have their own sections in the attendance statistics on the appointment detail page, showing how many team members responded yes/no/maybe. (src/views/AdminSettings.vue:28)
+msgid "Response summary teams"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:29
+msgid ""
+"Select which teams to include in response summaries. Team members will be "
+"grouped together like regular groups."
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:34
+msgid "Search and select teams …"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:61
+msgid "Permissions"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:62
+msgid ""
+"Configure which groups can perform specific actions. Users must belong to at "
+"least one of the selected groups to access the feature. If no group is "
+"selected, all users have access to the feature."
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:64
+msgid "Manage appointments"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:66
+msgid "Groups that can create, update, and delete appointments"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:80
+msgid "Check-in access"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:82
+msgid "Groups that can access the check-in interface and execute check-ins"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:96
+msgid "See response overview"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:98
+msgid "Groups that can see the response overview with details"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:112
+msgid "See comments"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:114
+msgid "Groups that can see comments in the response overview"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:128
+msgid "Appointment reminders"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:129
+msgid ""
+"Send automatic reminder notifications to users who haven't responded to "
+"appointments."
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:131
+msgid ""
+"The Notifications app is not enabled. Please enable it to use appointment "
+"reminders."
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:133
+msgid "You can enable it in the Apps section of your Nextcloud settings."
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:142
+msgid "Enable automatic reminders"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:149
+msgid "Days before appointment"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:150
+msgid "Send reminders this many days before the appointment (1-30 days)"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:158
+msgid "Reminder frequency (days)"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:159
+msgid ""
+"How often to remind users who haven't responded. Set to 0 to only remind "
+"once, or 1-30 to repeat reminders every N days."
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:168
+msgid "Calendar sync"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:169
+msgid ""
+"Automatically update attendance appointments when their linked calendar "
+"events are modified."
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:171
+msgid "Calendar sync requires Nextcloud 32 or newer."
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:173
+msgid ""
+"This feature uses calendar event hooks that are only available in Nextcloud "
+"32 and later versions."
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:182
+msgid "Enable automatic calendar sync"
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:185
+msgid ""
+"When enabled, changes to calendar events will automatically update linked "
+"attendance appointments (title, description, date/time)."
+msgstr ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:23
+#. TRANSLATORS src/views/AdminSettings.vue:75
+#. TRANSLATORS src/views/AdminSettings.vue:91
+#. TRANSLATORS src/views/AdminSettings.vue:107
+#. TRANSLATORS src/views/AdminSettings.vue:123
+msgid "%n group selected"
+msgid_plural "%n groups selected"
+msgstr[0] ""
+msgstr[1] ""
+
+#. TRANSLATORS src/views/AdminSettings.vue:57
+msgid "%n team selected"
+msgid_plural "%n teams selected"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Are you sure you want to delete this appointment?"
+msgstr ""
+
+#. TRANSLATORS src/views/AllAppointments.vue:10
+msgid "Hurray! You responded to all appointments."
+msgstr ""
+
+#. TRANSLATORS src/views/AllAppointments.vue:13
+msgid "Show upcoming appointments"
+msgstr ""
+
+#. TRANSLATORS src/views/AllAppointments.vue:21
+#. TRANSLATORS src/views/AppointmentDetail.vue:4
+#. TRANSLATORS src/views/AppointmentForm.vue:27
+msgid "Loading …"
+msgstr ""
+
+#. TRANSLATORS src/views/AllAppointments.vue:24
+#. TRANSLATORS src/views/Widget.vue:9
+msgid "No appointments found"
+msgstr ""
+
+#. TRANSLATORS src/views/AllAppointments.vue:7
+msgid "%n appointment awaiting your response"
+msgid_plural "%n appointments awaiting your response"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Appointment deleted"
+msgstr ""
+
+msgid "Error deleting appointment"
+msgstr ""
+
+msgid "Appointment not found"
+msgstr ""
+
+#. TRANSLATORS src/views/Checkin.vue:11
+msgid "Error loading appointment"
+msgstr ""
+
+msgid "Edit appointment"
+msgstr ""
+
+msgid "Copy appointment"
+msgstr ""
+
+msgid "User"
+msgstr ""
+
+msgid "Team"
+msgstr ""
+
+msgid "Choose files to attach"
+msgstr ""
+
+msgid "Attach"
+msgstr ""
+
+msgid "Attachment added"
+msgstr ""
+
+msgid "Failed to add attachment"
+msgstr ""
+
+msgid "Attachment removed"
+msgstr ""
+
+msgid "Failed to remove attachment"
+msgstr ""
+
+msgid "Please enter an appointment name"
+msgstr ""
+
+msgid "Please select a start date and time"
+msgstr ""
+
+msgid "Please select an end date and time"
+msgstr ""
+
+msgid "Appointment updated"
+msgstr ""
+
+msgid "Appointment created"
+msgstr ""
+
+msgid "Error updating appointment"
+msgstr ""
+
+msgid "Error creating appointment"
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:38
+msgid "Linked to calendar"
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:42
+msgid "Auto-sync enabled"
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:51
+msgid "This appointment is linked to a calendar event."
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:53
+msgid ""
+"Changes to the calendar event will automatically overwrite title, "
+"description, and date/time of this appointment."
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:56
+msgid "Changes to the calendar event will not be synced."
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:57
+msgid "Enable auto-sync"
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:65
+msgid "Appointment name"
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:70
+msgid "Description"
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:71
+msgid "Write your description here …"
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:77
+msgid "Date & Time"
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:99
+msgid "Notification"
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:101
+msgid "Notify users who can see this appointment about its creation"
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:106
+msgid "Send notification"
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:113
+msgid "Files that are important for this appointment can be selected here."
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:134
+msgid "Add from Files"
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:139
+msgid "Restrict access"
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:141
+msgid "Limits who can see this appointment. Leave empty for all users."
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:151
+msgid "Search users, groups or teams …"
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:172
+msgid ""
+"Some users may appear in the section \"Others\" in the response summary "
+"because they are not configured for tracking."
+msgstr ""
+
+#. TRANSLATORS src/views/AppointmentForm.vue:173
+msgid "Configure in admin settings"
+msgstr ""
+
+msgid "Failed to load appointment data"
+msgstr ""
+
+msgid "attending"
+msgstr ""
+
+msgid "not attending"
+msgstr ""
+
+msgid "Do you want to set {count} users to {action}?"
+msgstr ""
+
+#. TRANSLATORS src/views/Checkin.vue:7
+msgid "Loading appointment data …"
+msgstr ""
+
+#. TRANSLATORS src/views/Checkin.vue:60
+msgid "Confirm bulk action"
+msgstr ""
+
+#. TRANSLATORS src/views/Checkin.vue:72
+msgid "Confirm"
+msgstr ""
+
+#. TRANSLATORS src/views/QuickResponse.vue:6
+msgid "Unable to process response"
+msgstr ""
+
+#. TRANSLATORS src/views/QuickResponse.vue:11
+msgid "Open Attendance app"
+msgstr ""
+
+#. TRANSLATORS src/views/QuickResponse.vue:19
+msgid "Thank you for your response!"
+msgstr ""
+
+#. TRANSLATORS src/views/QuickResponse.vue:20
+msgid "Your response has been saved."
+msgstr ""
+
+#. TRANSLATORS src/views/QuickResponse.vue:34
+msgid "Your response:"
+msgstr ""
+
+#. TRANSLATORS src/views/QuickResponse.vue:41
+msgid "View appointment details"
+msgstr ""
+
+#. TRANSLATORS src/views/QuickResponse.vue:51
+msgid "Confirm your response?"
+msgstr ""
+
+#. TRANSLATORS src/views/QuickResponse.vue:53
+msgid "You are answering as {user}"
+msgstr ""
+
+#. TRANSLATORS src/views/QuickResponse.vue:67
+msgid "You are about to respond with: {response}"
+msgstr ""
+
+#. TRANSLATORS src/views/QuickResponse.vue:80
+msgid "Confirm response"
+msgstr ""
+
+#. TRANSLATORS src/views/Widget.vue:32
+msgid "Show all appointments"
+msgstr ""
+
+#: attendance/src/composables/useAppointmentResponse.js:52
+#: attendance/src/composables/useAppointmentResponse.js:249
+msgid "Response updated"
+msgstr ""
+
+#: attendance/src/composables/useAppointmentResponse.js:61
+#: attendance/src/composables/useAppointmentResponse.js:258
+msgid "Error updating response"
+msgstr ""
+
+#: attendance/src/composables/useAppointmentResponse.js:117
+msgid "Comment updated"
+msgstr ""
+
+#: attendance/src/composables/useAppointmentResponse.js:127
+#: attendance/src/composables/useAppointmentResponse.js:300
+msgid "Comment could not be saved"
+msgstr ""
+
+#: attendance/src/composables/useCalendarEvents.js:32
+msgid "Failed to load calendars"
+msgstr ""
+
+#: attendance/src/composables/useCalendarEvents.js:61
+msgid "Failed to load calendar events"
+msgstr ""
+
+#: attendance/src/composables/useIcalFeed.js:57
+msgid "Subscription URL regenerated"
+msgstr ""
+
+#: attendance/src/composables/useIcalFeed.js:61
+msgid "Failed to regenerate subscription URL"
+msgstr ""
+
+#: attendance/src/composables/useIcalFeed.js:77
+msgid "URL copied to clipboard"
+msgstr ""
+
+#: attendance/src/composables/useIcalFeed.js:80
+msgid "Failed to copy URL"
+msgstr ""

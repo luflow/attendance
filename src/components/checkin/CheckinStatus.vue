@@ -6,7 +6,7 @@
 		</div>
 		<div v-else class="status-pending">
 			<AlertIcon :size="20" />
-			<span>{{ t('attendance', '{count} attendees not yet checked in', { count: notCheckedInCount }) }}</span>
+			<span>{{ n('attendance', '{count} attendee not yet checked in', '{count} attendees not yet checked in', notCheckedInCount, { count: notCheckedInCount }) }}</span>
 		</div>
 	</div>
 </template>

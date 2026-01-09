@@ -67,7 +67,7 @@
 						v-model="localComment"
 						type="text"
 						:label="t('attendance', 'Comment (optional)')"
-						:placeholder="t('attendance', 'Add your comment…')"
+						:placeholder="t('attendance', 'Add your comment …')"
 						data-test="widget-response-comment"
 						@update:model-value="handleCommentInput" />
 
@@ -89,15 +89,13 @@
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue'
 import { NcButton, NcInputField } from '@nextcloud/vue'
-import { generateUrl } from '@nextcloud/router'
-import { showError } from '@nextcloud/dialogs'
-import axios from '@nextcloud/axios'
 import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
 import CommentIcon from 'vue-material-design-icons/Comment.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
 import { formatDateTime } from '../../utils/datetime.js'
 import { stripMarkdown } from '../../utils/markdown.js'
+import { useAppointmentResponse } from '../../composables/useAppointmentResponse.js'
 
 const props = defineProps({
 	item: {
@@ -116,10 +114,15 @@ defineEmits(['respond', 'open-checkin', 'open-detail'])
 const commentExpanded = ref(false)
 const commentInput = ref(null)
 const localComment = ref(props.item.userResponse?.comment || '')
-const saving = ref(false)
-const saved = ref(false)
-const error = ref(false)
 let commentTimeout = null
+
+// Use the shared response composable for comment auto-save
+const {
+	savingComment: saving,
+	commentSaved: saved,
+	errorComment: error,
+	autoSaveComment,
+} = useAppointmentResponse()
 
 // Watch for external changes to userResponse
 watch(() => props.item.userResponse, (newResponse) => {
@@ -141,50 +144,14 @@ const handleCommentInput = () => {
 		clearTimeout(commentTimeout)
 	}
 
-	commentTimeout = setTimeout(() => {
-		autoSaveComment()
+	commentTimeout = setTimeout(async () => {
+		await nextTick()
+		const userResponse = props.item.userResponse
+		if (userResponse) {
+			autoSaveComment(props.item.id, userResponse.response, localComment.value)
+		}
 		commentTimeout = null
 	}, 500)
-}
-
-const autoSaveComment = async () => {
-	const userResponse = props.item.userResponse
-	if (!userResponse) return
-
-	saving.value = true
-	saved.value = false
-	error.value = false
-
-	try {
-		const url = generateUrl('/apps/attendance/api/appointments/{id}/respond', { id: props.item.id })
-		const response = await axios.post(url, {
-			response: userResponse.response,
-			comment: localComment.value,
-		})
-
-		if (response.status < 200 || response.status >= 300) {
-			throw new Error(`API returned status ${response.status}`)
-		}
-
-		setTimeout(() => {
-			saving.value = false
-			saved.value = true
-
-			setTimeout(() => {
-				saved.value = false
-			}, 2000)
-		}, 500)
-	} catch (err) {
-		console.error('Failed to save comment:', err)
-		saving.value = false
-		error.value = true
-		const t = window.t || ((app, text) => text)
-		showError(t('attendance', 'Comment could not be saved'))
-
-		setTimeout(() => {
-			error.value = false
-		}, 3000)
-	}
 }
 
 const formattedDate = computed(() => {

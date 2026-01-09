@@ -6,14 +6,14 @@
 				:disabled="disabled"
 				data-test="button-bulk-present"
 				@click="$emit('bulk-checkin', 'yes')">
-				{{ t('attendance', 'All Present') }}
+				{{ t('attendance', 'All present') }}
 			</NcButton>
 			<NcButton
 				variant="error"
 				:disabled="disabled"
 				data-test="button-bulk-absent"
 				@click="$emit('bulk-checkin', 'no')">
-				{{ t('attendance', 'All Absent') }}
+				{{ t('attendance', 'All absent') }}
 			</NcButton>
 		</div>
 	</div>

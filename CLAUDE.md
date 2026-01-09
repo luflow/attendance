@@ -12,6 +12,48 @@
 - If you create new views that need routing, add them in vue and update the router configuration of the PHP backend in `appinfo/routes.php`
 - When changing the frontend, always build the app with `npm run build`
 
+### Translation Guidelines (Nextcloud Standards)
+Follow these Nextcloud translation guidelines (see https://docs.nextcloud.com/server/latest/developer_manual/basics/translations.html):
+
+#### Capitalization
+- **Only capitalize the first word** of a sentence/label, not every word
+- Correct: `Create appointment`, `Calendar subscription`, `Response summary`
+- Wrong: `Create Appointment`, `Calendar Subscription`, `Response Summary`
+- Exception: Proper nouns like "Nextcloud" or "Attendance" (app name)
+
+#### Success/Feedback Messages
+- **Never use "successfully"** in feedback messages - it's redundant
+- Correct: `Settings saved`, `Response updated`, `Appointment created`
+- Wrong: `Settings saved successfully`, `Response updated successfully`
+
+#### Ellipsis (…) Spacing
+- **Add a non-breaking space** (`\u00A0`) before the ellipsis when trimming sentences
+- Correct: `Loading …`, `Search users …`, `Add your comment …`
+- Wrong: `Loading…`, `Search users...`, `Add your comment...`
+- Use the Unicode ellipsis character `…` (U+2026), not three dots
+
+#### Format String Placeholders (PHP)
+- **Use numbered placeholders** (`%1$s`, `%2$s`) instead of positional (`%s`)
+- This allows translators to reorder placeholders for different languages
+- Correct: `$l->t('Response missing: %1$s on %2$s', [$name, $date])`
+- Wrong: `$l->t('Response missing: %s on %s', [$name, $date])`
+
+#### Complete Sentences
+- **Never use incomplete sentences** that rely on adjacent HTML elements
+- Include placeholders in the translation string itself
+- Correct: `t('attendance', 'You are answering as {user}', { user: userName })`
+- Wrong: `t('attendance', 'You are answering as')` followed by `<strong>{{ userName }}</strong>`
+
+#### Plural Forms
+- **Use `n()` function** for strings with counts that need singular/plural forms
+- Correct: `n('attendance', '{count} attendee not checked in', '{count} attendees not checked in', count, { count })`
+- Wrong: `t('attendance', '{count} attendees not yet checked in', { count })`
+
+#### Confirmation Dialogs
+- **Keep confirmation language simple** - avoid words like "really" or "all"
+- Correct: `Do you want to set {count} users to {action}?`
+- Wrong: `Do you really want to set all {count} users to {action}?`
+
 ### PHP Backend
 - Use PHP 8.0+ syntax
 - Follow PSR-12 Code Style

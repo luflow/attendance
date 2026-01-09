@@ -8,7 +8,7 @@
 			</NcNoteCard>
 			<div class="button-row">
 				<NcButton variant="primary" :href="appUrl">
-					{{ t('attendance', 'Open Attendance App') }}
+					{{ t('attendance', 'Open Attendance app') }}
 				</NcButton>
 			</div>
 		</template>
@@ -17,7 +17,7 @@
 		<template v-else-if="confirmed">
 			<NcNoteCard type="success">
 				<h2>{{ t('attendance', 'Thank you for your response!') }}</h2>
-				<p>{{ t('attendance', 'Your response has been saved successfully.') }}</p>
+				<p>{{ t('attendance', 'Your response has been saved.') }}</p>
 			</NcNoteCard>
 
 			<div class="appointment-details">
@@ -38,10 +38,10 @@
 
 			<div class="button-row">
 				<NcButton :href="appointmentUrl">
-					{{ t('attendance', 'View Appointment Details') }}
+					{{ t('attendance', 'View appointment details') }}
 				</NcButton>
 				<NcButton variant="primary" :href="appUrl">
-					{{ t('attendance', 'Open Attendance App') }}
+					{{ t('attendance', 'Open Attendance app') }}
 				</NcButton>
 			</div>
 		</template>
@@ -50,7 +50,7 @@
 		<template v-else>
 			<h2>{{ t('attendance', 'Confirm your response?') }}</h2>
 			<p class="responding-as">
-				{{ t('attendance', 'You are answering as') }} <strong>{{ userName }}</strong>
+				{{ t('attendance', 'You are answering as {user}', { user: userName }) }}
 			</p>
 
 			<div class="appointment-details">
@@ -64,8 +64,7 @@
 					{{ formattedTime }}
 				</p>
 				<p class="response-display">
-					{{ t('attendance', 'You are about to respond with') }}
-					<NcChip :text="responseLabel" :variant="responseVariant" no-close />
+					{{ t('attendance', 'You are about to respond with: {response}', { response: responseLabel }) }}
 				</p>
 			</div>
 
@@ -78,14 +77,14 @@
 						<NcLoadingIcon v-if="submitting" :size="20" />
 						<CheckIcon v-else :size="20" />
 					</template>
-					{{ t('attendance', 'Confirm Response') }}
+					{{ t('attendance', 'Confirm response') }}
 				</NcButton>
 			</div>
 
 			<div class="link-row">
-				<a :href="appointmentUrl">{{ t('attendance', 'View Appointment Details') }}</a>
+				<a :href="appointmentUrl">{{ t('attendance', 'View appointment details') }}</a>
 				<span class="separator">·</span>
-				<a :href="appUrl">{{ t('attendance', 'Open Attendance App') }}</a>
+				<a :href="appUrl">{{ t('attendance', 'Open Attendance app') }}</a>
 			</div>
 		</template>
 	</div>

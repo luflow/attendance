@@ -141,7 +141,7 @@ class IcalService {
 		$output .= "PRODID:-//Nextcloud//Attendance App//EN\r\n";
 		$output .= "CALSCALE:GREGORIAN\r\n";
 		$output .= "METHOD:PUBLISH\r\n";
-		$output .= 'X-WR-CALNAME:' . $this->escapeIcalText($l->t('Attendance Appointments')) . "\r\n";
+		$output .= 'X-WR-CALNAME:' . $this->escapeIcalText($l->t('Attendance appointments')) . "\r\n";
 
 		foreach ($appointments as $appointment) {
 			$response = $userResponses[$appointment->getId()] ?? null;
