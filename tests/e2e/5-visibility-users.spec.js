@@ -182,23 +182,19 @@ test.describe('Attendance App - User Visibility Filtering', () => {
 		await attendanceApp()
 		await page.waitForLoadState('networkidle')
 
-		// Navigate to Upcoming Appointments to see all appointments (not just unanswered)
-		await page.getByRole('link', { name: 'Upcoming Appointments' }).click()
-		await page.waitForLoadState('networkidle')
+		// Count appointments in the sidebar navigation under "Unanswered" section
+		// This shows all appointments that the user hasn't responded to yet
+		// The sidebar lists appointments as links under the "Unanswered" section
+		const unansweredSection = page.getByRole('link', { name: 'Unanswered' })
+		await unansweredSection.waitFor({ state: 'visible' })
 
-		// Wait for loading to complete - wait for Loading text to disappear
-		const loadingIndicator = page.getByText('Loading...')
-		try {
-			await expect(loadingIndicator).not.toBeVisible({ timeout: 10000 })
-		} catch {
-			// Loading indicator may not appear if content loads quickly
-		}
-
-		// Count visible appointments by counting "Response Summary" headings
-		const responseSummaryHeadings = page.getByRole('heading', { name: 'Response Summary' })
-		const count = await responseSummaryHeadings.count()
+		// Get the list of appointments under Unanswered (next sibling list element)
+		const unansweredList = page.locator('li:has(a[href="#"]:has-text("Unanswered")) > ul')
+		const appointmentLinks = unansweredList.locator('> li')
+		const count = await appointmentLinks.count()
 
 		// Should see at least the appointments we created in this test suite
+		// (Private Meeting - Test1 Only, Public Team Meeting, Selective Access Meeting, Test1 Only Meeting)
 		expect(count).toBeGreaterThanOrEqual(4)
 	})
 
