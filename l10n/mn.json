@@ -1,0 +1,9 @@
+{ "translations": {
+    "Export" : "Экспорт",
+    "Copy" : "хуулах",
+    "Cancel" : "Cancel",
+    "Edit" : "Өөрчлөх",
+    "Start" : "эхлэх",
+    "Loading…" : "уншиж байна"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}

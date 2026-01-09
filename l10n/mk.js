@@ -1,0 +1,18 @@
+OC.L10N.register(
+    "attendance",
+    {
+    "Group" : "Група",
+    "Export" : "Извези",
+    "Copy URL" : "Копирај URL",
+    "Copy" : "Копирај",
+    "Cancel" : "Откажи",
+    "Link copied to clipboard" : "Линкот е копиран во клипборд",
+    "Edit" : "Уреди",
+    "User" : "Корисник",
+    "Notification" : "Известување",
+    "Bold" : "Болд",
+    "Strikethrough" : "Прецртај",
+    "Loading…" : "Се вчитува…",
+    "Thank you for your response!" : "Благодариме на вашиот одговор."
+},
+"nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;");

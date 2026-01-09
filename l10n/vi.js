@@ -1,0 +1,27 @@
+OC.L10N.register(
+    "attendance",
+    {
+    "Yes" : "Có",
+    "No" : "Không",
+    "Group" : "Nhóm",
+    "Export" : "Xuất ra",
+    "Copy URL" : "Sao chép liên kết",
+    "Cancel" : "Cancel",
+    "Share Link" : "Chia sẻ liên kết",
+    "Edit" : "Chỉnh sửa",
+    "User" : "Người dùng",
+    "Team" : "Đội",
+    "Attach" : "Đính kèm",
+    "Description" : "Mô tả",
+    "Notification" : "Thông báo",
+    "Save" : "Lưu",
+    "Back" : "Trở lại",
+    "Start" : "Bắt đầu",
+    "Present" : "Trình bày",
+    "Bold" : "Đậm",
+    "Italic" : "Nghiêng",
+    "Strikethrough" : "Gạch dưới",
+    "Loading…" : "Đang tải…",
+    "Confirm" : "Xác nhận"
+},
+"nplurals=1; plural=0;");

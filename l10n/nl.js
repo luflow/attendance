@@ -1,0 +1,26 @@
+OC.L10N.register(
+    "attendance",
+    {
+    "Yes" : "Ja",
+    "Others" : "Overige",
+    "Group" : "Groep",
+    "Export" : "Exporteren",
+    "Copy" : "Kopiëren",
+    "Cancel" : "Annuleren",
+    "Link copied to clipboard" : "Link gekopieerd naar het klembord",
+    "Share Link" : "Delen link",
+    "Edit" : "Bewerken",
+    "User" : "Gebruiker",
+    "Team" : "Team",
+    "Attach" : "Bijvoegen",
+    "Notification" : "Melding",
+    "Save" : "Opslaan",
+    "Start" : "Start",
+    "Bold" : "Vet",
+    "Strikethrough" : "Doorgehaald",
+    "Quote" : "Quote",
+    "Insert link" : "Link invoegen",
+    "Loading…" : "Laden…",
+    "Confirm" : "Bevestigen"
+},
+"nplurals=2; plural=(n != 1);");

@@ -1,0 +1,9 @@
+{ "translations": {
+    "Export" : "Eksport",
+    "Cancel" : "Cancel",
+    "Edit" : "Sunting",
+    "User" : "User",
+    "Notification" : "Pemberitahuan",
+    "Save" : "Simpan"
+},"pluralForm" :"nplurals=1; plural=0;"
+}

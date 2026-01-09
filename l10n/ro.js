@@ -1,0 +1,22 @@
+OC.L10N.register(
+    "attendance",
+    {
+    "Yes" : "Da",
+    "Group" : "Grup",
+    "Export" : "Exportă",
+    "Copy" : "Copiază",
+    "Cancel" : "Cancel",
+    "Share Link" : "Partajează linkul",
+    "Edit" : "Editează",
+    "User" : "Utilizator",
+    "Team" : "Echipă",
+    "Attach" : "Atașează",
+    "Add from Files" : "Adaugă din Fișiere",
+    "Notification" : "Notificări",
+    "Save" : "Salvează",
+    "Back" : "Înapoi",
+    "Permissions" : "Permisiuni",
+    "Loading…" : "Se încarcă...",
+    "Confirm" : "Confirmă"
+},
+"nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));");

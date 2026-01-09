@@ -1,0 +1,8 @@
+{ "translations": {
+    "Group" : "Grupp",
+    "Export" : "Exportéieren",
+    "Copy" : "Kopieren",
+    "Cancel" : "Cancel",
+    "Loading…" : "Et gëtt gelueden"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}
