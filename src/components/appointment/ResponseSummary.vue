@@ -1,13 +1,13 @@
 <template>
 	<div v-if="responseSummary" class="response-summary-detailed" data-test="response-summary">
-		<h4>{{ t('attendance', 'Response Summary') }}</h4>
+		<h4>{{ t('attendance', 'Response summary') }}</h4>
 
 		<!-- Overall Stats -->
 		<div class="summary-stats">
 			<NcChip :text="`${t('attendance', 'Yes')}: ${responseSummary.yes}`" variant="success" no-close />
 			<NcChip :text="`${t('attendance', 'Maybe')}: ${responseSummary.maybe}`" variant="warning" no-close />
 			<NcChip :text="`${t('attendance', 'No')}: ${responseSummary.no}`" variant="error" no-close />
-			<NcChip :text="`${t('attendance', 'No Response')}: ${responseSummary.no_response}`" variant="tertiary" no-close />
+			<NcChip :text="`${t('attendance', 'No response')}: ${responseSummary.no_response}`" variant="tertiary" no-close />
 		</div>
 
 		<!-- Unified Group/Team Summary -->

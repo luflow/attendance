@@ -15,7 +15,7 @@
 					<template #icon>
 						<CalendarImport :size="20" />
 					</template>
-					{{ t('attendance', 'Import from Calendar') }}
+					{{ t('attendance', 'Import from calendar') }}
 				</NcButton>
 			</div>
 			<h2 data-test="form-title">
@@ -24,7 +24,7 @@
 		</div>
 
 		<div v-if="loading" class="loading-state">
-			{{ t('attendance', 'Loading…') }}
+			{{ t('attendance', 'Loading …') }}
 		</div>
 
 		<form v-else
@@ -35,7 +35,7 @@
 			<div v-if="hasCalendarReference && mode !== 'copy'" class="form-section">
 				<div class="calendar-link-header">
 					<LinkVariant :size="20" />
-					<h3>{{ t('attendance', 'Linked to Calendar') }}</h3>
+					<h3>{{ t('attendance', 'Linked to calendar') }}</h3>
 					<a :href="calendarSyncSettingsUrl" target="_blank" class="auto-sync-chip-link">
 						<NcChip v-if="props.calendarSyncEnabled"
 							type="success"
@@ -62,13 +62,13 @@
 			<div class="form-section">
 				<NcTextField
 					v-model="formData.name"
-					:label="t('attendance', 'Appointment Name')"
+					:label="t('attendance', 'Appointment name')"
 					data-test="input-appointment-name" />
 
 				<MarkdownEditor
 					v-model="formData.description"
 					:label="t('attendance', 'Description')"
-					:placeholder="t('attendance', 'Write your description here…')"
+					:placeholder="t('attendance', 'Write your description here …')"
 					data-test="input-appointment-description"
 					min-height="150px" />
 			</div>
@@ -80,7 +80,7 @@
 						id="start-datetime"
 						:model-value="startDateObject"
 						type="datetime-local"
-						:label="t('attendance', 'Start Date & Time')"
+						:label="t('attendance', 'Start date & time')"
 						data-test="input-start-datetime"
 						@update:model-value="onStartDatetimeChange"
 						@blur="onStartDatetimeBlur" />
@@ -89,7 +89,7 @@
 						id="end-datetime"
 						:model-value="endDateObject"
 						type="datetime-local"
-						:label="t('attendance', 'End Date & Time')"
+						:label="t('attendance', 'End date & time')"
 						data-test="input-end-datetime"
 						@update:model-value="onEndDatetimeChange" />
 				</div>
@@ -136,7 +136,7 @@
 			</div>
 
 			<div class="form-section">
-				<h3>{{ t('attendance', 'Restrict Access') }}</h3>
+				<h3>{{ t('attendance', 'Restrict access') }}</h3>
 				<p class="hint-text">
 					{{ t('attendance', 'Limits who can see this appointment. Leave empty for all users.') }}
 				</p>
@@ -148,7 +148,7 @@
 					:close-on-select="false"
 					:filterable="false"
 					label="label"
-					:placeholder="t('attendance', 'Search users, groups or teams…')"
+					:placeholder="t('attendance', 'Search users, groups or teams …')"
 					data-test="select-visibility"
 					@search="onSearch">
 					<template #option="{ label, type }">
@@ -169,8 +169,8 @@
 					</template>
 				</NcSelect>
 				<NcNoteCard v-if="hasTrackingMismatch" type="warning" class="visibility-warning">
-					{{ t('attendance', 'Some selections are not in the Response Summary Groups/Teams and may therefore appear under "Others".') }}
-					<a :href="adminSettingsUrl" target="_blank">{{ t('attendance', 'Configure in Admin Settings') }}</a>
+					{{ t('attendance', 'Some users may appear in the section "Others" in the response summary because they are not configured for tracking.') }}
+					<a :href="adminSettingsUrl" target="_blank">{{ t('attendance', 'Configure in admin settings') }}</a>
 				</NcNoteCard>
 			</div>
 
@@ -270,11 +270,11 @@ const calendarReference = ref({ calendarUri: null, calendarEventUid: null })
 const pageTitle = computed(() => {
 	switch (props.mode) {
 	case 'edit':
-		return t('attendance', 'Edit Appointment')
+		return t('attendance', 'Edit appointment')
 	case 'copy':
-		return t('attendance', 'Copy Appointment')
+		return t('attendance', 'Copy appointment')
 	default:
-		return t('attendance', 'Create Appointment')
+		return t('attendance', 'Create appointment')
 	}
 })
 
@@ -636,7 +636,7 @@ const handleSubmit = async () => {
 				visibleGroups: formData.visibleGroups || [],
 				visibleTeams: formData.visibleTeams || [],
 			})
-			showSuccess(t('attendance', 'Appointment updated successfully'))
+			showSuccess(t('attendance', 'Appointment updated'))
 		} else {
 			// Create new appointment (or copy)
 			const response = await axios.post(generateUrl('/apps/attendance/api/appointments'), {
@@ -666,7 +666,7 @@ const handleSubmit = async () => {
 					}
 				}
 			}
-			showSuccess(t('attendance', 'Appointment created successfully'))
+			showSuccess(t('attendance', 'Appointment created'))
 		}
 
 		emit('saved', appointmentId)

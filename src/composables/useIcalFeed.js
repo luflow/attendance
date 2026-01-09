@@ -54,7 +54,7 @@ export function useIcalFeed() {
 			createdAt.value = response.data.createdAt || null
 			lastUsedAt.value = response.data.lastUsedAt || null
 
-			showSuccess(t('attendance', 'Subscription URL regenerated successfully'))
+			showSuccess(t('attendance', 'Subscription URL regenerated'))
 		} catch (err) {
 			console.error('Failed to regenerate iCal token:', err)
 			error.value = err

@@ -1,7 +1,7 @@
 <template>
 	<div class="appointment-detail" data-test="appointment-detail-view">
 		<div v-if="loading" class="loading-state" data-test="loading-state">
-			{{ t('attendance', 'Loading…') }}
+			{{ t('attendance', 'Loading …') }}
 		</div>
 		<div v-else-if="error" class="error-state" data-test="error-state">
 			<p>{{ error }}</p>
@@ -35,6 +35,7 @@ import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
 import AppointmentCard from '../components/appointment/AppointmentCard.vue'
 import { usePermissions } from '../composables/usePermissions.js'
+import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
 
 const props = defineProps({
 	appointmentId: {
@@ -51,6 +52,17 @@ const error = ref(null)
 
 // Use the shared permissions composable
 const { permissions, loadPermissions } = usePermissions()
+
+// Use the shared response composable
+const { submitResponse: submitResponseApi } = useAppointmentResponse({
+	onSuccess: () => {
+		emit('response-updated')
+		loadAppointmentSilently()
+	},
+	onError: () => {
+		loadAppointment()
+	},
+})
 
 const goBack = () => {
 	window.history.back()
@@ -72,7 +84,7 @@ const deleteAppointment = async (appointmentId) => {
 	if (confirm(t('attendance', 'Are you sure you want to delete this appointment?'))) {
 		try {
 			await axios.delete(generateUrl(`/apps/attendance/api/appointments/${appointmentId}`))
-			showSuccess(t('attendance', 'Appointment deleted successfully'))
+			showSuccess(t('attendance', 'Appointment deleted'))
 			goBack()
 		} catch (error) {
 			console.error('Failed to delete appointment:', error)
@@ -82,64 +94,27 @@ const deleteAppointment = async (appointmentId) => {
 }
 
 const submitResponse = async (appointmentId, response) => {
-	try {
-		const comment = appointment.value.userResponse?.comment || ''
+	const comment = appointment.value.userResponse?.comment || ''
 
-		if (!appointment.value.userResponse) {
-			appointment.value.userResponse = {}
-		}
-		appointment.value.userResponse.response = response
-
-		const axiosResponse = await axios.post(generateUrl(`/apps/attendance/api/appointments/${appointmentId}/respond`), {
-			response,
-			comment,
-		})
-
-		// Check if response status is 2xx
-		if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
-			throw new Error(`API returned status ${axiosResponse.status}`)
-		}
-
-		showSuccess(t('attendance', 'Response updated successfully'))
-
-		emit('response-updated')
-		await loadAppointmentSilently()
-	} catch (error) {
-		console.error('Failed to submit response:', error)
-		showError(t('attendance', 'Error updating response'))
-		await loadAppointment()
+	// Optimistic update
+	if (!appointment.value.userResponse) {
+		appointment.value.userResponse = {}
 	}
+	appointment.value.userResponse.response = response
+
+	await submitResponseApi(appointmentId, response, comment)
 }
 
-const updateComment = async (appointmentId, comment, silent = false) => {
-	try {
-		const response = appointment.value.userResponse?.response || 'yes'
+const updateComment = async (appointmentId, comment) => {
+	const response = appointment.value.userResponse?.response || 'yes'
 
-		if (!appointment.value.userResponse) {
-			appointment.value.userResponse = {}
-		}
-		appointment.value.userResponse.comment = comment
-
-		const axiosResponse = await axios.post(generateUrl(`/apps/attendance/api/appointments/${appointmentId}/respond`), {
-			response,
-			comment,
-		})
-
-		// Check if response status is 2xx
-		if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
-			throw new Error(`API returned status ${axiosResponse.status}`)
-		}
-
-		if (!silent) {
-			showSuccess(t('attendance', 'Comment updated successfully'))
-		}
-
-		await loadAppointmentSilently()
-	} catch (error) {
-		console.error('Failed to update comment:', error)
-		showError(t('attendance', 'Error updating comment'))
-		await loadAppointment()
+	// Optimistic update
+	if (!appointment.value.userResponse) {
+		appointment.value.userResponse = {}
 	}
+	appointment.value.userResponse.comment = comment
+
+	await submitResponseApi(appointmentId, response, comment)
 }
 
 const loadAppointmentSilently = async () => {

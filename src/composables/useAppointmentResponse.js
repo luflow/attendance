@@ -49,7 +49,7 @@ export function useAppointmentResponse(options = {}) {
 				throw new Error(`API returned status ${axiosResponse.status}`)
 			}
 
-			showSuccess(t('attendance', 'Response updated successfully'))
+			showSuccess(t('attendance', 'Response updated'))
 
 			if (onSuccess) {
 				onSuccess(axiosResponse.data)
@@ -114,7 +114,7 @@ export function useAppointmentResponse(options = {}) {
 			}, 500)
 
 			if (!silent) {
-				showSuccess(t('attendance', 'Comment updated successfully'))
+				showSuccess(t('attendance', 'Comment updated'))
 			}
 
 			if (onSuccess) {
@@ -246,7 +246,7 @@ export function useMultiAppointmentResponse(options = {}) {
 				throw new Error(`API returned status ${axiosResponse.status}`)
 			}
 
-			showSuccess(t('attendance', 'Response updated successfully'))
+			showSuccess(t('attendance', 'Response updated'))
 
 			if (onSuccess) {
 				onSuccess(appointmentId, axiosResponse.data)

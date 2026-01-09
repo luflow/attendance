@@ -18,7 +18,7 @@
 		<!-- Appointments List -->
 		<div class="appointments-list">
 			<div v-if="loading" class="loading">
-				{{ t('attendance', 'Loading…') }}
+				{{ t('attendance', 'Loading …') }}
 			</div>
 			<div v-else-if="appointments.length === 0 && !showUnanswered" class="empty-state">
 				{{ t('attendance', 'No appointments found') }}
@@ -52,8 +52,8 @@ import AlertIcon from 'vue-material-design-icons/Alert.vue'
 import confettiLib from 'canvas-confetti'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { showSuccess, showError } from '@nextcloud/dialogs'
 import { usePermissions } from '../composables/usePermissions.js'
+import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
 
 const props = defineProps({
 	showPast: {
@@ -77,6 +77,14 @@ const loading = ref(true)
 const responseComments = reactive({})
 
 const { permissions, loadPermissions } = usePermissions()
+
+// Use the shared response composable
+const { submitResponse: submitResponseApi } = useAppointmentResponse({
+	onSuccess: () => {
+		emit('response-updated')
+		loadAppointments(true)
+	},
+})
 
 const loadAppointments = async (skipLoadingSpinner = false) => {
 	try {
@@ -122,55 +130,15 @@ const loadDetailedResponses = async () => {
 }
 
 const submitResponse = async (appointmentId, response) => {
-	try {
-		const appointment = appointments.value.find(a => a.id === appointmentId)
-		const comment = appointment?.userResponse?.comment || ''
-
-		const axiosResponse = await axios.post(generateUrl(`/apps/attendance/api/appointments/${appointmentId}/respond`), {
-			response,
-			comment,
-		})
-
-		if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
-			throw new Error(`API returned status ${axiosResponse.status}`)
-		}
-
-		showSuccess(t('attendance', 'Response updated successfully'))
-
-		emit('response-updated')
-
-		await loadAppointments(true)
-	} catch (error) {
-		console.error('Failed to submit response:', error)
-		showError(t('attendance', 'Error updating response'))
-	}
+	const appointment = appointments.value.find(a => a.id === appointmentId)
+	const comment = appointment?.userResponse?.comment || ''
+	await submitResponseApi(appointmentId, response, comment)
 }
 
-const updateComment = async (appointmentId, comment, silent = false) => {
-	try {
-		const appointment = appointments.value.find(a => a.id === appointmentId)
-		const response = appointment?.userResponse?.response || 'yes'
-
-		const axiosResponse = await axios.post(generateUrl(`/apps/attendance/api/appointments/${appointmentId}/respond`), {
-			response,
-			comment,
-		})
-
-		if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
-			throw new Error(`API returned status ${axiosResponse.status}`)
-		}
-
-		if (!silent) {
-			showSuccess(t('attendance', 'Comment updated successfully'))
-		}
-
-		await loadAppointments(true)
-	} catch (error) {
-		console.error('Failed to update comment:', error)
-		if (!silent) {
-			showError(t('attendance', 'Error updating comment'))
-		}
-	}
+const updateComment = async (appointmentId, comment) => {
+	const appointment = appointments.value.find(a => a.id === appointmentId)
+	const response = appointment?.userResponse?.response || 'yes'
+	await submitResponseApi(appointmentId, response, comment)
 }
 
 const deleteAppointment = async (appointmentId) => {

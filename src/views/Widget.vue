@@ -41,9 +41,8 @@ import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import { NcDashboardWidget, NcEmptyContent, NcButton } from '@nextcloud/vue'
 import { generateUrl } from '@nextcloud/router'
 import { loadState } from '@nextcloud/initial-state'
-import axios from '@nextcloud/axios'
-import { showError } from '@nextcloud/dialogs'
 import { usePermissions } from '../composables/usePermissions.js'
+import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
 import { canCheckinNow } from '../utils/datetime.js'
 import WidgetAppointmentItem from '../components/widget/WidgetAppointmentItem.vue'
 
@@ -79,6 +78,9 @@ const ncVersion = ref(ncVersionState)
 
 const { permissions, loadPermissions } = usePermissions()
 
+// Use the shared response composable
+const { submitResponse: submitResponseApi } = useAppointmentResponse()
+
 // Computed
 const items = computed(() => {
 	return appointments.value.map((appointment) => ({
@@ -94,31 +96,18 @@ const items = computed(() => {
 
 // Methods
 const respond = async (appointmentId, response) => {
-	const t = window.t || ((app, text) => text)
 	try {
-		await submitResponseToServer(appointmentId, response, '')
-	} catch (error) {
-		showError(t('attendance', 'Failed to save response'))
-	}
-}
-
-const submitResponseToServer = async (appointmentId, response, commentText) => {
-	const url = generateUrl('/apps/attendance/api/appointments/{id}/respond', { id: appointmentId })
-	const axiosResponse = await axios.post(url, {
-		response,
-		comment: commentText,
-	})
-
-	if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
-		throw new Error(`API returned status ${axiosResponse.status}`)
-	}
-
-	const appointmentIndex = appointments.value.findIndex(a => a.id === appointmentId)
-	if (appointmentIndex !== -1) {
-		appointments.value[appointmentIndex].userResponse = {
-			response,
-			comment: commentText,
+		await submitResponseApi(appointmentId, response, '')
+		// Update local state after successful response
+		const appointmentIndex = appointments.value.findIndex(a => a.id === appointmentId)
+		if (appointmentIndex !== -1) {
+			appointments.value[appointmentIndex].userResponse = {
+				response,
+				comment: '',
+			}
 		}
+	} catch (error) {
+		// Error already handled by composable
 	}
 }
 

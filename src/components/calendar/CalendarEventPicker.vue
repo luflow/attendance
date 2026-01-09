@@ -11,14 +11,14 @@
 			<template v-if="!selectedCalendar">
 				<div v-if="loadingCalendars" class="loading-container">
 					<NcLoadingIcon :size="32" />
-					<span class="loading-text">{{ t('attendance', 'Loading calendars…') }}</span>
+					<span class="loading-text">{{ t('attendance', 'Loading calendars …') }}</span>
 				</div>
 
 				<template v-else-if="calendars.length > 0">
-					<label class="section-label">{{ t('attendance', 'Select Calendar') }}</label>
+					<label class="section-label">{{ t('attendance', 'Select calendar') }}</label>
 					<NcTextField v-if="showSearch"
 						v-model="searchQuery"
-						:placeholder="t('attendance', 'Search calendars…')"
+						:placeholder="t('attendance', 'Search calendars …')"
 						class="calendar-search" />
 					<ul class="calendar-list">
 						<li v-for="calendar in filteredCalendars"
@@ -58,14 +58,14 @@
 
 				<div v-if="loadingEvents" class="loading-container">
 					<NcLoadingIcon :size="32" />
-					<span class="loading-text">{{ t('attendance', 'Loading events…') }}</span>
+					<span class="loading-text">{{ t('attendance', 'Loading events …') }}</span>
 				</div>
 
 				<template v-else-if="events.length > 0">
-					<label class="section-label">{{ t('attendance', 'Select Event') }}</label>
+					<label class="section-label">{{ t('attendance', 'Select event') }}</label>
 					<NcTextField v-if="showEventSearch"
 						v-model="eventSearchQuery"
-						:placeholder="t('attendance', 'Search events…')"
+						:placeholder="t('attendance', 'Search events …')"
 						class="calendar-search" />
 					<ul class="event-list">
 						<li v-for="event in filteredEvents"
@@ -73,7 +73,7 @@
 							class="event-item"
 							@click="selectEvent(event)">
 							<div class="event-info">
-								<span class="event-name">{{ event.summary || t('attendance', 'Untitled Event') }}</span>
+								<span class="event-name">{{ event.summary || t('attendance', 'Untitled event') }}</span>
 								<span class="event-date">{{ formatDateRange(event.dtstart, event.dtend) }}</span>
 							</div>
 							<ChevronRight :size="20" class="event-arrow" />
@@ -151,9 +151,9 @@ const filteredEvents = computed(() => {
 
 const dialogTitle = computed(() => {
 	if (selectedCalendar.value) {
-		return t('attendance', 'Select Event')
+		return t('attendance', 'Select event')
 	}
-	return t('attendance', 'Import from Calendar')
+	return t('attendance', 'Import from calendar')
 })
 
 // Load calendars when modal opens

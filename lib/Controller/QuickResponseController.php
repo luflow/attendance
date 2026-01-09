@@ -184,7 +184,7 @@ class QuickResponseController extends Controller {
 
 			return new DataResponse([
 				'success' => true,
-				'message' => $this->l->t('Response recorded successfully'),
+				'message' => $this->l->t('Response recorded'),
 			]);
 		} catch (\Exception $e) {
 			$this->logger->error('Failed to record quick response: ' . $e->getMessage());

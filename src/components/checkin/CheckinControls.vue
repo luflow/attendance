@@ -3,7 +3,7 @@
 		<div class="search-container">
 			<NcTextField
 				:model-value="searchQuery"
-				:label="t('attendance', 'Search by name…')"
+				:label="t('attendance', 'Search by name …')"
 				data-test="input-search"
 				@update:model-value="onSearchInput">
 				<MagnifyIcon :size="16" />
