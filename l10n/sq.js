@@ -1,0 +1,24 @@
+OC.L10N.register(
+    "attendance",
+    {
+    "Yes" : "Po",
+    "Group" : "Grup",
+    "Export" : "Eksport",
+    "Copy" : "Kopjoni",
+    "Cancel" : "Cancel",
+    "Share Link" : "Ndani Lidhjen",
+    "Edit" : "Përpuno",
+    "User" : "Përdorues",
+    "Description" : "Përshkrim",
+    "Save" : "Ruaje",
+    "Back" : "Mbrapsht",
+    "Start" : "Fillo",
+    "Bold" : "I theksuar",
+    "Italic" : "I pjerrët",
+    "Quote" : "Citat",
+    "Permissions" : "Lejet",
+    "Loading…" : "Duke u ngarkuar…",
+    "Date & Time" : "Data & Ora",
+    "Confirm" : "Konfirmo"
+},
+"nplurals=2; plural=(n != 1);");

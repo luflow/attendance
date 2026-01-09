@@ -1,0 +1,24 @@
+OC.L10N.register(
+    "attendance",
+    {
+    "Others" : "Andre",
+    "Group" : "Gruppe",
+    "Export" : "Eksporter",
+    "Copy" : "Kopi",
+    "Cancel" : "Cancel",
+    "Regenerate" : "Regenerer",
+    "Link copied to clipboard" : "Lenke kopiert til utklippstavlen",
+    "Share Link" : "Del lenke",
+    "Edit" : "Rediger",
+    "User" : "Bruker",
+    "Team" : "Lag",
+    "Attach" : "Legg ved",
+    "Save" : "Lagre",
+    "Start" : "Start",
+    "Bold" : "Uthevet",
+    "Strikethrough" : "Gjennomstreking",
+    "Quote" : "Sitat",
+    "Insert link" : "Sett inn kobling",
+    "Loading…" : "Laster..."
+},
+"nplurals=2; plural=(n != 1);");

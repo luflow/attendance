@@ -1,0 +1,22 @@
+OC.L10N.register(
+    "attendance",
+    {
+    "Yes" : "Ha",
+    "No" : "Yo`q",
+    "Others" : "Boshqalar",
+    "Export" : "Eksport",
+    "Copy" : "Nusxalash",
+    "Cancel" : "Bekor qilish",
+    "Edit" : "Tahrirlash",
+    "Attach" : "Biriktiring",
+    "Description" : "Tavsif",
+    "No attachments" : "Qo‘shimchalar yo‘q",
+    "Add from Files" : "Fayllardan qo'shish",
+    "Notification" : "Bildirishnomalar",
+    "Save" : "Saqlash",
+    "Back" : "Orqaga",
+    "Loading…" : "Yuklanmoqda...",
+    "Confirm" : "Tasdiqlash",
+    "Thank you for your response!" : "Javobingiz uchun rahmat!"
+},
+"nplurals=1; plural=0;");

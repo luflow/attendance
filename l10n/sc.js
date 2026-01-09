@@ -1,0 +1,25 @@
+OC.L10N.register(
+    "attendance",
+    {
+    "Yes" : "Si",
+    "Others" : "Àtere",
+    "Group" : "Grupu",
+    "Export" : "Esporta",
+    "Copy" : "Còpia",
+    "Cancel" : "Cancel",
+    "Link copied to clipboard" : "Ligòngiu copiadu in punta de billete",
+    "Share Link" : "Cumpartzi Lingòngiu",
+    "Edit" : "Modìfica",
+    "User" : "Utente",
+    "Save" : "Sarva",
+    "Back" : "In segus",
+    "Bold" : "Grassetu",
+    "Italic" : "Cursivu",
+    "Strikethrough" : "Istangadu",
+    "Quote" : "Preventivu",
+    "Permissions" : "Permissos",
+    "Loading…" : "Carrighende…",
+    "Date & Time" : "Data e ora",
+    "Confirm" : "Cunfirma"
+},
+"nplurals=2; plural=(n != 1);");

@@ -1,0 +1,18 @@
+OC.L10N.register(
+    "attendance",
+    {
+    "Yes" : "Òc",
+    "Group" : "Grop",
+    "Export" : "Exportar",
+    "Cancel" : "Cancel",
+    "Share Link" : "Partejar via ligam",
+    "Edit" : "Modificar",
+    "User" : "Utilizator",
+    "Notification" : "Notificacion",
+    "Save" : "Enregistrar",
+    "Bold" : "Gras",
+    "Insert link" : "Inserir un ligam",
+    "Loading…" : "Telecargament…",
+    "Confirm" : "Confirmar"
+},
+"nplurals=2; plural=(n > 1);");

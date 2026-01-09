@@ -1,0 +1,16 @@
+OC.L10N.register(
+    "attendance",
+    {
+    "Yes" : "Da",
+    "Copy" : "Kopiraj",
+    "Cancel" : "Poništi",
+    "Share Link" : "Podeli vezu",
+    "Edit" : "Izmeni",
+    "User" : "Korisnik",
+    "Description" : "Opis",
+    "Save" : "Sačuvaj",
+    "Bold" : "Podebljano",
+    "Italic" : "Kurziv",
+    "Loading…" : "Učitavam…"
+},
+"nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);");

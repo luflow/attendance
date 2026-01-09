@@ -1,0 +1,27 @@
+{ "translations": {
+    "Yes" : "Tak",
+    "Others" : "Inne",
+    "Group" : "Grupa",
+    "Export" : "Eksportuj",
+    "Copy URL" : "Kopiuj URL",
+    "Copy" : "Skopiuj",
+    "Cancel" : "Anuluj",
+    "Link copied to clipboard" : "Link skopiowany do schowka",
+    "Share Link" : "Udostępnij link",
+    "Edit" : "Edycja",
+    "User" : "Użytkownik",
+    "Team" : "Zespół",
+    "Attach" : "Dołącz",
+    "Notification" : "Powiadomienie",
+    "Save" : "Zapisz",
+    "Start" : "Start",
+    "Bold" : "Tekst pogrubiony",
+    "Strikethrough" : "Tekst przekreślony",
+    "Quote" : "Oferta",
+    "Insert link" : "Wstaw link",
+    "Loading…" : "Wczytywanie…",
+    "Date & Time" : "Data i czas",
+    "Confirm" : "Potwierdź",
+    "Thank you for your response!" : "Dziękujemy za Twoją odpowiedź!"
+},"pluralForm" :"nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);"
+}

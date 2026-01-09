@@ -1,0 +1,7 @@
+{ "translations": {
+    "Export" : "Export",
+    "Cancel" : "Cancel",
+    "Start" : "Start",
+    "Loading…" : "Loading…"
+},"pluralForm" :"nplurals=2; plural=(n!=1);"
+}

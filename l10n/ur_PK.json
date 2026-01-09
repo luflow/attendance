@@ -1,0 +1,10 @@
+{ "translations": {
+    "Yes" : "ہاں",
+    "No" : "نہیں",
+    "Cancel" : "Cancel",
+    "Edit" : "تدوین کریں",
+    "User" : "User",
+    "Description" : "تصریح",
+    "Save" : "حفظ"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}
