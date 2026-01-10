@@ -1,0 +1,19 @@
+OC.L10N.register(
+    "attendance",
+    {
+    "Others" : "Ander",
+    "Export" : "Voer uit",
+    "Copy URL" : "Kopieer URL",
+    "Cancel" : "Cancel",
+    "Delete" : "Skrap",
+    "Start" : "Begin",
+    "End" : "Einde",
+    "Save" : "Stoor",
+    "Bold" : "Vet",
+    "Italic" : "Skuins",
+    "Strikethrough" : "Deurstreep",
+    "User" : "Gebruiker",
+    "Description" : "Beskrywing",
+    "Confirm" : "Bevestig"
+},
+"nplurals=2; plural=(n != 1);");

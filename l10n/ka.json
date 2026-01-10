@@ -1,7 +1,32 @@
 { "translations": {
+    "Yes" : "კი",
+    "No" : "არა",
+    "Group" : "Group",
+    "Attachments" : "Attachments",
     "Export" : "Export",
+    "Copy" : "Copy",
+    "Last accessed" : "Last accessed",
     "Cancel" : "Cancel",
+    "Share link" : "გაზიარების ლინკი",
+    "Edit" : "Edit",
+    "Delete" : "წაშლა",
+    "Select calendar" : "Select calendar",
+    "Back" : "უკან",
+    "Untitled event" : "Untitled event",
     "Start" : "Start",
-    "Loading…" : "Loading…"
+    "End" : "End",
+    "Present" : "Present",
+    "Save" : "დამახსოვრება",
+    "Settings saved" : "Settings saved",
+    "Failed to save settings" : "Failed to save settings",
+    "Permissions" : "Permissions",
+    "Appointment not found" : "Appointment not found",
+    "Edit appointment" : "Edit appointment",
+    "User" : "User",
+    "Appointment name" : "Appointment name",
+    "Description" : "Description",
+    "Notification" : "შეტყობინება",
+    "Add from Files" : "Add from Files",
+    "Confirm" : "Confirm"
 },"pluralForm" :"nplurals=2; plural=(n!=1);"
 }

@@ -2,15 +2,17 @@ OC.L10N.register(
     "attendance",
     {
     "Yes" : "Da",
+    "No" : "Ne",
+    "Attachments" : "Prilozi",
     "Copy" : "Kopiraj",
     "Cancel" : "Poništi",
-    "Share Link" : "Podeli vezu",
+    "Share link" : "Veza deljenja",
     "Edit" : "Izmeni",
-    "User" : "Korisnik",
-    "Description" : "Opis",
+    "Delete" : "Obriši",
     "Save" : "Sačuvaj",
     "Bold" : "Podebljano",
     "Italic" : "Kurziv",
-    "Loading…" : "Učitavam…"
+    "User" : "Korisnik",
+    "Description" : "Opis"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);");

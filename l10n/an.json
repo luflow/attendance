@@ -1,0 +1,10 @@
+{ "translations": {
+    "Yes" : "Si",
+    "No" : "No",
+    "Group" : "Grupo",
+    "Cancel" : "Cancel",
+    "Delete" : "Borrar",
+    "Back" : "Ta zaga",
+    "Notification" : "Notificación"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}

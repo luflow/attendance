@@ -1,9 +1,16 @@
 { "translations": {
+    "Attachments" : "Хавсралт",
     "Export" : "Экспорт",
     "Copy" : "хуулах",
     "Cancel" : "Cancel",
     "Edit" : "Өөрчлөх",
+    "Delete" : "Устгах",
+    "Back" : "Буцах",
     "Start" : "эхлэх",
-    "Loading…" : "уншиж байна"
+    "End" : "дуусгах",
+    "Save" : "Хадгалах",
+    "Settings saved" : "Тохиргоо хадгалагдлаа",
+    "Description" : "Тодорхойлолт",
+    "Confirm" : "Батлах"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

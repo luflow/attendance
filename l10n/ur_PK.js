@@ -5,8 +5,9 @@ OC.L10N.register(
     "No" : "نہیں",
     "Cancel" : "Cancel",
     "Edit" : "تدوین کریں",
+    "Delete" : "حذف کریں",
+    "Save" : "حفظ",
     "User" : "User",
-    "Description" : "تصریح",
-    "Save" : "حفظ"
+    "Description" : "تصریح"
 },
 "nplurals=2; plural=(n != 1);");

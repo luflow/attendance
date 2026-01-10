@@ -1,16 +1,23 @@
 { "translations": {
     "Yes" : "Òc",
+    "No" : "Non",
     "Group" : "Grop",
     "Export" : "Exportar",
     "Cancel" : "Cancel",
-    "Share Link" : "Partejar via ligam",
+    "Share link" : "Partejar via ligam",
     "Edit" : "Modificar",
-    "User" : "Utilizator",
-    "Notification" : "Notificacion",
+    "Delete" : "Suprimir",
+    "Untitled event" : "Eveniment sens títol",
     "Save" : "Enregistrar",
     "Bold" : "Gras",
+    "Italic" : "Italica",
     "Insert link" : "Inserir un ligam",
-    "Loading…" : "Telecargament…",
+    "Settings saved" : "Paramètres salvats",
+    "Permissions" : "Autorizacions",
+    "Loading …" : "Cargament …",
+    "User" : "Utilizator",
+    "Description" : "Descripcion",
+    "Notification" : "Notificacion",
     "Confirm" : "Confirmar"
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }
