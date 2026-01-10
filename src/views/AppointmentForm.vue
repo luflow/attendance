@@ -170,7 +170,7 @@
 				</NcSelect>
 				<NcNoteCard v-if="hasTrackingMismatch" type="warning" class="visibility-warning">
 					{{ t('attendance', 'Some users may appear in the section "Others" in the response summary because they are not configured for tracking.') }}
-					<a :href="adminSettingsUrl" target="_blank">{{ t('attendance', 'Configure in admin settings') }}</a>
+					<a :href="adminSettingsUrl" target="_blank">{{ t('attendance', 'Configure in administration settings') }}</a>
 				</NcNoteCard>
 			</div>
 
