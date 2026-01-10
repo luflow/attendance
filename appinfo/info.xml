@@ -71,8 +71,8 @@ Perfect for organizations, teams, and communities that want to coordinate attend
 
 Perfekt für Organisationen, Teams und Gemeinschaften, die die Anwesenheit bei Meetings, Veranstaltungen und Aktivitäten sowohl im Voraus planen als auch in Echtzeit verfolgen möchten.]]></description>
 	<screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/screen-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/screen.jpg</screenshot>
-    <screenshot>https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/admin.jpg</screenshot>
-    <screenshot>https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/checkin.jpg</screenshot>
+    <screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/admin-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/admin.jpg</screenshot>
+    <screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/checkin-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/checkin.jpg</screenshot>
 	<version>1.21.0</version>
 	<licence>AGPL-3.0-or-later</licence>
 	<author mail="florian@krautnerds.de" homepage="https://krautnerds.de">Florian Ludwig</author>
