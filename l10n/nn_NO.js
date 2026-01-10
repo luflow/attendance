@@ -6,8 +6,9 @@ OC.L10N.register(
     "Copy" : "Kopier",
     "Cancel" : "Cancel",
     "Edit" : "Rediger",
-    "User" : "Bruker",
+    "Delete" : "Slett",
     "Save" : "Lagre",
-    "Loading…" : "Lastar..."
+    "User" : "Bruker",
+    "Description" : "Skildring"
 },
 "nplurals=2; plural=(n != 1);");

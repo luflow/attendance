@@ -1,0 +1,17 @@
+{ "translations": {
+    "Group" : "Grupo",
+    "Export" : "Exportar",
+    "Last accessed" : "Último acceso",
+    "Cancel" : "Cancel",
+    "Edit" : "Editar",
+    "Delete" : "Borrar",
+    "Start" : "Inicio",
+    "End" : "Fin",
+    "Save" : "Guardar",
+    "Settings saved" : "Se han guardado las configuraciones ",
+    "Permissions" : "Permisos",
+    "User" : "Usuario",
+    "Description" : "Descripción",
+    "Confirm" : "Confirmar"
+},"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
+}

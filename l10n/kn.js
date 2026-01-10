@@ -1,8 +1,15 @@
 OC.L10N.register(
     "attendance",
     {
+    "Yes" : "﻿ಹೌದು",
+    "No" : "﻿ಇಲ್ಲ",
     "Group" : "﻿ಗುಂಪು",
     "Export" : "ರಫ್ತು",
-    "Cancel" : "Cancel"
+    "Copy" : "ನಕಲಿಸಿ",
+    "Cancel" : "Cancel",
+    "Edit" : "ಸಂಪಾದಿಸು",
+    "Delete" : "﻿ಅಳಿಸಿ",
+    "Save" : "﻿ಉಳಿಸಿ",
+    "User" : "User"
 },
 "nplurals=2; plural=(n > 1);");

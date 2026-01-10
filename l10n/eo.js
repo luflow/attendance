@@ -1,0 +1,28 @@
+OC.L10N.register(
+    "attendance",
+    {
+    "Yes" : "Jes",
+    "No" : "Ne",
+    "Others" : "Aliaj",
+    "Group" : "Grupo",
+    "Attachments" : "Dosieraj aldonaĵoj",
+    "Export" : "Eksporti",
+    "Copy URL" : "Kopii retadreson",
+    "Cancel" : "Cancel",
+    "Link copied to clipboard" : "Ligilo kopiita al tondujo",
+    "Edit" : "Modifi",
+    "Delete" : "Forigi",
+    "Start" : "Komenco",
+    "End" : "Fino",
+    "Save" : "Konservi",
+    "Bold" : "Grasa",
+    "Italic" : "Kursiva",
+    "Strikethrough" : "Trastreka",
+    "Failed to load settings" : "Ŝargo de agordoj malsukcesis",
+    "Failed to save settings" : "Konservo de agordoj malsukcesis",
+    "User" : "Uzanto",
+    "Description" : "Priskribo",
+    "Notification" : "Atentigo",
+    "Confirm" : "Konfirmi"
+},
+"nplurals=2; plural=(n != 1);");

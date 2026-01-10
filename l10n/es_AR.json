@@ -1,0 +1,24 @@
+{ "translations": {
+    "Yes" : "Sí",
+    "Others" : "Otros",
+    "Group" : "Grupo",
+    "Attachments" : "Adjuntos",
+    "Export" : "Exportar",
+    "Copy" : "Copiar",
+    "Last accessed" : "Último acceso",
+    "Cancel" : "Cancel",
+    "Link copied to clipboard" : "Enlace copiado al portapapeles",
+    "Edit" : "Editar",
+    "Delete" : "Eliminar",
+    "Back" : "Volver",
+    "End" : "Fin",
+    "Save" : "Guardar",
+    "Bold" : "Negrita",
+    "Italic" : "Itálico",
+    "Settings saved" : "Configuraciones guardadas",
+    "Permissions" : "Permisos",
+    "User" : "Usuario",
+    "Description" : "Descripción",
+    "Confirm" : "Confirmar"
+},"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
+}

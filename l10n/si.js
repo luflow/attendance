@@ -1,12 +1,14 @@
 OC.L10N.register(
     "attendance",
     {
+    "No" : "නැහැ",
     "Others" : "වෙනත්",
+    "Attachments" : "ඇමිණුම්",
     "Cancel" : "Cancel",
     "Edit" : "සංස්කරණය",
-    "User" : "පරිශීලක",
     "Back" : "ආපසු",
-    "Loading…" : "පූරණය වෙමින්…",
+    "User" : "පරිශීලක",
+    "Description" : "විස්තරය",
     "Confirm" : "තහවුරු කරන්න"
 },
 "nplurals=2; plural=(n != 1);");

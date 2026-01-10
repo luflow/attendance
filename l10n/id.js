@@ -1,8 +1,26 @@
 OC.L10N.register(
     "attendance",
     {
+    "Group" : "Grup",
+    "Attachments" : "Lampiran",
     "Export" : "Ekspor",
+    "Copy" : "Salin",
     "Cancel" : "Cancel",
-    "Start" : "Mulai"
+    "Share link" : "Bagikan tautan",
+    "Edit" : "Sunting",
+    "Delete" : "Hapus",
+    "Untitled event" : "Acara tanpa judul",
+    "Start" : "Mulai",
+    "End" : "Selesai",
+    "Present" : "Hadiah",
+    "Add comment" : "Tambahkan komentar",
+    "Save" : "Simpan",
+    "Settings saved" : "Setelan tersimpan",
+    "Failed to save settings" : "Gagal simpan setelan",
+    "User" : "Pengguna",
+    "Attach" : "Lampirkan",
+    "Description" : "Deskrisi",
+    "Notification" : "Notifikasi",
+    "Confirm" : "Konfirmasi"
 },
 "nplurals=1; plural=0;");

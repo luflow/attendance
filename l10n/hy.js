@@ -1,0 +1,17 @@
+OC.L10N.register(
+    "attendance",
+    {
+    "Yes" : "Այո",
+    "No" : "Ոչ",
+    "Group" : "Խումբ",
+    "Export" : "Արտահանում",
+    "Copy" : "Պատճենել",
+    "Cancel" : "Cancel",
+    "Edit" : "մշակել",
+    "Delete" : "հեռացնել",
+    "Save" : "Պահպանել",
+    "User" : "User",
+    "Description" : "Նկարագրություն",
+    "Notification" : "Ծանուցում"
+},
+"nplurals=2; plural=(n != 1);");
