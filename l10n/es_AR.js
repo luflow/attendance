@@ -10,6 +10,7 @@ OC.L10N.register(
     "Last accessed" : "Último acceso",
     "Cancel" : "Cancel",
     "Link copied to clipboard" : "Enlace copiado al portapapeles",
+    "Share link" : "Compartir link",
     "Edit" : "Editar",
     "Delete" : "Eliminar",
     "Back" : "Volver",

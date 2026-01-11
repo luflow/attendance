@@ -29,6 +29,7 @@ OC.L10N.register(
     "Failed to save settings" : "Spremanje postavki nije uspjelo",
     "Permissions" : "Dopuštenja",
     "User" : "@string/user_icon",
+    "Appointment updated" : "Dogovor je ažuriran",
     "Description" : "Opis",
     "Confirm" : "Potvrdi"
 },

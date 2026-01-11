@@ -4,6 +4,7 @@ OC.L10N.register(
     "Export" : "Exportar",
     "Last accessed" : "Último acceso",
     "Cancel" : "Cancel",
+    "Share link" : "Compartir enlace",
     "Edit" : "Editar",
     "Delete" : "Borrar",
     "End" : "Fin",

@@ -11,6 +11,7 @@ OC.L10N.register(
     "Delete" : "Sil",
     "Back" : "Geri",
     "Save" : "Saxla",
+    "Settings saved" : "Parametrlər yaddaşa verildi",
     "User" : "User",
     "Description" : "Açıqlanma",
     "Confirm" : "Təsdiq edin"

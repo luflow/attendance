@@ -5,6 +5,7 @@ OC.L10N.register(
     "No" : "არა",
     "Group" : "Group",
     "Attachments" : "Attachments",
+    "Create appointment" : "Create appointment",
     "Export" : "Export",
     "Copy" : "Copy",
     "Last accessed" : "Last accessed",

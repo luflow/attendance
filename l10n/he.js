@@ -30,6 +30,7 @@ OC.L10N.register(
     "Failed to save settings" : "שמירת ההגדרות נכשלה",
     "Permissions" : "הרשאות",
     "User" : "משתמש",
+    "Appointment updated" : "הזימון עודכן",
     "Description" : "תיאור",
     "Notification" : "הוֹדָעָה",
     "Confirm" : "אישור"

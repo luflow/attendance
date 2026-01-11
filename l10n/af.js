@@ -12,6 +12,7 @@ OC.L10N.register(
     "Bold" : "Vet",
     "Italic" : "Skuins",
     "Strikethrough" : "Deurstreep",
+    "Settings saved" : "Instellings gestoor",
     "User" : "Gebruiker",
     "Description" : "Beskrywing",
     "Confirm" : "Bevestig"

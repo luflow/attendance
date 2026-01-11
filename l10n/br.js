@@ -3,10 +3,12 @@ OC.L10N.register(
     {
     "No" : "Ket",
     "Cancel" : "Cancel",
+    "Share link" : "Lodañ al liamm",
     "Edit" : "Embann",
     "Delete" : "Dilemel",
     "Present" : "Kinnig",
     "Save" : "Enrollañ",
+    "Settings saved" : "Stummoù enrollet",
     "User" : "Implijer",
     "Description" : "Deskrivadur",
     "Notification" : "Kemennadenn",
