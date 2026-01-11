@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Group" : "Hópur",
     "Attachments" : "Viðhengi",
+    "Create appointment" : "Búa til stefnumót",
     "Export" : "Flytja út",
     "Copy" : "Afrita",
     "Last accessed" : "Síðast notað",
@@ -33,6 +34,7 @@ OC.L10N.register(
     "User" : "Notandi",
     "Team" : "Teymi",
     "Attach" : "Hengja við",
+    "Appointment updated" : "Stefnumót uppfært",
     "Appointment name" : "Heiti stefnumóts",
     "Description" : "Lýsing",
     "Date & Time" : "Dagsetning og tími",

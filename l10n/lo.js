@@ -39,6 +39,7 @@ OC.L10N.register(
     "User" : "ຜູ້ໃຊ້",
     "Team" : "ທີມ",
     "Attach" : "ແນບ",
+    "Appointment updated" : "ອັບເດດການນັດໝາຍແລ້ວ",
     "Appointment name" : "Appointment name",
     "Description" : "ລາຍລະອຽດ",
     "Date & Time" : "ວັນທີ ແລະ ເວລາ",

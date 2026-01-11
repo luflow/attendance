@@ -34,6 +34,7 @@ OC.L10N.register(
     "Edit appointment" : "약속 편집",
     "User" : "사용자",
     "Team" : "팀",
+    "Appointment updated" : "일정 업데이트됨",
     "Appointment name" : "약속 이름",
     "Description" : "설명",
     "Date & Time" : "날짜 & 시간",

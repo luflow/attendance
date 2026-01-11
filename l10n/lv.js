@@ -32,6 +32,7 @@ OC.L10N.register(
     "Edit appointment" : "Labot norunātu tikšanos",
     "User" : "Lietotājs",
     "Team" : "Komanda",
+    "Appointment updated" : "Tikšanās atjaunināta",
     "Appointment name" : "Tikšanās nosaukums",
     "Description" : "Apraksts",
     "Date & Time" : "Datums & Laiks",

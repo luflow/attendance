@@ -5,6 +5,7 @@ OC.L10N.register(
     "Others" : "Otros",
     "Group" : "Grupo",
     "Attachments" : "Archivos adjuntos",
+    "Create appointment" : "Crear cita",
     "Export" : "Exportar",
     "Copy" : "Copiar",
     "Last accessed" : "Último acceso",
@@ -16,6 +17,7 @@ OC.L10N.register(
     "No response" : "Sin respuesta",
     "Select calendar" : "Seleccionar calendario",
     "Back" : "Atrás",
+    "Untitled event" : "Evento sin título",
     "Start" : "Inicio",
     "End" : "Fin",
     "Add comment" : "Agregar comentario",
@@ -33,6 +35,7 @@ OC.L10N.register(
     "User" : "Usuario",
     "Team" : "Equipo",
     "Attach" : "Adjuntar",
+    "Appointment name" : "Nombre de la cita",
     "Description" : "Descripción",
     "Add from Files" : "Agregar desde Archivos",
     "Confirm" : "Confirmar"
