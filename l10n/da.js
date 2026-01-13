@@ -37,7 +37,7 @@ OC.L10N.register(
     "Permissions" : "Rettigheder",
     "Loading …" : "Indlæser …",
     "Appointment not found" : "Aftale ikke fundet",
-    "Edit appointment" : "Rediger aftale",
+    "Edit appointment" : "Redigér aftale",
     "User" : "Bruger",
     "Team" : "Team",
     "Attach" : "Vedhæft",
