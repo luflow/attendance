@@ -7,9 +7,6 @@
     "npm": "^10.0.0"
   },
   "scripts": {
-    "l10n:convert": "node scripts/l10n.js convert-po",
-    "l10n:export": "node scripts/l10n.js export-po",
-    "prebuild": "npm run l10n:convert",
     "build": "vite build",
     "dev": "vite --mode development build",
     "watch": "vite --mode development build --watch",
