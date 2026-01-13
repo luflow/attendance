@@ -159,4 +159,48 @@ class AppointmentMapper extends QBMapper {
 
 		return $this->findEntities($qb);
 	}
+
+	/**
+	 * Find appointments with flexible filtering for export functionality
+	 *
+	 * @param array|null $appointmentIds Specific appointment IDs to export (null for all)
+	 * @param string|null $startDate Start date filter (Y-m-d format, inclusive)
+	 * @param string|null $endDate End date filter (Y-m-d format, inclusive)
+	 * @return array<Appointment>
+	 */
+	public function findForExport(?array $appointmentIds = null, ?string $startDate = null, ?string $endDate = null): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT))
+			);
+
+		// Filter by specific appointment IDs
+		if ($appointmentIds !== null && !empty($appointmentIds)) {
+			$qb->andWhere(
+				$qb->expr()->in('id', $qb->createNamedParameter($appointmentIds, IQueryBuilder::PARAM_INT_ARRAY))
+			);
+		}
+
+		// Filter by date range (based on start_datetime)
+		if ($startDate !== null) {
+			$startDateTime = $startDate . ' 00:00:00';
+			$qb->andWhere(
+				$qb->expr()->gte('start_datetime', $qb->createNamedParameter($startDateTime))
+			);
+		}
+
+		if ($endDate !== null) {
+			$endDateTime = $endDate . ' 23:59:59';
+			$qb->andWhere(
+				$qb->expr()->lte('start_datetime', $qb->createNamedParameter($endDateTime))
+			);
+		}
+
+		$qb->orderBy('start_datetime', 'ASC');
+
+		return $this->findEntities($qb);
+	}
 }
