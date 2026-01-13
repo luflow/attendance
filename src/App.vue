@@ -97,7 +97,7 @@
 					v-if="permissions.canManageAppointments"
 					:name="t('attendance', 'Export')"
 					data-test="button-export"
-					@click.prevent="exportAppointments">
+					@click.prevent="showExportDialog = true">
 					<template #icon>
 						<DownloadIcon :size="20" />
 					</template>
@@ -158,6 +158,12 @@
 		<IcalFeedModal
 			:show="showIcalFeedModal"
 			@close="showIcalFeedModal = false" />
+
+		<!-- Export Dialog -->
+		<ExportDialog
+			:show="showExportDialog"
+			:available-appointments="allAppointments"
+			@close="showExportDialog = false" />
 	</NcContent>
 </template>
 
@@ -168,6 +174,7 @@ import AllAppointments from './views/AllAppointments.vue'
 import AppointmentDetail from './views/AppointmentDetail.vue'
 import AppointmentForm from './views/AppointmentForm.vue'
 import IcalFeedModal from './components/IcalFeedModal.vue'
+import ExportDialog from './components/ExportDialog.vue'
 import { NcContent, NcAppNavigation, NcAppNavigationItem, NcAppContent } from '@nextcloud/vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -193,6 +200,7 @@ const formAppointmentId = ref(null) // For edit/copy modes
 const currentAppointments = ref([])
 const pastAppointments = ref([])
 const showIcalFeedModal = ref(false)
+const showExportDialog = ref(false)
 const notificationsAppEnabled = ref(false)
 const pastAppointmentsExpanded = ref(false)
 
@@ -211,6 +219,11 @@ const answeredAppointments = computed(() => {
 	return currentAppointments.value.filter(appointment => {
 		return appointment.userResponse && appointment.userResponse !== null
 	})
+})
+
+// Computed property for all appointments for export dialog
+const allAppointments = computed(() => {
+	return [...currentAppointments.value, ...pastAppointments.value]
 })
 
 const setView = (view) => {
@@ -324,24 +337,6 @@ const formatAppointmentDisplay = (appointment) => {
 	return `${appointment.name}\n${dateTimeStr}`
 }
 
-const exportAppointments = async () => {
-	try {
-		const response = await axios.post(generateUrl('/apps/attendance/api/export'))
-
-		if (response.data.success) {
-			showSuccess(t('attendance', 'Export created: {filename}', { filename: response.data.filename }))
-
-			const filesUrl = generateUrl('/apps/files/?dir=/Attendance')
-			window.location.href = filesUrl
-		} else {
-			showError(t('attendance', 'Failed to export appointments'))
-		}
-	} catch (error) {
-		console.error('Failed to export appointments:', error)
-		const errorMessage = error.response?.data?.error || t('attendance', 'Failed to export appointments')
-		showError(errorMessage)
-	}
-}
 
 const checkRouting = () => {
 	const path = window.location.pathname
