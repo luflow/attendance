@@ -16,29 +16,26 @@
 
 				<div class="radio-group">
 					<NcCheckboxRadioSwitch
-						:checked.sync="filterType"
+						v-model="filterType"
 						value="all"
 						name="filter_type"
-						type="radio"
-						@update:checked="filterType = $event">
+						type="radio">
 						{{ t('attendance', 'All appointments') }}
 					</NcCheckboxRadioSwitch>
 
 					<NcCheckboxRadioSwitch
-						:checked.sync="filterType"
+						v-model="filterType"
 						value="selected"
 						name="filter_type"
-						type="radio"
-						@update:checked="filterType = $event">
+						type="radio">
 						{{ t('attendance', 'Selected appointments') }}
 					</NcCheckboxRadioSwitch>
 
 					<NcCheckboxRadioSwitch
-						:checked.sync="filterType"
+						v-model="filterType"
 						value="dateRange"
 						name="filter_type"
-						type="radio"
-						@update:checked="filterType = $event">
+						type="radio">
 						{{ t('attendance', 'Date range') }}
 					</NcCheckboxRadioSwitch>
 				</div>
@@ -70,38 +67,34 @@
 
 				<div class="radio-group">
 					<NcCheckboxRadioSwitch
-						:checked.sync="dateRangePreset"
+						v-model="dateRangePreset"
 						value="month"
 						name="date_preset"
-						type="radio"
-						@update:checked="dateRangePreset = $event">
+						type="radio">
 						{{ t('attendance', 'Current month') }}
 					</NcCheckboxRadioSwitch>
 
 					<NcCheckboxRadioSwitch
-						:checked.sync="dateRangePreset"
+						v-model="dateRangePreset"
 						value="quarter"
 						name="date_preset"
-						type="radio"
-						@update:checked="dateRangePreset = $event">
+						type="radio">
 						{{ t('attendance', 'Current quarter') }}
 					</NcCheckboxRadioSwitch>
 
 					<NcCheckboxRadioSwitch
-						:checked.sync="dateRangePreset"
+						v-model="dateRangePreset"
 						value="year"
 						name="date_preset"
-						type="radio"
-						@update:checked="dateRangePreset = $event">
+						type="radio">
 						{{ t('attendance', 'Current year') }}
 					</NcCheckboxRadioSwitch>
 
 					<NcCheckboxRadioSwitch
-						:checked.sync="dateRangePreset"
+						v-model="dateRangePreset"
 						value="custom"
 						name="date_preset"
-						type="radio"
-						@update:checked="dateRangePreset = $event">
+						type="radio">
 						{{ t('attendance', 'Custom range') }}
 					</NcCheckboxRadioSwitch>
 				</div>
