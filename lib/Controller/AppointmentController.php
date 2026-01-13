@@ -355,7 +355,7 @@ class AppointmentController extends Controller {
 	}
 
 	/**
-	 * Export all appointments to ODS file
+	 * Export appointments to ODS file with optional filtering
 	 * @NoAdminRequired
 	 */
 	public function export(): DataResponse {
@@ -369,8 +369,33 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'Insufficient permissions to export appointments'], 403);
 		}
 
+		// Get filter parameters
+		$appointmentIds = $this->request->getParam('appointmentIds'); // array or null
+		$startDate = $this->request->getParam('startDate'); // Y-m-d format or null
+		$endDate = $this->request->getParam('endDate'); // Y-m-d format or null
+		$preset = $this->request->getParam('preset', 'all'); // all, month, quarter, year, custom
+
+		// Validate appointmentIds is array if provided
+		if ($appointmentIds !== null && !is_array($appointmentIds)) {
+			return new DataResponse(['error' => 'appointmentIds must be an array'], 400);
+		}
+
+		// Validate date formats if provided
+		if ($startDate !== null && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $startDate)) {
+			return new DataResponse(['error' => 'startDate must be in Y-m-d format'], 400);
+		}
+		if ($endDate !== null && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $endDate)) {
+			return new DataResponse(['error' => 'endDate must be in Y-m-d format'], 400);
+		}
+
+		// Validate preset
+		$validPresets = ['all', 'month', 'quarter', 'year', 'custom'];
+		if (!in_array($preset, $validPresets)) {
+			return new DataResponse(['error' => 'Invalid preset. Must be one of: ' . implode(', ', $validPresets)], 400);
+		}
+
 		try {
-			$result = $this->exportService->exportToOds($user->getUID());
+			$result = $this->exportService->exportToOds($user->getUID(), $appointmentIds, $startDate, $endDate, $preset);
 			return new DataResponse([
 				'success' => true,
 				'path' => $result['path'],
