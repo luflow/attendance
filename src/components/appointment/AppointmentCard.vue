@@ -89,6 +89,17 @@
                     <NcActionButton
                         v-if="canManageAppointments"
                         :close-after-click="true"
+                        data-test="action-export"
+                        @click="handleExport"
+                    >
+                        <template #icon>
+                            <DownloadIcon :size="20" />
+                        </template>
+                        {{ t("attendance", "Export") }}
+                    </NcActionButton>
+                    <NcActionButton
+                        v-if="canManageAppointments"
+                        :close-after-click="true"
                         data-test="action-copy"
                         @click="handleCopy"
                     >
@@ -292,6 +303,7 @@ import ShareVariantIcon from "vue-material-design-icons/ShareVariant.vue";
 import Pencil from "vue-material-design-icons/Pencil.vue";
 import Delete from "vue-material-design-icons/Delete.vue";
 import ContentCopy from "vue-material-design-icons/ContentCopy.vue";
+import DownloadIcon from "vue-material-design-icons/Download.vue";
 import CheckIcon from "vue-material-design-icons/Check.vue";
 import CloseIcon from "vue-material-design-icons/Close.vue";
 import CloseCircle from "vue-material-design-icons/CloseCircle.vue";
@@ -334,6 +346,7 @@ const emit = defineEmits([
     "edit",
     "copy",
     "delete",
+    "export",
     "submit-response",
     "update-comment",
 ]);
@@ -440,6 +453,10 @@ const handleCopy = () => {
 const handleDelete = () => {
     emit("delete", props.appointment.id);
 };
+
+const handleExport = () => {
+	emit('export', props.appointment.id)
+}
 
 const handleResponse = (response) => {
     emit("submit-response", props.appointment.id, response);
