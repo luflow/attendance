@@ -4,7 +4,7 @@
 
 ### Vue.js Frontend
 - Use Vue 3 Composition API (`<script setup>`)
-- All translations must be defined in `translationfiles/` folder for all languages
+- **Translations are handled via Transifex** - do NOT manually add translation files or .po files when building new features
 - **Always use English keys** for `t()` calls in Vue components, never German strings
 - Use and Import mainly Nextcloud components from `@nextcloud/vue`
 - Styling with CSS in `<style scoped>`
@@ -13,6 +13,8 @@
 - When changing the frontend, always build the app with `npm run build`
 
 ### Translation Guidelines (Nextcloud Standards)
+Translations are managed via **Transifex** and synced automatically. When adding new features, just use `t()` and `n()` with English strings - do NOT create or modify translation files manually.
+
 Follow these Nextcloud translation guidelines (see https://docs.nextcloud.com/server/latest/developer_manual/basics/translations.html):
 
 #### Capitalization
