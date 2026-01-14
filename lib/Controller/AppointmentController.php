@@ -374,6 +374,7 @@ class AppointmentController extends Controller {
 		$startDate = $this->request->getParam('startDate'); // Y-m-d format or null
 		$endDate = $this->request->getParam('endDate'); // Y-m-d format or null
 		$preset = $this->request->getParam('preset', 'all'); // all, month, quarter, year, custom
+		$includeComments = $this->request->getParam('includeComments', false); // boolean
 
 		// Validate appointmentIds is array if provided
 		if ($appointmentIds !== null && !is_array($appointmentIds)) {
@@ -395,7 +396,7 @@ class AppointmentController extends Controller {
 		}
 
 		try {
-			$result = $this->exportService->exportToOds($user->getUID(), $appointmentIds, $startDate, $endDate, $preset);
+			$result = $this->exportService->exportToOds($user->getUID(), $appointmentIds, $startDate, $endDate, $preset, $includeComments);
 			return new DataResponse([
 				'success' => true,
 				'path' => $result['path'],

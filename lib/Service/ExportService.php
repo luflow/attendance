@@ -57,10 +57,11 @@ class ExportService {
 	 * @param string|null $startDate Start date filter (Y-m-d format, inclusive)
 	 * @param string|null $endDate End date filter (Y-m-d format, inclusive)
 	 * @param string $preset Date range preset (all, month, quarter, year, custom)
+	 * @param bool $includeComments Whether to include user comments in the export
 	 * @return array Array with 'path' and 'filename' keys
 	 * @throws \Exception
 	 */
-	public function exportToOds(string $userId, ?array $appointmentIds = null, ?string $startDate = null, ?string $endDate = null, string $preset = 'all'): array {
+	public function exportToOds(string $userId, ?array $appointmentIds = null, ?string $startDate = null, ?string $endDate = null, string $preset = 'all', bool $includeComments = false): array {
 		// Calculate date range for presets
 		[$calculatedStartDate, $calculatedEndDate] = $this->calculateDateRange($preset, $startDate, $endDate);
 
@@ -128,7 +129,7 @@ class ExportService {
 		});
 
 		// Generate ODS content
-		$odsContent = $this->generateOdsContent($appointments, $users, $appointmentResponses);
+		$odsContent = $this->generateOdsContent($appointments, $users, $appointmentResponses, $includeComments);
 
 		// Create the Attendance folder
 		try {
@@ -185,9 +186,10 @@ class ExportService {
 	 * @param array $appointments Array of Appointment entities
 	 * @param array $users Array of user data
 	 * @param array $appointmentResponses Map of appointment ID to user responses
+	 * @param bool $includeComments Whether to include comment columns
 	 * @return string Binary ODS content
 	 */
-	private function generateOdsContent(array $appointments, array $users, array $appointmentResponses): string {
+	private function generateOdsContent(array $appointments, array $users, array $appointmentResponses, bool $includeComments = false): string {
 		// Check if ZipArchive extension is available
 		if (!class_exists('\ZipArchive')) {
 			throw new \Exception('ZipArchive extension is not available. Please install php-zip extension.');
@@ -213,7 +215,7 @@ class ExportService {
 		$zip->addFromString('META-INF/manifest.xml', $this->getManifestXml());
 
 		// Add content.xml with the table
-		$zip->addFromString('content.xml', $this->getContentXml($appointments, $users, $appointmentResponses));
+		$zip->addFromString('content.xml', $this->getContentXml($appointments, $users, $appointmentResponses, $includeComments));
 
 		// Add styles.xml
 		$zip->addFromString('styles.xml', $this->getStylesXml());
@@ -290,7 +292,7 @@ class ExportService {
 	/**
 	 * Get content.xml with the table
 	 */
-	private function getContentXml(array $appointments, array $users, array $appointmentResponses): string {
+	private function getContentXml(array $appointments, array $users, array $appointmentResponses, bool $includeComments = false): string {
 		$xml = '<?xml version="1.0" encoding="UTF-8"?>
 <office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" 
 	xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" 
@@ -322,14 +324,16 @@ class ExportService {
 		<office:spreadsheet>
 			<table:table table:name="Attendance" table:print="false">';
 
-		// Calculate number of columns: 2 for Name+Group + (2 * number of appointments)
-		$columnCount = 2 + (count($appointments) * 2);
+		// Calculate number of columns: 2 for Name+Group + (2 or 3 * number of appointments)
+		// Each appointment has RSVP + CheckIn columns, plus Comment if comments enabled
+		$columnsPerAppointment = $includeComments ? 3 : 2;
+		$columnCount = 2 + (count($appointments) * $columnsPerAppointment);
 
 		// Add column definitions
 		$xml .= '
 				<table:table-column table:style-name="co1" table:number-columns-repeated="2"/>';
 		$xml .= '
-				<table:table-column table:style-name="co2" table:number-columns-repeated="' . (count($appointments) * 2) . '"/>';
+				<table:table-column table:style-name="co2" table:number-columns-repeated="' . (count($appointments) * $columnsPerAppointment) . '"/>';
 
 		// Add first header row with appointment names only
 		$xml .= '
@@ -344,12 +348,16 @@ class ExportService {
 		foreach ($appointments as $appointment) {
 			$appointmentName = $this->escapeXml($appointment->getName());
 
-			// Add merged cell for appointment name spanning 2 columns
+			// Add merged cell for appointment name spanning correct number of columns
 			$xml .= '
-					<table:table-cell table:style-name="ce2" office:value-type="string" table:number-columns-spanned="2">
+					<table:table-cell table:style-name="ce2" office:value-type="string" table:number-columns-spanned="' . $columnsPerAppointment . '">
 						<text:p>' . $appointmentName . '</text:p>
-					</table:table-cell>
-					<table:covered-table-cell/>';
+					</table:table-cell>';
+
+			// Add covered cells for the spanned columns
+			for ($i = 1; $i < $columnsPerAppointment; $i++) {
+				$xml .= '<table:covered-table-cell/>';
+			}
 		}
 
 		$xml .= '
@@ -368,12 +376,16 @@ class ExportService {
 		foreach ($appointments as $appointment) {
 			$startDate = date('Y-m-d', strtotime($appointment->getStartDatetime()));
 
-			// Add date merged cell spanning 2 columns
+			// Add date merged cell spanning correct number of columns
 			$xml .= '
-					<table:table-cell table:style-name="ce2" office:value-type="string" table:number-columns-spanned="2">
+					<table:table-cell table:style-name="ce2" office:value-type="string" table:number-columns-spanned="' . $columnsPerAppointment . '">
 						<text:p>' . $startDate . '</text:p>
-					</table:table-cell>
-					<table:covered-table-cell/>';
+					</table:table-cell>';
+
+			// Add covered cells for the spanned columns
+			for ($i = 1; $i < $columnsPerAppointment; $i++) {
+				$xml .= '<table:covered-table-cell/>';
+			}
 		}
 
 		$xml .= '
@@ -397,6 +409,13 @@ class ExportService {
 					<table:table-cell table:style-name="ce2" office:value-type="string">
 						<text:p>CheckIn</text:p>
 					</table:table-cell>';
+
+			if ($includeComments) {
+				$xml .= '
+					<table:table-cell table:style-name="ce2" office:value-type="string">
+						<text:p>Comment</text:p>
+					</table:table-cell>';
+			}
 		}
 
 		$xml .= '
@@ -413,7 +432,7 @@ class ExportService {
 						<text:p>' . $this->escapeXml($user['group']) . '</text:p>
 					</table:table-cell>';
 
-			// Add RSVP and CheckIn data for each appointment
+			// Add RSVP, CheckIn, and optionally Comment data for each appointment
 			foreach ($appointments as $appointment) {
 				$response = $appointmentResponses[$appointment->getId()][$user['userId']] ?? null;
 
@@ -430,6 +449,15 @@ class ExportService {
 					<table:table-cell table:style-name="ce1" office:value-type="string">
 						<text:p>' . $checkin . '</text:p>
 					</table:table-cell>';
+
+				// Comment column (if enabled)
+				if ($includeComments) {
+					$comment = $response && $response->getComment() ? $this->escapeXml($response->getComment()) : '';
+					$xml .= '
+					<table:table-cell table:style-name="ce1" office:value-type="string">
+						<text:p>' . $comment . '</text:p>
+					</table:table-cell>';
+				}
 			}
 
 			$xml .= '

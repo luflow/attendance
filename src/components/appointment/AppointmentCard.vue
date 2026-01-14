@@ -32,6 +32,15 @@
 					</NcActionButton>
 					<NcActionButton v-if="canManageAppointments"
 						:close-after-click="true"
+						data-test="action-export"
+						@click="handleExport">
+						<template #icon>
+							<DownloadIcon :size="20" />
+						</template>
+						{{ t('attendance', 'Export') }}
+					</NcActionButton>
+					<NcActionButton v-if="canManageAppointments"
+						:close-after-click="true"
 						data-test="action-copy"
 						@click="handleCopy">
 						<template #icon>
@@ -168,6 +177,7 @@ import ShareVariantIcon from 'vue-material-design-icons/ShareVariant.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
+import DownloadIcon from 'vue-material-design-icons/Download.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
 import Paperclip from 'vue-material-design-icons/Paperclip.vue'
@@ -199,7 +209,7 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['start-checkin', 'edit', 'copy', 'delete', 'submit-response', 'update-comment'])
+const emit = defineEmits(['start-checkin', 'edit', 'copy', 'delete', 'export', 'submit-response', 'update-comment'])
 
 const localComment = ref(props.appointment.userResponse?.comment || '')
 const commentExpanded = ref(false)
@@ -294,6 +304,10 @@ const handleCopy = () => {
 
 const handleDelete = () => {
 	emit('delete', props.appointment.id)
+}
+
+const handleExport = () => {
+	emit('export', props.appointment.id)
 }
 
 const handleResponse = (response) => {
