@@ -44,20 +44,45 @@
 			<!-- Selected Appointments -->
 			<div v-if="filterType === 'selected'" class="filter-section">
 				<h3>{{ t('attendance', 'Select appointments') }}</h3>
+
+				<!-- Select All / Deselect All controls -->
+				<div class="select-controls">
+					<NcButton
+						type="tertiary"
+						:disabled="selectedAppointments.length === availableAppointments.length"
+						@click="selectAllAppointments">
+						{{ t('attendance', 'Select all') }}
+					</NcButton>
+					<NcButton
+						type="tertiary"
+						:disabled="selectedAppointments.length === 0"
+						@click="deselectAllAppointments">
+						{{ t('attendance', 'Deselect all') }}
+					</NcButton>
+					<span v-if="selectedAppointments.length > 0" class="selection-count">
+						{{ n('attendance', '{count} appointment selected', '{count} appointments selected', selectedAppointments.length, { count: selectedAppointments.length }) }}
+					</span>
+				</div>
+
 				<div class="appointment-list">
-					<NcCheckboxRadioSwitch
+					<div
 						v-for="appointment in availableAppointments"
 						:key="appointment.id"
-						:checked="selectedAppointments.includes(appointment.id)"
-						:aria-label="appointment.name"
-						type="checkbox"
-						@update:checked="toggleAppointment(appointment.id, $event)">
-						<span class="appointment-item">
-							<strong>{{ appointment.name }}</strong>
-							<br>
-							<span class="appointment-date">{{ formatDateTime(appointment.startDatetime) }}</span>
-						</span>
-					</NcCheckboxRadioSwitch>
+						class="appointment-checkbox-item">
+						<input
+							:id="`appointment-${appointment.id}`"
+							v-model="selectedAppointments"
+							:value="appointment.id"
+							type="checkbox"
+							class="appointment-checkbox">
+						<label :for="`appointment-${appointment.id}`" class="appointment-label">
+							<span class="appointment-item">
+								<strong>{{ appointment.name }}</strong>
+								<br>
+								<span class="appointment-date">{{ formatDateTime(appointment.startDatetime) }}</span>
+							</span>
+						</label>
+					</div>
 				</div>
 			</div>
 
@@ -123,6 +148,16 @@
 				</div>
 			</div>
 
+			<!-- Export Options -->
+			<div class="filter-section">
+				<h3>{{ t('attendance', 'Export options') }}</h3>
+				<NcCheckboxRadioSwitch
+					v-model="includeComments"
+					type="checkbox">
+					{{ t('attendance', 'Include comments in export') }}
+				</NcCheckboxRadioSwitch>
+			</div>
+
 			<!-- Export Button -->
 			<div class="button-row">
 				<NcButton
@@ -144,7 +179,7 @@
 import { ref, computed, watch } from 'vue'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
-import { translate as t } from '@nextcloud/l10n'
+import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import axios from '@nextcloud/axios'
 
 import { NcModal, NcButton, NcCheckboxRadioSwitch, NcNoteCard, NcLoadingIcon } from '@nextcloud/vue'
@@ -172,6 +207,7 @@ const selectedAppointments = ref([])
 const dateRangePreset = ref('month')
 const customStartDate = ref('')
 const customEndDate = ref('')
+const includeComments = ref(false)
 const exporting = ref(false)
 
 // Watch filter type changes to reset selections
@@ -191,14 +227,7 @@ const canExport = computed(() => {
 	return filterType.value === 'dateRange'
 })
 
-// Methods
-const toggleAppointment = (appointmentId, checked) => {
-	if (checked) {
-		selectedAppointments.value.push(appointmentId)
-	} else {
-		selectedAppointments.value = selectedAppointments.value.filter(id => id !== appointmentId)
-	}
-}
+// Methods (toggleAppointment removed - using v-model directly)
 
 const getDateRangePreview = () => {
 	const now = new Date()
@@ -228,6 +257,15 @@ const getDateRangePreview = () => {
 const formatDate = (date) => {
 	return date.toLocaleDateString()
 }
+
+const selectAllAppointments = () => {
+	selectedAppointments.value = availableAppointments.value.map(appointment => appointment.id)
+}
+
+const deselectAllAppointments = () => {
+	selectedAppointments.value = []
+}
+
 
 const handleExport = async () => {
 	if (!canExport.value) return
@@ -259,7 +297,9 @@ const handleExport = async () => {
 }
 
 const buildExportData = () => {
-	const data = {}
+	const data = {
+		includeComments: includeComments.value
+	}
 
 	if (filterType.value === 'selected') {
 		data.appointmentIds = selectedAppointments.value
@@ -286,6 +326,7 @@ watch(() => props.show, (show) => {
 		dateRangePreset.value = 'month'
 		customStartDate.value = ''
 		customEndDate.value = ''
+		includeComments.value = false
 		exporting.value = false
 	}
 })
@@ -321,6 +362,22 @@ watch(() => props.show, (show) => {
 	gap: 10px;
 }
 
+.select-controls {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+	margin-bottom: 10px;
+	padding: 10px;
+	background-color: var(--color-background-hover);
+	border-radius: var(--border-radius);
+}
+
+.selection-count {
+	color: var(--color-text-lighter);
+	font-size: 0.9em;
+	margin-left: auto;
+}
+
 .appointment-list {
 	max-height: 300px;
 	overflow-y: auto;
@@ -329,9 +386,31 @@ watch(() => props.show, (show) => {
 	padding: 10px;
 }
 
+.appointment-checkbox-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	margin-bottom: 10px;
+	padding: 8px;
+	border-radius: var(--border-radius);
+}
+
+.appointment-checkbox-item:hover {
+	background-color: var(--color-background-hover);
+}
+
+.appointment-checkbox {
+	margin-top: 2px;
+	cursor: pointer;
+}
+
+.appointment-label {
+	cursor: pointer;
+	flex: 1;
+}
+
 .appointment-item {
 	display: block;
-	margin-left: 8px;
 }
 
 .appointment-date {
