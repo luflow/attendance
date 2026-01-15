@@ -175,7 +175,7 @@
     "Files that are important for this appointment can be selected here." : "Hier können die für diesen Termin wichtigen Dateien ausgewählt werden.",
     "Add from Files" : "Anhang hinzufügen",
     "Restrict access" : "Zugriff beschränken",
-    "Limits who can see this appointment. Leave empty for all users." : "Festlegen, wer diesen Termin sehen kann. Dieses Feld leer lassen, damit alle Benutzer diesen sehen können.",
+    "Limits who can see this appointment. Leave empty for all users." : "Legt fest, wer diesen Termin sehen kann. Feld leer lassen, damit ihn alle Benutzer sehen können.",
     "Search users, groups or teams …" : "Benutzer, Gruppen oder Teams suchen …",
     "Some users may appear in the section \"Others\" in the response summary because they are not configured for tracking." : "Einige Benutzer werden möglicherweise im Abschnitt \"Andere\" in der Antwortübersicht angezeigt, da sie nicht zu den konfigurierten Gruppen gehören.",
     "Configure in administration settings" : "In den Administrationseinstellungen konfigurieren",
