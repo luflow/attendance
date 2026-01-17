@@ -1,7 +1,10 @@
 { "translations": {
+    "This link is no longer valid." : "此連結不再有效。",
+    "This appointment no longer exists." : "此預約已不存在。",
     "Yes" : "是",
     "No" : "否",
     "Maybe" : "也許",
+    "Attendance" : "出席情況",
     "Others" : "其他",
     "Group" : "群組",
     "Attachments" : "附件",
