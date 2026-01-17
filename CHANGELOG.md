@@ -6,6 +6,22 @@
 
 - Nightly changes here
 
+## 1.22.0 – 2026-01-17
+
+### Added
+
+- Attachments are now displayed in iCal calendar event descriptions for compatibility with Google Calendar, Outlook, and other calendar clients that don't support the RFC 5545 ATTACH property
+- Transifex integration for community translations
+
+### Changed
+
+- Translations now follow Nextcloud guidelines (proper capitalization, ellipsis spacing, numbered placeholders)
+
+### Maintenance
+
+- Cleaned up unused translation files after Transifex migration
+- Added small thumbnails for app store screenshots
+
 ## 1.21.0 – 2026-01-07
 
 ### Added
