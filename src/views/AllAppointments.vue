@@ -37,10 +37,17 @@
 					@edit="editAppointment"
 					@copy="copyAppointment"
 					@delete="deleteAppointment"
+					@export="showExportDialog"
 					@submit-response="submitResponse"
 					@update-comment="updateComment" />
 			</div>
 		</div>
+
+		<!-- Single Appointment Export Dialog -->
+		<SingleAppointmentExportDialog
+			:show="exportDialogVisible"
+			:appointment="selectedAppointmentForExport"
+			@close="exportDialogVisible = false" />
 	</div>
 </template>
 
@@ -48,10 +55,12 @@
 import { ref, reactive, onMounted, watch } from 'vue'
 import { NcButton } from '@nextcloud/vue'
 import AppointmentCard from '../components/appointment/AppointmentCard.vue'
+import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
 import AlertIcon from 'vue-material-design-icons/Alert.vue'
 import confettiLib from 'canvas-confetti'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
+import { showSuccess, showError } from '@nextcloud/dialogs'
 import { usePermissions } from '../composables/usePermissions.js'
 import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
 
@@ -69,6 +78,8 @@ const props = defineProps({
 const emit = defineEmits(['response-updated', 'edit-appointment', 'copy-appointment', 'navigate-to-upcoming'])
 
 const appointments = ref([])
+const exportDialogVisible = ref(false)
+const selectedAppointmentForExport = ref(null)
 
 const goToUpcoming = () => {
 	emit('navigate-to-upcoming')
@@ -162,6 +173,12 @@ const copyAppointment = (appointment) => {
 
 const startCheckin = (appointmentId) => {
 	window.location.href = generateUrl(`/apps/attendance/checkin/${appointmentId}`)
+}
+
+const showExportDialog = (appointmentId) => {
+	const appointment = appointments.value.find(apt => apt.id === appointmentId)
+	selectedAppointmentForExport.value = appointment
+	exportDialogVisible.value = true
 }
 
 // Create confetti instance without worker to comply with NC 32+ CSP

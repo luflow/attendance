@@ -1,3 +1,7 @@
+/**
+ * This file is auto-generated from translationfiles/de_DE/attendance.po
+ * Do not edit directly - edit the .po file instead and run: npm run l10n:convert
+ */
 OC.L10N.register(
     "attendance",
     {

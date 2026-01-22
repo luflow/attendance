@@ -21,9 +21,16 @@
 				@edit="editAppointment"
 				@copy="copyAppointment"
 				@delete="deleteAppointment"
+				@export="showExportDialog"
 				@submit-response="submitResponse"
 				@update-comment="updateComment" />
 		</div>
+
+		<!-- Single Appointment Export Dialog -->
+		<SingleAppointmentExportDialog
+			:show="exportDialogVisible"
+			:appointment="appointment"
+			@close="exportDialogVisible = false" />
 	</div>
 </template>
 
@@ -34,6 +41,7 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
 import AppointmentCard from '../components/appointment/AppointmentCard.vue'
+import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
 import { usePermissions } from '../composables/usePermissions.js'
 import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
 
@@ -49,6 +57,7 @@ const emit = defineEmits(['response-updated', 'edit-appointment', 'copy-appointm
 const appointment = ref(null)
 const loading = ref(true)
 const error = ref(null)
+const exportDialogVisible = ref(false)
 
 // Use the shared permissions composable
 const { permissions, loadPermissions } = usePermissions()
@@ -91,6 +100,10 @@ const deleteAppointment = async (appointmentId) => {
 			showError(t('attendance', 'Error deleting appointment'))
 		}
 	}
+}
+
+const showExportDialog = () => {
+	exportDialogVisible.value = true
 }
 
 const submitResponse = async (appointmentId, response) => {
