@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Yes" : "Ya",
     "No" : "Tidak",
+    "Maybe" : "Mungkin",
     "Group" : "Grup",
     "Attachments" : "Lampiran",
     "Export" : "Ekspor",
@@ -12,6 +13,7 @@ OC.L10N.register(
     "Share link" : "Bagikan tautan",
     "Edit" : "Sunting",
     "Delete" : "Hapus",
+    "Select calendar" : "Pilih kalender",
     "Back" : "Kembali",
     "Untitled event" : "Acara tanpa judul",
     "Start" : "Mulai",
@@ -24,14 +26,20 @@ OC.L10N.register(
     "Strikethrough" : "Coret",
     "Bullet list" : "Daftar berpoin",
     "Numbered list" : "Daftar bernomor",
+    "Insert link" : "Sisipkan tautan",
+    "Failed to load settings" : "Gagal memuat pengaturan",
     "Settings saved" : "Setelan tersimpan",
     "Failed to save settings" : "Gagal simpan setelan",
     "Loading …" : "Memuat …",
+    "Appointment not found" : "Janji temu tidak ditemukan",
     "User" : "Pengguna",
     "Team" : "Tim",
     "Attach" : "Lampirkan",
+    "Appointment name" : "Nama janji temu",
     "Description" : "Deskrisi",
     "Notification" : "Notifikasi",
-    "Confirm" : "Konfirmasi"
+    "Add from Files" : "Tambahkan dari Berkas",
+    "Confirm" : "Konfirmasi",
+    "Thank you for your response!" : "Terima kasih atas tanggapan Anda!"
 },
 "nplurals=1; plural=0;");
