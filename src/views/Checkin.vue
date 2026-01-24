@@ -25,6 +25,22 @@
 				:all-checked-in="checkinStatus.allCheckedIn"
 				:not-checked-in-count="checkinStatus.notCheckedIn" />
 
+			<div class="filter-section">
+				<NcRadioGroup
+					v-model="showFilter"
+					:label="t('attendance', 'Filter users')"
+					hide-label>
+					<NcRadioGroupButton
+						:label="t('attendance', 'All users')"
+						value="all"
+						data-test="filter-all" />
+					<NcRadioGroupButton
+						:label="showPendingLabel"
+						value="not-checked-in"
+						data-test="filter-not-checked-in" />
+				</NcRadioGroup>
+			</div>
+
 			<CheckinControls
 				v-model:search-query="searchQuery"
 				v-model:selected-group="selectedGroup"
@@ -33,10 +49,11 @@
 			<div class="user-lists">
 				<div class="user-section">
 					<CheckinBulkActions
+						v-if="filteredAllUsers.length > 0"
 						:disabled="bulkProcessing"
 						@bulk-checkin="confirmBulkCheckin" />
 
-					<div class="user-list">
+					<div v-if="filteredAllUsers.length > 0" class="user-list">
 						<CheckinUserItem
 							v-for="user in filteredAllUsers"
 							:key="user.userId"
@@ -50,6 +67,32 @@
 							@cancel-comment="cancelCommentInput"
 							@update:comment-value="updateCommentValue(user.userId, $event)" />
 					</div>
+
+					<NcEmptyContent
+						v-else-if="showFilter === 'not-checked-in'"
+						:name="t('attendance', 'All attendees checked in')"
+						data-test="empty-all-checked-in">
+						<template #icon>
+							<CheckIcon />
+						</template>
+						<template #action>
+							<NcButton @click="showFilter = 'all'">
+								{{ t('attendance', 'Show all users') }}
+							</NcButton>
+						</template>
+					</NcEmptyContent>
+
+					<NcEmptyContent
+						v-else-if="searchQuery || selectedGroup"
+						:name="t('attendance', 'No users found')"
+						data-test="empty-no-results">
+						<template #icon>
+							<AccountSearchIcon />
+						</template>
+						<template #description>
+							{{ t('attendance', 'Try adjusting your search or filter') }}
+						</template>
+					</NcEmptyContent>
 				</div>
 			</div>
 		</div>
@@ -78,8 +121,10 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { NcButton, NcLoadingIcon, NcEmptyContent, NcDialog } from '@nextcloud/vue'
+import { NcButton, NcLoadingIcon, NcEmptyContent, NcDialog, NcRadioGroup, NcRadioGroupButton } from '@nextcloud/vue'
 import AlertIcon from 'vue-material-design-icons/Alert.vue'
+import CheckIcon from 'vue-material-design-icons/Check.vue'
+import AccountSearchIcon from 'vue-material-design-icons/AccountSearch.vue'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import { usePermissions } from '../composables/usePermissions.js'
@@ -108,6 +153,7 @@ const bulkProcessing = ref(false)
 const searchQuery = ref('')
 const selectedGroup = ref(null)
 const userGroups = ref([])
+const showFilter = ref('all')
 const showCommentInput = reactive({})
 const checkinComments = reactive({})
 const showConfirmDialog = ref(false)
@@ -122,8 +168,17 @@ const groupOptions = computed(() => userGroups.value.map(group => ({
 	label: window.t('attendance', group),
 })))
 
+const showPendingLabel = computed(() => {
+	return window.t('attendance', 'Only pending ({count})', { count: checkinStatus.value.notCheckedIn })
+})
+
 const filteredAllUsers = computed(() => {
 	let filtered = users.value
+
+	// Filter by checkin status (all vs not checked in)
+	if (showFilter.value === 'not-checked-in') {
+		filtered = filtered.filter(user => !user.checkinState)
+	}
 
 	// Filter by search query
 	if (searchQuery.value) {
@@ -294,6 +349,10 @@ onMounted(async () => {
 	justify-content: center;
 	min-height: 200px;
 	text-align: center;
+}
+
+.filter-section {
+	margin-bottom: 20px;
 }
 
 .user-section {
