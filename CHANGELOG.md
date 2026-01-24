@@ -6,6 +6,17 @@
 
 - Nightly changes here
 
+## 1.23.0 – 2026-01-24
+
+### Added
+
+- Check-in summary on appointment cards showing attended, absent, and pending counts (visible to users with response overview permission)
+- Toggle filter in check-in view to switch between showing all users and only pending users
+
+### Fixed
+
+- Check-in view now correctly filters users by whitelisted groups
+
 ## 1.22.0 – 2026-01-17
 
 ### Added
