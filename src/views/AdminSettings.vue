@@ -93,9 +93,9 @@
 				</div>
 
 				<div class="subsection">
-					<h4>{{ t('attendance', 'See response overview') }}</h4>
+					<h4>{{ t('attendance', 'See response & check-in summary') }}</h4>
 					<p class="subsection-hint">
-						{{ t('attendance', 'Groups that can see the response overview with details') }}
+						{{ t('attendance', 'Groups that can see the response summary and check-in summary') }}
 					</p>
 					<GroupSelect
 						v-model="selectedSeeResponseOverviewRoles"
