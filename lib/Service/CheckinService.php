@@ -170,6 +170,63 @@ class CheckinService {
 	}
 
 	/**
+	 * Get checkin summary counts for an appointment.
+	 *
+	 * @param int $appointmentId The appointment ID
+	 * @return array Checkin summary with attended, absent, notCheckedIn counts and hasCheckins flag
+	 */
+	public function getCheckinSummary(int $appointmentId): array {
+		$appointment = $this->appointmentMapper->find($appointmentId);
+		$responses = $this->responseMapper->findByAppointment($appointmentId);
+
+		// Get whitelisted groups for filtering
+		$whitelistedGroups = $this->configService->getWhitelistedGroups();
+
+		// Get relevant users - this filters by whitelisted groups when configured
+		$relevantUsers = $this->visibilityService->getRelevantUsersForAppointment($appointment, $whitelistedGroups);
+
+		// Create a map of user responses
+		$userResponseMap = [];
+		foreach ($responses as $response) {
+			$userResponseMap[$response->getUserId()] = $response;
+		}
+
+		// Count checkin states
+		$attended = 0;
+		$absent = 0;
+		$notCheckedIn = 0;
+
+		foreach ($relevantUsers as $userId => $user) {
+			// Only count users who are target attendees
+			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
+				continue;
+			}
+
+			if (isset($userResponseMap[$userId])) {
+				$checkinState = $userResponseMap[$userId]->getCheckinState();
+				if ($checkinState === 'yes') {
+					$attended++;
+				} elseif ($checkinState === 'no') {
+					$absent++;
+				} else {
+					$notCheckedIn++;
+				}
+			} else {
+				$notCheckedIn++;
+			}
+		}
+
+		$hasCheckins = ($attended + $absent) > 0;
+
+		return [
+			'attended' => $attended,
+			'absent' => $absent,
+			'notCheckedIn' => $notCheckedIn,
+			'hasCheckins' => $hasCheckins,
+		];
+	}
+
+	/**
 	 * Build data structure for a single user.
 	 */
 	private function buildUserData($user, array $userResponseMap, array $whitelistedGroups): array {

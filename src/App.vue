@@ -451,16 +451,23 @@ onMounted(async () => {
 </style>
 
 <style>
-/* Global Nextcloud 31 fallback for NcChip text color */
-/* Only apply to colored chip variants that need white text */
+/* Global Nextcloud 31 fallback for NcChip text and icon color */
+/* Only apply to colored chip variants that need white text/icons */
 #attendance[data-nc-version="31"] .nc-chip--error .nc-chip__text,
 #attendance[data-nc-version="31"] .nc-chip--warning .nc-chip__text,
 #attendance[data-nc-version="31"] .nc-chip--success .nc-chip__text {
 	color: white !important;
 }
 
-/* Dark Mode (explicit): Warning elements need black text for better contrast */
-body[data-theme-dark] #attendance[data-nc-version="31"] .nc-chip--warning .nc-chip__text {
+#attendance[data-nc-version="31"] .nc-chip--error .nc-chip__icon,
+#attendance[data-nc-version="31"] .nc-chip--warning .nc-chip__icon,
+#attendance[data-nc-version="31"] .nc-chip--success .nc-chip__icon {
+	color: white !important;
+}
+
+/* Dark Mode (explicit): Warning elements need black text/icons for better contrast */
+body[data-theme-dark] #attendance[data-nc-version="31"] .nc-chip--warning .nc-chip__text,
+body[data-theme-dark] #attendance[data-nc-version="31"] .nc-chip--warning .nc-chip__icon {
 	color: black !important;
 }
 
@@ -471,7 +478,8 @@ body[data-theme-dark] #attendance[data-nc-version="31"] .response-buttons .butto
 
 /* Dark Mode (system preference): Only when using default theme */
 @media (prefers-color-scheme: dark) {
-	body[data-theme-default] #attendance[data-nc-version="31"] .nc-chip--warning .nc-chip__text {
+	body[data-theme-default] #attendance[data-nc-version="31"] .nc-chip--warning .nc-chip__text,
+	body[data-theme-default] #attendance[data-nc-version="31"] .nc-chip--warning .nc-chip__icon {
 		color: black !important;
 	}
 

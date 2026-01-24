@@ -148,6 +148,38 @@
 			</div>
 		</div>
 
+		<!-- Checkin Summary (only shown when checkins exist and user can see response overview) -->
+		<div v-if="canSeeResponseOverview && appointment.checkinSummary?.hasCheckins" class="checkin-summary" data-test="checkin-summary">
+			<h4>{{ t('attendance', 'Check-in summary') }}</h4>
+			<div class="summary-stats">
+				<NcChip
+					:text="t('attendance', '{count} attended', { count: appointment.checkinSummary.attended })"
+					variant="success"
+					no-close>
+					<template #icon>
+						<CheckIcon :size="16" />
+					</template>
+				</NcChip>
+				<NcChip
+					:text="t('attendance', '{count} absent', { count: appointment.checkinSummary.absent })"
+					variant="error"
+					no-close>
+					<template #icon>
+						<CloseIcon :size="16" />
+					</template>
+				</NcChip>
+				<NcChip
+					v-if="appointment.checkinSummary.notCheckedIn > 0"
+					:text="t('attendance', '{count} pending', { count: appointment.checkinSummary.notCheckedIn })"
+					variant="tertiary"
+					no-close>
+					<template #icon>
+						<HelpCircleOutlineIcon :size="16" />
+					</template>
+				</NcChip>
+			</div>
+		</div>
+
 		<!-- Detailed Response Summary -->
 		<ResponseSummary
 			v-if="canSeeResponseOverview && appointment.responseSummary"
@@ -169,7 +201,9 @@ import Pencil from 'vue-material-design-icons/Pencil.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
+import CloseIcon from 'vue-material-design-icons/Close.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
+import HelpCircleOutlineIcon from 'vue-material-design-icons/HelpCircleOutline.vue'
 import Paperclip from 'vue-material-design-icons/Paperclip.vue'
 import CommentIcon from 'vue-material-design-icons/Comment.vue'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
@@ -509,6 +543,22 @@ const handleCommentInputEvent = () => {
 		&:hover {
 			text-decoration: underline;
 		}
+	}
+}
+
+.checkin-summary {
+	border-top: 1px solid var(--color-border);
+	padding-top: 15px;
+	margin-top: 15px;
+
+	h4 {
+		margin: 0 0 10px 0;
+	}
+
+	.summary-stats {
+		display: flex;
+		gap: 8px;
+		flex-wrap: wrap;
 	}
 }
 

@@ -60,6 +60,14 @@ class AppointmentController extends Controller {
 
 		$showPastAppointments = $this->request->getParam('showPastAppointments', 'false') === 'true';
 		$appointments = $this->appointmentService->getAppointmentsWithUserResponses($user->getUID(), $showPastAppointments);
+
+		// Add checkin summary to each appointment if user can see response overview
+		if ($this->permissionService->canSeeResponseOverview($user->getUID())) {
+			foreach ($appointments as &$appointment) {
+				$appointment['checkinSummary'] = $this->checkinService->getCheckinSummary($appointment['id']);
+			}
+		}
+
 		return new DataResponse($appointments);
 	}
 
@@ -183,6 +191,12 @@ class AppointmentController extends Controller {
 			if ($appointment === null) {
 				return new DataResponse(['error' => 'Appointment not found or not visible'], 404);
 			}
+
+			// Add checkin summary if user can see response overview
+			if ($this->permissionService->canSeeResponseOverview($user->getUID())) {
+				$appointment['checkinSummary'] = $this->checkinService->getCheckinSummary($id);
+			}
+
 			return new DataResponse($appointment);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => 'Appointment not found'], 404);
