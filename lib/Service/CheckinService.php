@@ -9,7 +9,6 @@ use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IGroupManager;
-use OCP\IUserManager;
 
 /**
  * Service for handling check-in operations.
@@ -21,7 +20,6 @@ class CheckinService {
 	private ConfigService $configService;
 	private VisibilityService $visibilityService;
 	private IGroupManager $groupManager;
-	private IUserManager $userManager;
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -29,14 +27,12 @@ class CheckinService {
 		ConfigService $configService,
 		VisibilityService $visibilityService,
 		IGroupManager $groupManager,
-		IUserManager $userManager,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
 		$this->configService = $configService;
 		$this->visibilityService = $visibilityService;
 		$this->groupManager = $groupManager;
-		$this->userManager = $userManager;
 	}
 
 	/**
@@ -99,7 +95,12 @@ class CheckinService {
 	public function getCheckinData(int $appointmentId): array {
 		$appointment = $this->appointmentMapper->find($appointmentId);
 		$responses = $this->responseMapper->findByAppointment($appointmentId);
-		$allUsers = $this->userManager->search('');
+
+		// Get whitelisted groups for filtering
+		$whitelistedGroups = $this->configService->getWhitelistedGroups();
+
+		// Get relevant users efficiently - this filters by whitelisted groups when configured
+		$relevantUsers = $this->visibilityService->getRelevantUsersForAppointment($appointment, $whitelistedGroups);
 
 		// Create a map of user responses
 		$userResponseMap = [];
@@ -107,14 +108,11 @@ class CheckinService {
 			$userResponseMap[$response->getUserId()] = $response;
 		}
 
-		// Get whitelisted groups for filtering
-		$whitelistedGroups = $this->configService->getWhitelistedGroups();
-
 		// Build group list for filtering UI
 		$userGroups = $this->buildGroupList($whitelistedGroups);
 
 		// Build unified user list
-		$users = $this->buildUserList($appointment, $allUsers, $userResponseMap, $whitelistedGroups);
+		$users = $this->buildUserList($appointment, $relevantUsers, $userResponseMap, $whitelistedGroups);
 
 		return [
 			'appointment' => $appointment->jsonSerialize(),
@@ -130,30 +128,34 @@ class CheckinService {
 		if (empty($whitelistedGroups)) {
 			$allGroups = $this->groupManager->search('');
 			$groups = array_map(fn ($group) => $group->getGID(), $allGroups);
+			// Add "Others" group only when no whitelisted groups are configured
+			$groups[] = 'Others';
 		} else {
+			// When whitelisted groups are configured, only show those groups (no "Others")
 			$groups = $whitelistedGroups;
 		}
-
-		// Add "Others" group to the list for filtering
-		$groups[] = 'Others';
 
 		return $groups;
 	}
 
 	/**
 	 * Build the unified user list with response data.
+	 *
+	 * @param \OCA\Attendance\Db\Appointment $appointment The appointment
+	 * @param array<string, \OCP\IUser> $relevantUsers Map of userId => IUser (pre-filtered by whitelisted groups)
+	 * @param array $userResponseMap Map of userId => AttendanceResponse
+	 * @param array $whitelistedGroups List of whitelisted group IDs
+	 * @return array List of user data arrays
 	 */
 	private function buildUserList(
 		$appointment,
-		$allUsers,
+		array $relevantUsers,
 		array $userResponseMap,
 		array $whitelistedGroups,
 	): array {
 		$users = [];
 
-		foreach ($allUsers as $user) {
-			$userId = $user->getUID();
-
+		foreach ($relevantUsers as $userId => $user) {
 			// Filter: Only include users who are target attendees for this appointment
 			// This excludes admins who can "see" all appointments but aren't actual attendees
 			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
