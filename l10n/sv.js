@@ -18,6 +18,7 @@ OC.L10N.register(
     "Edit" : "Redigera",
     "Delete" : "Ta bort",
     "No response" : "Inget svar",
+    "Select calendar" : "Välj kalender",
     "Back" : "Tillbaka",
     "Untitled event" : "Namnlös händelse",
     "Start" : "Start",
