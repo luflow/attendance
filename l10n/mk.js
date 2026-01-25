@@ -40,6 +40,7 @@ OC.L10N.register(
     "Description" : "Опис",
     "Notification" : "Известување",
     "Add from Files" : "Додади од датотеките",
+    "All users" : "Сите корисници",
     "Confirm" : "Потврди",
     "Thank you for your response!" : "Благодариме на вашиот одговор."
 },

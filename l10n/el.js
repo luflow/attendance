@@ -50,6 +50,8 @@ OC.L10N.register(
     "Date & Time" : "Ημερομηνία & Ώρα",
     "Notification" : "Ειδοποίηση",
     "Add from Files" : "Προσθήκη από τα Αρχεία",
+    "All users" : "Όλοι οι χρήστες",
+    "No users found" : "Δεν βρέθηκαν χρήστες",
     "Confirm" : "Επιβεβαίωση",
     "Thank you for your response!" : "Σας ευχαριστούμε για την απάντησή σας!"
 },

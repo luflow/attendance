@@ -48,6 +48,8 @@ OC.L10N.register(
     "Date & Time" : "تاریخ و زمان",
     "Notification" : "آگاهی",
     "Add from Files" : "Add from Files",
+    "All users" : "All users",
+    "No users found" : "No users found",
     "Confirm" : "تأیید"
 },
 "nplurals=2; plural=(n > 1);");

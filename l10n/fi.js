@@ -44,6 +44,8 @@ OC.L10N.register(
     "Date & Time" : "Päivänmäärä & aika",
     "Notification" : "Ilmoitus",
     "Add from Files" : "Lisää tiedostosovelluksesta",
+    "All users" : "Kaikki käyttäjät",
+    "No users found" : "Käyttäjiä ei löytynyt",
     "Confirm" : "Vahvista",
     "Thank you for your response!" : "Kiitos vastauksestasi!"
 },

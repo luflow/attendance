@@ -44,6 +44,8 @@ OC.L10N.register(
     "Date & Time" : "Datum & tijd",
     "Notification" : "Melding",
     "Add from Files" : "Toevoegen uit bestanden",
+    "All users" : "Alle gebruikers",
+    "No users found" : "Geen gebruikers gevonden",
     "Confirm" : "Bevestigen"
 },
 "nplurals=2; plural=(n != 1);");

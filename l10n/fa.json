@@ -46,6 +46,8 @@
     "Date & Time" : "تاریخ و زمان",
     "Notification" : "آگاهی",
     "Add from Files" : "Add from Files",
+    "All users" : "All users",
+    "No users found" : "No users found",
     "Confirm" : "تأیید"
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }

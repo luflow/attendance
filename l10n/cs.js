@@ -49,6 +49,7 @@ OC.L10N.register(
     "Date & Time" : "Datum a čas",
     "Notification" : "Upozornění",
     "Add from Files" : "Přidat ze Souborů",
+    "All users" : "Všichni uživatelé",
     "Confirm" : "Potvrdit",
     "Thank you for your response!" : "Děkujem za vaši odezvu!"
 },

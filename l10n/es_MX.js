@@ -38,6 +38,8 @@ OC.L10N.register(
     "Appointment name" : "Nombre de la cita",
     "Description" : "Descripción",
     "Add from Files" : "Agregar desde Archivos",
+    "All users" : "Todos los usuarios",
+    "No users found" : "No se encontraron usuarios",
     "Confirm" : "Confirmar"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

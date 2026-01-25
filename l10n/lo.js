@@ -45,6 +45,7 @@ OC.L10N.register(
     "Date & Time" : "ວັນທີ ແລະ ເວລາ",
     "Notification" : "ການແຈ້ງເຕືອນ",
     "Add from Files" : "Add from Files",
+    "All users" : "ຜູ້ໃຊ້ທັງໝົດ",
     "Confirm" : "ຢືນຢັນ",
     "Thank you for your response!" : "Thank you for your response!"
 },

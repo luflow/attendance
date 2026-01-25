@@ -47,6 +47,8 @@
     "Date & Time" : "Fecha y Hora",
     "Notification" : "Notificación",
     "Add from Files" : "Añadir desde Archivos",
+    "All users" : "Todos los usuarios",
+    "No users found" : "No se han encontrado usuarios",
     "Confirm" : "Confirmar",
     "Thank you for your response!" : "¡Gracias por su respuesta!"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"

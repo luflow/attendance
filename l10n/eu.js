@@ -48,6 +48,8 @@ OC.L10N.register(
     "Date & Time" : "Data eta ordua",
     "Notification" : "Jakinarazpena",
     "Add from Files" : "Gehitu Fitxategietatik",
+    "All users" : "Erabiltzaile guztiak",
+    "No users found" : "Ez da erabiltzailerik aurkitu",
     "Confirm" : "Berretsi"
 },
 "nplurals=2; plural=(n != 1);");

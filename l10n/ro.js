@@ -31,6 +31,7 @@ OC.L10N.register(
     "Description" : "Descriere",
     "Notification" : "Notificări",
     "Add from Files" : "Adaugă din Fișiere",
+    "No users found" : "Nu au fost găsiți utilizatori",
     "Confirm" : "Confirmă"
 },
 "nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));");

@@ -43,6 +43,7 @@ OC.L10N.register(
     "Date & Time" : "Tarehe & muda",
     "Notification" : "Taarifa",
     "Add from Files" : "Ongeza kutoka katika faili",
+    "All users" : "Watumiaji wote",
     "Confirm" : "Thibitisha",
     "Thank you for your response!" : "Asante kwa jibu lako!"
 },

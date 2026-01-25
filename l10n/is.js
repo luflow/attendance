@@ -40,6 +40,7 @@ OC.L10N.register(
     "Date & Time" : "Dagsetning og tími",
     "Notification" : "Tilkynning",
     "Add from Files" : "Bæta við úr skrám",
+    "All users" : "Allir notendur",
     "Confirm" : "Staðfesta"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

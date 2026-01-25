@@ -57,6 +57,8 @@ OC.L10N.register(
     "Date & Time" : "Día e hora",
     "Notification" : "Notificación",
     "Add from Files" : "Engadir desde Ficheiros",
+    "All users" : "Todos os usuarios",
+    "No users found" : "Non se atopou ningún usuario",
     "Confirm" : "Confirmar",
     "Thank you for your response!" : "Grazas pola súa resposta!"
 },
