@@ -16,6 +16,7 @@ OC.L10N.register(
     "Team" : "Tarbaɛt",
     "Description" : "Aglam",
     "Notification" : "Ilɣa",
+    "All users" : "Akk iseqdacen",
     "Confirm" : "Sergeg"
 },
 "nplurals=2; plural=(n != 1);");

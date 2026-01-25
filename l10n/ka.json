@@ -28,6 +28,8 @@
     "Description" : "Description",
     "Notification" : "შეტყობინება",
     "Add from Files" : "Add from Files",
+    "All users" : "All users",
+    "No users found" : "No users found",
     "Confirm" : "Confirm"
 },"pluralForm" :"nplurals=2; plural=(n!=1);"
 }

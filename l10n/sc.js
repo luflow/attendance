@@ -33,6 +33,8 @@ OC.L10N.register(
     "Appointment updated" : "Apuntamentu agiornadu",
     "Description" : "Descritzione",
     "Date & Time" : "Data e ora",
+    "All users" : "Totu is utentes",
+    "No users found" : "Peruna utèntzia agatada",
     "Confirm" : "Cunfirma"
 },
 "nplurals=2; plural=(n != 1);");

@@ -47,6 +47,7 @@ OC.L10N.register(
     "Date & Time" : "Data i hora",
     "Notification" : "Notificació",
     "Add from Files" : "Afegeix de Fitxers",
+    "All users" : "Tots els usuaris",
     "Confirm" : "Confirma"
 },
 "nplurals=2; plural=(n != 1);");

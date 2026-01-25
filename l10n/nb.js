@@ -46,6 +46,8 @@ OC.L10N.register(
     "Description" : "Beskrivelse",
     "Date & Time" : "Dato & klokkeslett",
     "Add from Files" : "Legg til fra filer",
+    "All users" : "Alle brukere",
+    "No users found" : "Ingen brukere funnet",
     "Confirm" : "Bekreft"
 },
 "nplurals=2; plural=(n != 1);");

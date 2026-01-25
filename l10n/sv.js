@@ -47,6 +47,8 @@ OC.L10N.register(
     "Description" : "Beskrivning",
     "Notification" : "Notifiering",
     "Add from Files" : "Lägg till från Filer",
+    "All users" : "Alla användare",
+    "No users found" : "Inga användare hittades",
     "Confirm" : "Bekräfta",
     "Thank you for your response!" : "Tack för ditt svar!"
 },

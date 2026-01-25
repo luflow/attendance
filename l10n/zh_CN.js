@@ -48,6 +48,8 @@ OC.L10N.register(
     "Date & Time" : "日期 & 时间",
     "Notification" : "通知",
     "Add from Files" : "添加文件",
+    "All users" : "所有用户",
+    "No users found" : "未找到用户",
     "Confirm" : "确认",
     "Thank you for your response!" : "感谢您的回复！"
 },

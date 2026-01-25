@@ -48,6 +48,8 @@ OC.L10N.register(
     "Date & Time" : "Dátum a čas",
     "Notification" : "Oznámenie",
     "Add from Files" : "Pridať zo Súborov",
+    "All users" : "Všetci používatelia",
+    "No users found" : "Žiadni používatelia nenájdení",
     "Confirm" : "Potvrdiť",
     "Thank you for your response!" : "Ďakujem za vašu odpoveď!"
 },

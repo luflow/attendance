@@ -31,6 +31,8 @@ OC.L10N.register(
     "User" : "@string/user_icon",
     "Appointment updated" : "Dogovor je ažuriran",
     "Description" : "Opis",
+    "All users" : "Svi korisnici",
+    "No users found" : "Nije pronađen nijedan korisnik",
     "Confirm" : "Potvrdi"
 },
 "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;");

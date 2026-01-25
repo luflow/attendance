@@ -47,6 +47,7 @@
     "Date & Time" : "Datum a čas",
     "Notification" : "Upozornění",
     "Add from Files" : "Přidat ze Souborů",
+    "All users" : "Všichni uživatelé",
     "Confirm" : "Potvrdit",
     "Thank you for your response!" : "Děkujem za vaši odezvu!"
 },"pluralForm" :"nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;"

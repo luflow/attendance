@@ -46,6 +46,8 @@ OC.L10N.register(
     "Description" : "Beskrivelse",
     "Date & Time" : "Dato & tid",
     "Add from Files" : "Tilføj fra Filer",
+    "All users" : "Alle brugere",
+    "No users found" : "Ingen brugere fundet",
     "Confirm" : "Bekræft",
     "Thank you for your response!" : "Tak for dit svar"
 },

@@ -58,6 +58,8 @@ OC.L10N.register(
     "Date & Time" : "Kuupäev ja kellaaeg",
     "Notification" : "Teavitus",
     "Add from Files" : "Lisa failidest",
+    "All users" : "Kõik kasutajad",
+    "No users found" : "Kasutajaid ei leidu",
     "Confirm" : "Kinnita",
     "Thank you for your response!" : "Suur tänu vastamise eest!"
 },

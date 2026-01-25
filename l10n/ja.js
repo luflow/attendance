@@ -47,6 +47,8 @@ OC.L10N.register(
     "Date & Time" : "日時",
     "Notification" : "通知",
     "Add from Files" : "ファイルから追加",
+    "All users" : "すべてのユーザー",
+    "No users found" : "ユーザーが見つかりません",
     "Confirm" : "承認"
 },
 "nplurals=1; plural=0;");

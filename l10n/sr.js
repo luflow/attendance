@@ -49,6 +49,8 @@ OC.L10N.register(
     "Date & Time" : "Датум и време",
     "Notification" : "Обавештење",
     "Add from Files" : "Додај из Фајлова",
+    "All users" : "Сви корисници",
+    "No users found" : "Није пронађен ниједан корисник",
     "Confirm" : "Потврди",
     "Thank you for your response!" : "Хвала вам на одговору!"
 },

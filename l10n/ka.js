@@ -30,6 +30,8 @@ OC.L10N.register(
     "Description" : "Description",
     "Notification" : "შეტყობინება",
     "Add from Files" : "Add from Files",
+    "All users" : "All users",
+    "No users found" : "No users found",
     "Confirm" : "Confirm"
 },
 "nplurals=2; plural=(n!=1);");

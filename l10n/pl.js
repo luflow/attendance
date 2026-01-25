@@ -47,6 +47,8 @@ OC.L10N.register(
     "Date & Time" : "Data i czas",
     "Notification" : "Powiadomienie",
     "Add from Files" : "Dodaj z plików",
+    "All users" : "Wszyscy użytkownicy",
+    "No users found" : "Nie znaleziono użytkowników",
     "Confirm" : "Potwierdź",
     "Thank you for your response!" : "Dziękujemy za Twoją odpowiedź!"
 },

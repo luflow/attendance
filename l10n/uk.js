@@ -49,6 +49,7 @@ OC.L10N.register(
     "Date & Time" : "Дата та час ",
     "Notification" : "Сповіщення",
     "Add from Files" : "Додати з файлів",
+    "All users" : "Всі користувачі",
     "Confirm" : "Підтвердити",
     "Thank you for your response!" : "Дякуємо за вашу відповідь!"
 },

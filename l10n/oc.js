@@ -20,6 +20,7 @@ OC.L10N.register(
     "User" : "Utilizator",
     "Description" : "Descripcion",
     "Notification" : "Notificacion",
+    "All users" : "Totes los utilizaires",
     "Confirm" : "Confirmar"
 },
 "nplurals=2; plural=(n > 1);");

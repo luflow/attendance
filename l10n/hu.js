@@ -48,6 +48,8 @@ OC.L10N.register(
     "Date & Time" : "Dátum és idő",
     "Notification" : "Értesítés",
     "Add from Files" : "Hozzáadás a Fájlokból",
+    "All users" : "Összes felhasználó",
+    "No users found" : "Nem találhatók felhasználók",
     "Confirm" : "Megerősítés",
     "Thank you for your response!" : "Köszönjük a válaszát!"
 },
