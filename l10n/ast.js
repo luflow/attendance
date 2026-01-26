@@ -30,6 +30,8 @@ OC.L10N.register(
     "Description" : "Descripción",
     "Date & Time" : "Data ya hora",
     "Notification" : "Avisu",
+    "All users" : "Tolos usuarios",
+    "No users found" : "Nun s'atopó nengún usuariu",
     "Confirm" : "Confirmar"
 },
 "nplurals=2; plural=(n != 1);");
