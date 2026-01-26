@@ -48,6 +48,8 @@ OC.L10N.register(
     "Date & Time" : "التاريخ و الوقت",
     "Notification" : "إشعار",
     "Add from Files" : "إضافة من الملفات",
+    "All users" : "كُلّ المستخدمين",
+    "No users found" : "لا يوجد مستخدمون",
     "Confirm" : "تأكيد"
 },
 "nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;");
