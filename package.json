@@ -1,6 +1,6 @@
 {
   "name": "attendance",
-  "version": "1.23.0",
+  "version": "1.24.0",
   "license": "AGPL-3.0-or-later",
   "engines": {
     "node": "^20.0.0",
