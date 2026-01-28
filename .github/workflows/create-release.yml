@@ -72,16 +72,21 @@ jobs:
       - name: Update CHANGELOG.md
         run: |
           TODAY=$(date +%Y-%m-%d)
-          # Create new changelog entry
-          sed -i "/## \[Unreleased\]/a\\
-          \\
-          ### Added\\
-          \\
-          - Nightly changes here\\
-          \\
-          ## ${{ inputs.version }} – $TODAY\\
-          \\
-          ${{ inputs.release_notes }}" CHANGELOG.md
+          # Create temporary file with new changelog entry
+          {
+            head -n 3 CHANGELOG.md
+            echo ""
+            echo "### Added"
+            echo ""
+            echo "- Nightly changes here"
+            echo ""
+            echo "## ${{ inputs.version }} – $TODAY"
+            echo ""
+            echo "${{ inputs.release_notes }}"
+            echo ""
+            tail -n +4 CHANGELOG.md
+          } > CHANGELOG.md.tmp
+          mv CHANGELOG.md.tmp CHANGELOG.md
 
       - name: Commit version changes
         run: |
