@@ -15,7 +15,7 @@ OC.L10N.register(
     "Cancel" : "Скасувати",
     "Regenerate" : "Регенерувати",
     "Link copied to clipboard" : "Посилання скопійовано в буфер обміну",
-    "Share link" : "Передати у публічний доступ",
+    "Share link" : "Надати у публічний доступ",
     "Edit" : "Редагувати",
     "Delete" : "Видалити",
     "No response" : "Без відповіді",
