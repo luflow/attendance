@@ -1,0 +1,106 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.24.0)'
+        required: true
+        type: string
+      release_notes:
+        description: 'Release notes (markdown format)'
+        required: true
+        type: string
+
+env:
+  APP_NAME: attendance
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Validate version format
+        run: |
+          if ! echo "${{ inputs.version }}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Error: Version must be in format X.Y.Z (e.g., 1.24.0)"
+            exit 1
+          fi
+
+      - name: Check if tag exists
+        run: |
+          if git rev-parse "v${{ inputs.version }}" >/dev/null 2>&1; then
+            echo "Error: Tag v${{ inputs.version }} already exists"
+            exit 1
+          fi
+
+      - name: Read package.json node and npm engines version
+        uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
+        id: versions
+        with:
+          fallbackNode: '^20'
+          fallbackNpm: '^10'
+
+      - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ steps.versions.outputs.nodeVersion }}
+
+      - name: Set up npm ${{ steps.versions.outputs.npmVersion }}
+        run: npm i -g 'npm@${{ steps.versions.outputs.npmVersion }}'
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Update package.json version
+        run: |
+          npm version ${{ inputs.version }} --no-git-tag-version
+
+      - name: Update info.xml version
+        run: |
+          sed -i "s|<version>.*</version>|<version>${{ inputs.version }}</version>|" appinfo/info.xml
+
+      - name: Update CHANGELOG.md
+        run: |
+          TODAY=$(date +%Y-%m-%d)
+          # Create new changelog entry
+          sed -i "/## \[Unreleased\]/a\\
+          \\
+          ### Added\\
+          \\
+          - Nightly changes here\\
+          \\
+          ## ${{ inputs.version }} – $TODAY\\
+          \\
+          ${{ inputs.release_notes }}" CHANGELOG.md
+
+      - name: Commit version changes
+        run: |
+          git add package.json package-lock.json appinfo/info.xml CHANGELOG.md
+          git commit -m "Release v${{ inputs.version }}"
+
+      - name: Create and push tag
+        run: |
+          git tag -a "v${{ inputs.version }}" -m "Release v${{ inputs.version }}"
+          git push origin main
+          git push origin "v${{ inputs.version }}"
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ inputs.version }}
+          release_name: v${{ inputs.version }}
+          body: ${{ inputs.release_notes }}
+          draft: false
+          prerelease: false
