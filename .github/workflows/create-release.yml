@@ -2,15 +2,6 @@ name: Create Release
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version number (e.g., 1.24.0)'
-        required: true
-        type: string
-      release_notes:
-        description: 'Release notes (markdown format)'
-        required: true
-        type: string
 
 env:
   APP_NAME: attendance
@@ -27,17 +18,29 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Validate version format
+      - name: Get current version and calculate next version
+        id: version
         run: |
-          if ! echo "${{ inputs.version }}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "Error: Version must be in format X.Y.Z (e.g., 1.24.0)"
-            exit 1
-          fi
-
+          # Read current version from package.json
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Parse version components
+          MAJOR=$(echo $CURRENT_VERSION | cut -d. -f1)
+          MINOR=$(echo $CURRENT_VERSION | cut -d. -f2)
+          PATCH=$(echo $CURRENT_VERSION | cut -d. -f3)
+          
+          # Increment minor version, reset patch to 0
+          NEW_MINOR=$((MINOR + 1))
+          NEW_VERSION="${MAJOR}.${NEW_MINOR}.0"
+          
+          echo "New version: $NEW_VERSION"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          
       - name: Check if tag exists
         run: |
-          if git rev-parse "v${{ inputs.version }}" >/dev/null 2>&1; then
-            echo "Error: Tag v${{ inputs.version }} already exists"
+          if git rev-parse "v${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "Error: Tag v${{ steps.version.outputs.version }} already exists"
             exit 1
           fi
 
@@ -63,11 +66,12 @@ jobs:
 
       - name: Update package.json version
         run: |
-          npm version ${{ inputs.version }} --no-git-tag-version
+          npm version ${{ steps.version.outputs.version }} --no-git-tag-version
 
       - name: Update info.xml version
         run: |
-          sed -i "s|<version>.*</version>|<version>${{ inputs.version }}</version>|" appinfo/info.xml
+          # Update the app version (not the XML declaration version)
+          sed -i '/<info/,/<\/info>/ s|<version>[^<]*</version>|<version>${{ steps.version.outputs.version }}</version>|' appinfo/info.xml
 
       - name: Update CHANGELOG.md
         run: |
@@ -80,9 +84,11 @@ jobs:
             echo ""
             echo "- Nightly changes here"
             echo ""
-            echo "## ${{ inputs.version }} – $TODAY"
+            echo "## ${{ steps.version.outputs.version }} – $TODAY"
             echo ""
-            echo "${{ inputs.release_notes }}"
+            echo "### Changed"
+            echo ""
+            echo "- Translations updated"
             echo ""
             tail -n +4 CHANGELOG.md
           } > CHANGELOG.md.tmp
@@ -91,18 +97,20 @@ jobs:
       - name: Commit version changes
         run: |
           git add package.json package-lock.json appinfo/info.xml CHANGELOG.md
-          git commit -m "Release v${{ inputs.version }}"
+          git commit -m "Release v${{ steps.version.outputs.version }}"
 
       - name: Create and push tag
         run: |
-          git tag -a "v${{ inputs.version }}" -m "Release v${{ inputs.version }}"
+          git tag -a "v${{ steps.version.outputs.version }}" -m "Release v${{ steps.version.outputs.version }}"
           git push origin main
-          git push origin "v${{ inputs.version }}"
+          git push origin "v${{ steps.version.outputs.version }}"
 
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "v${{ inputs.version }}" \
-            --title "v${{ inputs.version }}" \
-            --notes "${{ inputs.release_notes }}"
+          gh release create "v${{ steps.version.outputs.version }}" \
+            --title "v${{ steps.version.outputs.version }}" \
+            --notes "### Changed
+
+          - Translations updated"
