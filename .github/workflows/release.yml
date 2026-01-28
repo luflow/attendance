@@ -2,13 +2,47 @@ name: Build and publish app release
 
 on:
   release:
-      types: [published]
+    types: [published]
+  push:
+    tags:
+      - v*
 
 env:
   APP_NAME: attendance
 
 jobs:
+  check_version:
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.check.outputs.should_release }}
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - name: Check if should release
+        id: check
+        run: |
+          # Manual release trigger - always proceed
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            echo "version=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+            echo "Manual release trigger - proceeding"
+            exit 0
+          fi
+
+          # Tag push trigger - only proceed for patch versions
+          TAG="${GITHUB_REF#refs/tags/v}"
+          echo "version=v$TAG" >> $GITHUB_OUTPUT
+          PATCH=$(echo $TAG | cut -d. -f3)
+          if [ "$PATCH" != "0" ]; then
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            echo "This is a patch release (v$TAG) - proceeding"
+          else
+            echo "should_release=false" >> $GITHUB_OUTPUT
+            echo "This is NOT a patch release (v$TAG) - skipping"
+          fi
+
   e2e_tests:
+    needs: check_version
+    if: needs.check_version.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -62,7 +96,7 @@ jobs:
           retention-days: 30
 
   build_and_publish:
-    needs: e2e_tests
+    needs: [check_version, e2e_tests]
     environment: release
     runs-on: ubuntu-latest
     permissions:
@@ -80,8 +114,8 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ env.APP_NAME }}/build/artifacts/appstore/${{ env.APP_NAME }}.tar.gz
-          asset_name: ${{ env.APP_NAME }}.tar.gz 
-          tag: ${{ github.ref }}
+          asset_name: ${{ env.APP_NAME }}.tar.gz
+          tag: ${{ needs.check_version.outputs.version }}
           overwrite: true
       - name: Upload app to Nextcloud appstore
         uses: R0Wi/nextcloud-appstore-push-action@v1
@@ -90,4 +124,4 @@ jobs:
           appstore_token: ${{ secrets.APPSTORE_TOKEN }}
           download_url: ${{ steps.attach_to_release.outputs.browser_download_url }}
           app_private_key: ${{ secrets.APP_PRIVATE_KEY }}
-          nightly: ${{ github.event.release.prerelease }}
+          nightly: false
