@@ -33,3 +33,34 @@ A Nextcloud app for managing event attendance with advance RSVP functionality. A
 2. Enable the app in Nextcloud admin settings
 3. The database tables will be created automatically via migration
 
+## Development
+
+### Creating a Release
+
+This repository includes a GitHub Actions workflow for creating new releases. The workflow automatically increments the minor version and adds a "Translations updated" entry to the changelog.
+
+To create a release:
+
+1. Go to the **Actions** tab in the GitHub repository
+2. Select the **Create Release** workflow
+3. Click **Run workflow**
+4. Click **Run workflow** (no inputs required)
+
+The workflow will:
+- Read the current version from `package.json`
+- Automatically increment the minor version (e.g., 1.23.0 → 1.24.0)
+- Check that the new tag doesn't already exist
+- Update `package.json` and `appinfo/info.xml` with the new version
+- Update `CHANGELOG.md` with the new version entry and "Translations updated" message
+- Commit the changes
+- Create and push a git tag
+- Create a GitHub release
+
+Once the release is created, the existing `release.yml` workflow will automatically:
+- Run e2e tests
+- Build the app for the appstore
+- Upload the tarball to the GitHub release
+- Publish to the Nextcloud appstore
+
+**Note**: The repository must not have branch protection rules on the main branch that would prevent the workflow from pushing directly. If branch protection is required, the workflow will need to be modified to create a pull request instead.
+
