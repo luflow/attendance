@@ -33,3 +33,32 @@ A Nextcloud app for managing event attendance with advance RSVP functionality. A
 2. Enable the app in Nextcloud admin settings
 3. The database tables will be created automatically via migration
 
+## Development
+
+### Creating a Release
+
+This repository includes a GitHub Actions workflow for creating new releases. To create a release:
+
+1. Go to the **Actions** tab in the GitHub repository
+2. Select the **Create Release** workflow
+3. Click **Run workflow**
+4. Fill in the required inputs:
+   - **Version**: The version number in X.Y.Z format (e.g., 1.24.0)
+   - **Release notes**: Markdown-formatted release notes describing the changes
+5. Click **Run workflow**
+
+The workflow will:
+- Validate the version format
+- Check that the tag doesn't already exist
+- Update `package.json` and `appinfo/info.xml` with the new version
+- Update `CHANGELOG.md` with the new version entry
+- Commit the changes
+- Create and push a git tag
+- Create a GitHub release
+
+Once the release is created, the existing `release.yml` workflow will automatically:
+- Run e2e tests
+- Build the app for the appstore
+- Upload the tarball to the GitHub release
+- Publish to the Nextcloud appstore
+
