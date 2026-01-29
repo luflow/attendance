@@ -93,6 +93,13 @@ class ResponseSummaryService {
 		// Cache whitelisted teams
 		$whitelistedTeams = $this->configService->getWhitelistedTeams();
 
+		// Cache appointment visibility restrictions
+		$visibilitySettings = $this->visibilityService->getVisibilitySettings($appointment);
+		$appointmentHasRestrictions = $this->visibilityService->hasRestrictedVisibility($appointment);
+		$appointmentVisibleGroups = $visibilitySettings['groups'];
+		$appointmentVisibleGroupsLower = array_map('strtolower', $appointmentVisibleGroups);
+		$appointmentVisibleTeams = $visibilitySettings['teams'];
+
 		// Pre-fetch all users from responses
 		$userIds = array_unique(array_map(fn ($r) => $r->getUserId(), $responses));
 		$users = [];
@@ -163,17 +170,49 @@ class ResponseSummaryService {
 			'groupUsers' => $groupUsers,
 			'allUsers' => $allUsersMap,
 			'allUserGroups' => $allUserGroups,
+			// Appointment-specific visibility restrictions
+			'appointmentHasRestrictions' => $appointmentHasRestrictions,
+			'appointmentVisibleGroups' => $appointmentVisibleGroups,
+			'appointmentVisibleGroupsLower' => $appointmentVisibleGroupsLower,
+			'appointmentVisibleTeams' => $appointmentVisibleTeams,
 		];
 	}
 
 	/**
 	 * Check if a group is allowed (using cache).
+	 * Checks both admin whitelist and appointment-specific restrictions.
 	 */
 	private function isGroupAllowedCached(string $groupId, array $cache): bool {
-		if ($cache['allowAllGroups']) {
-			return true;
+		// First check: group must be in whitelist (or all groups allowed)
+		$inWhitelist = $cache['allowAllGroups'] || in_array(strtolower($groupId), $cache['whitelistedGroupsLower']);
+		if (!$inWhitelist) {
+			return false;
 		}
-		return in_array(strtolower($groupId), $cache['whitelistedGroupsLower']);
+
+		// Second check: if appointment has restrictions, group must be in visible groups
+		if ($cache['appointmentHasRestrictions'] && !empty($cache['appointmentVisibleGroups'])) {
+			return in_array(strtolower($groupId), $cache['appointmentVisibleGroupsLower']);
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if a team is allowed for the appointment (using cache).
+	 * Checks both admin whitelist and appointment-specific restrictions.
+	 */
+	private function isTeamAllowedCached(string $teamId, array $cache): bool {
+		// First check: team must be in whitelist
+		if (!in_array($teamId, $cache['whitelistedTeams'])) {
+			return false;
+		}
+
+		// Second check: if appointment has restrictions, team must be in visible teams
+		if ($cache['appointmentHasRestrictions'] && !empty($cache['appointmentVisibleTeams'])) {
+			return in_array($teamId, $cache['appointmentVisibleTeams']);
+		}
+
+		return true;
 	}
 
 	/**
@@ -244,6 +283,11 @@ class ResponseSummaryService {
 
 			// Check teams (user can be in both groups AND teams - duplicates allowed)
 			foreach ($cache['whitelistedTeams'] as $teamId) {
+				// Skip teams not allowed for this appointment
+				if (!$this->isTeamAllowedCached($teamId, $cache)) {
+					continue;
+				}
+
 				$teamMemberIds = $cache['teamMembers'][$teamId] ?? [];
 				if (in_array($userId, $teamMemberIds)) {
 					$userInWhitelistedTeam = true;
@@ -388,6 +432,11 @@ class ResponseSummaryService {
 		array $cache,
 	): void {
 		foreach ($cache['whitelistedTeams'] as $teamId) {
+			// Skip teams not allowed for this appointment
+			if (!$this->isTeamAllowedCached($teamId, $cache)) {
+				continue;
+			}
+
 			$teamInfo = $cache['teamInfo'][$teamId] ?? null;
 
 			if (!isset($summary['by_team'][$teamId])) {
@@ -465,10 +514,15 @@ class ResponseSummaryService {
 				}
 			}
 
-			// Check if user belongs to at least one whitelisted team
+			// Check if user belongs to at least one allowed team
 			$hasRelevantTeam = false;
 			if (!$hasRelevantGroup) {
 				foreach ($cache['whitelistedTeams'] as $teamId) {
+					// Skip teams not allowed for this appointment
+					if (!$this->isTeamAllowedCached($teamId, $cache)) {
+						continue;
+					}
+
 					$teamMemberIds = $cache['teamMembers'][$teamId] ?? [];
 					if (in_array($userId, $teamMemberIds)) {
 						$hasRelevantTeam = true;
