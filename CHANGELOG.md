@@ -6,6 +6,12 @@
 
 - Nightly changes here
 
+## 1.24.2 – 2026-01-29
+
+### Fixed
+
+- Response summary now correctly filters groups/teams by appointment access restrictions (restrict access setting)
+
 ## 1.24.1 – 2026-01-28
 
 ### Changed
