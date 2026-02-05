@@ -33,6 +33,7 @@ OC.L10N.register(
     "Loading …" : "Učitavanje …",
     "User" : "@string/user_icon",
     "Team" : "Tim",
+    "Attach" : "Priloži",
     "Appointment updated" : "Dogovor je ažuriran",
     "Description" : "Opis",
     "All users" : "Svi korisnici",
