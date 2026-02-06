@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "ماقۇل",
     "No" : "ياق",
     "Maybe" : "مۇمكىن",
+    "Response missing: %1$s on %2$s" : "جاۋاب كەم: %2$s دا %1$s",
     "Others" : "باشقىلار",
     "Group" : "گۇرۇپپا",
     "Attachments" : "قوشۇمچە ھۆججەتلەر",

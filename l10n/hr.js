@@ -26,6 +26,7 @@ OC.L10N.register(
     "Italic" : "U kurzivu",
     "Strikethrough" : "Precrtano",
     "Quote" : "Ponuda",
+    "Insert link" : "Umetni poveznicu",
     "Failed to load settings" : "Učitavanje postavki nije uspjelo",
     "Settings saved" : "Postavke spremljene",
     "Failed to save settings" : "Spremanje postavki nije uspjelo",
