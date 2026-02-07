@@ -185,7 +185,7 @@ OC.L10N.register(
     "Search users, groups or teams …" : "Cuardaigh úsáideoirí, grúpaí nó foirne …",
     "Some users may appear in the section \"Others\" in the response summary because they are not configured for tracking." : "D’fhéadfadh roinnt úsáideoirí a bheith le feiceáil sa rannán \"Eile\" san achoimre freagartha toisc nach bhfuil siad cumraithe le haghaidh rianaithe.",
     "Configure in administration settings" : "Cumraigh i socruithe riaracháin",
-    "Only pending ({count})" : "Only pending ({count})",
+    "Only pending ({count})" : "Ar feitheamh amháin ({count})",
     "Failed to load appointment data" : "Theip ar shonraí coinní a lódáil",
     "attending" : "ag freastal",
     "not attending" : "gan freastal",

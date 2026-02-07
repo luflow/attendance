@@ -18,6 +18,7 @@ OC.L10N.register(
     "No response" : "Nema odgovora",
     "Back" : "Natrag",
     "Untitled event" : "Događaj bez naslova",
+    "Start" : "Pokreni",
     "End" : "Završetak",
     "Present" : "Prezentiraj",
     "Add comment" : "Dodaj komentar",
@@ -37,6 +38,7 @@ OC.L10N.register(
     "Attach" : "Priloži",
     "Appointment updated" : "Dogovor je ažuriran",
     "Description" : "Opis",
+    "Notification" : "Obavijest",
     "All users" : "Svi korisnici",
     "No users found" : "Nije pronađen nijedan korisnik",
     "Confirm" : "Potvrdi"
