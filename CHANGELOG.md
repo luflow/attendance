@@ -6,6 +6,12 @@
 
 - Nightly changes here
 
+## 1.24.3 – 2026-02-09
+
+### Changed
+
+- Translations updated
+
 ## 1.24.2 – 2026-01-29
 
 ### Fixed
