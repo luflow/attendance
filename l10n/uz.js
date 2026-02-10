@@ -21,6 +21,7 @@ OC.L10N.register(
     "Failed to load settings" : "Sozlamalarni yuklab bo'lmadi",
     "Settings saved" : "Sozlamalar saqlandi",
     "Failed to save settings" : "Sozlamalarni saqlab bo'lmadi",
+    "Loading …" : "Yuklanmoqda...",
     "Appointment not found" : "Uchrashuv topilmadi",
     "Edit appointment" : "Uchrashuvni tahrirlash",
     "Attach" : "Biriktiring",
