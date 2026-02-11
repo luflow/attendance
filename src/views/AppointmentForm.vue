@@ -202,6 +202,7 @@
 import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { NcButton, NcTextField, NcSelect, NcNoteCard, NcCheckboxRadioSwitch, NcChip, NcLoadingIcon, NcDateTimePickerNative } from '@nextcloud/vue'
 import { getFilePickerBuilder, showSuccess, showError } from '@nextcloud/dialogs'
+import { translatePlural as n } from '@nextcloud/l10n'
 import MarkdownEditor from '../components/common/MarkdownEditor.vue'
 import CalendarEventPicker from '../components/calendar/CalendarEventPicker.vue'
 import { generateUrl } from '@nextcloud/router'
@@ -591,14 +592,45 @@ const toServerTimezone = (datetime) => {
 	return date.toISOString()
 }
 
-const handleCalendarEventSelect = (eventData) => {
-	formData.name = eventData.name
-	formData.description = eventData.description
-	formData.startDatetime = formatDateTimeForInput(eventData.startDatetime)
-	formData.endDatetime = formatDateTimeForInput(eventData.endDatetime)
-	calendarReference.value = {
-		calendarUri: eventData.calendarUri,
-		calendarEventUid: eventData.calendarEventUid,
+const handleCalendarEventSelect = async (eventDataList) => {
+	if (!Array.isArray(eventDataList) || eventDataList.length === 0) {
+		return
+	}
+
+	// Single event: pre-fill the form (existing behavior)
+	if (eventDataList.length === 1) {
+		const eventData = eventDataList[0]
+		formData.name = eventData.name
+		formData.description = eventData.description
+		formData.startDatetime = formatDateTimeForInput(eventData.startDatetime)
+		formData.endDatetime = formatDateTimeForInput(eventData.endDatetime)
+		calendarReference.value = {
+			calendarUri: eventData.calendarUri,
+			calendarEventUid: eventData.calendarEventUid,
+		}
+		return
+	}
+
+	// Multiple events: bulk import via API
+	saving.value = true
+	try {
+		const events = eventDataList.map(eventData => ({
+			name: eventData.name,
+			description: eventData.description,
+			startDatetime: toServerTimezone(eventData.startDatetime),
+			endDatetime: toServerTimezone(eventData.endDatetime),
+			calendarUri: eventData.calendarUri,
+			calendarEventUid: eventData.calendarEventUid,
+		}))
+
+		await axios.post(generateUrl('/apps/attendance/api/appointments/bulk'), { events })
+		showSuccess(n('attendance', '{count} appointment imported', '{count} appointments imported', eventDataList.length, { count: eventDataList.length }))
+		emit('saved')
+	} catch (error) {
+		console.error('Failed to bulk import appointments:', error)
+		showError(t('attendance', 'Error importing appointments'))
+	} finally {
+		saving.value = false
 	}
 }
 

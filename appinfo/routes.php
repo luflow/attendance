@@ -17,6 +17,7 @@ return [
 		['name' => 'appointment#index', 'url' => '/api/appointments', 'verb' => 'GET'],
 		['name' => 'appointment#navigation', 'url' => '/api/appointments/navigation', 'verb' => 'GET'],
 		['name' => 'appointment#widget', 'url' => '/api/appointments/widget', 'verb' => 'GET'],
+		['name' => 'appointment#bulkCreate', 'url' => '/api/appointments/bulk', 'verb' => 'POST'],
 		['name' => 'appointment#show', 'url' => '/api/appointments/{id}', 'verb' => 'GET'],
 		['name' => 'appointment#create', 'url' => '/api/appointments', 'verb' => 'POST'],
 		['name' => 'appointment#update', 'url' => '/api/appointments/{id}', 'verb' => 'PUT'],

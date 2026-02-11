@@ -4,21 +4,21 @@
 		@update:open="handleClose">
 		<div class="calendar-event-picker">
 			<p class="description">
-				{{ t('attendance', 'Select a calendar event to pre-fill the appointment form.') }}
+				{{ t('attendance', 'Select calendar events to import as appointments.') }}
 			</p>
 
 			<!-- Calendar Selection Step -->
 			<template v-if="!selectedCalendar">
 				<div v-if="loadingCalendars" class="loading-container">
 					<NcLoadingIcon :size="32" />
-					<span class="loading-text">{{ t('attendance', 'Loading calendars …') }}</span>
+					<span class="loading-text">{{ t('attendance', 'Loading calendars …') }}</span>
 				</div>
 
 				<template v-else-if="calendars.length > 0">
 					<label class="section-label">{{ t('attendance', 'Select calendar') }}</label>
 					<NcTextField v-if="showSearch"
 						v-model="searchQuery"
-						:placeholder="t('attendance', 'Search calendars …')"
+						:placeholder="t('attendance', 'Search calendars …')"
 						class="calendar-search" />
 					<ul class="calendar-list">
 						<li v-for="calendar in filteredCalendars"
@@ -58,25 +58,35 @@
 
 				<div v-if="loadingEvents" class="loading-container">
 					<NcLoadingIcon :size="32" />
-					<span class="loading-text">{{ t('attendance', 'Loading events …') }}</span>
+					<span class="loading-text">{{ t('attendance', 'Loading events …') }}</span>
 				</div>
 
 				<template v-else-if="events.length > 0">
-					<label class="section-label">{{ t('attendance', 'Select event') }}</label>
+					<div class="event-selection-header">
+						<label class="section-label">{{ t('attendance', 'Select events') }}</label>
+						<NcButton variant="tertiary" @click="toggleSelectAll">
+							{{ allFilteredSelected ? t('attendance', 'Deselect all') : t('attendance', 'Select all') }}
+						</NcButton>
+					</div>
 					<NcTextField v-if="showEventSearch"
 						v-model="eventSearchQuery"
-						:placeholder="t('attendance', 'Search events …')"
+						:placeholder="t('attendance', 'Search events …')"
 						class="calendar-search" />
 					<ul class="event-list">
 						<li v-for="event in filteredEvents"
 							:key="event.uid"
 							class="event-item"
-							@click="selectEvent(event)">
+							:class="{ 'event-item--selected': isSelected(event) }"
+							@click="toggleEvent(event)">
+							<NcCheckboxRadioSwitch
+								:model-value="isSelected(event)"
+								class="event-checkbox"
+								@update:model-value="toggleEvent(event)"
+								@click.stop />
 							<div class="event-info">
 								<span class="event-name">{{ event.summary || t('attendance', 'Untitled event') }}</span>
 								<span class="event-date">{{ formatDateRange(event.dtstart, event.dtend) }}</span>
 							</div>
-							<ChevronRight :size="20" class="event-arrow" />
 						</li>
 					</ul>
 					<div v-if="showEventSearch && filteredEvents.length === 0" class="empty-state">
@@ -88,6 +98,13 @@
 					<CalendarBlankOutline :size="48" class="empty-icon" />
 					<p>{{ t('attendance', 'No upcoming events in this calendar') }}</p>
 				</div>
+
+				<!-- Import button -->
+				<div v-if="selectedEvents.length > 0" class="import-actions">
+					<NcButton variant="primary" @click="importSelected">
+						{{ n('attendance', 'Import {count} event', 'Import {count} events', selectedEvents.length, { count: selectedEvents.length }) }}
+					</NcButton>
+				</div>
 			</template>
 		</div>
 	</NcDialog>
@@ -95,8 +112,8 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { NcDialog, NcButton, NcLoadingIcon, NcTextField } from '@nextcloud/vue'
-import { translate as t } from '@nextcloud/l10n'
+import { NcDialog, NcButton, NcLoadingIcon, NcTextField, NcCheckboxRadioSwitch } from '@nextcloud/vue'
+import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import ChevronRight from 'vue-material-design-icons/ChevronRight.vue'
 import ArrowLeft from 'vue-material-design-icons/ArrowLeft.vue'
 import CalendarBlankOutline from 'vue-material-design-icons/CalendarBlankOutline.vue'
@@ -115,6 +132,7 @@ const emit = defineEmits(['close', 'select'])
 const selectedCalendar = ref(null)
 const searchQuery = ref('')
 const eventSearchQuery = ref('')
+const selectedEvents = ref([])
 
 const { calendars, events, loadingCalendars, loadingEvents, loadCalendars, loadEvents, clearEvents, reset } = useCalendarEvents()
 
@@ -151,16 +169,46 @@ const filteredEvents = computed(() => {
 
 const dialogTitle = computed(() => {
 	if (selectedCalendar.value) {
-		return t('attendance', 'Select event')
+		return t('attendance', 'Select events')
 	}
 	return t('attendance', 'Import from calendar')
 })
+
+const isSelected = (event) => {
+	return selectedEvents.value.some(e => e.uid === event.uid)
+}
+
+const toggleEvent = (event) => {
+	if (isSelected(event)) {
+		selectedEvents.value = selectedEvents.value.filter(e => e.uid !== event.uid)
+	} else {
+		selectedEvents.value = [...selectedEvents.value, event]
+	}
+}
+
+const allFilteredSelected = computed(() => {
+	return filteredEvents.value.length > 0 && filteredEvents.value.every(e => isSelected(e))
+})
+
+const toggleSelectAll = () => {
+	if (allFilteredSelected.value) {
+		// Deselect all filtered events
+		const filteredUids = new Set(filteredEvents.value.map(e => e.uid))
+		selectedEvents.value = selectedEvents.value.filter(e => !filteredUids.has(e.uid))
+	} else {
+		// Select all filtered events (merge with existing)
+		const existing = new Set(selectedEvents.value.map(e => e.uid))
+		const toAdd = filteredEvents.value.filter(e => !existing.has(e.uid))
+		selectedEvents.value = [...selectedEvents.value, ...toAdd]
+	}
+}
 
 // Load calendars when modal opens
 watch(() => props.show, async (newValue) => {
 	if (newValue) {
 		selectedCalendar.value = null
 		searchQuery.value = ''
+		selectedEvents.value = []
 		reset()
 		await loadCalendars()
 	}
@@ -173,24 +221,26 @@ const handleClose = () => {
 const selectCalendar = async (calendar) => {
 	selectedCalendar.value = calendar
 	eventSearchQuery.value = ''
+	selectedEvents.value = []
 	await loadEvents(calendar.uri)
 }
 
 const goBack = () => {
 	selectedCalendar.value = null
+	selectedEvents.value = []
 	clearEvents()
 }
 
-const selectEvent = (event) => {
-	emit('select', {
+const importSelected = () => {
+	const eventDataList = selectedEvents.value.map(event => ({
 		name: event.summary || '',
 		description: event.description || '',
 		startDatetime: event.dtstart,
 		endDatetime: event.dtend,
 		calendarUri: selectedCalendar.value.uri,
-		// Store the uri (filename) for calendar deeplinks
 		calendarEventUid: event.uri || event.uid,
-	})
+	}))
+	emit('select', eventDataList)
 	emit('close')
 }
 
@@ -222,7 +272,6 @@ const selectEvent = (event) => {
 
 .section-label {
 	display: block;
-	margin-bottom: 12px;
 	font-weight: 600;
 }
 
@@ -258,6 +307,11 @@ const selectEvent = (event) => {
 	background-color: var(--color-background-hover);
 }
 
+.event-item--selected {
+	background-color: var(--color-primary-element-light);
+	border-color: var(--color-primary-element);
+}
+
 .calendar-color {
 	width: 16px;
 	height: 16px;
@@ -276,6 +330,11 @@ const selectEvent = (event) => {
 .event-arrow {
 	color: var(--color-text-maxcontrast);
 	flex-shrink: 0;
+}
+
+.event-checkbox {
+	flex-shrink: 0;
+	margin-right: 8px;
 }
 
 .event-info {
@@ -324,5 +383,24 @@ const selectEvent = (event) => {
 	width: 12px;
 	height: 12px;
 	margin-right: 8px;
+}
+
+.event-selection-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 12px;
+}
+
+.event-selection-header .section-label {
+	margin: 0;
+}
+
+.import-actions {
+	display: flex;
+	justify-content: flex-end;
+	margin-top: 16px;
+	padding-top: 12px;
+	border-top: 1px solid var(--color-border);
 }
 </style>

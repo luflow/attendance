@@ -131,6 +131,48 @@ class AppointmentController extends Controller {
 	}
 
 	/**
+	 * Bulk create appointments from calendar events.
+	 * @NoAdminRequired
+	 */
+	public function bulkCreate(array $events = []): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		if (!$this->permissionService->canManageAppointments($user->getUID())) {
+			return new DataResponse(['error' => 'Insufficient permissions to create appointments'], 403);
+		}
+
+		if (empty($events)) {
+			return new DataResponse(['error' => 'No events provided'], 400);
+		}
+
+		try {
+			$created = [];
+			foreach ($events as $event) {
+				$appointment = $this->appointmentService->createAppointment(
+					$event['name'] ?? '',
+					$event['description'] ?? '',
+					$event['startDatetime'] ?? '',
+					$event['endDatetime'] ?? '',
+					$user->getUID(),
+					[],
+					[],
+					[],
+					false,
+					$event['calendarUri'] ?? null,
+					$event['calendarEventUid'] ?? null,
+				);
+				$created[] = $appointment;
+			}
+			return new DataResponse(['created' => count($created)]);
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => $e->getMessage()], 400);
+		}
+	}
+
+	/**
 	 * @NoAdminRequired
 	 */
 	public function update(

@@ -1,0 +1,16 @@
+SPDX-License-Identifier: AGPL-3.0-or-later
+SPDX-License-Identifier: MIT
+SPDX-FileCopyrightText: Christopher Jeffrey
+SPDX-FileCopyrightText: Rob Cresswell <robcresswell@pm.me>
+SPDX-FileCopyrightText: attendance developers
+
+This file is generated from multiple sources. Included packages:
+- attendance
+	- version: 1.24.3
+	- license: AGPL-3.0-or-later
+- marked
+	- version: 17.0.1
+	- license: MIT
+- vue-material-design-icons
+	- version: 5.3.1
+	- license: MIT
