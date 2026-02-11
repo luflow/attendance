@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Yes" : "Da",
     "No" : "Ne",
+    "Maybe" : "Možda",
     "Others" : "Ostalo",
     "Group" : "Grupa",
     "Attachments" : "Privici",
@@ -16,6 +17,7 @@ OC.L10N.register(
     "Edit" : "Uredi",
     "Delete" : "Izbriši",
     "No response" : "Nema odgovora",
+    "Select calendar" : "Odaberite kalendar",
     "Back" : "Natrag",
     "Untitled event" : "Događaj bez naslova",
     "Start" : "Pokreni",
@@ -33,14 +35,18 @@ OC.L10N.register(
     "Failed to save settings" : "Spremanje postavki nije uspjelo",
     "Permissions" : "Dopuštenja",
     "Loading …" : "Učitavanje …",
+    "Appointment not found" : "Termin nije pronađen",
     "User" : "@string/user_icon",
     "Team" : "Tim",
     "Attach" : "Priloži",
     "Appointment updated" : "Dogovor je ažuriran",
+    "Appointment name" : "Naziv termina",
     "Description" : "Opis",
     "Notification" : "Obavijest",
+    "Add from Files" : "Dodaj iz Datoteka",
     "All users" : "Svi korisnici",
     "No users found" : "Nije pronađen nijedan korisnik",
-    "Confirm" : "Potvrdi"
+    "Confirm" : "Potvrdi",
+    "Thank you for your response!" : "Hvala na odgovoru!"
 },
 "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;");
