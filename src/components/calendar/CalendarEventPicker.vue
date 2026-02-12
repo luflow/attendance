@@ -4,21 +4,21 @@
 		@update:open="handleClose">
 		<div class="calendar-event-picker">
 			<p class="description">
-				{{ t('attendance', 'Select a calendar event to pre-fill the appointment form.') }}
+				{{ t('attendance', 'Select calendar events to import as appointments.') }}
 			</p>
 
 			<!-- Calendar Selection Step -->
 			<template v-if="!selectedCalendar">
 				<div v-if="loadingCalendars" class="loading-container">
 					<NcLoadingIcon :size="32" />
-					<span class="loading-text">{{ t('attendance', 'Loading calendars …') }}</span>
+					<span class="loading-text">{{ t('attendance', 'Loading calendars …') }}</span>
 				</div>
 
 				<template v-else-if="calendars.length > 0">
 					<label class="section-label">{{ t('attendance', 'Select calendar') }}</label>
 					<NcTextField v-if="showSearch"
 						v-model="searchQuery"
-						:placeholder="t('attendance', 'Search calendars …')"
+						:placeholder="t('attendance', 'Search calendars …')"
 						class="calendar-search" />
 					<ul class="calendar-list">
 						<li v-for="calendar in filteredCalendars"
@@ -58,25 +58,38 @@
 
 				<div v-if="loadingEvents" class="loading-container">
 					<NcLoadingIcon :size="32" />
-					<span class="loading-text">{{ t('attendance', 'Loading events …') }}</span>
+					<span class="loading-text">{{ t('attendance', 'Loading events …') }}</span>
 				</div>
 
 				<template v-else-if="events.length > 0">
-					<label class="section-label">{{ t('attendance', 'Select event') }}</label>
+					<div class="event-list-header">
+						<label class="section-label">{{ t('attendance', 'Select events') }}</label>
+						<div class="selection-actions">
+							<NcButton variant="tertiary" :disabled="allSelected" @click="selectAll">
+								{{ t('attendance', 'Select all') }}
+							</NcButton>
+							<NcButton variant="tertiary" :disabled="noneSelected" @click="deselectAll">
+								{{ t('attendance', 'Deselect all') }}
+							</NcButton>
+						</div>
+					</div>
 					<NcTextField v-if="showEventSearch"
 						v-model="eventSearchQuery"
-						:placeholder="t('attendance', 'Search events …')"
+						:placeholder="t('attendance', 'Search events …')"
 						class="calendar-search" />
 					<ul class="event-list">
 						<li v-for="event in filteredEvents"
 							:key="event.uid"
 							class="event-item"
-							@click="selectEvent(event)">
-							<div class="event-info">
-								<span class="event-name">{{ event.summary || t('attendance', 'Untitled event') }}</span>
-								<span class="event-date">{{ formatDateRange(event.dtstart, event.dtend) }}</span>
-							</div>
-							<ChevronRight :size="20" class="event-arrow" />
+							@click="toggleEvent(event)">
+							<NcCheckboxRadioSwitch
+								:model-value="selectedEvents.has(event.uid)"
+								class="event-checkbox">
+								<div class="event-info">
+									<span class="event-name">{{ event.summary || t('attendance', 'Untitled event') }}</span>
+									<span class="event-date">{{ formatDateRange(event.dtstart, event.dtend) }}</span>
+								</div>
+							</NcCheckboxRadioSwitch>
 						</li>
 					</ul>
 					<div v-if="showEventSearch && filteredEvents.length === 0" class="empty-state">
@@ -88,6 +101,15 @@
 					<CalendarBlankOutline :size="48" class="empty-icon" />
 					<p>{{ t('attendance', 'No upcoming events in this calendar') }}</p>
 				</div>
+
+				<!-- Import button -->
+				<div v-if="!loadingEvents && events.length > 0" class="import-actions">
+					<NcButton variant="primary"
+						:disabled="selectedEvents.size === 0"
+						@click="importSelected">
+						{{ importButtonLabel }}
+					</NcButton>
+				</div>
 			</template>
 		</div>
 	</NcDialog>
@@ -95,8 +117,8 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { NcDialog, NcButton, NcLoadingIcon, NcTextField } from '@nextcloud/vue'
-import { translate as t } from '@nextcloud/l10n'
+import { NcDialog, NcButton, NcLoadingIcon, NcTextField, NcCheckboxRadioSwitch } from '@nextcloud/vue'
+import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import ChevronRight from 'vue-material-design-icons/ChevronRight.vue'
 import ArrowLeft from 'vue-material-design-icons/ArrowLeft.vue'
 import CalendarBlankOutline from 'vue-material-design-icons/CalendarBlankOutline.vue'
@@ -110,11 +132,12 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['close', 'select'])
+const emit = defineEmits(['close', 'select', 'bulk-select'])
 
 const selectedCalendar = ref(null)
 const searchQuery = ref('')
 const eventSearchQuery = ref('')
+const selectedEvents = ref(new Set())
 
 const { calendars, events, loadingCalendars, loadingEvents, loadCalendars, loadEvents, clearEvents, reset } = useCalendarEvents()
 
@@ -149,9 +172,25 @@ const filteredEvents = computed(() => {
 	)
 })
 
+const allSelected = computed(() => {
+	return events.value.length > 0 && events.value.every(e => selectedEvents.value.has(e.uid))
+})
+
+const noneSelected = computed(() => {
+	return selectedEvents.value.size === 0
+})
+
+const importButtonLabel = computed(() => {
+	const count = selectedEvents.value.size
+	if (count === 0) {
+		return t('attendance', 'Import')
+	}
+	return n('attendance', 'Import {count} event', 'Import {count} events', count, { count })
+})
+
 const dialogTitle = computed(() => {
 	if (selectedCalendar.value) {
-		return t('attendance', 'Select event')
+		return t('attendance', 'Select events')
 	}
 	return t('attendance', 'Import from calendar')
 })
@@ -161,6 +200,7 @@ watch(() => props.show, async (newValue) => {
 	if (newValue) {
 		selectedCalendar.value = null
 		searchQuery.value = ''
+		selectedEvents.value = new Set()
 		reset()
 		await loadCalendars()
 	}
@@ -173,24 +213,54 @@ const handleClose = () => {
 const selectCalendar = async (calendar) => {
 	selectedCalendar.value = calendar
 	eventSearchQuery.value = ''
+	selectedEvents.value = new Set()
 	await loadEvents(calendar.uri)
 }
 
 const goBack = () => {
 	selectedCalendar.value = null
+	selectedEvents.value = new Set()
 	clearEvents()
 }
 
-const selectEvent = (event) => {
-	emit('select', {
+const toggleEvent = (event) => {
+	const newSet = new Set(selectedEvents.value)
+	if (newSet.has(event.uid)) {
+		newSet.delete(event.uid)
+	} else {
+		newSet.add(event.uid)
+	}
+	selectedEvents.value = newSet
+}
+
+const selectAll = () => {
+	const newSet = new Set()
+	for (const event of events.value) {
+		newSet.add(event.uid)
+	}
+	selectedEvents.value = newSet
+}
+
+const deselectAll = () => {
+	selectedEvents.value = new Set()
+}
+
+const importSelected = () => {
+	const selected = events.value.filter(e => selectedEvents.value.has(e.uid))
+	const eventDataList = selected.map(event => ({
 		name: event.summary || '',
 		description: event.description || '',
 		startDatetime: event.dtstart,
 		endDatetime: event.dtend,
 		calendarUri: selectedCalendar.value.uri,
-		// Store the uri (filename) for calendar deeplinks
 		calendarEventUid: event.uri || event.uid,
-	})
+	}))
+
+	if (eventDataList.length === 1) {
+		emit('select', eventDataList[0])
+	} else {
+		emit('bulk-select', eventDataList)
+	}
 	emit('close')
 }
 
@@ -237,8 +307,7 @@ const selectEvent = (event) => {
 	margin: 0;
 }
 
-.calendar-item,
-.event-item {
+.calendar-item {
 	display: flex;
 	align-items: center;
 	padding: 12px;
@@ -253,9 +322,29 @@ const selectEvent = (event) => {
 	}
 }
 
-.calendar-item:hover,
+.calendar-item:hover {
+	background-color: var(--color-background-hover);
+}
+
+.event-item {
+	display: flex;
+	align-items: center;
+	padding: 12px;
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius);
+	margin-bottom: 8px;
+	cursor: pointer;
+	transition: background-color 0.15s ease;
+}
+
 .event-item:hover {
 	background-color: var(--color-background-hover);
+}
+
+.event-checkbox {
+	pointer-events: none;
+	width: 100%;
+	margin: -4px 0;
 }
 
 .calendar-color {
@@ -272,14 +361,12 @@ const selectEvent = (event) => {
 	font-weight: 500;
 }
 
-.calendar-arrow,
-.event-arrow {
+.calendar-arrow {
 	color: var(--color-text-maxcontrast);
 	flex-shrink: 0;
 }
 
 .event-info {
-	flex: 1;
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
@@ -324,5 +411,29 @@ const selectEvent = (event) => {
 	width: 12px;
 	height: 12px;
 	margin-right: 8px;
+}
+
+.event-list-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 4px;
+}
+
+.event-list-header .section-label {
+	margin-bottom: 0;
+}
+
+.selection-actions {
+	display: flex;
+	gap: 4px;
+}
+
+.import-actions {
+	display: flex;
+	justify-content: flex-end;
+	padding-top: 16px;
+	border-top: 1px solid var(--color-border);
+	margin-top: 12px;
 }
 </style>

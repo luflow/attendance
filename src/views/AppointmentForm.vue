@@ -23,8 +23,9 @@
 			</h2>
 		</div>
 
-		<div v-if="loading" class="loading-state">
-			{{ t('attendance', 'Loading …') }}
+		<div v-if="loading || bulkImporting" class="loading-state">
+			<NcLoadingIcon v-if="bulkImporting" :size="32" />
+			{{ bulkImporting ? t('attendance', 'Importing appointments …') : t('attendance', 'Loading …') }}
 		</div>
 
 		<form v-else
@@ -194,7 +195,8 @@
 		<CalendarEventPicker
 			:show="showCalendarPicker"
 			@close="showCalendarPicker = false"
-			@select="handleCalendarEventSelect" />
+			@select="handleCalendarEventSelect"
+			@bulk-select="handleBulkImport" />
 	</div>
 </template>
 
@@ -599,6 +601,47 @@ const handleCalendarEventSelect = (eventData) => {
 	calendarReference.value = {
 		calendarUri: eventData.calendarUri,
 		calendarEventUid: eventData.calendarEventUid,
+	}
+}
+
+const bulkImporting = ref(false)
+
+const handleBulkImport = async (eventDataList) => {
+	bulkImporting.value = true
+	saving.value = true
+
+	try {
+		const appointments = eventDataList.map(eventData => ({
+			name: eventData.name,
+			description: eventData.description,
+			startDatetime: toServerTimezone(eventData.startDatetime),
+			endDatetime: toServerTimezone(eventData.endDatetime),
+			calendarUri: eventData.calendarUri,
+			calendarEventUid: eventData.calendarEventUid,
+		}))
+
+		const response = await axios.post(
+			generateUrl('/apps/attendance/api/appointments/bulk'),
+			{ appointments },
+		)
+
+		const created = response.data?.created || []
+		const errors = response.data?.errors || []
+
+		if (created.length > 0) {
+			showSuccess(t('attendance', '{count} appointments created', { count: created.length }))
+		}
+		if (errors.length > 0) {
+			showError(t('attendance', '{count} appointments failed to import', { count: errors.length }))
+		}
+
+		emit('saved')
+	} catch (error) {
+		console.error('Bulk import failed:', error)
+		showError(t('attendance', 'Error importing appointments'))
+	} finally {
+		bulkImporting.value = false
+		saving.value = false
 	}
 }
 
