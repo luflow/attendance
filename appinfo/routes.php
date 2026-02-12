@@ -15,6 +15,7 @@ return [
 		// Appointment management routes
 		// NOTE: Specific routes must come BEFORE wildcard {id} routes
 		['name' => 'appointment#index', 'url' => '/api/appointments', 'verb' => 'GET'],
+		['name' => 'appointment#bulkCreate', 'url' => '/api/appointments/bulk', 'verb' => 'POST'],
 		['name' => 'appointment#navigation', 'url' => '/api/appointments/navigation', 'verb' => 'GET'],
 		['name' => 'appointment#widget', 'url' => '/api/appointments/widget', 'verb' => 'GET'],
 		['name' => 'appointment#show', 'url' => '/api/appointments/{id}', 'verb' => 'GET'],
