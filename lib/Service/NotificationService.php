@@ -67,7 +67,7 @@ class NotificationService {
 					->setSubject('appointment_created', [
 						'appointmentId' => $appointment->getId(),
 						'name' => $appointment->getName(),
-						'date' => date('d.m.Y H:i', strtotime($appointment->getStartDatetime())),
+						'startDatetime' => $appointment->getStartDatetime(),
 					])
 					->setLink($appointmentUrl);
 

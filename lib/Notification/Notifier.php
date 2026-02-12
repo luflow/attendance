@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\Attendance\Notification;
 
 use OCA\Attendance\Service\QuickResponseTokenService;
+use OCP\IConfig;
 use OCP\IURLGenerator;
 use OCP\L10N\IFactory;
 use OCP\Notification\IAction;
@@ -15,15 +16,18 @@ class Notifier implements INotifier {
 	private IFactory $l10nFactory;
 	private IURLGenerator $urlGenerator;
 	private QuickResponseTokenService $tokenService;
+	private IConfig $config;
 
 	public function __construct(
 		IFactory $l10nFactory,
 		IURLGenerator $urlGenerator,
 		QuickResponseTokenService $tokenService,
+		IConfig $config,
 	) {
 		$this->l10nFactory = $l10nFactory;
 		$this->urlGenerator = $urlGenerator;
 		$this->tokenService = $tokenService;
+		$this->config = $config;
 	}
 
 	public function getID(): string {
@@ -45,7 +49,10 @@ class Notifier implements INotifier {
 			case 'appointment_reminder':
 				$parameters = $notification->getSubjectParameters();
 				$appointmentName = $parameters['name'] ?? 'Unknown';
-				$appointmentDate = $parameters['date'] ?? 'Unknown';
+				$appointmentDate = $this->formatDateForUser(
+					$parameters['startDatetime'] ?? $parameters['date'] ?? '',
+					$notification->getUser()
+				);
 				$appointmentId = $parameters['appointmentId'] ?? 0;
 				$userId = $notification->getUser();
 
@@ -69,7 +76,10 @@ class Notifier implements INotifier {
 			case 'appointment_created':
 				$parameters = $notification->getSubjectParameters();
 				$appointmentName = $parameters['name'] ?? 'Unknown';
-				$appointmentDate = $parameters['date'] ?? 'Unknown';
+				$appointmentDate = $this->formatDateForUser(
+					$parameters['startDatetime'] ?? $parameters['date'] ?? '',
+					$notification->getUser()
+				);
 				$appointmentId = $parameters['appointmentId'] ?? 0;
 				$userId = $notification->getUser();
 
@@ -92,6 +102,27 @@ class Notifier implements INotifier {
 
 			default:
 				throw new \InvalidArgumentException('Unknown subject');
+		}
+	}
+
+	/**
+	 * Format a UTC datetime string for display in the user's timezone.
+	 */
+	private function formatDateForUser(string $utcDatetime, string $userId): string {
+		if ($utcDatetime === '') {
+			return 'Unknown';
+		}
+
+		try {
+			$userTimezone = $this->config->getUserValue($userId, 'core', 'timezone', '');
+			if ($userTimezone === '') {
+				$userTimezone = date_default_timezone_get();
+			}
+			$date = new \DateTime($utcDatetime, new \DateTimeZone('UTC'));
+			$date->setTimezone(new \DateTimeZone($userTimezone));
+			return $date->format('d.m.Y H:i');
+		} catch (\Exception $e) {
+			return $utcDatetime;
 		}
 	}
 
