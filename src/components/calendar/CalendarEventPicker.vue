@@ -329,7 +329,7 @@ const importSelected = () => {
 .event-item {
 	display: flex;
 	align-items: center;
-	padding: 12px;
+	padding: 12px 12px 12px 6px;
 	border: 1px solid var(--color-border);
 	border-radius: var(--border-radius);
 	margin-bottom: 8px;
@@ -345,6 +345,11 @@ const importSelected = () => {
 	pointer-events: none;
 	width: 100%;
 	margin: -4px 0;
+}
+
+.event-checkbox :deep(.checkbox-content__icon) {
+	margin-block: auto !important;
+	margin-inline-end: 8px;
 }
 
 .calendar-color {
