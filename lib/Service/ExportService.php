@@ -309,6 +309,18 @@ class ExportService {
 			<style:table-cell-properties fo:border="0.05pt solid #000000" fo:background-color="#e0e0e0"/>
 			<style:text-properties style:font-name="Liberation Sans" fo:font-size="11pt" fo:font-weight="bold"/>
 		</style:style>
+		<style:style style:name="ce-yes" style:family="table-cell">
+			<style:table-cell-properties fo:border="0.05pt solid #000000" fo:background-color="#c6efce"/>
+			<style:text-properties style:font-name="Liberation Sans" fo:font-size="11pt"/>
+		</style:style>
+		<style:style style:name="ce-no" style:family="table-cell">
+			<style:table-cell-properties fo:border="0.05pt solid #000000" fo:background-color="#ffc7ce"/>
+			<style:text-properties style:font-name="Liberation Sans" fo:font-size="11pt"/>
+		</style:style>
+		<style:style style:name="ce-maybe" style:family="table-cell">
+			<style:table-cell-properties fo:border="0.05pt solid #000000" fo:background-color="#ffeb9c"/>
+			<style:text-properties style:font-name="Liberation Sans" fo:font-size="11pt"/>
+		</style:style>
 	</office:automatic-styles>
 	<office:body>
 		<office:spreadsheet>
@@ -410,16 +422,20 @@ class ExportService {
 				$response = $appointmentResponses[$appointment->getId()][$user['userId']] ?? null;
 
 				// RSVP column
-				$rsvp = $response ? $this->formatResponse($response->getResponse()) : '-';
+				$rsvpValue = $response ? $response->getResponse() : null;
+				$rsvp = $this->formatResponse($rsvpValue);
+				$rsvpStyle = $this->getResponseCellStyle($rsvpValue);
 				$xml .= '
-					<table:table-cell table:style-name="ce1" office:value-type="string">
+					<table:table-cell table:style-name="' . $rsvpStyle . '" office:value-type="string">
 						<text:p>' . $rsvp . '</text:p>
 					</table:table-cell>';
 
 				// CheckIn column
-				$checkin = $response ? $this->formatResponse($response->getCheckinState()) : '-';
+				$checkinValue = $response ? $response->getCheckinState() : null;
+				$checkin = $this->formatResponse($checkinValue);
+				$checkinStyle = $this->getResponseCellStyle($checkinValue);
 				$xml .= '
-					<table:table-cell table:style-name="ce1" office:value-type="string">
+					<table:table-cell table:style-name="' . $checkinStyle . '" office:value-type="string">
 						<text:p>' . $checkin . '</text:p>
 					</table:table-cell>';
 			}
@@ -454,6 +470,22 @@ class ExportService {
 				return $this->l10n->t('Maybe');
 			default:
 				return $response;
+		}
+	}
+
+	/**
+	 * Get the cell style name based on response value
+	 */
+	private function getResponseCellStyle(?string $response): string {
+		switch ($response) {
+			case 'yes':
+				return 'ce-yes';
+			case 'no':
+				return 'ce-no';
+			case 'maybe':
+				return 'ce-maybe';
+			default:
+				return 'ce1';
 		}
 	}
 
