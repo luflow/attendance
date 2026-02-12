@@ -6,6 +6,20 @@
 
 - Nightly changes here
 
+## 1.25.0 – 2026-02-12
+
+### Added
+
+- Bulk calendar import: select and import multiple calendar events to import as appointments at once
+
+### Fixed
+
+- Notification dates are now correctly converted from UTC to user timezone in notifications and mails
+
+### Changed
+
+- Translations updated
+
 ## 1.24.3 – 2026-02-09
 
 ### Changed
