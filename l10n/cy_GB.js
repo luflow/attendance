@@ -9,6 +9,7 @@ OC.L10N.register(
     "Cancel" : "Cancel",
     "Edit" : "Golygu",
     "Delete" : "Dileu",
+    "Deselect all" : "Dad ddewis popeth",
     "Untitled event" : "Digwyddiad di-deitl",
     "Save" : "Cadw",
     "Bold" : "Trwm",

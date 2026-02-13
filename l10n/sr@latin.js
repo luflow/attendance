@@ -9,6 +9,7 @@ OC.L10N.register(
     "Share link" : "Veza deljenja",
     "Edit" : "Izmeni",
     "Delete" : "Obriši",
+    "Deselect all" : "Poništi ceo izbor",
     "Save" : "Sačuvaj",
     "Bold" : "Podebljano",
     "Italic" : "Kurziv",

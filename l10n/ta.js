@@ -9,6 +9,7 @@ OC.L10N.register(
     "Share link" : "இணைப்பைப் பகிரவும்",
     "Edit" : "தொகுக்க",
     "Delete" : "நீக்குக",
+    "Import" : "இறக்குமதி",
     "Back" : "பின்னுக்கு",
     "Save" : "சேமிக்க ",
     "User" : "User",

@@ -9,6 +9,7 @@ OC.L10N.register(
     "Share link" : "Partejar via ligam",
     "Edit" : "Modificar",
     "Delete" : "Suprimir",
+    "Import" : "Importar",
     "Untitled event" : "Eveniment sens títol",
     "Save" : "Enregistrar",
     "Bold" : "Gras",

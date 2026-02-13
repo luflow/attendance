@@ -9,6 +9,8 @@ OC.L10N.register(
     "Cancel" : "Cancel",
     "Edit" : "Änneren",
     "Delete" : "Läschen",
+    "Import" : "Import",
+    "Select all" : "All auswielen",
     "Save" : "Späicheren",
     "User" : "User",
     "Description" : "Beschreiwung",

@@ -9,6 +9,8 @@ OC.L10N.register(
     "Cancel" : "Cancel",
     "Edit" : "մշակել",
     "Delete" : "հեռացնել",
+    "Import" : "Ներմուծում",
+    "Select all" : "Նշել բոլորը",
     "Save" : "Պահպանել",
     "User" : "User",
     "Description" : "Նկարագրություն",
