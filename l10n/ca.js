@@ -48,6 +48,7 @@ OC.L10N.register(
     "Notification" : "Notificació",
     "Add from Files" : "Afegeix de Fitxers",
     "All users" : "Tots els usuaris",
+    "No users found" : "No s'ha trobat cap usuari",
     "Confirm" : "Confirma"
 },
 "nplurals=2; plural=(n != 1);");

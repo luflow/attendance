@@ -8,6 +8,7 @@ OC.L10N.register(
     "Share link" : "Divulgar ligamine",
     "Edit" : "Modificar",
     "Delete" : "Deler",
+    "Select all" : "Selectionar toto",
     "Start" : "Initio",
     "End" : "Fin",
     "Save" : "Salveguardar",

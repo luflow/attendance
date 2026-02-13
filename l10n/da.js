@@ -20,6 +20,8 @@ OC.L10N.register(
     "No response" : "Intet svar",
     "Select calendar" : "Vælg kalender",
     "Back" : "Tilbage",
+    "Select all" : "Vælg alle",
+    "Deselect all" : "Fravælg alle",
     "Untitled event" : "Unavngiven begivenhed",
     "End" : "Stop",
     "Present" : "Gave",

@@ -11,6 +11,8 @@ OC.L10N.register(
     "Edit" : "Ẓreg",
     "Delete" : "Kkes",
     "Back" : "Tuɣalin",
+    "Select all" : "Fren-iten akk",
+    "Deselect all" : "Kkes afran i meṛṛa",
     "Save" : "Sekles",
     "User" : "Aseqdac",
     "Team" : "Tarbaɛt",
