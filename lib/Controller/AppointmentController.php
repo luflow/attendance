@@ -474,8 +474,7 @@ class AppointmentController extends Controller {
 		$appointmentIds = $this->request->getParam('appointmentIds'); // array or null
 		$startDate = $this->request->getParam('startDate'); // Y-m-d format or null
 		$endDate = $this->request->getParam('endDate'); // Y-m-d format or null
-		$preset = $this->request->getParam('preset', 'all'); // all, month, quarter, year, custom
-		$includeComments = $this->request->getParam('includeComments', false); // boolean
+		$includeComments = filter_var($this->request->getParam('includeComments', false), FILTER_VALIDATE_BOOLEAN);
 
 		// Validate appointmentIds is array if provided
 		if ($appointmentIds !== null && !is_array($appointmentIds)) {
@@ -490,14 +489,13 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'endDate must be in Y-m-d format'], 400);
 		}
 
-		// Validate preset
-		$validPresets = ['all', 'month', 'quarter', 'year', 'custom'];
-		if (!in_array($preset, $validPresets)) {
-			return new DataResponse(['error' => 'Invalid preset. Must be one of: ' . implode(', ', $validPresets)], 400);
+		// Validate endDate is after startDate
+		if ($startDate !== null && $endDate !== null && $startDate > $endDate) {
+			return new DataResponse(['error' => 'endDate must be after startDate'], 400);
 		}
 
 		try {
-			$result = $this->exportService->exportToOds($user->getUID(), $appointmentIds, $startDate, $endDate, $preset, $includeComments);
+			$result = $this->exportService->exportToOds($user->getUID(), $appointmentIds, $startDate, $endDate, $includeComments);
 			return new DataResponse([
 				'success' => true,
 				'path' => $result['path'],

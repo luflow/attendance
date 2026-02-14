@@ -56,17 +56,13 @@ class ExportService {
 	 * @param array|null $appointmentIds Specific appointment IDs to export (null for all)
 	 * @param string|null $startDate Start date filter (Y-m-d format, inclusive)
 	 * @param string|null $endDate End date filter (Y-m-d format, inclusive)
-	 * @param string $preset Date range preset (all, month, quarter, year, custom)
 	 * @param bool $includeComments Whether to include user comments in the export
 	 * @return array Array with 'path' and 'filename' keys
 	 * @throws \Exception
 	 */
-	public function exportToOds(string $userId, ?array $appointmentIds = null, ?string $startDate = null, ?string $endDate = null, string $preset = 'all', bool $includeComments = false): array {
-		// Calculate date range for presets
-		[$calculatedStartDate, $calculatedEndDate] = $this->calculateDateRange($preset, $startDate, $endDate);
-
+	public function exportToOds(string $userId, ?array $appointmentIds = null, ?string $startDate = null, ?string $endDate = null, bool $includeComments = false): array {
 		// Get appointments with filtering
-		$appointments = $this->appointmentMapper->findForExport($appointmentIds, $calculatedStartDate, $calculatedEndDate);
+		$appointments = $this->appointmentMapper->findForExport($appointmentIds, $startDate, $endDate);
 
 		if (empty($appointments)) {
 			throw new \Exception('No appointments found to export');
@@ -153,7 +149,7 @@ class ExportService {
 
 		// Generate filename with timestamp and filter info
 		$timestamp = date('Y-m-d_His');
-		$filterSuffix = $this->generateFilenameSuffix($appointmentIds, $calculatedStartDate, $calculatedEndDate, $preset);
+		$filterSuffix = $this->generateFilenameSuffix($appointmentIds, $startDate, $endDate);
 		$filename = "attendance_export{$filterSuffix}_{$timestamp}.ods";
 
 		// Check if file exists, if so, delete it
@@ -533,51 +529,9 @@ class ExportService {
 	}
 
 	/**
-	 * Calculate date range based on preset and custom dates
-	 *
-	 * @param string $preset Date range preset (all, month, quarter, year, custom)
-	 * @param string|null $customStartDate Custom start date (Y-m-d format)
-	 * @param string|null $customEndDate Custom end date (Y-m-d format)
-	 * @return array [startDate, endDate] or [null, null] for 'all'
-	 */
-	private function calculateDateRange(string $preset, ?string $customStartDate, ?string $customEndDate): array {
-		switch ($preset) {
-			case 'custom':
-				return [$customStartDate, $customEndDate];
-
-			case 'month':
-				$startDate = date('Y-m-01'); // First day of current month
-				$endDate = date('Y-m-t'); // Last day of current month
-				return [$startDate, $endDate];
-
-			case 'quarter':
-				$currentMonth = (int) date('n');
-				$quarterStart = floor(($currentMonth - 1) / 3) * 3 + 1;
-				$startDate = date('Y-' . sprintf('%02d', $quarterStart) . '-01');
-				$endDate = date('Y-m-t', strtotime($startDate . ' +2 months'));
-				return [$startDate, $endDate];
-
-			case 'year':
-				$startDate = date('Y-01-01'); // First day of current year
-				$endDate = date('Y-12-31'); // Last day of current year
-				return [$startDate, $endDate];
-
-			case 'all':
-			default:
-				return [null, null]; // No date filtering
-		}
-	}
-
-	/**
 	 * Generate filename suffix based on filtering options
-	 *
-	 * @param array|null $appointmentIds
-	 * @param string|null $startDate
-	 * @param string|null $endDate
-	 * @param string $preset
-	 * @return string
 	 */
-	private function generateFilenameSuffix(?array $appointmentIds, ?string $startDate, ?string $endDate, string $preset): string {
+	private function generateFilenameSuffix(?array $appointmentIds, ?string $startDate, ?string $endDate): string {
 		if ($appointmentIds !== null && !empty($appointmentIds)) {
 			if (count($appointmentIds) === 1) {
 				return '_appointment_' . $appointmentIds[0];
@@ -585,29 +539,14 @@ class ExportService {
 			return '_selected_' . count($appointmentIds) . '_appointments';
 		}
 
-		if ($preset === 'all' || ($startDate === null && $endDate === null)) {
-			return '_all';
+		if ($startDate !== null && $endDate !== null) {
+			return '_' . $startDate . '_to_' . $endDate;
+		} elseif ($startDate !== null) {
+			return '_from_' . $startDate;
+		} elseif ($endDate !== null) {
+			return '_until_' . $endDate;
 		}
 
-		switch ($preset) {
-			case 'month':
-				return '_' . date('Y-m');
-			case 'quarter':
-				$quarter = ceil(date('n') / 3);
-				return '_' . date('Y') . '_Q' . $quarter;
-			case 'year':
-				return '_' . date('Y');
-			case 'custom':
-				if ($startDate && $endDate) {
-					return '_' . $startDate . '_to_' . $endDate;
-				} elseif ($startDate) {
-					return '_from_' . $startDate;
-				} elseif ($endDate) {
-					return '_until_' . $endDate;
-				}
-				return '_custom';
-			default:
-				return '_all';
-		}
+		return '_all';
 	}
 }
