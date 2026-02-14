@@ -2,27 +2,52 @@
     <div class="appointment-card" data-test="appointment-card">
         <div class="appointment-header">
             <div class="appointment-title-block">
-                <h3 data-test="appointment-title">
-                    {{ appointment.name }}
-                </h3>
-                <span class="appointment-date-subtitle">
-                    {{
-                        formatDateRange(
-                            appointment.startDatetime,
-                            appointment.endDatetime,
-                        )
-                    }}
-                    <a
-                        v-if="calendarLink"
-                        :href="calendarLink"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="calendar-link"
-                        :title="t('attendance', 'Imported from calendar')"
-                    >
-                        <CalendarSyncIcon :size="14" />
-                    </a>
-                </span>
+                <template v-if="displayOrder === 'date_first'">
+                    <h3 data-test="appointment-title" class="appointment-date-title">
+                        {{
+                            formatDateRange(
+                                appointment.startDatetime,
+                                appointment.endDatetime,
+                            )
+                        }}
+                        <a
+                            v-if="calendarLink"
+                            :href="calendarLink"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="calendar-link"
+                            :title="t('attendance', 'Imported from calendar')"
+                        >
+                            <CalendarSyncIcon :size="14" />
+                        </a>
+                    </h3>
+                    <span class="appointment-date-subtitle">
+                        {{ appointment.name }}
+                    </span>
+                </template>
+                <template v-else>
+                    <h3 data-test="appointment-title">
+                        {{ appointment.name }}
+                    </h3>
+                    <span class="appointment-date-subtitle">
+                        {{
+                            formatDateRange(
+                                appointment.startDatetime,
+                                appointment.endDatetime,
+                            )
+                        }}
+                        <a
+                            v-if="calendarLink"
+                            :href="calendarLink"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="calendar-link"
+                            :title="t('attendance', 'Imported from calendar')"
+                        >
+                            <CalendarSyncIcon :size="14" />
+                        </a>
+                    </span>
+                </template>
             </div>
             <div class="appointment-actions">
                 <NcActions
@@ -297,6 +322,10 @@ const props = defineProps({
     canSeeComments: {
         type: Boolean,
         default: true,
+    },
+    displayOrder: {
+        type: String,
+        default: 'name_first',
     },
 });
 

@@ -10,6 +10,7 @@ const state = reactive({
 		canSeeComments: false,
 		calendarAvailable: false,
 		calendarSyncEnabled: false,
+		displayOrder: 'name_first',
 	},
 	loading: false,
 	loaded: false,
@@ -48,6 +49,7 @@ export function usePermissions() {
 			state.permissions.canSeeComments = response.data.canSeeComments || false
 			state.permissions.calendarAvailable = response.data.calendarAvailable || false
 			state.permissions.calendarSyncEnabled = response.data.calendarSyncEnabled || false
+			state.permissions.displayOrder = response.data.displayOrder || 'name_first'
 
 			state.loaded = true
 		} catch (error) {
@@ -60,6 +62,7 @@ export function usePermissions() {
 			state.permissions.canSeeComments = false
 			state.permissions.calendarAvailable = false
 			state.permissions.calendarSyncEnabled = false
+			state.permissions.displayOrder = 'name_first'
 		} finally {
 			state.loading = false
 		}

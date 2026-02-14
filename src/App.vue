@@ -318,6 +318,9 @@ const formatAppointmentDisplay = (appointment) => {
 		return appointment.name
 	}
 	const dateTimeStr = formatDateTime(appointment.startDatetime)
+	if (permissions.displayOrder === 'date_first') {
+		return `${dateTimeStr}\n${appointment.name}`
+	}
 	return `${appointment.name}\n${dateTimeStr}`
 }
 

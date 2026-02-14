@@ -15,15 +15,27 @@
             </NcButton>
         </div>
 
-        <div class="appointment-header">
-            <h3
-                class="clickable"
-                data-test="widget-appointment-title"
-                @click="$emit('open-detail', item.id)"
-            >
-                {{ item.mainText }}
-            </h3>
-            <span class="appointment-time">{{ formattedDate }}</span>
+        <div class="appointment-header" :class="{ 'date-first': displayOrder === 'date_first' }">
+            <template v-if="displayOrder === 'date_first'">
+                <h3
+                    class="clickable"
+                    data-test="widget-appointment-title"
+                    @click="$emit('open-detail', item.id)"
+                >
+                    {{ formattedDate }}
+                </h3>
+                <span class="appointment-name">{{ item.mainText }}</span>
+            </template>
+            <template v-else>
+                <h3
+                    class="clickable"
+                    data-test="widget-appointment-title"
+                    @click="$emit('open-detail', item.id)"
+                >
+                    {{ item.mainText }}
+                </h3>
+                <span class="appointment-time">{{ formattedDate }}</span>
+            </template>
         </div>
 
         <div
@@ -125,6 +137,10 @@ const props = defineProps({
     showCheckinButton: {
         type: Boolean,
         default: false,
+    },
+    displayOrder: {
+        type: String,
+        default: 'name_first',
     },
 });
 
@@ -233,6 +249,27 @@ const strippedDescription = computed(() => {
         font-size: 12px;
         color: var(--color-text-maxcontrast);
         flex-shrink: 0;
+    }
+
+    .appointment-name {
+        font-size: 12px;
+        color: var(--color-text-maxcontrast);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+    }
+
+    &.date-first {
+        h3 {
+            flex: 0 0 auto;
+            overflow: visible;
+            text-overflow: unset;
+        }
+
+        .appointment-name {
+            flex: 1;
+        }
     }
 }
 

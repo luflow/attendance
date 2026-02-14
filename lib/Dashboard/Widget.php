@@ -6,6 +6,7 @@ namespace OCA\Attendance\Dashboard;
 
 use OCA\Attendance\AppInfo\Application;
 use OCA\Attendance\Service\AppointmentService;
+use OCA\Attendance\Service\ConfigService;
 use OCP\AppFramework\Services\IInitialState;
 use OCP\Dashboard\IAPIWidget;
 use OCP\IL10N;
@@ -20,6 +21,10 @@ class Widget implements IAPIWidget {
 	 */
 	private $appointmentService;
 	/**
+	 * @var ConfigService
+	 */
+	private $configService;
+	/**
 	 * @var IInitialState
 	 */
 	private $initialStateService;
@@ -30,10 +35,12 @@ class Widget implements IAPIWidget {
 
 	public function __construct(IL10N $l10n,
 		AppointmentService $appointmentService,
+		ConfigService $configService,
 		IInitialState $initialStateService,
 		?string $userId) {
 		$this->l10n = $l10n;
 		$this->appointmentService = $appointmentService;
+		$this->configService = $configService;
 		$this->initialStateService = $initialStateService;
 		$this->userId = $userId;
 	}
@@ -86,6 +93,8 @@ class Widget implements IAPIWidget {
 		$ncVersion = Util::getVersion();
 		$ncMajorVersion = $ncVersion[0];
 		$this->initialStateService->provideInitialState('nc-version', $ncMajorVersion);
+
+		$this->initialStateService->provideInitialState('display-order', $this->configService->getDisplayOrder());
 
 		Util::addScript(Application::APP_ID, Application::APP_ID . '-dashboard');
 		Util::addStyle(Application::APP_ID, Application::APP_ID . '-dashboard');

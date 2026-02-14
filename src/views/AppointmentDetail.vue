@@ -17,6 +17,7 @@
 				:can-checkin="permissions.canCheckin"
 				:can-see-response-overview="permissions.canSeeResponseOverview"
 				:can-see-comments="permissions.canSeeComments"
+				:display-order="permissions.displayOrder"
 				@start-checkin="startCheckin"
 				@edit="editAppointment"
 				@copy="copyAppointment"
