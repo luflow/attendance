@@ -6,6 +6,27 @@
 
 - Nightly changes here
 
+## 1.26.0 – 2026-02-14
+
+### Added
+
+- Recurring appointments: create repeating appointments (daily, weekly, monthly) with configurable interval, weekday selection, and end conditions
+- Batch notifications for bulk-created appointments (single notification per user instead of one per appointment)
+- Date range validation on both frontend and backend (end date must be after start date)
+- Colorized ODS export cells based on response type (green for yes, red for no, yellow for maybe)
+- Compact date/time range display with weekday names on appointment cards
+- E2e tests for recurring appointment feature
+
+### Changed
+
+- Improved AppointmentCard visual hierarchy with subtle header background and muted section labels
+- Consolidated attachment handling into create/update/bulk endpoints (removed separate attachment API)
+- Dependencies updated
+
+### Fixed
+
+- Widget appointment item button gap and formatting
+
 ## 1.25.0 – 2026-02-12
 
 ### Added
