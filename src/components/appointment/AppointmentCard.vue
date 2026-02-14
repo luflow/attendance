@@ -697,8 +697,7 @@ const handleCommentInputEvent = () => {
     margin-top: 15px;
 
     h4 {
-        font-size: 0.85em;
-        color: var(--color-text-maxcontrast);
+        font-size: 1.2em;
         margin: 0 0 10px 0;
     }
 
