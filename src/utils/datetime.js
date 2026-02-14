@@ -4,6 +4,7 @@
  */
 
 import { fromZonedTime } from 'date-fns-tz'
+import { getCanonicalLocale } from '@nextcloud/l10n'
 
 /**
  * Get the user's timezone from browser or default to Europe/Berlin.
@@ -35,7 +36,7 @@ export function formatDateTime(datetime, options = {}) {
 		const date = datetime instanceof Date ? datetime : new Date(datetime)
 		if (isNaN(date.getTime())) return ''
 
-		const locales = options.locale ? [options.locale] : ['de-DE', 'en-EN']
+		const locales = options.locale ? [options.locale] : [getCanonicalLocale()]
 		const formatOptions = {
 			dateStyle: options.dateStyle || 'short',
 			timeStyle: options.timeStyle || 'short',
@@ -134,7 +135,7 @@ export function formatDate(datetime, style = 'medium') {
 		const date = datetime instanceof Date ? datetime : new Date(datetime)
 		if (isNaN(date.getTime())) return ''
 
-		return date.toLocaleDateString(['de-DE', 'en-EN'], { dateStyle: style })
+		return date.toLocaleDateString(getCanonicalLocale(), { dateStyle: style })
 	} catch {
 		return String(datetime)
 	}
@@ -154,7 +155,7 @@ export function formatTime(datetime, style = 'short') {
 		const date = datetime instanceof Date ? datetime : new Date(datetime)
 		if (isNaN(date.getTime())) return ''
 
-		return date.toLocaleTimeString(['de-DE', 'en-EN'], { timeStyle: style })
+		return date.toLocaleTimeString(getCanonicalLocale(), { timeStyle: style })
 	} catch {
 		return String(datetime)
 	}
@@ -234,9 +235,26 @@ export function addHours(datetime, hours) {
 }
 
 /**
- * Format a date range compactly.
- * If same day: "Jan 7, 2026, 10:00 – 11:00"
- * If different days: "Jan 7, 2026 10:00 – Jan 8, 2026 11:00"
+ * Format a date including the short weekday name.
+ * Example (de-DE): "Fr., 14. Feb. 2026"
+ * Example (en-US): "Fri, Feb 14, 2026"
+ *
+ * @param {Date} date - The date to format
+ * @return {string} Formatted date string with weekday
+ */
+export function formatDateWithWeekday(date) {
+	return date.toLocaleDateString(getCanonicalLocale(), {
+		weekday: 'short',
+		year: 'numeric',
+		month: 'short',
+		day: 'numeric',
+	})
+}
+
+/**
+ * Format a date range compactly with weekday names.
+ * If same day: "Fr., 14. Feb. 2026, 10:00 – 11:00"
+ * If different days: "Fr., 14. Feb. 2026, 10:00 – Sa., 15. Feb. 2026, 10:00"
  *
  * @param {string|Date} startDatetime - The start datetime
  * @param {string|Date} endDatetime - The end datetime
@@ -254,17 +272,14 @@ export function formatDateRange(startDatetime, endDatetime) {
 			return formatDateTime(startDatetime)
 		}
 
-		// Check if same day (compare year, month, day)
 		const sameDay = start.getFullYear() === end.getFullYear()
 			&& start.getMonth() === end.getMonth()
 			&& start.getDate() === end.getDate()
 
 		if (sameDay) {
-			// Same day: "Jan 7, 2026, 10:00 – 11:00"
-			return `${formatDate(start)}, ${formatTime(start)} – ${formatTime(end)}`
+			return `${formatDateWithWeekday(start)}, ${formatTime(start)} – ${formatTime(end)}`
 		} else {
-			// Different days: "Jan 7, 2026 10:00 – Jan 8, 2026 11:00"
-			return `${formatDateTime(start)} – ${formatDateTime(end)}`
+			return `${formatDateWithWeekday(start)}, ${formatTime(start)} – ${formatDateWithWeekday(end)}, ${formatTime(end)}`
 		}
 	} catch {
 		return formatDateTime(startDatetime)

@@ -24,11 +24,7 @@
 				<h3>{{ appointmentName }}</h3>
 				<p class="date-time">
 					<CalendarIcon :size="18" />
-					<strong>{{ formattedDate }}</strong>
-				</p>
-				<p class="date-time">
-					<ClockIcon :size="18" />
-					{{ formattedTime }}
+					{{ formattedDateRange }}
 				</p>
 				<p class="response-display">
 					{{ t('attendance', 'Your response:') }}
@@ -57,11 +53,7 @@
 				<h3>{{ appointmentName }}</h3>
 				<p class="date-time">
 					<CalendarIcon :size="18" />
-					<strong>{{ formattedDate }}</strong>
-				</p>
-				<p class="date-time">
-					<ClockIcon :size="18" />
-					{{ formattedTime }}
+					{{ formattedDateRange }}
 				</p>
 				<p class="response-display">
 					{{ t('attendance', 'You are about to respond with: {response}', { response: responseLabel }) }}
@@ -97,9 +89,8 @@ import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
-import ClockIcon from 'vue-material-design-icons/Clock.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
-import { formatDate, formatTime } from '../utils/datetime.js'
+import { formatDateRange } from '../utils/datetime.js'
 import { getResponseVariant } from '../utils/response.js'
 
 // Load initial state from server
@@ -124,6 +115,7 @@ const submitting = ref(false)
 const appointmentId = initialState.appointmentId || 0
 const appointmentName = initialState.appointmentName || ''
 const appointmentDatetime = initialState.appointmentDatetime || ''
+const appointmentEndDatetime = initialState.appointmentEndDatetime || ''
 const response = initialState.response || ''
 const responseLabel = initialState.responseLabel || ''
 const token = initialState.token || ''
@@ -131,8 +123,7 @@ const userId = initialState.userId || ''
 const userName = initialState.userName || ''
 
 // Computed date/time using app utilities
-const formattedDate = computed(() => formatDate(appointmentDatetime, 'long'))
-const formattedTime = computed(() => formatTime(appointmentDatetime))
+const formattedDateRange = computed(() => formatDateRange(appointmentDatetime, appointmentEndDatetime))
 
 // Computed URLs
 const appUrl = computed(() => generateUrl('/apps/attendance/'))

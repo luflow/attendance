@@ -1,9 +1,8 @@
 <template>
 	<div class="appointment-info">
 		<h2>{{ t('attendance', 'Check-in') }}: {{ appointment.name }}</h2>
-		<p class="appointment-details">
-			<strong>{{ t('attendance', 'Start') }}:</strong> {{ formatDateTime(appointment.startDatetime) }}<br>
-			<strong>{{ t('attendance', 'End') }}:</strong> {{ formatDateTime(appointment.endDatetime) }}
+		<p class="appointment-date-range">
+			{{ formatDateRange(appointment.startDatetime, appointment.endDatetime) }}
 		</p>
 		<div v-if="appointment.description" class="appointment-description" v-html="renderedDescription" />
 	</div>
@@ -11,7 +10,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { formatDateTimeMedium } from '../../utils/datetime.js'
+import { formatDateRange } from '../../utils/datetime.js'
 import { renderMarkdown, sanitizeHtml } from '../../utils/markdown.js'
 
 const props = defineProps({
@@ -20,10 +19,6 @@ const props = defineProps({
 		required: true,
 	},
 })
-
-const formatDateTime = (datetime) => {
-	return formatDateTimeMedium(datetime)
-}
 
 const renderedDescription = computed(() => {
 	if (!props.appointment?.description) return ''
@@ -43,9 +38,10 @@ const renderedDescription = computed(() => {
 		color: var(--color-main-text);
 	}
 
-	.appointment-details {
-		margin: 10px 0;
+	.appointment-date-range {
+		margin: 2px 0 10px 0;
 		color: var(--color-text-maxcontrast);
+		font-size: 14px;
 	}
 
 	.appointment-description {

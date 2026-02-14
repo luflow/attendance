@@ -1,9 +1,20 @@
 <template>
 	<div class="appointment-card" data-test="appointment-card">
 		<div class="appointment-header">
-			<h3 data-test="appointment-title">
-				{{ appointment.name }}
-			</h3>
+			<div class="appointment-title-block">
+				<h3 data-test="appointment-title">
+					{{ appointment.name }}
+				</h3>
+				<span class="appointment-date-subtitle">{{ formatDateRange(appointment.startDatetime, appointment.endDatetime) }}</span>
+				<a v-if="calendarLink"
+					:href="calendarLink"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="calendar-link">
+					<CalendarIcon :size="14" />
+					<span>{{ t('attendance', 'Imported from calendar') }}</span>
+				</a>
+			</div>
 			<div class="appointment-actions">
 				<NcActions :force-menu="true" data-test="appointment-actions-menu">
 					<NcActionButton :close-after-click="true" data-test="action-share-link" @click="copyShareLink">
@@ -72,21 +83,6 @@
 			</a>
 		</div>
 
-		<div class="appointment-time">
-			<strong>{{ t('attendance', 'Start date & time') }}:</strong> {{ formatDateTime(appointment.startDatetime) }}<br>
-			<strong>{{ t('attendance', 'End date & time') }}:</strong> {{ formatDateTime(appointment.endDatetime) }}
-			<!-- Calendar Source Indicator -->
-			<template v-if="calendarLink">
-				<br>
-				<a :href="calendarLink"
-					target="_blank"
-					rel="noopener noreferrer"
-					class="calendar-link">
-					<CalendarIcon :size="16" />
-					<span>{{ t('attendance', 'Imported from calendar') }}</span>
-				</a>
-			</template>
-		</div>
 
 		<!-- Response Section -->
 		<div class="response-section" data-test="response-section">
@@ -207,7 +203,7 @@ import HelpCircleOutlineIcon from 'vue-material-design-icons/HelpCircleOutline.v
 import Paperclip from 'vue-material-design-icons/Paperclip.vue'
 import CommentIcon from 'vue-material-design-icons/Comment.vue'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
-import { formatDateTime } from '../../utils/datetime.js'
+import { formatDateRange } from '../../utils/datetime.js'
 import { useAppointmentResponse } from '../../composables/useAppointmentResponse.js'
 
 const props = defineProps({
@@ -368,10 +364,35 @@ const handleCommentInputEvent = () => {
 	align-items: flex-start;
 	margin-bottom: 15px;
 
-	h3 {
-		margin: 0;
-		color: var(--color-main-text);
+	.appointment-title-block {
 		flex: 1;
+		min-width: 0;
+
+		h3 {
+			margin: 0;
+			color: var(--color-main-text);
+		}
+
+		.appointment-date-subtitle {
+			display: block;
+			font-size: 14px;
+			color: var(--color-text-maxcontrast);
+			margin-top: 2px;
+		}
+
+		.calendar-link {
+			display: inline-flex;
+			align-items: center;
+			gap: 4px;
+			margin-top: 4px;
+			font-size: 13px;
+			color: var(--color-primary-element);
+			text-decoration: none;
+
+			&:hover {
+				text-decoration: underline;
+			}
+		}
 	}
 
 	.appointment-actions {
@@ -520,31 +541,6 @@ const handleCommentInputEvent = () => {
 	}
 }
 
-.appointment-time {
-	padding: 10px;
-	background: var(--color-background-hover);
-	border-radius: var(--border-radius);
-	margin-bottom: 15px;
-	font-size: 14px;
-
-	strong {
-		color: var(--color-main-text);
-	}
-
-	.calendar-link {
-		display: inline-flex;
-		align-items: center;
-		gap: 4px;
-		margin-top: 8px;
-		font-size: 13px;
-		color: var(--color-primary-element);
-		text-decoration: none;
-
-		&:hover {
-			text-decoration: underline;
-		}
-	}
-}
 
 .checkin-summary {
 	border-top: 1px solid var(--color-border);
