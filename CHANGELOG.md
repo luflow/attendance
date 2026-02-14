@@ -6,6 +6,27 @@
 
 - Nightly changes here
 
+## 1.27.0 – 2026-02-14
+
+### Added
+
+- Admin display order setting to control whether appointments show name or date/time more prominently across sidebar navigation, appointment cards, and dashboard widget
+- Enhanced export functionality with filtering options (thanks @ATCUSA):
+  - Multi-select appointment export with Select All/Deselect All and selection count
+  - Date range filtering with presets (month, quarter, year) and custom date range
+  - Option to include comments in exports
+  - Export dialog for individual appointments from action menus
+  - Improved filename generation reflecting applied filters
+
+### Fixed
+
+- Radio button syntax in ExportDialog for Vue 3 compatibility
+- Various export dialog improvements from PR review feedback
+
+### Changed
+
+- Dependencies updated
+
 ## 1.26.0 – 2026-02-14
 
 ### Added
