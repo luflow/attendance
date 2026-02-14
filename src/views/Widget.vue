@@ -16,6 +16,7 @@
 				<WidgetAppointmentItem
 					:item="item"
 					:show-checkin-button="showCheckinButton(item)"
+					:display-order="displayOrder"
 					@respond="respond"
 					@open-checkin="openCheckinView"
 					@open-detail="openAppointmentDetail" />
@@ -57,6 +58,7 @@ defineProps({
 let initialAppointments = []
 let initialState = 'ok'
 let ncVersionState = 31
+let displayOrderState = 'name_first'
 
 try {
 	initialAppointments = loadState('attendance', 'dashboard-widget-items')
@@ -71,10 +73,17 @@ try {
 	console.debug('nc-version not available, defaulting to 31')
 }
 
+try {
+	displayOrderState = loadState('attendance', 'display-order')
+} catch (error) {
+	console.debug('display-order not available, defaulting to name_first')
+}
+
 // State
 const appointments = ref(initialAppointments)
 const state = ref(initialState)
 const ncVersion = ref(ncVersionState)
+const displayOrder = ref(displayOrderState)
 
 const { permissions, loadPermissions } = usePermissions()
 

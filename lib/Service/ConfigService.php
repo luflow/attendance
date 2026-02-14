@@ -207,4 +207,25 @@ class ConfigService {
 	public function setCalendarSyncEnabled(bool $enabled): void {
 		$this->config->setAppValue(self::APP_ID, 'calendar_sync_enabled', $enabled ? 'yes' : 'no');
 	}
+
+	/**
+	 * Get the display order for appointments.
+	 *
+	 * @return string 'name_first' or 'date_first'
+	 */
+	public function getDisplayOrder(): string {
+		return $this->config->getAppValue(self::APP_ID, 'display_order', 'name_first');
+	}
+
+	/**
+	 * Set the display order for appointments.
+	 *
+	 * @param string $order 'name_first' or 'date_first'
+	 */
+	public function setDisplayOrder(string $order): void {
+		if (!in_array($order, ['name_first', 'date_first'], true)) {
+			$order = 'name_first';
+		}
+		$this->config->setAppValue(self::APP_ID, 'display_order', $order);
+	}
 }

@@ -163,7 +163,7 @@
 				</template>
 			</NcSettingsSection>
 
-			<div id="calendar-sync">
+		<div id="calendar-sync">
 				<NcSettingsSection
 					:name="t('attendance', 'Calendar sync')"
 					:description="t('attendance', 'Automatically update attendance appointments when their linked calendar events are modified.')">
@@ -187,6 +187,32 @@
 					</template>
 				</NcSettingsSection>
 			</div>
+
+			<NcSettingsSection :name="t('attendance', 'Display options')"
+				:description="t('attendance', 'Choose how appointments are displayed across the app.')">
+				<NcCheckboxRadioSwitch
+					v-model="displayOrder"
+					value="name_first"
+					name="display_order"
+					type="radio"
+					data-test="radio-name-first">
+					{{ t('attendance', 'Name first') }}
+					<template #subtext>
+						{{ t('attendance', 'Show appointment name prominently, with date below') }}
+					</template>
+				</NcCheckboxRadioSwitch>
+				<NcCheckboxRadioSwitch
+					v-model="displayOrder"
+					value="date_first"
+					name="display_order"
+					type="radio"
+					data-test="radio-date-first">
+					{{ t('attendance', 'Date first') }}
+					<template #subtext>
+						{{ t('attendance', 'Show date and time prominently, with name below') }}
+					</template>
+				</NcCheckboxRadioSwitch>
+			</NcSettingsSection>
 
 			<NcSettingsSection>
 				<NcButton
@@ -238,6 +264,7 @@ const reminderFrequency = ref(0)
 const notificationsAppEnabled = ref(true)
 const calendarSyncEnabled = ref(false)
 const calendarSyncAvailable = ref(false)
+const displayOrder = ref('name_first')
 const loading = ref(false)
 const loadingData = ref(true)
 
@@ -294,6 +321,9 @@ const loadSettings = async () => {
 				calendarSyncEnabled.value = response.data.calendarSync.enabled || false
 				calendarSyncAvailable.value = response.data.calendarSync.available || false
 			}
+
+			// Load display order
+			displayOrder.value = response.data.displayOrder || 'name_first'
 		} else {
 			showError(window.t('attendance', 'Failed to load settings')
 				+ (response.data.error ? ': ' + response.data.error : ''))
@@ -358,6 +388,7 @@ const saveSettings = async () => {
 				calendarSync: {
 					enabled: calendarSyncEnabled.value,
 				},
+				displayOrder: displayOrder.value,
 			},
 		)
 

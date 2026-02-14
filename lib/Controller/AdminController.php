@@ -111,6 +111,7 @@ class AdminController extends Controller {
 				'permissions' => $permissionSettings,
 				'reminders' => $reminderSettings,
 				'calendarSync' => $calendarSyncSettings,
+				'displayOrder' => $this->configService->getDisplayOrder(),
 			]);
 		} catch (\Exception $e) {
 			return new JSONResponse(['success' => false, 'error' => $e->getMessage()]);
@@ -137,6 +138,7 @@ class AdminController extends Controller {
 		$permissions = $this->request->getParam('permissions', []);
 		$reminders = $this->request->getParam('reminders', []);
 		$calendarSync = $this->request->getParam('calendarSync', []);
+		$displayOrder = $this->request->getParam('displayOrder', null);
 
 		try {
 			$this->adminSettings->setWhitelistedGroups($whitelistedGroups);
@@ -164,6 +166,11 @@ class AdminController extends Controller {
 			// Save calendar sync settings
 			if (isset($calendarSync['enabled'])) {
 				$this->configService->setCalendarSyncEnabled((bool)$calendarSync['enabled']);
+			}
+
+			// Save display order
+			if ($displayOrder !== null) {
+				$this->configService->setDisplayOrder($displayOrder);
 			}
 
 			return new JSONResponse(['success' => true]);
