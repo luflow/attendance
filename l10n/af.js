@@ -6,6 +6,8 @@ OC.L10N.register(
     "Copy URL" : "Kopieer URL",
     "Cancel" : "Cancel",
     "Delete" : "Skrap",
+    "Import" : "Invoer",
+    "Select all" : "Kies alle",
     "Start" : "Begin",
     "End" : "Einde",
     "Save" : "Stoor",
