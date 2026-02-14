@@ -27,11 +27,6 @@ return [
 		['name' => 'appointment#respond', 'url' => '/api/appointments/{id}/respond', 'verb' => 'POST'],
 		['name' => 'appointment#getResponses', 'url' => '/api/appointments/{id}/responses', 'verb' => 'GET'],
 
-		// Attachment routes
-		['name' => 'attachment#list', 'url' => '/api/appointments/{appointmentId}/attachments', 'verb' => 'GET'],
-		['name' => 'attachment#add', 'url' => '/api/appointments/{appointmentId}/attachments', 'verb' => 'POST'],
-		['name' => 'attachment#remove', 'url' => '/api/appointments/{appointmentId}/attachments/{fileId}', 'verb' => 'DELETE'],
-
 		// Check-in functionality routes
 		['name' => 'appointment#checkinResponse', 'url' => '/api/appointments/{appointmentId}/checkin/{targetUserId}', 'verb' => 'POST'],
 		['name' => 'appointment#getCheckinData', 'url' => '/api/appointments/{id}/checkin-data', 'verb' => 'GET'],

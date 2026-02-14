@@ -93,4 +93,50 @@ class NotificationService {
 			'sentCount' => $sentCount,
 		]);
 	}
+
+	/**
+	 * Send a single notification about multiple new appointments
+	 */
+	public function sendBulkAppointmentNotifications(int $count, string $firstName, array $userIds): void {
+		if (!$this->isNotificationsAppEnabled()) {
+			$this->logger->warning('Cannot send notifications - notifications app is not enabled');
+			return;
+		}
+
+		if (empty($userIds)) {
+			return;
+		}
+
+		$appUrl = $this->urlGenerator->linkToRouteAbsolute('attendance.page.index');
+
+		$sentCount = 0;
+		foreach ($userIds as $userId) {
+			try {
+				$notification = $this->notificationManager->createNotification();
+				$notification->setApp('attendance')
+					->setUser($userId)
+					->setDateTime(new \DateTime())
+					->setObject('appointment_bulk', uniqid())
+					->setSubject('appointments_bulk_created', [
+						'count' => $count,
+						'firstName' => $firstName,
+					])
+					->setLink($appUrl);
+
+				$this->notificationManager->notify($notification);
+				$sentCount++;
+			} catch (\Exception $e) {
+				$this->logger->error('Failed to send bulk appointment notification', [
+					'userId' => $userId,
+					'error' => $e->getMessage(),
+				]);
+			}
+		}
+
+		$this->logger->info('Finished sending bulk appointment notifications', [
+			'count' => $count,
+			'totalUsers' => count($userIds),
+			'sentCount' => $sentCount,
+		]);
+	}
 }

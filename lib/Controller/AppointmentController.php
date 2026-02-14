@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace OCA\Attendance\Controller;
 
 use OCA\Attendance\Service\AppointmentService;
+use OCA\Attendance\Service\AttachmentService;
 use OCA\Attendance\Service\CalendarService;
 use OCA\Attendance\Service\CheckinService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\ExportService;
+use OCA\Attendance\Service\NotificationService;
 use OCA\Attendance\Service\PermissionService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\DataResponse;
@@ -18,11 +20,13 @@ use OCP\IUserSession;
 
 class AppointmentController extends Controller {
 	private AppointmentService $appointmentService;
+	private AttachmentService $attachmentService;
 	private CalendarService $calendarService;
 	private CheckinService $checkinService;
 	private ConfigService $configService;
 	private PermissionService $permissionService;
 	private ExportService $exportService;
+	private NotificationService $notificationService;
 	private IUserSession $userSession;
 	private IGroupManager $groupManager;
 
@@ -30,21 +34,25 @@ class AppointmentController extends Controller {
 		string $appName,
 		IRequest $request,
 		AppointmentService $appointmentService,
+		AttachmentService $attachmentService,
 		CalendarService $calendarService,
 		CheckinService $checkinService,
 		ConfigService $configService,
 		PermissionService $permissionService,
 		ExportService $exportService,
+		NotificationService $notificationService,
 		IUserSession $userSession,
 		IGroupManager $groupManager,
 	) {
 		parent::__construct($appName, $request);
 		$this->appointmentService = $appointmentService;
+		$this->attachmentService = $attachmentService;
 		$this->calendarService = $calendarService;
 		$this->checkinService = $checkinService;
 		$this->configService = $configService;
 		$this->permissionService = $permissionService;
 		$this->exportService = $exportService;
+		$this->notificationService = $notificationService;
 		$this->userSession = $userSession;
 		$this->groupManager = $groupManager;
 	}
@@ -99,6 +107,7 @@ class AppointmentController extends Controller {
 		bool $sendNotification = false,
 		?string $calendarUri = null,
 		?string $calendarEventUid = null,
+		array $attachments = [],
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -124,6 +133,9 @@ class AppointmentController extends Controller {
 				$calendarUri,
 				$calendarEventUid
 			);
+
+			$this->addAttachmentsToAppointment($appointment->getId(), $attachments, $user->getUID());
+
 			return new DataResponse($appointment);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 400);
@@ -131,10 +143,10 @@ class AppointmentController extends Controller {
 	}
 
 	/**
-	 * Bulk create appointments from calendar events
+	 * Bulk create appointments (calendar import or recurring creation)
 	 * @NoAdminRequired
 	 */
-	public function bulkCreate(array $appointments): DataResponse {
+	public function bulkCreate(array $appointments, bool $sendNotification = false, array $attachments = []): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
@@ -146,6 +158,7 @@ class AppointmentController extends Controller {
 
 		$createdIds = [];
 		$errors = [];
+		$firstAppointment = null;
 
 		foreach ($appointments as $index => $data) {
 			try {
@@ -155,14 +168,17 @@ class AppointmentController extends Controller {
 					$data['startDatetime'] ?? '',
 					$data['endDatetime'] ?? '',
 					$user->getUID(),
-					[],
-					[],
-					[],
+					$data['visibleUsers'] ?? [],
+					$data['visibleGroups'] ?? [],
+					$data['visibleTeams'] ?? [],
 					false,
 					$data['calendarUri'] ?? null,
 					$data['calendarEventUid'] ?? null,
 				);
 				$createdIds[] = $appointment->getId();
+				if ($firstAppointment === null) {
+					$firstAppointment = $appointment;
+				}
 			} catch (\Exception $e) {
 				$errors[] = [
 					'index' => $index,
@@ -170,6 +186,24 @@ class AppointmentController extends Controller {
 					'error' => $e->getMessage(),
 				];
 			}
+		}
+
+		// Add attachments to all created appointments
+		if (!empty($attachments) && !empty($createdIds)) {
+			foreach ($createdIds as $appointmentId) {
+				$this->addAttachmentsToAppointment($appointmentId, $attachments, $user->getUID());
+			}
+		}
+
+		// Send a single batch notification for all created appointments
+		if ($sendNotification && $firstAppointment !== null && count($createdIds) > 0) {
+			$affectedUsers = $this->appointmentService->getAffectedUsers($firstAppointment);
+			$affectedUsers = array_filter($affectedUsers, fn ($userId) => $userId !== $user->getUID());
+			$this->notificationService->sendBulkAppointmentNotifications(
+				count($createdIds),
+				$firstAppointment->getName(),
+				array_values($affectedUsers),
+			);
 		}
 
 		return new DataResponse([
@@ -190,6 +224,7 @@ class AppointmentController extends Controller {
 		array $visibleUsers = [],
 		array $visibleGroups = [],
 		array $visibleTeams = [],
+		array $attachments = [],
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -218,6 +253,9 @@ class AppointmentController extends Controller {
 				$visibleGroups,
 				$visibleTeams
 			);
+
+			$this->syncAttachments($id, $attachments, $user->getUID());
+
 			return new DataResponse($appointment);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 400);
@@ -463,6 +501,50 @@ class AppointmentController extends Controller {
 			return new DataResponse($results);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 400);
+		}
+	}
+
+	/**
+	 * Add attachments to an appointment by file IDs.
+	 */
+	private function addAttachmentsToAppointment(int $appointmentId, array $fileIds, string $userId): void {
+		foreach ($fileIds as $fileId) {
+			try {
+				$this->attachmentService->addAttachment($appointmentId, (int)$fileId, $userId);
+			} catch (\Exception $e) {
+				// Skip individual attachment failures
+			}
+		}
+	}
+
+	/**
+	 * Sync attachments: add new ones, remove ones no longer in the list.
+	 */
+	private function syncAttachments(int $appointmentId, array $fileIds, string $userId): void {
+		$existing = $this->attachmentService->getAttachments($appointmentId);
+		$existingFileIds = array_map(fn ($a) => $a['fileId'], $existing);
+		$desiredFileIds = array_map('intval', $fileIds);
+
+		// Remove attachments no longer in the list
+		foreach ($existingFileIds as $existingFileId) {
+			if (!in_array($existingFileId, $desiredFileIds, true)) {
+				try {
+					$this->attachmentService->removeAttachment($appointmentId, $existingFileId);
+				} catch (\Exception $e) {
+					// Skip individual removal failures
+				}
+			}
+		}
+
+		// Add new attachments
+		foreach ($desiredFileIds as $fileId) {
+			if (!in_array($fileId, $existingFileIds, true)) {
+				try {
+					$this->attachmentService->addAttachment($appointmentId, $fileId, $userId);
+				} catch (\Exception $e) {
+					// Skip individual attachment failures
+				}
+			}
 		}
 	}
 

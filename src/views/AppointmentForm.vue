@@ -94,6 +94,15 @@
 						data-test="input-end-datetime"
 						@update:model-value="onEndDatetimeChange" />
 				</div>
+
+				<RecurrenceSelector
+					v-if="mode === 'create'"
+					:start-date="startDateObject"
+					:duration="appointmentDuration"
+					:disabled="saving"
+					data-test="recurrence-selector"
+					@update:occurrences="onRecurrenceUpdate"
+					@update:validation-warning="onRecurrenceWarningUpdate" />
 			</div>
 
 			<div v-if="notificationsAppEnabled && mode === 'create'" class="form-section">
@@ -186,7 +195,7 @@
 					<template v-if="saving" #icon>
 						<NcLoadingIcon :size="20" />
 					</template>
-					{{ t('attendance', 'Save') }}
+					{{ saveButtonLabel }}
 				</NcButton>
 			</div>
 		</form>
@@ -206,6 +215,7 @@ import { NcButton, NcTextField, NcSelect, NcNoteCard, NcCheckboxRadioSwitch, NcC
 import { getFilePickerBuilder, showSuccess, showError } from '@nextcloud/dialogs'
 import MarkdownEditor from '../components/common/MarkdownEditor.vue'
 import CalendarEventPicker from '../components/calendar/CalendarEventPicker.vue'
+import RecurrenceSelector from '../components/appointment/RecurrenceSelector.vue'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
@@ -268,6 +278,32 @@ const trackingTeams = ref([])
 const attachments = ref([])
 const showCalendarPicker = ref(false)
 const calendarReference = ref({ calendarUri: null, calendarEventUid: null })
+const recurrenceOccurrences = ref([])
+const recurrenceWarning = ref(null)
+const isRecurring = computed(() => recurrenceOccurrences.value.length > 1)
+
+const appointmentDuration = computed(() => {
+	if (!formData.startDatetime || !formData.endDatetime) return 0
+	const start = new Date(formData.startDatetime)
+	const end = new Date(formData.endDatetime)
+	if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0
+	return end.getTime() - start.getTime()
+})
+
+const onRecurrenceUpdate = (occurrences) => {
+	recurrenceOccurrences.value = occurrences
+}
+
+const onRecurrenceWarningUpdate = (warning) => {
+	recurrenceWarning.value = warning
+}
+
+const saveButtonLabel = computed(() => {
+	if (isRecurring.value) {
+		return t('attendance', 'Create {count} appointments', { count: recurrenceOccurrences.value.length })
+	}
+	return t('attendance', 'Save')
+})
 
 const pageTitle = computed(() => {
 	switch (props.mode) {
@@ -541,51 +577,22 @@ const openFilePicker = async () => {
 	}
 }
 
-const addAttachment = async (node) => {
+const addAttachment = (node) => {
 	if (attachments.value.some(a => a.fileId === node.fileid)) {
 		return
 	}
-
-	const attachment = {
+	attachments.value.push({
 		fileId: node.fileid,
 		fileName: node.basename,
 		filePath: node.path,
-	}
-
-	// If editing existing appointment, call API immediately
-	if (props.mode === 'edit' && props.appointmentId) {
-		try {
-			const response = await axios.post(
-				generateUrl(`/apps/attendance/api/appointments/${props.appointmentId}/attachments`),
-				{ fileId: node.fileid },
-			)
-			attachments.value.push(response.data)
-			showSuccess(t('attendance', 'Attachment added'))
-		} catch (error) {
-			console.error('Failed to add attachment:', error)
-			showError(t('attendance', 'Failed to add attachment'))
-		}
-	} else {
-		attachments.value.push(attachment)
-	}
+	})
 }
 
-const removeAttachment = async (fileId) => {
-	if (props.mode === 'edit' && props.appointmentId) {
-		try {
-			await axios.delete(
-				generateUrl(`/apps/attendance/api/appointments/${props.appointmentId}/attachments/${fileId}`),
-			)
-			attachments.value = attachments.value.filter(a => a.fileId !== fileId)
-			showSuccess(t('attendance', 'Attachment removed'))
-		} catch (error) {
-			console.error('Failed to remove attachment:', error)
-			showError(t('attendance', 'Failed to remove attachment'))
-		}
-	} else {
-		attachments.value = attachments.value.filter(a => a.fileId !== fileId)
-	}
+const removeAttachment = (fileId) => {
+	attachments.value = attachments.value.filter(a => a.fileId !== fileId)
 }
+
+const attachmentFileIds = computed(() => attachments.value.map(a => a.fileId))
 
 const toServerTimezone = (datetime) => {
 	if (!datetime) return datetime
@@ -645,6 +652,53 @@ const handleBulkImport = async (eventDataList) => {
 	}
 }
 
+const handleRecurringCreate = async () => {
+	saving.value = true
+
+	try {
+		const duration = appointmentDuration.value
+		const appointments = recurrenceOccurrences.value.map((occurrenceDate) => {
+			const startDt = occurrenceDate.toISOString()
+			const endDt = new Date(occurrenceDate.getTime() + duration).toISOString()
+			return {
+				name: formData.name,
+				description: formData.description,
+				startDatetime: startDt,
+				endDatetime: endDt,
+				visibleUsers: formData.visibleUsers || [],
+				visibleGroups: formData.visibleGroups || [],
+				visibleTeams: formData.visibleTeams || [],
+			}
+		})
+
+		const response = await axios.post(
+			generateUrl('/apps/attendance/api/appointments/bulk'),
+			{
+				appointments,
+				sendNotification: sendNotification.value,
+				attachments: attachmentFileIds.value,
+			},
+		)
+
+		const created = response.data?.created || []
+		const errors = response.data?.errors || []
+
+		if (created.length > 0) {
+			showSuccess(n('attendance', '{count} appointment created', '{count} appointments created', created.length, { count: created.length }))
+		}
+		if (errors.length > 0) {
+			showError(t('attendance', '{count} appointments failed to create', { count: errors.length }))
+		}
+
+		emit('saved')
+	} catch (error) {
+		console.error('Failed to create recurring appointments:', error)
+		showError(t('attendance', 'Error creating appointments'))
+	} finally {
+		saving.value = false
+	}
+}
+
 const handleSubmit = async () => {
 	// Manual validation for datetime fields
 	if (!formData.name?.trim()) {
@@ -658,6 +712,19 @@ const handleSubmit = async () => {
 	if (!formData.endDatetime) {
 		showError(t('attendance', 'Please select an end date and time'))
 		return
+	}
+	if (new Date(formData.endDatetime) <= new Date(formData.startDatetime)) {
+		showError(t('attendance', 'End date must be after start date'))
+		return
+	}
+	if (recurrenceWarning.value) {
+		showError(recurrenceWarning.value)
+		return
+	}
+
+	// Recurring creation uses bulk endpoint
+	if (isRecurring.value) {
+		return handleRecurringCreate()
 	}
 
 	saving.value = true
@@ -678,6 +745,7 @@ const handleSubmit = async () => {
 				visibleUsers: formData.visibleUsers || [],
 				visibleGroups: formData.visibleGroups || [],
 				visibleTeams: formData.visibleTeams || [],
+				attachments: attachmentFileIds.value,
 			})
 			showSuccess(t('attendance', 'Appointment updated'))
 		} else {
@@ -693,22 +761,9 @@ const handleSubmit = async () => {
 				sendNotification: sendNotification.value,
 				calendarUri: calendarReference.value.calendarUri,
 				calendarEventUid: calendarReference.value.calendarEventUid,
+				attachments: attachmentFileIds.value,
 			})
 			appointmentId = response.data?.id
-
-			// Add attachments for new/copied appointments
-			if (appointmentId && attachments.value.length > 0) {
-				for (const attachment of attachments.value) {
-					try {
-						await axios.post(
-							generateUrl(`/apps/attendance/api/appointments/${appointmentId}/attachments`),
-							{ fileId: attachment.fileId },
-						)
-					} catch (attachError) {
-						console.error('Failed to add attachment:', attachError)
-					}
-				}
-			}
 			showSuccess(t('attendance', 'Appointment created'))
 		}
 
