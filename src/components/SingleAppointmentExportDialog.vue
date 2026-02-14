@@ -27,7 +27,7 @@
 				</NcButton>
 				<NcButton
 					:disabled="exporting"
-					type="primary"
+					variant="primary"
 					@click="handleExport">
 					<template #icon>
 						<NcLoadingIcon v-if="exporting" :size="20" />
@@ -76,8 +76,7 @@ const handleExport = async () => {
 	try {
 		const response = await axios.post(generateUrl('/apps/attendance/api/export'), {
 			appointmentIds: [props.appointment.id],
-			preset: 'all',
-			includeComments: includeComments.value
+			includeComments: includeComments.value,
 		})
 
 		if (response.data.success) {

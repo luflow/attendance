@@ -186,7 +186,7 @@
                         'comment-active': commentExpanded,
                         'comment-toggle': true,
                     }"
-                    type="tertiary"
+                    variant="tertiary"
                     data-test="button-toggle-comment"
                     @click="toggleComment"
                 >

@@ -80,7 +80,7 @@
                         'comment-active': commentExpanded,
                         'comment-toggle': true,
                     }"
-                    type="tertiary"
+                    variant="tertiary"
                     data-test="button-widget-toggle-comment"
                     @click="toggleComment"
                 >
