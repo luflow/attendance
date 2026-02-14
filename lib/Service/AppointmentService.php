@@ -74,6 +74,8 @@ class AppointmentService {
 		?string $calendarUri = null,
 		?string $calendarEventUid = null,
 	): Appointment {
+		$this->validateDateRange($startDatetime, $endDatetime);
+
 		$startFormatted = $this->formatDatetime($startDatetime);
 		$endFormatted = $this->formatDatetime($endDatetime);
 
@@ -118,6 +120,8 @@ class AppointmentService {
 		array $visibleTeams = [],
 	): Appointment {
 		$appointment = $this->appointmentMapper->find($id);
+
+		$this->validateDateRange($startDatetime, $endDatetime);
 
 		$startFormatted = $this->formatDatetime($startDatetime);
 		$endFormatted = $this->formatDatetime($endDatetime);
@@ -481,7 +485,7 @@ class AppointmentService {
 	/**
 	 * Get all users who can see an appointment.
 	 */
-	private function getAffectedUsers(Appointment $appointment): array {
+	public function getAffectedUsers(Appointment $appointment): array {
 		$visibleUsers = $appointment->getVisibleUsers();
 		$visibleGroups = $appointment->getVisibleGroups();
 		$visibleTeams = $appointment->getVisibleTeams();
@@ -549,6 +553,23 @@ class AppointmentService {
 			return $date->format('Y-m-d\TH:i:s\Z');
 		} catch (\Exception $e) {
 			return $datetime;
+		}
+	}
+
+	/**
+	 * Validate that end datetime is after start datetime.
+	 */
+	private function validateDateRange(string $startDatetime, string $endDatetime): void {
+		try {
+			$start = new \DateTime($startDatetime);
+			$end = new \DateTime($endDatetime);
+			if ($end <= $start) {
+				throw new \InvalidArgumentException('End date must be after start date.');
+			}
+		} catch (\InvalidArgumentException $e) {
+			throw $e;
+		} catch (\Exception $e) {
+			throw new \InvalidArgumentException('Invalid date format.');
 		}
 	}
 

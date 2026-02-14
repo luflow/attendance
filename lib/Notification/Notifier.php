@@ -100,6 +100,23 @@ class Notifier implements INotifier {
 
 				return $notification;
 
+			case 'appointments_bulk_created':
+				$parameters = $notification->getSubjectParameters();
+				$count = $parameters['count'] ?? 0;
+				$firstName = $parameters['firstName'] ?? '';
+
+				$notification->setParsedSubject(
+					$l->n('%1$s new appointment added (e.g. "%2$s")', '%1$s new appointments added (e.g. "%2$s")', $count, [$count, $firstName])
+				);
+				$notification->setParsedMessage(
+					$l->t('Please check the new appointments and respond.')
+				);
+				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
+					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
+				));
+
+				return $notification;
+
 			default:
 				throw new \InvalidArgumentException('Unknown subject');
 		}
