@@ -53,7 +53,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted, onBeforeUnmount, watch } from 'vue'
 import { NcButton } from '@nextcloud/vue'
 import AppointmentCard from '../components/appointment/AppointmentCard.vue'
 import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
@@ -184,21 +184,33 @@ const showExportDialog = (appointmentId) => {
 
 // Create confetti instance without worker to comply with NC 32+ CSP
 let confettiInstance = null
+let confettiCanvas = null
 const getConfetti = () => {
 	if (!confettiInstance) {
-		const canvas = document.createElement('canvas')
-		canvas.style.position = 'fixed'
-		canvas.style.top = '0'
-		canvas.style.left = '0'
-		canvas.style.width = '100%'
-		canvas.style.height = '100%'
-		canvas.style.pointerEvents = 'none'
-		canvas.style.zIndex = '9999'
-		document.body.appendChild(canvas)
-		confettiInstance = confettiLib.create(canvas, { resize: true, useWorker: false })
+		confettiCanvas = document.createElement('canvas')
+		confettiCanvas.style.position = 'fixed'
+		confettiCanvas.style.top = '0'
+		confettiCanvas.style.left = '0'
+		confettiCanvas.style.width = '100%'
+		confettiCanvas.style.height = '100%'
+		confettiCanvas.style.pointerEvents = 'none'
+		confettiCanvas.style.zIndex = '9999'
+		document.body.appendChild(confettiCanvas)
+		confettiInstance = confettiLib.create(confettiCanvas, { resize: true, useWorker: false })
 	}
 	return confettiInstance
 }
+
+onBeforeUnmount(() => {
+	if (confettiInstance) {
+		confettiInstance.reset()
+		confettiInstance = null
+	}
+	if (confettiCanvas) {
+		confettiCanvas.remove()
+		confettiCanvas = null
+	}
+})
 
 const triggerConfetti = () => {
 	getConfetti()({
