@@ -60,8 +60,13 @@ test.describe('Attendance App - Export Functionality', () => {
 		// Verify appointment was created
 		await expect(page.getByText('Export Test Appointment').first()).toBeVisible()
 
-		// Click the export button - this will redirect to Files app on success
+		// Click the export nav link to open the export dialog
 		await page.locator('[data-test="button-export"]').click()
+
+		// Wait for the export dialog to appear and click the Export button inside it
+		const exportDialog = page.getByRole('dialog', { name: 'Export appointments' })
+		await expect(exportDialog).toBeVisible()
+		await exportDialog.getByRole('button', { name: 'Export' }).click()
 
 		// Wait for redirect to Files app (export redirects on success)
 		await page.waitForURL(/.*\/apps\/files.*/, { timeout: 15000 })
@@ -76,8 +81,13 @@ test.describe('Attendance App - Export Functionality', () => {
 	})
 
 	test('should create ODS file in correct user folder', async ({ page }) => {
-		// Click the export button - this will redirect to Files app on success
+		// Click the export nav link to open the export dialog
 		await page.locator('[data-test="button-export"]').click()
+
+		// Wait for the export dialog to appear and click the Export button inside it
+		const exportDialog = page.getByRole('dialog', { name: 'Export appointments' })
+		await expect(exportDialog).toBeVisible()
+		await exportDialog.getByRole('button', { name: 'Export' }).click()
 
 		// Wait for redirect to Files app
 		await page.waitForURL(/.*\/apps\/files.*/, { timeout: 15000 })
