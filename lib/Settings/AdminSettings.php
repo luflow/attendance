@@ -5,18 +5,9 @@ declare(strict_types=1);
 namespace OCA\Attendance\Settings;
 
 use OCP\AppFramework\Http\TemplateResponse;
-use OCP\IConfig;
-use OCP\IGroupManager;
 use OCP\Settings\ISettings;
 
 class AdminSettings implements ISettings {
-	private IConfig $config;
-	private IGroupManager $groupManager;
-
-	public function __construct(IConfig $config, IGroupManager $groupManager) {
-		$this->config = $config;
-		$this->groupManager = $groupManager;
-	}
 
 	/**
 	 * @return TemplateResponse
@@ -42,20 +33,4 @@ class AdminSettings implements ISettings {
 		return 50;
 	}
 
-	/**
-	 * Get whitelisted groups from app config
-	 * @return array
-	 */
-	public function getWhitelistedGroups(): array {
-		$groupsJson = $this->config->getAppValue('attendance', 'whitelisted_groups', '[]');
-		return json_decode($groupsJson, true) ?: [];
-	}
-
-	/**
-	 * Set whitelisted groups in app config
-	 * @param array $groups
-	 */
-	public function setWhitelistedGroups(array $groups): void {
-		$this->config->setAppValue('attendance', 'whitelisted_groups', json_encode($groups));
-	}
 }
