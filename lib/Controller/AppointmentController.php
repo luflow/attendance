@@ -14,7 +14,6 @@ use OCA\Attendance\Service\NotificationService;
 use OCA\Attendance\Service\PermissionService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\DataResponse;
-use OCP\IGroupManager;
 use OCP\IRequest;
 use OCP\IUserSession;
 
@@ -28,7 +27,6 @@ class AppointmentController extends Controller {
 	private ExportService $exportService;
 	private NotificationService $notificationService;
 	private IUserSession $userSession;
-	private IGroupManager $groupManager;
 
 	public function __construct(
 		string $appName,
@@ -42,7 +40,6 @@ class AppointmentController extends Controller {
 		ExportService $exportService,
 		NotificationService $notificationService,
 		IUserSession $userSession,
-		IGroupManager $groupManager,
 	) {
 		parent::__construct($appName, $request);
 		$this->appointmentService = $appointmentService;
@@ -54,7 +51,6 @@ class AppointmentController extends Controller {
 		$this->exportService = $exportService;
 		$this->notificationService = $notificationService;
 		$this->userSession = $userSession;
-		$this->groupManager = $groupManager;
 	}
 
 	/**
