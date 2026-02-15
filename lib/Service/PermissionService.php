@@ -177,4 +177,11 @@ class PermissionService {
 	public function canSeeComments(string $userId): bool {
 		return $this->hasPermission($userId, self::PERMISSION_SEE_COMMENTS);
 	}
+
+	/**
+	 * Check if a user is a Nextcloud admin
+	 */
+	public function isAdmin(string $userId): bool {
+		return $this->groupManager->isAdmin($userId);
+	}
 }

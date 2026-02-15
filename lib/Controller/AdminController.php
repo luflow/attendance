@@ -12,14 +12,12 @@ use OCP\App\IAppManager;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IConfig;
-use OCP\IGroupManager;
 use OCP\IRequest;
 use OCP\IUserSession;
 
 class AdminController extends Controller {
 	private AdminSettings $adminSettings;
 	private PermissionService $permissionService;
-	private IGroupManager $groupManager;
 	private IUserSession $userSession;
 	private IConfig $config;
 	private IAppManager $appManager;
@@ -29,7 +27,6 @@ class AdminController extends Controller {
 	public function __construct(
 		string $appName,
 		IRequest $request,
-		IGroupManager $groupManager,
 		IUserSession $userSession,
 		AdminSettings $adminSettings,
 		PermissionService $permissionService,
@@ -39,7 +36,6 @@ class AdminController extends Controller {
 		VisibilityService $visibilityService,
 	) {
 		parent::__construct($appName, $request);
-		$this->groupManager = $groupManager;
 		$this->userSession = $userSession;
 		$this->adminSettings = $adminSettings;
 		$this->permissionService = $permissionService;
@@ -60,7 +56,7 @@ class AdminController extends Controller {
 		}
 
 		// Check if user is admin
-		if (!$this->groupManager->isAdmin($user->getUID())) {
+		if (!$this->permissionService->isAdmin($user->getUID())) {
 			return new JSONResponse(['success' => false, 'error' => 'Insufficient permissions'], 403);
 		}
 
@@ -129,7 +125,7 @@ class AdminController extends Controller {
 		}
 
 		// Check if user is admin
-		if (!$this->groupManager->isAdmin($user->getUID())) {
+		if (!$this->permissionService->isAdmin($user->getUID())) {
 			return new JSONResponse(['success' => false, 'error' => 'Insufficient permissions'], 403);
 		}
 
