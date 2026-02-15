@@ -530,11 +530,7 @@ class AppointmentController extends Controller {
 	 */
 	private function addAttachmentsToAppointment(int $appointmentId, array $fileIds, string $userId): void {
 		foreach ($fileIds as $fileId) {
-			try {
-				$this->attachmentService->addAttachment($appointmentId, (int)$fileId, $userId);
-			} catch (\Exception $e) {
-				// Skip individual attachment failures
-			}
+			$this->attachmentService->addAttachment($appointmentId, (int)$fileId, $userId);
 		}
 	}
 
@@ -549,22 +545,14 @@ class AppointmentController extends Controller {
 		// Remove attachments no longer in the list
 		foreach ($existingFileIds as $existingFileId) {
 			if (!in_array($existingFileId, $desiredFileIds, true)) {
-				try {
-					$this->attachmentService->removeAttachment($appointmentId, $existingFileId);
-				} catch (\Exception $e) {
-					// Skip individual removal failures
-				}
+				$this->attachmentService->removeAttachment($appointmentId, $existingFileId);
 			}
 		}
 
 		// Add new attachments
 		foreach ($desiredFileIds as $fileId) {
 			if (!in_array($fileId, $existingFileIds, true)) {
-				try {
-					$this->attachmentService->addAttachment($appointmentId, $fileId, $userId);
-				} catch (\Exception $e) {
-					// Skip individual attachment failures
-				}
+				$this->attachmentService->addAttachment($appointmentId, $fileId, $userId);
 			}
 		}
 	}
