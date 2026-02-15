@@ -1,4 +1,5 @@
 import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 
 // Configure marked for full markdown rendering
 marked.setOptions({
@@ -26,15 +27,12 @@ export function renderMarkdown(text, inline = false) {
 }
 
 /**
- * Sanitize markdown output (basic XSS protection)
+ * Sanitize HTML output using DOMPurify
  * @param {string} html - The HTML string to sanitize
- * @return {string} - Sanitized HTML
+ * @return {string} - Sanitized HTML safe for v-html rendering
  */
 export function sanitizeHtml(html) {
-	// Remove script tags and on* attributes
-	return html
-		.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-		.replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '')
+	return DOMPurify.sanitize(html)
 }
 
 /**

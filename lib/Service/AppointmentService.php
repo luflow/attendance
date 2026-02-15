@@ -81,7 +81,7 @@ class AppointmentService {
 
 		$appointment = new Appointment();
 		$appointment->setName($name);
-		$appointment->setDescription($description);
+		$appointment->setDescription($this->stripHtmlFromMarkdown($description));
 		$appointment->setStartDatetime($startFormatted);
 		$appointment->setEndDatetime($endFormatted);
 		$appointment->setCreatedBy($createdBy);
@@ -127,7 +127,7 @@ class AppointmentService {
 		$endFormatted = $this->formatDatetime($endDatetime);
 
 		$appointment->setName($name);
-		$appointment->setDescription($description);
+		$appointment->setDescription($this->stripHtmlFromMarkdown($description));
 		$appointment->setStartDatetime($startFormatted);
 		$appointment->setEndDatetime($endFormatted);
 		$appointment->setUpdatedAt(date('Y-m-d H:i:s'));
@@ -631,5 +631,13 @@ class AppointmentService {
 		$appointmentData['visibleTeams'] = $enrichedTeams;
 
 		return $appointmentData;
+	}
+
+	/**
+	 * Strip HTML tags from markdown text to prevent stored XSS.
+	 * Preserves markdown formatting but removes raw HTML that users may embed.
+	 */
+	private function stripHtmlFromMarkdown(string $text): string {
+		return strip_tags($text);
 	}
 }
