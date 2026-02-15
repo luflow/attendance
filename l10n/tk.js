@@ -3,14 +3,14 @@ OC.L10N.register(
     {
     "Yes" : "Hawa",
     "No" : "Ýok",
+    "Select all" : "Hemmesini saýlaň",
+    "Deselect all" : "Hemmesini aýyryň",
     "Copy" : "Göçüriň",
     "Cancel" : "Cancel",
     "Share link" : "Baglanyşyk paýlaş",
     "Edit" : "Redaktirläň",
     "Delete" : "Pozmak",
     "Back" : "Yzyna",
-    "Select all" : "Hemmesini saýlaň",
-    "Deselect all" : "Hemmesini aýyryň",
     "Save" : "Saklamak",
     "User" : "Ulanyjy"
 },

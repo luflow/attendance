@@ -3,14 +3,14 @@ OC.L10N.register(
     {
     "Yes" : "Tha",
     "No" : "Chan eil",
+    "Select all" : "Tagh na h-uile",
+    "Deselect all" : "Dì-thagh na h-uile",
     "Copy" : "Dèan lethbhreac",
     "Cancel" : "Cancel",
     "Share link" : "Ceangal co-roinnidh",
     "Edit" : "Deasaich",
     "Delete" : "Sguab às",
     "Back" : "Air ais",
-    "Select all" : "Tagh na h-uile",
-    "Deselect all" : "Dì-thagh na h-uile",
     "Save" : "Sàbhail",
     "User" : "Cleachdaiche"
 },

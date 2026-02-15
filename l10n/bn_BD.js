@@ -8,6 +8,7 @@ OC.L10N.register(
     "Cancel" : "Cancel",
     "Edit" : "সম্পাদনা",
     "Delete" : "মুছে",
+    "Import" : "আমদানি",
     "Save" : "সংরক্ষণ",
     "User" : "User",
     "Description" : "বিবরণ",
