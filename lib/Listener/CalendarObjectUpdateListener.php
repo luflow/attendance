@@ -106,7 +106,7 @@ class CalendarObjectUpdateListener implements IEventListener {
 					$appointment->setName($summary);
 				}
 				if ($description !== '') {
-					$appointment->setDescription($description);
+					$appointment->setDescription(strip_tags($description));
 				}
 				if ($dtstart) {
 					$dtstartUtc = (clone $dtstart)->setTimezone($utcTimezone);
