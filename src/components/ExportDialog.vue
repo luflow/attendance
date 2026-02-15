@@ -210,7 +210,6 @@ import {
     NcModal,
     NcButton,
     NcCheckboxRadioSwitch,
-    NcNoteCard,
     NcLoadingIcon,
 } from "@nextcloud/vue";
 
