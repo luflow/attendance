@@ -7,7 +7,6 @@ namespace OCA\Attendance\Controller;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\PermissionService;
 use OCA\Attendance\Service\VisibilityService;
-use OCA\Attendance\Settings\AdminSettings;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\JSONResponse;
@@ -16,7 +15,6 @@ use OCP\IRequest;
 use OCP\IUserSession;
 
 class AdminController extends Controller {
-	private AdminSettings $adminSettings;
 	private PermissionService $permissionService;
 	private IUserSession $userSession;
 	private IConfig $config;
@@ -28,7 +26,6 @@ class AdminController extends Controller {
 		string $appName,
 		IRequest $request,
 		IUserSession $userSession,
-		AdminSettings $adminSettings,
 		PermissionService $permissionService,
 		IConfig $config,
 		IAppManager $appManager,
@@ -37,7 +34,6 @@ class AdminController extends Controller {
 	) {
 		parent::__construct($appName, $request);
 		$this->userSession = $userSession;
-		$this->adminSettings = $adminSettings;
 		$this->permissionService = $permissionService;
 		$this->config = $config;
 		$this->appManager = $appManager;
@@ -65,7 +61,7 @@ class AdminController extends Controller {
 			$groupOptions = $this->permissionService->getAvailableGroups();
 
 			// Get currently configured whitelisted groups
-			$whitelistedGroups = $this->adminSettings->getWhitelistedGroups();
+			$whitelistedGroups = $this->configService->getWhitelistedGroups();
 
 			// Get currently configured whitelisted teams with display names
 			$whitelistedTeamIds = $this->configService->getWhitelistedTeams();
@@ -137,7 +133,7 @@ class AdminController extends Controller {
 		$displayOrder = $this->request->getParam('displayOrder', null);
 
 		try {
-			$this->adminSettings->setWhitelistedGroups($whitelistedGroups);
+			$this->configService->setWhitelistedGroups($whitelistedGroups);
 			$this->configService->setWhitelistedTeams($whitelistedTeams);
 
 			// Save permissions

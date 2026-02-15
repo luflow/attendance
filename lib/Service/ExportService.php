@@ -9,7 +9,6 @@ use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException;
-use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IL10N;
 use OCP\IUserManager;
@@ -20,7 +19,7 @@ class ExportService {
 	private IRootFolder $rootFolder;
 	private IUserManager $userManager;
 	private IGroupManager $groupManager;
-	private IConfig $config;
+	private ConfigService $configService;
 	private IL10N $l10n;
 
 	public function __construct(
@@ -29,7 +28,7 @@ class ExportService {
 		IRootFolder $rootFolder,
 		IUserManager $userManager,
 		IGroupManager $groupManager,
-		IConfig $config,
+		ConfigService $configService,
 		IL10N $l10n,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
@@ -37,16 +36,8 @@ class ExportService {
 		$this->rootFolder = $rootFolder;
 		$this->userManager = $userManager;
 		$this->groupManager = $groupManager;
-		$this->config = $config;
+		$this->configService = $configService;
 		$this->l10n = $l10n;
-	}
-
-	/**
-	 * Get whitelisted groups from app config
-	 */
-	private function getWhitelistedGroups(): array {
-		$groupsJson = $this->config->getAppValue('attendance', 'whitelisted_groups', '[]');
-		return json_decode($groupsJson, true) ?: [];
 	}
 
 	/**
@@ -89,7 +80,7 @@ class ExportService {
 		}
 
 		// Get user display names and groups
-		$whitelistedGroups = $this->getWhitelistedGroups();
+		$whitelistedGroups = $this->configService->getWhitelistedGroups();
 		$users = [];
 		foreach (array_keys($allUserIds) as $uid) {
 			$user = $this->userManager->get($uid);
