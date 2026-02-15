@@ -1,9 +1,13 @@
 { "translations": {
     "No" : "Ket",
+    "Select all" : "Dibab pep tra",
+    "Deselect all" : "Diziuzañ pep tra",
     "Cancel" : "Cancel",
     "Share link" : "Lodañ al liamm",
     "Edit" : "Embann",
     "Delete" : "Dilemel",
+    "Monthly" : "Miziek",
+    "Import" : "Emporzhiañ ",
     "Present" : "Kinnig",
     "Save" : "Enrollañ",
     "Settings saved" : "Stummoù enrollet",
