@@ -1,0 +1,26 @@
+OC.L10N.register(
+    "attendance",
+    {
+    "Group" : "Gruppe",
+    "Export" : "Eksporter",
+    "Select all" : "Merk alt",
+    "Copy" : "Kopier",
+    "Cancel" : "Cancel",
+    "Edit" : "Rediger",
+    "Delete" : "Slett",
+    "Daily" : "Kvar dag",
+    "Weekly" : "Kvar veke",
+    "Monday" : "Måndag",
+    "Tuesday" : "Tysdag",
+    "Wednesday" : "Onsdag",
+    "Thursday" : "Torsdag",
+    "Friday" : "Fredag",
+    "Saturday" : "Laurdag",
+    "Sunday" : "Søndag",
+    "days" : "dagar",
+    "Import" : "Importer",
+    "Save" : "Lagre",
+    "User" : "Bruker",
+    "Description" : "Skildring"
+},
+"nplurals=2; plural=(n != 1);");

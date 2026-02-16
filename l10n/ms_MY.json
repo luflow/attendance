@@ -1,0 +1,23 @@
+{ "translations": {
+    "Yes" : "Ya",
+    "No" : "Tidak",
+    "Export" : "Eksport",
+    "Cancel" : "Cancel",
+    "Edit" : "Sunting",
+    "Delete" : "Padam",
+    "Daily" : "Setiap hari",
+    "Weekly" : "Setiap minggu",
+    "Monday" : "Isnin",
+    "Tuesday" : "Selasa",
+    "Wednesday" : "Rabu",
+    "Thursday" : "Khamis",
+    "Friday" : "Jumaat",
+    "Saturday" : "Sabtu",
+    "Sunday" : "Ahad",
+    "Import" : "Import",
+    "Save" : "Simpan",
+    "User" : "User",
+    "Description" : "Keterangan",
+    "Notification" : "Pemberitahuan"
+},"pluralForm" :"nplurals=1; plural=0;"
+}

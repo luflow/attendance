@@ -1,0 +1,28 @@
+{ "translations": {
+    "Attachments" : "Хавсралт",
+    "Export" : "Экспорт",
+    "Select all" : "бүгдийг сонгох",
+    "Copy" : "хуулах",
+    "Cancel" : "Cancel",
+    "Edit" : "Өөрчлөх",
+    "Delete" : "Устгах",
+    "Daily" : "Өдөр бүр",
+    "Weekly" : "Долоо хоног бүр",
+    "Monday" : "даваа",
+    "Tuesday" : "мягмар",
+    "Wednesday" : "лхагва",
+    "Thursday" : "пүрэв",
+    "Friday" : "баасан",
+    "Saturday" : "бямба",
+    "Sunday" : "ням гариг",
+    "day" : "өдөр",
+    "days" : "өдрүүд",
+    "week" : "долоо хоног",
+    "Ends" : "Төгсгөл",
+    "Back" : "Буцах",
+    "Save" : "Хадгалах",
+    "Settings saved" : "Тохиргоо хадгалагдлаа",
+    "Description" : "Тодорхойлолт",
+    "Confirm" : "Батлах"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}

@@ -1,0 +1,24 @@
+OC.L10N.register(
+    "attendance",
+    {
+    "No" : "නැහැ",
+    "Others" : "වෙනත්",
+    "Attachments" : "ඇමිණුම්",
+    "Select all" : "සියල්ල තෝරන්න",
+    "Cancel" : "Cancel",
+    "Edit" : "සංස්කරණය",
+    "Daily" : "දිනපතා",
+    "Weekly" : "සතිපතා",
+    "Monday" : "සඳුදා",
+    "Tuesday" : "අඟහරුවාදා",
+    "Wednesday" : "බදාදා",
+    "Thursday" : "බ්‍රහස්පතින්දා",
+    "Friday" : "සිකුරාදා",
+    "Saturday" : "සෙනසුරාදා",
+    "Sunday" : "ඉරිදා",
+    "Back" : "ආපසු",
+    "User" : "පරිශීලක",
+    "Description" : "විස්තරය",
+    "Confirm" : "තහවුරු කරන්න"
+},
+"nplurals=2; plural=(n != 1);");

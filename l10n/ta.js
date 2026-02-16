@@ -1,0 +1,25 @@
+OC.L10N.register(
+    "attendance",
+    {
+    "Yes" : "ஆம்",
+    "No" : "இல்லை",
+    "Group" : "Group",
+    "Export" : "ஏற்றுமதி",
+    "Cancel" : "Cancel",
+    "Share link" : "இணைப்பைப் பகிரவும்",
+    "Edit" : "தொகுக்க",
+    "Delete" : "நீக்குக",
+    "Monday" : "திங்கட்கிழமை",
+    "Tuesday" : "செவ்வாய்க்கிழமை",
+    "Wednesday" : "புதன்கிழமை",
+    "Thursday" : "வியாழக்கிழமை",
+    "Friday" : "வெள்ளிக்கிழமை",
+    "Saturday" : "சனிக்கிழமை",
+    "Sunday" : "ஞாயிற்றுக்கிழமை",
+    "Import" : "இறக்குமதி",
+    "Back" : "பின்னுக்கு",
+    "Save" : "சேமிக்க ",
+    "User" : "User",
+    "Description" : "விவரிப்பு"
+},
+"nplurals=2; plural=(n != 1);");
