@@ -1,0 +1,28 @@
+{ "translations": {
+    "Yes" : "Այո",
+    "No" : "Ոչ",
+    "Group" : "Խումբ",
+    "Export" : "Արտահանում",
+    "Select all" : "Նշել բոլորը",
+    "Copy" : "Պատճենել",
+    "Cancel" : "Cancel",
+    "Edit" : "մշակել",
+    "Delete" : "հեռացնել",
+    "Daily" : "Օրական",
+    "Weekly" : "Շաբաթական",
+    "Monday" : "Երկուշաբթի",
+    "Tuesday" : "Երեքշաբթի",
+    "Wednesday" : "Չորեքշաբթի",
+    "Thursday" : "Հինգշաբթի",
+    "Friday" : "Ուրբաթ",
+    "Saturday" : "Շաբաթ",
+    "Sunday" : "Կիրակի",
+    "days" : "օր",
+    "week" : "շաբաթ",
+    "Import" : "Ներմուծում",
+    "Save" : "Պահպանել",
+    "User" : "User",
+    "Description" : "Նկարագրություն",
+    "Notification" : "Ծանուցում"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}
