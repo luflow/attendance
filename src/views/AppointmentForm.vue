@@ -300,7 +300,7 @@ const onRecurrenceWarningUpdate = (warning) => {
 
 const saveButtonLabel = computed(() => {
 	if (isRecurring.value) {
-		return t('attendance', 'Create {count} appointments', { count: recurrenceOccurrences.value.length })
+		return n('attendance', 'Create {count} appointment', 'Create {count} appointments', recurrenceOccurrences.value.length, { count: recurrenceOccurrences.value.length })
 	}
 	return t('attendance', 'Save')
 })
@@ -636,10 +636,10 @@ const handleBulkImport = async (eventDataList) => {
 		const errors = response.data?.errors || []
 
 		if (created.length > 0) {
-			showSuccess(t('attendance', '{count} appointments created', { count: created.length }))
+			showSuccess(n('attendance', '{count} appointment created', '{count} appointments created', created.length, { count: created.length }))
 		}
 		if (errors.length > 0) {
-			showError(t('attendance', '{count} appointments failed to import', { count: errors.length }))
+			showError(n('attendance', '{count} appointment failed to import', '{count} appointments failed to import', errors.length, { count: errors.length }))
 		}
 
 		emit('saved')
@@ -687,7 +687,7 @@ const handleRecurringCreate = async () => {
 			showSuccess(n('attendance', '{count} appointment created', '{count} appointments created', created.length, { count: created.length }))
 		}
 		if (errors.length > 0) {
-			showError(t('attendance', '{count} appointments failed to create', { count: errors.length }))
+			showError(n('attendance', '{count} appointment failed to create', '{count} appointments failed to create', errors.length, { count: errors.length }))
 		}
 
 		emit('saved')

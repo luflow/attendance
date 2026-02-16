@@ -273,17 +273,11 @@ const weekdayLabels = {
 const intervalUnitLabel = computed(() => {
     switch (config.frequency) {
         case "DAILY":
-            return config.interval === 1
-                ? t("attendance", "day")
-                : t("attendance", "days");
+            return n("attendance", "day", "days", config.interval);
         case "WEEKLY":
-            return config.interval === 1
-                ? t("attendance", "week")
-                : t("attendance", "weeks");
+            return n("attendance", "week", "weeks", config.interval);
         case "MONTHLY":
-            return config.interval === 1
-                ? t("attendance", "month")
-                : t("attendance", "months");
+            return n("attendance", "month", "months", config.interval);
         default:
             return "";
     }
