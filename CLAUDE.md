@@ -101,9 +101,9 @@ Follow these Nextcloud translation guidelines (see https://docs.nextcloud.com/se
 ## Release Management
 - When I ask you to prepare a release, check if everything is commited
 - Then check all changes since last release (use for example git log --oneline)
-- Disable the app via occ command in the running docker container (container name master-stable31-1)
+- Disable the app via occ command in the running docker containers (container names: master-stable31-1 and master-nextcloud-1)
 - Decide which version jump (fix, patch) based on the changes since last version to create and update version numbers in info.xml and package.json
-- Enable the app via occ command in the running docker container (container name master-stable31-1)
+- Enable the app via occ command in the running docker containers (container names: master-stable31-1 and master-nextcloud-1)
 - Write release notes in CHANGELOG.md
 - Ask me to review the release notes and version number afterwards
 - Commit everything you changed after my review WITHOUT claude co author in the commit
