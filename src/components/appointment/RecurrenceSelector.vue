@@ -284,13 +284,11 @@ const intervalUnitLabel = computed(() => {
 });
 
 const monthlyDayOfMonthLabel = computed(() => {
-    if (!props.startDate) return t("attendance", "On same day of month");
     const day = props.startDate.getDate();
     return t("attendance", "On day {day} of each month", { day });
 });
 
 const monthlyWeekdayPositionLabel = computed(() => {
-    if (!props.startDate) return t("attendance", "On same weekday position");
     const pos = getMonthlyPosition(props.startDate);
     const ordinal = ordinalLabels[pos.n - 1] || `${pos.n}th`;
     const dayName = weekdayLabels[pos.dayKey] || pos.dayKey;
