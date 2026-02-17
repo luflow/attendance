@@ -284,6 +284,10 @@ OC.L10N.register(
     "Subscription URL regenerated" : "Abonnement-URL wurde neu erstellt",
     "Failed to regenerate subscription URL" : "Die Abonnement-URL konnte nicht neu erstellt werden",
     "URL copied to clipboard" : "URL wurde in die Zwischenablage kopiert",
-    "Failed to copy URL" : "URL konnte nicht kopiert werden"
+    "Failed to copy URL" : "URL konnte nicht kopiert werden",
+    "This appointment is way in the future" : "Dieser Termin liegt weit in der Zukunft",
+    "This appointment is way in the past" : "Dieser Termin liegt weit in der Vergangenheit",
+    "Caution" : "Achtung",
+    "Continue anyway" : "Trotzdem fortfahren"
 },
 "nplurals=2; plural=(n != 1);");

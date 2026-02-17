@@ -18,7 +18,19 @@
 			</NcEmptyContent>
 		</div>
 
-		<div v-if="!loading && !error" class="checkin-content">
+		<div v-if="!loading && !error && timeWarning && !timeWarningAccepted" class="time-warning-gate">
+			<CheckinAppointmentInfo :appointment="appointment" :display-order="permissions.displayOrder" />
+			<NcNoteCard type="error" :heading="t('attendance', 'Caution')" :show-alert="true">
+				<p>{{ timeWarning }}</p>
+				<div class="time-warning-action">
+					<NcButton variant="error" @click="timeWarningAccepted = true">
+						{{ t('attendance', 'Continue anyway') }}
+					</NcButton>
+				</div>
+			</NcNoteCard>
+		</div>
+
+		<div v-if="!loading && !error && (!timeWarning || timeWarningAccepted)" class="checkin-content">
 			<CheckinAppointmentInfo :appointment="appointment" :display-order="permissions.displayOrder" />
 
 			<CheckinStatus
@@ -121,7 +133,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { NcButton, NcLoadingIcon, NcEmptyContent, NcDialog, NcRadioGroup, NcRadioGroupButton } from '@nextcloud/vue'
+import { NcButton, NcLoadingIcon, NcEmptyContent, NcDialog, NcNoteCard, NcRadioGroup, NcRadioGroupButton } from '@nextcloud/vue'
 import AlertIcon from 'vue-material-design-icons/Alert.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
 import AccountSearchIcon from 'vue-material-design-icons/AccountSearch.vue'
@@ -159,10 +171,27 @@ const checkinComments = reactive({})
 const showConfirmDialog = ref(false)
 const pendingBulkAction = ref(null)
 const confirmMessage = ref('')
+const timeWarningAccepted = ref(false)
 
 const { permissions, loadPermissions } = usePermissions()
 
 // Computed
+const TIME_THRESHOLD_MS = 8 * 60 * 60 * 1000
+
+const timeWarning = computed(() => {
+	if (!appointment.value) return null
+	const now = Date.now()
+	const start = new Date(appointment.value.startDatetime).getTime()
+	const end = new Date(appointment.value.endDatetime).getTime()
+
+	if (start - now > TIME_THRESHOLD_MS) {
+		return t('attendance', 'This appointment is way in the future')
+	}
+	if (now - end > TIME_THRESHOLD_MS) {
+		return t('attendance', 'This appointment is way in the past')
+	}
+	return null
+})
 const groupOptions = computed(() => userGroups.value.map(group => ({
 	id: group,
 	label: window.t('attendance', group),
@@ -349,6 +378,10 @@ onMounted(async () => {
 	justify-content: center;
 	min-height: 200px;
 	text-align: center;
+}
+
+.time-warning-action {
+	margin: 12px 0;
 }
 
 .filter-section {
