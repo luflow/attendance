@@ -21,7 +21,6 @@ OC.L10N.register(
     "Friday" : "Sem",
     "Saturday" : "Sed",
     "Sunday" : "Acer",
-    "days" : "ussan",
     "Show all" : "Sken-iten-id akk",
     "Back" : "Tuɣalin",
     "Save" : "Sekles",
