@@ -194,11 +194,11 @@ const timeWarning = computed(() => {
 })
 const groupOptions = computed(() => userGroups.value.map(group => ({
 	id: group,
-	label: window.t('attendance', group),
+	label: t('attendance', group),
 })))
 
 const showPendingLabel = computed(() => {
-	return window.t('attendance', 'Only pending ({count})', { count: checkinStatus.value.notCheckedIn })
+	return t('attendance', 'Only pending ({count})', { count: checkinStatus.value.notCheckedIn })
 })
 
 const filteredAllUsers = computed(() => {
@@ -261,7 +261,7 @@ const loadAppointmentData = async (skipLoadingSpinner = false) => {
 		userGroups.value = response.data.userGroups || []
 	} catch (err) {
 		console.error('Failed to load appointment data:', err)
-		error.value = err.response?.data?.message || window.t('attendance', 'Failed to load appointment data')
+		error.value = err.response?.data?.message || t('attendance', 'Failed to load appointment data')
 	} finally {
 		loading.value = false
 	}
@@ -286,9 +286,9 @@ const checkinUser = async (userId, response, reloadData = true) => {
 
 const confirmBulkCheckin = (response) => {
 	const userCount = filteredAllUsers.value.length
-	const actionText = response === 'yes' ? window.t('attendance', 'attending') : window.t('attendance', 'not attending')
+	const actionText = response === 'yes' ? t('attendance', 'attending') : t('attendance', 'not attending')
 
-	confirmMessage.value = window.t('attendance', 'Do you want to set {count} users to {action}?', { count: userCount, action: actionText })
+	confirmMessage.value = t('attendance', 'Do you want to set {count} users to {action}?', { count: userCount, action: actionText })
 
 	pendingBulkAction.value = response
 	showConfirmDialog.value = true
