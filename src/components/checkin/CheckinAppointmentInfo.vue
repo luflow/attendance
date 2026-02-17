@@ -1,9 +1,17 @@
 <template>
 	<div class="appointment-info">
-		<h2>{{ t('attendance', 'Check-in') }}: {{ appointment.name }}</h2>
-		<p class="appointment-date-range">
-			{{ formatDateRange(appointment.startDatetime, appointment.endDatetime) }}
-		</p>
+		<template v-if="displayOrder === 'date_first'">
+			<h2>{{ t('attendance', 'Check-in') }}: {{ formatDateRange(appointment.startDatetime, appointment.endDatetime) }}</h2>
+			<p class="appointment-date-range">
+				{{ appointment.name }}
+			</p>
+		</template>
+		<template v-else>
+			<h2>{{ t('attendance', 'Check-in') }}: {{ appointment.name }}</h2>
+			<p class="appointment-date-range">
+				{{ formatDateRange(appointment.startDatetime, appointment.endDatetime) }}
+			</p>
+		</template>
 		<div v-if="appointment.description" class="appointment-description" v-html="renderedDescription" />
 	</div>
 </template>
@@ -17,6 +25,10 @@ const props = defineProps({
 	appointment: {
 		type: Object,
 		required: true,
+	},
+	displayOrder: {
+		type: String,
+		default: 'name_first',
 	},
 })
 
