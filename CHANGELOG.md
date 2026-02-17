@@ -6,6 +6,27 @@
 
 - Nightly changes here
 
+## 1.28.0 – 2026-02-17
+
+### Added
+
+- Time warning gate on check-in view: warns when appointment is more than 8 hours in the past or future, requiring explicit confirmation before proceeding
+- Check-in view now respects the admin "name first / date first" display order setting
+
+### Fixed
+
+- Sanitize markdown descriptions to prevent XSS
+- Attachment failures now propagate instead of being silently swallowed
+- Clean up confetti canvas on component unmount to prevent memory leaks
+- Use `n()` plural forms instead of `t()` for countable strings
+
+### Changed
+
+- Translations updated
+- Routed admin checks through PermissionService for consistency
+- Consolidated `getWhitelistedGroups` into ConfigService
+- Removed unused imports and dead code
+
 ## 1.27.0 – 2026-02-14
 
 ### Added
