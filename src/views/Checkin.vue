@@ -19,7 +19,7 @@
 		</div>
 
 		<div v-if="!loading && !error" class="checkin-content">
-			<CheckinAppointmentInfo :appointment="appointment" />
+			<CheckinAppointmentInfo :appointment="appointment" :display-order="permissions.displayOrder" />
 
 			<CheckinStatus
 				:all-checked-in="checkinStatus.allCheckedIn"
