@@ -17,7 +17,6 @@ OC.L10N.register(
     "Friday" : "﻿ಶುಕ್ರವಾರ",
     "Saturday" : "﻿ಶನಿವಾರ",
     "Sunday" : "﻿ಭಾನುವಾರ",
-    "days" : "﻿ದಿನಗಳು",
     "Import" : "ಆಮದು",
     "Save" : "﻿ಉಳಿಸಿ",
     "User" : "User"

@@ -15,8 +15,6 @@ OC.L10N.register(
     "Wednesday" : "Merc'her",
     "Friday" : "Gwener",
     "Sunday" : "Sul",
-    "days" : "devezh",
-    "week" : "sizunvezh",
     "Import" : "Emporzhiañ ",
     "Present" : "Kinnig",
     "Save" : "Enrollañ",
