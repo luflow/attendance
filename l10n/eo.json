@@ -24,6 +24,8 @@
     "Saturday" : "Sabato",
     "Sunday" : "Dimanĉo",
     "_day_::_days_" : ["tago","tagoj"],
+    "_week_::_weeks_" : ["semajno","semajnoj"],
+    "_month_::_months_" : ["Monato","Monatoj"],
     "Ends" : "Finiĝas",
     "Import" : "Importi",
     "Untitled event" : "Sentitola okazaĵo",

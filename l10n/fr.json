@@ -193,6 +193,7 @@
     "not attending" : "n'assiste pas",
     "Do you want to set {count} users to {action}?" : "Voulez-vous définir {count}utilisateur(s)-rice(s) sur{action}?",
     "Loading appointment data …" : "Chargement des données de rendez-vous…",
+    "Continue anyway" : "Continuer quand même",
     "All users" : "Tous les utilisateurs",
     "No users found" : "Aucun utilisateur trouvé",
     "Confirm bulk action" : "Confirmer l'action groupée",

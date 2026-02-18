@@ -194,6 +194,7 @@ OC.L10N.register(
     "not attending" : "katılmıyor",
     "Do you want to set {count} users to {action}?" : "{count} kullanıcı {action} olarak ayarlansın mı?",
     "Loading appointment data …" : "Randevu verileri yükleniyor…",
+    "Continue anyway" : "Olsun, ilerle",
     "All users" : "Tüm kullanıcılar",
     "No users found" : "Herhangi bir kullanıcı bulunamadı",
     "Confirm bulk action" : "Toplu işlemi onayla",

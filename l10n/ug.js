@@ -69,6 +69,7 @@ OC.L10N.register(
     "Date & Time" : "چېسلا ۋە ۋاقىت",
     "Notification" : "ئۇقتۇرۇش",
     "Add from Files" : "ھۆججەتلەردىن قوشۇڭ",
+    "Continue anyway" : "ھەر قانداق ئەھۋالدا داۋاملاشتۇرۇڭ",
     "All users" : "بارلىق ئىشلەتكۈچىلەر",
     "No users found" : "ئىشلەتكۈچى تېپىلمىدى",
     "Confirm" : "جەزملەشتۈرۈڭ",

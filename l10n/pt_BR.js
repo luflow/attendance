@@ -210,6 +210,7 @@ OC.L10N.register(
     "not attending" : "não participando",
     "Do you want to set {count} users to {action}?" : "Você quer definir {count} usuários para {action}?",
     "Loading appointment data …" : "Carregando os dados do compromisso …",
+    "Continue anyway" : "Continuar mesmo assim",
     "Filter users" : "Filtrar usuários",
     "All users" : "Todos os usuários",
     "Show all users" : "Mostrar todos os usuários",
