@@ -201,6 +201,7 @@
     "not attending" : "未參與",
     "Do you want to set {count} users to {action}?" : "您想要設定 {count} 個使用者為 {action} 嗎？",
     "Loading appointment data …" : "正在載入預約資料……",
+    "Continue anyway" : "無論如何都要繼續",
     "Filter users" : "篩選使用者",
     "All users" : "所有使用者",
     "Show all users" : "顯示所有使用者",

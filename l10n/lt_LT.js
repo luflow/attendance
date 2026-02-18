@@ -59,6 +59,7 @@ OC.L10N.register(
     "Date & Time" : "Data ir laikas",
     "Notification" : "Pranešimas",
     "Add from Files" : "Pridėti iš Failų",
+    "Continue anyway" : "Vis tiek tęsti",
     "All users" : "Visi naudotojai",
     "No users found" : "Nerasta jokių naudotojų",
     "Confirm" : "Patvirtinti"

@@ -211,6 +211,7 @@ OC.L10N.register(
     "not attending" : "gan freastal",
     "Do you want to set {count} users to {action}?" : "Ar mhaith leat {count} úsáideoirí a shocrú go {action}?",
     "Loading appointment data …" : "Ag lódáil sonraí coinní …",
+    "Continue anyway" : "Lean ar aghaidh ar aon nós",
     "Filter users" : "Scag úsáideoirí",
     "All users" : "Gach úsáideoir",
     "Show all users" : "Taispeáin gach úsáideoir",
