@@ -20,7 +20,7 @@ OC.L10N.register(
     "Last accessed" : "Останній доступ",
     "Cancel" : "Скасувати",
     "Regenerate" : "Регенерувати",
-    "Link copied to clipboard" : "Посилання скопійовано в буфер обміну",
+    "Link copied to clipboard" : "Посилання скопійовано до буфера обміну",
     "Share link" : "Надати у публічний доступ",
     "Edit" : "Редагувати",
     "Delete" : "Видалити",
