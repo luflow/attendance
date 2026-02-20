@@ -6,6 +6,12 @@
 
 - Nightly changes here
 
+## 1.28.2 – 2026-02-20
+
+### Changed
+
+- Add Nextcloud 33 compatibility
+
 ## 1.28.1 – 2026-02-20
 
 ### Changed
