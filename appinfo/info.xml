@@ -85,7 +85,7 @@ Perfekt für Organisationen, Teams und Gemeinschaften, die die Anwesenheit bei M
 	<donation type="stripe">https://donate.stripe.com/fZu4gzd1k9AqgHgdWv7ss00</donation>
 	<dependencies>
 		<php min-version="8.1"/>
-		<nextcloud min-version="31" max-version="32"/>
+		<nextcloud min-version="31" max-version="33"/>
 	</dependencies>
 	<navigations>
 		<navigation>
