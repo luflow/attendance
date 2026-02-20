@@ -6,6 +6,12 @@
 
 - Nightly changes here
 
+## 1.28.1 – 2026-02-20
+
+### Changed
+
+- Updated translations from Transifex: Greek (major update), Brazilian Portuguese, Italian, Czech, French, German, Galician, Ukrainian, and many more languages
+
 ## 1.28.0 – 2026-02-17
 
 ### Added
