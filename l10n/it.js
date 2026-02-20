@@ -82,6 +82,7 @@ OC.L10N.register(
     "Add from Files" : "Aggiungi da File",
     "All users" : "Tutti gli utenti",
     "No users found" : "Nessun utente trovato",
-    "Confirm" : "Conferma"
+    "Confirm" : "Conferma",
+    "Thank you for your response!" : "Grazie per la tua risposta!"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");
