@@ -113,4 +113,20 @@ class AttendanceResponseMapper extends QBMapper {
 
 		return $summary;
 	}
+
+	/**
+	 * Reset all checkin fields for a given appointment.
+	 *
+	 * @param int $appointmentId
+	 */
+	public function resetCheckinByAppointment(int $appointmentId): void {
+		$qb = $this->db->getQueryBuilder();
+		$qb->update($this->getTableName())
+			->set('checkin_state', $qb->createNamedParameter(null, \Doctrine\DBAL\ParameterType::NULL))
+			->set('checkin_comment', $qb->createNamedParameter(null, \Doctrine\DBAL\ParameterType::NULL))
+			->set('checkin_by', $qb->createNamedParameter(null, \Doctrine\DBAL\ParameterType::NULL))
+			->set('checkin_at', $qb->createNamedParameter(null, \Doctrine\DBAL\ParameterType::NULL))
+			->where($qb->expr()->eq('appointment_id', $qb->createNamedParameter($appointmentId)));
+		$qb->executeStatement();
+	}
 }

@@ -107,6 +107,12 @@
 					</NcEmptyContent>
 				</div>
 			</div>
+
+			<div class="reset-section">
+				<NcButton variant="tertiary" @click="showResetDialog = true">
+					{{ t('attendance', 'Reset check-in') }}
+				</NcButton>
+			</div>
 		</div>
 
 		<!-- Confirmation Dialog -->
@@ -128,6 +134,26 @@
 				</NcButton>
 			</template>
 		</NcDialog>
+
+		<!-- Reset Check-in Dialog -->
+		<NcDialog
+			:open="showResetDialog"
+			:name="t('attendance', 'Reset check-in')"
+			@closing="showResetDialog = false">
+			<p v-if="appointment">
+				<strong>{{ appointment.name }}</strong><br>
+				{{ formatDateRange(appointment.startDatetime, appointment.endDatetime) }}
+			</p>
+			<p>{{ t('attendance', 'Do you want to reset the check-in for this appointment? This will remove all check-in entries.') }}</p>
+			<template #actions>
+				<NcButton @click="showResetDialog = false">
+					{{ t('attendance', 'Cancel') }}
+				</NcButton>
+				<NcButton variant="error" @click="executeResetCheckin">
+					{{ t('attendance', 'Reset check-in') }}
+				</NcButton>
+			</template>
+		</NcDialog>
 	</div>
 </template>
 
@@ -140,6 +166,7 @@ import AccountSearchIcon from 'vue-material-design-icons/AccountSearch.vue'
 import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import { usePermissions } from '../composables/usePermissions.js'
+import { formatDateRange } from '../utils/datetime.js'
 
 // Split components
 import CheckinHeader from '../components/checkin/CheckinHeader.vue'
@@ -172,6 +199,7 @@ const showConfirmDialog = ref(false)
 const pendingBulkAction = ref(null)
 const confirmMessage = ref('')
 const timeWarningAccepted = ref(false)
+const showResetDialog = ref(false)
 
 const { permissions, loadPermissions } = usePermissions()
 
@@ -319,6 +347,17 @@ const cancelBulkAction = () => {
 	confirmMessage.value = ''
 }
 
+const executeResetCheckin = async () => {
+	showResetDialog.value = false
+	try {
+		const url = generateUrl('/apps/attendance/api/appointments/{id}/checkin-reset', { id: props.appointmentId })
+		await axios.delete(url)
+		await loadAppointmentData(true)
+	} catch (err) {
+		console.error('Failed to reset check-in:', err)
+	}
+}
+
 const toggleCommentInput = (userId) => {
 	showCommentInput[userId] = !showCommentInput[userId]
 	if (showCommentInput[userId] && !checkinComments[userId]) {
@@ -396,5 +435,10 @@ onMounted(async () => {
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
+}
+
+.reset-section {
+	margin-top: 24px;
+	text-align: center;
 }
 </style>

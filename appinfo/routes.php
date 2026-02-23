@@ -30,6 +30,7 @@ return [
 		// Check-in functionality routes
 		['name' => 'appointment#checkinResponse', 'url' => '/api/appointments/{appointmentId}/checkin/{targetUserId}', 'verb' => 'POST'],
 		['name' => 'appointment#getCheckinData', 'url' => '/api/appointments/{id}/checkin-data', 'verb' => 'GET'],
+		['name' => 'appointment#resetCheckin', 'url' => '/api/appointments/{id}/checkin-reset', 'verb' => 'DELETE'],
 
 		// Admin settings
 		['name' => 'admin#getSettings', 'url' => '/api/admin/settings', 'verb' => 'GET'],

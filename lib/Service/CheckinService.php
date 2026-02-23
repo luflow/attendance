@@ -87,6 +87,15 @@ class CheckinService {
 	}
 
 	/**
+	 * Reset all check-in data for an appointment.
+	 *
+	 * @param int $appointmentId The appointment ID
+	 */
+	public function resetCheckin(int $appointmentId): void {
+		$this->responseMapper->resetCheckinByAppointment($appointmentId);
+	}
+
+	/**
 	 * Get check-in data for an appointment.
 	 *
 	 * @param int $appointmentId The appointment ID
