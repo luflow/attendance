@@ -410,6 +410,28 @@ class AppointmentController extends Controller {
 	}
 
 	/**
+	 * Reset all check-in data for an appointment
+	 * @NoAdminRequired
+	 */
+	public function resetCheckin(int $id): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		if (!$this->permissionService->canCheckin($user->getUID())) {
+			return new DataResponse(['error' => 'Insufficient permissions to reset check-in data'], 403);
+		}
+
+		try {
+			$this->checkinService->resetCheckin($id);
+			return new DataResponse(['success' => true]);
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => $e->getMessage()], 400);
+		}
+	}
+
+	/**
 	 * @NoAdminRequired
 	 */
 	public function getPermissions(): DataResponse {
