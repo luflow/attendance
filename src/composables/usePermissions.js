@@ -11,6 +11,7 @@ const state = reactive({
 		calendarAvailable: false,
 		calendarSyncEnabled: false,
 		displayOrder: 'name_first',
+		streaksEnabled: false,
 	},
 	loading: false,
 	loaded: false,
@@ -50,6 +51,7 @@ export function usePermissions() {
 			state.permissions.calendarAvailable = response.data.calendarAvailable || false
 			state.permissions.calendarSyncEnabled = response.data.calendarSyncEnabled || false
 			state.permissions.displayOrder = response.data.displayOrder || 'name_first'
+			state.permissions.streaksEnabled = response.data.streaksEnabled || false
 
 			state.loaded = true
 		} catch (error) {
@@ -63,6 +65,7 @@ export function usePermissions() {
 			state.permissions.calendarAvailable = false
 			state.permissions.calendarSyncEnabled = false
 			state.permissions.displayOrder = 'name_first'
+			state.permissions.streaksEnabled = false
 		} finally {
 			state.loading = false
 		}

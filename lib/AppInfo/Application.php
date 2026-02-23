@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\Attendance\AppInfo;
 
 use OCA\Attendance\BackgroundJob\ReminderJob;
+use OCA\Attendance\Dashboard\StreakLeadersWidget;
 use OCA\Attendance\Dashboard\Widget;
 use OCA\Attendance\Listener\CalendarObjectUpdateListener;
 use OCP\AppFramework\App;
@@ -21,6 +22,7 @@ class Application extends App implements IBootstrap {
 
 	public function register(IRegistrationContext $context): void {
 		$context->registerDashboardWidget(Widget::class);
+		$context->registerDashboardWidget(StreakLeadersWidget::class);
 		$context->registerNotifierService(\OCA\Attendance\Notification\Notifier::class);
 
 		// Register calendar event listeners (NC 32+ only)

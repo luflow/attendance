@@ -426,6 +426,7 @@ class AppointmentController extends Controller {
 			'calendarAvailable' => $this->calendarService->isCalendarAvailable(),
 			'calendarSyncEnabled' => $this->configService->isCalendarSyncEnabled(),
 			'displayOrder' => $this->configService->getDisplayOrder(),
+			'streaksEnabled' => $this->configService->isStreaksEnabled(),
 		]);
 	}
 

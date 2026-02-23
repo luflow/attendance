@@ -6,6 +6,7 @@ namespace OCA\Attendance\Db;
 
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\QBMapper;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
 /**
@@ -86,6 +87,38 @@ class AttendanceResponseMapper extends QBMapper {
 			->orderBy('responded_at', 'DESC');
 
 		return $this->findEntities($qb);
+	}
+
+	/**
+	 * Get appointment IDs that have at least one checkin performed.
+	 *
+	 * @param array<int> $appointmentIds
+	 * @return array<int> Appointment IDs where checkin was performed
+	 */
+	public function findAppointmentsWithCheckins(array $appointmentIds): array {
+		if (empty($appointmentIds)) {
+			return [];
+		}
+
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->selectDistinct('appointment_id')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->in('appointment_id', $qb->createNamedParameter($appointmentIds, IQueryBuilder::PARAM_INT_ARRAY))
+			)
+			->andWhere(
+				$qb->expr()->in('checkin_state', $qb->createNamedParameter(['yes', 'no'], IQueryBuilder::PARAM_STR_ARRAY))
+			);
+
+		$result = $qb->executeQuery();
+		$ids = [];
+		while ($row = $result->fetch()) {
+			$ids[] = (int)$row['appointment_id'];
+		}
+		$result->closeCursor();
+
+		return $ids;
 	}
 
 	/**

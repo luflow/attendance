@@ -97,6 +97,9 @@ Perfekt für Organisationen, Teams und Gemeinschaften, die die Anwesenheit bei M
 			<type>link</type>
 		</navigation>
 	</navigations>
+	<commands>
+		<command>OCA\Attendance\Command\RecalculateStreaksCommand</command>
+	</commands>
 	<settings>
 		<admin>OCA\Attendance\Settings\AdminSettings</admin>
 		<admin-section>OCA\Attendance\Settings\AdminSection</admin-section>

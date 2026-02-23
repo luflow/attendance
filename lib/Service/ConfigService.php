@@ -209,6 +209,24 @@ class ConfigService {
 	}
 
 	/**
+	 * Check if streaks feature is enabled.
+	 *
+	 * @return bool True if streaks are enabled
+	 */
+	public function isStreaksEnabled(): bool {
+		return $this->config->getAppValue(self::APP_ID, 'streaks_enabled', 'yes') === 'yes';
+	}
+
+	/**
+	 * Set streaks enabled status.
+	 *
+	 * @param bool $enabled Whether streaks should be enabled
+	 */
+	public function setStreaksEnabled(bool $enabled): void {
+		$this->config->setAppValue(self::APP_ID, 'streaks_enabled', $enabled ? 'yes' : 'no');
+	}
+
+	/**
 	 * Get the display order for appointments.
 	 *
 	 * @return string 'name_first' or 'date_first'

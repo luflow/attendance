@@ -15,6 +15,14 @@
 			</div>
 		</div>
 
+		<!-- Streak Display -->
+		<div v-if="permissions.streaksEnabled && streak && streak.currentStreak > 0" class="streak-container">
+			<StreakDisplay
+				:current-streak="streak.currentStreak"
+				:longest-streak="streak.longestStreak"
+				:streak-level="streak.streakLevel" />
+		</div>
+
 		<!-- Appointments List -->
 		<div class="appointments-list">
 			<div v-if="loading" class="loading">
@@ -57,6 +65,7 @@ import { ref, reactive, onMounted, onBeforeUnmount, watch } from 'vue'
 import { NcButton } from '@nextcloud/vue'
 import AppointmentCard from '../components/appointment/AppointmentCard.vue'
 import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
+import StreakDisplay from '../components/streak/StreakDisplay.vue'
 import AlertIcon from 'vue-material-design-icons/Alert.vue'
 import confettiLib from 'canvas-confetti'
 import axios from '@nextcloud/axios'
@@ -64,6 +73,7 @@ import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
 import { usePermissions } from '../composables/usePermissions.js'
 import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
+import { useStreak } from '../composables/useStreak.js'
 
 const props = defineProps({
 	showPast: {
@@ -89,6 +99,7 @@ const loading = ref(true)
 const responseComments = reactive({})
 
 const { permissions, loadPermissions } = usePermissions()
+const { streak, loadStreak } = useStreak()
 
 // Use the shared response composable
 const { submitResponse: submitResponseApi } = useAppointmentResponse({
@@ -239,6 +250,9 @@ watch(() => appointments.value.length, (newLength, oldLength) => {
 onMounted(async () => {
 	await loadPermissions()
 	await loadAppointments()
+	if (permissions.streaksEnabled) {
+		loadStreak()
+	}
 })
 </script>
 
@@ -249,6 +263,11 @@ onMounted(async () => {
 	padding: 20px;
 	max-width: 1200px;
 	margin: 0 auto;
+}
+
+.streak-container {
+	max-width: 800px;
+	margin: 0 auto 16px;
 }
 
 .appointments-list {

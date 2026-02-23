@@ -104,6 +104,7 @@ class AdminController extends Controller {
 				'reminders' => $reminderSettings,
 				'calendarSync' => $calendarSyncSettings,
 				'displayOrder' => $this->configService->getDisplayOrder(),
+				'streaksEnabled' => $this->configService->isStreaksEnabled(),
 			]);
 		} catch (\Exception $e) {
 			return new JSONResponse(['success' => false, 'error' => $e->getMessage()]);
@@ -131,6 +132,7 @@ class AdminController extends Controller {
 		$reminders = $this->request->getParam('reminders', []);
 		$calendarSync = $this->request->getParam('calendarSync', []);
 		$displayOrder = $this->request->getParam('displayOrder', null);
+		$streaksEnabled = $this->request->getParam('streaksEnabled', null);
 
 		try {
 			$this->configService->setWhitelistedGroups($whitelistedGroups);
@@ -163,6 +165,11 @@ class AdminController extends Controller {
 			// Save display order
 			if ($displayOrder !== null) {
 				$this->configService->setDisplayOrder($displayOrder);
+			}
+
+			// Save streaks setting
+			if ($streaksEnabled !== null) {
+				$this->configService->setStreaksEnabled((bool)$streaksEnabled);
 			}
 
 			return new JSONResponse(['success' => true]);

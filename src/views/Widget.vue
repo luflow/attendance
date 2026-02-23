@@ -1,5 +1,12 @@
 <template>
 	<div class="appointment-widget-container" :data-nc-version="ncVersion" data-test="widget-container">
+		<div v-if="permissions.streaksEnabled && streak && streak.currentStreak > 0" class="widget-streak">
+			<StreakDisplay
+				:current-streak="streak.currentStreak"
+				:longest-streak="streak.longestStreak"
+				:streak-level="streak.streakLevel"
+				:show-longest="false" />
+		</div>
 		<NcDashboardWidget
 			:items="items"
 			:loading="state === 'loading'"
@@ -44,6 +51,8 @@ import { generateUrl } from '@nextcloud/router'
 import { loadState } from '@nextcloud/initial-state'
 import { usePermissions } from '../composables/usePermissions.js'
 import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
+import { useStreak } from '../composables/useStreak.js'
+import StreakDisplay from '../components/streak/StreakDisplay.vue'
 import { canCheckinNow } from '../utils/datetime.js'
 import WidgetAppointmentItem from '../components/widget/WidgetAppointmentItem.vue'
 
@@ -86,6 +95,7 @@ const ncVersion = ref(ncVersionState)
 const displayOrder = ref(displayOrderState)
 
 const { permissions, loadPermissions } = usePermissions()
+const { streak, loadStreak } = useStreak()
 
 // Use the shared response composable
 const { submitResponse: submitResponseApi } = useAppointmentResponse()
@@ -143,6 +153,9 @@ const openCheckinView = (appointmentId) => {
 // Lifecycle
 onMounted(async () => {
 	await loadPermissions()
+	if (permissions.streaksEnabled) {
+		loadStreak()
+	}
 })
 </script>
 
@@ -164,6 +177,11 @@ body[data-theme-dark] .appointment-widget-container[data-nc-version="31"] :deep(
 	flex-direction: column;
 	height: 100%;
 	max-height: 450px;
+}
+
+.widget-streak {
+	flex-shrink: 0;
+	padding: 8px 12px;
 }
 
 .appointment-widget {

@@ -37,6 +37,8 @@ return [
 
 		// User data
 		['name' => 'appointment#getPermissions', 'url' => '/api/user/permissions', 'verb' => 'GET'],
+		['name' => 'streak#getUserStreak', 'url' => '/api/user/streak', 'verb' => 'GET'],
+		['name' => 'streak#recalculateStreak', 'url' => '/api/user/streak/recalculate', 'verb' => 'POST'],
 
 		// Search
 		['name' => 'appointment#searchUsersGroupsTeams', 'url' => '/api/search/users-groups-teams', 'verb' => 'GET'],

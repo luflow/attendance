@@ -20,6 +20,7 @@ class CheckinService {
 	private ConfigService $configService;
 	private VisibilityService $visibilityService;
 	private IGroupManager $groupManager;
+	private StreakService $streakService;
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -27,12 +28,14 @@ class CheckinService {
 		ConfigService $configService,
 		VisibilityService $visibilityService,
 		IGroupManager $groupManager,
+		StreakService $streakService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
 		$this->configService = $configService;
 		$this->visibilityService = $visibilityService;
 		$this->groupManager = $groupManager;
+		$this->streakService = $streakService;
 	}
 
 	/**
@@ -80,10 +83,19 @@ class CheckinService {
 
 		// Save or update
 		if ($attendanceResponse->getId()) {
-			return $this->responseMapper->update($attendanceResponse);
+			$attendanceResponse = $this->responseMapper->update($attendanceResponse);
 		} else {
-			return $this->responseMapper->insert($attendanceResponse);
+			$attendanceResponse = $this->responseMapper->insert($attendanceResponse);
 		}
+
+		// Recalculate streak for the checked-in user (non-critical)
+		try {
+			$this->streakService->recalculateStreak($targetUserId);
+		} catch (\Throwable $e) {
+			// Streak failure must not break check-in
+		}
+
+		return $attendanceResponse;
 	}
 
 	/**

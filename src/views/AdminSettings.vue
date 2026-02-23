@@ -188,6 +188,19 @@
 				</NcSettingsSection>
 			</div>
 
+			<NcSettingsSection :name="t('attendance', 'Attendance streaks')"
+				:description="t('attendance', 'Show streak counters that track consecutive attendance for users.')">
+				<NcCheckboxRadioSwitch
+					v-model="streaksEnabled"
+					type="switch"
+					data-test="switch-streaks-enabled">
+					{{ t('attendance', 'Enable attendance streaks') }}
+				</NcCheckboxRadioSwitch>
+				<p class="hint-text">
+					{{ t('attendance', 'When enabled, users see their attendance streak in the app and on the dashboard. A streak leaders widget is also available.') }}
+				</p>
+			</NcSettingsSection>
+
 			<NcSettingsSection :name="t('attendance', 'Display options')"
 				:description="t('attendance', 'Choose how appointments are displayed across the app.')">
 				<NcCheckboxRadioSwitch
@@ -264,6 +277,7 @@ const reminderFrequency = ref(0)
 const notificationsAppEnabled = ref(true)
 const calendarSyncEnabled = ref(false)
 const calendarSyncAvailable = ref(false)
+const streaksEnabled = ref(true)
 const displayOrder = ref('name_first')
 const loading = ref(false)
 const loadingData = ref(true)
@@ -324,6 +338,9 @@ const loadSettings = async () => {
 
 			// Load display order
 			displayOrder.value = response.data.displayOrder || 'name_first'
+
+			// Load streaks setting
+			streaksEnabled.value = response.data.streaksEnabled !== false
 		} else {
 			showError(window.t('attendance', 'Failed to load settings')
 				+ (response.data.error ? ': ' + response.data.error : ''))
@@ -389,6 +406,7 @@ const saveSettings = async () => {
 					enabled: calendarSyncEnabled.value,
 				},
 				displayOrder: displayOrder.value,
+				streaksEnabled: streaksEnabled.value,
 			},
 		)
 
