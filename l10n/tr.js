@@ -35,6 +35,7 @@ OC.L10N.register(
     "Date range" : "Tarih aralığı",
     "Select all" : "Tümünü seç",
     "Deselect all" : "Tümünü bırak",
+    "Custom range" : "Özel aralık",
     "Start date" : "Başlangıç ​​tarihi",
     "End date" : "Bitiş tarihi",
     "Subscribe to your appointments in external calendar apps like Google Calendar, Apple Calendar, or Thunderbird." : "Google Takvim, Apple Takvim veya Thunderbird gibi dış takvim uygulamalarından randevularınıza abone olun.",

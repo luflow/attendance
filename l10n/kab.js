@@ -5,6 +5,7 @@ OC.L10N.register(
     "No" : "Uhu",
     "Group" : "Agraw",
     "Attachments" : "Ticeqqufin",
+    "Export" : "Sifeḍ",
     "Select all" : "Fren-iten akk",
     "Deselect all" : "Kkes afran i meṛṛa",
     "Copy" : "Nɣel",
