@@ -38,6 +38,7 @@ OC.L10N.register(
     "Show all" : "Toon alles",
     "No response" : "Geen antwoord",
     "Import" : "Import",
+    "Select calendar" : "Selecteer een agenda",
     "Back" : "Terug",
     "Untitled event" : "Naamloos evenement",
     "Present" : "Cadeau",
