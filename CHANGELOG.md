@@ -6,6 +6,17 @@
 
 - Nightly changes here
 
+## 1.29.0 – 2026-02-28
+
+### Added
+
+- Reset check-in functionality: allows resetting an appointments's check-in status back to pending
+- Unanswered appointment banners on upcoming and appointment detail views, replacing the previous auto-navigation behavior - Clickable banner shows count of appointments awaiting response with a "View all" link
+
+### Changed
+
+- Translations updated
+
 ## 1.28.2 – 2026-02-20
 
 ### Changed
