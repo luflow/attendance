@@ -6,6 +6,11 @@ namespace OCA\Attendance\Controller;
 
 use OCA\Attendance\Service\IcalService;
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
+use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\Response;
@@ -28,10 +33,13 @@ class IcalController extends Controller {
 	}
 
 	/**
-	 * Get or create token for current user
+	 * Get or create iCal feed token for the current user
 	 *
-	 * @NoAdminRequired
+	 * @return DataResponse<Http::STATUS_OK, array{feedUrl: string, createdAt: ?string, lastUsedAt: ?string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
 	public function getToken(): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -53,10 +61,13 @@ class IcalController extends Controller {
 	}
 
 	/**
-	 * Regenerate token for current user
+	 * Regenerate iCal feed token for the current user
 	 *
-	 * @NoAdminRequired
+	 * @return DataResponse<Http::STATUS_OK, array{feedUrl: string, createdAt: ?string, lastUsedAt: ?string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
 	public function regenerateToken(): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -79,10 +90,10 @@ class IcalController extends Controller {
 
 	/**
 	 * Serve iCal feed (public endpoint, authenticated by token)
-	 *
-	 * @PublicPage
-	 * @NoCSRFRequired
 	 */
+	#[PublicPage]
+	#[NoCSRFRequired]
+	#[OpenAPI(OpenAPI::SCOPE_IGNORE)]
 	public function feed(string $token): Response {
 		$userId = $this->icalService->validateToken($token);
 

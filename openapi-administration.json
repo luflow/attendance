@@ -1,0 +1,490 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "attendance-administration",
+        "version": "0.0.1",
+        "description": "Event attendance management with advance RSVP functionality, real-time check-in, and group-based statistics",
+        "license": {
+            "name": "AGPL-3.0-or-later"
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "basic_auth": {
+                "type": "http",
+                "scheme": "basic"
+            },
+            "bearer_auth": {
+                "type": "http",
+                "scheme": "bearer"
+            }
+        },
+        "schemas": {
+            "CalendarSyncSettings": {
+                "type": "object",
+                "required": [
+                    "enabled",
+                    "available"
+                ],
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "available": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "GroupOption": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "displayName"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "displayName": {
+                        "type": "string"
+                    }
+                }
+            },
+            "PermissionSettings": {
+                "type": "object",
+                "additionalProperties": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "ReminderSettings": {
+                "type": "object",
+                "required": [
+                    "enabled",
+                    "reminderDays",
+                    "reminderFrequency",
+                    "notificationsAppEnabled"
+                ],
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "reminderDays": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "reminderFrequency": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "notificationsAppEnabled": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "TeamOption": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "displayName"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "displayName": {
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    },
+    "paths": {
+        "/index.php/apps/attendance/api/admin/settings": {
+            "get": {
+                "operationId": "admin-get-settings",
+                "summary": "Get admin settings data (groups and current whitelist)",
+                "description": "This endpoint requires admin access",
+                "tags": [
+                    "admin"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "success",
+                                                "groups",
+                                                "whitelistedGroups",
+                                                "whitelistedTeams",
+                                                "teamsAvailable",
+                                                "permissions",
+                                                "reminders",
+                                                "calendarSync",
+                                                "displayOrder"
+                                            ],
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "groups": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/GroupOption"
+                                                    }
+                                                },
+                                                "whitelistedGroups": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "whitelistedTeams": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/TeamOption"
+                                                    }
+                                                },
+                                                "teamsAvailable": {
+                                                    "type": "boolean"
+                                                },
+                                                "permissions": {
+                                                    "$ref": "#/components/schemas/PermissionSettings"
+                                                },
+                                                "reminders": {
+                                                    "$ref": "#/components/schemas/ReminderSettings"
+                                                },
+                                                "calendarSync": {
+                                                    "$ref": "#/components/schemas/CalendarSyncSettings"
+                                                },
+                                                "displayOrder": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "success",
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "success",
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Logged in account must be an admin",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "success",
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "operationId": "admin-save-settings",
+                "summary": "Save admin settings",
+                "description": "This endpoint requires admin access",
+                "tags": [
+                    "admin"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "whitelistedGroups": {
+                                        "type": "array",
+                                        "default": [],
+                                        "description": "Group IDs allowed to use the app",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "whitelistedTeams": {
+                                        "type": "array",
+                                        "default": [],
+                                        "description": "Team IDs allowed to use the app",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "permissions": {
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Permission name to group IDs mapping",
+                                        "additionalProperties": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "reminders": {
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Reminder settings",
+                                        "properties": {
+                                            "enabled": {
+                                                "type": "boolean"
+                                            },
+                                            "reminderDays": {
+                                                "type": "integer",
+                                                "format": "int64"
+                                            },
+                                            "reminderFrequency": {
+                                                "type": "integer",
+                                                "format": "int64"
+                                            }
+                                        }
+                                    },
+                                    "calendarSync": {
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Calendar sync settings",
+                                        "properties": {
+                                            "enabled": {
+                                                "type": "boolean"
+                                            }
+                                        }
+                                    },
+                                    "displayOrder": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Display order for appointments: chronological, name, or group"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "success"
+                                            ],
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "success",
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "success",
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Logged in account must be an admin",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "success",
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "success": {
+                                                    "type": "boolean"
+                                                },
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "calendar",
+            "description": "Controller for calendar integration (importing events)."
+        },
+        {
+            "name": "quick_response",
+            "description": "Controller for handling quick response links from notifications and emails. All endpoints are public (no login required) and authenticated via signed tokens."
+        }
+    ]
+}

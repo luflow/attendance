@@ -13,6 +13,10 @@ use OCA\Attendance\Service\ExportService;
 use OCA\Attendance\Service\NotificationService;
 use OCA\Attendance\Service\PermissionService;
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
@@ -54,15 +58,20 @@ class AppointmentController extends Controller {
 	}
 
 	/**
-	 * @NoAdminRequired
+	 * List appointments visible to the current user
+	 *
+	 * @param bool $showPastAppointments Whether to show past appointments instead of upcoming ones
+	 * @return DataResponse<Http::STATUS_OK, list<AttendanceAppointmentWithResponse>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
 	 */
-	public function index(): DataResponse {
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function index(bool $showPastAppointments = false): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
-		$showPastAppointments = $this->request->getParam('showPastAppointments', 'false') === 'true';
 		$appointments = $this->appointmentService->getAppointmentsWithUserResponses($user->getUID(), $showPastAppointments);
 
 		// Add checkin summary to each appointment if user can see response overview
@@ -77,8 +86,12 @@ class AppointmentController extends Controller {
 
 	/**
 	 * Get minimal appointment data for navigation menu
-	 * @NoAdminRequired
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{current: list<AttendanceNavigationAppointment>, past: list<AttendanceNavigationAppointment>}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
 	public function navigation(): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -90,8 +103,24 @@ class AppointmentController extends Controller {
 	}
 
 	/**
-	 * @NoAdminRequired
+	 * Create a new appointment
+	 *
+	 * @param string $name Appointment name
+	 * @param string $description Appointment description
+	 * @param string $startDatetime Start date and time (ISO 8601)
+	 * @param string $endDatetime End date and time (ISO 8601)
+	 * @param list<string> $visibleUsers User IDs to make the appointment visible to
+	 * @param list<string> $visibleGroups Group IDs to make the appointment visible to
+	 * @param list<string> $visibleTeams Team IDs to make the appointment visible to
+	 * @param bool $sendNotification Whether to send notifications to visible users
+	 * @param ?string $calendarUri URI of the source calendar (when imported from calendar)
+	 * @param ?string $calendarEventUid UID of the source calendar event
+	 * @param list<int> $attachments File IDs to attach to the appointment
+	 * @return DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
 	public function create(
 		string $name,
 		string $description,
@@ -140,8 +169,15 @@ class AppointmentController extends Controller {
 
 	/**
 	 * Bulk create appointments (calendar import or recurring creation)
-	 * @NoAdminRequired
+	 *
+	 * @param list<AttendanceBulkAppointmentItem> $appointments List of appointments to create
+	 * @param bool $sendNotification Whether to send a batch notification to affected users
+	 * @param list<int> $attachments File IDs to attach to all created appointments
+	 * @return DataResponse<Http::STATUS_OK, array{created: list<int>, errors: list<array{index: int, name: string, error: string}>}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
 	public function bulkCreate(array $appointments, bool $sendNotification = false, array $attachments = []): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -209,8 +245,22 @@ class AppointmentController extends Controller {
 	}
 
 	/**
-	 * @NoAdminRequired
+	 * Update an existing appointment
+	 *
+	 * @param int $id Appointment ID
+	 * @param string $name Appointment name
+	 * @param string $description Appointment description
+	 * @param string $startDatetime Start date and time (ISO 8601)
+	 * @param string $endDatetime End date and time (ISO 8601)
+	 * @param list<string> $visibleUsers User IDs to make the appointment visible to
+	 * @param list<string> $visibleGroups Group IDs to make the appointment visible to
+	 * @param list<string> $visibleTeams Team IDs to make the appointment visible to
+	 * @param list<int> $attachments File IDs to attach to the appointment
+	 * @return DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
 	public function update(
 		int $id,
 		string $name,
@@ -260,8 +310,13 @@ class AppointmentController extends Controller {
 
 	/**
 	 * Get a single appointment with user response
-	 * @NoAdminRequired
+	 *
+	 * @param int $id Appointment ID
+	 * @return DataResponse<Http::STATUS_OK, AttendanceAppointmentWithResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
 	public function show(int $id): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -286,8 +341,14 @@ class AppointmentController extends Controller {
 	}
 
 	/**
-	 * @NoAdminRequired
+	 * Delete an appointment
+	 *
+	 * @param int $id Appointment ID
+	 * @return DataResponse<Http::STATUS_OK, array{success: bool}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
 	public function destroy(int $id): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -313,9 +374,14 @@ class AppointmentController extends Controller {
 	}
 
 	/**
-	 * Get detailed responses for an appointment (admin only)
-	 * @NoAdminRequired
+	 * Get detailed responses for an appointment (requires manage appointments permission)
+	 *
+	 * @param int $id Appointment ID
+	 * @return DataResponse<Http::STATUS_OK, list<AttendanceResponseWithUser>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
 	public function getResponses(int $id): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -336,8 +402,16 @@ class AppointmentController extends Controller {
 	}
 
 	/**
-	 * @NoAdminRequired
+	 * Submit the current user's response to an appointment
+	 *
+	 * @param int $id Appointment ID
+	 * @param string $response Response value: yes, no, or maybe
+	 * @param string $comment Optional comment
+	 * @return DataResponse<Http::STATUS_OK, AttendanceResponseData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
 	public function respond(int $id, string $response, string $comment = ''): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -359,8 +433,12 @@ class AppointmentController extends Controller {
 
 	/**
 	 * Get upcoming appointments for dashboard widget
-	 * @NoAdminRequired
+	 *
+	 * @return DataResponse<Http::STATUS_OK, list<AttendanceAppointmentWithResponse>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
 	public function widget(): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -376,11 +454,18 @@ class AppointmentController extends Controller {
 	}
 
 	/**
-	 * Set Checkin for a user (admin only)
+	 * Set check-in status for a user (requires check-in permission)
 	 *
-	 * @NoAdminRequired
+	 * @param int $appointmentId Appointment ID
+	 * @param string $targetUserId User ID to check in
+	 * @param string $response Check-in response: yes, no, or maybe
+	 * @param string $comment Optional check-in comment
+	 * @return DataResponse<Http::STATUS_OK, AttendanceResponseData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
-	public function checkinResponse(int $appointmentId, string $targetUserId): DataResponse {
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function checkinResponse(int $appointmentId, string $targetUserId, string $response, string $comment = ''): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
@@ -390,9 +475,6 @@ class AppointmentController extends Controller {
 		if (!$this->permissionService->canCheckin($user->getUID())) {
 			return new DataResponse(['error' => 'Insufficient permissions to checkin responses'], 403);
 		}
-
-		$response = $this->request->getParam('response');
-		$comment = $this->request->getParam('comment');
 
 		try {
 			$result = $this->checkinService->checkinResponse(
@@ -411,8 +493,13 @@ class AppointmentController extends Controller {
 
 	/**
 	 * Reset all check-in data for an appointment
-	 * @NoAdminRequired
+	 *
+	 * @param int $id Appointment ID
+	 * @return DataResponse<Http::STATUS_OK, array{success: bool}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
 	public function resetCheckin(int $id): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -432,8 +519,13 @@ class AppointmentController extends Controller {
 	}
 
 	/**
-	 * @NoAdminRequired
+	 * Get the current user's permissions and app capabilities
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{canManageAppointments: bool, canCheckin: bool, canSeeResponseOverview: bool, canSeeComments: bool, calendarAvailable: bool, calendarSyncEnabled: bool, displayOrder: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
 	public function getPermissions(): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -452,8 +544,14 @@ class AppointmentController extends Controller {
 	}
 
 	/**
-	 * @NoAdminRequired
+	 * Get check-in data for an appointment
+	 *
+	 * @param int $id Appointment ID
+	 * @return DataResponse<Http::STATUS_OK, AttendanceCheckinData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
 	public function getCheckinData(int $id): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -475,9 +573,17 @@ class AppointmentController extends Controller {
 
 	/**
 	 * Export appointments to ODS file with optional filtering
-	 * @NoAdminRequired
+	 *
+	 * @param ?list<int> $appointmentIds Specific appointment IDs to export, or null for all
+	 * @param ?string $startDate Start date filter in Y-m-d format
+	 * @param ?string $endDate End date filter in Y-m-d format
+	 * @param bool $includeComments Whether to include user comments in the export
+	 * @return DataResponse<Http::STATUS_OK, array{success: bool, path: string, filename: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
-	public function export(): DataResponse {
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function export(?array $appointmentIds = null, ?string $startDate = null, ?string $endDate = null, bool $includeComments = false): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
@@ -486,17 +592,6 @@ class AppointmentController extends Controller {
 		// Check if user can manage appointments
 		if (!$this->permissionService->canManageAppointments($user->getUID())) {
 			return new DataResponse(['error' => 'Insufficient permissions to export appointments'], 403);
-		}
-
-		// Get filter parameters
-		$appointmentIds = $this->request->getParam('appointmentIds'); // array or null
-		$startDate = $this->request->getParam('startDate'); // Y-m-d format or null
-		$endDate = $this->request->getParam('endDate'); // Y-m-d format or null
-		$includeComments = filter_var($this->request->getParam('includeComments', false), FILTER_VALIDATE_BOOLEAN);
-
-		// Validate appointmentIds is array if provided
-		if ($appointmentIds !== null && !is_array($appointmentIds)) {
-			return new DataResponse(['error' => 'appointmentIds must be an array'], 400);
 		}
 
 		// Validate date formats if provided
@@ -526,8 +621,13 @@ class AppointmentController extends Controller {
 
 	/**
 	 * Search for users, groups, and teams
-	 * @NoAdminRequired
+	 *
+	 * @param string $search Search query
+	 * @return DataResponse<Http::STATUS_OK, array{users: list<array<string, mixed>>, groups: list<array<string, mixed>>, teams: list<array<string, mixed>>}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
 	public function searchUsersGroupsTeams(string $search = ''): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
