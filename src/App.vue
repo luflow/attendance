@@ -133,9 +133,11 @@
 			<AppointmentDetail
 				v-else-if="currentView === 'appointment'"
 				:appointment-id="appointmentDetailId"
+				:unanswered-count="unansweredAppointments.length"
 				@response-updated="loadAppointments"
 				@edit-appointment="editAppointment"
-				@copy-appointment="copyAppointment" />
+				@copy-appointment="copyAppointment"
+				@navigate-to-unanswered="setView('unanswered')" />
 
 			<!-- All Appointments View -->
 			<AllAppointments
@@ -146,7 +148,8 @@
 				@response-updated="loadAppointments"
 				@edit-appointment="editAppointment"
 				@copy-appointment="copyAppointment"
-				@navigate-to-upcoming="setView('current')" />
+				@navigate-to-upcoming="setView('current')"
+				@navigate-to-unanswered="setView('unanswered')" />
 
 			<!-- Loading state while routing is determined -->
 			<div v-else class="loading-state">
@@ -405,11 +408,6 @@ onMounted(async () => {
 	if (currentView.value !== 'checkin') {
 		await loadAppointments()
 		appointmentsLoaded.value = true
-
-		// Auto-navigate to unanswered appointments if any exist and we're on the default route
-		if (currentView.value === 'current' && unansweredAppointments.value.length > 0) {
-			setView('unanswered')
-		}
 	}
 
 	window.addEventListener('popstate', () => {

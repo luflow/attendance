@@ -26,7 +26,10 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:nextcloud-libraries.github.io)",
-      "Bash(composer cs:fix:*)"
+      "Bash(composer cs:fix:*)",
+      "Bash(gh issue view:*)",
+      "mcp__acp__Edit",
+      "mcp__acp__Bash"
     ]
   },
   "enableAllProjectMcpServers": true,

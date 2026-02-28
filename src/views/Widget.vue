@@ -97,8 +97,6 @@ const items = computed(() => {
 		mainText: appointment.name,
 		subText: appointment.startDatetime,
 		description: appointment.description,
-		link: generateUrl('/apps/attendance'),
-		iconUrl: generateUrl('/svg/attendance/calendar'),
 		userResponse: appointment.userResponse,
 	}))
 })
