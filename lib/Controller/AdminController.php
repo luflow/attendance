@@ -9,6 +9,9 @@ use OCA\Attendance\Service\PermissionService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Controller;
+use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\JSONResponse;
 use OCP\IConfig;
 use OCP\IRequest;
@@ -43,7 +46,11 @@ class AdminController extends Controller {
 
 	/**
 	 * Get admin settings data (groups and current whitelist)
+	 *
+	 * @return JSONResponse<Http::STATUS_OK, array{success: bool, groups: list<AttendanceGroupOption>, whitelistedGroups: list<string>, whitelistedTeams: list<AttendanceTeamOption>, teamsAvailable: bool, permissions: AttendancePermissionSettings, reminders: AttendanceReminderSettings, calendarSync: AttendanceCalendarSyncSettings, displayOrder: string}, array{}>|JSONResponse<Http::STATUS_OK, array{success: bool, error: string}, array{}>|JSONResponse<Http::STATUS_UNAUTHORIZED, array{success: bool, error: string}, array{}>|JSONResponse<Http::STATUS_FORBIDDEN, array{success: bool, error: string}, array{}>
 	 */
+	#[NoCSRFRequired]
+	#[OpenAPI(OpenAPI::SCOPE_ADMINISTRATION)]
 	public function getSettings(): JSONResponse {
 		// Get current user
 		$user = $this->userSession->getUser();
@@ -112,8 +119,25 @@ class AdminController extends Controller {
 
 	/**
 	 * Save admin settings
+	 *
+	 * @param list<string> $whitelistedGroups Group IDs allowed to use the app
+	 * @param list<string> $whitelistedTeams Team IDs allowed to use the app
+	 * @param array<string, list<string>> $permissions Permission name to group IDs mapping
+	 * @param array{enabled?: bool, reminderDays?: int, reminderFrequency?: int} $reminders Reminder settings
+	 * @param array{enabled?: bool} $calendarSync Calendar sync settings
+	 * @param ?string $displayOrder Display order for appointments: chronological, name, or group
+	 * @return JSONResponse<Http::STATUS_OK, array{success: bool}, array{}>|JSONResponse<Http::STATUS_OK, array{success: bool, error: string}, array{}>|JSONResponse<Http::STATUS_UNAUTHORIZED, array{success: bool, error: string}, array{}>|JSONResponse<Http::STATUS_FORBIDDEN, array{success: bool, error: string}, array{}>
 	 */
-	public function saveSettings(): JSONResponse {
+	#[NoCSRFRequired]
+	#[OpenAPI(OpenAPI::SCOPE_ADMINISTRATION)]
+	public function saveSettings(
+		array $whitelistedGroups = [],
+		array $whitelistedTeams = [],
+		array $permissions = [],
+		array $reminders = [],
+		array $calendarSync = [],
+		?string $displayOrder = null,
+	): JSONResponse {
 		// Get current user
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -124,13 +148,6 @@ class AdminController extends Controller {
 		if (!$this->permissionService->isAdmin($user->getUID())) {
 			return new JSONResponse(['success' => false, 'error' => 'Insufficient permissions'], 403);
 		}
-
-		$whitelistedGroups = $this->request->getParam('whitelistedGroups', []);
-		$whitelistedTeams = $this->request->getParam('whitelistedTeams', []);
-		$permissions = $this->request->getParam('permissions', []);
-		$reminders = $this->request->getParam('reminders', []);
-		$calendarSync = $this->request->getParam('calendarSync', []);
-		$displayOrder = $this->request->getParam('displayOrder', null);
 
 		try {
 			$this->configService->setWhitelistedGroups($whitelistedGroups);

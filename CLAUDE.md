@@ -87,6 +87,41 @@ Follow these Nextcloud translation guidelines (see https://docs.nextcloud.com/se
 - Follow RESTful conventions
 - Use proper HTTP status codes
 
+### OpenAPI Documentation
+The API is documented using Nextcloud's `openapi-extractor`. OpenAPI specs are auto-generated from PHP attributes and docblock annotations.
+
+#### Required PHP attributes on every controller method
+- **API endpoints** (return JSON): `#[NoAdminRequired]`, `#[NoCSRFRequired]`, `#[OpenAPI]`
+- **Admin-only endpoints**: `#[NoCSRFRequired]`, `#[OpenAPI(OpenAPI::SCOPE_ADMINISTRATION)]` (no `#[NoAdminRequired]`)
+- **Public endpoints** (no login): `#[PublicPage]`, `#[NoCSRFRequired]`, `#[OpenAPI]` (or `SCOPE_IGNORE` for non-JSON)
+- **Frontend page routes**: `#[NoAdminRequired]`, `#[NoCSRFRequired]`, `#[OpenAPI(OpenAPI::SCOPE_IGNORE)]`
+
+#### Required imports for annotated controllers
+```php
+use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
+use OCP\AppFramework\Http\Attribute\OpenAPI;
+```
+
+#### Required docblock annotations on every API method
+- **`@param`** for each parameter with type and description
+- **`@return`** with full Psalm generic type, e.g.:
+  ```php
+  @return DataResponse<Http::STATUS_OK, array{success: bool}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
+  ```
+- Use typed arrays (`list<string>`, `list<int>`) instead of bare `array` in both `@param` and method signatures
+- **Never use `$this->request->getParam()`** — always use controller method parameters instead
+
+#### Response type definitions
+- All reusable `@psalm-type` aliases go in `lib/ResponseDefinitions.php`
+- Type names **must** start with `Attendance` (e.g., `AttendanceAppointmentData`, `AttendanceResponseData`)
+- When adding a new response shape, define it in `ResponseDefinitions.php` and reference it in the `@return` annotation
+
+#### After any API change
+- Run `composer openapi` to regenerate `openapi.json`, `openapi-administration.json`, and `openapi-full.json`
+- Commit the updated spec files together with the controller changes
+
 ## Build & Dependencies
 - `package.json` for npm dependencies
 - `composer.json` for PHP dependencies
