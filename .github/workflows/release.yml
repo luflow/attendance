@@ -3,9 +3,6 @@ name: Build and publish app release
 on:
   release:
     types: [published]
-  push:
-    tags:
-      - v*
 
 env:
   APP_NAME: attendance
@@ -14,35 +11,15 @@ jobs:
   check_version:
     runs-on: ubuntu-latest
     outputs:
-      should_release: ${{ steps.check.outputs.should_release }}
       version: ${{ steps.check.outputs.version }}
     steps:
-      - name: Check if should release
+      - name: Get version
         id: check
         run: |
-          # Manual release trigger - always proceed
-          if [ "${{ github.event_name }}" = "release" ]; then
-            echo "should_release=true" >> $GITHUB_OUTPUT
-            echo "version=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
-            echo "Manual release trigger - proceeding"
-            exit 0
-          fi
-
-          # Tag push trigger - only proceed for patch versions
-          TAG="${GITHUB_REF#refs/tags/v}"
-          echo "version=v$TAG" >> $GITHUB_OUTPUT
-          PATCH=$(echo $TAG | cut -d. -f3)
-          if [ "$PATCH" != "0" ]; then
-            echo "should_release=true" >> $GITHUB_OUTPUT
-            echo "This is a patch release (v$TAG) - proceeding"
-          else
-            echo "should_release=false" >> $GITHUB_OUTPUT
-            echo "This is NOT a patch release (v$TAG) - skipping"
-          fi
+          echo "version=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
 
   e2e_tests:
     needs: check_version
-    if: needs.check_version.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
