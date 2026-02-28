@@ -1,9 +1,18 @@
 <template>
 	<div class="attendance-container">
+		<!-- Unanswered reminder banner (shown on upcoming view when there are unanswered appointments) -->
+		<div v-if="!showUnanswered && !showPast && !loading && unansweredCount > 0" class="unanswered-banner-container">
+			<div class="unanswered-banner pending clickable" role="button" @click="emit('navigate-to-unanswered')">
+				<ProgressQuestion :size="20" />
+				<span>{{ n('attendance', '%n appointment awaiting your response', '%n appointments awaiting your response', unansweredCount) }}</span>
+				<span class="banner-action">{{ t('attendance', 'View all') }} →</span>
+			</div>
+		</div>
+
 		<!-- Unanswered Banner (only shown on unanswered view after loading) -->
 		<div v-if="showUnanswered && !loading" class="unanswered-banner-container">
 			<div v-if="appointments.length > 0" class="unanswered-banner pending">
-				<AlertIcon :size="20" />
+				<ProgressQuestion :size="20" />
 				<span>{{ n('attendance', '%n appointment awaiting your response', '%n appointments awaiting your response', appointments.length) }}</span>
 			</div>
 			<div v-else class="unanswered-banner complete">
@@ -53,11 +62,11 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { NcButton } from '@nextcloud/vue'
 import AppointmentCard from '../components/appointment/AppointmentCard.vue'
 import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
-import AlertIcon from 'vue-material-design-icons/Alert.vue'
+import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
 import confettiLib from 'canvas-confetti'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -76,7 +85,7 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['response-updated', 'edit-appointment', 'copy-appointment', 'navigate-to-upcoming'])
+const emit = defineEmits(['response-updated', 'edit-appointment', 'copy-appointment', 'navigate-to-upcoming', 'navigate-to-unanswered'])
 
 const appointments = ref([])
 const exportDialogVisible = ref(false)
@@ -85,6 +94,10 @@ const selectedAppointmentForExport = ref(null)
 const goToUpcoming = () => {
 	emit('navigate-to-upcoming')
 }
+
+const unansweredCount = computed(() => {
+	return appointments.value.filter(a => !a.userResponse).length
+})
 const loading = ref(true)
 const responseComments = reactive({})
 
@@ -268,6 +281,13 @@ onMounted(async () => {
 	margin: 0 auto 20px;
 }
 
+.banner-action {
+	margin-left: auto;
+	font-weight: normal;
+	white-space: nowrap;
+	opacity: 0.85;
+}
+
 .unanswered-banner {
 	display: flex;
 	align-items: center;
@@ -279,6 +299,18 @@ onMounted(async () => {
 		background: #ff8c00;
 		color: white;
 		border-left: 4px solid #ff6600;
+
+		&.clickable {
+			cursor: pointer;
+
+			* {
+				cursor: pointer;
+			}
+
+			&:hover {
+				background: #ff6600;
+			}
+		}
 		font-weight: 600;
 	}
 

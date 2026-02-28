@@ -1,5 +1,13 @@
 <template>
 	<div class="appointment-detail" data-test="appointment-detail-view">
+		<div v-if="unansweredCount > 0"
+			class="unanswered-banner"
+			role="button"
+			@click="emit('navigate-to-unanswered')">
+			<ProgressQuestion :size="20" />
+			<span>{{ n('attendance', '%n appointment awaiting your response', '%n appointments awaiting your response', unansweredCount) }}</span>
+			<span class="banner-action">{{ t('attendance', 'View all') }} →</span>
+		</div>
 		<div v-if="loading" class="loading-state" data-test="loading-state">
 			{{ t('attendance', 'Loading …') }}
 		</div>
@@ -38,6 +46,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { NcButton } from '@nextcloud/vue'
+import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
@@ -51,9 +60,13 @@ const props = defineProps({
 		type: Number,
 		required: true,
 	},
+	unansweredCount: {
+		type: Number,
+		default: 0,
+	},
 })
 
-const emit = defineEmits(['response-updated', 'edit-appointment', 'copy-appointment'])
+const emit = defineEmits(['response-updated', 'edit-appointment', 'copy-appointment', 'navigate-to-unanswered'])
 
 const appointment = ref(null)
 const loading = ref(true)
@@ -177,6 +190,35 @@ watch(() => props.appointmentId, async (newId, oldId) => {
 	padding: 20px;
 	max-width: 800px;
 	margin: 0 auto;
+}
+
+.unanswered-banner {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 16px 20px;
+	border-radius: var(--border-radius-large);
+	background: #ff8c00;
+	color: white;
+	border-left: 4px solid #ff6600;
+	font-weight: 600;
+	margin-bottom: 20px;
+	cursor: pointer;
+
+	* {
+		cursor: pointer;
+	}
+
+	&:hover {
+		background: #ff6600;
+	}
+}
+
+.banner-action {
+	margin-left: auto;
+	font-weight: normal;
+	white-space: nowrap;
+	opacity: 0.85;
 }
 
 .loading-state {
