@@ -53,6 +53,7 @@ OC.L10N.register(
     "Settings saved" : "Instellingen opgeslagen",
     "Failed to save settings" : "Instellingen konden niet worden opgeslagen",
     "Permissions" : "Rechten",
+    "View all" : "Toon alles",
     "Loading …" : "Aan het laden...",
     "Appointment not found" : "Afspraak niet gevonden",
     "Edit appointment" : "Bewerk afspraak",

@@ -151,6 +151,7 @@ OC.L10N.register(
     "_%n group selected_::_%n groups selected_" : ["%n group selected","%n makundi yaliyochaguliwa "],
     "_%n team selected_::_%n teams selected_" : ["%n team selected","%n timu zilizochaguliwa"],
     "Are you sure you want to delete this appointment?" : "Una uhakika unataka kufuta miadi hii?",
+    "View all" : "Tazama zote",
     "Hurray! You responded to all appointments." : "Hongera! Umejibu miadi yote.",
     "Show upcoming appointments" : "Onyesha miadi ijayo",
     "Loading …" : "Inapakia  …",

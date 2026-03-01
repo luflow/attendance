@@ -201,6 +201,7 @@
     "_%n group selected_::_%n groups selected_" : ["已選取 %n 個群組"],
     "_%n team selected_::_%n teams selected_" : ["已選取 %n 個團隊"],
     "Are you sure you want to delete this appointment?" : "你確定要刪除此預約嗎？",
+    "View all" : "檢視所有",
     "Hurray! You responded to all appointments." : "太好了！你已回應所有預約。",
     "Show upcoming appointments" : "顯示即將到來的預約",
     "Loading …" : "正在載入 …",

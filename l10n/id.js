@@ -142,6 +142,7 @@ OC.L10N.register(
     "_%n group selected_::_%n groups selected_" : ["%n grup dipilih"],
     "_%n team selected_::_%n teams selected_" : ["%n tim dipilih"],
     "Are you sure you want to delete this appointment?" : "Apakah Anda yakin ingin menghapus janji temu ini?",
+    "View all" : "Lihat semua",
     "Hurray! You responded to all appointments." : "Hore! Anda telah merespons semua janji temu.",
     "Show upcoming appointments" : "Tampilkan janji temu mendatang",
     "Loading …" : "Memuat …",

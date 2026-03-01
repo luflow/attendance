@@ -143,6 +143,7 @@ OC.L10N.register(
     "_%n group selected_::_%n groups selected_" : ["선택된 그룹%n"],
     "_%n team selected_::_%n teams selected_" : ["선정된 팀%n"],
     "Are you sure you want to delete this appointment?" : "이 예약을 정말로 삭제하시겠습니까?",
+    "View all" : "모두 보기",
     "Hurray! You responded to all appointments." : "와! 모든 약속에 응답해 주셨네요.",
     "Show upcoming appointments" : "예정된 약속을 보여주세요",
     "Loading …" : "로딩 중 …",

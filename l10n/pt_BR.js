@@ -203,6 +203,7 @@ OC.L10N.register(
     "_%n group selected_::_%n groups selected_" : ["%n grupo selecionado","%n de grupos selecionados","%n grupos selecionados"],
     "_%n team selected_::_%n teams selected_" : ["%n equipe selecionada","%n de equipes selecionadas","%n equipes selecionadas"],
     "Are you sure you want to delete this appointment?" : "Tem certeza de que deseja excluir este compromisso?",
+    "View all" : "Ver todos",
     "Hurray! You responded to all appointments." : "Parabéns! Você respondeu a todos os compromissos.",
     "Show upcoming appointments" : "Mostrar compromissos futuros",
     "Loading …" : "Carregando …",

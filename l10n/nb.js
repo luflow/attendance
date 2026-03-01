@@ -55,6 +55,7 @@ OC.L10N.register(
     "Settings saved" : "Innstillinger lagret",
     "Failed to save settings" : "Klarte ikke å lagre innstillinger",
     "Permissions" : "Rettigheter",
+    "View all" : "Se alle",
     "Appointment not found" : "Avtale ikke funnet",
     "Edit appointment" : "Endre avtale",
     "User" : "Bruker",

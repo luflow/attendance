@@ -57,6 +57,7 @@ OC.L10N.register(
     "Settings saved" : "已保存设置",
     "Failed to save settings" : "无法保存设置",
     "Permissions" : "权限",
+    "View all" : "查看全部",
     "Loading …" : "正在加载 …",
     "Appointment not found" : "未找到预约",
     "Edit appointment" : "编辑预约",

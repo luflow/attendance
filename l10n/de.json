@@ -201,6 +201,7 @@
     "_%n group selected_::_%n groups selected_" : ["%n Gruppe ausgewählt","%n Gruppen ausgewählt"],
     "_%n team selected_::_%n teams selected_" : ["%n Team ausgewählt","%n Teams ausgewählt"],
     "Are you sure you want to delete this appointment?" : "Möchtest du diesen Termin wirklich löschen?",
+    "View all" : "Alle anzeigen",
     "Hurray! You responded to all appointments." : "Hurra! Du hast alle Termine wahrgenommen.",
     "Show upcoming appointments" : "Anstehende Termine anzeigen",
     "Loading …" : "Lade …",

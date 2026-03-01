@@ -203,6 +203,7 @@ OC.L10N.register(
     "_%n group selected_::_%n groups selected_" : ["%n ομάδα επιλέχθηκε","%n ομάδες επιλέχθηκαν"],
     "_%n team selected_::_%n teams selected_" : ["%n ομάδα εργασίας επιλέχθηκε","%n ομάδες εργασίας επιλέχθηκαν"],
     "Are you sure you want to delete this appointment?" : "Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτό το ραντεβού;",
+    "View all" : "Προβολή όλων",
     "Hurray! You responded to all appointments." : "Ζήτω! Απαντήσατε σε όλα τα ραντεβού.",
     "Show upcoming appointments" : "Εμφάνιση επερχόμενων ραντεβού",
     "Loading …" : "Φόρτωση …",

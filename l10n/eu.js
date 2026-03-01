@@ -56,6 +56,7 @@ OC.L10N.register(
     "Settings saved" : "Ezarpenak gordeta",
     "Failed to save settings" : "Ezarpenak gordetzeak huts egin du",
     "Permissions" : "Baimenak",
+    "View all" : "Ikusi denak",
     "Loading …" : "Kargatzen …",
     "Appointment not found" : "Ez da hitzordua aurkitu",
     "Edit appointment" : "Editatu hitzordua",

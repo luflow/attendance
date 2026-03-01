@@ -53,6 +53,7 @@ OC.L10N.register(
     "Settings saved" : "ບັນທຶກການຕັ້ງຄ່າແລ້ວ",
     "Failed to save settings" : "ບໍ່ສາມາດບັນທຶກການຕັ້ງຄ່າໄດ້",
     "Permissions" : "ການອະນຸຍາດ",
+    "View all" : "ເບິ່ງທັງໝົດ",
     "Loading …" : "Loading …",
     "Appointment not found" : "Appointment not found",
     "User" : "ຜູ້ໃຊ້",

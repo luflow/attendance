@@ -203,6 +203,7 @@ OC.L10N.register(
     "_%n group selected_::_%n groups selected_" : ["%n grúpa roghnaithe","%n grúpaí roghnaithe","%n grúpaí roghnaithe","%n grúpaí roghnaithe","%n grúpaí roghnaithe"],
     "_%n team selected_::_%n teams selected_" : ["%n foireann roghnaithe","%n foireann roghnaithe","%n foireann roghnaithe","%n foireann roghnaithe","%n foireann roghnaithe"],
     "Are you sure you want to delete this appointment?" : "An bhfuil tú cinnte gur mian leat an coinne seo a scriosadh?",
+    "View all" : "Féach ar fad",
     "Hurray! You responded to all appointments." : "Hurá! D’fhreagair tú na ceapacháin go léir.",
     "Show upcoming appointments" : "Taispeáin coinní atá le teacht",
     "Loading …" : "Ag luchtú …",
