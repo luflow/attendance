@@ -52,6 +52,7 @@ OC.L10N.register(
     "Settings saved" : "Ajustes guardados",
     "Failed to save settings" : "Error al guardar ajustes",
     "Permissions" : "Permisos",
+    "View all" : "Ver todo",
     "Appointment not found" : "Cita no encontrada",
     "Edit appointment" : "Editar cita",
     "User" : "Usuario",

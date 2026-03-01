@@ -119,6 +119,7 @@
     "_%n group selected_::_%n groups selected_" : ["%n ryhmä valittu","%n ryhmää valittu"],
     "_%n team selected_::_%n teams selected_" : ["%n tiimi valittu","%n tiimiä valittu"],
     "Are you sure you want to delete this appointment?" : "Haluatko varmasti poistaa tämän tapaamisen?",
+    "View all" : "Näytä kaikki",
     "Hurray! You responded to all appointments." : "Hienoa! Vastasit kaikkiin tapaamisiisi.",
     "Show upcoming appointments" : "Näytä tulevat tapaamiset",
     "Loading …" : "Ladataan …",

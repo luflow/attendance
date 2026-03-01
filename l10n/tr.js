@@ -146,6 +146,7 @@ OC.L10N.register(
     "_%n group selected_::_%n groups selected_" : ["%n grup seçildi","%n grup seçildi"],
     "_%n team selected_::_%n teams selected_" : ["%n takım seçildi","%n takım seçildi"],
     "Are you sure you want to delete this appointment?" : "Bu randevuyu silmek istediğinize emin misiniz?",
+    "View all" : "Tümünü görüntüle",
     "Hurray! You responded to all appointments." : "Harika!. Tüm randevulara yanıt verdiniz.",
     "Show upcoming appointments" : "Yaklaşan randevuları görüntüle",
     "Loading …" : "Yükleniyor…",

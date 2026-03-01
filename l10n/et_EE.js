@@ -97,6 +97,7 @@ OC.L10N.register(
     "Permissions" : "Õigused",
     "Manage appointments" : "Halda kohtumisi",
     "Appointment reminders" : "Kohtumiste meeldetuletused",
+    "View all" : "Vaata kõiki",
     "Loading …" : "Andmed on laadimisel…",
     "Appointment deleted" : "Kohtumine on kustutatud",
     "Appointment not found" : "Kokkulepitud kohtumist ei leidu",

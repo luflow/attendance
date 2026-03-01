@@ -43,6 +43,7 @@ OC.L10N.register(
     "Settings saved" : "Iestatījumi saglabāti",
     "Failed to save settings" : "Neizdevās saglabāt iestatījumus",
     "Permissions" : "Atļaujas",
+    "View all" : "Skatīt visu",
     "Appointment not found" : "Tikšanās nav atrasta",
     "Edit appointment" : "Labot norunātu tikšanos",
     "User" : "Lietotājs",

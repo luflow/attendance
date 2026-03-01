@@ -203,6 +203,7 @@ OC.L10N.register(
     "_%n group selected_::_%n groups selected_" : ["%n grupo seleccionado","%n grupos seleccionados"],
     "_%n team selected_::_%n teams selected_" : ["%n equipo seleccionado","%n equipos seleccionados"],
     "Are you sure you want to delete this appointment?" : "Confirma que quere eliminar esta cita?",
+    "View all" : "Ver todo",
     "Hurray! You responded to all appointments." : "Excelente! Respondeu a todas as citas.",
     "Show upcoming appointments" : "Amosar as próximas citas",
     "Loading …" : "Cargando…",

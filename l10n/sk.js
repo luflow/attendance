@@ -203,6 +203,7 @@ OC.L10N.register(
     "_%n group selected_::_%n groups selected_" : ["%n skupina vybraná","%n skupín vybraných","%n skupín vybraných","%n skupiny vybrané"],
     "_%n team selected_::_%n teams selected_" : ["%n tím vybraný","%n tímov vybraných","%n tímov vybraných","%n tímy vybrané"],
     "Are you sure you want to delete this appointment?" : "Ste si istí, že chcete túto schôdzku vymazať?",
+    "View all" : "Zobraziť všetko",
     "Hurray! You responded to all appointments." : "Hurá! Odpovedali ste na všetky termíny schôdzok.",
     "Show upcoming appointments" : "Zobraziť nadchádzajúce schôdzky",
     "Loading …" : "Načítava sa …",

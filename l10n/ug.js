@@ -58,6 +58,7 @@ OC.L10N.register(
     "Settings saved" : "تەڭشەكلەر ساقلاندى",
     "Failed to save settings" : "تەڭشەكلەرنى ساقلىيالمىدى",
     "Permissions" : "ئىجازەت",
+    "View all" : "ھەممىنى كۆرۈش",
     "Loading …" : "يۈكلەۋاتىدۇ ...",
     "Appointment not found" : "تەيىنلەنمىدى",
     "User" : "ئىشلەتكۈچى",
