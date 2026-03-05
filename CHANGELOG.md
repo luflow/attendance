@@ -6,6 +6,16 @@
 
 - Nightly changes here
 
+## 1.29.1 – 2026-03-05
+
+### Changed
+
+- Translations updated from Transifex
+
+### Maintenance
+
+- Removed duplicate release trigger and unused CI workflow
+
 ## 1.29.0 – 2026-02-28
 
 ### Added
