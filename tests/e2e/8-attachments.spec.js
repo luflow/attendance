@@ -184,9 +184,10 @@ test.describe.serial('Attendance App - Attachments', () => {
 				}
 			}
 
-			// Close the form (cancel to not create the appointment)
+			// Close the file picker if still open, then close the form
 			await page.keyboard.press('Escape')
-			await page.waitForTimeout(500)
+			// Wait for the file picker modal to fully close
+			await page.locator('.modal-wrapper').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {})
 			await page.getByRole('button', { name: 'Cancel' }).click()
 		})
 
