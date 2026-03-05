@@ -6,6 +6,12 @@
 
 - Nightly changes here
 
+## 1.29.2 – 2026-03-06
+
+### Fixed
+
+- Fixed flaky e2e test for file picker attachment by properly waiting for modal close
+
 ## 1.29.1 – 2026-03-05
 
 ### Changed
