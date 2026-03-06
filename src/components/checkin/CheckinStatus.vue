@@ -2,11 +2,11 @@
 	<div class="checkin-status">
 		<div v-if="allCheckedIn" class="status-complete">
 			<CheckIcon :size="20" />
-			<span>{{ t('attendance', 'All attendees checked in') }}</span>
+			<span>{{ t('attendance', 'All checked in') }}</span>
 		</div>
 		<div v-else class="status-pending">
 			<AlertIcon :size="20" />
-			<span>{{ n('attendance', '{count} attendee not yet checked in', '{count} attendees not yet checked in', notCheckedInCount, { count: notCheckedInCount }) }}</span>
+			<span>{{ t('attendance', '{count} not yet checked in', { count: notCheckedInCount }) }}</span>
 		</div>
 	</div>
 </template>
