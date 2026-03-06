@@ -82,7 +82,7 @@
 
 					<NcEmptyContent
 						v-else-if="showFilter === 'not-checked-in'"
-						:name="t('attendance', 'All attendees checked in')"
+						:name="t('attendance', 'All checked in')"
 						data-test="empty-all-checked-in">
 						<template #icon>
 							<CheckIcon />
