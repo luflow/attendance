@@ -143,8 +143,6 @@ OC.L10N.register(
     "All absent" : "Todos ausentes",
     "Search by name …" : "Pesquisar por nome …",
     "Filter by group" : "Filtrar por grupo",
-    "All attendees checked in" : "Todos os participantes fizeram o check-in",
-    "_{count} attendee not yet checked in_::_{count} attendees not yet checked in_" : ["{count} participante ainda não fez o check-in","{count} de participantes ainda não fizeram o check-in","{count} participantes ainda não fizeram o check-in"],
     "Present" : "Presente",
     "Absent" : "Ausente",
     "Add comment" : "Adicionar comentário",

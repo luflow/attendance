@@ -94,8 +94,6 @@ OC.L10N.register(
     "All present" : "Tüm katılanlar",
     "All absent" : "Tüm katılmayanlar",
     "Filter by group" : "Gruba göre süz",
-    "All attendees checked in" : "Tüm katılımcılar giriş yaptı",
-    "_{count} attendee not yet checked in_::_{count} attendees not yet checked in_" : ["{count} katılımcı henüz giriş yapmadı","{count} katılımcı henüz giriş yapmadı"],
     "Present" : "Katıldı",
     "Absent" : "Katılmadı",
     "Add comment" : "Açıklama ekle",

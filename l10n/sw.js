@@ -97,8 +97,6 @@ OC.L10N.register(
     "All absent" : "Wote hawapo",
     "Search by name …" : "Tafuta kwa jina...",
     "Filter by group" : "Chuja kwa kikundi",
-    "All attendees checked in" : "Waliohudhuria wote waliingia",
-    "_{count} attendee not yet checked in_::_{count} attendees not yet checked in_" : ["{count} attendee not yet checked in","{count} waliohudhuria bado hawajaingia"],
     "Present" : "Waliopo",
     "Absent" : "Wasiokuwepo",
     "Add comment" : "Ongeza maoni",

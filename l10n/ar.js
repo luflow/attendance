@@ -56,6 +56,7 @@ OC.L10N.register(
     "Settings saved" : "تمّ حفظ الإعدادات",
     "Failed to save settings" : "فشل في حفظ الإعدادات",
     "Permissions" : "الصلاحيّات",
+    "View all" : "عرض الكل",
     "Appointment not found" : "الموعد غير موجود",
     "Edit appointment" : "تعديل موعد",
     "User" : "المُستخدِم",
