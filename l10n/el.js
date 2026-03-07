@@ -143,8 +143,6 @@ OC.L10N.register(
     "All absent" : "Όλοι απόντες",
     "Search by name …" : "Αναζήτηση με βάση το όνομα …",
     "Filter by group" : "Φιλτράρισμα ανά ομάδα",
-    "All attendees checked in" : "Όλοι οι συμμετέχοντες έκαναν check-in",
-    "_{count} attendee not yet checked in_::_{count} attendees not yet checked in_" : ["{count} συμμετέχων δεν έχει κάνει ακόμη check-in","{count} συμμετέχοντες δεν έχουν κάνει ακόμη check-in"],
     "Present" : "Παρόν",
     "Absent" : "Απών",
     "Add comment" : "Προσθήκη σχολίου",

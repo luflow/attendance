@@ -143,8 +143,6 @@ OC.L10N.register(
     "All absent" : "Všichni nepřítomní",
     "Search by name …" : "Hledat podle názvu …",
     "Filter by group" : "Filtrovat podle skupiny",
-    "All attendees checked in" : "Všichni účastníci se zapsali",
-    "_{count} attendee not yet checked in_::_{count} attendees not yet checked in_" : ["{count} účastník se ještě nezapsal","{count} účastníci se ještě nezapsali","{count} účastníků se ještě nezapsalo","{count} účastníci se ještě nezapsali"],
     "Present" : "Dárky",
     "Absent" : "Chybí",
     "Add comment" : "Přidat komentář",

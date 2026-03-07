@@ -89,8 +89,6 @@
     "All present" : "모두 참석",
     "All absent" : "모두 결석",
     "Filter by group" : "그룹별 필터링",
-    "All attendees checked in" : "모든 참석자가 체크인을 완료했습니다.",
-    "_{count} attendee not yet checked in_::_{count} attendees not yet checked in_" : ["아직 체크인하지 않은 참석자{count}"],
     "Present" : "참석",
     "Absent" : "결석",
     "Add comment" : "댓글 추가",

@@ -143,8 +143,6 @@ OC.L10N.register(
     "All absent" : "Gach duine as láthair",
     "Search by name …" : "Cuardaigh de réir ainm…",
     "Filter by group" : "Scag de réir grúpa",
-    "All attendees checked in" : "Sheiceáil na freastalaithe go léir isteach",
-    "_{count} attendee not yet checked in_::_{count} attendees not yet checked in_" : ["Níl {count} freastalaí seiceáilte isteach fós","{count} freastalaithe nach bhfuil seiceáilte isteach fós","{count} freastalaithe nach bhfuil seiceáilte isteach fós","{count} freastalaithe nach bhfuil seiceáilte isteach fós","{count} freastalaithe nach bhfuil seiceáilte isteach fós"],
     "Present" : "Bronntanas",
     "Absent" : "As láthair",
     "Add comment" : "Cuir nóta tráchta leis",

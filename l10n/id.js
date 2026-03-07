@@ -90,8 +90,6 @@ OC.L10N.register(
     "All present" : "Semua hadir",
     "All absent" : "Semua tidak hadir",
     "Filter by group" : "Filter berdasarkan grup",
-    "All attendees checked in" : "Semua peserta telah check-in",
-    "_{count} attendee not yet checked in_::_{count} attendees not yet checked in_" : ["{count} peserta belum check-in"],
     "Present" : "Hadir",
     "Absent" : "Tidak hadir",
     "Add comment" : "Tambahkan komentar",
