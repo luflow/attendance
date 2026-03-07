@@ -123,6 +123,22 @@
 						{{ n('attendance', '%n group selected', '%n groups selected', selectedSeeCommentsRoles.length, { n: selectedSeeCommentsRoles.length }) }}
 					</p>
 				</div>
+
+				<div class="subsection">
+					<h4>{{ t('attendance', 'Self-check-in') }}</h4>
+					<p class="subsection-hint">
+						{{ t('attendance', 'Groups that can self-check-in via NFC sticker or deep link') }}
+					</p>
+					<GroupSelect
+						v-model="selectedSelfCheckinRoles"
+						:options="availableGroups"
+						:placeholder="t('attendance', 'Select groups …')"
+						:disabled="loading"
+						data-test="select-self-checkin-roles" />
+					<p class="hint-text">
+						{{ n('attendance', '%n group selected', '%n groups selected', selectedSelfCheckinRoles.length, { n: selectedSelfCheckinRoles.length }) }}
+					</p>
+				</div>
 			</NcSettingsSection>
 
 			<NcSettingsSection :name="t('attendance', 'Appointment reminders')"
@@ -258,6 +274,7 @@ const selectedManageAppointmentsRoles = ref([])
 const selectedCheckinRoles = ref([])
 const selectedSeeResponseOverviewRoles = ref([])
 const selectedSeeCommentsRoles = ref([])
+const selectedSelfCheckinRoles = ref([])
 const remindersEnabled = ref(false)
 const reminderDays = ref(7)
 const reminderFrequency = ref(0)
@@ -277,7 +294,7 @@ const loadSettings = async () => {
 			generateUrl('/apps/attendance/api/admin/settings'),
 		)
 
-		if (response.data.success) {
+		if (response.data.groups) {
 			availableGroups.value = response.data.groups
 			// Convert selected IDs to selected group objects for NcSelect, preserving database order
 			selectedGroups.value = response.data.whitelistedGroups
@@ -304,6 +321,9 @@ const loadSettings = async () => {
 					.map(id => response.data.groups.find(group => group.id === id))
 					.filter(group => group !== undefined)
 				selectedSeeCommentsRoles.value = (response.data.permissions.see_comments || [])
+					.map(id => response.data.groups.find(group => group.id === id))
+					.filter(group => group !== undefined)
+				selectedSelfCheckinRoles.value = (response.data.permissions.self_checkin || [])
 					.map(id => response.data.groups.find(group => group.id === id))
 					.filter(group => group !== undefined)
 			}
@@ -379,6 +399,7 @@ const saveSettings = async () => {
 					PERMISSION_CHECKIN: selectedCheckinRoles.value.map(g => g.id),
 					PERMISSION_SEE_RESPONSE_OVERVIEW: selectedSeeResponseOverviewRoles.value.map(g => g.id),
 					PERMISSION_SEE_COMMENTS: selectedSeeCommentsRoles.value.map(g => g.id),
+					PERMISSION_SELF_CHECKIN: selectedSelfCheckinRoles.value.map(g => g.id),
 				},
 				reminders: {
 					enabled: remindersEnabled.value,
@@ -392,12 +413,7 @@ const saveSettings = async () => {
 			},
 		)
 
-		if (response.data.success) {
-			showSuccess(window.t('attendance', 'Settings saved'))
-		} else {
-			showError(window.t('attendance', 'Failed to save settings')
-				+ (response.data.error ? ': ' + response.data.error : ''))
-		}
+		showSuccess(window.t('attendance', 'Settings saved'))
 	} catch (error) {
 		console.error('Error saving settings:', error)
 		showError(window.t('attendance', 'Failed to save settings'))

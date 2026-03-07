@@ -8,6 +8,7 @@ use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
+use OCA\Attendance\Db\DatetimeFormatTrait;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Collaboration\Collaborators\ISearch as ICollaboratorSearch;
@@ -20,6 +21,8 @@ use OCP\Share\IShare;
  * Delegates to specialized services for summary, visibility, and check-in operations.
  */
 class AppointmentService {
+	use DatetimeFormatTrait;
+
 	private AppointmentMapper $appointmentMapper;
 	private AttendanceResponseMapper $responseMapper;
 	private IGroupManager $groupManager;
@@ -85,8 +88,8 @@ class AppointmentService {
 		$appointment->setStartDatetime($startFormatted);
 		$appointment->setEndDatetime($endFormatted);
 		$appointment->setCreatedBy($createdBy);
-		$appointment->setCreatedAt(date('Y-m-d H:i:s'));
-		$appointment->setUpdatedAt(date('Y-m-d H:i:s'));
+		$appointment->setCreatedAt(gmdate('Y-m-d H:i:s'));
+		$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
 		$appointment->setIsActive(1);
 		$appointment->setVisibleUsers(empty($visibleUsers) ? null : json_encode($visibleUsers));
 		$appointment->setVisibleGroups(empty($visibleGroups) ? null : json_encode($visibleGroups));
@@ -130,7 +133,7 @@ class AppointmentService {
 		$appointment->setDescription($this->stripHtmlFromMarkdown($description));
 		$appointment->setStartDatetime($startFormatted);
 		$appointment->setEndDatetime($endFormatted);
-		$appointment->setUpdatedAt(date('Y-m-d H:i:s'));
+		$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
 		$appointment->setVisibleUsers(empty($visibleUsers) ? null : json_encode($visibleUsers));
 		$appointment->setVisibleGroups(empty($visibleGroups) ? null : json_encode($visibleGroups));
 		$appointment->setVisibleTeams(empty($visibleTeams) ? null : json_encode($visibleTeams));
@@ -144,7 +147,7 @@ class AppointmentService {
 	public function deleteAppointment(int $id, string $userId): void {
 		$appointment = $this->appointmentMapper->find($id);
 		$appointment->setIsActive(0);
-		$appointment->setUpdatedAt(date('Y-m-d H:i:s'));
+		$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
 		$this->appointmentMapper->update($appointment);
 	}
 
@@ -215,13 +218,18 @@ class AppointmentService {
 			throw new \InvalidArgumentException('Invalid response. Must be yes, no, or maybe.');
 		}
 
-		$this->appointmentMapper->find($appointmentId);
+		$appointment = $this->appointmentMapper->find($appointmentId);
+
+		// Verify user can see this appointment before allowing a response
+		if (!$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
+			throw new DoesNotExistException('Appointment not found');
+		}
 
 		try {
 			$existingResponse = $this->responseMapper->findByAppointmentAndUser($appointmentId, $userId);
 			$existingResponse->setResponse($response);
 			$existingResponse->setComment($comment);
-			$existingResponse->setRespondedAt(date('Y-m-d H:i:s'));
+			$existingResponse->setRespondedAt(gmdate('Y-m-d H:i:s'));
 			return $this->responseMapper->update($existingResponse);
 		} catch (DoesNotExistException $e) {
 			$attendanceResponse = new AttendanceResponse();
@@ -229,7 +237,7 @@ class AppointmentService {
 			$attendanceResponse->setUserId($userId);
 			$attendanceResponse->setResponse($response);
 			$attendanceResponse->setComment($comment);
-			$attendanceResponse->setRespondedAt(date('Y-m-d H:i:s'));
+			$attendanceResponse->setRespondedAt(gmdate('Y-m-d H:i:s'));
 			return $this->responseMapper->insert($attendanceResponse);
 		}
 	}
@@ -544,19 +552,6 @@ class AppointmentService {
 	}
 
 	/**
-	 * Format datetime to UTC ISO 8601 format.
-	 */
-	private function formatDatetimeToUtc(string $datetime): string {
-		try {
-			$utcTimezone = new \DateTimeZone('UTC');
-			$date = new \DateTime($datetime, $utcTimezone);
-			return $date->format('Y-m-d\TH:i:s\Z');
-		} catch (\Exception $e) {
-			return $datetime;
-		}
-	}
-
-	/**
 	 * Validate that end datetime is after start datetime.
 	 */
 	private function validateDateRange(string $startDatetime, string $endDatetime): void {
@@ -574,11 +569,12 @@ class AppointmentService {
 	}
 
 	/**
-	 * Convert ISO 8601 datetime to MySQL format.
+	 * Convert ISO 8601 datetime to MySQL format in UTC.
 	 */
 	private function formatDatetime(string $datetime): string {
 		try {
 			$date = new \DateTime($datetime);
+			$date->setTimezone(new \DateTimeZone('UTC'));
 			return $date->format('Y-m-d H:i:s');
 		} catch (\Exception $e) {
 			return $datetime;

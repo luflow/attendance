@@ -7,6 +7,7 @@ export default createAppConfig(
     dashboard: resolve(join("src", "dashboard.js")),
     settings: resolve(join("src", "settings.js")),
     quickresponse: resolve(join("src", "quickresponse.js")),
+    selfcheckin: resolve(join("src", "selfcheckin.js")),
   },
   {
     createEmptyCSSEntryPoints: true,

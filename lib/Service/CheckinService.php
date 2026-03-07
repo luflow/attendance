@@ -76,7 +76,8 @@ class CheckinService {
 			$attendanceResponse->setCheckinComment($comment);
 		}
 		$attendanceResponse->setCheckinBy($adminUserId);
-		$attendanceResponse->setCheckinAt(date('Y-m-d H:i:s'));
+		$attendanceResponse->setCheckinAt(gmdate('Y-m-d H:i:s'));
+		$attendanceResponse->setCheckinSource('manual');
 
 		// Save or update
 		if ($attendanceResponse->getId()) {
@@ -268,18 +269,21 @@ class CheckinService {
 			'checkinComment' => null,
 			'checkinBy' => null,
 			'checkinAt' => null,
+			'checkinSource' => null,
 		];
 
 		// Add response data if user has responded
 		if (isset($userResponseMap[$userId])) {
 			$response = $userResponseMap[$userId];
-			$userData['response'] = $response->getResponse();
-			$userData['comment'] = $response->getComment();
-			$userData['isCheckedIn'] = $response->isCheckedIn();
-			$userData['checkinState'] = $response->getCheckinState();
-			$userData['checkinComment'] = $response->getCheckinComment();
-			$userData['checkinBy'] = $response->getCheckinBy();
-			$userData['checkinAt'] = $response->getCheckinAt();
+			$responseData = $response->jsonSerialize();
+			$userData['response'] = $responseData['response'];
+			$userData['comment'] = $responseData['comment'];
+			$userData['isCheckedIn'] = $responseData['isCheckedIn'];
+			$userData['checkinState'] = $responseData['checkinState'];
+			$userData['checkinComment'] = $responseData['checkinComment'];
+			$userData['checkinBy'] = $responseData['checkinBy'];
+			$userData['checkinAt'] = $responseData['checkinAt'];
+			$userData['checkinSource'] = $responseData['checkinSource'];
 		}
 
 		return $userData;

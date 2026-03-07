@@ -20,6 +20,7 @@ use OCP\AppFramework\Db\Entity;
  * @method void setLastUsedAt(?string $lastUsedAt)
  */
 class IcalToken extends Entity implements JsonSerializable {
+	use DatetimeFormatTrait;
 	protected $userId = '';
 	protected $token = '';
 	protected $createdAt = '';
@@ -37,8 +38,9 @@ class IcalToken extends Entity implements JsonSerializable {
 		return [
 			'id' => $this->getId(),
 			'userId' => $this->getUserId(),
-			'createdAt' => $this->getCreatedAt(),
-			'lastUsedAt' => $this->getLastUsedAt(),
+			'createdAt' => $this->formatDatetimeToUtc($this->getCreatedAt()),
+			'lastUsedAt' => $this->formatDatetimeToUtc($this->getLastUsedAt()),
 		];
 	}
+
 }

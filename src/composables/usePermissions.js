@@ -8,6 +8,7 @@ const state = reactive({
 		canCheckin: false,
 		canSeeResponseOverview: false,
 		canSeeComments: false,
+		canSelfCheckin: false,
 		calendarAvailable: false,
 		calendarSyncEnabled: false,
 		displayOrder: 'name_first',
@@ -47,6 +48,7 @@ export function usePermissions() {
 			state.permissions.canCheckin = response.data.canCheckin || false
 			state.permissions.canSeeResponseOverview = response.data.canSeeResponseOverview || false
 			state.permissions.canSeeComments = response.data.canSeeComments || false
+			state.permissions.canSelfCheckin = response.data.canSelfCheckin || false
 			state.permissions.calendarAvailable = response.data.calendarAvailable || false
 			state.permissions.calendarSyncEnabled = response.data.calendarSyncEnabled || false
 			state.permissions.displayOrder = response.data.displayOrder || 'name_first'
@@ -60,6 +62,7 @@ export function usePermissions() {
 			state.permissions.canCheckin = false
 			state.permissions.canSeeResponseOverview = false
 			state.permissions.canSeeComments = false
+			state.permissions.canSelfCheckin = false
 			state.permissions.calendarAvailable = false
 			state.permissions.calendarSyncEnabled = false
 			state.permissions.displayOrder = 'name_first'
@@ -82,6 +85,7 @@ export function usePermissions() {
 		state.permissions.canCheckin = false
 		state.permissions.canSeeResponseOverview = false
 		state.permissions.canSeeComments = false
+		state.permissions.canSelfCheckin = false
 	}
 
 	return {

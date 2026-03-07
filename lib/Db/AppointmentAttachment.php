@@ -24,6 +24,7 @@ use OCP\AppFramework\Db\Entity;
  * @method void setAddedAt(string $addedAt)
  */
 class AppointmentAttachment extends Entity implements JsonSerializable {
+	use DatetimeFormatTrait;
 	protected $appointmentId;
 	protected $fileId;
 	protected $fileName = '';
@@ -53,16 +54,4 @@ class AppointmentAttachment extends Entity implements JsonSerializable {
 		];
 	}
 
-	/**
-	 * Format datetime to UTC ISO 8601 format
-	 */
-	private function formatDatetimeToUtc(string $datetime): string {
-		try {
-			$utcTimezone = new \DateTimeZone('UTC');
-			$date = new \DateTime($datetime, $utcTimezone);
-			return $date->format('Y-m-d\TH:i:s\Z');
-		} catch (\Exception $e) {
-			return $datetime;
-		}
-	}
 }

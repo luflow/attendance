@@ -161,7 +161,7 @@ class AppointmentController extends Controller {
 
 			$this->addAttachmentsToAppointment($appointment->getId(), $attachments, $user->getUID());
 
-			return new DataResponse($appointment);
+			return new DataResponse($appointment, Http::STATUS_CREATED);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 400);
 		}
@@ -241,7 +241,7 @@ class AppointmentController extends Controller {
 		return new DataResponse([
 			'created' => $createdIds,
 			'errors' => $errors,
-		]);
+		], Http::STATUS_CREATED);
 	}
 
 	/**
@@ -397,7 +397,7 @@ class AppointmentController extends Controller {
 			$responses = $this->appointmentService->getAppointmentResponsesWithUsers($id, $user->getUID());
 			return new DataResponse($responses);
 		} catch (\Exception $e) {
-			return new DataResponse(['error' => $e->getMessage()], 403);
+			return new DataResponse(['error' => $e->getMessage()], 400);
 		}
 	}
 
@@ -476,6 +476,13 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'Insufficient permissions to checkin responses'], 403);
 		}
 
+		// Verify appointment exists
+		try {
+			$this->appointmentService->getAppointment($appointmentId);
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => 'Appointment not found'], 404);
+		}
+
 		try {
 			$result = $this->checkinService->checkinResponse(
 				$appointmentId,
@@ -510,6 +517,13 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'Insufficient permissions to reset check-in data'], 403);
 		}
 
+		// Verify appointment exists
+		try {
+			$this->appointmentService->getAppointment($id);
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => 'Appointment not found'], 404);
+		}
+
 		try {
 			$this->checkinService->resetCheckin($id);
 			return new DataResponse(['success' => true]);
@@ -537,6 +551,7 @@ class AppointmentController extends Controller {
 			'canCheckin' => $this->permissionService->canCheckin($user->getUID()),
 			'canSeeResponseOverview' => $this->permissionService->canSeeResponseOverview($user->getUID()),
 			'canSeeComments' => $this->permissionService->canSeeComments($user->getUID()),
+			'canSelfCheckin' => $this->permissionService->canSelfCheckin($user->getUID()),
 			'calendarAvailable' => $this->calendarService->isCalendarAvailable(),
 			'calendarSyncEnabled' => $this->configService->isCalendarSyncEnabled(),
 			'displayOrder' => $this->configService->getDisplayOrder(),
@@ -623,7 +638,7 @@ class AppointmentController extends Controller {
 	 * Search for users, groups, and teams
 	 *
 	 * @param string $search Search query
-	 * @return DataResponse<Http::STATUS_OK, array{users: list<array<string, mixed>>, groups: list<array<string, mixed>>, teams: list<array<string, mixed>>}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, list<array{id: string, label: string, type: string, icon: string}>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]

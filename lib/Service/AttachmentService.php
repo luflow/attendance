@@ -62,7 +62,7 @@ class AttachmentService {
 		$attachment->setFileName($file->getName());
 		$attachment->setFilePath($userFolder->getRelativePath($file->getPath()) ?? $file->getPath());
 		$attachment->setAddedBy($userId);
-		$attachment->setAddedAt(date('Y-m-d H:i:s'));
+		$attachment->setAddedAt(gmdate('Y-m-d H:i:s'));
 
 		return $this->attachmentMapper->insert($attachment);
 	}
@@ -133,7 +133,7 @@ class AttachmentService {
 			$attachment->setFileName($sourceAttachment->getFileName());
 			$attachment->setFilePath($sourceAttachment->getFilePath());
 			$attachment->setAddedBy($userId);
-			$attachment->setAddedAt(date('Y-m-d H:i:s'));
+			$attachment->setAddedAt(gmdate('Y-m-d H:i:s'));
 
 			$copiedAttachments[] = $this->attachmentMapper->insert($attachment);
 		}

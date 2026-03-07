@@ -78,7 +78,7 @@ class AppointmentMapper extends QBMapper {
 			->where(
 				$qb->expr()->andX(
 					$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
-					$qb->expr()->gte('end_datetime', $qb->createNamedParameter(date('Y-m-d H:i:s')))
+					$qb->expr()->gte('end_datetime', $qb->createNamedParameter(gmdate('Y-m-d H:i:s')))
 				)
 			)
 			->orderBy('start_datetime', 'ASC');
@@ -98,7 +98,7 @@ class AppointmentMapper extends QBMapper {
 			->where(
 				$qb->expr()->andX(
 					$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
-					$qb->expr()->lt('end_datetime', $qb->createNamedParameter(date('Y-m-d H:i:s')))
+					$qb->expr()->lt('end_datetime', $qb->createNamedParameter(gmdate('Y-m-d H:i:s')))
 				)
 			)
 			->orderBy('start_datetime', 'DESC'); // Newest first for past appointments
@@ -156,6 +156,36 @@ class AppointmentMapper extends QBMapper {
 				$qb->expr()->eq('calendar_uri', $qb->createNamedParameter($calendarUri))
 			);
 		}
+
+		return $this->findEntities($qb);
+	}
+
+	/**
+	 * Find active appointments within a time window around now.
+	 * Used for self-check-in: returns appointments that are currently happening
+	 * or about to start within the given window.
+	 *
+	 * @param int $windowMinutes Minutes before start_datetime to include (default 30)
+	 * @return array<Appointment>
+	 */
+	public function findActiveInWindow(int $windowMinutes = 30): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$now = new \DateTime('now', new \DateTimeZone('UTC'));
+		$windowStart = (clone $now)->modify("-{$windowMinutes} minutes");
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->andX(
+					$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
+					// start_datetime <= NOW + windowMinutes (appointment has started or starts soon)
+					$qb->expr()->lte('start_datetime', $qb->createNamedParameter($now->modify("+{$windowMinutes} minutes")->format('Y-m-d H:i:s'))),
+					// end_datetime >= NOW (appointment hasn't ended yet)
+					$qb->expr()->gte('end_datetime', $qb->createNamedParameter((new \DateTime('now', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s')))
+				)
+			)
+			->orderBy('start_datetime', 'ASC');
 
 		return $this->findEntities($qb);
 	}

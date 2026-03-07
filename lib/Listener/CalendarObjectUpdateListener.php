@@ -117,7 +117,7 @@ class CalendarObjectUpdateListener implements IEventListener {
 					$appointment->setEndDatetime($dtendUtc->format('Y-m-d H:i:s'));
 				}
 
-				$appointment->setUpdatedAt(date('Y-m-d H:i:s'));
+				$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
 				$this->appointmentMapper->update($appointment);
 
 				$this->logger->info('Updated attendance appointment {id} from calendar event {uid}', [

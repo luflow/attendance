@@ -63,6 +63,7 @@ trait RequiresAuthTrait {
 			'checkin' => $this->permissionService->canCheckin($userId),
 			'see_response_overview' => $this->permissionService->canSeeResponseOverview($userId),
 			'see_comments' => $this->permissionService->canSeeComments($userId),
+			'self_checkin' => $this->permissionService->canSelfCheckin($userId),
 			default => false,
 		};
 	}
