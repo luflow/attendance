@@ -70,7 +70,7 @@ class Widget implements IAPIWidget {
 	 * @inheritDoc
 	 */
 	public function getIconClass(): string {
-		return 'icon-category-organization-dark';
+		return 'icon-attendance';
 	}
 
 	/**
