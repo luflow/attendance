@@ -12,7 +12,7 @@ use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\OpenAPI;
-use OCP\AppFramework\Http\JSONResponse;
+use OCP\AppFramework\Http\DataResponse;
 use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IUserSession;
@@ -51,16 +51,16 @@ class AdminController extends Controller {
 	 */
 	#[NoCSRFRequired]
 	#[OpenAPI(OpenAPI::SCOPE_ADMINISTRATION)]
-	public function getSettings(): JSONResponse {
+	public function getSettings(): DataResponse {
 		// Get current user
 		$user = $this->userSession->getUser();
 		if (!$user) {
-			return new JSONResponse(['success' => false, 'error' => 'User not logged in'], 401);
+			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
 		// Check if user is admin
 		if (!$this->permissionService->isAdmin($user->getUID())) {
-			return new JSONResponse(['success' => false, 'error' => 'Insufficient permissions'], 403);
+			return new DataResponse(['error' => 'Insufficient permissions'], 403);
 		}
 
 		try {
@@ -101,8 +101,7 @@ class AdminController extends Controller {
 				'available' => $calendarSyncAvailable,
 			];
 
-			return new JSONResponse([
-				'success' => true,
+			return new DataResponse([
 				'groups' => $groupOptions,
 				'whitelistedGroups' => $whitelistedGroups,
 				'whitelistedTeams' => $whitelistedTeams,
@@ -113,7 +112,7 @@ class AdminController extends Controller {
 				'displayOrder' => $this->configService->getDisplayOrder(),
 			]);
 		} catch (\Exception $e) {
-			return new JSONResponse(['success' => false, 'error' => $e->getMessage()]);
+			return new DataResponse(['error' => $e->getMessage()], 500);
 		}
 	}
 
@@ -137,16 +136,16 @@ class AdminController extends Controller {
 		array $reminders = [],
 		array $calendarSync = [],
 		?string $displayOrder = null,
-	): JSONResponse {
+	): DataResponse {
 		// Get current user
 		$user = $this->userSession->getUser();
 		if (!$user) {
-			return new JSONResponse(['success' => false, 'error' => 'User not logged in'], 401);
+			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
 		// Check if user is admin
 		if (!$this->permissionService->isAdmin($user->getUID())) {
-			return new JSONResponse(['success' => false, 'error' => 'Insufficient permissions'], 403);
+			return new DataResponse(['error' => 'Insufficient permissions'], 403);
 		}
 
 		try {
@@ -182,9 +181,9 @@ class AdminController extends Controller {
 				$this->configService->setDisplayOrder($displayOrder);
 			}
 
-			return new JSONResponse(['success' => true]);
+			return new DataResponse(['success' => true]);
 		} catch (\Exception $e) {
-			return new JSONResponse(['success' => false, 'error' => $e->getMessage()]);
+			return new DataResponse(['error' => $e->getMessage()], 500);
 		}
 	}
 }

@@ -38,6 +38,7 @@ use OCP\AppFramework\Db\Entity;
  * @method void setCalendarEventUid(?string $calendarEventUid)
  */
 class Appointment extends Entity implements JsonSerializable {
+	use DatetimeFormatTrait;
 	protected $name = '';
 	protected $description = '';
 	protected $startDatetime = '';
@@ -99,20 +100,4 @@ class Appointment extends Entity implements JsonSerializable {
 		return is_array($decoded) ? $decoded : [];
 	}
 
-	/**
-	 * Format datetime to UTC ISO 8601 format
-	 */
-	private function formatDatetimeToUtc(string $datetime): string {
-		try {
-			// Database stores datetime in UTC, so create DateTime object with UTC timezone
-			$utcTimezone = new \DateTimeZone('UTC');
-			$date = new \DateTime($datetime, $utcTimezone);
-
-			// Return in ISO 8601 format with UTC timezone indicator
-			return $date->format('Y-m-d\TH:i:s\Z');
-		} catch (\Exception $e) {
-			// If parsing fails, return the original value
-			return $datetime;
-		}
-	}
 }

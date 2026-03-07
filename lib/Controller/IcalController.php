@@ -49,11 +49,12 @@ class IcalController extends Controller {
 		try {
 			$token = $this->icalService->getOrCreateToken($user->getUID());
 			$feedUrl = $this->icalService->getFeedUrl($user->getUID());
+			$tokenData = $token->jsonSerialize();
 
 			return new DataResponse([
 				'feedUrl' => $feedUrl,
-				'createdAt' => $token->getCreatedAt(),
-				'lastUsedAt' => $token->getLastUsedAt(),
+				'createdAt' => $tokenData['createdAt'],
+				'lastUsedAt' => $tokenData['lastUsedAt'],
 			]);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 500);
@@ -77,11 +78,12 @@ class IcalController extends Controller {
 		try {
 			$token = $this->icalService->regenerateToken($user->getUID());
 			$feedUrl = $this->icalService->getFeedUrl($user->getUID());
+			$tokenData = $token->jsonSerialize();
 
 			return new DataResponse([
 				'feedUrl' => $feedUrl,
-				'createdAt' => $token->getCreatedAt(),
-				'lastUsedAt' => $token->getLastUsedAt(),
+				'createdAt' => $tokenData['createdAt'],
+				'lastUsedAt' => $tokenData['lastUsedAt'],
 			]);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 500);

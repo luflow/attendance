@@ -89,7 +89,7 @@ class IcalService {
 		}
 
 		// Update last used timestamp
-		$icalToken->setLastUsedAt(date('Y-m-d H:i:s'));
+		$icalToken->setLastUsedAt(gmdate('Y-m-d H:i:s'));
 		$this->icalTokenMapper->update($icalToken);
 
 		return $icalToken->getUserId();
@@ -170,7 +170,7 @@ class IcalService {
 		$token = new IcalToken();
 		$token->setUserId($userId);
 		$token->setToken($this->secureRandom->generate(self::TOKEN_LENGTH, self::TOKEN_CHARS));
-		$token->setCreatedAt(date('Y-m-d H:i:s'));
+		$token->setCreatedAt(gmdate('Y-m-d H:i:s'));
 
 		return $this->icalTokenMapper->insert($token);
 	}

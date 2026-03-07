@@ -72,7 +72,7 @@ class ResponseService {
 			// Update existing response
 			$existingResponse->setResponse($response);
 			$existingResponse->setComment($comment);
-			$existingResponse->setRespondedAt(date('Y-m-d H:i:s'));
+			$existingResponse->setRespondedAt(gmdate('Y-m-d H:i:s'));
 			$existingResponse->setResponseSource($source);
 			return $this->responseMapper->update($existingResponse);
 		} catch (DoesNotExistException $e) {
@@ -82,7 +82,7 @@ class ResponseService {
 			$attendanceResponse->setUserId($userId);
 			$attendanceResponse->setResponse($response);
 			$attendanceResponse->setComment($comment);
-			$attendanceResponse->setRespondedAt(date('Y-m-d H:i:s'));
+			$attendanceResponse->setRespondedAt(gmdate('Y-m-d H:i:s'));
 			$attendanceResponse->setResponseSource($source);
 			return $this->responseMapper->insert($attendanceResponse);
 		}
@@ -191,7 +191,7 @@ class ResponseService {
 			$attendanceResponse->setCheckinComment($comment);
 		}
 		$attendanceResponse->setCheckinBy($adminUserId);
-		$attendanceResponse->setCheckinAt(date('Y-m-d H:i:s'));
+		$attendanceResponse->setCheckinAt(gmdate('Y-m-d H:i:s'));
 
 		// Save or update
 		if ($attendanceResponse->getId()) {

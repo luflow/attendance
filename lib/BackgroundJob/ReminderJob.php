@@ -214,7 +214,7 @@ class ReminderJob extends TimedJob {
 					$reminderLog = new ReminderLog();
 					$reminderLog->setAppointmentId($appointment->getId());
 					$reminderLog->setUserId($userId);
-					$reminderLog->setRemindedAt(date('Y-m-d H:i:s'));
+					$reminderLog->setRemindedAt(gmdate('Y-m-d H:i:s'));
 					$this->reminderLogMapper->insert($reminderLog);
 
 					$sentCount++;

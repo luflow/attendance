@@ -98,14 +98,15 @@ class QuickResponseController extends Controller {
 
 		// Get appointment details
 		$appointment = $this->tokenService->getAppointment($appointmentId);
+		$appointmentData = $appointment->jsonSerialize();
 
 		$data = [
 			'error' => false,
 			'confirmed' => false,
 			'appointmentId' => $appointmentId,
 			'appointmentName' => $appointment->getName(),
-			'appointmentDatetime' => $appointment->getStartDatetime(),
-			'appointmentEndDatetime' => $appointment->getEndDatetime(),
+			'appointmentDatetime' => $appointmentData['startDatetime'],
+			'appointmentEndDatetime' => $appointmentData['endDatetime'],
 			'response' => $response,
 			'responseLabel' => $this->getResponseLabel($response),
 			'token' => $token,

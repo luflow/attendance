@@ -58,5 +58,10 @@ return [
 		// Quick response (public endpoints for email/notification links)
 		['name' => 'quick_response#showConfirmation', 'url' => '/respond/{appointmentId}', 'verb' => 'GET'],
 		['name' => 'quick_response#confirmResponse', 'url' => '/respond/{appointmentId}/confirm', 'verb' => 'POST'],
+
+		// Self check-in (NFC / deep link)
+		['name' => 'self_checkin#getActiveAppointments', 'url' => '/api/self-checkin/appointments', 'verb' => 'GET'],
+		['name' => 'self_checkin#checkin', 'url' => '/api/self-checkin', 'verb' => 'POST'],
+		['name' => 'self_checkin#showPage', 'url' => '/self-checkin', 'verb' => 'GET'],
 	]
 ];

@@ -126,6 +126,7 @@ class AttendanceResponseMapper extends QBMapper {
 			->set('checkin_comment', $qb->createNamedParameter(null, \Doctrine\DBAL\ParameterType::NULL))
 			->set('checkin_by', $qb->createNamedParameter(null, \Doctrine\DBAL\ParameterType::NULL))
 			->set('checkin_at', $qb->createNamedParameter(null, \Doctrine\DBAL\ParameterType::NULL))
+			->set('checkin_source', $qb->createNamedParameter(null, \Doctrine\DBAL\ParameterType::NULL))
 			->where($qb->expr()->eq('appointment_id', $qb->createNamedParameter($appointmentId)));
 		$qb->executeStatement();
 	}

@@ -19,6 +19,7 @@ class PermissionService {
 	public const PERMISSION_CHECKIN = 'checkin';
 	public const PERMISSION_SEE_RESPONSE_OVERVIEW = 'see_response_overview';
 	public const PERMISSION_SEE_COMMENTS = 'see_comments';
+	public const PERMISSION_SELF_CHECKIN = 'self_checkin';
 
 	public function __construct(IConfig $config, IGroupManager $groupManager, IUserSession $userSession, IUserManager $userManager) {
 		$this->config = $config;
@@ -105,7 +106,8 @@ class PermissionService {
 			self::PERMISSION_MANAGE_APPOINTMENTS => $this->getRolesForPermission(self::PERMISSION_MANAGE_APPOINTMENTS),
 			self::PERMISSION_CHECKIN => $this->getRolesForPermission(self::PERMISSION_CHECKIN),
 			self::PERMISSION_SEE_RESPONSE_OVERVIEW => $this->getRolesForPermission(self::PERMISSION_SEE_RESPONSE_OVERVIEW),
-			self::PERMISSION_SEE_COMMENTS => $this->getRolesForPermission(self::PERMISSION_SEE_COMMENTS)
+			self::PERMISSION_SEE_COMMENTS => $this->getRolesForPermission(self::PERMISSION_SEE_COMMENTS),
+			self::PERMISSION_SELF_CHECKIN => $this->getRolesForPermission(self::PERMISSION_SELF_CHECKIN),
 		];
 	}
 
@@ -119,6 +121,7 @@ class PermissionService {
 			'PERMISSION_CHECKIN' => self::PERMISSION_CHECKIN,
 			'PERMISSION_SEE_RESPONSE_OVERVIEW' => self::PERMISSION_SEE_RESPONSE_OVERVIEW,
 			'PERMISSION_SEE_COMMENTS' => self::PERMISSION_SEE_COMMENTS,
+			'PERMISSION_SELF_CHECKIN' => self::PERMISSION_SELF_CHECKIN,
 		];
 
 		foreach ($permissions as $permission => $roles) {
@@ -129,7 +132,8 @@ class PermissionService {
 				self::PERMISSION_MANAGE_APPOINTMENTS,
 				self::PERMISSION_CHECKIN,
 				self::PERMISSION_SEE_RESPONSE_OVERVIEW,
-				self::PERMISSION_SEE_COMMENTS
+				self::PERMISSION_SEE_COMMENTS,
+				self::PERMISSION_SELF_CHECKIN,
 			])) {
 				$this->setRolesForPermission($permissionValue, $roles);
 			}
@@ -176,6 +180,13 @@ class PermissionService {
 	 */
 	public function canSeeComments(string $userId): bool {
 		return $this->hasPermission($userId, self::PERMISSION_SEE_COMMENTS);
+	}
+
+	/**
+	 * Check if user can self-check-in via NFC / deep link
+	 */
+	public function canSelfCheckin(string $userId): bool {
+		return $this->hasPermission($userId, self::PERMISSION_SELF_CHECKIN);
 	}
 
 	/**
