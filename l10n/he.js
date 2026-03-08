@@ -4,6 +4,11 @@ OC.L10N.register(
     "Others" : "חרים",
     "Group" : "קבוצה",
     "Attachments" : "קבצים מצורפים",
+    "Connect" : "התחברות",
+    "Add account" : "הוספת חשבון",
+    "Settings" : "הגדרות",
+    "Account" : "חשבון",
+    "Log out" : "התנתק",
     "Export" : "ייצוא",
     "Select all" : "בחר הכל",
     "Deselect all" : "ביטול בחירה",
@@ -52,6 +57,7 @@ OC.L10N.register(
     "Description" : "תיאור",
     "Notification" : "הוֹדָעָה",
     "No users found" : "לא נמצאו משתמשים",
-    "Confirm" : "אישור"
+    "Confirm" : "אישור",
+    "Try again" : "ניסיון חוזר"
 },
 "nplurals=3; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: 2;");

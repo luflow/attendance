@@ -7,6 +7,9 @@ OC.L10N.register(
     "Others" : "Останати",
     "Group" : "Група",
     "Attachments" : "Прилози",
+    "Connect" : "Поврзи се",
+    "Settings" : "Параметри",
+    "Account" : "Сметка",
     "Create appointment" : "Креирај термин",
     "Export" : "Извези",
     "Date range" : "Опсег",
@@ -63,6 +66,7 @@ OC.L10N.register(
     "Add from Files" : "Додади од датотеките",
     "All users" : "Сите корисници",
     "Confirm" : "Потврди",
-    "Thank you for your response!" : "Благодариме на вашиот одговор."
+    "Thank you for your response!" : "Благодариме на вашиот одговор.",
+    "Try again" : "Обиди се повторно"
 },
 "nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;");

@@ -4,6 +4,11 @@ OC.L10N.register(
     "Yes" : "Po",
     "Group" : "Grup",
     "Attachments" : "Bashkangjitjet",
+    "Connect" : "Lidhu",
+    "Add account" : "Shtoni llogari",
+    "Settings" : "Rregullimet",
+    "Account" : "Llogari",
+    "Log out" : "Shkyçu",
     "Export" : "Eksport",
     "Select all" : "Zgjidhi të gjitha",
     "Deselect all" : "Hiqi të gjithë",
@@ -36,6 +41,7 @@ OC.L10N.register(
     "Appointment updated" : "Takimi u përditësua",
     "Description" : "Përshkrim",
     "Date & Time" : "Data & Ora",
-    "Confirm" : "Konfirmo"
+    "Confirm" : "Konfirmo",
+    "Try again" : "Provo përsëri"
 },
 "nplurals=2; plural=(n != 1);");

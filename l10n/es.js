@@ -7,6 +7,13 @@ OC.L10N.register(
     "Others" : "Otros",
     "Group" : "Grupo",
     "Attachments" : "Adjuntos",
+    "Connect" : "Conectar",
+    "Add account" : "Añadir cuenta",
+    "Let's go!" : "¡Vamos!",
+    "Settings" : "Ajustes",
+    "Account" : "Cuenta",
+    "Log out" : "Cerrar sesión",
+    "Are you sure you want to log out?" : "¿Está seguro de cerrar la sesión?",
     "Create appointment" : "Crear cita",
     "Export" : "Exportar",
     "Date range" : "Rango de fechas",
@@ -59,6 +66,7 @@ OC.L10N.register(
     "Settings saved" : "Ajustes guardados",
     "Failed to save settings" : "Fallo al guardar ajustes",
     "Permissions" : "Permisos",
+    "Select groups …" : "Seleccione los grupos …",
     "View all" : "Ver todo",
     "Loading …" : "Cargando …",
     "Appointment not found" : "Cita no encontrada",
@@ -76,6 +84,7 @@ OC.L10N.register(
     "All users" : "Todos los usuarios",
     "No users found" : "No se han encontrado usuarios",
     "Confirm" : "Confirmar",
-    "Thank you for your response!" : "¡Gracias por su respuesta!"
+    "Thank you for your response!" : "¡Gracias por su respuesta!",
+    "Try again" : "Vuelva a intentarlo"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

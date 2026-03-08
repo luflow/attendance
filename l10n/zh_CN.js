@@ -7,6 +7,12 @@ OC.L10N.register(
     "Others" : "其它",
     "Group" : "群组",
     "Attachments" : "附件",
+    "Connect" : "连接",
+    "Add account" : "添加账号",
+    "Let's go!" : "让我们出发吧！",
+    "Settings" : "设置",
+    "Account" : "账号",
+    "Log out" : "注销",
     "Create appointment" : "创建预约",
     "Export" : "导出",
     "Date range" : "日期范围",
@@ -57,6 +63,7 @@ OC.L10N.register(
     "Settings saved" : "已保存设置",
     "Failed to save settings" : "无法保存设置",
     "Permissions" : "权限",
+    "Select groups …" : "选择群组…",
     "View all" : "查看全部",
     "Loading …" : "正在加载 …",
     "Appointment not found" : "未找到预约",
@@ -73,6 +80,7 @@ OC.L10N.register(
     "All users" : "所有用户",
     "No users found" : "未找到用户",
     "Confirm" : "确认",
-    "Thank you for your response!" : "感谢您的回复！"
+    "Thank you for your response!" : "感谢您的回复！",
+    "Try again" : "重试"
 },
 "nplurals=1; plural=0;");

@@ -6,6 +6,12 @@ OC.L10N.register(
     "Maybe" : "Galbūt",
     "Others" : "Kiti",
     "Attachments" : "Priedai",
+    "Connect" : "Prisijungti",
+    "Add account" : "Pridėti paskyrą",
+    "Let's go!" : "Pirmyn!",
+    "Settings" : "Nustatymai",
+    "Account" : "Paskyra",
+    "Log out" : "Atsijungti",
     "Create appointment" : "Sukurti susitikimą",
     "Export" : "Eksportuoti",
     "Select all" : "Pažymėti viską",
@@ -62,6 +68,7 @@ OC.L10N.register(
     "Continue anyway" : "Vis tiek tęsti",
     "All users" : "Visi naudotojai",
     "No users found" : "Nerasta jokių naudotojų",
-    "Confirm" : "Patvirtinti"
+    "Confirm" : "Patvirtinti",
+    "Try again" : "Bandyti dar kartą"
 },
 "nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);");

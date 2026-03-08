@@ -3,6 +3,10 @@ OC.L10N.register(
     {
     "Group" : "Hópur",
     "Attachments" : "Viðhengi",
+    "Connect" : "Tengjast",
+    "Settings" : "Stillingar",
+    "Account" : "Aðgangur",
+    "Are you sure you want to log out?" : "Ertu viss að þú viljir skrá þig út?",
     "Create appointment" : "Búa til stefnumót",
     "Export" : "Flytja út",
     "Date range" : "Tímabil",
@@ -61,6 +65,7 @@ OC.L10N.register(
     "Notification" : "Tilkynning",
     "Add from Files" : "Bæta við úr skrám",
     "All users" : "Allir notendur",
-    "Confirm" : "Staðfesta"
+    "Confirm" : "Staðfesta",
+    "Try again" : "Reyndu aftur"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

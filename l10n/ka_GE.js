@@ -3,6 +3,11 @@ OC.L10N.register(
     {
     "Yes" : "დიახ",
     "Maybe" : "შესაძლოა",
+    "Connect" : "დაკავშირება",
+    "Add account" : "ანგარიშის დამატება.",
+    "Settings" : "პარამეტრები",
+    "Account" : "ანგარიში",
+    "Log out" : "გამოსვლა",
     "Export" : "ექსპორტი",
     "Select all" : "ყველას არჩევა",
     "Deselect all" : "ყველას წაშლა",
@@ -28,6 +33,7 @@ OC.L10N.register(
     "Permissions" : "უფლებები",
     "User" : "მომხმარებელი",
     "Description" : "აღწერილობა",
-    "Confirm" : "დადასტურება"
+    "Confirm" : "დადასტურება",
+    "Try again" : "სცადეთ ახლიდან"
 },
 "nplurals=2; plural=(n!=1);");

@@ -8,6 +8,13 @@ OC.L10N.register(
     "Others" : "باشقىلار",
     "Group" : "گۇرۇپپا",
     "Attachments" : "قوشۇمچە ھۆججەتلەر",
+    "Connect" : "ئۇلاڭ",
+    "Add account" : "ھېسابات قوشۇڭ",
+    "Let's go!" : "ماڭايلى!",
+    "Settings" : "تەڭشەكلەر",
+    "Account" : "ھېسابات",
+    "Log out" : "چېكىنىش",
+    "Are you sure you want to log out?" : "چېكىنىشنى خالامسىز؟",
     "Export" : "ئېكسپورت",
     "Date range" : "چېسلا دائىرىسى",
     "Select all" : "ھەممىنى تاللاڭ",
@@ -58,6 +65,7 @@ OC.L10N.register(
     "Settings saved" : "تەڭشەكلەر ساقلاندى",
     "Failed to save settings" : "تەڭشەكلەرنى ساقلىيالمىدى",
     "Permissions" : "ئىجازەت",
+    "Select groups …" : "گۇرۇپپىلارنى تاللاڭ…",
     "View all" : "ھەممىنى كۆرۈش",
     "Loading …" : "يۈكلەۋاتىدۇ ...",
     "Appointment not found" : "تەيىنلەنمىدى",
@@ -74,6 +82,7 @@ OC.L10N.register(
     "All users" : "بارلىق ئىشلەتكۈچىلەر",
     "No users found" : "ئىشلەتكۈچى تېپىلمىدى",
     "Confirm" : "جەزملەشتۈرۈڭ",
-    "Thank you for your response!" : "جاۋابىڭىزغا رەھمەت!"
+    "Thank you for your response!" : "جاۋابىڭىزغا رەھمەت!",
+    "Try again" : "قايتا سىناڭ"
 },
 "nplurals=2; plural=(n != 1);");

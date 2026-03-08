@@ -7,6 +7,13 @@ OC.L10N.register(
     "Others" : "Другие",
     "Group" : "Группа",
     "Attachments" : "Вложения",
+    "Connect" : "Подключиться",
+    "Add account" : "Добавить счёт",
+    "Let's go!" : "Поехали!",
+    "Settings" : "Настройки",
+    "Account" : "Учётная запись",
+    "Log out" : "Выйти из системы",
+    "Are you sure you want to log out?" : "Вы уверены, что хотите выйти?",
     "Create appointment" : "Создать мероприятие",
     "Export" : "Экспорт",
     "Date range" : "Диапазон дат",
@@ -56,6 +63,7 @@ OC.L10N.register(
     "Settings saved" : "Настройки сохранены",
     "Failed to save settings" : "Не удалось сохранить параметры",
     "Permissions" : "Права",
+    "Select groups …" : "Выбрать группы …",
     "View all" : "Просмотреть все",
     "Loading …" : "Загрузка …",
     "Appointment not found" : "Встреча не найдена",
@@ -72,6 +80,7 @@ OC.L10N.register(
     "All users" : "Все пользователи",
     "No users found" : "Пользователи не найдены",
     "Confirm" : "Подтвердить",
-    "Thank you for your response!" : "Спасибо за ваш ответ!"
+    "Thank you for your response!" : "Спасибо за ваш ответ!",
+    "Try again" : "Попытаться снова"
 },
 "nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);");

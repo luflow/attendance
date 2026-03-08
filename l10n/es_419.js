@@ -2,6 +2,10 @@ OC.L10N.register(
     "attendance",
     {
     "Yes" : "Si",
+    "Connect" : "Conectar",
+    "Settings" : "Ajustes",
+    "Account" : "Cuenta",
+    "Log out" : "Cerrar sesión",
     "Export" : "Exportar",
     "Select all" : "Seleccionar todo",
     "Deselect all" : "Deseleccionar todo",
@@ -26,6 +30,7 @@ OC.L10N.register(
     "Permissions" : "Permisos",
     "User" : "Ususario",
     "Description" : "Descripción",
-    "Confirm" : "Confirmar"
+    "Confirm" : "Confirmar",
+    "Try again" : "Reintentar"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

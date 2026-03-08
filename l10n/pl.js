@@ -7,6 +7,13 @@ OC.L10N.register(
     "Others" : "Inne",
     "Group" : "Grupa",
     "Attachments" : "Załączniki",
+    "Connect" : "Połącz",
+    "Add account" : "Dodaj konto",
+    "Let's go!" : "Zaczynajmy!",
+    "Settings" : "Ustawienia",
+    "Account" : "Konto",
+    "Log out" : "Wyloguj się",
+    "Are you sure you want to log out?" : "Czy na pewno chcesz się wylogować?",
     "Create appointment" : "Utwórz spotkanie",
     "Export" : "Eksportuj",
     "Date range" : "Zakres dat",
@@ -63,6 +70,7 @@ OC.L10N.register(
     "Settings saved" : "Ustawienia zapisane",
     "Failed to save settings" : "Nie udało się zapisać ustawień",
     "Permissions" : "Uprawnienia",
+    "Select groups …" : "Wybierz grupy…",
     "View all" : "Zobacz wszystkie",
     "Loading …" : "Ładowanie ...",
     "Appointment not found" : "Nie znaleziono spotkania",
@@ -79,6 +87,7 @@ OC.L10N.register(
     "All users" : "Wszyscy użytkownicy",
     "No users found" : "Nie znaleziono użytkowników",
     "Confirm" : "Potwierdź",
-    "Thank you for your response!" : "Dziękujemy za Twoją odpowiedź!"
+    "Thank you for your response!" : "Dziękujemy za Twoją odpowiedź!",
+    "Try again" : "Spróbuj ponownie"
 },
 "nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);");

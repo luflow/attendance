@@ -7,6 +7,13 @@ OC.L10N.register(
     "Others" : "Bestelakoak",
     "Group" : "Taldea",
     "Attachments" : "Eranskinak",
+    "Connect" : "Konektatu",
+    "Add account" : "Gehitu kontua",
+    "Let's go!" : "Goazen!",
+    "Settings" : "Ezarpenak",
+    "Account" : "Kontua",
+    "Log out" : "Saioa itxi",
+    "Are you sure you want to log out?" : "Ziur zaude saioa bukatu nahi duzula?",
     "Create appointment" : "Sortu hitzordua",
     "Export" : "Esportatu",
     "Date range" : "Data tartea",
@@ -56,6 +63,7 @@ OC.L10N.register(
     "Settings saved" : "Ezarpenak gordeta",
     "Failed to save settings" : "Ezarpenak gordetzeak huts egin du",
     "Permissions" : "Baimenak",
+    "Select groups …" : "Hautatu taldeak ...",
     "View all" : "Ikusi denak",
     "Loading …" : "Kargatzen …",
     "Appointment not found" : "Ez da hitzordua aurkitu",
@@ -71,6 +79,7 @@ OC.L10N.register(
     "Add from Files" : "Gehitu Fitxategietatik",
     "All users" : "Erabiltzaile guztiak",
     "No users found" : "Ez da erabiltzailerik aurkitu",
-    "Confirm" : "Berretsi"
+    "Confirm" : "Berretsi",
+    "Try again" : "Saiatu berriz"
 },
 "nplurals=2; plural=(n != 1);");

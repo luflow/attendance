@@ -2,6 +2,9 @@ OC.L10N.register(
     "attendance",
     {
     "No" : "Ket",
+    "Connect" : "Kenstagañ",
+    "Add account" : "Ouzhpenn ur c'hont",
+    "Log out" : "Digennaskañ",
     "Select all" : "Dibab pep tra",
     "Deselect all" : "Diziuzañ pep tra",
     "Cancel" : "Cancel",

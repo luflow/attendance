@@ -5,6 +5,11 @@ OC.L10N.register(
     "No" : "Không",
     "Group" : "Nhóm",
     "Attachments" : "Tệp đính kèm",
+    "Connect" : "Kết nối",
+    "Add account" : "Thêm tài khoản",
+    "Let's go!" : "Đi nào!",
+    "Settings" : "Thiết lập",
+    "Account" : "Tài khoản",
     "Create appointment" : "Tạo lịch hẹn",
     "Export" : "Xuất ra",
     "Select all" : "Chọn tất cả",
@@ -49,6 +54,7 @@ OC.L10N.register(
     "Attach" : "Đính kèm",
     "Description" : "Mô tả",
     "Notification" : "Thông báo",
-    "Confirm" : "Xác nhận"
+    "Confirm" : "Xác nhận",
+    "Try again" : "Thử lại"
 },
 "nplurals=1; plural=0;");

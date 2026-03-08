@@ -6,6 +6,10 @@ OC.L10N.register(
     "Maybe" : "Магадгүй",
     "Group" : "Бүлэг",
     "Attachments" : "Хавсралт",
+    "Connect" : "—Ö–æ–ª–±–æ—Ö",
+    "Settings" : "–¢–æ—Ö–∏—Ä–≥–æ–æ",
+    "Account" : "–∞–∫–∫–∞—É–Ω—Ç",
+    "Log out" : "Гарах",
     "Export" : "Экспорт",
     "Date range" : "Огнооны хүрээ",
     "Select all" : "бүгдийг сонгох",
@@ -58,6 +62,7 @@ OC.L10N.register(
     "Notification" : "Мэдэгдэл",
     "Add from Files" : "Файлуудаас нэмэх",
     "Confirm" : "Батлах",
-    "Thank you for your response!" : "Хариултад баярлалаа!"
+    "Thank you for your response!" : "Хариултад баярлалаа!",
+    "Try again" : "Дахин оролдох"
 },
 "nplurals=2; plural=(n != 1);");

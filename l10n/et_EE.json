@@ -10,6 +10,13 @@
     "Please check the new appointments and respond." : "Palun kontrolli uusi kohtumispäringuid ja vasta neile.",
     "Group" : "Grupp",
     "Attachments" : "Manused",
+    "Connect" : "Ühenda",
+    "Add account" : "Lisa kasutajakonto",
+    "Let's go!" : "Alustame!",
+    "Settings" : "Seadistused",
+    "Account" : "Konto",
+    "Log out" : "Logi välja",
+    "Are you sure you want to log out?" : "Kas sa oled kindel, et soovid välja logida?",
     "Upcoming appointments" : "Tulevased kohtumised",
     "Past appointments" : "Varasemad kohtumised",
     "Create appointment" : "Loo kohtumine",
@@ -94,6 +101,7 @@
     "Failed to save settings" : "Seadistuste salvestamine ei õnnestunud",
     "Permissions" : "Õigused",
     "Manage appointments" : "Halda kohtumisi",
+    "Select groups …" : "Vali grupid…",
     "Appointment reminders" : "Kohtumiste meeldetuletused",
     "View all" : "Vaata kõiki",
     "Loading …" : "Andmed on laadimisel…",
@@ -112,9 +120,9 @@
     "Error creating appointments" : "Viga kohtumiste loomisel",
     "Appointment updated" : "Kohtumine on uuendatud",
     "Appointment created" : "Kohtumine on loodud",
-    "Importing appointments …" : "Impordin kohtumisi…",
     "Appointment name" : "Kohtumise nimi",
     "Description" : "Kirjeldus",
+    "Importing appointments …" : "Impordin kohtumisi…",
     "Date & Time" : "Kuupäev ja kellaaeg",
     "Notification" : "Teavitus",
     "Add from Files" : "Lisa failidest",
@@ -122,6 +130,7 @@
     "All users" : "Kõik kasutajad",
     "No users found" : "Kasutajaid ei leidu",
     "Confirm" : "Kinnita",
-    "Thank you for your response!" : "Suur tänu vastamise eest!"
+    "Thank you for your response!" : "Suur tänu vastamise eest!",
+    "Try again" : "Proovi uuesti"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

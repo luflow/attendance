@@ -7,6 +7,13 @@ OC.L10N.register(
     "Others" : "Інші",
     "Group" : "Група",
     "Attachments" : "Вкладення",
+    "Connect" : "Підключення",
+    "Add account" : "Додати обліковий запис",
+    "Let's go!" : "Ходімо!",
+    "Settings" : "Налаштування",
+    "Account" : "Обліковий запис",
+    "Log out" : "Вийти",
+    "Are you sure you want to log out?" : "Ви впевнені, що хочете вийти з системи?",
     "Create appointment" : "Створити зустріч",
     "Export" : "Експортувати",
     "Date range" : "Проміжок часу",
@@ -58,6 +65,7 @@ OC.L10N.register(
     "Settings saved" : "Налаштування збережено",
     "Failed to save settings" : "Неможливо зберегти налаштування",
     "Permissions" : "Дозволи ",
+    "Select groups …" : "Виберіть групи ...",
     "View all" : "Переглянути всі",
     "Loading …" : "Завантаження …",
     "Appointment not found" : "Запрошення на зустріч не знайдено",
@@ -74,6 +82,7 @@ OC.L10N.register(
     "Continue anyway" : "Продовжити все одно",
     "All users" : "Всі користувачі",
     "Confirm" : "Підтвердити",
-    "Thank you for your response!" : "Дякуємо за вашу відповідь!"
+    "Thank you for your response!" : "Дякуємо за вашу відповідь!",
+    "Try again" : "Спробуйте ще раз"
 },
 "nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % 100 >=11 && n % 100 <=14 )) ? 2: 3);");

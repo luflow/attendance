@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "Sí",
     "No" : "Non",
     "Group" : "Grupu",
+    "Let's go!" : "¡Vamos!",
     "Export" : "Esportar",
     "Select all" : "Seleicionar too",
     "Start date" : "Data de comienzu",

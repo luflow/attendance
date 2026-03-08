@@ -7,6 +7,11 @@ OC.L10N.register(
     "Others" : "その他",
     "Group" : "グループ",
     "Attachments" : "添付ファイル",
+    "Connect" : "接続",
+    "Add account" : "アカウントを追加",
+    "Let's go!" : "さあ始めましょう！",
+    "Settings" : "設定",
+    "Account" : "アカウント",
     "Create appointment" : "予定を作成",
     "Export" : "エクスポート",
     "Date range" : "日付範囲",
@@ -56,6 +61,7 @@ OC.L10N.register(
     "Settings saved" : "設定が保存されました",
     "Failed to save settings" : "設定の保存に失敗しました",
     "Permissions" : "アクセス権限",
+    "Select groups …" : "グループを選択 ...",
     "Loading …" : "読み込み中…",
     "Appointment not found" : "予定が見つかりません",
     "Edit appointment" : "予定を編集",
@@ -70,6 +76,7 @@ OC.L10N.register(
     "Add from Files" : "ファイルから追加",
     "All users" : "すべてのユーザー",
     "No users found" : "ユーザーが見つかりません",
-    "Confirm" : "承認"
+    "Confirm" : "承認",
+    "Try again" : "もう一度試してください"
 },
 "nplurals=1; plural=0;");

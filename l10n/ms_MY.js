@@ -3,6 +3,8 @@ OC.L10N.register(
     {
     "Yes" : "Ya",
     "No" : "Tidak",
+    "Connect" : "Berhubung",
+    "Settings" : "Tetapan",
     "Export" : "Eksport",
     "Cancel" : "Cancel",
     "Edit" : "Sunting",

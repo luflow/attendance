@@ -4,6 +4,8 @@ OC.L10N.register(
     "Yes" : "Այո",
     "No" : "Ոչ",
     "Group" : "Խումբ",
+    "Connect" : "միացնել",
+    "Settings" : "Կարգավորումներ",
     "Export" : "Արտահանում",
     "Select all" : "Նշել բոլորը",
     "Copy" : "Պատճենել",

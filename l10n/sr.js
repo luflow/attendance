@@ -7,6 +7,13 @@ OC.L10N.register(
     "Others" : "Остали",
     "Group" : "Група",
     "Attachments" : "Прилози",
+    "Connect" : "Повежи се",
+    "Add account" : "Додај налог",
+    "Let's go!" : "Хајдемо!",
+    "Settings" : "Поставке",
+    "Account" : "Налог",
+    "Log out" : "Одјави се",
+    "Are you sure you want to log out?" : "Да ли сте сигурни да желите да се одјавите?",
     "Create appointment" : "Креирај састанак",
     "Export" : "Извези",
     "Date range" : "Опсег датума",
@@ -58,6 +65,7 @@ OC.L10N.register(
     "Settings saved" : "Поставке сачуване",
     "Failed to save settings" : "Грешка приликом чувања поставки",
     "Permissions" : "Дозволе",
+    "Select groups …" : "Изаберите групе…",
     "View all" : "Прикажи све",
     "Loading …" : "Учитава се…",
     "Appointment not found" : "Састанак није пронађен",
@@ -75,6 +83,7 @@ OC.L10N.register(
     "All users" : "Сви корисници",
     "No users found" : "Није пронађен ниједан корисник",
     "Confirm" : "Потврди",
-    "Thank you for your response!" : "Хвала вам на одговору!"
+    "Thank you for your response!" : "Хвала вам на одговору!",
+    "Try again" : "Покушајте поново"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);");
