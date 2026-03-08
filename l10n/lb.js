@@ -4,6 +4,8 @@ OC.L10N.register(
     "Yes" : "Jo",
     "No" : "Nee",
     "Group" : "Grupp",
+    "Connect" : "Verbannen",
+    "Settings" : "Astellungen",
     "Export" : "Exportéieren",
     "Select all" : "All auswielen",
     "Copy" : "Kopieren",

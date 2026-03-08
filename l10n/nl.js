@@ -6,6 +6,12 @@ OC.L10N.register(
     "Others" : "Overige",
     "Group" : "Groep",
     "Attachments" : "Bijlagen",
+    "Connect" : "Verbinden",
+    "Add account" : "Toevoegen account ",
+    "Let's go!" : "We gaan!",
+    "Settings" : "Instellingen",
+    "Account" : "Account",
+    "Log out" : "Afmelden",
     "Create appointment" : "Creëer afspraak",
     "Export" : "Exporteren",
     "Date range" : "Datumbereik",
@@ -53,6 +59,7 @@ OC.L10N.register(
     "Settings saved" : "Instellingen opgeslagen",
     "Failed to save settings" : "Instellingen konden niet worden opgeslagen",
     "Permissions" : "Rechten",
+    "Select groups …" : "Selecteer groepen …",
     "View all" : "Toon alles",
     "Loading …" : "Aan het laden...",
     "Appointment not found" : "Afspraak niet gevonden",
@@ -68,6 +75,7 @@ OC.L10N.register(
     "Add from Files" : "Toevoegen uit bestanden",
     "All users" : "Alle gebruikers",
     "No users found" : "Geen gebruikers gevonden",
-    "Confirm" : "Bevestigen"
+    "Confirm" : "Bevestigen",
+    "Try again" : "Probeer opnieuw"
 },
 "nplurals=2; plural=(n != 1);");

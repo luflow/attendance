@@ -6,6 +6,13 @@ OC.L10N.register(
     "Maybe" : "ອາດຈະ",
     "Group" : "ກຸ່ມ",
     "Attachments" : "ໄຟລ໌ແນບ",
+    "Connect" : "ເຊື່ອມຕໍ່",
+    "Add account" : "ເພີ່ມບັນຊີ",
+    "Let's go!" : "ໄປກັນເລີຍ!",
+    "Settings" : "ການຕັ້ງຄ່າ",
+    "Account" : "ບັນຊີ",
+    "Log out" : "ອອກຈາກລະບົບ",
+    "Are you sure you want to log out?" : "Are you sure you want to log out?",
     "Export" : "ສົ່ງອອກ",
     "Select all" : "ເລືອກທັງໝົດ",
     "Deselect all" : "ເລືອກຄຶນທັງໝົດ",
@@ -53,6 +60,7 @@ OC.L10N.register(
     "Settings saved" : "ບັນທຶກການຕັ້ງຄ່າແລ້ວ",
     "Failed to save settings" : "ບໍ່ສາມາດບັນທຶກການຕັ້ງຄ່າໄດ້",
     "Permissions" : "ການອະນຸຍາດ",
+    "Select groups …" : "Select groups …",
     "View all" : "ເບິ່ງທັງໝົດ",
     "Loading …" : "Loading …",
     "Appointment not found" : "Appointment not found",
@@ -67,6 +75,7 @@ OC.L10N.register(
     "Add from Files" : "Add from Files",
     "All users" : "ຜູ້ໃຊ້ທັງໝົດ",
     "Confirm" : "ຢືນຢັນ",
-    "Thank you for your response!" : "Thank you for your response!"
+    "Thank you for your response!" : "Thank you for your response!",
+    "Try again" : "ລອງໃໝ່"
 },
 "nplurals=1; plural=0;");

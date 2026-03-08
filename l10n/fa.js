@@ -7,6 +7,13 @@ OC.L10N.register(
     "Others" : "دیگران",
     "Group" : "گروه",
     "Attachments" : "پیوست ها",
+    "Connect" : "متصل شدن",
+    "Add account" : "افزودن حساب",
+    "Let's go!" : "Let's go!",
+    "Settings" : "تنظیمات",
+    "Account" : "حساب",
+    "Log out" : "خروج",
+    "Are you sure you want to log out?" : "Are you sure you want to log out?",
     "Create appointment" : "Create appointment",
     "Export" : "دریافت خروجی",
     "Select all" : "انتخاب همه",
@@ -68,6 +75,7 @@ OC.L10N.register(
     "Add from Files" : "Add from Files",
     "All users" : "All users",
     "No users found" : "No users found",
-    "Confirm" : "تأیید"
+    "Confirm" : "تأیید",
+    "Try again" : "تلاش دوباره"
 },
 "nplurals=2; plural=(n > 1);");

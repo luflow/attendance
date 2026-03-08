@@ -7,6 +7,13 @@ OC.L10N.register(
     "Others" : "Egyebek",
     "Group" : "Csoport",
     "Attachments" : "Mellékletek",
+    "Connect" : "Kapcsolódás",
+    "Add account" : "Fiók hozzáadása",
+    "Let's go!" : "Gyerünk!",
+    "Settings" : "Beállítások",
+    "Account" : "Fiók",
+    "Log out" : "Kijelentkezés",
+    "Are you sure you want to log out?" : "Biztos, hogy kilép?",
     "Create appointment" : "Találkozó létrehozása",
     "Export" : "Exportálás",
     "Deselect all" : "Kijelölés megszüntetése",
@@ -54,6 +61,7 @@ OC.L10N.register(
     "Settings saved" : "Beállítások mentve",
     "Failed to save settings" : "A beállítások mentése sikertelen",
     "Permissions" : "Jogosultságok",
+    "Select groups …" : "Csoportok kiválasztása…",
     "View all" : "Összes megtekintése",
     "Loading …" : "Betöltés…",
     "Appointment not found" : "A találkozó nem található",
@@ -70,6 +78,7 @@ OC.L10N.register(
     "All users" : "Összes felhasználó",
     "No users found" : "Nem találhatók felhasználók",
     "Confirm" : "Megerősítés",
-    "Thank you for your response!" : "Köszönjük a válaszát!"
+    "Thank you for your response!" : "Köszönjük a válaszát!",
+    "Try again" : "Próbálja újra"
 },
 "nplurals=2; plural=(n != 1);");

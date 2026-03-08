@@ -7,6 +7,12 @@ OC.L10N.register(
     "Others" : "Ostalo",
     "Group" : "Grupa",
     "Attachments" : "Privici",
+    "Connect" : "Poveži",
+    "Add account" : "Dodaj račun",
+    "Let's go!" : "Idemo!",
+    "Settings" : "Postavke",
+    "Account" : "Račun",
+    "Log out" : "Odjavite se",
     "Export" : "Izvoz",
     "Date range" : "Raspon datuma",
     "Select all" : "Odaberi sve",
@@ -54,6 +60,7 @@ OC.L10N.register(
     "Settings saved" : "Postavke spremljene",
     "Failed to save settings" : "Spremanje postavki nije uspjelo",
     "Permissions" : "Dopuštenja",
+    "Select groups …" : "Odaberite grupe …",
     "Loading …" : "Učitavanje …",
     "Appointment not found" : "Termin nije pronađen",
     "User" : "@string/user_icon",
@@ -67,6 +74,7 @@ OC.L10N.register(
     "All users" : "Svi korisnici",
     "No users found" : "Nije pronađen nijedan korisnik",
     "Confirm" : "Potvrdi",
-    "Thank you for your response!" : "Hvala na odgovoru!"
+    "Thank you for your response!" : "Hvala na odgovoru!",
+    "Try again" : "Pokušajte ponovno"
 },
 "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;");

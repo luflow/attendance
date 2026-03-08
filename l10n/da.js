@@ -7,6 +7,9 @@ OC.L10N.register(
     "Others" : "Andre",
     "Group" : "Gruppe",
     "Attachments" : "Vedhæftede filer",
+    "Connect" : "Forbind",
+    "Add account" : "Tilføj konto",
+    "Settings" : "Indstillinger",
     "Create appointment" : "Opret aftale",
     "Export" : "Eksportér",
     "Date range" : "Datoområde",
@@ -71,6 +74,7 @@ OC.L10N.register(
     "All users" : "Alle brugere",
     "No users found" : "Ingen brugere fundet",
     "Confirm" : "Bekræft",
-    "Thank you for your response!" : "Tak for dit svar"
+    "Thank you for your response!" : "Tak for dit svar",
+    "Try again" : "Prøv igen"
 },
 "nplurals=2; plural=(n != 1);");

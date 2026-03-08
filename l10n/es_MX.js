@@ -5,6 +5,11 @@ OC.L10N.register(
     "Others" : "Otros",
     "Group" : "Grupo",
     "Attachments" : "Archivos adjuntos",
+    "Connect" : "Conectar",
+    "Add account" : "Añadir cuenta",
+    "Settings" : "Ajustes",
+    "Account" : "Cuenta",
+    "Log out" : "Cerrar sesión",
     "Create appointment" : "Crear cita",
     "Export" : "Exportar",
     "Select all" : "Seleccionar todo",
@@ -58,6 +63,7 @@ OC.L10N.register(
     "Add from Files" : "Agregar desde Archivos",
     "All users" : "Todos los usuarios",
     "No users found" : "No se encontraron usuarios",
-    "Confirm" : "Confirmar"
+    "Confirm" : "Confirmar",
+    "Try again" : "Reintentar"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

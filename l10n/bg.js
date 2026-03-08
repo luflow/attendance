@@ -7,6 +7,11 @@ OC.L10N.register(
     "Others" : "Други",
     "Group" : "Група",
     "Attachments" : "Прикачени файлове",
+    "Connect" : "Свързване",
+    "Add account" : "Добавяне на регистрация",
+    "Let's go!" : "Да тръгваме!",
+    "Log out" : "Изход",
+    "Are you sure you want to log out?" : "Сигурни ли сте, че искате да излезете?",
     "Create appointment" : "Създаване на среща",
     "Export" : "Експорт /изнасям/",
     "Select all" : "Избери всички",
@@ -68,6 +73,7 @@ OC.L10N.register(
     "All users" : "Всички потребители",
     "No users found" : "Няма намерени потребители",
     "Confirm" : "Потвърдете",
-    "Thank you for your response!" : "Благодарим Ви за отговора!"
+    "Thank you for your response!" : "Благодарим Ви за отговора!",
+    "Try again" : "Опитай отново"
 },
 "nplurals=2; plural=(n != 1);");

@@ -4,6 +4,8 @@ OC.L10N.register(
     "Yes" : "Ie",
     "No" : "Na",
     "Group" : "Grŵp",
+    "Connect" : "Cysylltu",
+    "Settings" : "Gosodiadau",
     "Create appointment" : "Creu apwyntiad",
     "Export" : "Allforio",
     "Deselect all" : "Dad ddewis popeth",

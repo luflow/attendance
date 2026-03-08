@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "﻿ಹೌದು",
     "No" : "﻿ಇಲ್ಲ",
     "Group" : "﻿ಗುಂಪು",
+    "Settings" : "ಆಯ್ಕೆ",
     "Export" : "ರಫ್ತು",
     "Select all" : "﻿ಎಲ್ಲಾ ಆಯ್ಕೆ ಮಾಡಿ",
     "Copy" : "ನಕಲಿಸಿ",

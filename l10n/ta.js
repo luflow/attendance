@@ -4,6 +4,8 @@ OC.L10N.register(
     "Yes" : "ஆம்",
     "No" : "இல்லை",
     "Group" : "Group",
+    "Connect" : "இணைக்க",
+    "Settings" : "அமைப்புகள்",
     "Export" : "ஏற்றுமதி",
     "Cancel" : "Cancel",
     "Share link" : "இணைப்பைப் பகிரவும்",

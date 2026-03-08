@@ -7,6 +7,7 @@ OC.L10N.register(
     "Others" : "آخرون",
     "Group" : "المجموعة",
     "Attachments" : "المُرفَقات",
+    "Let's go!" : "هيا بنا!",
     "Create appointment" : "إنشاء موعد",
     "Export" : "تصدير",
     "Select all" : "تحديد الكل",

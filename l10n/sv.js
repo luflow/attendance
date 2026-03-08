@@ -7,6 +7,13 @@ OC.L10N.register(
     "Others" : "Övriga",
     "Group" : "Grupp",
     "Attachments" : "Bilagor",
+    "Connect" : "Anslut",
+    "Add account" : "Lägg till konto",
+    "Let's go!" : "Då kör vi!",
+    "Settings" : "Inställningar",
+    "Account" : "Konto",
+    "Log out" : "Logga ut",
+    "Are you sure you want to log out?" : "Är du säker på att du vill logga ut?",
     "Create appointment" : "Skapa möte",
     "Export" : "Exportera",
     "Date range" : "Datumintervall",
@@ -55,6 +62,7 @@ OC.L10N.register(
     "Settings saved" : "Inställningar sparade",
     "Failed to save settings" : "Kunde inte spara inställningarna",
     "Permissions" : "Behörigheter",
+    "Select groups …" : "Välj grupper ...",
     "View all" : "Visa alla",
     "Loading …" : "Laddar …",
     "Appointment not found" : "Mötet hittades inte",
@@ -70,6 +78,7 @@ OC.L10N.register(
     "All users" : "Alla användare",
     "No users found" : "Inga användare hittades",
     "Confirm" : "Bekräfta",
-    "Thank you for your response!" : "Tack för ditt svar!"
+    "Thank you for your response!" : "Tack för ditt svar!",
+    "Try again" : "Försök igen"
 },
 "nplurals=2; plural=(n != 1);");

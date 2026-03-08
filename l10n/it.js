@@ -8,6 +8,12 @@ OC.L10N.register(
     "Group" : "Gruppo",
     "Your response" : "La tua risposta",
     "Attachments" : "Allegati",
+    "Connect" : "Connetti",
+    "Add account" : "Aggiungi account",
+    "Let's go!" : "Andiamo!",
+    "Settings" : "Impostazioni",
+    "Account" : "Account",
+    "Log out" : "Log out",
     "Upcoming appointments" : "Prossimi appuntamenti",
     "Past appointments" : "Appuntamenti passati",
     "Create appointment" : "Crea appuntamento",
@@ -68,6 +74,7 @@ OC.L10N.register(
     "Select groups …" : "Seleziona gruppi …",
     "Permissions" : "Permessi",
     "Manage appointments" : "Gestisci appuntamenti",
+    "Select groups …" : "Seleziona gruppi …",
     "View all" : "Vedi tutto",
     "Loading …" : "Caricamento in corso...",
     "Appointment not found" : "Appuntamento non trovato",
@@ -84,6 +91,7 @@ OC.L10N.register(
     "All users" : "Tutti gli utenti",
     "No users found" : "Nessun utente trovato",
     "Confirm" : "Conferma",
-    "Thank you for your response!" : "Grazie per la tua risposta!"
+    "Thank you for your response!" : "Grazie per la tua risposta!",
+    "Try again" : "Riprova"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

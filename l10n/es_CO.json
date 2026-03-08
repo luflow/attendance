@@ -1,4 +1,8 @@
 { "translations": {
+    "Connect" : "Conectar",
+    "Settings" : "Configuraciones ",
+    "Account" : "Cuenta",
+    "Log out" : "Cerrar sesión",
     "Export" : "Exportar",
     "Select all" : "Seleccionar todo",
     "Deselect all" : "Deseleccionar todo",
@@ -24,6 +28,7 @@
     "Permissions" : "Permisos",
     "User" : "Usuario",
     "Description" : "Descripción",
-    "Confirm" : "Confirmar"
+    "Confirm" : "Confirmar",
+    "Try again" : "Reintentar"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

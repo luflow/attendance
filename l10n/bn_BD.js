@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "হ্যাঁ",
     "No" : "না",
     "Group" : "গোষ্ঠীসমূহ",
+    "Connect" : "সংযুক্ত হও",
     "Export" : "রপ্তানি",
     "Cancel" : "Cancel",
     "Edit" : "সম্পাদনা",

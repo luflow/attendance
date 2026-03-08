@@ -1,6 +1,11 @@
 { "translations": {
     "Yes" : "დიახ",
     "Maybe" : "შესაძლოა",
+    "Connect" : "დაკავშირება",
+    "Add account" : "ანგარიშის დამატება.",
+    "Settings" : "პარამეტრები",
+    "Account" : "ანგარიში",
+    "Log out" : "გამოსვლა",
     "Export" : "ექსპორტი",
     "Select all" : "ყველას არჩევა",
     "Deselect all" : "ყველას წაშლა",
@@ -26,6 +31,7 @@
     "Permissions" : "უფლებები",
     "User" : "მომხმარებელი",
     "Description" : "აღწერილობა",
-    "Confirm" : "დადასტურება"
+    "Confirm" : "დადასტურება",
+    "Try again" : "სცადეთ ახლიდან"
 },"pluralForm" :"nplurals=2; plural=(n!=1);"
 }

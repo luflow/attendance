@@ -7,6 +7,13 @@ OC.L10N.register(
     "Others" : "Andre",
     "Group" : "Gruppe",
     "Attachments" : "Vedlegg",
+    "Connect" : "Koble til",
+    "Add account" : "Legg til konto",
+    "Let's go!" : "La oss gå!",
+    "Settings" : "Innstillinger",
+    "Account" : "Konto",
+    "Log out" : "Logg av",
+    "Are you sure you want to log out?" : "Er du sikker du vil logge av?",
     "Create appointment" : "Opprett avtale",
     "Export" : "Eksporter",
     "Select all" : "Velg alle",
@@ -55,6 +62,7 @@ OC.L10N.register(
     "Settings saved" : "Innstillinger lagret",
     "Failed to save settings" : "Klarte ikke å lagre innstillinger",
     "Permissions" : "Rettigheter",
+    "Select groups …" : "Velg grupper...",
     "View all" : "Se alle",
     "Appointment not found" : "Avtale ikke funnet",
     "Edit appointment" : "Endre avtale",
@@ -68,6 +76,7 @@ OC.L10N.register(
     "Add from Files" : "Legg til fra filer",
     "All users" : "Alle brukere",
     "No users found" : "Ingen brukere funnet",
-    "Confirm" : "Bekreft"
+    "Confirm" : "Bekreft",
+    "Try again" : "Prøv igjen"
 },
 "nplurals=2; plural=(n != 1);");

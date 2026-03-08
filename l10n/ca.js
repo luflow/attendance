@@ -7,6 +7,11 @@ OC.L10N.register(
     "Others" : "Altres",
     "Group" : "Grup",
     "Attachments" : "Adjunts",
+    "Connect" : "Connecta",
+    "Add account" : "Afegeix un compte",
+    "Let's go!" : "Anem!",
+    "Log out" : "Tanca la sessió",
+    "Are you sure you want to log out?" : "Esteu segur que voleu tancar la sessió?",
     "Create appointment" : "Crea cita",
     "Export" : "Exporta",
     "Select all" : "Selecciona-ho tot",
@@ -55,6 +60,7 @@ OC.L10N.register(
     "Settings saved" : "S'han desat els paràmetres",
     "Failed to save settings" : "Ha fallat desar els paràmetres",
     "Permissions" : "Permisos",
+    "Select groups …" : "Selecció de grups …",
     "Appointment not found" : "No s'ha trobat la cita",
     "Edit appointment" : "Edició de la cita",
     "User" : "Usuari",
@@ -68,6 +74,7 @@ OC.L10N.register(
     "Add from Files" : "Afegeix de Fitxers",
     "All users" : "Tots els usuaris",
     "No users found" : "No s'ha trobat cap usuari",
-    "Confirm" : "Confirma"
+    "Confirm" : "Confirma",
+    "Try again" : "Torneu-ho a provar"
 },
 "nplurals=2; plural=(n != 1);");

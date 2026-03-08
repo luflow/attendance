@@ -3,6 +3,8 @@ OC.L10N.register(
     {
     "Yes" : "ہاں",
     "No" : "نہیں",
+    "Connect" : "منسلک",
+    "Settings" : "سیٹینگز",
     "Cancel" : "Cancel",
     "Edit" : "تدوین کریں",
     "Delete" : "حذف کریں",

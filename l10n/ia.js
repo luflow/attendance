@@ -3,6 +3,8 @@ OC.L10N.register(
     {
     "Group" : "Gruppo",
     "Attachments" : "Attachamentos",
+    "Connect" : "Connecter se",
+    "Settings" : "Configurationes",
     "Export" : "Exportar",
     "Select all" : "Selectionar toto",
     "Cancel" : "Cancel",

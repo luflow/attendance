@@ -3,6 +3,8 @@ OC.L10N.register(
     {
     "Yes" : "បាទ ឬចាស",
     "No" : "ទេ",
+    "Connect" : "ភ្ជាប់",
+    "Settings" : "ការកំណត់",
     "Export" : "នាំចេញ",
     "Cancel" : "Cancel",
     "Edit" : "កែប្រែ",
