@@ -141,16 +141,9 @@
                 class="preview"
                 data-test="recurrence-preview"
             >
+                <!-- prettier-ignore -->
                 <p class="preview-count">
-                    {{
-                        n(
-                            "attendance",
-                            "{count} appointment will be created",
-                            "{count} appointments will be created",
-                            occurrences.length,
-                            { count: occurrences.length },
-                        )
-                    }}
+                    {{ n("attendance", "{count} appointment will be created", "{count} appointments will be created", occurrences.length, { count: occurrences.length }) }}
                 </p>
                 <ul class="preview-list">
                     <li
