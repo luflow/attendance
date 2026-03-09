@@ -30,6 +30,7 @@ OC.L10N.register(
     "Add account" : "Přidat účet",
     "Let's go!" : "Začněme!",
     "Settings" : "Settings",
+    "Account" : "Účet",
     "Log out" : "Odhlásit se",
     "Are you sure you want to log out?" : "Opravdu se chcete odhlásit?",
     "Unanswered" : "Nezodpovězeno",

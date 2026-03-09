@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "Da",
     "No" : "Ne",
     "Group" : "Grupa",
+    "Settings" : "Podešavanje",
     "Export" : "Izvezi",
     "Select all" : "Označi sve",
     "Cancel" : "Cancel",

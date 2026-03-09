@@ -10,6 +10,8 @@ OC.L10N.register(
     "Connect" : "Connecta",
     "Add account" : "Afegeix un compte",
     "Let's go!" : "Anem!",
+    "Settings" : "Paràmetres",
+    "Account" : "Compte",
     "Log out" : "Tanca la sessió",
     "Are you sure you want to log out?" : "Esteu segur que voleu tancar la sessió?",
     "Create appointment" : "Crea cita",

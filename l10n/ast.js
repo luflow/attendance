@@ -4,7 +4,12 @@ OC.L10N.register(
     "Yes" : "Sí",
     "No" : "Non",
     "Group" : "Grupu",
+    "Connect" : "Coneutar",
+    "Add account" : "Amestar una cuenta",
     "Let's go!" : "¡Vamos!",
+    "Settings" : "Configuración",
+    "Account" : "Cuenta",
+    "Log out" : "Zarrar la sesión",
     "Export" : "Esportar",
     "Select all" : "Seleicionar too",
     "Start date" : "Data de comienzu",
@@ -48,6 +53,7 @@ OC.L10N.register(
     "Notification" : "Avisu",
     "All users" : "Tolos usuarios",
     "No users found" : "Nun s'atopó nengún usuariu",
-    "Confirm" : "Confirmar"
+    "Confirm" : "Confirmar",
+    "Try again" : "Retentar"
 },
 "nplurals=2; plural=(n != 1);");

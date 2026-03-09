@@ -10,6 +10,8 @@ OC.L10N.register(
     "Connect" : "Свързване",
     "Add account" : "Добавяне на регистрация",
     "Let's go!" : "Да тръгваме!",
+    "Settings" : "Настройки",
+    "Account" : "Профил",
     "Log out" : "Изход",
     "Are you sure you want to log out?" : "Сигурни ли сте, че искате да излезете?",
     "Create appointment" : "Създаване на среща",

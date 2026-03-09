@@ -17,6 +17,7 @@ OC.L10N.register(
     "Date range" : "Datumbereik",
     "Select all" : "Alles selecteren",
     "Deselect all" : "Deselecteer alles",
+    "Custom range" : "Aangepast bereik",
     "Start date" : "Startdatum",
     "Copy" : "Kopiëren",
     "Last accessed" : "Laatst benaderd",

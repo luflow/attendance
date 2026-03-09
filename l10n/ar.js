@@ -7,7 +7,13 @@ OC.L10N.register(
     "Others" : "آخرون",
     "Group" : "المجموعة",
     "Attachments" : "المُرفَقات",
+    "Connect" : "اتصال",
+    "Add account" : "أضف حساباً",
     "Let's go!" : "هيا بنا!",
+    "Settings" : "الإعدادات",
+    "Account" : "الحساب",
+    "Log out" : "خروج",
+    "Are you sure you want to log out?" : "هل أنت متأكد أنك تريد تسجيل الخروج؟",
     "Create appointment" : "إنشاء موعد",
     "Export" : "تصدير",
     "Select all" : "تحديد الكل",
@@ -57,6 +63,7 @@ OC.L10N.register(
     "Settings saved" : "تمّ حفظ الإعدادات",
     "Failed to save settings" : "فشل في حفظ الإعدادات",
     "Permissions" : "الصلاحيّات",
+    "Select groups …" : "تحديد المجموعات ...",
     "View all" : "عرض الكل",
     "Appointment not found" : "الموعد غير موجود",
     "Edit appointment" : "تعديل موعد",
@@ -71,6 +78,7 @@ OC.L10N.register(
     "Add from Files" : "إضافة من الملفات",
     "All users" : "كُلّ المستخدمين",
     "No users found" : "لا يوجد مستخدمون",
-    "Confirm" : "تأكيد"
+    "Confirm" : "تأكيد",
+    "Try again" : "عاود المحاولة"
 },
 "nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;");

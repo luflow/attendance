@@ -4,6 +4,8 @@ OC.L10N.register(
     "No" : "Ket",
     "Connect" : "Kenstagañ",
     "Add account" : "Ouzhpenn ur c'hont",
+    "Settings" : "Arventennoù",
+    "Account" : "Kont",
     "Log out" : "Digennaskañ",
     "Select all" : "Dibab pep tra",
     "Deselect all" : "Diziuzañ pep tra",
