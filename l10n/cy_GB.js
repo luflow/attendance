@@ -6,6 +6,7 @@ OC.L10N.register(
     "Group" : "Grŵp",
     "Connect" : "Cysylltu",
     "Settings" : "Gosodiadau",
+    "Account" : "Cyfrif",
     "Create appointment" : "Creu apwyntiad",
     "Export" : "Allforio",
     "Deselect all" : "Dad ddewis popeth",

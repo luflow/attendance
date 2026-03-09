@@ -2,6 +2,10 @@ OC.L10N.register(
     "attendance",
     {
     "Others" : "Ander",
+    "Connect" : "Verbind",
+    "Settings" : "Instellings",
+    "Account" : "Rekening",
+    "Log out" : "Teken af",
     "Export" : "Voer uit",
     "Select all" : "Kies alle",
     "Start date" : "Begindatum",

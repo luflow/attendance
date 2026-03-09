@@ -10,6 +10,7 @@ OC.L10N.register(
     "Connect" : "Forbind",
     "Add account" : "Tilføj konto",
     "Settings" : "Indstillinger",
+    "Account" : "Konto",
     "Create appointment" : "Opret aftale",
     "Export" : "Eksportér",
     "Date range" : "Datoområde",

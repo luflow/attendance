@@ -6,6 +6,10 @@ OC.L10N.register(
     "Maybe" : "Магчыма",
     "Group" : "Група",
     "Attachments" : "Далучэнні",
+    "Add account" : "Дадаць рахунак",
+    "Settings" : "Налады",
+    "Account" : "Уліковы запіс",
+    "Log out" : "Выйсці",
     "Export" : "Экспарт",
     "Date range" : "Дыяпазон дат",
     "Select all" : "Выбраць усе",
@@ -40,6 +44,7 @@ OC.L10N.register(
     "Settings saved" : "Налады захаваны",
     "Failed to save settings" : "Не ўдалося захаваць налады",
     "Permissions" : "Дазволы",
+    "Select groups …" : "Выберыце групы …",
     "Loading …" : "Загрузка …",
     "User" : "Карыстальнік",
     "Team" : "Каманда",
@@ -47,6 +52,7 @@ OC.L10N.register(
     "Date & Time" : "Дата і час",
     "Notification" : "Апавяшчэнне",
     "Continue anyway" : "Усё роўна працягнуць",
-    "Confirm" : "Пацвердзіць"
+    "Confirm" : "Пацвердзіць",
+    "Try again" : "Паспрабаваць яшчэ раз"
 },
 "nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);");
