@@ -144,6 +144,7 @@ OC.L10N.register(
     "occurrences" : "Vorkommen",
     "On date" : "Zum Datum",
     "Show all" : "Alle anzeigen",
+    "_{count} appointment will be created_::_{count} appointments will be created_" : ["{count} Termin wird erstellt","{count} Termine werden erstellt"],
     "No response" : "Keine Antwort",
     "Response summary" : "Antwortübersicht",
     "Checked in?" : "Eingecheckt?",

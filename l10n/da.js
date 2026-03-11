@@ -17,7 +17,7 @@ OC.L10N.register(
     "Select all" : "Vælg alle",
     "Deselect all" : "Fravælg alle",
     "Start date" : "Startdato",
-    "Copy URL" : "Kopier URL",
+    "Copy URL" : "Kopiér URL",
     "Copy" : "Kopiér",
     "Last accessed" : "Sidst tilgået",
     "Cancel" : "Annullér",
