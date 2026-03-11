@@ -144,6 +144,7 @@ OC.L10N.register(
     "occurrences" : "重複次數",
     "On date" : "在特定日期",
     "Show all" : "全部顯示",
+    "_{count} appointment will be created_::_{count} appointments will be created_" : ["將會建立 {count} 個預約"],
     "No response" : "無回應",
     "Response summary" : "回應摘要",
     "Checked in?" : "已簽到？",

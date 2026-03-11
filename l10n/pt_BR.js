@@ -144,6 +144,7 @@ OC.L10N.register(
     "occurrences" : "ocorrências",
     "On date" : "Na data",
     "Show all" : "Exibir todos",
+    "_{count} appointment will be created_::_{count} appointments will be created_" : ["{count} compromisso será criado","{count} de compromissos serão criados","{count} compromissos serão criados"],
     "No response" : "Sem resposta",
     "Response summary" : "Resumo de respostas",
     "Checked in?" : "Registrou a entrada?",
