@@ -85,10 +85,12 @@ class ReminderJob extends TimedJob {
 		$this->logger->info('Reminder frequency configuration', ['frequency_days' => $reminderFrequency]);
 
 		// Calculate date range: today until X days in the future
-		$today = new \DateTime();
+		// Use UTC to match the stored appointment datetimes (which are in UTC)
+		$utc = new \DateTimeZone('UTC');
+		$today = new \DateTime('now', $utc);
 		$todayStr = $today->format('Y-m-d');
 
-		$maxDate = new \DateTime();
+		$maxDate = new \DateTime('now', $utc);
 		$maxDate->modify("+{$reminderDays} days");
 		$maxDateStr = $maxDate->format('Y-m-d');
 
@@ -161,8 +163,13 @@ class ReminderJob extends TimedJob {
 				// Check if user was recently reminded (O(1) lookup from pre-fetched map)
 				$lastReminder = $latestReminderByUser[$userId] ?? null;
 				if ($lastReminder !== null && $reminderFrequency > 0) {
-					$lastReminderDate = new \DateTime($lastReminder->getRemindedAt());
-					$daysSinceReminder = (int)$today->diff($lastReminderDate)->days;
+					// Compare calendar dates only (not exact times) to avoid off-by-one
+					// errors caused by cron execution time jitter. Both dates are in UTC
+					// since reminded_at is stored via gmdate() and today uses UTC timezone.
+					$lastReminderDate = new \DateTime($lastReminder->getRemindedAt(), $utc);
+					$lastReminderDate->setTime(0, 0, 0);
+					$todayMidnight = (clone $today)->setTime(0, 0, 0);
+					$daysSinceReminder = (int)$todayMidnight->diff($lastReminderDate)->days;
 
 					if ($daysSinceReminder < $reminderFrequency) {
 						$skippedCount++;
@@ -199,7 +206,7 @@ class ReminderJob extends TimedJob {
 
 					$notification->setApp('attendance')
 						->setUser($userId)
-						->setDateTime(new \DateTime())
+						->setDateTime(new \DateTime('now', $utc))
 						->setObject('appointment', (string)$appointment->getId())
 						->setSubject('appointment_reminder', [
 							'appointmentId' => $appointment->getId(),
