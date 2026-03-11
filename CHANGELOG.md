@@ -6,6 +6,21 @@
 
 - Nightly changes here
 
+## 1.30.0 – 2026-03-11
+
+### Added
+
+- New attendance app icon
+
+### Fixed
+
+- Reminder scheduling timezone and day calculation bugs
+
+### Maintenance
+
+- Added comprehensive tests for ReminderJob scheduling logic
+- Translations updated from Transifex
+
 ## 1.29.2 – 2026-03-06
 
 ### Fixed
