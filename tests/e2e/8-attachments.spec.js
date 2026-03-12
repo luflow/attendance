@@ -105,7 +105,7 @@ test.describe.serial('Attendance App - Attachments', () => {
 
 			// Verify attachment section exists
 			await expect(page.getByText('Attachments')).toBeVisible()
-			await expect(page.getByRole('button', { name: 'Add from Files' })).toBeVisible()
+			await expect(page.getByRole('button', { name: 'Add from files' })).toBeVisible()
 
 			// Close form (navigate back)
 			await page.getByRole('button', { name: 'Cancel' }).click()
@@ -121,11 +121,10 @@ test.describe.serial('Attendance App - Attachments', () => {
 			await expect(page.getByRole('heading', { name: 'Create appointment' })).toBeVisible()
 
 			// Click Add from Files button
-			await page.getByRole('button', { name: 'Add from Files' }).click()
+			await page.getByRole('button', { name: 'Add from files' }).click()
 
-			// Verify file picker opens (look for file picker modal/dialog)
-			// The file picker from @nextcloud/dialogs should show
-			const filePicker = page.locator('.file-picker, .oc-dialog, [class*="filepicker"]').first()
+			// Verify file picker opens with the correct title
+			const filePicker = page.getByRole('dialog', { name: 'Choose files or folders' })
 			await expect(filePicker).toBeVisible({ timeout: 5000 })
 
 			// File picker verified as open - the test goal is achieved
@@ -156,10 +155,10 @@ test.describe.serial('Attendance App - Attachments', () => {
 			await page.getByRole('textbox', { name: 'End date & time' }).fill(endDate.toISOString().slice(0, 16))
 
 			// Click Add from Files button
-			await page.getByRole('button', { name: 'Add from Files' }).click()
+			await page.getByRole('button', { name: 'Add from files' }).click()
 
 			// Wait for file picker
-			const filePicker = page.locator('.file-picker, .oc-dialog, [class*="filepicker"]').first()
+			const filePicker = page.getByRole('dialog', { name: 'Choose files or folders' })
 			await expect(filePicker).toBeVisible({ timeout: 5000 })
 
 			// Look for the test file and select it
@@ -218,7 +217,7 @@ test.describe.serial('Attendance App - Attachments', () => {
 
 				// Verify attachment section is visible
 				await expect(page.getByText('Attachments')).toBeVisible()
-				await expect(page.getByRole('button', { name: 'Add from Files' })).toBeVisible()
+				await expect(page.getByRole('button', { name: 'Add from files' })).toBeVisible()
 
 				// Close form
 				await page.getByRole('button', { name: 'Cancel' }).click()

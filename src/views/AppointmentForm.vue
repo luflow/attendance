@@ -207,7 +207,7 @@
                     <template #icon>
                         <Plus :size="20" />
                     </template>
-                    {{ t("attendance", "Add from Files") }}
+                    {{ t("attendance", "Add from files") }}
                 </NcButton>
             </div>
 
