@@ -69,11 +69,11 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.waitForLoadState('networkidle')
 
 			// Create test appointment
-			await page.getByRole('link', { name: 'Create Appointment' }).click()
+			await page.getByRole('link', { name: 'Create appointment' }).click()
 			await page.waitForURL(/.*\/create$/)
 			await page.waitForLoadState('networkidle')
-			await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
-			await page.getByRole('textbox', { name: 'Appointment Name' }).fill('Check-in Test Meeting')
+			await expect(page.getByRole('heading', { name: 'Create appointment' })).toBeVisible()
+			await page.getByRole('textbox', { name: 'Appointment name' }).fill('Check-in Test Meeting')
 			const descEditor1 = page.locator('[data-test="input-appointment-description"] .CodeMirror')
 			await descEditor1.waitFor({ state: 'visible' })
 			await descEditor1.click()
@@ -83,8 +83,8 @@ test.describe('Attendance App - Admin Settings', () => {
 			const startDate = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000)
 			const endDate = new Date(startDate.getTime() + 1 * 60 * 60 * 1000)
 
-			await page.getByRole('textbox', { name: 'Start Date & Time' }).fill(startDate.toISOString().slice(0, 16))
-			await page.getByRole('textbox', { name: 'End Date & Time' }).fill(endDate.toISOString().slice(0, 16))
+			await page.getByRole('textbox', { name: 'Start date & time' }).fill(startDate.toISOString().slice(0, 16))
+			await page.getByRole('textbox', { name: 'End date & time' }).fill(endDate.toISOString().slice(0, 16))
 			await page.getByRole('button', { name: 'Save' }).click()
 			await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 			await page.waitForLoadState('networkidle')
@@ -159,11 +159,11 @@ test.describe('Attendance App - Admin Settings', () => {
 			await attendanceApp()
 			await page.waitForLoadState('networkidle')
 
-			await page.getByRole('link', { name: 'Create Appointment' }).click()
+			await page.getByRole('link', { name: 'Create appointment' }).click()
 			await page.waitForURL(/.*\/create$/)
 			await page.waitForLoadState('networkidle')
-			await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
-			await page.getByRole('textbox', { name: 'Appointment Name' }).fill('Response Overview Test')
+			await expect(page.getByRole('heading', { name: 'Create appointment' })).toBeVisible()
+			await page.getByRole('textbox', { name: 'Appointment name' }).fill('Response Overview Test')
 			const descEditor2 = page.locator('[data-test="input-appointment-description"] .CodeMirror')
 			await descEditor2.waitFor({ state: 'visible' })
 			await descEditor2.click()
@@ -173,14 +173,14 @@ test.describe('Attendance App - Admin Settings', () => {
 			const startDate = new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000)
 			const endDate = new Date(startDate.getTime() + 1 * 60 * 60 * 1000)
 
-			await page.getByRole('textbox', { name: 'Start Date & Time' }).fill(startDate.toISOString().slice(0, 16))
-			await page.getByRole('textbox', { name: 'End Date & Time' }).fill(endDate.toISOString().slice(0, 16))
+			await page.getByRole('textbox', { name: 'Start date & time' }).fill(startDate.toISOString().slice(0, 16))
+			await page.getByRole('textbox', { name: 'End date & time' }).fill(endDate.toISOString().slice(0, 16))
 			await page.getByRole('button', { name: 'Save' }).click()
 			await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 			await page.waitForLoadState('networkidle')
 
 			// Admin should see response summary
-			const adminResponseSummary = page.getByRole('heading', { name: 'Response Summary' }).first()
+			const adminResponseSummary = page.getByRole('heading', { name: 'Response summary' }).first()
 			await expect(adminResponseSummary).toBeVisible()
 
 			// Login as test user
@@ -189,7 +189,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.waitForLoadState('networkidle')
 
 			// Test user should NOT see response summary
-			const testUserResponseSummary = page.getByRole('heading', { name: 'Response Summary' })
+			const testUserResponseSummary = page.getByRole('heading', { name: 'Response summary' })
 			await expect(testUserResponseSummary).not.toBeVisible()
 
 			// But test user should still be able to respond

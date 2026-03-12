@@ -3,7 +3,7 @@ import { test, expect, login } from './fixtures/nextcloud.js'
 // Helper function to create an appointment with visibility settings
 async function createAppointmentWithVisibility(page, { name, description, daysFromNow = 2, durationHours = 1, visibleUsers = [] }) {
 	// Wait for Create Appointment link to be ready
-	const createLink = page.getByRole('link', { name: 'Create Appointment' })
+	const createLink = page.getByRole('link', { name: 'Create appointment' })
 	await createLink.waitFor({ state: 'visible' })
 
 	// Click create button (navigates to form page)
@@ -12,10 +12,10 @@ async function createAppointmentWithVisibility(page, { name, description, daysFr
 	// Wait for form page to load
 	await page.waitForURL(/.*\/create$/)
 	await page.waitForLoadState('networkidle')
-	await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
+	await expect(page.getByRole('heading', { name: 'Create appointment' })).toBeVisible()
 
 	// Wait for name field to be ready and fill it
-	const nameInput = page.getByRole('textbox', { name: 'Appointment Name' })
+	const nameInput = page.getByRole('textbox', { name: 'Appointment name' })
 	await nameInput.waitFor({ state: 'visible' })
 	await nameInput.fill(name)
 
@@ -30,8 +30,8 @@ async function createAppointmentWithVisibility(page, { name, description, daysFr
 	const startDate = new Date(now.getTime() + daysFromNow * 24 * 60 * 60 * 1000)
 	const endDate = new Date(startDate.getTime() + durationHours * 60 * 60 * 1000)
 
-	await page.getByRole('textbox', { name: 'Start Date & Time' }).fill(startDate.toISOString().slice(0, 16))
-	await page.getByRole('textbox', { name: 'End Date & Time' }).fill(endDate.toISOString().slice(0, 16))
+	await page.getByRole('textbox', { name: 'Start date & time' }).fill(startDate.toISOString().slice(0, 16))
+	await page.getByRole('textbox', { name: 'End date & time' }).fill(endDate.toISOString().slice(0, 16))
 
 	// Add visible users if specified
 	if (visibleUsers.length > 0) {
@@ -210,7 +210,7 @@ test.describe('Attendance App - User Visibility Filtering', () => {
 
 		// Wait for form page and verify it's Edit mode
 		await page.waitForURL(/.*\/edit\/\d+$/)
-		await expect(page.getByRole('heading', { name: 'Edit Appointment' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Edit appointment' })).toBeVisible()
 
 		// Verify that "test1" is shown in the visibility field
 		// The visibility selector should show the selected user(s) in .vs__selected spans

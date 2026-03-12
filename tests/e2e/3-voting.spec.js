@@ -114,8 +114,8 @@ test.describe('Attendance App - Dashboard Widget Voting', () => {
 		await expect(page.getByRole('heading', { level: 3, name: titleText })).toBeVisible()
 		
 		// Verify detail page elements
-		await expect(page.getByRole('heading', { name: 'Your Response' })).toBeVisible()
-		await expect(page.getByRole('heading', { name: 'Response Summary' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Your response' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Response summary' })).toBeVisible()
 	})
 
 	test('should open detail view by clicking appointment description', async ({ page }) => {
@@ -148,8 +148,8 @@ test.describe('Attendance App - Dashboard Widget Voting', () => {
 		await expect(page).toHaveURL(/\/apps\/attendance/)
 		
 		// Verify we're on the listing page (navigation is visible)
-		await expect(page.getByRole('link', { name: 'Upcoming Appointments' })).toBeVisible()
-		await expect(page.getByRole('link', { name: 'Create Appointment' })).toBeVisible()
+		await expect(page.getByRole('link', { name: 'Upcoming appointments' })).toBeVisible()
+		await expect(page.getByRole('link', { name: 'Create appointment' })).toBeVisible()
 	})
 
 	test('should vote Maybe on appointment from dashboard', async ({ page }) => {

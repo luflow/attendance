@@ -59,7 +59,7 @@ async function addUserToGroup(page, username, groupName) {
 // Helper function to create an appointment with group visibility
 async function createAppointmentWithGroupVisibility(page, { name, description, daysFromNow = 2, durationHours = 1, visibleGroups = [] }) {
 	// Wait for Create Appointment link to be ready
-	const createLink = page.getByRole('link', { name: 'Create Appointment' })
+	const createLink = page.getByRole('link', { name: 'Create appointment' })
 	await createLink.waitFor({ state: 'visible' })
 
 	// Click create button (navigates to form page)
@@ -68,10 +68,10 @@ async function createAppointmentWithGroupVisibility(page, { name, description, d
 	// Wait for form page to load
 	await page.waitForURL(/.*\/create$/)
 	await page.waitForLoadState('networkidle')
-	await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
+	await expect(page.getByRole('heading', { name: 'Create appointment' })).toBeVisible()
 
 	// Wait for name field to be ready and fill it
-	const nameInput = page.getByRole('textbox', { name: 'Appointment Name' })
+	const nameInput = page.getByRole('textbox', { name: 'Appointment name' })
 	await nameInput.waitFor({ state: 'visible' })
 	await nameInput.fill(name)
 
@@ -86,8 +86,8 @@ async function createAppointmentWithGroupVisibility(page, { name, description, d
 	const startDate = new Date(now.getTime() + daysFromNow * 24 * 60 * 60 * 1000)
 	const endDate = new Date(startDate.getTime() + durationHours * 60 * 60 * 1000)
 
-	await page.getByRole('textbox', { name: 'Start Date & Time' }).fill(startDate.toISOString().slice(0, 16))
-	await page.getByRole('textbox', { name: 'End Date & Time' }).fill(endDate.toISOString().slice(0, 16))
+	await page.getByRole('textbox', { name: 'Start date & time' }).fill(startDate.toISOString().slice(0, 16))
+	await page.getByRole('textbox', { name: 'End date & time' }).fill(endDate.toISOString().slice(0, 16))
 
 	// Add visible groups if specified
 	if (visibleGroups.length > 0) {
@@ -227,7 +227,7 @@ test.describe('Attendance App - Group Visibility Filtering', () => {
 
 			// Wait for form page and verify it's Edit mode
 			await page.waitForURL(/.*\/edit\/\d+$/)
-			await expect(page.getByRole('heading', { name: 'Edit Appointment' })).toBeVisible()
+			await expect(page.getByRole('heading', { name: 'Edit appointment' })).toBeVisible()
 
 			// Verify that the developers group is shown in the visibility field in .vs__selected span
 			// Scope to the visibility selector component to avoid ambiguity
@@ -251,17 +251,17 @@ test.describe('Attendance App - Group Visibility Filtering', () => {
 			await page.waitForLoadState('networkidle')
 
 			// Create appointment with both specific user and group
-			const createLink = page.getByRole('link', { name: 'Create Appointment' })
+			const createLink = page.getByRole('link', { name: 'Create appointment' })
 			await createLink.waitFor({ state: 'visible' })
 			await createLink.click()
 
 			// Wait for form page to load
 			await page.waitForURL(/.*\/create$/)
 			await page.waitForLoadState('networkidle')
-			await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
+			await expect(page.getByRole('heading', { name: 'Create appointment' })).toBeVisible()
 
 			// Fill form
-			await page.getByRole('textbox', { name: 'Appointment Name' }).fill('Mixed Visibility Meeting')
+			await page.getByRole('textbox', { name: 'Appointment name' }).fill('Mixed Visibility Meeting')
 			const descEditor = page.locator('[data-test="input-appointment-description"] .CodeMirror')
 			await descEditor.waitFor({ state: 'visible' })
 			await descEditor.click()
@@ -271,8 +271,8 @@ test.describe('Attendance App - Group Visibility Filtering', () => {
 			const startDate = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000)
 			const endDate = new Date(startDate.getTime() + 60 * 60 * 1000)
 
-			await page.getByRole('textbox', { name: 'Start Date & Time' }).fill(startDate.toISOString().slice(0, 16))
-			await page.getByRole('textbox', { name: 'End Date & Time' }).fill(endDate.toISOString().slice(0, 16))
+			await page.getByRole('textbox', { name: 'Start date & time' }).fill(startDate.toISOString().slice(0, 16))
+			await page.getByRole('textbox', { name: 'End date & time' }).fill(endDate.toISOString().slice(0, 16))
 
 			// Add developers group (no ambiguity)
 			await page.getByRole('searchbox').click()
@@ -310,7 +310,7 @@ test.describe('Attendance App - Group Visibility Filtering', () => {
 			await page.waitForLoadState('networkidle')
 
 			// Navigate to Upcoming Appointments to see all appointments
-			await page.getByRole('link', { name: 'Upcoming Appointments' }).click()
+			await page.getByRole('link', { name: 'Upcoming appointments' }).click()
 			await page.waitForLoadState('networkidle')
 
 			// Should see "Mixed Visibility Meeting" because test2 user was explicitly added

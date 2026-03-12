@@ -5,16 +5,16 @@ import { test, expect } from './fixtures/nextcloud.js'
  * Returns the start date for further use.
  */
 async function navigateToCreateForm(page, { name = 'Recurring Test', daysFromNow = 5, durationHours = 1 } = {}) {
-	const createLink = page.getByRole('link', { name: 'Create Appointment' })
+	const createLink = page.getByRole('link', { name: 'Create appointment' })
 	await createLink.waitFor({ state: 'visible' })
 	await createLink.click()
 
 	await page.waitForURL(/.*\/create$/)
 	await page.waitForLoadState('networkidle')
-	await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
+	await expect(page.getByRole('heading', { name: 'Create appointment' })).toBeVisible()
 
 	// Fill name
-	const nameInput = page.getByRole('textbox', { name: 'Appointment Name' })
+	const nameInput = page.getByRole('textbox', { name: 'Appointment name' })
 	await nameInput.waitFor({ state: 'visible' })
 	await nameInput.fill(name)
 
@@ -23,8 +23,8 @@ async function navigateToCreateForm(page, { name = 'Recurring Test', daysFromNow
 	const startDate = new Date(now.getTime() + daysFromNow * 24 * 60 * 60 * 1000)
 	const endDate = new Date(startDate.getTime() + durationHours * 60 * 60 * 1000)
 
-	await page.getByRole('textbox', { name: 'Start Date & Time' }).fill(startDate.toISOString().slice(0, 16))
-	await page.getByRole('textbox', { name: 'End Date & Time' }).fill(endDate.toISOString().slice(0, 16))
+	await page.getByRole('textbox', { name: 'Start date & time' }).fill(startDate.toISOString().slice(0, 16))
+	await page.getByRole('textbox', { name: 'End date & time' }).fill(endDate.toISOString().slice(0, 16))
 
 	return startDate
 }
@@ -45,7 +45,7 @@ test.describe('Attendance App - Recurrence', () => {
 	})
 
 	test('recurrence toggle should be disabled without start date', async ({ page }) => {
-		const createLink = page.getByRole('link', { name: 'Create Appointment' })
+		const createLink = page.getByRole('link', { name: 'Create appointment' })
 		await createLink.waitFor({ state: 'visible' })
 		await createLink.click()
 
@@ -258,20 +258,20 @@ test.describe('Attendance App - Recurrence', () => {
 		const endTime = new Date(nextWednesday.getTime() + 2 * 60 * 60 * 1000)
 
 		// Navigate to create form manually (need a Wednesday start date)
-		const createLink = page.getByRole('link', { name: 'Create Appointment' })
+		const createLink = page.getByRole('link', { name: 'Create appointment' })
 		await createLink.waitFor({ state: 'visible' })
 		await createLink.click()
 		await page.waitForURL(/.*\/create$/)
 		await page.waitForLoadState('networkidle')
 
 		// Fill name
-		const nameInput = page.getByRole('textbox', { name: 'Appointment Name' })
+		const nameInput = page.getByRole('textbox', { name: 'Appointment name' })
 		await nameInput.waitFor({ state: 'visible' })
 		await nameInput.fill('Triweekly Wednesday Sync')
 
 		// Set start to next Wednesday
-		await page.getByRole('textbox', { name: 'Start Date & Time' }).fill(nextWednesday.toISOString().slice(0, 16))
-		await page.getByRole('textbox', { name: 'End Date & Time' }).fill(endTime.toISOString().slice(0, 16))
+		await page.getByRole('textbox', { name: 'Start date & time' }).fill(nextWednesday.toISOString().slice(0, 16))
+		await page.getByRole('textbox', { name: 'End date & time' }).fill(endTime.toISOString().slice(0, 16))
 
 		// Enable recurrence
 		await enableRecurrence(page)
@@ -331,7 +331,7 @@ test.describe('Attendance App - Date Validation', () => {
 	})
 
 	test('should block save when end date is before start date', async ({ page }) => {
-		const createLink = page.getByRole('link', { name: 'Create Appointment' })
+		const createLink = page.getByRole('link', { name: 'Create appointment' })
 		await createLink.waitFor({ state: 'visible' })
 		await createLink.click()
 
@@ -339,7 +339,7 @@ test.describe('Attendance App - Date Validation', () => {
 		await page.waitForLoadState('networkidle')
 
 		// Fill name
-		const nameInput = page.getByRole('textbox', { name: 'Appointment Name' })
+		const nameInput = page.getByRole('textbox', { name: 'Appointment name' })
 		await nameInput.fill('Date Validation Test')
 
 		// Set end date before start date
@@ -347,8 +347,8 @@ test.describe('Attendance App - Date Validation', () => {
 		const startDate = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000)
 		const endDate = new Date(startDate.getTime() - 2 * 60 * 60 * 1000) // 2 hours BEFORE start
 
-		await page.getByRole('textbox', { name: 'Start Date & Time' }).fill(startDate.toISOString().slice(0, 16))
-		await page.getByRole('textbox', { name: 'End Date & Time' }).fill(endDate.toISOString().slice(0, 16))
+		await page.getByRole('textbox', { name: 'Start date & time' }).fill(startDate.toISOString().slice(0, 16))
+		await page.getByRole('textbox', { name: 'End date & time' }).fill(endDate.toISOString().slice(0, 16))
 
 		// Try to save
 		await page.getByRole('button', { name: 'Save' }).click()

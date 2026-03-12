@@ -3,7 +3,7 @@ import { test, expect } from './fixtures/nextcloud.js'
 // Helper function to create an appointment
 async function createAppointment(page, { name, description, daysFromNow = 2, durationHours = 1 }) {
 	// Wait for Create Appointment link to be ready
-	const createLink = page.getByRole('link', { name: 'Create Appointment' })
+	const createLink = page.getByRole('link', { name: 'Create appointment' })
 	await createLink.waitFor({ state: 'visible' })
 
 	// Click create button (navigates to form page)
@@ -12,10 +12,10 @@ async function createAppointment(page, { name, description, daysFromNow = 2, dur
 	// Wait for form page to load
 	await page.waitForURL(/.*\/create$/)
 	await page.waitForLoadState('networkidle')
-	await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
+	await expect(page.getByRole('heading', { name: 'Create appointment' })).toBeVisible()
 
 	// Wait for name field to be ready and fill it
-	const nameInput = page.getByRole('textbox', { name: 'Appointment Name' })
+	const nameInput = page.getByRole('textbox', { name: 'Appointment name' })
 	await nameInput.waitFor({ state: 'visible' })
 	await nameInput.fill(name)
 
@@ -31,8 +31,8 @@ async function createAppointment(page, { name, description, daysFromNow = 2, dur
 	const startDate = new Date(now.getTime() + daysFromNow * 24 * 60 * 60 * 1000)
 	const endDate = new Date(startDate.getTime() + durationHours * 60 * 60 * 1000)
 
-	await page.getByRole('textbox', { name: 'Start Date & Time' }).fill(startDate.toISOString().slice(0, 16))
-	await page.getByRole('textbox', { name: 'End Date & Time' }).fill(endDate.toISOString().slice(0, 16))
+	await page.getByRole('textbox', { name: 'Start date & time' }).fill(startDate.toISOString().slice(0, 16))
+	await page.getByRole('textbox', { name: 'End date & time' }).fill(endDate.toISOString().slice(0, 16))
 
 	// Save
 	await page.getByRole('button', { name: 'Save' }).click()
@@ -69,7 +69,7 @@ test.describe('Attendance App - Appointment Management', () => {
 		await page.getByRole('button', { name: 'Actions' }).first().click()
 
 		// Click Share Link
-		await page.getByRole('menuitem', { name: 'Share Link' }).click()
+		await page.getByRole('menuitem', { name: 'Share link' }).click()
 		
 		// Wait for clipboard to be written and verify
 		await page.waitForLoadState('networkidle')
@@ -89,10 +89,10 @@ test.describe('Attendance App - Appointment Management', () => {
 
 		// Wait for form page and verify it's Edit mode
 		await page.waitForURL(/.*\/edit\/\d+$/)
-		await expect(page.getByRole('heading', { name: 'Edit Appointment' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Edit appointment' })).toBeVisible()
 
 		// Modify title
-		const nameInput = page.getByRole('textbox', { name: 'Appointment Name' })
+		const nameInput = page.getByRole('textbox', { name: 'Appointment name' })
 		await nameInput.clear()
 		await nameInput.fill(originalTitle + ' (Edited)')
 
@@ -118,17 +118,17 @@ test.describe('Attendance App - Appointment Management', () => {
 
 		// Wait for form page and verify it's Copy mode
 		await page.waitForURL(/.*\/copy\/\d+$/)
-		await expect(page.getByRole('heading', { name: 'Copy Appointment' })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Copy appointment' })).toBeVisible()
 
 		// Verify name is pre-filled with (Copy) suffix
-		const nameInput = page.getByRole('textbox', { name: 'Appointment Name' })
+		const nameInput = page.getByRole('textbox', { name: 'Appointment name' })
 		const nameValue = await nameInput.inputValue()
 		expect(nameValue).toContain(originalTitle)
 		expect(nameValue).toContain('(Copy)')
 
 		// Verify dates are empty (user must set new dates per spec)
-		const startInput = page.getByRole('textbox', { name: 'Start Date & Time' })
-		const endInput = page.getByRole('textbox', { name: 'End Date & Time' })
+		const startInput = page.getByRole('textbox', { name: 'Start date & time' })
+		const endInput = page.getByRole('textbox', { name: 'End date & time' })
 		await expect(startInput).toHaveValue('')
 		await expect(endInput).toHaveValue('')
 
@@ -195,7 +195,7 @@ test.describe('Attendance App - User Responses', () => {
 		await page.getByRole('button', { name: 'Yes', exact: true }).first().click()
 
 		// Wait for response to be saved by checking summary is visible
-		const summary = page.getByRole('heading', { name: 'Response Summary' }).first()
+		const summary = page.getByRole('heading', { name: 'Response summary' }).first()
 		await expect(summary).toBeVisible()
 	})
 
@@ -213,7 +213,7 @@ test.describe('Attendance App - User Responses', () => {
 		await page.waitForLoadState('networkidle')
 
 		// Verify by checking response summary or button states (use .first() since multiple appointment cards exist)
-		await expect(page.getByRole('heading', { name: 'Response Summary' }).first()).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'Response summary' }).first()).toBeVisible()
 	})
 
 	test('should add comment to response', async ({ page, loginAsUser, attendanceApp }) => {
@@ -222,7 +222,7 @@ test.describe('Attendance App - User Responses', () => {
 		await page.waitForLoadState('networkidle')
 
 		// Navigate to Upcoming Appointments (not Unanswered) to ensure appointment stays visible after voting
-		await page.getByRole('link', { name: 'Upcoming Appointments' }).click()
+		await page.getByRole('link', { name: 'Upcoming appointments' }).click()
 		await page.waitForLoadState('networkidle')
 
 		// Click Yes first (comment section appears after voting)
@@ -249,7 +249,7 @@ test.describe('Attendance App - User Responses', () => {
 		await page.waitForLoadState('networkidle')
 
 		// Navigate back to Upcoming Appointments after reload
-		await page.getByRole('link', { name: 'Upcoming Appointments' }).click()
+		await page.getByRole('link', { name: 'Upcoming appointments' }).click()
 		await page.waitForLoadState('networkidle')
 
 		// Wait for comment toggle button to appear after reload

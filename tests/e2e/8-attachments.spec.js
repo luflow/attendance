@@ -42,7 +42,7 @@ async function getFileId(request, username, password, filename) {
 // Helper function to create an appointment with optional attachments
 async function createAppointment(page, { name, description, daysFromNow = 2, durationHours = 1 }) {
 	// Wait for Create Appointment link to be ready
-	const createLink = page.getByRole('link', { name: 'Create Appointment' })
+	const createLink = page.getByRole('link', { name: 'Create appointment' })
 	await createLink.waitFor({ state: 'visible' })
 
 	// Click create button (navigates to form page)
@@ -51,10 +51,10 @@ async function createAppointment(page, { name, description, daysFromNow = 2, dur
 	// Wait for form page to load
 	await page.waitForURL(/.*\/create$/)
 	await page.waitForLoadState('networkidle')
-	await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
+	await expect(page.getByRole('heading', { name: 'Create appointment' })).toBeVisible()
 
 	// Wait for name field to be ready and fill it
-	const nameInput = page.getByRole('textbox', { name: 'Appointment Name' })
+	const nameInput = page.getByRole('textbox', { name: 'Appointment name' })
 	await nameInput.waitFor({ state: 'visible' })
 	await nameInput.fill(name)
 
@@ -69,8 +69,8 @@ async function createAppointment(page, { name, description, daysFromNow = 2, dur
 	const startDate = new Date(now.getTime() + daysFromNow * 24 * 60 * 60 * 1000)
 	const endDate = new Date(startDate.getTime() + durationHours * 60 * 60 * 1000)
 
-	await page.getByRole('textbox', { name: 'Start Date & Time' }).fill(startDate.toISOString().slice(0, 16))
-	await page.getByRole('textbox', { name: 'End Date & Time' }).fill(endDate.toISOString().slice(0, 16))
+	await page.getByRole('textbox', { name: 'Start date & time' }).fill(startDate.toISOString().slice(0, 16))
+	await page.getByRole('textbox', { name: 'End date & time' }).fill(endDate.toISOString().slice(0, 16))
 
 	// Save
 	await page.getByRole('button', { name: 'Save' }).click()
@@ -96,12 +96,12 @@ test.describe.serial('Attendance App - Attachments', () => {
 
 		test('should show attachment section in create appointment form', async ({ page }) => {
 			// Click create button
-			await page.getByRole('link', { name: 'Create Appointment' }).click()
+			await page.getByRole('link', { name: 'Create appointment' }).click()
 
 			// Wait for form page to load
 			await page.waitForURL(/.*\/create$/)
 			await page.waitForLoadState('networkidle')
-			await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
+			await expect(page.getByRole('heading', { name: 'Create appointment' })).toBeVisible()
 
 			// Verify attachment section exists
 			await expect(page.getByText('Attachments')).toBeVisible()
@@ -113,12 +113,12 @@ test.describe.serial('Attendance App - Attachments', () => {
 
 		test('should open file picker when clicking Add from Files', async ({ page }) => {
 			// Click create button
-			await page.getByRole('link', { name: 'Create Appointment' }).click()
+			await page.getByRole('link', { name: 'Create appointment' }).click()
 
 			// Wait for form page to load
 			await page.waitForURL(/.*\/create$/)
 			await page.waitForLoadState('networkidle')
-			await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
+			await expect(page.getByRole('heading', { name: 'Create appointment' })).toBeVisible()
 
 			// Click Add from Files button
 			await page.getByRole('button', { name: 'Add from Files' }).click()
@@ -135,15 +135,15 @@ test.describe.serial('Attendance App - Attachments', () => {
 
 		test('should add attachment via file picker', async ({ page }) => {
 			// Click create button
-			await page.getByRole('link', { name: 'Create Appointment' }).click()
+			await page.getByRole('link', { name: 'Create appointment' }).click()
 
 			// Wait for form page to load
 			await page.waitForURL(/.*\/create$/)
 			await page.waitForLoadState('networkidle')
-			await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
+			await expect(page.getByRole('heading', { name: 'Create appointment' })).toBeVisible()
 
 			// Fill required fields first
-			await page.getByRole('textbox', { name: 'Appointment Name' }).fill('Attachment Test Meeting')
+			await page.getByRole('textbox', { name: 'Appointment name' }).fill('Attachment Test Meeting')
 			const descEditor = page.locator('[data-test="input-appointment-description"] .CodeMirror')
 			await descEditor.waitFor({ state: 'visible' })
 			await descEditor.click()
@@ -152,8 +152,8 @@ test.describe.serial('Attendance App - Attachments', () => {
 			const now = new Date()
 			const startDate = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000)
 			const endDate = new Date(startDate.getTime() + 1 * 60 * 60 * 1000)
-			await page.getByRole('textbox', { name: 'Start Date & Time' }).fill(startDate.toISOString().slice(0, 16))
-			await page.getByRole('textbox', { name: 'End Date & Time' }).fill(endDate.toISOString().slice(0, 16))
+			await page.getByRole('textbox', { name: 'Start date & time' }).fill(startDate.toISOString().slice(0, 16))
+			await page.getByRole('textbox', { name: 'End date & time' }).fill(endDate.toISOString().slice(0, 16))
 
 			// Click Add from Files button
 			await page.getByRole('button', { name: 'Add from Files' }).click()
@@ -214,7 +214,7 @@ test.describe.serial('Attendance App - Attachments', () => {
 
 				// Wait for form page and verify it's Edit mode
 				await page.waitForURL(/.*\/edit\/\d+$/)
-				await expect(page.getByRole('heading', { name: 'Edit Appointment' })).toBeVisible()
+				await expect(page.getByRole('heading', { name: 'Edit appointment' })).toBeVisible()
 
 				// Verify attachment section is visible
 				await expect(page.getByText('Attachments')).toBeVisible()
