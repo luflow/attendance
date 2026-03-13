@@ -1,40 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "mcp__playwright-test__test_list",
-      "mcp__playwright-test__test_run",
-      "mcp__playwright-test__test_debug",
-      "mcp__playwright-test__browser_snapshot",
-      "mcp__playwright-test__browser_close",
-      "mcp__playwright-test__browser_navigate",
-      "Bash(npm run build:*)",
-      "Bash(php -l:*)",
-      "Bash(npm run test:e2e:*)",
-      "Skill(sc:save)",
-      "WebSearch",
-      "WebFetch(domain:nextcloud-vue-components.netlify.app)",
-      "Bash(npm run lint:*)",
-      "Bash(npx eslint:*)",
-      "Bash(npm run lint:*)",
-      "WebFetch(domain:docs.nextcloud.com)",
-      "WebFetch(domain:help.nextcloud.com)",
-      "Bash(mkdir:*)",
-      "Bash(docker logs:*)",
-      "Bash(git tag:*)",
-      "Bash(wc:*)",
-      "Bash(ls:*)",
-      "WebFetch(domain:raw.githubusercontent.com)",
-      "WebFetch(domain:github.com)",
-      "WebFetch(domain:nextcloud-libraries.github.io)",
-      "Bash(composer cs:fix:*)",
-      "Bash(gh issue view:*)",
-      "mcp__acp__Edit",
-      "mcp__acp__Bash"
-      "Bash(composer openapi)",
+      "Bash(npx playwright:*)",
+      "Bash(gh issue:*)",
+      "Bash(npm ls:*)",
+      "Bash(npm run:*)",
+      "Bash(git diff:*)"
     ]
-  },
-  "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "playwright-test"
-  ]
+  }
 }
