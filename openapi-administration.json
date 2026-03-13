@@ -485,6 +485,10 @@
         {
             "name": "quick_response",
             "description": "Controller for handling quick response links from notifications and emails. All endpoints are public (no login required) and authenticated via signed tokens."
+        },
+        {
+            "name": "self_checkin",
+            "description": "Controller for self-check-in via NFC / deep link. All endpoints require Nextcloud authentication (logged-in user)."
         }
     ]
 }

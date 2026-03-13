@@ -385,7 +385,8 @@
                     "checkinBy",
                     "checkinAt",
                     "isCheckedIn",
-                    "responseSource"
+                    "responseSource",
+                    "checkinSource"
                 ],
                 "properties": {
                     "id": {
@@ -406,7 +407,8 @@
                         "type": "string"
                     },
                     "respondedAt": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                     },
                     "checkinState": {
                         "type": "string"
@@ -418,12 +420,17 @@
                         "type": "string"
                     },
                     "checkinAt": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                     },
                     "isCheckedIn": {
                         "type": "boolean"
                     },
                     "responseSource": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "checkinSource": {
                         "type": "string",
                         "nullable": true
                     }
@@ -444,6 +451,7 @@
                     "checkinAt",
                     "isCheckedIn",
                     "responseSource",
+                    "checkinSource",
                     "userName",
                     "userGroups"
                 ],
@@ -466,7 +474,8 @@
                         "type": "string"
                     },
                     "respondedAt": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                     },
                     "checkinState": {
                         "type": "string"
@@ -478,12 +487,17 @@
                         "type": "string"
                     },
                     "checkinAt": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                     },
                     "isCheckedIn": {
                         "type": "boolean"
                     },
                     "responseSource": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "checkinSource": {
                         "type": "string",
                         "nullable": true
                     },
@@ -2214,38 +2228,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "users",
-                                        "groups",
-                                        "teams"
-                                    ],
-                                    "properties": {
-                                        "users": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "additionalProperties": {
-                                                    "type": "object"
-                                                }
-                                            }
-                                        },
-                                        "groups": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "additionalProperties": {
-                                                    "type": "object"
-                                                }
-                                            }
-                                        },
-                                        "teams": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "object",
-                                                "additionalProperties": {
-                                                    "type": "object"
-                                                }
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "required": [
+                                            "id",
+                                            "label",
+                                            "type",
+                                            "icon"
+                                        ],
+                                        "properties": {
+                                            "id": {
+                                                "type": "string"
+                                            },
+                                            "label": {
+                                                "type": "string"
+                                            },
+                                            "type": {
+                                                "type": "string"
+                                            },
+                                            "icon": {
+                                                "type": "string"
                                             }
                                         }
                                     }
@@ -2871,7 +2874,7 @@
         "/index.php/apps/attendance/api/calendar/events": {
             "get": {
                 "operationId": "calendar-get-events",
-                "summary": "Get events from a specific calendar",
+                "summary": "Get events from a specific calendar within a date range",
                 "tags": [
                     "calendar"
                 ],
@@ -2894,13 +2897,21 @@
                         }
                     },
                     {
-                        "name": "days",
+                        "name": "from",
                         "in": "query",
-                        "description": "Number of days ahead to fetch events (1-90, default 60)",
+                        "description": "Start date in Y-m-d format",
                         "schema": {
-                            "type": "integer",
-                            "format": "int64",
-                            "default": 60
+                            "type": "string",
+                            "default": ""
+                        }
+                    },
+                    {
+                        "name": "to",
+                        "in": "query",
+                        "description": "End date in Y-m-d format",
+                        "schema": {
+                            "type": "string",
+                            "default": ""
                         }
                     }
                 ],
@@ -2924,6 +2935,250 @@
                                                 }
                                             }
                                         }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/attendance/api/self-checkin/appointments": {
+            "get": {
+                "operationId": "self_checkin-get-active-appointments",
+                "summary": "Get active appointments for self-check-in",
+                "description": "Returns active appointments the current user can self-check into right now.",
+                "tags": [
+                    "self_checkin"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object",
+                                        "additionalProperties": {
+                                            "type": "object"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/attendance/api/self-checkin": {
+            "post": {
+                "operationId": "self_checkin-checkin",
+                "summary": "Self-check-in to a specific appointment",
+                "tags": [
+                    "self_checkin"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "appointmentId"
+                                ],
+                                "properties": {
+                                    "appointmentId": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "description": "ID of the appointment to check into"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "object"
                                     }
                                 }
                             }
@@ -3402,6 +3657,10 @@
         {
             "name": "quick_response",
             "description": "Controller for handling quick response links from notifications and emails. All endpoints are public (no login required) and authenticated via signed tokens."
+        },
+        {
+            "name": "self_checkin",
+            "description": "Controller for self-check-in via NFC / deep link. All endpoints require Nextcloud authentication (logged-in user)."
         }
     ]
 }
