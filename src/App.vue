@@ -295,6 +295,7 @@ t("attendance", "Not checked in");
 t("attendance", "Happening now");
 t("attendance", "Error loading data");
 t("attendance", "Reset failed");
+t("attendance", "Active filters");
 
 const currentView = ref(null); // 'current', 'past', 'unanswered', 'appointment', 'checkin', 'create', 'edit', 'copy', or null
 const checkinAppointmentId = ref(null);
