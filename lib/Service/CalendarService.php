@@ -64,26 +64,27 @@ class CalendarService {
 	}
 
 	/**
-	 * Get upcoming events from a specific calendar.
+	 * Get events from a specific calendar within a date range.
 	 *
 	 * @param string $userId
 	 * @param string $calendarUri
-	 * @param int $days Number of days to look ahead (default 30)
+	 * @param string $from Start date in Y-m-d format
+	 * @param string $to End date in Y-m-d format
 	 * @return array Array of events with uid, summary, description, dtstart, dtend
 	 */
-	public function getEventsFromCalendar(string $userId, string $calendarUri, int $days = 30): array {
+	public function getEventsFromCalendar(string $userId, string $calendarUri, string $from, string $to): array {
 		if (!$this->isCalendarAvailable()) {
 			return [];
 		}
 
 		$principal = 'principals/users/' . $userId;
 
-		// Build search query for upcoming events
-		$now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
-		$end = new DateTimeImmutable("+{$days} days", new DateTimeZone('UTC'));
+		// Build search query for events in the given date range
+		$start = new DateTimeImmutable($from . 'T00:00:00', new DateTimeZone('UTC'));
+		$end = new DateTimeImmutable($to . 'T23:59:59', new DateTimeZone('UTC'));
 
 		$query = $this->calendarManager->newQuery($principal);
-		$query->setTimerangeStart($now);
+		$query->setTimerangeStart($start);
 		$query->setTimerangeEnd($end);
 
 		// Search for all events (empty search pattern matches all)

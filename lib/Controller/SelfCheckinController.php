@@ -48,11 +48,11 @@ class SelfCheckinController extends Controller {
 	}
 
 	/**
-	 * GET /api/self-checkin/appointments
+	 * Get active appointments for self-check-in
+	 *
 	 * Returns active appointments the current user can self-check into right now.
 	 *
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
+	 * @return DataResponse<Http::STATUS_OK, list<array<string, mixed>>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -81,12 +81,10 @@ class SelfCheckinController extends Controller {
 	}
 
 	/**
-	 * POST /api/self-checkin
-	 * Self-check-in to a specific appointment.
-	 * Body: { "appointmentId": 123 }
+	 * Self-check-in to a specific appointment
 	 *
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
+	 * @param int $appointmentId ID of the appointment to check into
+	 * @return DataResponse<Http::STATUS_OK, array<string, mixed>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]

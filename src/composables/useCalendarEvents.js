@@ -36,11 +36,12 @@ export function useCalendarEvents() {
 	}
 
 	/**
-	 * Load events from a specific calendar
+	 * Load events from a specific calendar within a date range
 	 * @param {string} calendarUri - The URI of the calendar to load events from
-	 * @param {number} days - Number of days to look ahead (default 60)
+	 * @param {string} from - Start date in Y-m-d format
+	 * @param {string} to - End date in Y-m-d format
 	 */
-	const loadEvents = async (calendarUri, days = 60) => {
+	const loadEvents = async (calendarUri, from, to) => {
 		loadingEvents.value = true
 		error.value = null
 		events.value = []
@@ -50,7 +51,8 @@ export function useCalendarEvents() {
 			const response = await axios.get(url, {
 				params: {
 					calendarUri,
-					days,
+					from,
+					to,
 				},
 			})
 			events.value = response.data.events || []

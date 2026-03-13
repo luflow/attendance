@@ -56,6 +56,22 @@
 					</span>
 				</div>
 
+				<div class="date-range-picker">
+					<NcDateTimePickerNative
+						id="calendar-from-date"
+						:model-value="fromDate"
+						type="date"
+						:label="t('attendance', 'From')"
+						@update:model-value="onFromDateChange" />
+
+					<NcDateTimePickerNative
+						id="calendar-to-date"
+						:model-value="toDate"
+						type="date"
+						:label="t('attendance', 'To')"
+						@update:model-value="onToDateChange" />
+				</div>
+
 				<div v-if="loadingEvents" class="loading-container">
 					<NcLoadingIcon :size="32" />
 					<span class="loading-text">{{ t('attendance', 'Loading events …') }}</span>
@@ -63,7 +79,6 @@
 
 				<template v-else-if="events.length > 0">
 					<div class="event-list-header">
-						<label class="section-label">{{ t('attendance', 'Select events') }}</label>
 						<div class="selection-actions">
 							<NcButton variant="tertiary" :disabled="allSelected" @click="selectAll">
 								{{ t('attendance', 'Select all') }}
@@ -99,7 +114,7 @@
 
 				<div v-else class="empty-state">
 					<CalendarBlankOutline :size="48" class="empty-icon" />
-					<p>{{ t('attendance', 'No upcoming events in this calendar') }}</p>
+					<p>{{ t('attendance', 'No events found in this date range') }}</p>
 				</div>
 
 				<!-- Import button -->
@@ -117,7 +132,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { NcDialog, NcButton, NcLoadingIcon, NcTextField, NcCheckboxRadioSwitch } from '@nextcloud/vue'
+import { NcDialog, NcButton, NcLoadingIcon, NcTextField, NcCheckboxRadioSwitch, NcDateTimePickerNative } from '@nextcloud/vue'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import ChevronRight from 'vue-material-design-icons/ChevronRight.vue'
 import ArrowLeft from 'vue-material-design-icons/ArrowLeft.vue'
@@ -140,6 +155,49 @@ const eventSearchQuery = ref('')
 const selectedEvents = ref(new Set())
 
 const { calendars, events, loadingCalendars, loadingEvents, loadCalendars, loadEvents, clearEvents, reset } = useCalendarEvents()
+
+// Date range for calendar event fetching
+const defaultFromDate = () => {
+	const d = new Date()
+	d.setHours(0, 0, 0, 0)
+	return d
+}
+const defaultToDate = () => {
+	const d = new Date()
+	d.setDate(d.getDate() + 60)
+	d.setHours(0, 0, 0, 0)
+	return d
+}
+const fromDate = ref(defaultFromDate())
+const toDate = ref(defaultToDate())
+
+const formatDateParam = (date) => {
+	const y = date.getFullYear()
+	const m = String(date.getMonth() + 1).padStart(2, '0')
+	const d = String(date.getDate()).padStart(2, '0')
+	return `${y}-${m}-${d}`
+}
+
+const reloadEvents = async () => {
+	if (selectedCalendar.value) {
+		selectedEvents.value = new Set()
+		await loadEvents(selectedCalendar.value.uri, formatDateParam(fromDate.value), formatDateParam(toDate.value))
+	}
+}
+
+const onFromDateChange = async (newValue) => {
+	if (newValue) {
+		fromDate.value = newValue
+		await reloadEvents()
+	}
+}
+
+const onToDateChange = async (newValue) => {
+	if (newValue) {
+		toDate.value = newValue
+		await reloadEvents()
+	}
+}
 
 const translateCalendarName = (name) => {
 	if (!name) return name
@@ -201,6 +259,8 @@ watch(() => props.show, async (newValue) => {
 		selectedCalendar.value = null
 		searchQuery.value = ''
 		selectedEvents.value = new Set()
+		fromDate.value = defaultFromDate()
+		toDate.value = defaultToDate()
 		reset()
 		await loadCalendars()
 	}
@@ -214,7 +274,7 @@ const selectCalendar = async (calendar) => {
 	selectedCalendar.value = calendar
 	eventSearchQuery.value = ''
 	selectedEvents.value = new Set()
-	await loadEvents(calendar.uri)
+	await loadEvents(calendar.uri, formatDateParam(fromDate.value), formatDateParam(toDate.value))
 }
 
 const goBack = () => {
@@ -418,15 +478,21 @@ const importSelected = () => {
 	margin-right: 8px;
 }
 
-.event-list-header {
+.date-range-picker {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
-	margin-bottom: 4px;
+	gap: 8px;
+	margin-bottom: 16px;
 }
 
-.event-list-header .section-label {
-	margin-bottom: 0;
+.date-range-picker :deep(.native-datetime-picker) {
+	flex: 1;
+}
+
+.event-list-header {
+	display: flex;
+	justify-content: flex-end;
+	margin-bottom: 4px;
 }
 
 .selection-actions {

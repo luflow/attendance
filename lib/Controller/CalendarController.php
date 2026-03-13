@@ -82,16 +82,17 @@ class CalendarController extends Controller {
 	}
 
 	/**
-	 * Get events from a specific calendar
+	 * Get events from a specific calendar within a date range
 	 *
 	 * @param string $calendarUri URI of the calendar to fetch events from
-	 * @param int $days Number of days ahead to fetch events (1-90, default 60)
+	 * @param string $from Start date in Y-m-d format
+	 * @param string $to End date in Y-m-d format
 	 * @return DataResponse<Http::STATUS_OK, array{events: list<array<string, mixed>>}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI]
-	public function getEvents(string $calendarUri, int $days = 60): DataResponse {
+	public function getEvents(string $calendarUri, string $from = '', string $to = ''): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
@@ -106,14 +107,26 @@ class CalendarController extends Controller {
 			return new DataResponse(['error' => 'Calendar app not available'], 400);
 		}
 
-		// Validate days parameter (1-90)
-		$days = max(1, min($days, 90));
+		// Default: today to 60 days from now
+		$today = new \DateTimeImmutable('now');
+		if ($from === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $from)) {
+			$from = $today->format('Y-m-d');
+		}
+		if ($to === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $to)) {
+			$to = $today->modify('+60 days')->format('Y-m-d');
+		}
+
+		// Ensure from <= to
+		if ($from > $to) {
+			return new DataResponse(['error' => 'Start date must be before end date'], 400);
+		}
 
 		try {
 			$events = $this->calendarService->getEventsFromCalendar(
 				$user->getUID(),
 				$calendarUri,
-				$days
+				$from,
+				$to
 			);
 			return new DataResponse(['events' => $events]);
 		} catch (\Exception $e) {
