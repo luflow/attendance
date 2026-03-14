@@ -40,6 +40,8 @@ OC.L10N.register(
     "No response" : "אין תגובה",
     "Import" : "ייבוא",
     "Back" : "אחורה",
+    "From" : "מאת",
+    "To" : "אל",
     "Untitled event" : "אירוע ללא כותרת",
     "Present" : "מתנה",
     "Add comment" : "הוספת הערה",

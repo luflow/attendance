@@ -35,6 +35,8 @@ OC.L10N.register(
     "Show all" : "Hammasini ko'rsatish",
     "Import" : "Import",
     "Back" : "Orqaga",
+    "From" : "Dan",
+    "To" : "Gacha",
     "Untitled event" : "Nomsiz tadbir",
     "Present" : "Hozirgi",
     "Add comment" : "Fikr qo'shing",

@@ -40,6 +40,8 @@ OC.L10N.register(
     "No response" : "Peruna risposta",
     "Import" : "Importa",
     "Back" : "In segus",
+    "From" : "Dae",
+    "To" : "A",
     "Untitled event" : "Eventu chene tìtulu",
     "Present" : "Presentare",
     "Add comment" : "Agiunghe cummentu",
