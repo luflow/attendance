@@ -36,6 +36,8 @@ OC.L10N.register(
     "After" : "Pēc",
     "On date" : "Datumā",
     "Import" : "Ievietot",
+    "From" : "No",
+    "To" : "Līdz",
     "Untitled event" : "Nenosaukts notikums",
     "Present" : "Dāvana",
     "Save" : "Saglabāt",

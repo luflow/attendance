@@ -33,6 +33,8 @@ OC.L10N.register(
     "_month_::_months_" : ["Monato","Monatoj"],
     "Ends" : "Finiĝas",
     "Import" : "Importi",
+    "From" : "De",
+    "To" : "Al",
     "Untitled event" : "Sentitola okazaĵo",
     "Save" : "Konservi",
     "Bold" : "Grasa",

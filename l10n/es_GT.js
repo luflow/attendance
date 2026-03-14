@@ -25,6 +25,8 @@ OC.L10N.register(
     "Sunday" : "Domingo",
     "Ends" : "Termina",
     "Import" : "Importar",
+    "From" : "De",
+    "To" : "Para",
     "Save" : "Guardar",
     "Settings saved" : "Se han guardado las configuraciones ",
     "Permissions" : "Permisos",
