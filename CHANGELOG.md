@@ -6,6 +6,16 @@
 
 - Nightly changes here
 
+## 1.31.0 – 2026-03-15
+
+### Added
+
+- Date range picker for calendar import, replacing the fixed 90-day window with a user-selectable date range (defaults to today through 60 days)
+
+### Maintenance
+
+- Translations updated from Transifex
+
 ## 1.30.0 – 2026-03-11
 
 ### Added
