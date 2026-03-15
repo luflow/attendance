@@ -35,6 +35,8 @@ OC.L10N.register(
     "No response" : "Nun hai nenguna rempuesta",
     "Import" : "Importa",
     "Back" : "Atrás",
+    "From" : "De",
+    "To" : "Pa",
     "Untitled event" : "Eventu ensin títulu",
     "Save" : "Guardar",
     "Bold" : "Negrina",

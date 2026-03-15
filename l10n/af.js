@@ -23,6 +23,8 @@ OC.L10N.register(
     "Sunday" : "Sondag",
     "Ends" : "Eindig",
     "Import" : "Invoer",
+    "From" : "Van",
+    "To" : "Aan",
     "Save" : "Stoor",
     "Bold" : "Vet",
     "Italic" : "Skuins",
