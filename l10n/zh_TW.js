@@ -167,6 +167,7 @@ OC.L10N.register(
     "Search events …" : "搜尋事件……",
     "Untitled event" : "未命名事件",
     "No events match your search" : "沒有符合您搜尋條件的事件",
+    "No events found in this date range" : "此日期範圍內找不到事件",
     "Check-in" : "簽到",
     "All present" : "所有出席",
     "All absent" : "所有缺席",

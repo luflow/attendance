@@ -48,6 +48,7 @@ OC.L10N.register(
     "Select calendar" : "Vælg kalender",
     "Back" : "Tilbage",
     "From" : "Fra",
+    "To" : "Til",
     "Untitled event" : "Unavngiven begivenhed",
     "Present" : "Gave",
     "Add comment" : "Tillføj kommentar",
