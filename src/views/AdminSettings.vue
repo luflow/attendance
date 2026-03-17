@@ -142,7 +142,7 @@
 			</NcSettingsSection>
 
 			<NcSettingsSection :name="t('attendance', 'Appointment reminders')"
-				:description="t('attendance', 'Send automatic reminder notifications to users who haven\'t responded to appointments.')">
+				:description="reminderSectionDescription">
 				<NcNoteCard v-if="!notificationsAppEnabled" type="warning">
 					<p>{{ t('attendance', 'The Notifications app is not enabled. Please enable it to use appointment reminders.') }}</p>
 					<p class="hint-text">
@@ -157,10 +157,6 @@
 						data-test="switch-reminders-enabled">
 						{{ t('attendance', 'Enable automatic reminders') }}
 					</NcCheckboxRadioSwitch>
-
-					<NcNoteCard v-if="remindersEnabled" type="info">
-						{{ t('attendance', 'Reminders are sent to users in the groups configured under "Response summary groups" and "Response summary teams". If an appointment has restricted access, only users matching that restriction will be reminded.') }}
-					</NcNoteCard>
 
 					<div v-if="remindersEnabled" class="reminder-config">
 						<NcInputField
@@ -331,6 +327,10 @@ const loading = ref(false)
 const loadingData = ref(true)
 
 // Computed
+const reminderSectionDescription = computed(() => {
+	return t('attendance', 'Reminders are sent to users in the groups configured under "Response summary groups" and "Response summary teams". If an appointment has restricted access, only users matching that restriction will be reminded.')
+})
+
 const reminderPreviewDates = computed(() => {
 	if (!nextAppointment.value) return []
 
