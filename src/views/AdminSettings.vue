@@ -158,6 +158,10 @@
 						{{ t('attendance', 'Enable automatic reminders') }}
 					</NcCheckboxRadioSwitch>
 
+					<NcNoteCard v-if="remindersEnabled" type="info">
+						{{ t('attendance', 'Reminders are sent to users in the groups configured under "Response summary groups" and "Response summary teams". If an appointment has restricted access, only users matching that restriction will be reminded.') }}
+					</NcNoteCard>
+
 					<div v-if="remindersEnabled" class="reminder-config">
 						<NcInputField
 							v-model.number="reminderDays"
@@ -175,6 +179,44 @@
 							:helper-text="t('attendance', 'How often to remind users who haven\'t responded. Set to 0 to only remind once, or 1-30 to repeat reminders every N days.')"
 							data-test="input-reminder-frequency"
 							:input-props="{ min: 0, max: 30 }" />
+					</div>
+
+					<div v-if="remindersEnabled" class="reminder-preview" data-test="reminder-preview">
+						<h4>{{ t('attendance', 'Next reminder run') }}</h4>
+						<p v-if="nextReminderRun" class="reminder-preview-context">
+							{{ t('attendance', 'Approximately {datetime}. The exact time depends on when the server background job runs.', { datetime: formatDateTimeMedium(nextReminderRun + 'Z') }) }}
+						</p>
+						<p v-else class="reminder-preview-context">
+							{{ t('attendance', 'As soon as the background job has run for the first time, the next approximate run time will be displayed here.') }}
+						</p>
+						<h4>{{ t('attendance', 'Preview') }}</h4>
+						<template v-if="nextAppointment">
+							<p class="reminder-preview-context">
+								{{ t('attendance', 'Based on your next appointment: {name} ({date})', {
+									name: nextAppointment.name,
+									date: formatDateTimeMedium(nextAppointment.startDatetime),
+								}) }}
+							</p>
+							<template v-if="reminderPreviewDates.length > 0">
+								<ul class="reminder-preview-list">
+									<li v-for="(entry, index) in reminderPreviewDates" :key="index">
+										<strong>{{ formatDate(entry.date) }}</strong>
+										<span class="reminder-preview-label">
+											{{ entry.daysBefore === 0
+												? t('attendance', '(day of appointment)')
+												: n('attendance', '({count} day before)', '({count} days before)', entry.daysBefore, { count: entry.daysBefore })
+											}}
+										</span>
+									</li>
+								</ul>
+							</template>
+							<p v-else class="reminder-preview-context">
+								{{ t('attendance', 'The reminder window for this appointment has already passed.') }}
+							</p>
+						</template>
+						<p v-else class="reminder-preview-context">
+							{{ t('attendance', 'No upcoming appointments. The preview will appear when an appointment is scheduled.') }}
+						</p>
 					</div>
 				</template>
 			</NcSettingsSection>
@@ -247,7 +289,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
@@ -262,6 +304,7 @@ import {
 } from '@nextcloud/vue'
 import AccountStar from 'vue-material-design-icons/AccountStar.vue'
 import GroupSelect from '../components/common/GroupSelect.vue'
+import { formatDate, formatDateTimeMedium } from '../utils/datetime.js'
 
 // State
 const availableGroups = ref([])
@@ -279,11 +322,56 @@ const remindersEnabled = ref(false)
 const reminderDays = ref(7)
 const reminderFrequency = ref(0)
 const notificationsAppEnabled = ref(true)
+const nextAppointment = ref(null)
+const nextReminderRun = ref(null)
 const calendarSyncEnabled = ref(false)
 const calendarSyncAvailable = ref(false)
 const displayOrder = ref('name_first')
 const loading = ref(false)
 const loadingData = ref(true)
+
+// Computed
+const reminderPreviewDates = computed(() => {
+	if (!nextAppointment.value) return []
+
+	const appointmentDate = new Date(nextAppointment.value.startDatetime)
+	const today = new Date()
+	today.setHours(0, 0, 0, 0)
+
+	const days = reminderDays.value || 7
+	const frequency = reminderFrequency.value || 0
+
+	// Window start = appointmentDate - reminderDays, clamped to today
+	const windowStart = new Date(appointmentDate)
+	windowStart.setDate(windowStart.getDate() - days)
+	windowStart.setHours(0, 0, 0, 0)
+
+	const effectiveStart = windowStart < today ? today : windowStart
+
+	// If the window has already passed entirely
+	const appointmentDay = new Date(appointmentDate)
+	appointmentDay.setHours(0, 0, 0, 0)
+	if (effectiveStart > appointmentDay) return []
+
+	const dates = []
+	if (frequency === 0) {
+		// Single reminder at window start
+		const daysBefore = Math.round((appointmentDay - effectiveStart) / (1000 * 60 * 60 * 24))
+		dates.push({ date: new Date(effectiveStart), daysBefore, isFirst: true, isSingle: true })
+	} else {
+		// Repeated reminders every N days
+		let current = new Date(effectiveStart)
+		let isFirst = true
+		while (current <= appointmentDay) {
+			const daysBefore = Math.round((appointmentDay - current) / (1000 * 60 * 60 * 24))
+			dates.push({ date: new Date(current), daysBefore, isFirst, isSingle: false })
+			current.setDate(current.getDate() + frequency)
+			isFirst = false
+		}
+	}
+
+	return dates
+})
 
 // Methods
 const loadSettings = async () => {
@@ -334,6 +422,8 @@ const loadSettings = async () => {
 				reminderDays.value = response.data.reminders.reminderDays || 7
 				reminderFrequency.value = response.data.reminders.reminderFrequency || 0
 				notificationsAppEnabled.value = response.data.reminders.notificationsAppEnabled !== false
+				nextAppointment.value = response.data.reminders.nextAppointment || null
+				nextReminderRun.value = response.data.reminders.nextReminderRun || null
 			}
 
 			// Load calendar sync settings
@@ -488,5 +578,44 @@ onMounted(async () => {
 
 .input-field.reminder-frequency-field {
 	margin-block-start: 40px;
+}
+
+.reminder-preview {
+	margin-top: 20px;
+	padding: 16px;
+	background: var(--color-background-dark);
+	border-radius: var(--border-radius-large);
+}
+
+.reminder-preview h4 {
+	margin: 0 0 8px 0;
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.reminder-preview h4 + p + h4 {
+	margin-top: 20px;
+}
+
+.reminder-preview-context {
+	margin: 0 0 12px 0;
+	color: var(--color-text-maxcontrast);
+}
+
+.reminder-preview-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.reminder-preview-list li {
+	padding: 6px 0;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.reminder-preview-label {
+	color: var(--color-text-maxcontrast);
 }
 </style>
