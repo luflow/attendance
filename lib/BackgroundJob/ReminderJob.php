@@ -230,7 +230,7 @@ class ReminderJob extends TimedJob {
 						'userId' => $userId,
 						'appointmentId' => $appointment->getId(),
 					]);
-				} catch (\Exception $e) {
+				} catch (\Throwable $e) {
 					$this->logger->error('Failed to send notification', [
 						'userId' => $userId,
 						'appointmentId' => $appointment->getId(),
