@@ -651,16 +651,14 @@ const loadTrackingGroups = async () => {
         const response = await axios.get(
             generateUrl("/apps/attendance/api/admin/settings"),
         );
-        if (response.data.success) {
-            if (response.data.whitelistedGroups) {
-                trackingGroups.value = response.data.whitelistedGroups;
-            }
-            if (response.data.whitelistedTeams) {
-                // Extract team IDs from team objects
-                trackingTeams.value = response.data.whitelistedTeams.map(
-                    (t) => t.id,
-                );
-            }
+        if (response.data.whitelistedGroups) {
+            trackingGroups.value = response.data.whitelistedGroups;
+        }
+        if (response.data.whitelistedTeams) {
+            // Extract team IDs from team objects
+            trackingTeams.value = response.data.whitelistedTeams.map(
+                (t) => t.id,
+            );
         }
     } catch (error) {
         console.debug("Could not load tracking groups:", error);
