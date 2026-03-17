@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Controller;
 
+use OCA\Attendance\BackgroundJob\ReminderJob;
+use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\PermissionService;
 use OCA\Attendance\Service\VisibilityService;
@@ -13,6 +15,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataResponse;
+use OCP\BackgroundJob\IJobList;
 use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IUserSession;
@@ -24,6 +27,8 @@ class AdminController extends Controller {
 	private IAppManager $appManager;
 	private ConfigService $configService;
 	private VisibilityService $visibilityService;
+	private AppointmentMapper $appointmentMapper;
+	private IJobList $jobList;
 
 	public function __construct(
 		string $appName,
@@ -34,6 +39,8 @@ class AdminController extends Controller {
 		IAppManager $appManager,
 		ConfigService $configService,
 		VisibilityService $visibilityService,
+		AppointmentMapper $appointmentMapper,
+		IJobList $jobList,
 	) {
 		parent::__construct($appName, $request);
 		$this->userSession = $userSession;
@@ -42,6 +49,8 @@ class AdminController extends Controller {
 		$this->appManager = $appManager;
 		$this->configService = $configService;
 		$this->visibilityService = $visibilityService;
+		$this->appointmentMapper = $appointmentMapper;
+		$this->jobList = $jobList;
 	}
 
 	/**
@@ -84,11 +93,33 @@ class AdminController extends Controller {
 			$permissionSettings = $this->permissionService->getAllPermissionSettings();
 
 			// Get reminder settings
+			$upcomingAppointments = $this->appointmentMapper->findUpcoming();
+			$nextAppointment = null;
+			if (!empty($upcomingAppointments)) {
+				$first = $upcomingAppointments[0];
+				$nextAppointment = [
+					'name' => $first->getName(),
+					'startDatetime' => $first->getStartDatetime(),
+				];
+			}
+
+			// Get next planned reminder run from background job
+			$nextReminderRun = null;
+			$reminderJobs = $this->jobList->getJobs(ReminderJob::class, 1, 0);
+			if (!empty($reminderJobs)) {
+				$lastRun = $reminderJobs[0]->getLastRun();
+				if ($lastRun > 0) {
+					$nextReminderRun = gmdate('Y-m-d H:i:s', $lastRun + 86400);
+				}
+			}
+
 			$reminderSettings = [
 				'enabled' => $this->config->getAppValue('attendance', 'reminders_enabled', 'no') === 'yes',
 				'reminderDays' => (int)$this->config->getAppValue('attendance', 'reminder_days', '7'),
 				'reminderFrequency' => (int)$this->config->getAppValue('attendance', 'reminder_frequency', '0'),
 				'notificationsAppEnabled' => $this->appManager->isEnabledForUser('notifications'),
+				'nextAppointment' => $nextAppointment,
+				'nextReminderRun' => $nextReminderRun,
 			];
 
 			// Get calendar sync settings

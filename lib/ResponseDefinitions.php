@@ -102,6 +102,8 @@ namespace OCA\Attendance;
  *   reminderDays: int,
  *   reminderFrequency: int,
  *   notificationsAppEnabled: bool,
+ *   nextAppointment: ?array{name: string, startDatetime: string},
+ *   nextReminderRun: ?string,
  * }
  * @psalm-type AttendanceCalendarSyncSettings = array{enabled: bool, available: bool}
  */

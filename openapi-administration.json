@@ -65,7 +65,9 @@
                     "enabled",
                     "reminderDays",
                     "reminderFrequency",
-                    "notificationsAppEnabled"
+                    "notificationsAppEnabled",
+                    "nextAppointment",
+                    "nextReminderRun"
                 ],
                 "properties": {
                     "enabled": {
@@ -81,6 +83,26 @@
                     },
                     "notificationsAppEnabled": {
                         "type": "boolean"
+                    },
+                    "nextAppointment": {
+                        "type": "object",
+                        "nullable": true,
+                        "required": [
+                            "name",
+                            "startDatetime"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "startDatetime": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "nextReminderRun": {
+                        "type": "string",
+                        "nullable": true
                     }
                 }
             },
