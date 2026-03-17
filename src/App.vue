@@ -385,7 +385,7 @@ const loadNotificationsAppStatus = async () => {
         const response = await axios.get(
             generateUrl("/apps/attendance/api/admin/settings"),
         );
-        if (response.data.success && response.data.reminders) {
+        if (response.data.reminders) {
             notificationsAppEnabled.value =
                 response.data.reminders.notificationsAppEnabled !== false;
         }
