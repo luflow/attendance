@@ -6,6 +6,19 @@
 
 - Nightly changes here
 
+## 1.31.1 – 2026-03-17
+
+### Added
+
+- Reminder preview on admin settings page showing when reminders would fire based on the next upcoming appointment
+- Next approximate reminder job run time displayed in admin settings
+
+### Fixed
+
+- Send notification checkbox not showing on appointment creation form due to stale `response.data.success` check
+- Tracking groups not loading in appointment form due to same issue
+- ReminderJob crashing entirely when Notifications app throws an Error (now catches `\Throwable` and continues)
+
 ## 1.31.0 – 2026-03-15
 
 ### Added
