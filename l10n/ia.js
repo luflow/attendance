@@ -23,6 +23,7 @@ OC.L10N.register(
     "Ends" : "Fini",
     "Save" : "Salveguardar",
     "Settings saved" : "Configurationes salveguardate",
+    "Preview" : "Previsualisar",
     "User" : "User",
     "Description" : "Description",
     "Confirm" : "Confirmar"

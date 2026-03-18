@@ -69,6 +69,7 @@ OC.L10N.register(
     "Failed to save settings" : "Неможливо зберегти налаштування",
     "Permissions" : "Дозволи ",
     "Select groups …" : "Виберіть групи ...",
+    "Preview" : "Попередній перегляд",
     "View all" : "Переглянути всі",
     "Loading …" : "Завантаження …",
     "Appointment not found" : "Запрошення на зустріч не знайдено",

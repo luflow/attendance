@@ -75,6 +75,7 @@ OC.L10N.register(
     "Strikethrough" : "Rasurado",
     "Settings saved" : "Definições guardadas",
     "Failed to save settings" : "Erro ao gravar as definições",
+    "Preview" : "Pré-visualizar",
     "View all" : "Ver tudo",
     "Edit appointment" : "Editar reunião",
     "User" : "Utilizador",

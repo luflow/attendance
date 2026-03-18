@@ -122,6 +122,7 @@ OC.L10N.register(
     "Groups that can create, update, and delete appointments" : "Ryhmät, jotka voivat luoda, päivittää ja poistaa tapaamisia",
     "Select groups …" : "Valitse ryhmät…",
     "Enable automatic reminders" : "Käytä automaattisia muistutuksia",
+    "Preview" : "Esikatselu",
     "Calendar sync" : "Kalenterin synkronointi",
     "Enable automatic calendar sync" : "Käytä automaattista kalenterisynkronointia",
     "Display options" : "Näkymävalinnat",

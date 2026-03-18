@@ -65,6 +65,7 @@ OC.L10N.register(
     "Failed to save settings" : "Shranjevanje nastavitev je spodletelo",
     "Permissions" : "Dovoljenja",
     "Select groups …" : "Izbor skupin ...",
+    "Preview" : "Predogled",
     "View all" : "Poglej vse",
     "Appointment not found" : "Sestanka ni mogoče najti",
     "Edit appointment" : "Uredi sestanek",

@@ -44,6 +44,7 @@ OC.L10N.register(
     "Failed to load settings" : "Sozlamalarni yuklab bo'lmadi",
     "Settings saved" : "Sozlamalar saqlandi",
     "Failed to save settings" : "Sozlamalarni saqlab bo'lmadi",
+    "Preview" : "Ko‘rib chiqish",
     "Loading …" : "Yuklanmoqda...",
     "Appointment not found" : "Uchrashuv topilmadi",
     "Edit appointment" : "Uchrashuvni tahrirlash",

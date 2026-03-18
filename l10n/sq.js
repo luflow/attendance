@@ -37,6 +37,7 @@ OC.L10N.register(
     "Quote" : "Citat",
     "Settings saved" : "Opsjonet u Ruajtën.",
     "Permissions" : "Lejet",
+    "Preview" : "Parapamje ",
     "User" : "Përdorues",
     "Appointment updated" : "Takimi u përditësua",
     "Description" : "Përshkrim",

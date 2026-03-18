@@ -67,6 +67,7 @@ OC.L10N.register(
     "Failed to save settings" : "Не удалось сохранить параметры",
     "Permissions" : "Права",
     "Select groups …" : "Выбрать группы …",
+    "Preview" : "Предварительный просмотр",
     "View all" : "Просмотреть все",
     "Loading …" : "Загрузка …",
     "Appointment not found" : "Встреча не найдена",

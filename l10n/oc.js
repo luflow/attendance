@@ -38,6 +38,7 @@ OC.L10N.register(
     "Settings saved" : "Paramètres salvats",
     "Failed to save settings" : "Fracàs de l’enregistrament dels paramètres",
     "Permissions" : "Autorizacions",
+    "Preview" : "Apercebut",
     "Loading …" : "Cargament …",
     "User" : "Utilizator",
     "Description" : "Descripcion",

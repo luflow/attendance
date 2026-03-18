@@ -54,6 +54,7 @@ OC.L10N.register(
     "Settings saved" : "הגדרות נשמרו",
     "Failed to save settings" : "שמירת ההגדרות נכשלה",
     "Permissions" : "הרשאות",
+    "Preview" : "תצוגה מקדימה",
     "User" : "משתמש",
     "Appointment updated" : "הזימון עודכן",
     "Description" : "תיאור",

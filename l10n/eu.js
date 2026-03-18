@@ -67,6 +67,7 @@ OC.L10N.register(
     "Failed to save settings" : "Ezarpenak gordetzeak huts egin du",
     "Permissions" : "Baimenak",
     "Select groups …" : "Hautatu taldeak ...",
+    "Preview" : "Aurrebista",
     "View all" : "Ikusi denak",
     "Loading …" : "Kargatzen …",
     "Appointment not found" : "Ez da hitzordua aurkitu",

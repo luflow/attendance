@@ -69,6 +69,7 @@ OC.L10N.register(
     "Failed to save settings" : "Грешка приликом чувања поставки",
     "Permissions" : "Дозволе",
     "Select groups …" : "Изаберите групе…",
+    "Preview" : "Преглед",
     "View all" : "Прикажи све",
     "Loading …" : "Учитава се…",
     "Appointment not found" : "Састанак није пронађен",

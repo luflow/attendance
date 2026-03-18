@@ -38,6 +38,7 @@ OC.L10N.register(
     "Italic" : "Itálico",
     "Settings saved" : "Configuraciones guardadas",
     "Permissions" : "Permisos",
+    "Preview" : "Vista previa",
     "User" : "Usuario",
     "Description" : "Descripción",
     "Confirm" : "Confirmar",

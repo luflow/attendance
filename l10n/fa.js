@@ -63,6 +63,7 @@ OC.L10N.register(
     "Settings saved" : "تنظیمات ذخیره شد",
     "Failed to save settings" : "تنظیمات ذخیره نشدند",
     "Permissions" : "مجوزها",
+    "Preview" : "پیش‌نمایش",
     "View all" : "View all",
     "Loading …" : "بارگیری",
     "Appointment not found" : "Appointment not found",
