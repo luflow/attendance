@@ -56,6 +56,7 @@ OC.L10N.register(
     "Settings saved" : "Stillingar vistaðar",
     "Failed to save settings" : "Mistókst að vista stillingar",
     "Permissions" : "Heimildir",
+    "Preview" : "Forskoðun",
     "Appointment not found" : "Stefnumót fannst ekki",
     "Edit appointment" : "Breyta stefnumóti",
     "User" : "Notandi",

@@ -65,6 +65,7 @@ OC.L10N.register(
     "Failed to save settings" : "A beállítások mentése sikertelen",
     "Permissions" : "Jogosultságok",
     "Select groups …" : "Csoportok kiválasztása…",
+    "Preview" : "Előnézet",
     "View all" : "Összes megtekintése",
     "Loading …" : "Betöltés…",
     "Appointment not found" : "A találkozó nem található",

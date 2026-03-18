@@ -74,6 +74,7 @@ OC.L10N.register(
     "Failed to save settings" : "Nie udało się zapisać ustawień",
     "Permissions" : "Uprawnienia",
     "Select groups …" : "Wybierz grupy…",
+    "Preview" : "Podgląd",
     "View all" : "Zobacz wszystkie",
     "Loading …" : "Ładowanie ...",
     "Appointment not found" : "Nie znaleziono spotkania",

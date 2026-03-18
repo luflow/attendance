@@ -28,6 +28,7 @@ OC.L10N.register(
     "Save" : "Guardar",
     "Settings saved" : "Se han guardado las configuraciones ",
     "Permissions" : "Permisos",
+    "Preview" : "Previsualizar",
     "User" : "Usuario",
     "Description" : "Descripción",
     "Confirm" : "Confirmar",

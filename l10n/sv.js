@@ -66,6 +66,7 @@ OC.L10N.register(
     "Failed to save settings" : "Kunde inte spara inställningarna",
     "Permissions" : "Behörigheter",
     "Select groups …" : "Välj grupper ...",
+    "Preview" : "Förhandsgranskning",
     "View all" : "Visa alla",
     "Loading …" : "Laddar …",
     "Appointment not found" : "Mötet hittades inte",

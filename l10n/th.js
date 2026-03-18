@@ -33,6 +33,7 @@ OC.L10N.register(
     "Failed to load settings" : "ไม่สามารถโหลดการตั้งค่าได้",
     "Settings saved" : "บันทึกการตั้งค่าแล้ว",
     "Failed to save settings" : "ไม่สามารถบันทึกการตั้งค่าได้",
+    "Preview" : "ตัวอย่าง",
     "User" : "ผู้ใช้",
     "Description" : "คำอธิบาย",
     "Notification" : "การแจ้งเตือน",

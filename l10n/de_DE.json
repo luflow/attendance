@@ -211,7 +211,6 @@
     "Groups that can self-check-in via NFC sticker or deep link" : "Gruppen, die sich per NFC-Aufkleber oder Deep-Link selbst einchecken können",
     "Select groups …" : "Gruppen auswählen …",
     "Appointment reminders" : "Terminerinnerungen",
-    "Send automatic reminder notifications to users who haven't responded to appointments." : "Automatische Erinnerungsbenachrichtigungen an Nutzer senden, die nicht auf Termine reagiert haben.",
     "The Notifications app is not enabled. Please enable it to use appointment reminders." : "Die Benachrichtigungs-App ist nicht aktiviert. Bitte App installieren und aktivieren, um Terminerinnerungen nutzen zu können.",
     "You can enable it in the Apps section of your Nextcloud settings." : "Sie können diese Funktion im Bereich Apps Ihrer Nextcloud-Einstellungen aktivieren.",
     "Enable automatic reminders" : "Automatische Erinnerungen aktivieren",

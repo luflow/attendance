@@ -65,6 +65,7 @@ OC.L10N.register(
     "Failed to save settings" : "設定の保存に失敗しました",
     "Permissions" : "アクセス権限",
     "Select groups …" : "グループを選択 ...",
+    "Preview" : "プレビュー",
     "Loading …" : "読み込み中…",
     "Appointment not found" : "予定が見つかりません",
     "Edit appointment" : "予定を編集",

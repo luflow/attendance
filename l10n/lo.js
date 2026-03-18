@@ -64,6 +64,7 @@ OC.L10N.register(
     "Failed to save settings" : "ບໍ່ສາມາດບັນທຶກການຕັ້ງຄ່າໄດ້",
     "Permissions" : "ການອະນຸຍາດ",
     "Select groups …" : "Select groups …",
+    "Preview" : "ເບິ່ງຕົວຢ່າງ",
     "View all" : "ເບິ່ງທັງໝົດ",
     "Loading …" : "Loading …",
     "Appointment not found" : "Appointment not found",

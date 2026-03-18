@@ -69,6 +69,7 @@ OC.L10N.register(
     "Failed to save settings" : "تەڭشەكلەرنى ساقلىيالمىدى",
     "Permissions" : "ئىجازەت",
     "Select groups …" : "گۇرۇپپىلارنى تاللاڭ…",
+    "Preview" : "ئالدىن كۆرۈش",
     "View all" : "ھەممىنى كۆرۈش",
     "Loading …" : "يۈكلەۋاتىدۇ ...",
     "Appointment not found" : "تەيىنلەنمىدى",

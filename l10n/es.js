@@ -70,6 +70,7 @@ OC.L10N.register(
     "Failed to save settings" : "Fallo al guardar ajustes",
     "Permissions" : "Permisos",
     "Select groups …" : "Seleccione los grupos …",
+    "Preview" : "Vista previa",
     "View all" : "Ver todo",
     "Loading …" : "Cargando …",
     "Appointment not found" : "Cita no encontrada",

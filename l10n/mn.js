@@ -56,6 +56,7 @@ OC.L10N.register(
     "Settings saved" : "Тохиргоо хадгалагдлаа",
     "Failed to save settings" : "Тохиргоог хадгалж чадсангүй",
     "Permissions" : "Зөвшөөрлүүд",
+    "Preview" : "—à–∞–ª–≥–∞—Ö",
     "Loading …" : "Ачаалж байна …",
     "Appointment not found" : "Уулзалт олдсонгүй",
     "User" : "Хэрэглэгч",

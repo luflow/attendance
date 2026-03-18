@@ -31,6 +31,7 @@ OC.L10N.register(
     "Save" : "შენახვა",
     "Settings saved" : "პარამეტრები შენახულია",
     "Permissions" : "უფლებები",
+    "Preview" : "წინასწარი ჩვენება",
     "User" : "მომხმარებელი",
     "Description" : "აღწერილობა",
     "Confirm" : "დადასტურება",

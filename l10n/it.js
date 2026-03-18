@@ -78,6 +78,7 @@ OC.L10N.register(
     "Permissions" : "Permessi",
     "Manage appointments" : "Gestisci appuntamenti",
     "Select groups …" : "Seleziona gruppi …",
+    "Preview" : "Anteprima",
     "View all" : "Vedi tutto",
     "Loading …" : "Caricamento in corso...",
     "Appointment not found" : "Appuntamento non trovato",

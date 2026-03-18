@@ -43,6 +43,7 @@ OC.L10N.register(
     "Failed to load settings" : "Ŝargo de agordoj malsukcesis",
     "Settings saved" : "Agordoj konservitaj",
     "Failed to save settings" : "Konservo de agordoj malsukcesis",
+    "Preview" : "Antaŭvidi",
     "User" : "Uzanto",
     "Description" : "Priskribo",
     "Notification" : "Atentigo",

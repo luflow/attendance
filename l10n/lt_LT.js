@@ -58,6 +58,7 @@ OC.L10N.register(
     "Settings saved" : "Nustatymai įrašyti",
     "Failed to save settings" : "Nepavyko įrašyti nustatymų",
     "Permissions" : "Leidimai",
+    "Preview" : "Peržiūra",
     "Loading …" : "Įkeliama …",
     "Appointment not found" : "Susitikimas nerastas",
     "Edit appointment" : "Taisyti susitikimą",

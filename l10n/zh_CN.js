@@ -67,6 +67,7 @@ OC.L10N.register(
     "Failed to save settings" : "无法保存设置",
     "Permissions" : "权限",
     "Select groups …" : "选择群组…",
+    "Preview" : "预览",
     "View all" : "查看全部",
     "Loading …" : "正在加载 …",
     "Appointment not found" : "未找到预约",

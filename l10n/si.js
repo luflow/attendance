@@ -21,6 +21,7 @@ OC.L10N.register(
     "Saturday" : "සෙනසුරාදා",
     "Sunday" : "ඉරිදා",
     "Back" : "ආපසු",
+    "Preview" : "පෙරදසුන",
     "User" : "පරිශීලක",
     "Description" : "විස්තරය",
     "Confirm" : "තහවුරු කරන්න"

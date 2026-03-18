@@ -80,6 +80,7 @@ OC.L10N.register(
     "Failed to save settings" : "Instellingen konden niet worden opgeslagen",
     "Permissions" : "Rechten",
     "Select groups …" : "Selecteer groepen …",
+    "Preview" : "Voorbeeld",
     "View all" : "Toon alles",
     "Loading …" : "Aan het laden...",
     "Appointment not found" : "Afspraak niet gevonden",
