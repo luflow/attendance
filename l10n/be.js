@@ -48,6 +48,7 @@ OC.L10N.register(
     "Failed to save settings" : "Не ўдалося захаваць налады",
     "Permissions" : "Дазволы",
     "Select groups …" : "Выберыце групы …",
+    "Preview" : "Перадпрагляд",
     "Loading …" : "Загрузка …",
     "User" : "Карыстальнік",
     "Team" : "Каманда",

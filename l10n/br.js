@@ -24,6 +24,7 @@ OC.L10N.register(
     "Present" : "Kinnig",
     "Save" : "Enrollañ",
     "Settings saved" : "Stummoù enrollet",
+    "Preview" : "Ragwell",
     "User" : "Implijer",
     "Description" : "Deskrivadur",
     "Notification" : "Kemennadenn",
