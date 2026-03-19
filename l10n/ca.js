@@ -66,6 +66,7 @@ OC.L10N.register(
     "Failed to save settings" : "Ha fallat desar els paràmetres",
     "Permissions" : "Permisos",
     "Select groups …" : "Selecció de grups …",
+    "Preview" : "Previsualitza",
     "Appointment not found" : "No s'ha trobat la cita",
     "Edit appointment" : "Edició de la cita",
     "User" : "Usuari",
