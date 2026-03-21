@@ -6,6 +6,24 @@
 
 - Nightly changes here
 
+## 1.32.0 – 2026-03-21
+
+### Added
+
+- Recurring appointment series management: bulk-created appointments are now linked as a series with a shared series ID
+- Series-aware edit dialog: when editing a series appointment, choose to apply changes to "this appointment only", "this and future appointments", or "all appointments in this series"
+- Series-aware delete dialog: same scope options when deleting a series appointment
+- Series indicator icon on appointment cards to visually distinguish series members
+- Delta-based time propagation for bulk edits: shifting start/end time on one occurrence applies the same relative shift to all affected occurrences
+
+### Fixed
+
+- Navigation sidebar was not updating after deleting appointments
+
+### Maintenance
+
+- Translations updated from Transifex
+
 ## 1.31.1 – 2026-03-17
 
 ### Added
