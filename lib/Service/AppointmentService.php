@@ -76,6 +76,8 @@ class AppointmentService {
 		bool $sendNotification = false,
 		?string $calendarUri = null,
 		?string $calendarEventUid = null,
+		?string $seriesId = null,
+		?int $seriesPosition = null,
 	): Appointment {
 		$this->validateDateRange($startDatetime, $endDatetime);
 
@@ -96,6 +98,8 @@ class AppointmentService {
 		$appointment->setVisibleTeams(empty($visibleTeams) ? null : json_encode($visibleTeams));
 		$appointment->setCalendarUri($calendarUri);
 		$appointment->setCalendarEventUid($calendarEventUid);
+		$appointment->setSeriesId($seriesId);
+		$appointment->setSeriesPosition($seriesPosition);
 
 		$appointment = $this->appointmentMapper->insert($appointment);
 
@@ -152,6 +156,147 @@ class AppointmentService {
 	}
 
 	/**
+	 * Update appointments in a series based on scope.
+	 *
+	 * @param int $referenceId The appointment ID used as reference
+	 * @param string $scope 'single', 'future', or 'all'
+	 * @param string $name Appointment name
+	 * @param string $description Appointment description
+	 * @param string $startDatetime Start date and time (ISO 8601)
+	 * @param string $endDatetime End date and time (ISO 8601)
+	 * @param string $userId User performing the update
+	 * @param list<string> $visibleUsers User IDs
+	 * @param list<string> $visibleGroups Group IDs
+	 * @param list<string> $visibleTeams Team IDs
+	 * @return list<Appointment> Updated appointments
+	 */
+	public function updateSeriesAppointments(
+		int $referenceId,
+		string $scope,
+		string $name,
+		string $description,
+		string $startDatetime,
+		string $endDatetime,
+		string $userId,
+		array $visibleUsers = [],
+		array $visibleGroups = [],
+		array $visibleTeams = [],
+	): array {
+		$reference = $this->appointmentMapper->find($referenceId);
+
+		if ($scope === 'single') {
+			// Detach from series and update normally
+			$reference->setSeriesId(null);
+			$reference->setSeriesPosition(null);
+			$this->appointmentMapper->update($reference);
+			$updated = $this->updateAppointment(
+				$referenceId, $name, $description, $startDatetime, $endDatetime,
+				$userId, $visibleUsers, $visibleGroups, $visibleTeams
+			);
+			return [$updated];
+		}
+
+		$seriesId = $reference->getSeriesId();
+		if ($seriesId === null) {
+			// Not part of a series, just update single
+			$updated = $this->updateAppointment(
+				$referenceId, $name, $description, $startDatetime, $endDatetime,
+				$userId, $visibleUsers, $visibleGroups, $visibleTeams
+			);
+			return [$updated];
+		}
+
+		// Calculate time deltas
+		$oldStart = new \DateTime($reference->getStartDatetime(), new \DateTimeZone('UTC'));
+		$oldEnd = new \DateTime($reference->getEndDatetime(), new \DateTimeZone('UTC'));
+		$newStart = new \DateTime($startDatetime);
+		$newStart->setTimezone(new \DateTimeZone('UTC'));
+		$newEnd = new \DateTime($endDatetime);
+		$newEnd->setTimezone(new \DateTimeZone('UTC'));
+
+		$startDelta = $newStart->getTimestamp() - $oldStart->getTimestamp();
+		$endDelta = $newEnd->getTimestamp() - $oldEnd->getTimestamp();
+
+		// Load siblings
+		if ($scope === 'future') {
+			$siblings = $this->appointmentMapper->findBySeriesIdFromPosition($seriesId, $reference->getSeriesPosition());
+		} else {
+			$siblings = $this->appointmentMapper->findBySeriesId($seriesId);
+		}
+
+		$this->validateDateRange($startDatetime, $endDatetime);
+
+		$descriptionClean = $this->stripHtmlFromMarkdown($description);
+		$visibleUsersJson = empty($visibleUsers) ? null : json_encode($visibleUsers);
+		$visibleGroupsJson = empty($visibleGroups) ? null : json_encode($visibleGroups);
+		$visibleTeamsJson = empty($visibleTeams) ? null : json_encode($visibleTeams);
+
+		$updated = [];
+		foreach ($siblings as $sibling) {
+			$sibling->setName($name);
+			$sibling->setDescription($descriptionClean);
+
+			// Apply time deltas
+			$siblingStart = new \DateTime($sibling->getStartDatetime(), new \DateTimeZone('UTC'));
+			$siblingEnd = new \DateTime($sibling->getEndDatetime(), new \DateTimeZone('UTC'));
+			$siblingStart->modify("{$startDelta} seconds");
+			$siblingEnd->modify("{$endDelta} seconds");
+			$sibling->setStartDatetime($siblingStart->format('Y-m-d H:i:s'));
+			$sibling->setEndDatetime($siblingEnd->format('Y-m-d H:i:s'));
+
+			$sibling->setUpdatedAt(gmdate('Y-m-d H:i:s'));
+			$sibling->setVisibleUsers($visibleUsersJson);
+			$sibling->setVisibleGroups($visibleGroupsJson);
+			$sibling->setVisibleTeams($visibleTeamsJson);
+
+			$updated[] = $this->appointmentMapper->update($sibling);
+		}
+
+		return $updated;
+	}
+
+	/**
+	 * Delete appointments in a series based on scope.
+	 *
+	 * @param int $referenceId The appointment ID used as reference
+	 * @param string $scope 'single', 'future', or 'all'
+	 * @param string $userId User performing the delete
+	 * @return int Number of deleted appointments
+	 */
+	public function deleteSeriesAppointments(int $referenceId, string $scope, string $userId): int {
+		$reference = $this->appointmentMapper->find($referenceId);
+
+		if ($scope === 'single') {
+			// Detach from series and delete normally
+			$reference->setSeriesId(null);
+			$reference->setSeriesPosition(null);
+			$this->appointmentMapper->update($reference);
+			$this->deleteAppointment($referenceId, $userId);
+			return 1;
+		}
+
+		$seriesId = $reference->getSeriesId();
+		if ($seriesId === null) {
+			$this->deleteAppointment($referenceId, $userId);
+			return 1;
+		}
+
+		if ($scope === 'future') {
+			$siblings = $this->appointmentMapper->findBySeriesIdFromPosition($seriesId, $reference->getSeriesPosition());
+		} else {
+			$siblings = $this->appointmentMapper->findBySeriesId($seriesId);
+		}
+
+		foreach ($siblings as $sibling) {
+			$sibling->setIsActive(0);
+			$sibling->setUpdatedAt(gmdate('Y-m-d H:i:s'));
+			$this->appointmentMapper->update($sibling);
+		}
+
+		return count($siblings);
+	}
+
+	/**
 	 * Get a single appointment by ID.
 	 */
 	public function getAppointment(int $id): Appointment {
@@ -170,6 +315,7 @@ class AppointmentService {
 
 		$appointmentData = $appointment->jsonSerialize();
 		$appointmentData = $this->enrichVisibilityData($appointmentData);
+		$appointmentData = $this->enrichSeriesCount($appointmentData, $appointment);
 		$appointmentData['userResponse'] = $this->getUserResponse($appointment->getId(), $userId);
 		$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId());
 		$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
@@ -346,6 +492,7 @@ class AppointmentService {
 
 			$appointmentData = $appointment->jsonSerialize();
 			$appointmentData = $this->enrichVisibilityData($appointmentData);
+			$appointmentData = $this->enrichSeriesCount($appointmentData, $appointment);
 			$userResponse = $this->getUserResponse($appointment->getId(), $userId);
 			$appointmentData['userResponse'] = ($userResponse && $userResponse->getResponse() !== null) ? $userResponse : null;
 			$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId());
@@ -549,6 +696,20 @@ class AppointmentService {
 		}
 
 		return array_unique($userIds);
+	}
+
+	/**
+	 * Enrich appointment data with series count.
+	 */
+	private function enrichSeriesCount(array $appointmentData, Appointment $appointment): array {
+		$seriesId = $appointment->getSeriesId();
+		if ($seriesId !== null) {
+			$siblings = $this->appointmentMapper->findBySeriesId($seriesId);
+			$appointmentData['seriesCount'] = count($siblings);
+		} else {
+			$appointmentData['seriesCount'] = 0;
+		}
+		return $appointmentData;
 	}
 
 	/**

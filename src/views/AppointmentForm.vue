@@ -98,6 +98,25 @@
                 </p>
             </div>
 
+            <!-- Series Info (shown when appointment is part of a series) -->
+            <div
+                v-if="seriesId && mode === 'edit'"
+                class="form-section"
+            >
+                <div class="series-info-header">
+                    <RepeatIcon :size="20" />
+                    <h3>{{ t("attendance", "Part of a recurring series") }}</h3>
+                </div>
+                <p class="hint-text">
+                    {{
+                        t(
+                            "attendance",
+                            "This appointment is part of a series. When saving, you can choose to apply changes to this appointment only, this and future appointments, or all appointments in the series.",
+                        )
+                    }}
+                </p>
+            </div>
+
             <div class="form-section">
                 <NcTextField
                     v-model="formData.name"
@@ -310,6 +329,15 @@
             @select="handleCalendarEventSelect"
             @bulk-select="handleBulkImport"
         />
+
+        <!-- Series Action Dialog (for edit mode) -->
+        <SeriesActionDialog
+            :show="showSeriesDialog"
+            action="edit"
+            :series-count="seriesCount"
+            @confirm="handleSeriesEditConfirm"
+            @cancel="showSeriesDialog = false"
+        />
     </div>
 </template>
 
@@ -344,6 +372,8 @@ import ArrowLeft from "vue-material-design-icons/ArrowLeft.vue";
 import CalendarImport from "vue-material-design-icons/CalendarImport.vue";
 import CalendarSync from "vue-material-design-icons/CalendarSync.vue";
 import LinkVariant from "vue-material-design-icons/LinkVariant.vue";
+import RepeatIcon from "vue-material-design-icons/Repeat.vue";
+import SeriesActionDialog from "../components/appointment/SeriesActionDialog.vue";
 import "@nextcloud/dialogs/style.css";
 
 const props = defineProps({
@@ -398,6 +428,9 @@ const calendarReference = ref({ calendarUri: null, calendarEventUid: null });
 const recurrenceOccurrences = ref([]);
 const recurrenceWarning = ref(null);
 const isRecurring = computed(() => recurrenceOccurrences.value.length > 1);
+const seriesId = ref(null);
+const seriesCount = ref(0);
+const showSeriesDialog = ref(false);
 
 const appointmentDuration = computed(() => {
     if (!formData.startDatetime || !formData.endDatetime) return 0;
@@ -637,6 +670,12 @@ const loadAppointment = async () => {
                 calendarUri: appointment.calendarUri,
                 calendarEventUid: appointment.calendarEventUid,
             };
+        }
+
+        // Load series info (for edit mode, not copy)
+        if (props.mode === "edit" && appointment.seriesId) {
+            seriesId.value = appointment.seriesId;
+            seriesCount.value = appointment.seriesCount || 0;
         }
     } catch (error) {
         console.error("Failed to load appointment:", error);
@@ -947,6 +986,21 @@ const handleSubmit = async () => {
         return handleRecurringCreate();
     }
 
+    // If editing a series appointment, show the series dialog
+    if (props.mode === "edit" && seriesId.value) {
+        showSeriesDialog.value = true;
+        return;
+    }
+
+    await saveAppointment();
+};
+
+const handleSeriesEditConfirm = async (scope) => {
+    showSeriesDialog.value = false;
+    await saveAppointment(scope);
+};
+
+const saveAppointment = async (scope = "single") => {
     saving.value = true;
 
     try {
@@ -970,6 +1024,7 @@ const handleSubmit = async () => {
                     visibleGroups: formData.visibleGroups || [],
                     visibleTeams: formData.visibleTeams || [],
                     attachments: attachmentFileIds.value,
+                    scope,
                 },
             );
             showSuccess(t("attendance", "Appointment updated"));
@@ -1126,6 +1181,16 @@ onMounted(async () => {
     gap: 10px;
     padding-top: 16px;
     border-top: 1px solid var(--color-border);
+}
+
+.series-info-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    h3 {
+        margin: 0;
+    }
 }
 
 .calendar-link-header {

@@ -20,6 +20,8 @@ namespace OCA\Attendance;
  *   visibleTeams: list<string>,
  *   calendarUri: ?string,
  *   calendarEventUid: ?string,
+ *   seriesId: ?string,
+ *   seriesPosition: ?int,
  * }
  * @psalm-type AttendanceResponseData = array{
  *   id: int,
@@ -68,6 +70,8 @@ namespace OCA\Attendance;
  *   visibleTeams: list<string>,
  *   calendarUri: ?string,
  *   calendarEventUid: ?string,
+ *   seriesId: ?string,
+ *   seriesPosition: ?int,
  *   userResponse: AttendanceResponseData|null,
  *   responseSummary: array<string, int>,
  *   attachments: list<array<string, mixed>>,
@@ -76,6 +80,8 @@ namespace OCA\Attendance;
  *   id: int,
  *   name: string,
  *   startDatetime: string,
+ *   seriesId: ?string,
+ *   seriesPosition: ?int,
  *   userResponse: ?array{response: string},
  * }
  * @psalm-type AttendanceCheckinData = array{

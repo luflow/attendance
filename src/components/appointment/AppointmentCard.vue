@@ -20,6 +20,13 @@
                         >
                             <CalendarSyncIcon :size="14" />
                         </a>
+                        <span
+                            v-if="appointment.seriesId"
+                            class="series-indicator"
+                            :title="t('attendance', 'Part of a recurring series')"
+                        >
+                            <RepeatIcon :size="14" />
+                        </span>
                     </h3>
                     <span class="appointment-date-subtitle">
                         {{ appointment.name }}
@@ -28,6 +35,13 @@
                 <template v-else>
                     <h3 data-test="appointment-title">
                         {{ appointment.name }}
+                        <span
+                            v-if="appointment.seriesId"
+                            class="series-indicator"
+                            :title="t('attendance', 'Part of a recurring series')"
+                        >
+                            <RepeatIcon :size="14" />
+                        </span>
                     </h3>
                     <span class="appointment-date-subtitle">
                         {{
@@ -311,6 +325,7 @@ import HelpCircleOutlineIcon from "vue-material-design-icons/HelpCircleOutline.v
 import Paperclip from "vue-material-design-icons/Paperclip.vue";
 import CommentIcon from "vue-material-design-icons/Comment.vue";
 import CalendarSyncIcon from "vue-material-design-icons/CalendarSync.vue";
+import RepeatIcon from "vue-material-design-icons/Repeat.vue";
 import { formatDateRange } from "../../utils/datetime.js";
 import { useAppointmentResponse } from "../../composables/useAppointmentResponse.js";
 
@@ -528,6 +543,14 @@ const handleCommentInputEvent = () => {
             vertical-align: middle;
             margin-left: 4px;
             color: var(--color-primary-element);
+        }
+
+        .series-indicator {
+            display: inline-flex;
+            align-items: center;
+            vertical-align: middle;
+            margin-left: 4px;
+            color: var(--color-text-maxcontrast);
         }
     }
 

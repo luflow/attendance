@@ -36,7 +36,9 @@
                     "visibleGroups",
                     "visibleTeams",
                     "calendarUri",
-                    "calendarEventUid"
+                    "calendarEventUid",
+                    "seriesId",
+                    "seriesPosition"
                 ],
                 "properties": {
                     "id": {
@@ -93,6 +95,15 @@
                     "calendarEventUid": {
                         "type": "string",
                         "nullable": true
+                    },
+                    "seriesId": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "seriesPosition": {
+                        "type": "integer",
+                        "format": "int64",
+                        "nullable": true
                     }
                 }
             },
@@ -113,6 +124,8 @@
                     "visibleTeams",
                     "calendarUri",
                     "calendarEventUid",
+                    "seriesId",
+                    "seriesPosition",
                     "userResponse",
                     "responseSummary",
                     "attachments"
@@ -171,6 +184,15 @@
                     },
                     "calendarEventUid": {
                         "type": "string",
+                        "nullable": true
+                    },
+                    "seriesId": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "seriesPosition": {
+                        "type": "integer",
+                        "format": "int64",
                         "nullable": true
                     },
                     "userResponse": {
@@ -310,6 +332,8 @@
                     "id",
                     "name",
                     "startDatetime",
+                    "seriesId",
+                    "seriesPosition",
                     "userResponse"
                 ],
                 "properties": {
@@ -322,6 +346,15 @@
                     },
                     "startDatetime": {
                         "type": "string"
+                    },
+                    "seriesId": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "seriesPosition": {
+                        "type": "integer",
+                        "format": "int64",
+                        "nullable": true
                     },
                     "userResponse": {
                         "type": "object",
@@ -1289,6 +1322,11 @@
                                             "type": "integer",
                                             "format": "int64"
                                         }
+                                    },
+                                    "scope": {
+                                        "type": "string",
+                                        "default": "single",
+                                        "description": "Series update scope: single, future, or all"
                                     }
                                 }
                             }
@@ -1313,7 +1351,17 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/AppointmentData"
+                                    "anyOf": [
+                                        {
+                                            "$ref": "#/components/schemas/AppointmentData"
+                                        },
+                                        {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/AppointmentData"
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }
@@ -1431,6 +1479,15 @@
                             "type": "integer",
                             "format": "int64"
                         }
+                    },
+                    {
+                        "name": "scope",
+                        "in": "query",
+                        "description": "Series delete scope: single, future, or all",
+                        "schema": {
+                            "type": "string",
+                            "default": "single"
+                        }
                     }
                 ],
                 "responses": {
@@ -1441,11 +1498,16 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "success"
+                                        "success",
+                                        "deletedCount"
                                     ],
                                     "properties": {
                                         "success": {
                                             "type": "boolean"
+                                        },
+                                        "deletedCount": {
+                                            "type": "integer",
+                                            "format": "int64"
                                         }
                                     }
                                 }

@@ -58,6 +58,13 @@
 			:show="exportDialogVisible"
 			:appointment="selectedAppointmentForExport"
 			@close="exportDialogVisible = false" />
+
+		<!-- Delete Appointment Dialog -->
+		<DeleteAppointmentDialog
+			:show="showDeleteDialog"
+			:appointment="pendingDeleteAppointment"
+			@confirm="handleDeleteConfirm"
+			@cancel="showDeleteDialog = false" />
 	</div>
 </template>
 
@@ -66,6 +73,7 @@ import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { NcButton } from '@nextcloud/vue'
 import AppointmentCard from '../components/appointment/AppointmentCard.vue'
 import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
+import DeleteAppointmentDialog from '../components/appointment/DeleteAppointmentDialog.vue'
 import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
 import confettiLib from 'canvas-confetti'
 import axios from '@nextcloud/axios'
@@ -90,6 +98,8 @@ const emit = defineEmits(['response-updated', 'edit-appointment', 'copy-appointm
 const appointments = ref([])
 const exportDialogVisible = ref(false)
 const selectedAppointmentForExport = ref(null)
+const showDeleteDialog = ref(false)
+const pendingDeleteAppointment = ref(null)
 
 const goToUpcoming = () => {
 	emit('navigate-to-upcoming')
@@ -166,14 +176,23 @@ const updateComment = async (appointmentId, comment) => {
 	await submitResponseApi(appointmentId, response, comment)
 }
 
-const deleteAppointment = async (appointmentId) => {
-	if (confirm(window.t('attendance', 'Are you sure you want to delete this appointment?'))) {
-		try {
-			await axios.delete(generateUrl(`/apps/attendance/api/appointments/${appointmentId}`))
-			await loadAppointments(true)
-		} catch (error) {
-			console.error('Failed to delete appointment:', error)
-		}
+const deleteAppointment = (appointmentId) => {
+	const appointment = appointments.value.find(a => a.id === appointmentId)
+	pendingDeleteAppointment.value = appointment
+	showDeleteDialog.value = true
+}
+
+const handleDeleteConfirm = async (scope) => {
+	showDeleteDialog.value = false
+	if (!pendingDeleteAppointment.value) return
+
+	try {
+		await axios.delete(generateUrl(`/apps/attendance/api/appointments/${pendingDeleteAppointment.value.id}`), {
+			data: { scope },
+		})
+		await loadAppointments(true)
+	} catch (error) {
+		console.error('Failed to delete appointment:', error)
 	}
 }
 

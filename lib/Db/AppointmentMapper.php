@@ -191,6 +191,52 @@ class AppointmentMapper extends QBMapper {
 	}
 
 	/**
+	 * Find all active appointments in a series.
+	 *
+	 * @param string $seriesId The series UUID
+	 * @return array<Appointment>
+	 */
+	public function findBySeriesId(string $seriesId): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->andX(
+					$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
+					$qb->expr()->eq('series_id', $qb->createNamedParameter($seriesId))
+				)
+			)
+			->orderBy('series_position', 'ASC');
+
+		return $this->findEntities($qb);
+	}
+
+	/**
+	 * Find active appointments in a series from a given position onward.
+	 *
+	 * @param string $seriesId The series UUID
+	 * @param int $fromPosition The minimum series_position (inclusive)
+	 * @return array<Appointment>
+	 */
+	public function findBySeriesIdFromPosition(string $seriesId, int $fromPosition): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->andX(
+					$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
+					$qb->expr()->eq('series_id', $qb->createNamedParameter($seriesId)),
+					$qb->expr()->gte('series_position', $qb->createNamedParameter($fromPosition, IQueryBuilder::PARAM_INT))
+				)
+			)
+			->orderBy('series_position', 'ASC');
+
+		return $this->findEntities($qb);
+	}
+
+	/**
 	 * Find appointments with flexible filtering for export functionality
 	 *
 	 * @param array|null $appointmentIds Specific appointment IDs to export (null for all)

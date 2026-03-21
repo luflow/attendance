@@ -40,6 +40,13 @@
 			:show="exportDialogVisible"
 			:appointment="appointment"
 			@close="exportDialogVisible = false" />
+
+		<!-- Delete Appointment Dialog -->
+		<DeleteAppointmentDialog
+			:show="showDeleteDialog"
+			:appointment="appointment"
+			@confirm="handleDeleteConfirm"
+			@cancel="showDeleteDialog = false" />
 	</div>
 </template>
 
@@ -52,6 +59,7 @@ import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
 import AppointmentCard from '../components/appointment/AppointmentCard.vue'
 import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
+import DeleteAppointmentDialog from '../components/appointment/DeleteAppointmentDialog.vue'
 import { usePermissions } from '../composables/usePermissions.js'
 import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
 
@@ -72,6 +80,7 @@ const appointment = ref(null)
 const loading = ref(true)
 const error = ref(null)
 const exportDialogVisible = ref(false)
+const showDeleteDialog = ref(false)
 
 // Use the shared permissions composable
 const { permissions, loadPermissions } = usePermissions()
@@ -103,16 +112,21 @@ const copyAppointment = (apt) => {
 	emit('copy-appointment', apt)
 }
 
-const deleteAppointment = async (appointmentId) => {
-	if (confirm(t('attendance', 'Are you sure you want to delete this appointment?'))) {
-		try {
-			await axios.delete(generateUrl(`/apps/attendance/api/appointments/${appointmentId}`))
-			showSuccess(t('attendance', 'Appointment deleted'))
-			goBack()
-		} catch (error) {
-			console.error('Failed to delete appointment:', error)
-			showError(t('attendance', 'Error deleting appointment'))
-		}
+const deleteAppointment = () => {
+	showDeleteDialog.value = true
+}
+
+const handleDeleteConfirm = async (scope) => {
+	showDeleteDialog.value = false
+	try {
+		await axios.delete(generateUrl(`/apps/attendance/api/appointments/${appointment.value.id}`), {
+			data: { scope },
+		})
+		showSuccess(t('attendance', 'Appointment deleted'))
+		goBack()
+	} catch (err) {
+		console.error('Failed to delete appointment:', err)
+		showError(t('attendance', 'Error deleting appointment'))
 	}
 }
 
