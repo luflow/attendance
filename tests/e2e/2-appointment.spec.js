@@ -156,6 +156,14 @@ test.describe('Attendance App - Appointment Management', () => {
 		await page.getByRole('button', { name: 'Actions' }).first().click()
 		await page.getByRole('menuitem', { name: 'Delete' }).click()
 
+		// Delete dialog should appear
+		const deleteDialog = page.getByRole('dialog', { name: 'Delete appointment' })
+		await expect(deleteDialog).toBeVisible()
+		await expect(deleteDialog.getByText('Do you want to delete this appointment?')).toBeVisible()
+
+		// Confirm deletion
+		await deleteDialog.getByRole('button', { name: 'Delete' }).click()
+
 		// Wait for deletion
 		await page.waitForLoadState('networkidle')
 

@@ -20,6 +20,7 @@ use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
+use OCP\Security\ISecureRandom;
 
 class AppointmentController extends Controller {
 	private AppointmentService $appointmentService;
@@ -31,6 +32,7 @@ class AppointmentController extends Controller {
 	private ExportService $exportService;
 	private NotificationService $notificationService;
 	private IUserSession $userSession;
+	private ISecureRandom $secureRandom;
 
 	public function __construct(
 		string $appName,
@@ -44,6 +46,7 @@ class AppointmentController extends Controller {
 		ExportService $exportService,
 		NotificationService $notificationService,
 		IUserSession $userSession,
+		ISecureRandom $secureRandom,
 	) {
 		parent::__construct($appName, $request);
 		$this->appointmentService = $appointmentService;
@@ -55,6 +58,7 @@ class AppointmentController extends Controller {
 		$this->exportService = $exportService;
 		$this->notificationService = $notificationService;
 		$this->userSession = $userSession;
+		$this->secureRandom = $secureRandom;
 	}
 
 	/**
@@ -192,6 +196,9 @@ class AppointmentController extends Controller {
 		$errors = [];
 		$firstAppointment = null;
 
+		// Generate a series ID to link all appointments in this bulk create
+		$seriesId = $this->secureRandom->generate(36);
+
 		foreach ($appointments as $index => $data) {
 			try {
 				$appointment = $this->appointmentService->createAppointment(
@@ -206,6 +213,8 @@ class AppointmentController extends Controller {
 					false,
 					$data['calendarUri'] ?? null,
 					$data['calendarEventUid'] ?? null,
+					$seriesId,
+					$index,
 				);
 				$createdIds[] = $appointment->getId();
 				if ($firstAppointment === null) {
@@ -256,7 +265,8 @@ class AppointmentController extends Controller {
 	 * @param list<string> $visibleGroups Group IDs to make the appointment visible to
 	 * @param list<string> $visibleTeams Team IDs to make the appointment visible to
 	 * @param list<int> $attachments File IDs to attach to the appointment
-	 * @return DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
+	 * @param string $scope Series update scope: single, future, or all
+	 * @return DataResponse<Http::STATUS_OK, AttendanceAppointmentData|list<AttendanceAppointmentData>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -271,6 +281,7 @@ class AppointmentController extends Controller {
 		array $visibleGroups = [],
 		array $visibleTeams = [],
 		array $attachments = [],
+		string $scope = 'single',
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -288,16 +299,33 @@ class AppointmentController extends Controller {
 		}
 
 		try {
+			if ($scope === 'future' || $scope === 'all') {
+				$updatedAppointments = $this->appointmentService->updateSeriesAppointments(
+					$id, $scope, $name, $description, $startDatetime, $endDatetime,
+					$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams
+				);
+
+				// Sync attachments across all affected appointments
+				foreach ($updatedAppointments as $updated) {
+					$this->syncAttachments($updated->getId(), $attachments, $user->getUID());
+				}
+
+				return new DataResponse($updatedAppointments);
+			}
+
+			// scope === 'single': detach from series if part of one, then update normally
+			if ($appointment->getSeriesId() !== null) {
+				$updatedAppointments = $this->appointmentService->updateSeriesAppointments(
+					$id, 'single', $name, $description, $startDatetime, $endDatetime,
+					$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams
+				);
+				$this->syncAttachments($id, $attachments, $user->getUID());
+				return new DataResponse($updatedAppointments[0]);
+			}
+
 			$appointment = $this->appointmentService->updateAppointment(
-				$id,
-				$name,
-				$description,
-				$startDatetime,
-				$endDatetime,
-				$user->getUID(),
-				$visibleUsers,
-				$visibleGroups,
-				$visibleTeams
+				$id, $name, $description, $startDatetime, $endDatetime,
+				$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams
 			);
 
 			$this->syncAttachments($id, $attachments, $user->getUID());
@@ -344,12 +372,13 @@ class AppointmentController extends Controller {
 	 * Delete an appointment
 	 *
 	 * @param int $id Appointment ID
-	 * @return DataResponse<Http::STATUS_OK, array{success: bool}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
+	 * @param string $scope Series delete scope: single, future, or all
+	 * @return DataResponse<Http::STATUS_OK, array{success: bool, deletedCount: int}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI]
-	public function destroy(int $id): DataResponse {
+	public function destroy(int $id, string $scope = 'single'): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
@@ -366,8 +395,18 @@ class AppointmentController extends Controller {
 		}
 
 		try {
+			if (($scope === 'future' || $scope === 'all') && $appointment->getSeriesId() !== null) {
+				$deletedCount = $this->appointmentService->deleteSeriesAppointments($id, $scope, $user->getUID());
+				return new DataResponse(['success' => true, 'deletedCount' => $deletedCount]);
+			}
+
+			if ($scope === 'single' && $appointment->getSeriesId() !== null) {
+				$deletedCount = $this->appointmentService->deleteSeriesAppointments($id, 'single', $user->getUID());
+				return new DataResponse(['success' => true, 'deletedCount' => $deletedCount]);
+			}
+
 			$this->appointmentService->deleteAppointment($id, $user->getUID());
-			return new DataResponse(['success' => true]);
+			return new DataResponse(['success' => true, 'deletedCount' => 1]);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 400);
 		}

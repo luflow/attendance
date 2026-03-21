@@ -36,6 +36,10 @@ use OCP\AppFramework\Db\Entity;
  * @method void setCalendarUri(?string $calendarUri)
  * @method string|null getCalendarEventUid()
  * @method void setCalendarEventUid(?string $calendarEventUid)
+ * @method string|null getSeriesId()
+ * @method void setSeriesId(?string $seriesId)
+ * @method int|null getSeriesPosition()
+ * @method void setSeriesPosition(?int $seriesPosition)
  */
 class Appointment extends Entity implements JsonSerializable {
 	use DatetimeFormatTrait;
@@ -52,6 +56,8 @@ class Appointment extends Entity implements JsonSerializable {
 	protected $visibleTeams = null;
 	protected $calendarUri = null;
 	protected $calendarEventUid = null;
+	protected $seriesId = null;
+	protected $seriesPosition = null;
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -68,6 +74,8 @@ class Appointment extends Entity implements JsonSerializable {
 		$this->addType('visibleTeams', 'string');
 		$this->addType('calendarUri', 'string');
 		$this->addType('calendarEventUid', 'string');
+		$this->addType('seriesId', 'string');
+		$this->addType('seriesPosition', 'integer');
 	}
 
 	public function jsonSerialize(): array {
@@ -86,6 +94,8 @@ class Appointment extends Entity implements JsonSerializable {
 			'visibleTeams' => $this->parseJsonField($this->getVisibleTeams()),
 			'calendarUri' => $this->getCalendarUri(),
 			'calendarEventUid' => $this->getCalendarEventUid(),
+			'seriesId' => $this->getSeriesId(),
+			'seriesPosition' => $this->getSeriesPosition(),
 		];
 	}
 
