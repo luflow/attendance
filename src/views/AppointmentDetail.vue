@@ -74,7 +74,7 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['response-updated', 'edit-appointment', 'copy-appointment', 'navigate-to-unanswered'])
+const emit = defineEmits(['response-updated', 'edit-appointment', 'copy-appointment', 'navigate-to-unanswered', 'appointment-deleted'])
 
 const appointment = ref(null)
 const loading = ref(true)
@@ -123,6 +123,7 @@ const handleDeleteConfirm = async (scope) => {
 			data: { scope },
 		})
 		showSuccess(t('attendance', 'Appointment deleted'))
+		emit('appointment-deleted')
 		goBack()
 	} catch (err) {
 		console.error('Failed to delete appointment:', err)
