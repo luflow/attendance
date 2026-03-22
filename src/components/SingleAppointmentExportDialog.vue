@@ -79,17 +79,13 @@ const handleExport = async () => {
 			includeComments: includeComments.value,
 		})
 
-		if (response.data.success) {
-			showSuccess(t('attendance', 'Export created: {filename}', { filename: response.data.filename }))
+		showSuccess(t('attendance', 'Export created: {filename}', { filename: response.data.filename }))
 
-			// Redirect to Files app to show the exported file
-			const filesUrl = generateUrl('/apps/files/?dir=/Attendance')
-			window.location.href = filesUrl
+		// Redirect to Files app to show the exported file
+		const filesUrl = generateUrl('/apps/files/?dir=/Attendance')
+		window.location.href = filesUrl
 
-			emit('close')
-		} else {
-			showError(t('attendance', 'Failed to export appointment'))
-		}
+		emit('close')
 	} catch (error) {
 		console.error('Failed to export appointment:', error)
 		const errorMessage = error.response?.data?.error || t('attendance', 'Failed to export appointment')

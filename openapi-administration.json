@@ -20,17 +20,127 @@
             }
         },
         "schemas": {
-            "CalendarSyncSettings": {
+            "AdminCalendarSyncConfig": {
+                "type": "object",
+                "required": [
+                    "enabled"
+                ],
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "AdminConfig": {
+                "type": "object",
+                "required": [
+                    "whitelistedGroups",
+                    "whitelistedTeams",
+                    "permissions",
+                    "reminders",
+                    "calendarSync",
+                    "displayOrder"
+                ],
+                "properties": {
+                    "whitelistedGroups": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "whitelistedTeams": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TeamOption"
+                        }
+                    },
+                    "permissions": {
+                        "$ref": "#/components/schemas/PermissionSettings"
+                    },
+                    "reminders": {
+                        "$ref": "#/components/schemas/AdminReminderConfig"
+                    },
+                    "calendarSync": {
+                        "$ref": "#/components/schemas/AdminCalendarSyncConfig"
+                    },
+                    "displayOrder": {
+                        "type": "string"
+                    }
+                }
+            },
+            "AdminReminderConfig": {
                 "type": "object",
                 "required": [
                     "enabled",
-                    "available"
+                    "reminderDays",
+                    "reminderFrequency"
                 ],
                 "properties": {
                     "enabled": {
                         "type": "boolean"
                     },
-                    "available": {
+                    "reminderDays": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "reminderFrequency": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            },
+            "AdminStatus": {
+                "type": "object",
+                "required": [
+                    "nextAppointment",
+                    "nextReminderRun"
+                ],
+                "properties": {
+                    "nextAppointment": {
+                        "type": "object",
+                        "nullable": true,
+                        "required": [
+                            "name",
+                            "startDatetime"
+                        ],
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "startDatetime": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "nextReminderRun": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                }
+            },
+            "Capabilities": {
+                "type": "object",
+                "required": [
+                    "calendarAvailable",
+                    "calendarSyncEnabled",
+                    "teamsAvailable",
+                    "calendarSyncAvailable",
+                    "notificationsAppEnabled"
+                ],
+                "properties": {
+                    "calendarAvailable": {
+                        "type": "boolean"
+                    },
+                    "calendarSyncEnabled": {
+                        "type": "boolean"
+                    },
+                    "teamsAvailable": {
+                        "type": "boolean"
+                    },
+                    "calendarSyncAvailable": {
+                        "type": "boolean"
+                    },
+                    "notificationsAppEnabled": {
                         "type": "boolean"
                     }
                 }
@@ -59,53 +169,6 @@
                     }
                 }
             },
-            "ReminderSettings": {
-                "type": "object",
-                "required": [
-                    "enabled",
-                    "reminderDays",
-                    "reminderFrequency",
-                    "notificationsAppEnabled",
-                    "nextAppointment",
-                    "nextReminderRun"
-                ],
-                "properties": {
-                    "enabled": {
-                        "type": "boolean"
-                    },
-                    "reminderDays": {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "reminderFrequency": {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "notificationsAppEnabled": {
-                        "type": "boolean"
-                    },
-                    "nextAppointment": {
-                        "type": "object",
-                        "nullable": true,
-                        "required": [
-                            "name",
-                            "startDatetime"
-                        ],
-                        "properties": {
-                            "name": {
-                                "type": "string"
-                            },
-                            "startDatetime": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "nextReminderRun": {
-                        "type": "string",
-                        "nullable": true
-                    }
-                }
-            },
             "TeamOption": {
                 "type": "object",
                 "required": [
@@ -127,8 +190,8 @@
         "/index.php/apps/attendance/api/admin/settings": {
             "get": {
                 "operationId": "admin-get-settings",
-                "summary": "Get admin settings data (groups and current whitelist)",
-                "description": "This endpoint requires admin access",
+                "summary": "Get admin settings data",
+                "description": "Returns admin-editable configuration, computed status, and available groups. System-wide capabilities (teamsAvailable, calendarSyncAvailable, notificationsAppEnabled) are available via GET /api/capabilities.\nThis endpoint requires admin access",
                 "tags": [
                     "admin"
                 ],
@@ -146,75 +209,26 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "anyOf": [
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "success",
-                                                "groups",
-                                                "whitelistedGroups",
-                                                "whitelistedTeams",
-                                                "teamsAvailable",
-                                                "permissions",
-                                                "reminders",
-                                                "calendarSync",
-                                                "displayOrder"
-                                            ],
-                                            "properties": {
-                                                "success": {
-                                                    "type": "boolean"
-                                                },
-                                                "groups": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "$ref": "#/components/schemas/GroupOption"
-                                                    }
-                                                },
-                                                "whitelistedGroups": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "string"
-                                                    }
-                                                },
-                                                "whitelistedTeams": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "$ref": "#/components/schemas/TeamOption"
-                                                    }
-                                                },
-                                                "teamsAvailable": {
-                                                    "type": "boolean"
-                                                },
-                                                "permissions": {
-                                                    "$ref": "#/components/schemas/PermissionSettings"
-                                                },
-                                                "reminders": {
-                                                    "$ref": "#/components/schemas/ReminderSettings"
-                                                },
-                                                "calendarSync": {
-                                                    "$ref": "#/components/schemas/CalendarSyncSettings"
-                                                },
-                                                "displayOrder": {
-                                                    "type": "string"
-                                                }
-                                            }
+                                    "type": "object",
+                                    "required": [
+                                        "config",
+                                        "status",
+                                        "groups"
+                                    ],
+                                    "properties": {
+                                        "config": {
+                                            "$ref": "#/components/schemas/AdminConfig"
                                         },
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "success",
-                                                "error"
-                                            ],
-                                            "properties": {
-                                                "success": {
-                                                    "type": "boolean"
-                                                },
-                                                "error": {
-                                                    "type": "string"
-                                                }
+                                        "status": {
+                                            "$ref": "#/components/schemas/AdminStatus"
+                                        },
+                                        "groups": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/GroupOption"
                                             }
                                         }
-                                    ]
+                                    }
                                 }
                             }
                         }
@@ -228,13 +242,9 @@
                                         {
                                             "type": "object",
                                             "required": [
-                                                "success",
                                                 "error"
                                             ],
                                             "properties": {
-                                                "success": {
-                                                    "type": "boolean"
-                                                },
                                                 "error": {
                                                     "type": "string"
                                                 }
@@ -265,13 +275,9 @@
                                         {
                                             "type": "object",
                                             "required": [
-                                                "success",
                                                 "error"
                                             ],
                                             "properties": {
-                                                "success": {
-                                                    "type": "boolean"
-                                                },
                                                 "error": {
                                                     "type": "string"
                                                 }
@@ -289,6 +295,24 @@
                                             }
                                         }
                                     ]
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -389,34 +413,10 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "anyOf": [
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "success"
-                                            ],
-                                            "properties": {
-                                                "success": {
-                                                    "type": "boolean"
-                                                }
-                                            }
-                                        },
-                                        {
-                                            "type": "object",
-                                            "required": [
-                                                "success",
-                                                "error"
-                                            ],
-                                            "properties": {
-                                                "success": {
-                                                    "type": "boolean"
-                                                },
-                                                "error": {
-                                                    "type": "string"
-                                                }
-                                            }
-                                        }
-                                    ]
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "object"
+                                    }
                                 }
                             }
                         }
@@ -430,13 +430,9 @@
                                         {
                                             "type": "object",
                                             "required": [
-                                                "success",
                                                 "error"
                                             ],
                                             "properties": {
-                                                "success": {
-                                                    "type": "boolean"
-                                                },
                                                 "error": {
                                                     "type": "string"
                                                 }
@@ -467,13 +463,9 @@
                                         {
                                             "type": "object",
                                             "required": [
-                                                "success",
                                                 "error"
                                             ],
                                             "properties": {
-                                                "success": {
-                                                    "type": "boolean"
-                                                },
                                                 "error": {
                                                     "type": "string"
                                                 }
@@ -491,6 +483,24 @@
                                             }
                                         }
                                     ]
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
                                 }
                             }
                         }

@@ -25,7 +25,7 @@
 				:can-checkin="permissions.canCheckin"
 				:can-see-response-overview="permissions.canSeeResponseOverview"
 				:can-see-comments="permissions.canSeeComments"
-				:display-order="permissions.displayOrder"
+				:display-order="config.displayOrder"
 				@start-checkin="startCheckin"
 				@edit="editAppointment"
 				@copy="copyAppointment"
@@ -83,7 +83,7 @@ const exportDialogVisible = ref(false)
 const showDeleteDialog = ref(false)
 
 // Use the shared permissions composable
-const { permissions, loadPermissions } = usePermissions()
+const { permissions, config, loadPermissions } = usePermissions()
 
 // Use the shared response composable
 const { submitResponse: submitResponseApi } = useAppointmentResponse({
