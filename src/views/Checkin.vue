@@ -377,8 +377,9 @@ const saveCheckinComment = async (userId) => {
 			userId,
 		})
 
+		const user = filteredAllUsers.value.find(u => u.userId === userId)
 		await axios.post(url, {
-			response: null,
+			response: user?.checkinState || 'yes',
 			comment: checkinComments[userId] || '',
 		})
 
