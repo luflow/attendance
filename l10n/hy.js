@@ -21,8 +21,8 @@ OC.L10N.register(
     "Friday" : "Ուրբաթ",
     "Saturday" : "Շաբաթ",
     "Sunday" : "Կիրակի",
-    "Import" : "Ներմուծում",
     "Save" : "Պահպանել",
+    "Import" : "Ներմուծում",
     "User" : "User",
     "Description" : "Նկարագրություն",
     "Notification" : "Ծանուցում"

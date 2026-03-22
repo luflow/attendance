@@ -18,8 +18,8 @@ OC.L10N.register(
     "Friday" : "﻿ಶುಕ್ರವಾರ",
     "Saturday" : "﻿ಶನಿವಾರ",
     "Sunday" : "﻿ಭಾನುವಾರ",
-    "Import" : "ಆಮದು",
     "Save" : "﻿ಉಳಿಸಿ",
+    "Import" : "ಆಮದು",
     "User" : "User"
 },
 "nplurals=2; plural=(n > 1);");

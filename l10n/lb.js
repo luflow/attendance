@@ -21,8 +21,8 @@ OC.L10N.register(
     "Friday" : "Freideg",
     "Saturday" : "Samschdeg",
     "Sunday" : "Sonndeg",
-    "Import" : "Import",
     "Save" : "Späicheren",
+    "Import" : "Import",
     "User" : "User",
     "Description" : "Beschreiwung",
     "Confirm" : "Konfirméieren"

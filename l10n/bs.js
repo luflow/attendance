@@ -19,8 +19,8 @@ OC.L10N.register(
     "Friday" : "Petak",
     "Saturday" : "Subota",
     "Sunday" : "Nedjelja",
-    "Import" : "Uvezi",
     "Save" : "Spremi",
+    "Import" : "Uvezi",
     "User" : "User",
     "Description" : "Opis"
 },

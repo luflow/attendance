@@ -18,8 +18,8 @@ OC.L10N.register(
     "Friday" : "Jumaat",
     "Saturday" : "Sabtu",
     "Sunday" : "Ahad",
-    "Import" : "Import",
     "Save" : "Simpan",
+    "Import" : "Import",
     "User" : "User",
     "Description" : "Keterangan",
     "Notification" : "Pemberitahuan"

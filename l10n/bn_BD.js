@@ -19,8 +19,8 @@ OC.L10N.register(
     "Friday" : "শুক্রবার",
     "Saturday" : "শনিবার",
     "Sunday" : "রবিবার",
-    "Import" : "আমদানি",
     "Save" : "সংরক্ষণ",
+    "Import" : "আমদানি",
     "User" : "User",
     "Description" : "বিবরণ",
     "Notification" : "নোটিফিকেশন "
