@@ -6,6 +6,23 @@
 
 - Nightly changes here
 
+## 1.32.1 – 2026-03-22
+
+### Fixed
+
+- Checkin response restricted to yes/no only, preventing invalid values
+- Checkin response parameter made nullable to handle missing responses correctly
+- Checkin comment bugs resolved
+
+### Improved
+
+- API refactored: separated admin and user concerns into distinct controllers with consistent response wrapping and typed responses
+- E2e tests decoupled for parallel execution
+
+### Maintenance
+
+- Translations updated from Transifex
+
 ## 1.32.0 – 2026-03-21
 
 ### Added
