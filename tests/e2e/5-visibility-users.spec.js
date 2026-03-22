@@ -1,4 +1,4 @@
-import { test, expect, login } from './fixtures/nextcloud.js'
+import { test, expect, login, resetAdminSettings, deleteAllAppointments } from './fixtures/nextcloud.js'
 
 // Helper function to create an appointment with visibility settings
 async function createAppointmentWithVisibility(page, { name, description, daysFromNow = 2, durationHours = 1, visibleUsers = [] }) {
@@ -63,8 +63,12 @@ async function createAppointmentWithVisibility(page, { name, description, daysFr
 }
 
 test.describe('Attendance App - User Visibility Filtering', () => {
+	test.afterAll(async ({ request }) => {
+		await resetAdminSettings(request)
+		await deleteAllAppointments(request)
+	})
+
 	// Configure permissions before running tests - restrict manage_appointments to admin group only
-	// This ensures visibility filtering works correctly for regular users
 	test.beforeAll(async ({ browser }) => {
 		const page = await browser.newPage()
 
