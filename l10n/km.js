@@ -18,8 +18,8 @@ OC.L10N.register(
     "Friday" : "ថ្ងៃសុក្រ",
     "Saturday" : "ថ្ងៃសៅរ៍",
     "Sunday" : "ថ្ងៃអាទិត្យ",
-    "Import" : "នាំយកចូល",
     "Save" : "រក្សាទុក",
+    "Import" : "នាំយកចូល",
     "User" : "User",
     "Description" : "ការ​អធិប្បាយ"
 },

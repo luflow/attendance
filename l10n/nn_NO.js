@@ -20,8 +20,8 @@ OC.L10N.register(
     "Friday" : "Fredag",
     "Saturday" : "Laurdag",
     "Sunday" : "Søndag",
-    "Import" : "Importer",
     "Save" : "Lagre",
+    "Import" : "Importer",
     "User" : "Bruker",
     "Description" : "Skildring"
 },

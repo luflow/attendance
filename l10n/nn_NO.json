@@ -18,8 +18,8 @@
     "Friday" : "Fredag",
     "Saturday" : "Laurdag",
     "Sunday" : "Søndag",
-    "Import" : "Importer",
     "Save" : "Lagre",
+    "Import" : "Importer",
     "User" : "Bruker",
     "Description" : "Skildring"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

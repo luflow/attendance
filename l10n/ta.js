@@ -18,9 +18,9 @@ OC.L10N.register(
     "Friday" : "வெள்ளிக்கிழமை",
     "Saturday" : "சனிக்கிழமை",
     "Sunday" : "ஞாயிற்றுக்கிழமை",
+    "Save" : "சேமிக்க ",
     "Import" : "இறக்குமதி",
     "Back" : "பின்னுக்கு",
-    "Save" : "சேமிக்க ",
     "User" : "User",
     "Description" : "விவரிப்பு"
 },
