@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures/nextcloud.js'
+import { test, expect, resetAdminSettings, deleteAllAppointments } from './fixtures/nextcloud.js'
 
 /**
  * Admin Settings E2E Tests
@@ -18,6 +18,11 @@ import { test, expect } from './fixtures/nextcloud.js'
  */
 
 test.describe('Attendance App - Admin Settings', () => {
+	test.afterAll(async ({ request }) => {
+		await resetAdminSettings(request)
+		await deleteAllAppointments(request)
+	})
+
 	test.describe('Permission Configuration', () => {
 		test('should restrict appointment management to admin group', async ({ page, loginAsUser, attendanceApp }) => {
 			// Login as admin and configure settings

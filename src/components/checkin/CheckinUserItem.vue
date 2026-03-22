@@ -83,12 +83,12 @@
 				</div>
 				<div class="comment-overlay-input">
 					<NcTextArea
-						:value="commentValue"
+						:model-value="commentValue"
 						:label="t('attendance', 'Check-in comment')"
 						:placeholder="t('attendance', 'Add a comment for this check-in …')"
 						data-test="textarea-checkin-comment"
 						rows="2"
-						@update:value="$emit('update:commentValue', $event)" />
+						@update:model-value="$emit('update:commentValue', $event)" />
 					<div class="comment-actions">
 						<NcButton variant="primary" data-test="button-save-comment" @click="$emit('save-comment', user.userId)">
 							{{ t('attendance', 'Save') }}
