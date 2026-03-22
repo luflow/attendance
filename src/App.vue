@@ -181,8 +181,8 @@
                 :mode="currentView"
                 :appointment-id="formAppointmentId"
                 :notifications-app-enabled="notificationsAppEnabled"
-                :calendar-available="permissions.calendarAvailable"
-                :calendar-sync-enabled="permissions.calendarSyncEnabled"
+                :calendar-available="capabilities.calendarAvailable"
+                :calendar-sync-enabled="capabilities.calendarSyncEnabled"
                 @saved="handleFormSaved"
                 @cancelled="handleFormCancelled"
             />
@@ -311,7 +311,7 @@ const notificationsAppEnabled = ref(false);
 const pastAppointmentsExpanded = ref(false);
 
 // Use the shared permissions composable
-const { permissions, loadPermissions } = usePermissions();
+const { permissions, capabilities, config, loadPermissions } = usePermissions();
 
 // Computed property for unanswered appointments
 const unansweredAppointments = computed(() => {
@@ -469,7 +469,7 @@ const formatAppointmentDisplay = (appointment) => {
         return appointment.name;
     }
     const dateTimeStr = formatDateTime(appointment.startDatetime);
-    if (permissions.displayOrder === "date_first") {
+    if (config.displayOrder === "date_first") {
         return `${dateTimeStr}\n${appointment.name}`;
     }
     return `${appointment.name}\n${dateTimeStr}`;

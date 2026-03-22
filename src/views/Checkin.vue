@@ -19,7 +19,7 @@
 		</div>
 
 		<div v-if="!loading && !error && timeWarning && !timeWarningAccepted" class="time-warning-gate">
-			<CheckinAppointmentInfo :appointment="appointment" :display-order="permissions.displayOrder" />
+			<CheckinAppointmentInfo :appointment="appointment" :display-order="config.displayOrder" />
 			<NcNoteCard type="error" :heading="t('attendance', 'Caution')" :show-alert="true">
 				<p>{{ timeWarning }}</p>
 				<div class="time-warning-action">
@@ -31,7 +31,7 @@
 		</div>
 
 		<div v-if="!loading && !error && (!timeWarning || timeWarningAccepted)" class="checkin-content">
-			<CheckinAppointmentInfo :appointment="appointment" :display-order="permissions.displayOrder" />
+			<CheckinAppointmentInfo :appointment="appointment" :display-order="config.displayOrder" />
 
 			<CheckinStatus
 				:all-checked-in="checkinStatus.allCheckedIn"
@@ -201,7 +201,7 @@ const confirmMessage = ref('')
 const timeWarningAccepted = ref(false)
 const showResetDialog = ref(false)
 
-const { permissions, loadPermissions } = usePermissions()
+const { permissions, config, loadPermissions } = usePermissions()
 
 // Computed
 const TIME_THRESHOLD_MS = 8 * 60 * 60 * 1000

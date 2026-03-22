@@ -9,8 +9,15 @@ const state = reactive({
 		canSeeResponseOverview: false,
 		canSeeComments: false,
 		canSelfCheckin: false,
+	},
+	capabilities: {
 		calendarAvailable: false,
 		calendarSyncEnabled: false,
+		teamsAvailable: false,
+		calendarSyncAvailable: false,
+		notificationsAppEnabled: false,
+	},
+	config: {
 		displayOrder: 'name_first',
 	},
 	loading: false,
@@ -19,13 +26,13 @@ const state = reactive({
 })
 
 /**
- * Composable for managing user permissions
- * Loads permissions only once and shares them across all components
+ * Composable for managing user permissions, capabilities, and config
+ * Loads data only once and shares it across all components
  */
 export function usePermissions() {
 	/**
-	 * Load permissions from the server
-	 * Will only make the API call once unless force=true
+	 * Load permissions, capabilities, and config from the server
+	 * Will only make the API calls once unless force=true
 	 * @param force
 	 */
 	const loadPermissions = async (force = false) => {
@@ -41,17 +48,25 @@ export function usePermissions() {
 		state.error = null
 
 		try {
-			const url = generateUrl('/apps/attendance/api/user/permissions')
-			const response = await axios.get(url)
+			const [permissionsRes, capabilitiesRes, configRes] = await Promise.all([
+				axios.get(generateUrl('/apps/attendance/api/user/permissions')),
+				axios.get(generateUrl('/apps/attendance/api/capabilities')),
+				axios.get(generateUrl('/apps/attendance/api/user/config')),
+			])
 
-			state.permissions.canManageAppointments = response.data.canManageAppointments || false
-			state.permissions.canCheckin = response.data.canCheckin || false
-			state.permissions.canSeeResponseOverview = response.data.canSeeResponseOverview || false
-			state.permissions.canSeeComments = response.data.canSeeComments || false
-			state.permissions.canSelfCheckin = response.data.canSelfCheckin || false
-			state.permissions.calendarAvailable = response.data.calendarAvailable || false
-			state.permissions.calendarSyncEnabled = response.data.calendarSyncEnabled || false
-			state.permissions.displayOrder = response.data.displayOrder || 'name_first'
+			state.permissions.canManageAppointments = permissionsRes.data.canManageAppointments || false
+			state.permissions.canCheckin = permissionsRes.data.canCheckin || false
+			state.permissions.canSeeResponseOverview = permissionsRes.data.canSeeResponseOverview || false
+			state.permissions.canSeeComments = permissionsRes.data.canSeeComments || false
+			state.permissions.canSelfCheckin = permissionsRes.data.canSelfCheckin || false
+
+			state.capabilities.calendarAvailable = capabilitiesRes.data.calendarAvailable || false
+			state.capabilities.calendarSyncEnabled = capabilitiesRes.data.calendarSyncEnabled || false
+			state.capabilities.teamsAvailable = capabilitiesRes.data.teamsAvailable || false
+			state.capabilities.calendarSyncAvailable = capabilitiesRes.data.calendarSyncAvailable || false
+			state.capabilities.notificationsAppEnabled = capabilitiesRes.data.notificationsAppEnabled !== false
+
+			state.config.displayOrder = configRes.data.displayOrder || 'name_first'
 
 			state.loaded = true
 		} catch (error) {
@@ -63,9 +78,12 @@ export function usePermissions() {
 			state.permissions.canSeeResponseOverview = false
 			state.permissions.canSeeComments = false
 			state.permissions.canSelfCheckin = false
-			state.permissions.calendarAvailable = false
-			state.permissions.calendarSyncEnabled = false
-			state.permissions.displayOrder = 'name_first'
+			state.capabilities.calendarAvailable = false
+			state.capabilities.calendarSyncEnabled = false
+			state.capabilities.teamsAvailable = false
+			state.capabilities.calendarSyncAvailable = false
+			state.capabilities.notificationsAppEnabled = false
+			state.config.displayOrder = 'name_first'
 		} finally {
 			state.loading = false
 		}
@@ -90,6 +108,8 @@ export function usePermissions() {
 
 	return {
 		permissions: readonly(state.permissions),
+		capabilities: readonly(state.capabilities),
+		config: readonly(state.config),
 		loading: readonly(state.loading),
 		loaded: readonly(state.loaded),
 		error: readonly(state.error),
