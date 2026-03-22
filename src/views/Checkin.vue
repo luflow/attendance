@@ -378,7 +378,6 @@ const saveCheckinComment = async (userId) => {
 		})
 
 		await axios.post(url, {
-			response: null,
 			comment: checkinComments[userId] || '',
 		})
 

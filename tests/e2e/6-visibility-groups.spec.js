@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures/nextcloud.js'
+import { test, expect, deleteAllAppointments, resetAdminSettings, createGroupViaOCS, addUserToGroupViaOCS } from './fixtures/nextcloud.js'
 
 // Helper function to create a group via Nextcloud admin interface
 async function createGroup(page, groupName) {
@@ -119,16 +119,19 @@ async function createAppointmentWithGroupVisibility(page, { name, description, d
 }
 
 test.describe('Attendance App - Group Visibility Filtering', () => {
+	test.beforeAll(async ({ request }) => {
+		await resetAdminSettings(request)
+		await deleteAllAppointments(request)
+	})
+
+	test.afterAll(async ({ request }) => {
+		await deleteAllAppointments(request)
+	})
+
 	test.describe.serial('Group Setup and Visibility Tests', () => {
-		test('should create developers group and assign test1', async ({ page, loginAsUser, baseURL }) => {
-			await loginAsUser('admin', 'admin')
-			
-			// Create developers group
-			await createGroup(page, 'developers')
-			
-			// Add test1 to developers group
-			await addUserToGroup(page, 'test1', 'developers')
-			
+		test('should create developers group and assign test1', async ({ request }) => {
+			await createGroupViaOCS(request, 'developers')
+			await addUserToGroupViaOCS(request, 'test1', 'developers')
 			console.log('Setup complete: developers group created and test1 assigned')
 		})
 

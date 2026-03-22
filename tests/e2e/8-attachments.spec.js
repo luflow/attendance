@@ -1,4 +1,4 @@
-import { test, expect, login } from './fixtures/nextcloud.js'
+import { test, expect, login, deleteAllAppointments } from './fixtures/nextcloud.js'
 
 // Helper to create a test file via WebDAV
 async function createTestFile(request, username, password, filename, content = 'Test content') {
@@ -81,10 +81,12 @@ async function createAppointment(page, { name, description, daysFromNow = 2, dur
 }
 
 test.describe.serial('Attendance App - Attachments', () => {
-	// Create test files before all tests
 	test.beforeAll(async ({ request }) => {
-		// Create test files for admin user
 		await createTestFile(request, 'admin', 'admin', 'test-attachment-1.txt', 'Test attachment content 1')
+	})
+
+	test.afterAll(async ({ request }) => {
+		await deleteAllAppointments(request)
 	})
 
 	test.describe('Admin can manage attachments', () => {
@@ -184,10 +186,12 @@ test.describe.serial('Attendance App - Attachments', () => {
 				}
 			}
 
-			// Close the file picker if still open, then close the form
-			await page.keyboard.press('Escape')
-			// Wait for the file picker modal to fully close
-			await page.locator('.modal-wrapper').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {})
+			// Close the file picker if still open via its Close button
+			const filePickerDialog = page.getByRole('dialog', { name: 'Choose files or folders' })
+			if (await filePickerDialog.isVisible({ timeout: 1000 }).catch(() => false)) {
+				await filePickerDialog.getByRole('button', { name: 'Close' }).click()
+				await filePickerDialog.waitFor({ state: 'hidden', timeout: 5000 })
+			}
 			await page.getByRole('button', { name: 'Cancel' }).click()
 		})
 
