@@ -497,7 +497,7 @@ class AppointmentController extends Controller {
 	 *
 	 * @param int $appointmentId Appointment ID
 	 * @param string $targetUserId User ID to check in
-	 * @param ?string $response Check-in response: yes, no, maybe, or null to keep current state
+	 * @param ?string $response Check-in response: yes, no, or null to keep current state
 	 * @param string $comment Optional check-in comment
 	 * @return DataResponse<Http::STATUS_OK, AttendanceResponseData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */

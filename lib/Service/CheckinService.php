@@ -54,8 +54,8 @@ class CheckinService {
 		string $adminUserId,
 	): AttendanceResponse {
 		// Validate response if provided
-		if ($response !== null && !in_array($response, ['yes', 'no', 'maybe'])) {
-			throw new \InvalidArgumentException('Invalid response. Must be yes, no, or maybe.');
+		if ($response !== null && !in_array($response, ['yes', 'no'])) {
+			throw new \InvalidArgumentException('Invalid response. Must be yes or no.');
 		}
 
 		// Find existing response or create new one
