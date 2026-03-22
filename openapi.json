@@ -1730,18 +1730,17 @@
                     }
                 ],
                 "requestBody": {
-                    "required": true,
+                    "required": false,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "type": "object",
-                                "required": [
-                                    "response"
-                                ],
                                 "properties": {
                                     "response": {
                                         "type": "string",
-                                        "description": "Check-in response: yes, no, or maybe"
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Check-in response: yes, no, maybe, or null to keep current state"
                                     },
                                     "comment": {
                                         "type": "string",
