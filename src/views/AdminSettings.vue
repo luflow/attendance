@@ -378,66 +378,61 @@ const loadSettings = async () => {
 	loadingData.value = true
 
 	try {
-		const response = await axios.get(
-			generateUrl('/apps/attendance/api/admin/settings'),
-		)
+		const [settingsRes, capabilitiesRes] = await Promise.all([
+			axios.get(generateUrl('/apps/attendance/api/admin/settings')),
+			axios.get(generateUrl('/apps/attendance/api/capabilities')),
+		])
 
-		if (response.data.groups) {
-			availableGroups.value = response.data.groups
-			// Convert selected IDs to selected group objects for NcSelect, preserving database order
-			selectedGroups.value = response.data.whitelistedGroups
-				.map(id => response.data.groups.find(group => group.id === id))
-				.filter(group => group !== undefined)
+		const { config, status, groups } = settingsRes.data
+		const caps = capabilitiesRes.data
 
-			// Load teams settings
-			teamsAvailable.value = response.data.teamsAvailable || false
-			if (response.data.whitelistedTeams) {
-				selectedTeams.value = response.data.whitelistedTeams
-				// Also add to search results so they appear in the dropdown
-				teamSearchResults.value = [...response.data.whitelistedTeams]
-			}
+		availableGroups.value = groups
+		// Convert selected IDs to selected group objects for NcSelect, preserving database order
+		selectedGroups.value = config.whitelistedGroups
+			.map(id => groups.find(group => group.id === id))
+			.filter(group => group !== undefined)
 
-			// Load permission settings, preserving database order
-			if (response.data.permissions) {
-				selectedManageAppointmentsRoles.value = response.data.permissions.manage_appointments
-					.map(id => response.data.groups.find(group => group.id === id))
-					.filter(group => group !== undefined)
-				selectedCheckinRoles.value = response.data.permissions.checkin
-					.map(id => response.data.groups.find(group => group.id === id))
-					.filter(group => group !== undefined)
-				selectedSeeResponseOverviewRoles.value = (response.data.permissions.see_response_overview || [])
-					.map(id => response.data.groups.find(group => group.id === id))
-					.filter(group => group !== undefined)
-				selectedSeeCommentsRoles.value = (response.data.permissions.see_comments || [])
-					.map(id => response.data.groups.find(group => group.id === id))
-					.filter(group => group !== undefined)
-				selectedSelfCheckinRoles.value = (response.data.permissions.self_checkin || [])
-					.map(id => response.data.groups.find(group => group.id === id))
-					.filter(group => group !== undefined)
-			}
-
-			// Load reminder settings
-			if (response.data.reminders) {
-				remindersEnabled.value = response.data.reminders.enabled || false
-				reminderDays.value = response.data.reminders.reminderDays || 7
-				reminderFrequency.value = response.data.reminders.reminderFrequency || 0
-				notificationsAppEnabled.value = response.data.reminders.notificationsAppEnabled !== false
-				nextAppointment.value = response.data.reminders.nextAppointment || null
-				nextReminderRun.value = response.data.reminders.nextReminderRun || null
-			}
-
-			// Load calendar sync settings
-			if (response.data.calendarSync) {
-				calendarSyncEnabled.value = response.data.calendarSync.enabled || false
-				calendarSyncAvailable.value = response.data.calendarSync.available || false
-			}
-
-			// Load display order
-			displayOrder.value = response.data.displayOrder || 'name_first'
-		} else {
-			showError(window.t('attendance', 'Failed to load settings')
-				+ (response.data.error ? ': ' + response.data.error : ''))
+		// Load teams settings
+		teamsAvailable.value = caps.teamsAvailable || false
+		if (config.whitelistedTeams) {
+			selectedTeams.value = config.whitelistedTeams
+			// Also add to search results so they appear in the dropdown
+			teamSearchResults.value = [...config.whitelistedTeams]
 		}
+
+		// Load permission settings, preserving database order
+		if (config.permissions) {
+			selectedManageAppointmentsRoles.value = config.permissions.manage_appointments
+				.map(id => groups.find(group => group.id === id))
+				.filter(group => group !== undefined)
+			selectedCheckinRoles.value = config.permissions.checkin
+				.map(id => groups.find(group => group.id === id))
+				.filter(group => group !== undefined)
+			selectedSeeResponseOverviewRoles.value = (config.permissions.see_response_overview || [])
+				.map(id => groups.find(group => group.id === id))
+				.filter(group => group !== undefined)
+			selectedSeeCommentsRoles.value = (config.permissions.see_comments || [])
+				.map(id => groups.find(group => group.id === id))
+				.filter(group => group !== undefined)
+			selectedSelfCheckinRoles.value = (config.permissions.self_checkin || [])
+				.map(id => groups.find(group => group.id === id))
+				.filter(group => group !== undefined)
+		}
+
+		// Load reminder settings
+		remindersEnabled.value = config.reminders.enabled || false
+		reminderDays.value = config.reminders.reminderDays || 7
+		reminderFrequency.value = config.reminders.reminderFrequency || 0
+		notificationsAppEnabled.value = caps.notificationsAppEnabled !== false
+		nextAppointment.value = status.nextAppointment || null
+		nextReminderRun.value = status.nextReminderRun || null
+
+		// Load calendar sync settings
+		calendarSyncEnabled.value = config.calendarSync.enabled || false
+		calendarSyncAvailable.value = caps.calendarSyncAvailable || false
+
+		// Load display order
+		displayOrder.value = config.displayOrder || 'name_first'
 	} catch (error) {
 		console.error('Error loading settings:', error)
 		showError(window.t('attendance', 'Failed to load settings'))

@@ -38,6 +38,10 @@ return [
 
 		// User data
 		['name' => 'appointment#getPermissions', 'url' => '/api/user/permissions', 'verb' => 'GET'],
+		['name' => 'appointment#getUserConfig', 'url' => '/api/user/config', 'verb' => 'GET'],
+
+		// Capabilities
+		['name' => 'appointment#getCapabilities', 'url' => '/api/capabilities', 'verb' => 'GET'],
 
 		// Search
 		['name' => 'appointment#searchUsersGroupsTeams', 'url' => '/api/search/users-groups-teams', 'verb' => 'GET'],
