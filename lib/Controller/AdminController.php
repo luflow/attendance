@@ -54,9 +54,13 @@ class AdminController extends Controller {
 	}
 
 	/**
-	 * Get admin settings data (groups and current whitelist)
+	 * Get admin settings data
 	 *
-	 * @return JSONResponse<Http::STATUS_OK, array{success: bool, groups: list<AttendanceGroupOption>, whitelistedGroups: list<string>, whitelistedTeams: list<AttendanceTeamOption>, teamsAvailable: bool, permissions: AttendancePermissionSettings, reminders: AttendanceReminderSettings, calendarSync: AttendanceCalendarSyncSettings, displayOrder: string}, array{}>|JSONResponse<Http::STATUS_OK, array{success: bool, error: string}, array{}>|JSONResponse<Http::STATUS_UNAUTHORIZED, array{success: bool, error: string}, array{}>|JSONResponse<Http::STATUS_FORBIDDEN, array{success: bool, error: string}, array{}>
+	 * Returns admin-editable configuration, computed status, and available groups.
+	 * System-wide capabilities (teamsAvailable, calendarSyncAvailable, notificationsAppEnabled)
+	 * are available via GET /api/capabilities.
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{config: AttendanceAdminConfig, status: AttendanceAdminStatus, groups: list<AttendanceGroupOption>}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
 	 */
 	#[NoCSRFRequired]
 	#[OpenAPI(OpenAPI::SCOPE_ADMINISTRATION)]
@@ -92,7 +96,7 @@ class AdminController extends Controller {
 			// Get permission settings
 			$permissionSettings = $this->permissionService->getAllPermissionSettings();
 
-			// Get reminder settings
+			// Compute status: next appointment
 			$upcomingAppointments = $this->appointmentMapper->findUpcoming();
 			$nextAppointment = null;
 			if (!empty($upcomingAppointments)) {
@@ -103,7 +107,7 @@ class AdminController extends Controller {
 				];
 			}
 
-			// Get next planned reminder run from background job
+			// Compute status: next reminder run
 			$nextReminderRun = null;
 			$reminderJobs = $this->jobList->getJobs(ReminderJob::class, 1, 0);
 			if (!empty($reminderJobs)) {
@@ -113,34 +117,26 @@ class AdminController extends Controller {
 				}
 			}
 
-			$reminderSettings = [
-				'enabled' => $this->config->getAppValue('attendance', 'reminders_enabled', 'no') === 'yes',
-				'reminderDays' => (int)$this->config->getAppValue('attendance', 'reminder_days', '7'),
-				'reminderFrequency' => (int)$this->config->getAppValue('attendance', 'reminder_frequency', '0'),
-				'notificationsAppEnabled' => $this->appManager->isEnabledForUser('notifications'),
-				'nextAppointment' => $nextAppointment,
-				'nextReminderRun' => $nextReminderRun,
-			];
-
-			// Get calendar sync settings
-			// Calendar sync is only available in NC 32+ when the calendar event classes exist
-			// Use version check as class_exists() can be unreliable with autoloading
-			$ncVersion = \OCP\Util::getVersion();
-			$calendarSyncAvailable = $ncVersion[0] >= 32;
-			$calendarSyncSettings = [
-				'enabled' => $this->configService->isCalendarSyncEnabled(),
-				'available' => $calendarSyncAvailable,
-			];
-
 			return new DataResponse([
+				'config' => [
+					'whitelistedGroups' => $whitelistedGroups,
+					'whitelistedTeams' => $whitelistedTeams,
+					'permissions' => $permissionSettings,
+					'reminders' => [
+						'enabled' => $this->config->getAppValue('attendance', 'reminders_enabled', 'no') === 'yes',
+						'reminderDays' => (int)$this->config->getAppValue('attendance', 'reminder_days', '7'),
+						'reminderFrequency' => (int)$this->config->getAppValue('attendance', 'reminder_frequency', '0'),
+					],
+					'calendarSync' => [
+						'enabled' => $this->configService->isCalendarSyncEnabled(),
+					],
+					'displayOrder' => $this->configService->getDisplayOrder(),
+				],
+				'status' => [
+					'nextAppointment' => $nextAppointment,
+					'nextReminderRun' => $nextReminderRun,
+				],
 				'groups' => $groupOptions,
-				'whitelistedGroups' => $whitelistedGroups,
-				'whitelistedTeams' => $whitelistedTeams,
-				'teamsAvailable' => $this->visibilityService->isTeamsAvailable(),
-				'permissions' => $permissionSettings,
-				'reminders' => $reminderSettings,
-				'calendarSync' => $calendarSyncSettings,
-				'displayOrder' => $this->configService->getDisplayOrder(),
 			]);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 500);
@@ -156,7 +152,7 @@ class AdminController extends Controller {
 	 * @param array{enabled?: bool, reminderDays?: int, reminderFrequency?: int} $reminders Reminder settings
 	 * @param array{enabled?: bool} $calendarSync Calendar sync settings
 	 * @param ?string $displayOrder Display order for appointments: chronological, name, or group
-	 * @return JSONResponse<Http::STATUS_OK, array{success: bool}, array{}>|JSONResponse<Http::STATUS_OK, array{success: bool, error: string}, array{}>|JSONResponse<Http::STATUS_UNAUTHORIZED, array{success: bool, error: string}, array{}>|JSONResponse<Http::STATUS_FORBIDDEN, array{success: bool, error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array<string, mixed>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
 	 */
 	#[NoCSRFRequired]
 	#[OpenAPI(OpenAPI::SCOPE_ADMINISTRATION)]
@@ -212,7 +208,7 @@ class AdminController extends Controller {
 				$this->configService->setDisplayOrder($displayOrder);
 			}
 
-			return new DataResponse(['success' => true]);
+			return new DataResponse([]);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 500);
 		}

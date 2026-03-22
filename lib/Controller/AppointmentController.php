@@ -12,6 +12,8 @@ use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\ExportService;
 use OCA\Attendance\Service\NotificationService;
 use OCA\Attendance\Service\PermissionService;
+use OCA\Attendance\Service\VisibilityService;
+use OCP\App\IAppManager;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -31,6 +33,8 @@ class AppointmentController extends Controller {
 	private PermissionService $permissionService;
 	private ExportService $exportService;
 	private NotificationService $notificationService;
+	private VisibilityService $visibilityService;
+	private IAppManager $appManager;
 	private IUserSession $userSession;
 	private ISecureRandom $secureRandom;
 
@@ -45,6 +49,8 @@ class AppointmentController extends Controller {
 		PermissionService $permissionService,
 		ExportService $exportService,
 		NotificationService $notificationService,
+		VisibilityService $visibilityService,
+		IAppManager $appManager,
 		IUserSession $userSession,
 		ISecureRandom $secureRandom,
 	) {
@@ -57,6 +63,8 @@ class AppointmentController extends Controller {
 		$this->permissionService = $permissionService;
 		$this->exportService = $exportService;
 		$this->notificationService = $notificationService;
+		$this->visibilityService = $visibilityService;
+		$this->appManager = $appManager;
 		$this->userSession = $userSession;
 		$this->secureRandom = $secureRandom;
 	}
@@ -120,7 +128,7 @@ class AppointmentController extends Controller {
 	 * @param ?string $calendarUri URI of the source calendar (when imported from calendar)
 	 * @param ?string $calendarEventUid UID of the source calendar event
 	 * @param list<int> $attachments File IDs to attach to the appointment
-	 * @return DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_CREATED, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -177,7 +185,7 @@ class AppointmentController extends Controller {
 	 * @param list<AttendanceBulkAppointmentItem> $appointments List of appointments to create
 	 * @param bool $sendNotification Whether to send a batch notification to affected users
 	 * @param list<int> $attachments File IDs to attach to all created appointments
-	 * @return DataResponse<Http::STATUS_OK, array{created: list<int>, errors: list<array{index: int, name: string, error: string}>}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_CREATED, array{created: list<int>, errors: list<array{index: int, name: string, error: string}>}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -373,7 +381,7 @@ class AppointmentController extends Controller {
 	 *
 	 * @param int $id Appointment ID
 	 * @param string $scope Series delete scope: single, future, or all
-	 * @return DataResponse<Http::STATUS_OK, array{success: bool, deletedCount: int}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, AttendanceDeleteResult, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -397,16 +405,16 @@ class AppointmentController extends Controller {
 		try {
 			if (($scope === 'future' || $scope === 'all') && $appointment->getSeriesId() !== null) {
 				$deletedCount = $this->appointmentService->deleteSeriesAppointments($id, $scope, $user->getUID());
-				return new DataResponse(['success' => true, 'deletedCount' => $deletedCount]);
+				return new DataResponse(['deletedCount' => $deletedCount]);
 			}
 
 			if ($scope === 'single' && $appointment->getSeriesId() !== null) {
 				$deletedCount = $this->appointmentService->deleteSeriesAppointments($id, 'single', $user->getUID());
-				return new DataResponse(['success' => true, 'deletedCount' => $deletedCount]);
+				return new DataResponse(['deletedCount' => $deletedCount]);
 			}
 
 			$this->appointmentService->deleteAppointment($id, $user->getUID());
-			return new DataResponse(['success' => true, 'deletedCount' => 1]);
+			return new DataResponse(['deletedCount' => 1]);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 400);
 		}
@@ -541,7 +549,7 @@ class AppointmentController extends Controller {
 	 * Reset all check-in data for an appointment
 	 *
 	 * @param int $id Appointment ID
-	 * @return DataResponse<Http::STATUS_OK, array{success: bool}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array<string, mixed>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -565,16 +573,16 @@ class AppointmentController extends Controller {
 
 		try {
 			$this->checkinService->resetCheckin($id);
-			return new DataResponse(['success' => true]);
+			return new DataResponse([]);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 400);
 		}
 	}
 
 	/**
-	 * Get the current user's permissions and app capabilities
+	 * Get the current user's permissions
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{canManageAppointments: bool, canCheckin: bool, canSeeResponseOverview: bool, canSeeComments: bool, calendarAvailable: bool, calendarSyncEnabled: bool, displayOrder: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, AttendanceUserPermissions, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -591,8 +599,37 @@ class AppointmentController extends Controller {
 			'canSeeResponseOverview' => $this->permissionService->canSeeResponseOverview($user->getUID()),
 			'canSeeComments' => $this->permissionService->canSeeComments($user->getUID()),
 			'canSelfCheckin' => $this->permissionService->canSelfCheckin($user->getUID()),
+		]);
+	}
+
+	/**
+	 * Get system-wide capabilities
+	 *
+	 * @return DataResponse<Http::STATUS_OK, AttendanceCapabilities, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function getCapabilities(): DataResponse {
+		return new DataResponse([
 			'calendarAvailable' => $this->calendarService->isCalendarAvailable(),
 			'calendarSyncEnabled' => $this->configService->isCalendarSyncEnabled(),
+			'teamsAvailable' => $this->visibilityService->isTeamsAvailable(),
+			'calendarSyncAvailable' => \OCP\Util::getVersion()[0] >= 32,
+			'notificationsAppEnabled' => $this->appManager->isEnabledForUser('notifications'),
+		]);
+	}
+
+	/**
+	 * Get user-relevant app configuration
+	 *
+	 * @return DataResponse<Http::STATUS_OK, AttendanceUserConfig, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function getUserConfig(): DataResponse {
+		return new DataResponse([
 			'displayOrder' => $this->configService->getDisplayOrder(),
 		]);
 	}
@@ -632,7 +669,7 @@ class AppointmentController extends Controller {
 	 * @param ?string $startDate Start date filter in Y-m-d format
 	 * @param ?string $endDate End date filter in Y-m-d format
 	 * @param bool $includeComments Whether to include user comments in the export
-	 * @return DataResponse<Http::STATUS_OK, array{success: bool, path: string, filename: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, AttendanceExportResult, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -664,7 +701,6 @@ class AppointmentController extends Controller {
 		try {
 			$result = $this->exportService->exportToOds($user->getUID(), $appointmentIds, $startDate, $endDate, $includeComments);
 			return new DataResponse([
-				'success' => true,
 				'path' => $result['path'],
 				'filename' => $result['filename'],
 			]);

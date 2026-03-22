@@ -103,15 +103,77 @@ namespace OCA\Attendance;
  * @psalm-type AttendanceGroupOption = array{id: string, displayName: string}
  * @psalm-type AttendanceTeamOption = array{id: string, displayName: string}
  * @psalm-type AttendancePermissionSettings = array<string, list<string>>
- * @psalm-type AttendanceReminderSettings = array{
+ * @psalm-type AttendanceUserPermissions = array{
+ *   canManageAppointments: bool,
+ *   canCheckin: bool,
+ *   canSeeResponseOverview: bool,
+ *   canSeeComments: bool,
+ *   canSelfCheckin: bool,
+ * }
+ * @psalm-type AttendanceCapabilities = array{
+ *   calendarAvailable: bool,
+ *   calendarSyncEnabled: bool,
+ *   teamsAvailable: bool,
+ *   calendarSyncAvailable: bool,
+ *   notificationsAppEnabled: bool,
+ * }
+ * @psalm-type AttendanceUserConfig = array{
+ *   displayOrder: string,
+ * }
+ * @psalm-type AttendanceAdminReminderConfig = array{
  *   enabled: bool,
  *   reminderDays: int,
  *   reminderFrequency: int,
- *   notificationsAppEnabled: bool,
+ * }
+ * @psalm-type AttendanceAdminCalendarSyncConfig = array{
+ *   enabled: bool,
+ * }
+ * @psalm-type AttendanceAdminConfig = array{
+ *   whitelistedGroups: list<string>,
+ *   whitelistedTeams: list<AttendanceTeamOption>,
+ *   permissions: AttendancePermissionSettings,
+ *   reminders: AttendanceAdminReminderConfig,
+ *   calendarSync: AttendanceAdminCalendarSyncConfig,
+ *   displayOrder: string,
+ * }
+ * @psalm-type AttendanceAdminStatus = array{
  *   nextAppointment: ?array{name: string, startDatetime: string},
  *   nextReminderRun: ?string,
  * }
- * @psalm-type AttendanceCalendarSyncSettings = array{enabled: bool, available: bool}
+ * @psalm-type AttendanceSelfCheckinAppointment = array{
+ *   id: int,
+ *   name: string,
+ *   description: string,
+ *   startDatetime: string,
+ *   endDatetime: string,
+ *   createdBy: string,
+ *   createdAt: string,
+ *   updatedAt: string,
+ *   isActive: int,
+ *   visibleUsers: list<string>,
+ *   visibleGroups: list<string>,
+ *   visibleTeams: list<string>,
+ *   calendarUri: ?string,
+ *   calendarEventUid: ?string,
+ *   seriesId: ?string,
+ *   seriesPosition: ?int,
+ *   alreadyCheckedIn: bool,
+ *   checkinState: ?string,
+ *   checkinAt: ?string,
+ * }
+ * @psalm-type AttendanceSelfCheckinResult = array{
+ *   appointment: AttendanceAppointmentData,
+ *   checkinState: string,
+ *   checkinAt: ?string,
+ *   alreadyCheckedIn: bool,
+ * }
+ * @psalm-type AttendanceDeleteResult = array{
+ *   deletedCount: int,
+ * }
+ * @psalm-type AttendanceExportResult = array{
+ *   path: string,
+ *   filename: string,
+ * }
  */
 class ResponseDefinitions {
 }
