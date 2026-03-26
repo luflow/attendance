@@ -180,7 +180,7 @@
                 "
                 :mode="currentView"
                 :appointment-id="formAppointmentId"
-                :notifications-app-enabled="notificationsAppEnabled"
+                :notifications-app-enabled="capabilities.notificationsAppEnabled"
                 :calendar-available="capabilities.calendarAvailable"
                 :calendar-sync-enabled="capabilities.calendarSyncEnabled"
                 @saved="handleFormSaved"
@@ -307,7 +307,7 @@ const currentAppointments = ref([]);
 const pastAppointments = ref([]);
 const showIcalFeedModal = ref(false);
 const showExportDialog = ref(false);
-const notificationsAppEnabled = ref(false);
+
 const pastAppointmentsExpanded = ref(false);
 
 // Use the shared permissions composable
@@ -382,20 +382,6 @@ const loadAppointments = async () => {
     }
 };
 
-const loadNotificationsAppStatus = async () => {
-    try {
-        const response = await axios.get(
-            generateUrl("/apps/attendance/api/admin/settings"),
-        );
-        if (response.data.reminders) {
-            notificationsAppEnabled.value =
-                response.data.reminders.notificationsAppEnabled !== false;
-        }
-    } catch (error) {
-        // If user doesn't have admin access, that's fine - notifications checkbox won't be shown
-        console.debug("Could not load notifications app status:", error);
-    }
-};
 
 const createNewAppointment = () => {
     currentView.value = "create";
@@ -535,7 +521,6 @@ watch(currentView, async (newView, oldView) => {
 onMounted(async () => {
     checkRouting();
     await loadPermissions();
-    await loadNotificationsAppStatus();
 
     // Skip loading appointments only for checkin view (no navigation sidebar)
     // All other views show navigation and need appointment data
