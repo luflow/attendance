@@ -6,6 +6,20 @@
 
 - Nightly changes here
 
+## 1.32.2 – 2026-03-27
+
+### Fixed
+
+- Notification checkbox ("Send notification") not shown when creating appointments, caused by loading notification status from admin-only endpoint instead of capabilities API
+
+### Added
+
+- E2e test for notification option visibility on appointment creation form
+
+### Maintenance
+
+- Translations updated from Transifex
+
 ## 1.32.1 – 2026-03-22
 
 ### Fixed

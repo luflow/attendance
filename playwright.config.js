@@ -49,6 +49,7 @@ export default defineConfig({
 				'8-attachments.spec.js',
 				'9-recurrence.spec.js',
 				'10-series.spec.js',
+				'11-notification-option.spec.js',
 				'checkin.spec.js',
 			],
 			fullyParallel: false, // tests within a file stay sequential
