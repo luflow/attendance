@@ -621,6 +621,23 @@ class AppointmentController extends Controller {
 	}
 
 	/**
+	 * Get push notification configuration
+	 *
+	 * Returns the push proxy server URL for mobile clients.
+	 *
+	 * @return DataResponse<Http::STATUS_OK, AttendancePushConfig, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function getPushConfig(): DataResponse {
+		return new DataResponse([
+			'enabled' => $this->configService->isPushEnabled(),
+			'proxyServer' => $this->configService->getPushProxyServer(),
+		]);
+	}
+
+	/**
 	 * Get user-relevant app configuration
 	 *
 	 * @return DataResponse<Http::STATUS_OK, AttendanceUserConfig, array{}>

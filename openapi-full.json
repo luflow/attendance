@@ -39,7 +39,8 @@
                     "permissions",
                     "reminders",
                     "calendarSync",
-                    "displayOrder"
+                    "displayOrder",
+                    "pushEnabled"
                 ],
                 "properties": {
                     "whitelistedGroups": {
@@ -65,6 +66,9 @@
                     },
                     "displayOrder": {
                         "type": "string"
+                    },
+                    "pushEnabled": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -520,6 +524,21 @@
                 "additionalProperties": {
                     "type": "array",
                     "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "PushConfig": {
+                "type": "object",
+                "required": [
+                    "enabled",
+                    "proxyServer"
+                ],
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "proxyServer": {
                         "type": "string"
                     }
                 }
@@ -2588,6 +2607,54 @@
                 }
             }
         },
+        "/index.php/apps/attendance/api/push-config": {
+            "get": {
+                "operationId": "appointment-get-push-config",
+                "summary": "Get push notification configuration",
+                "description": "Returns the push proxy server URL for mobile clients.",
+                "tags": [
+                    "appointment"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PushConfig"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "message"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/index.php/apps/attendance/api/search/users-groups-teams": {
             "get": {
                 "operationId": "appointment-search-users-groups-teams",
@@ -3858,6 +3925,12 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Display order for appointments: chronological, name, or group"
+                                    },
+                                    "pushEnabled": {
+                                        "type": "boolean",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Whether push notifications are enabled"
                                     }
                                 }
                             }

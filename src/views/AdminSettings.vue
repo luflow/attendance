@@ -242,6 +242,17 @@
 				</NcSettingsSection>
 			</div>
 
+			<NcSettingsSection :name="t('attendance', 'Push notifications')"
+				:description="t('attendance', 'Enable push notifications for the mobile app.')">
+				<NcCheckboxRadioSwitch
+					v-model="pushEnabled"
+					type="switch"
+					:disabled="loading"
+					data-test="switch-push-enabled">
+					{{ t('attendance', 'Enable push notifications') }}
+				</NcCheckboxRadioSwitch>
+			</NcSettingsSection>
+
 			<NcSettingsSection :name="t('attendance', 'Display options')"
 				:description="t('attendance', 'Choose how appointments are displayed across the app.')">
 				<NcCheckboxRadioSwitch
@@ -322,6 +333,7 @@ const nextAppointment = ref(null)
 const nextReminderRun = ref(null)
 const calendarSyncEnabled = ref(false)
 const calendarSyncAvailable = ref(false)
+const pushEnabled = ref(true)
 const displayOrder = ref('name_first')
 const loading = ref(false)
 const loadingData = ref(true)
@@ -433,6 +445,9 @@ const loadSettings = async () => {
 
 		// Load display order
 		displayOrder.value = config.displayOrder || 'name_first'
+
+		// Load push notifications
+		pushEnabled.value = config.pushEnabled !== false
 	} catch (error) {
 		console.error('Error loading settings:', error)
 		showError(window.t('attendance', 'Failed to load settings'))
@@ -495,6 +510,7 @@ const saveSettings = async () => {
 					enabled: calendarSyncEnabled.value,
 				},
 				displayOrder: displayOrder.value,
+				pushEnabled: pushEnabled.value,
 			},
 		)
 

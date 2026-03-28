@@ -43,6 +43,9 @@ return [
 		// Capabilities
 		['name' => 'appointment#getCapabilities', 'url' => '/api/capabilities', 'verb' => 'GET'],
 
+		// Push notifications
+		['name' => 'appointment#getPushConfig', 'url' => '/api/push-config', 'verb' => 'GET'],
+
 		// Search
 		['name' => 'appointment#searchUsersGroupsTeams', 'url' => '/api/search/users-groups-teams', 'verb' => 'GET'],
 

@@ -137,6 +137,7 @@ namespace OCA\Attendance;
  *   reminders: AttendanceAdminReminderConfig,
  *   calendarSync: AttendanceAdminCalendarSyncConfig,
  *   displayOrder: string,
+ *   pushEnabled: bool,
  * }
  * @psalm-type AttendanceAdminStatus = array{
  *   nextAppointment: ?array{name: string, startDatetime: string},
@@ -169,6 +170,10 @@ namespace OCA\Attendance;
  *   checkinState: string,
  *   checkinAt: ?string,
  *   alreadyCheckedIn: bool,
+ * }
+ * @psalm-type AttendancePushConfig = array{
+ *   enabled: bool,
+ *   proxyServer: string,
  * }
  * @psalm-type AttendanceDeleteResult = array{
  *   deletedCount: int,

@@ -79,6 +79,9 @@ Perfekt für Organisationen, Teams und Gemeinschaften, die die Anwesenheit bei M
 	<namespace>Attendance</namespace>
 	<category>dashboard</category>
 	<category>organization</category>
+	<types>
+		<type>notification</type>
+	</types>
 	<website>https://anwesenheit.app</website>
 	<bugs>https://github.com/luflow/attendance/issues</bugs>
 	<repository type="git">https://github.com/luflow/attendance</repository>
