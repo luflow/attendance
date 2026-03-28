@@ -136,7 +136,8 @@
                     "calendarUri",
                     "calendarEventUid",
                     "seriesId",
-                    "seriesPosition"
+                    "seriesPosition",
+                    "sendNotification"
                 ],
                 "properties": {
                     "id": {
@@ -202,6 +203,9 @@
                         "type": "integer",
                         "format": "int64",
                         "nullable": true
+                    },
+                    "sendNotification": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -224,6 +228,7 @@
                     "calendarEventUid",
                     "seriesId",
                     "seriesPosition",
+                    "sendNotification",
                     "userResponse",
                     "responseSummary",
                     "attachments"
@@ -292,6 +297,9 @@
                         "type": "integer",
                         "format": "int64",
                         "nullable": true
+                    },
+                    "sendNotification": {
+                        "type": "boolean"
                     },
                     "userResponse": {
                         "nullable": true,
@@ -676,6 +684,7 @@
                     "calendarEventUid",
                     "seriesId",
                     "seriesPosition",
+                    "sendNotification",
                     "alreadyCheckedIn",
                     "checkinState",
                     "checkinAt"
@@ -744,6 +753,9 @@
                         "type": "integer",
                         "format": "int64",
                         "nullable": true
+                    },
+                    "sendNotification": {
+                        "type": "boolean"
                     },
                     "alreadyCheckedIn": {
                         "type": "boolean"

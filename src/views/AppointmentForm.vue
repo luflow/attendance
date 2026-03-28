@@ -170,7 +170,7 @@
             </div>
 
             <div
-                v-if="notificationsAppEnabled && mode === 'create'"
+                v-if="notificationsAppEnabled && (mode === 'create' || mode === 'copy')"
                 class="form-section"
             >
                 <h3>{{ t("attendance", "Notification") }}</h3>
@@ -652,6 +652,11 @@ const loadAppointment = async () => {
         }
         searchResults.value = [...items];
         visibilityItems.value = [...items];
+
+        // Load notification preference for copy mode
+        if (props.mode === "copy") {
+            sendNotification.value = appointment.sendNotification;
+        }
 
         // Load attachments
         attachments.value = (appointment.attachments || []).map((a) => ({
