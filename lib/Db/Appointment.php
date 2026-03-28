@@ -40,6 +40,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setSeriesId(?string $seriesId)
  * @method int|null getSeriesPosition()
  * @method void setSeriesPosition(?int $seriesPosition)
+ * @method bool getSendNotification()
+ * @method void setSendNotification(bool $sendNotification)
  */
 class Appointment extends Entity implements JsonSerializable {
 	use DatetimeFormatTrait;
@@ -58,6 +60,7 @@ class Appointment extends Entity implements JsonSerializable {
 	protected $calendarEventUid = null;
 	protected $seriesId = null;
 	protected $seriesPosition = null;
+	protected $sendNotification = false;
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -76,6 +79,7 @@ class Appointment extends Entity implements JsonSerializable {
 		$this->addType('calendarEventUid', 'string');
 		$this->addType('seriesId', 'string');
 		$this->addType('seriesPosition', 'integer');
+		$this->addType('sendNotification', 'boolean');
 	}
 
 	public function jsonSerialize(): array {
@@ -96,6 +100,7 @@ class Appointment extends Entity implements JsonSerializable {
 			'calendarEventUid' => $this->getCalendarEventUid(),
 			'seriesId' => $this->getSeriesId(),
 			'seriesPosition' => $this->getSeriesPosition(),
+			'sendNotification' => (bool) $this->getSendNotification(),
 		];
 	}
 

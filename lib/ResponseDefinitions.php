@@ -22,6 +22,7 @@ namespace OCA\Attendance;
  *   calendarEventUid: ?string,
  *   seriesId: ?string,
  *   seriesPosition: ?int,
+ *   sendNotification: bool,
  * }
  * @psalm-type AttendanceResponseData = array{
  *   id: int,
@@ -72,6 +73,7 @@ namespace OCA\Attendance;
  *   calendarEventUid: ?string,
  *   seriesId: ?string,
  *   seriesPosition: ?int,
+ *   sendNotification: bool,
  *   userResponse: AttendanceResponseData|null,
  *   responseSummary: array<string, int>,
  *   attachments: list<array<string, mixed>>,
@@ -157,6 +159,7 @@ namespace OCA\Attendance;
  *   calendarEventUid: ?string,
  *   seriesId: ?string,
  *   seriesPosition: ?int,
+ *   sendNotification: bool,
  *   alreadyCheckedIn: bool,
  *   checkinState: ?string,
  *   checkinAt: ?string,

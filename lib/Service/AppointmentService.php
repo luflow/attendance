@@ -100,6 +100,7 @@ class AppointmentService {
 		$appointment->setCalendarEventUid($calendarEventUid);
 		$appointment->setSeriesId($seriesId);
 		$appointment->setSeriesPosition($seriesPosition);
+		$appointment->setSendNotification($sendNotification);
 
 		$appointment = $this->appointmentMapper->insert($appointment);
 
