@@ -64,6 +64,7 @@ OC.L10N.register(
     "Failed to save settings" : "Spremanje postavki nije uspjelo",
     "Permissions" : "Dopuštenja",
     "Select groups …" : "Odaberite grupe …",
+    "Preview" : "Pretpregled",
     "Loading …" : "Učitavanje …",
     "Appointment not found" : "Termin nije pronađen",
     "User" : "@string/user_icon",
