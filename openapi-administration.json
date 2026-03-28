@@ -39,7 +39,8 @@
                     "permissions",
                     "reminders",
                     "calendarSync",
-                    "displayOrder"
+                    "displayOrder",
+                    "pushEnabled"
                 ],
                 "properties": {
                     "whitelistedGroups": {
@@ -65,6 +66,9 @@
                     },
                     "displayOrder": {
                         "type": "string"
+                    },
+                    "pushEnabled": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -401,6 +405,12 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Display order for appointments: chronological, name, or group"
+                                    },
+                                    "pushEnabled": {
+                                        "type": "boolean",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Whether push notifications are enabled"
                                     }
                                 }
                             }

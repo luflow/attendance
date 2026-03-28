@@ -12,6 +12,7 @@ use OCP\IConfig;
  */
 class ConfigService {
 	private const APP_ID = 'attendance';
+	public const DEFAULT_PUSH_PROXY_SERVER = 'https://push.anwesenheit.app';
 
 	private IConfig $config;
 
@@ -206,6 +207,43 @@ class ConfigService {
 	 */
 	public function setCalendarSyncEnabled(bool $enabled): void {
 		$this->config->setAppValue(self::APP_ID, 'calendar_sync_enabled', $enabled ? 'yes' : 'no');
+	}
+
+	/**
+	 * Check if push notifications are enabled.
+	 *
+	 * @return bool True if push notifications are enabled
+	 */
+	public function isPushEnabled(): bool {
+		return $this->config->getAppValue(self::APP_ID, 'push_enabled', 'yes') === 'yes';
+	}
+
+	/**
+	 * Set push notifications enabled status.
+	 *
+	 * @param bool $enabled Whether push notifications should be enabled
+	 */
+	public function setPushEnabled(bool $enabled): void {
+		$this->config->setAppValue(self::APP_ID, 'push_enabled', $enabled ? 'yes' : 'no');
+	}
+
+	/**
+	 * Get the push proxy server URL.
+	 * Configurable via occ: occ config:app:set attendance push_proxy_server --value="https://your-proxy.example.com"
+	 *
+	 * @return string The push proxy server URL
+	 */
+	public function getPushProxyServer(): string {
+		return $this->config->getAppValue(self::APP_ID, 'push_proxy_server', self::DEFAULT_PUSH_PROXY_SERVER);
+	}
+
+	/**
+	 * Set the push proxy server URL.
+	 *
+	 * @param string $url The push proxy server URL
+	 */
+	public function setPushProxyServer(string $url): void {
+		$this->config->setAppValue(self::APP_ID, 'push_proxy_server', $url);
 	}
 
 	/**

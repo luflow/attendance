@@ -131,6 +131,7 @@ class AdminController extends Controller {
 						'enabled' => $this->configService->isCalendarSyncEnabled(),
 					],
 					'displayOrder' => $this->configService->getDisplayOrder(),
+					'pushEnabled' => $this->configService->isPushEnabled(),
 				],
 				'status' => [
 					'nextAppointment' => $nextAppointment,
@@ -152,6 +153,7 @@ class AdminController extends Controller {
 	 * @param array{enabled?: bool, reminderDays?: int, reminderFrequency?: int} $reminders Reminder settings
 	 * @param array{enabled?: bool} $calendarSync Calendar sync settings
 	 * @param ?string $displayOrder Display order for appointments: chronological, name, or group
+	 * @param ?bool $pushEnabled Whether push notifications are enabled
 	 * @return DataResponse<Http::STATUS_OK, array<string, mixed>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
 	 */
 	#[NoCSRFRequired]
@@ -163,6 +165,7 @@ class AdminController extends Controller {
 		array $reminders = [],
 		array $calendarSync = [],
 		?string $displayOrder = null,
+		?bool $pushEnabled = null,
 	): DataResponse {
 		// Get current user
 		$user = $this->userSession->getUser();
@@ -206,6 +209,11 @@ class AdminController extends Controller {
 			// Save display order
 			if ($displayOrder !== null) {
 				$this->configService->setDisplayOrder($displayOrder);
+			}
+
+			// Save push notifications enabled
+			if ($pushEnabled !== null) {
+				$this->configService->setPushEnabled($pushEnabled);
 			}
 
 			return new DataResponse([]);
