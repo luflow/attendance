@@ -70,6 +70,7 @@ OC.L10N.register(
     "Permissions" : "ئىجازەت",
     "Select groups …" : "گۇرۇپپىلارنى تاللاڭ…",
     "Preview" : "ئالدىن كۆرۈش",
+    "Push notifications" : "ئىتتىرىش ئۇقتۇرۇشى",
     "View all" : "ھەممىنى كۆرۈش",
     "Loading …" : "يۈكلەۋاتىدۇ ...",
     "Appointment not found" : "تەيىنلەنمىدى",

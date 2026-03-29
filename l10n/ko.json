@@ -144,6 +144,7 @@
     "This feature uses calendar event hooks that are only available in Nextcloud 32 and later versions." : "이 기능은 Nextcloud 32 이상 버전에서만 사용할 수 있는 캘린더 이벤트 후크를 사용합니다.",
     "Enable automatic calendar sync" : "캘린더 자동 동기화 활성화",
     "When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time)." : "이 기능을 활성화하면 캘린더 이벤트 변경 사항이 연결된 참석 약속(제목, 설명, 날짜/시간)에 자동으로 업데이트됩니다.",
+    "Push notifications" : "푸쉬 알림",
     "_%n group selected_::_%n groups selected_" : ["선택된 그룹%n"],
     "_%n team selected_::_%n teams selected_" : ["선정된 팀%n"],
     "View all" : "모두 보기",

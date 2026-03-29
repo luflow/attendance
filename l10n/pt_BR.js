@@ -244,6 +244,7 @@ OC.L10N.register(
     "This feature uses calendar event hooks that are only available in Nextcloud 32 and later versions." : "Este recurso utiliza ganchos de eventos do calendário que estão disponíveis apenas no Nextcloud 32 e versões posteriores.",
     "Enable automatic calendar sync" : "Ativar sincronização automática do calendário",
     "When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time)." : "Quando ativado, as alterações nos eventos do calendário atualizarão automaticamente os compromissos de presença vinculados (título, descrição, data/hora).",
+    "Push notifications" : "Notificações push",
     "Display options" : "Opções de exibição",
     "Choose how appointments are displayed across the app." : "Escolha como os compromissos são exibidos no aplicativo.",
     "Name first" : "O nome primeiro",

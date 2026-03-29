@@ -125,6 +125,7 @@ OC.L10N.register(
     "Preview" : "Esikatselu",
     "Calendar sync" : "Kalenterin synkronointi",
     "Enable automatic calendar sync" : "Käytä automaattista kalenterisynkronointia",
+    "Push notifications" : "Push-ilmoitukset",
     "Display options" : "Näkymävalinnat",
     "Name first" : "Nimi ensin",
     "Date first" : "Päiväys ensin",

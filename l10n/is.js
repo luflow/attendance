@@ -1,6 +1,8 @@
 OC.L10N.register(
     "attendance",
     {
+    "Yes" : "Já",
+    "No" : "Nei",
     "Group" : "Hópur",
     "Attachments" : "Viðhengi",
     "Connect" : "Tengjast",
@@ -57,6 +59,7 @@ OC.L10N.register(
     "Failed to save settings" : "Mistókst að vista stillingar",
     "Permissions" : "Heimildir",
     "Preview" : "Forskoðun",
+    "Push notifications" : "Ýti-tilkynningar",
     "Appointment not found" : "Stefnumót fannst ekki",
     "Edit appointment" : "Breyta stefnumóti",
     "User" : "Notandi",

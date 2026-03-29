@@ -29,6 +29,7 @@ OC.L10N.register(
     "Show all" : "Sken-iten-id akk",
     "Save" : "Sekles",
     "Back" : "Tuɣalin",
+    "Push notifications" : "Ilɣa yettwaznen",
     "View all" : "Wali-ten akk",
     "User" : "Aseqdac",
     "Team" : "Tarbaɛt",

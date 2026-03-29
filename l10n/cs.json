@@ -242,6 +242,7 @@
     "This feature uses calendar event hooks that are only available in Nextcloud 32 and later versions." : "Tato funkce používá háčky události kalendáře, které jsou k dispozici pouze v Nextcloud 32 a novějších verzích.",
     "Enable automatic calendar sync" : "Zapnout automatickou synchronizaci kalendáře",
     "When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time)." : "Pokud zapnuto, změny událostí v kalendáři autoamticky zaktualizují propojené schůzky účastníků (nadpis, popis, datum/čas).",
+    "Push notifications" : "Push upozorňování",
     "Display options" : "Předvolby zobrazení",
     "Choose how appointments are displayed across the app." : "Zvolte jak budou schůzky napříč aplikací zobrazovány.",
     "Name first" : "Jméno první",

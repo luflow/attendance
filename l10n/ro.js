@@ -47,6 +47,7 @@ OC.L10N.register(
     "Settings saved" : "Setările au fost salvate",
     "Permissions" : "Permisiuni",
     "Preview" : "Previzualizare",
+    "Push notifications" : "Notificări push",
     "Appointment not found" : "Programarea nu a fost găsită",
     "Edit appointment" : "Editează programarea",
     "User" : "Utilizator",

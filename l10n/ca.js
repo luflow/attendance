@@ -67,6 +67,7 @@ OC.L10N.register(
     "Permissions" : "Permisos",
     "Select groups …" : "Selecció de grups …",
     "Preview" : "Previsualitza",
+    "Push notifications" : "Notificacions forçades",
     "Appointment not found" : "No s'ha trobat la cita",
     "Edit appointment" : "Edició de la cita",
     "User" : "Usuari",

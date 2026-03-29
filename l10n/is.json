@@ -1,4 +1,6 @@
 { "translations": {
+    "Yes" : "Já",
+    "No" : "Nei",
     "Group" : "Hópur",
     "Attachments" : "Viðhengi",
     "Connect" : "Tengjast",
@@ -55,6 +57,7 @@
     "Failed to save settings" : "Mistókst að vista stillingar",
     "Permissions" : "Heimildir",
     "Preview" : "Forskoðun",
+    "Push notifications" : "Ýti-tilkynningar",
     "Appointment not found" : "Stefnumót fannst ekki",
     "Edit appointment" : "Breyta stefnumóti",
     "User" : "Notandi",

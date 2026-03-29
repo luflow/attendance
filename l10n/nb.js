@@ -67,6 +67,7 @@ OC.L10N.register(
     "Permissions" : "Rettigheter",
     "Select groups …" : "Velg grupper...",
     "Preview" : "Forhåndsvis",
+    "Push notifications" : "Push-merknader",
     "View all" : "Se alle",
     "Appointment not found" : "Avtale ikke funnet",
     "Edit appointment" : "Endre avtale",

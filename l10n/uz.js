@@ -45,6 +45,7 @@ OC.L10N.register(
     "Settings saved" : "Sozlamalar saqlandi",
     "Failed to save settings" : "Sozlamalarni saqlab bo'lmadi",
     "Preview" : "Ko‘rib chiqish",
+    "Push notifications" : "Push-bildirishnomalar",
     "Loading …" : "Yuklanmoqda...",
     "Appointment not found" : "Uchrashuv topilmadi",
     "Edit appointment" : "Uchrashuvni tahrirlash",

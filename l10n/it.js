@@ -79,6 +79,7 @@ OC.L10N.register(
     "Manage appointments" : "Gestisci appuntamenti",
     "Select groups …" : "Seleziona gruppi …",
     "Preview" : "Anteprima",
+    "Push notifications" : "Notifiche push",
     "View all" : "Vedi tutto",
     "Loading …" : "Caricamento in corso...",
     "Appointment not found" : "Appuntamento non trovato",

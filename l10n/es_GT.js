@@ -31,6 +31,7 @@ OC.L10N.register(
     "Settings saved" : "Se han guardado las configuraciones ",
     "Permissions" : "Permisos",
     "Preview" : "Previsualizar",
+    "Push notifications" : "Notificaciones push",
     "User" : "Ususario",
     "Description" : "Descripción",
     "Confirm" : "Confirmar",

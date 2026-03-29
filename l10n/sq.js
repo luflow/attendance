@@ -38,6 +38,7 @@ OC.L10N.register(
     "Settings saved" : "Opsjonet u Ruajtën.",
     "Permissions" : "Lejet",
     "Preview" : "Parapamje ",
+    "Push notifications" : "Shty njoftimet",
     "User" : "Përdorues",
     "Appointment updated" : "Takimi u përditësua",
     "Description" : "Përshkrim",

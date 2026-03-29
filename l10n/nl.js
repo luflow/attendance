@@ -81,6 +81,7 @@ OC.L10N.register(
     "Permissions" : "Rechten",
     "Select groups …" : "Selecteer groepen …",
     "Preview" : "Voorbeeld",
+    "Push notifications" : "Push meldingen",
     "View all" : "Toon alles",
     "Loading …" : "Aan het laden...",
     "Appointment not found" : "Afspraak niet gevonden",

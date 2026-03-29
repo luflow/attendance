@@ -244,6 +244,7 @@ OC.L10N.register(
     "This feature uses calendar event hooks that are only available in Nextcloud 32 and later versions." : "此功能使用僅於 Nextcloud 32 或之後版本提供的日曆事件掛鉤。",
     "Enable automatic calendar sync" : "啟用自動日曆同步",
     "When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time)." : "啟用後，日曆活動的變更將自動更新連結的出席預約（標題、描述、日期／時間）。",
+    "Push notifications" : "推送通知",
     "Display options" : "顯示選項",
     "Choose how appointments are displayed across the app." : "請選擇約會在整個應用程式中的顯示方式。",
     "Name first" : "約會名稱先",

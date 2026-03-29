@@ -65,6 +65,7 @@ OC.L10N.register(
     "Permissions" : "ການອະນຸຍາດ",
     "Select groups …" : "Select groups …",
     "Preview" : "ເບິ່ງຕົວຢ່າງ",
+    "Push notifications" : "ການແຈ້ງເຕືອນ",
     "View all" : "ເບິ່ງທັງໝົດ",
     "Loading …" : "Loading …",
     "Appointment not found" : "Appointment not found",

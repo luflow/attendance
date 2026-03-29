@@ -65,6 +65,7 @@ OC.L10N.register(
     "Permissions" : "Dopuštenja",
     "Select groups …" : "Odaberite grupe …",
     "Preview" : "Pretpregled",
+    "Push notifications" : "Push obavijesti",
     "Loading …" : "Učitavanje …",
     "Appointment not found" : "Termin nije pronađen",
     "User" : "@string/user_icon",

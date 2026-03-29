@@ -109,6 +109,7 @@ OC.L10N.register(
     "Select groups …" : "Vali grupid…",
     "Appointment reminders" : "Kohtumiste meeldetuletused",
     "Preview" : "Eelvaade",
+    "Push notifications" : "Tõuketeavitused",
     "View all" : "Vaata kõiki",
     "Loading …" : "Andmed on laadimisel…",
     "Appointment deleted" : "Kohtumine on kustutatud",

@@ -54,6 +54,7 @@ OC.L10N.register(
     "Settings saved" : "Cunfiguratzione sarvada",
     "Failed to save settings" : "No at fatu a sarvare is informatziones",
     "Permissions" : "Permissos",
+    "Push notifications" : "Notìficas push",
     "User" : "Utente",
     "Appointment updated" : "Apuntamentu agiornadu",
     "Description" : "Descritzione",

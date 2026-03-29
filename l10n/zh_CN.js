@@ -68,6 +68,7 @@ OC.L10N.register(
     "Permissions" : "权限",
     "Select groups …" : "选择群组…",
     "Preview" : "预览",
+    "Push notifications" : "推送通知",
     "View all" : "查看全部",
     "Loading …" : "正在加载 …",
     "Appointment not found" : "未找到预约",

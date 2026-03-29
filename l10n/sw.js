@@ -226,6 +226,7 @@ OC.L10N.register(
     "This feature uses calendar event hooks that are only available in Nextcloud 32 and later versions." : "Kipengele hiki kinatumia ndoano za matukio ya kalenda ambazo zinapatikana tu katika Nextcloud 32 na matoleo ya baadaye.",
     "Enable automatic calendar sync" : "Washa usawazishaji wa kalenda kiotomatiki",
     "When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time)." : "Ikiwashwa, mabadiliko kwenye matukio ya kalenda yatasasisha kiotomatiki miadi ya mahudhurio iliyounganishwa (kichwa, maelezo, tarehe/saa).",
+    "Push notifications" : "Arifa za kushinikiza",
     "Display options" : "Chaguo za kuonyesha",
     "Choose how appointments are displayed across the app." : "Chagua jinsi miadi inavyoonyeshwa kwenye programu yote.",
     "Name first" : "Jina kwanza",

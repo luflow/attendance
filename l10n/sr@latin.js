@@ -25,6 +25,7 @@ OC.L10N.register(
     "Save" : "Sačuvaj",
     "Bold" : "Podebljano",
     "Italic" : "Kurziv",
+    "Push notifications" : "Brza obaveštenja",
     "User" : "Korisnik",
     "Description" : "Opis"
 },

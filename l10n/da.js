@@ -64,6 +64,7 @@ OC.L10N.register(
     "Failed to save settings" : "Kunne ikke gemme indstillinger",
     "Permissions" : "Rettigheder",
     "Preview" : "Forhåndsvisning",
+    "Push notifications" : "Pushbeskeder",
     "Loading …" : "Indlæser …",
     "Appointment not found" : "Aftale ikke fundet",
     "Edit appointment" : "Redigér aftale",

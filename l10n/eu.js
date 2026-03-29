@@ -68,6 +68,7 @@ OC.L10N.register(
     "Permissions" : "Baimenak",
     "Select groups …" : "Hautatu taldeak ...",
     "Preview" : "Aurrebista",
+    "Push notifications" : "Push jakinarazpenak",
     "View all" : "Ikusi denak",
     "Loading …" : "Kargatzen …",
     "Appointment not found" : "Ez da hitzordua aurkitu",

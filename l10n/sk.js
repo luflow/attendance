@@ -202,6 +202,7 @@ OC.L10N.register(
     "This feature uses calendar event hooks that are only available in Nextcloud 32 and later versions." : "Táto funkcia využíva háky kalendárových udalostí, ktoré sú k dispozícii iba v Nextcloude verzie 32 a novších.",
     "Enable automatic calendar sync" : "Povoliť automatickú synchronizáciu kalendára",
     "When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time)." : "Keď je povolené, zmeny v kalendárových udalostiach sa automaticky aktualizujú v prepojených termínoch účasti (názov, popis, dátum/čas).",
+    "Push notifications" : "Push notifikácie",
     "Display options" : "Možnosti zobrazenia",
     "Choose how appointments are displayed across the app." : "Vyberte, ako sa majú schôdzky zobrazovať v aplikácii.",
     "Name first" : "Najprv meno",

@@ -25,6 +25,7 @@ OC.L10N.register(
     "Present" : "Kinnig",
     "Settings saved" : "Stummoù enrollet",
     "Preview" : "Ragwell",
+    "Push notifications" : "Kemennadennoù bount",
     "User" : "Implijer",
     "Description" : "Deskrivadur",
     "Notification" : "Kemennadenn",

@@ -242,6 +242,7 @@
     "This feature uses calendar event hooks that are only available in Nextcloud 32 and later versions." : "此功能採用僅在 Nextcloud 32 及後續版本中提供的日曆事件掛鉤機制。",
     "Enable automatic calendar sync" : "啟用自動日曆同步",
     "When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time)." : "啟用此功能後，日曆事件的變更將自動更新連結的出席預約（標題、描述、日期/時間）。",
+    "Push notifications" : "推播通知",
     "Display options" : "顯示選項",
     "Choose how appointments are displayed across the app." : "選擇要如何在應用程式中顯示預約。",
     "Name first" : "名稱優先",

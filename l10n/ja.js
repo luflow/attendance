@@ -66,6 +66,7 @@ OC.L10N.register(
     "Permissions" : "アクセス権限",
     "Select groups …" : "グループを選択 ...",
     "Preview" : "プレビュー",
+    "Push notifications" : "プッシュ通知",
     "Loading …" : "読み込み中…",
     "Appointment not found" : "予定が見つかりません",
     "Edit appointment" : "予定を編集",

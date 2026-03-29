@@ -144,6 +144,7 @@ OC.L10N.register(
     "This feature uses calendar event hooks that are only available in Nextcloud 32 and later versions." : "Fitur ini menggunakan hook acara kalender yang hanya tersedia di Nextcloud 32 dan versi yang lebih baru.",
     "Enable automatic calendar sync" : "Aktifkan sinkronisasi kalender otomatis",
     "When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time)." : "Jika diaktifkan, perubahan pada acara kalender akan secara otomatis memperbarui janji temu kehadiran yang tertaut (judul, deskripsi, tanggal/waktu).",
+    "Push notifications" : "Notifikasi push",
     "_%n group selected_::_%n groups selected_" : ["%n grup dipilih"],
     "_%n team selected_::_%n teams selected_" : ["%n tim dipilih"],
     "View all" : "Lihat semua",

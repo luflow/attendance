@@ -67,6 +67,7 @@ OC.L10N.register(
     "Permissions" : "Behörigheter",
     "Select groups …" : "Välj grupper ...",
     "Preview" : "Förhandsgranskning",
+    "Push notifications" : "Push-aviseringar",
     "View all" : "Visa alla",
     "Loading …" : "Laddar …",
     "Appointment not found" : "Mötet hittades inte",

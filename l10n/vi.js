@@ -50,6 +50,7 @@ OC.L10N.register(
     "Settings saved" : "Cấu hình đã được lưu",
     "Failed to save settings" : "Lưu cấu hình thất bại",
     "Preview" : "Xem trước",
+    "Push notifications" : "Thông báo đẩy",
     "Loading …" : "Đang tải …",
     "Appointment not found" : "Không tìm thấy cuộc hẹn",
     "Edit appointment" : "Chỉnh sửa lịch hẹn",

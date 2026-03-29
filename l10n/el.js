@@ -201,6 +201,7 @@ OC.L10N.register(
     "This feature uses calendar event hooks that are only available in Nextcloud 32 and later versions." : "Αυτή η λειτουργία χρησιμοποιεί άγκιστρα (hooks) συμβάντων ημερολογίου που είναι διαθέσιμα μόνο στο Nextcloud 32 και μεταγενέστερες εκδόσεις.",
     "Enable automatic calendar sync" : "Ενεργοποίηση αυτόματου συγχρονισμού ημερολογίου",
     "When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time)." : "Όταν είναι ενεργοποιημένο, οι αλλαγές στα συμβάντα ημερολογίου θα ενημερώνουν αυτόματα τα συνδεδεμένα ραντεβού παρουσίας (τίτλος, περιγραφή, ημερομηνία/ώρα).",
+    "Push notifications" : "Ειδοποιήσεις push",
     "Display options" : "Επιλογές εμφάνισης",
     "Choose how appointments are displayed across the app." : "Επιλέξτε πώς θα εμφανίζονται τα ραντεβού στην εφαρμογή.",
     "Name first" : "Όνομα πρώτα",

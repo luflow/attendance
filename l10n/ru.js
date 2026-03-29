@@ -68,6 +68,7 @@ OC.L10N.register(
     "Permissions" : "Права",
     "Select groups …" : "Выбрать группы …",
     "Preview" : "Предварительный просмотр",
+    "Push notifications" : "Push-уведомления",
     "View all" : "Просмотреть все",
     "Loading …" : "Загрузка …",
     "Appointment not found" : "Встреча не найдена",

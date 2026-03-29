@@ -234,6 +234,7 @@ OC.L10N.register(
     "This feature uses calendar event hooks that are only available in Nextcloud 32 and later versions." : "Bu özellik, yalnızca Nextcloud 32 ve üzerindeki sürümlerde bulunan takvim etkinliği kancalarını kullanır.",
     "Enable automatic calendar sync" : "Otomatik takvim eşitlemeyi aç",
     "When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time)." : "Açıldığında, takvim etkinliklerindeki değişiklikler bağlantılı katılım randevularını (başlık, açıklama, tarih/saat) otomatik olarak günceller.",
+    "Push notifications" : "Anında bildirimler",
     "Display options" : "Görüntüleme seçenekleri",
     "Choose how appointments are displayed across the app." : "Randevuların tüm uygulamada nasıl görüntüleneceğini seçin.",
     "Name first" : "Önce ad",

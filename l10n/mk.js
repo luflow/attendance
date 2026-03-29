@@ -57,6 +57,7 @@ OC.L10N.register(
     "Settings saved" : "Параматрите се зачувани",
     "Failed to save settings" : "Неуспешно зачувување на параметрите",
     "Permissions" : "Дозволи",
+    "Push notifications" : "Push известувања",
     "View all" : "Види ги сите",
     "Loading …" : "Се вчитува …",
     "Appointment not found" : "Терминот не е пронајден",

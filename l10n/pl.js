@@ -75,6 +75,7 @@ OC.L10N.register(
     "Permissions" : "Uprawnienia",
     "Select groups …" : "Wybierz grupy…",
     "Preview" : "Podgląd",
+    "Push notifications" : "Powiadomienia Push",
     "View all" : "Zobacz wszystkie",
     "Loading …" : "Ładowanie ...",
     "Appointment not found" : "Nie znaleziono spotkania",

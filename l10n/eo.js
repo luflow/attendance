@@ -44,6 +44,7 @@ OC.L10N.register(
     "Settings saved" : "Agordoj konservitaj",
     "Failed to save settings" : "Konservo de agordoj malsukcesis",
     "Preview" : "Antaŭvidi",
+    "Push notifications" : "Tujaj sciigoj",
     "User" : "Uzanto",
     "Description" : "Priskribo",
     "Notification" : "Atentigo",

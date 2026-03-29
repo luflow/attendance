@@ -70,6 +70,7 @@ OC.L10N.register(
     "Permissions" : "Дозволе",
     "Select groups …" : "Изаберите групе…",
     "Preview" : "Преглед",
+    "Push notifications" : "Брза обавештења",
     "View all" : "Прикажи све",
     "Loading …" : "Учитава се…",
     "Appointment not found" : "Састанак није пронађен",

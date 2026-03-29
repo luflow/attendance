@@ -66,6 +66,7 @@ OC.L10N.register(
     "Permissions" : "Dovoljenja",
     "Select groups …" : "Izbor skupin ...",
     "Preview" : "Predogled",
+    "Push notifications" : "Potisna obvestila",
     "View all" : "Poglej vse",
     "Appointment not found" : "Sestanka ni mogoče najti",
     "Edit appointment" : "Uredi sestanek",

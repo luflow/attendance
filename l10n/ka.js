@@ -49,6 +49,7 @@ OC.L10N.register(
     "Failed to save settings" : "Failed to save settings",
     "Permissions" : "Permissions",
     "Preview" : "Preview",
+    "Push notifications" : "Push notifications",
     "Appointment not found" : "Appointment not found",
     "Edit appointment" : "Edit appointment",
     "User" : "User",

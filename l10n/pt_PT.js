@@ -76,6 +76,7 @@ OC.L10N.register(
     "Settings saved" : "Definições guardadas",
     "Failed to save settings" : "Erro ao gravar as definições",
     "Preview" : "Pré-visualizar",
+    "Push notifications" : "Notificações \"push\"",
     "View all" : "Ver tudo",
     "Edit appointment" : "Editar reunião",
     "User" : "Utilizador",

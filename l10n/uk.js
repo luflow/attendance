@@ -70,6 +70,7 @@ OC.L10N.register(
     "Permissions" : "Дозволи ",
     "Select groups …" : "Виберіть групи ...",
     "Preview" : "Попередній перегляд",
+    "Push notifications" : "Сповіщення push",
     "View all" : "Переглянути всі",
     "Loading …" : "Завантаження …",
     "Appointment not found" : "Запрошення на зустріч не знайдено",

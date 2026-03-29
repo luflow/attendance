@@ -242,6 +242,7 @@
     "This feature uses calendar event hooks that are only available in Nextcloud 32 and later versions." : "This feature uses calendar event hooks that are only available in Nextcloud 32 and later versions.",
     "Enable automatic calendar sync" : "Enable automatic calendar sync",
     "When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time)." : "When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time).",
+    "Push notifications" : "Push notifications",
     "Display options" : "Display options",
     "Choose how appointments are displayed across the app." : "Choose how appointments are displayed across the app.",
     "Name first" : "Name first",
