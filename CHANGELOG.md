@@ -6,6 +6,18 @@
 
 - Nightly changes here
 
+## 1.33.0 – 2026-03-29
+
+### Added
+
+- Push notification support for the mobile app
+- Admin setting to enable/disable mobile push notifications
+- Notification preference now persists when copying appointments
+
+### Maintenance
+
+- Translations updated from Transifex
+
 ## 1.32.2 – 2026-03-27
 
 ### Fixed
