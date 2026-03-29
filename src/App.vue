@@ -291,6 +291,26 @@ t("attendance", "Account");
 t("attendance", "Log out");
 t("attendance", "Are you sure you want to log out?");
 t("attendance", "Reset to server color");
+t("attendance", "Appearance");
+t("attendance", "Background style");
+t("attendance", "Gradient");
+t("attendance", "Color");
+t("attendance", "Tiled");
+t("attendance", "None");
+t("attendance", "Theme");
+t("attendance", "System");
+t("attendance", "Light");
+t("attendance", "Dark");
+
+t("attendance", "Notifications");
+t("attendance", "Push Notifications");
+t("attendance", "Receive notifications for new appointments and reminders");
+t("attendance", "Test Notification");
+t("attendance", "Send a test notification to verify push works");
+t("attendance", "Connecting…");
+t("attendance", "Connected");
+t("attendance", "Connection failed — tap to retry");
+t("attendance", "Notifications blocked — tap to open settings");
 
 t("attendance", "Checked in");
 t("attendance", "Not checked in");
@@ -298,6 +318,8 @@ t("attendance", "Happening now");
 t("attendance", "Error loading data");
 t("attendance", "Reset failed");
 t("attendance", "Active filters");
+t("attendance", "Check-in failed. Please try again.");
+t("attendance", "No results match the active filters.");
 
 const currentView = ref(null); // 'current', 'past', 'unanswered', 'appointment', 'checkin', 'create', 'edit', 'copy', or null
 const checkinAppointmentId = ref(null);
