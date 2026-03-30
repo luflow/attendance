@@ -7,6 +7,7 @@ OC.L10N.register(
     "Settings" : "Arventennoù",
     "Account" : "Kont",
     "Log out" : "Digennaskañ",
+    "System" : "Sistem",
     "Select all" : "Dibab pep tra",
     "Deselect all" : "Diziuzañ pep tra",
     "Cancel" : "Cancel",

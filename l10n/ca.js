@@ -14,6 +14,8 @@ OC.L10N.register(
     "Account" : "Compte",
     "Log out" : "Tanca la sessió",
     "Are you sure you want to log out?" : "Esteu segur que voleu tancar la sessió?",
+    "System" : "Sistema",
+    "Connecting…" : "S'està connectant…",
     "Active filters" : "Filtres actius",
     "Create appointment" : "Crea cita",
     "Export" : "Exporta",

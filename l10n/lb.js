@@ -6,6 +6,7 @@ OC.L10N.register(
     "Group" : "Grupp",
     "Connect" : "Verbannen",
     "Settings" : "Astellungen",
+    "None" : "Keng",
     "Export" : "Exportéieren",
     "Select all" : "All auswielen",
     "Copy" : "Kopieren",

@@ -68,6 +68,7 @@ OC.L10N.register(
     "Permissions" : "الصلاحيّات",
     "Select groups …" : "تحديد المجموعات ...",
     "Preview" : "معاينة",
+    "Push notifications" : "دفع الإخطارات",
     "View all" : "عرض الكل",
     "Appointment not found" : "الموعد غير موجود",
     "Edit appointment" : "تعديل موعد",

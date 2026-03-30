@@ -6,6 +6,8 @@ OC.L10N.register(
     "Group" : "Խումբ",
     "Connect" : "միացնել",
     "Settings" : "Կարգավորումներ",
+    "Notifications" : "Ծանուցում",
+    "Connected" : "միացված է",
     "Export" : "Արտահանում",
     "Select all" : "Նշել բոլորը",
     "Copy" : "Պատճենել",

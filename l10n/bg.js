@@ -14,6 +14,8 @@ OC.L10N.register(
     "Account" : "Профил",
     "Log out" : "Изход",
     "Are you sure you want to log out?" : "Сигурни ли сте, че искате да излезете?",
+    "System" : "Системна информация",
+    "Connecting…" : "Свързване…",
     "Active filters" : "Актижни филтри",
     "Create appointment" : "Създаване на среща",
     "Export" : "Експорт /изнасям/",

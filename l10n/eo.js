@@ -9,6 +9,8 @@ OC.L10N.register(
     "Connect" : "Konekti",
     "Settings" : "Agordoj",
     "Account" : "Konto",
+    "System" : "Sistemo",
+    "Dark" : "Malluma",
     "Export" : "Eksporti",
     "Select all" : "Elekti ĉion",
     "Deselect all" : "Malelekti ĉion",

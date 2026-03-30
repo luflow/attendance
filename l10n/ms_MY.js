@@ -5,6 +5,7 @@ OC.L10N.register(
     "No" : "Tidak",
     "Connect" : "Berhubung",
     "Settings" : "Tetapan",
+    "Notifications" : "Pemberitahuan",
     "Export" : "Eksport",
     "Cancel" : "Cancel",
     "Edit" : "Sunting",

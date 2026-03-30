@@ -49,6 +49,7 @@ OC.L10N.register(
     "Permissions" : "Дазволы",
     "Select groups …" : "Выберыце групы …",
     "Preview" : "Перадпрагляд",
+    "Push notifications" : "Push-апавяшчэнні",
     "Loading …" : "Загрузка …",
     "User" : "Карыстальнік",
     "Team" : "Каманда",
