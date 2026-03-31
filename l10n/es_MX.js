@@ -12,6 +12,7 @@ OC.L10N.register(
     "Log out" : "Cerrar sesión",
     "Appearance" : "Apariencia",
     "Color" : "Color",
+    "None" : "Ninguno",
     "System" : "Sistema",
     "Dark" : "Oscuro",
     "Connected" : "Conectado",

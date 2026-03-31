@@ -7,6 +7,8 @@ OC.L10N.register(
     "Account" : "Cuenta",
     "Log out" : "Salir",
     "Color" : "Color",
+    "None" : "Ninguno",
+    "Theme" : "Tema",
     "System" : "Sistema",
     "Dark" : "Oscuro",
     "Connected" : "Conectado",

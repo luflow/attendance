@@ -1,0 +1,26 @@
+OC.L10N.register(
+    "attendance",
+    {
+    "Yes" : "Hawa",
+    "No" : "Ýok",
+    "Add account" : "Hasap goşuň",
+    "Settings" : "Sazlamalar",
+    "Log out" : "Hasapdan çykmak",
+    "None" : "Hiç",
+    "Theme" : "Tema",
+    "Light" : "Ýagtylyk",
+    "Dark" : "Garaňky",
+    "Notifications" : "Duýduryşlar",
+    "Select all" : "Hemmesini saýlaň",
+    "Deselect all" : "Hemmesini aýyryň",
+    "Copy" : "Göçüriň",
+    "Cancel" : "Cancel",
+    "Share link" : "Baglanyşyk paýlaş",
+    "Edit" : "Redaktirläň",
+    "Delete" : "Pozmak",
+    "Save" : "Saklamak",
+    "Back" : "Yzyna",
+    "Push notifications" : "Duýduryşlary basyň",
+    "User" : "Ulanyjy"
+},
+"nplurals=2; plural=(n != 1);");

@@ -6,6 +6,8 @@ OC.L10N.register(
     "Settings" : "Instellings",
     "Account" : "Rekening",
     "Log out" : "Teken af",
+    "Color" : "Kleur",
+    "None" : "Geen",
     "Export" : "Voer uit",
     "Select all" : "Kies alle",
     "Start date" : "Begindatum",
