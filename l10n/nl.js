@@ -34,9 +34,15 @@ OC.L10N.register(
     "Light" : "Licht",
     "Dark" : "Donker",
     "Notifications" : "Meldingen",
+    "Push Notifications" : "Push Meldingen",
+    "Receive notifications for new appointments and reminders" : "Ontvang melding voor nieuwe afspraken en herinneringen",
+    "Test Notification" : "Test Melding",
+    "Send a test notification to verify push works" : "Verstuur een test melding om te controleren of push werkt",
     "Connecting…" : "Verbinden…",
     "Connected" : "Verbonden",
-    "Happening now" : "Gebeurd nu",
+    "Connection failed — tap to retry" : "Verbinding mislukt — druk op opnieuw te proberen",
+    "Notifications blocked — tap to open settings" : "Melding geblokkeerd — druk om instellingen te openen",
+    "Happening now" : "Gebeurt nu",
     "Reset failed" : "Herstel mislukt",
     "Active filters" : "Actieve filters",
     "Create appointment" : "Creëer afspraak",
@@ -92,6 +98,7 @@ OC.L10N.register(
     "Select groups …" : "Selecteer groepen …",
     "Preview" : "Voorbeeld",
     "Push notifications" : "Push meldingen",
+    "Enable push notifications" : "Activeer push notificaties",
     "View all" : "Toon alles",
     "Loading …" : "Aan het laden...",
     "Appointment not found" : "Afspraak niet gevonden",
@@ -113,6 +120,7 @@ OC.L10N.register(
     "Finding active appointments…" : "Zoeken naar actieve afspraken...",
     "Try again" : "Probeer opnieuw",
     "No active appointments" : "Geen actieve afspraken",
-    "Which appointment?" : "Welke afspraak?"
+    "Which appointment?" : "Welke afspraak?",
+    "Comment could not be saved" : "Reactie kon niet worden opgeslagen"
 },
 "nplurals=2; plural=(n != 1);");
