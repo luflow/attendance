@@ -129,7 +129,7 @@
     "Delete appointment" : "Excluir compromisso",
     "This appointment is part of a series of {count} appointments. How would you like to apply this change?" : "Esta consulta faz parte de uma série de {count} compromissos. Como você gostaria de aplicar essa alteração?",
     "This appointment only" : "Só este compromisso",
-    "This and all future appointments" : "Este e todos as compromissos futuros",
+    "This and all future appointments" : "Este e todos os compromissos futuros",
     "All appointments in this series" : "Todos os compromissos nesta serie",
     "Do you want to delete this appointment?" : "Deseja excluir este compromisso?",
     "Daily" : "Diariamente",
