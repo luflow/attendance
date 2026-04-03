@@ -47,7 +47,7 @@ OC.L10N.register(
     "Log out" : "Abmelden",
     "Are you sure you want to log out?" : "Möchten Sie sich wirklich abmelden?",
     "Reset to server color" : "Auf Serverfarbe zurücksetzen",
-    "Appearance" : "Aussehen",
+    "Appearance" : "Erscheinungsbild",
     "Background style" : "Hintergrundstil",
     "Gradient" : "Gradient",
     "Color" : "Farbe",
