@@ -6,6 +6,22 @@
 
 - Nightly changes here
 
+## 1.34.0 – 2026-04-04
+
+### Added
+
+- Manual reminder feature: send reminders to users who haven't responded to an appointment yet
+- Push device status and test button in admin settings to verify push notification setup
+
+### Fixed
+
+- Navigate to overview after appointment deletion instead of staying on deleted appointment page
+- Prevent double-submit when deleting appointments
+
+### Maintenance
+
+- Translations updated from Transifex
+
 ## 1.33.0 – 2026-03-29
 
 ### Added
