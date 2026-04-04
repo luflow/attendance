@@ -205,6 +205,17 @@
 										</span>
 									</li>
 								</ul>
+								<NcButton
+									variant="tertiary"
+									:disabled="sendingTestReminder"
+									class="test-reminder-button"
+									data-test="button-test-reminder"
+									@click="sendTestReminder">
+									<template #icon>
+										<BellRingIcon :size="20" />
+									</template>
+									{{ t('attendance', 'Send test reminder to myself') }}
+								</NcButton>
 							</template>
 							<p v-else class="reminder-preview-context">
 								{{ t('attendance', 'The reminder window for this appointment has already passed.') }}
@@ -310,6 +321,7 @@ import {
 	NcNoteCard,
 } from '@nextcloud/vue'
 import AccountStar from 'vue-material-design-icons/AccountStar.vue'
+import BellRingIcon from 'vue-material-design-icons/BellRing.vue'
 import GroupSelect from '../components/common/GroupSelect.vue'
 import { formatDate, formatDateTimeMedium } from '../utils/datetime.js'
 
@@ -337,6 +349,7 @@ const pushEnabled = ref(true)
 const displayOrder = ref('name_first')
 const loading = ref(false)
 const loadingData = ref(true)
+const sendingTestReminder = ref(false)
 
 // Computed
 const reminderSectionDescription = computed(() => {
@@ -523,6 +536,26 @@ const saveSettings = async () => {
 	}
 }
 
+const sendTestReminder = async () => {
+	sendingTestReminder.value = true
+	try {
+		const response = await axios.post(
+			generateUrl('/apps/attendance/api/admin/test-reminder'),
+		)
+		const name = response.data.appointmentName || ''
+		showSuccess(window.t('attendance', 'Test reminder sent for {name}', { name }))
+	} catch (error) {
+		if (error.response?.status === 404) {
+			showError(window.t('attendance', 'No upcoming appointment found'))
+		} else {
+			console.error('Error sending test reminder:', error)
+			showError(window.t('attendance', 'Failed to send test reminder'))
+		}
+	} finally {
+		sendingTestReminder.value = false
+	}
+}
+
 // Lifecycle
 onMounted(async () => {
 	await loadSettings()
@@ -628,5 +661,9 @@ onMounted(async () => {
 
 .reminder-preview-label {
 	color: var(--color-text-maxcontrast);
+}
+
+.test-reminder-button {
+	margin-top: 12px;
 }
 </style>

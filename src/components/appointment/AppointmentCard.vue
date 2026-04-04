@@ -92,6 +92,18 @@
                     <NcActionButton
                         v-if="canManageAppointments"
                         :close-after-click="true"
+                        :disabled="sendingReminders"
+                        data-test="action-remind-all"
+                        @click="handleRemindAll"
+                    >
+                        <template #icon>
+                            <BellRingIcon :size="20" />
+                        </template>
+                        {{ t("attendance", "Remind unanswered") }}
+                    </NcActionButton>
+                    <NcActionButton
+                        v-if="canManageAppointments"
+                        :close-after-click="true"
                         data-test="action-edit"
                         @click="handleEdit"
                     >
@@ -295,6 +307,8 @@
             v-if="canSeeResponseOverview && appointment.responseSummary"
             :response-summary="appointment.responseSummary"
             :can-see-comments="canSeeComments"
+            :can-manage-appointments="canManageAppointments"
+            :appointment-id="appointment.id"
         />
     </div>
 </template>
@@ -311,7 +325,9 @@ import {
 import ResponseSummary from "./ResponseSummary.vue";
 import { renderMarkdown, sanitizeHtml } from "../../utils/markdown.js";
 import { generateUrl } from "@nextcloud/router";
-import { showSuccess } from "@nextcloud/dialogs";
+import { showSuccess, showError } from "@nextcloud/dialogs";
+import axios from "@nextcloud/axios";
+import BellRingIcon from "vue-material-design-icons/BellRing.vue";
 import ListStatusIcon from "vue-material-design-icons/ListStatus.vue";
 import ShareVariantIcon from "vue-material-design-icons/ShareVariant.vue";
 import Pencil from "vue-material-design-icons/Pencil.vue";
@@ -447,7 +463,7 @@ const copyShareLink = async () => {
 
     try {
         await navigator.clipboard.writeText(appointmentUrl);
-        showSuccess(window.t("attendance", "Link copied to clipboard"));
+        showSuccess(t("attendance", "Link copied to clipboard"));
     } catch (error) {
         console.error("Failed to copy link:", error);
     }
@@ -472,6 +488,24 @@ const handleDelete = () => {
 const handleExport = () => {
 	emit('export', props.appointment.id)
 }
+
+const sendingReminders = ref(false);
+
+const handleRemindAll = async () => {
+    sendingReminders.value = true;
+    try {
+        const response = await axios.post(
+            generateUrl(`/apps/attendance/api/appointments/${props.appointment.id}/remind`),
+        );
+        const count = response.data.sent || 0;
+        showSuccess(t("attendance", "{count} reminders sent", { count }));
+    } catch (error) {
+        console.error("Failed to send reminders:", error);
+        showError(t("attendance", "Failed to send reminders"));
+    } finally {
+        sendingReminders.value = false;
+    }
+};
 
 const handleResponse = (response) => {
     emit("submit-response", props.appointment.id, response);

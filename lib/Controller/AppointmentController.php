@@ -755,6 +755,79 @@ class AppointmentController extends Controller {
 	}
 
 	/**
+	 * Send reminder notifications to all non-responding users for an appointment
+	 *
+	 * @param int $id Appointment ID
+	 * @return DataResponse<Http::STATUS_OK, AttendanceReminderResult, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function sendReminders(int $id): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		if (!$this->permissionService->canManageAppointments($user->getUID())) {
+			return new DataResponse(['error' => 'Insufficient permissions'], 403);
+		}
+
+		try {
+			$appointment = $this->appointmentService->getAppointment($id);
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => 'Appointment not found'], 404);
+		}
+
+		$nonRespondingUserIds = $this->appointmentService->getNonRespondingUserIds($appointment);
+		$sent = $this->notificationService->sendReminderToUsers($appointment, $nonRespondingUserIds);
+
+		return new DataResponse(['sent' => $sent]);
+	}
+
+	/**
+	 * Send a reminder notification to a specific user for an appointment
+	 *
+	 * @param int $id Appointment ID
+	 * @param string $userId Target user ID
+	 * @return DataResponse<Http::STATUS_OK, AttendanceReminderResult, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function sendReminderToUser(int $id, string $userId): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		if (!$this->permissionService->canManageAppointments($user->getUID())) {
+			return new DataResponse(['error' => 'Insufficient permissions'], 403);
+		}
+
+		try {
+			$appointment = $this->appointmentService->getAppointment($id);
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => 'Appointment not found'], 404);
+		}
+
+		// Validate: user must be visible for this appointment and not have responded yet
+		if (!$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
+			return new DataResponse(['error' => 'User is not a member of this appointment'], 400);
+		}
+		if ($this->appointmentService->getUserResponse($id, $userId) !== null) {
+			return new DataResponse(['error' => 'User has already responded'], 400);
+		}
+
+		try {
+			$this->notificationService->sendReminderToUser($appointment, $userId);
+			return new DataResponse(['sent' => 1]);
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => $e->getMessage()], 400);
+		}
+	}
+
+	/**
 	 * Add attachments to an appointment by file IDs.
 	 */
 	private function addAttachmentsToAppointment(int $appointmentId, array $fileIds, string $userId): void {

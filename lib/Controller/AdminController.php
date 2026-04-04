@@ -7,6 +7,7 @@ namespace OCA\Attendance\Controller;
 use OCA\Attendance\BackgroundJob\ReminderJob;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Service\ConfigService;
+use OCA\Attendance\Service\NotificationService;
 use OCA\Attendance\Service\PermissionService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\App\IAppManager;
@@ -27,6 +28,7 @@ class AdminController extends Controller {
 	private IAppManager $appManager;
 	private ConfigService $configService;
 	private VisibilityService $visibilityService;
+	private NotificationService $notificationService;
 	private AppointmentMapper $appointmentMapper;
 	private IJobList $jobList;
 
@@ -39,6 +41,7 @@ class AdminController extends Controller {
 		IAppManager $appManager,
 		ConfigService $configService,
 		VisibilityService $visibilityService,
+		NotificationService $notificationService,
 		AppointmentMapper $appointmentMapper,
 		IJobList $jobList,
 	) {
@@ -49,6 +52,7 @@ class AdminController extends Controller {
 		$this->appManager = $appManager;
 		$this->configService = $configService;
 		$this->visibilityService = $visibilityService;
+		$this->notificationService = $notificationService;
 		$this->appointmentMapper = $appointmentMapper;
 		$this->jobList = $jobList;
 	}
@@ -217,6 +221,43 @@ class AdminController extends Controller {
 			}
 
 			return new DataResponse([]);
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => $e->getMessage()], 500);
+		}
+	}
+
+	/**
+	 * Send a test reminder notification to the current admin user
+	 *
+	 * Uses the next upcoming appointment to send a preview reminder notification.
+	 *
+	 * @return DataResponse<Http::STATUS_OK, AttendanceTestReminderResult, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
+	 */
+	#[NoCSRFRequired]
+	#[OpenAPI(OpenAPI::SCOPE_ADMINISTRATION)]
+	public function sendTestReminder(): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		if (!$this->permissionService->isAdmin($user->getUID())) {
+			return new DataResponse(['error' => 'Insufficient permissions'], 403);
+		}
+
+		$upcomingAppointments = $this->appointmentMapper->findUpcoming();
+		if (empty($upcomingAppointments)) {
+			return new DataResponse(['error' => 'No upcoming appointment found'], 404);
+		}
+
+		$appointment = $upcomingAppointments[0];
+
+		try {
+			$this->notificationService->sendReminderToUser($appointment, $user->getUID());
+			return new DataResponse([
+				'sent' => 1,
+				'appointmentName' => $appointment->getName(),
+			]);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 500);
 		}

@@ -32,9 +32,14 @@ return [
 		['name' => 'appointment#getCheckinData', 'url' => '/api/appointments/{id}/checkin-data', 'verb' => 'GET'],
 		['name' => 'appointment#resetCheckin', 'url' => '/api/appointments/{id}/checkin-reset', 'verb' => 'DELETE'],
 
+		// Reminder endpoints
+		['name' => 'appointment#sendReminders', 'url' => '/api/appointments/{id}/remind', 'verb' => 'POST'],
+		['name' => 'appointment#sendReminderToUser', 'url' => '/api/appointments/{id}/remind/{userId}', 'verb' => 'POST'],
+
 		// Admin settings
 		['name' => 'admin#getSettings', 'url' => '/api/admin/settings', 'verb' => 'GET'],
 		['name' => 'admin#saveSettings', 'url' => '/api/admin/settings', 'verb' => 'POST'],
+		['name' => 'admin#sendTestReminder', 'url' => '/api/admin/test-reminder', 'verb' => 'POST'],
 
 		// User data
 		['name' => 'appointment#getPermissions', 'url' => '/api/user/permissions', 'verb' => 'GET'],

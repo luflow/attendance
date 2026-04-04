@@ -639,6 +639,36 @@ class AppointmentService {
 	}
 
 	/**
+	 * Get user IDs of users who have not responded to an appointment.
+	 *
+	 * @param Appointment $appointment The appointment
+	 * @return list<string> User IDs that have not responded
+	 */
+	public function getNonRespondingUserIds(Appointment $appointment): array {
+		$appointmentId = $appointment->getId();
+
+		// Get all responses for this appointment
+		$responses = $this->responseMapper->findByAppointment($appointmentId);
+		$respondedUserIds = [];
+		foreach ($responses as $response) {
+			$respondedUserIds[$response->getUserId()] = true;
+		}
+
+		// Get all relevant users
+		$whitelistedGroups = $this->configService->getWhitelistedGroups();
+		$relevantUsers = $this->visibilityService->getRelevantUsersForAppointment($appointment, $whitelistedGroups);
+
+		$nonResponding = [];
+		foreach ($relevantUsers as $userId => $user) {
+			if (!isset($respondedUserIds[$userId])) {
+				$nonResponding[] = $userId;
+			}
+		}
+
+		return $nonResponding;
+	}
+
+	/**
 	 * Get all users who can see an appointment.
 	 */
 	public function getAffectedUsers(Appointment $appointment): array {

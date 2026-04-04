@@ -311,6 +311,9 @@ t("attendance", "Connecting…");
 t("attendance", "Connected");
 t("attendance", "Connection failed — tap to retry");
 t("attendance", "Notifications blocked — tap to open settings");
+t("attendance", "Push not available on this server");
+t("attendance", "Notifications Disabled");
+t("attendance", "Open Settings");
 
 t("attendance", "Checked in");
 t("attendance", "Not checked in");

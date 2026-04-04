@@ -154,26 +154,17 @@
                     </div>
 
                     <!-- Non-responding users -->
-                    <div
+                    <NonRespondingUserList
                         v-if="
                             groupStats.non_responding_users &&
                             groupStats.non_responding_users.length > 0
                         "
-                        class="non-responding-users"
-                    >
-                        <div class="non-responding-header">
-                            {{ t("attendance", "No response yet:") }}
-                        </div>
-                        <div class="non-responding-list">
-                            {{
-                                getSortedNonRespondingUsers(
-                                    groupStats.non_responding_users,
-                                )
-                                    .map((u) => u.displayName)
-                                    .join(", ")
-                            }}
-                        </div>
-                    </div>
+                        :users="groupStats.non_responding_users"
+                        :can-manage-appointments="canManageAppointments"
+                        :appointment-id="appointmentId"
+                        :reminding-users="remindingUsers"
+                        @remind="remindUser"
+                    />
                 </div>
             </div>
 
@@ -295,26 +286,17 @@
                     </div>
 
                     <!-- Non-responding users -->
-                    <div
+                    <NonRespondingUserList
                         v-if="
                             teamStats.non_responding_users &&
                             teamStats.non_responding_users.length > 0
                         "
-                        class="non-responding-users"
-                    >
-                        <div class="non-responding-header">
-                            {{ t("attendance", "No response yet:") }}
-                        </div>
-                        <div class="non-responding-list">
-                            {{
-                                getSortedNonRespondingUsers(
-                                    teamStats.non_responding_users,
-                                )
-                                    .map((u) => u.displayName)
-                                    .join(", ")
-                            }}
-                        </div>
-                    </div>
+                        :users="teamStats.non_responding_users"
+                        :can-manage-appointments="canManageAppointments"
+                        :appointment-id="appointmentId"
+                        :reminding-users="remindingUsers"
+                        @remind="remindUser"
+                    />
                 </div>
             </div>
 
@@ -423,10 +405,14 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { reactive, ref, computed } from "vue";
 import { NcChip } from "@nextcloud/vue";
+import { generateUrl } from "@nextcloud/router";
+import { showSuccess, showError } from "@nextcloud/dialogs";
+import axios from "@nextcloud/axios";
 import AccountGroup from "vue-material-design-icons/AccountGroup.vue";
 import AccountStar from "vue-material-design-icons/AccountStar.vue";
+import NonRespondingUserList from "./NonRespondingUserList.vue";
 import { getResponseText, getResponseVariant } from "../../utils/response.js";
 
 const props = defineProps({
@@ -438,9 +424,34 @@ const props = defineProps({
         type: Boolean,
         default: true,
     },
+    canManageAppointments: {
+        type: Boolean,
+        default: false,
+    },
+    appointmentId: {
+        type: Number,
+        default: null,
+    },
 });
 
 const expandedGroups = ref({});
+const remindingUsers = reactive(new Set());
+
+const remindUser = async (userId) => {
+    if (!props.appointmentId) return;
+    remindingUsers.add(userId);
+    try {
+        await axios.post(
+            generateUrl(`/apps/attendance/api/appointments/${props.appointmentId}/remind/${userId}`),
+        );
+        showSuccess(t("attendance", "Reminder sent"));
+    } catch (error) {
+        console.error("Failed to send reminder:", error);
+        showError(t("attendance", "Failed to send reminder"));
+    } finally {
+        remindingUsers.delete(userId);
+    }
+};
 
 const hasGroupsOrTeams = computed(() => {
     if (!props.responseSummary) return false;
@@ -460,13 +471,6 @@ const toggleGroup = (groupId) => {
 const getSortedResponses = (responses) => {
     if (!responses || responses.length === 0) return [];
     return [...responses].sort((a, b) => a.userName.localeCompare(b.userName));
-};
-
-const getSortedNonRespondingUsers = (users) => {
-    if (!users || users.length === 0) return [];
-    return [...users].sort((a, b) =>
-        a.displayName.localeCompare(b.displayName),
-    );
 };
 
 const hasOthersResponses = () => {
@@ -611,23 +615,5 @@ const hasOthersResponses = () => {
         }
     }
 
-    .non-responding-users {
-        margin-top: 10px;
-        padding: 8px;
-        background: var(--color-background-dark);
-        border-radius: var(--border-radius);
-
-        .non-responding-header {
-            font-weight: 500;
-            margin-bottom: 5px;
-            font-size: 13px;
-            color: var(--color-text-maxcontrast);
-        }
-
-        .non-responding-list {
-            font-size: 13px;
-            color: var(--color-text-lighter);
-        }
-    }
 }
 </style>

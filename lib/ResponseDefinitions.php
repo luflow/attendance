@@ -182,6 +182,13 @@ namespace OCA\Attendance;
  *   path: string,
  *   filename: string,
  * }
+ * @psalm-type AttendanceReminderResult = array{
+ *   sent: int,
+ * }
+ * @psalm-type AttendanceTestReminderResult = array{
+ *   sent: int,
+ *   appointmentName: string,
+ * }
  */
 class ResponseDefinitions {
 }
