@@ -30,6 +30,7 @@ OC.L10N.register(
     "Date range" : "Datumintervall",
     "Select all" : "Välj alla",
     "Deselect all" : "Avmarkera alla",
+    "Custom range" : "Anpassat intervall",
     "Start date" : "Startdatum",
     "Copy" : "Kopiera",
     "Last accessed" : "Senast öppnad",
