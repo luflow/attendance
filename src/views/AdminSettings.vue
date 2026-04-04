@@ -262,6 +262,31 @@
 					data-test="switch-push-enabled">
 					{{ t('attendance', 'Enable push notifications') }}
 				</NcCheckboxRadioSwitch>
+
+				<template v-if="pushEnabled">
+					<div class="push-device-status">
+						<NcNoteCard v-if="pushDeviceCount === 0" type="warning">
+							<p>{{ t('attendance', 'No push device registered for your account. Connect the Attendance mobile app to receive push notifications.') }}</p>
+						</NcNoteCard>
+						<template v-else>
+							<p class="push-device-info">
+								<CellphoneCheck :size="20" />
+								{{ n('attendance', '{count} device registered for push notifications', '{count} devices registered for push notifications', pushDeviceCount, { count: pushDeviceCount }) }}
+							</p>
+							<NcButton
+								variant="tertiary"
+								:disabled="sendingTestReminder"
+								class="test-reminder-button"
+								data-test="button-test-push"
+								@click="sendTestReminder">
+								<template #icon>
+									<BellRingIcon :size="20" />
+								</template>
+								{{ t('attendance', 'Send test notification') }}
+							</NcButton>
+						</template>
+					</div>
+				</template>
 			</NcSettingsSection>
 
 			<NcSettingsSection :name="t('attendance', 'Display options')"
@@ -322,6 +347,7 @@ import {
 } from '@nextcloud/vue'
 import AccountStar from 'vue-material-design-icons/AccountStar.vue'
 import BellRingIcon from 'vue-material-design-icons/BellRing.vue'
+import CellphoneCheck from 'vue-material-design-icons/CellphoneCheck.vue'
 import GroupSelect from '../components/common/GroupSelect.vue'
 import { formatDate, formatDateTimeMedium } from '../utils/datetime.js'
 
@@ -347,6 +373,7 @@ const calendarSyncEnabled = ref(false)
 const calendarSyncAvailable = ref(false)
 const pushEnabled = ref(true)
 const displayOrder = ref('name_first')
+const pushDeviceCount = ref(0)
 const loading = ref(false)
 const loadingData = ref(true)
 const sendingTestReminder = ref(false)
@@ -461,6 +488,7 @@ const loadSettings = async () => {
 
 		// Load push notifications
 		pushEnabled.value = config.pushEnabled !== false
+		pushDeviceCount.value = status.pushDeviceCount || 0
 	} catch (error) {
 		console.error('Error loading settings:', error)
 		showError(window.t('attendance', 'Failed to load settings'))
@@ -665,5 +693,17 @@ onMounted(async () => {
 
 .test-reminder-button {
 	margin-top: 12px;
+}
+
+.push-device-status {
+	margin-top: 16px;
+}
+
+.push-device-info {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--color-success);
+	font-weight: 500;
 }
 </style>
