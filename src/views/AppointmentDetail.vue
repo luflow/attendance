@@ -124,7 +124,6 @@ const handleDeleteConfirm = async (scope) => {
 		})
 		showSuccess(t('attendance', 'Appointment deleted'))
 		emit('appointment-deleted')
-		goBack()
 	} catch (err) {
 		console.error('Failed to delete appointment:', err)
 		showError(t('attendance', 'Error deleting appointment'))

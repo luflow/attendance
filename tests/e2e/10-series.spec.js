@@ -239,10 +239,6 @@ test.describe('Attendance App - Series Management', () => {
 
 		// Navigate to the first appointment's detail view
 		const card = getSeriesCards(page, name).first()
-		const titleLink = card.locator('[data-test="appointment-title"] a, h3 a').first()
-
-		// Click the appointment name/title to navigate to detail
-		// If title is not a link, click on the card heading text to navigate
 		const appointmentTitle = card.locator('h3').first()
 		await appointmentTitle.click()
 		await page.waitForLoadState('networkidle')
@@ -264,6 +260,38 @@ test.describe('Attendance App - Series Management', () => {
 			await dialog.getByRole('button', { name: 'Cancel' }).click()
 			await expect(dialog).not.toBeVisible()
 		}
+	})
+
+	// -------------------------------------------------------------------
+	// 6b. Deleting entire series from detail view should navigate to overview
+	// -------------------------------------------------------------------
+
+	test('deleting entire series from detail view should navigate to overview, not edit form', async ({ page }) => {
+		const name = await createRecurringSeries(page, { name: `Delete Nav ${Date.now()}`, count: 3 })
+
+		// Navigate to the detail view via the sidebar navigation
+		const navItem = page.locator('[data-test="nav-unanswered-appointment"]', { hasText: name }).first()
+		await navItem.click()
+		await page.waitForURL(/.*\/appointment\/\d+/)
+		await page.waitForLoadState('networkidle')
+
+		// Delete the entire series from the detail view
+		await page.getByRole('button', { name: 'Actions' }).click()
+		await page.getByRole('menuitem', { name: 'Delete' }).click()
+
+		const dialog = page.getByRole('dialog', { name: 'Delete appointment' })
+		await expect(dialog).toBeVisible()
+
+		// Select "All appointments in this series"
+		await dialog.getByText('All appointments in this series').click()
+		await dialog.getByRole('button', { name: 'Delete' }).click()
+		await page.waitForLoadState('networkidle')
+
+		// Should navigate to the overview, NOT back to the edit form
+		await expect(page).toHaveURL(/.*\/apps\/attendance(?!\/(create|edit|copy|appointment))/)
+
+		// All appointments from the series should be gone
+		await expect(getSeriesCards(page, name)).toHaveCount(0)
 	})
 
 	// -------------------------------------------------------------------

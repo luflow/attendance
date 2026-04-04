@@ -193,7 +193,7 @@
                 :appointment-id="appointmentDetailId"
                 :unanswered-count="unansweredAppointments.length"
                 @response-updated="loadAppointments"
-                @appointment-deleted="loadAppointments"
+                @appointment-deleted="handleAppointmentDeleted"
                 @edit-appointment="editAppointment"
                 @copy-appointment="copyAppointment"
                 @navigate-to-unanswered="setView('unanswered')"
@@ -453,6 +453,11 @@ const copyAppointment = (appointment) => {
         "",
         newUrl,
     );
+};
+
+const handleAppointmentDeleted = async () => {
+    await loadAppointments();
+    setView('current');
 };
 
 const handleFormSaved = async (appointmentId) => {

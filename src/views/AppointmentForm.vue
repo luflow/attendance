@@ -964,6 +964,8 @@ const handleRecurringCreate = async () => {
 };
 
 const handleSubmit = async () => {
+    if (saving.value) return;
+
     // Manual validation for datetime fields
     if (!formData.name?.trim()) {
         showError(t("attendance", "Please enter an appointment name"));
