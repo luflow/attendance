@@ -17,6 +17,8 @@ OC.L10N.register(
     "Theme" : "Izskats",
     "System" : "Sistēma",
     "Connected" : "Savienots",
+    "Open Settings" : "Atvērt iestatījumus",
+    "Not now" : "Ne tagad",
     "Create appointment" : "Izveidot plānotu tikšanos",
     "Export" : "Izgūt",
     "Select all" : "Atzīmēt visu",

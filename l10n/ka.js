@@ -18,6 +18,7 @@ OC.L10N.register(
     "Light" : "Light",
     "Dark" : "Dark",
     "Notifications" : "შეტყობინებები",
+    "Not now" : "Not now",
     "Active filters" : "Active filters",
     "Create appointment" : "Create appointment",
     "Export" : "Export",

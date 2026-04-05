@@ -32,6 +32,7 @@ OC.L10N.register(
     "Share link" : "Сподели ја врската",
     "Edit" : "Уреди",
     "Delete" : "Избриши",
+    "Send reminder" : "Испрати потсетник",
     "Daily" : "Дневно",
     "Weekly" : "Неделно",
     "Monthly" : "Месечно",

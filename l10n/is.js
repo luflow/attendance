@@ -15,6 +15,7 @@ OC.L10N.register(
     "System" : "Kerfið",
     "Connecting…" : "Tengist…",
     "Connected" : "Tengt",
+    "Not now" : "Ekki núna",
     "Active filters" : "Virkar síur",
     "Create appointment" : "Búa til stefnumót",
     "Export" : "Flytja út",

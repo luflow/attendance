@@ -17,6 +17,7 @@ OC.L10N.register(
     "Notifications" : "Njoftime",
     "Connecting…" : "Po lidhet...",
     "Connected" : "Të lidhur",
+    "Not now" : "Jo tani",
     "Export" : "Eksport",
     "Select all" : "Zgjidhi të gjitha",
     "Deselect all" : "Hiqi të gjithë",

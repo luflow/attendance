@@ -22,6 +22,7 @@ OC.L10N.register(
     "Notifications" : "通知",
     "Connecting…" : "接続中",
     "Connected" : "接続しました",
+    "Not now" : "あとで",
     "Active filters" : "有効なフィルター",
     "Create appointment" : "予定を作成",
     "Export" : "エクスポート",

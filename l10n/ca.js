@@ -39,6 +39,7 @@ OC.L10N.register(
     "Share link" : "Comparteix un enllaç",
     "Edit" : "Edició",
     "Delete" : "Suprimir",
+    "Send reminder" : "Envia un recordatori",
     "Daily" : "Diàriament",
     "Weekly" : "Setmanalment",
     "Monthly" : "Mensualment",

@@ -23,6 +23,7 @@ OC.L10N.register(
     "Notifications" : "Pranešimai",
     "Connecting…" : "Jungiamasi…",
     "Connected" : "Prisijungta",
+    "Not now" : "Ne dabar",
     "Active filters" : "Aktyvūs filtrai",
     "Create appointment" : "Sukurti susitikimą",
     "Export" : "Eksportuoti",
@@ -37,6 +38,7 @@ OC.L10N.register(
     "Share link" : "Viešinio nuoroda",
     "Edit" : "Taisyti",
     "Delete" : "Ištrinti",
+    "Send reminder" : "Siųsti priminimą",
     "Daily" : "Kas dieną",
     "Weekly" : "Kas savaitę",
     "Monthly" : "Kas mėnesį",
@@ -79,6 +81,7 @@ OC.L10N.register(
     "User" : "Naudotojas",
     "Team" : "Komanda",
     "Appointment updated" : "Susitikimas atnaujintas",
+    "Appointment name" : "Susitikimo pavadinimas",
     "Description" : "Aprašas",
     "Date & Time" : "Data ir laikas",
     "Notification" : "Pranešimas",
@@ -87,6 +90,7 @@ OC.L10N.register(
     "All users" : "Visi naudotojai",
     "No users found" : "Nerasta jokių naudotojų",
     "Confirm" : "Patvirtinti",
+    "Thank you for your response!" : "Ačiū už jūsų atsakymą!",
     "Try again" : "Bandyti dar kartą"
 },
 "nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);");

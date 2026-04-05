@@ -16,6 +16,7 @@ OC.L10N.register(
     "System" : "Sistema",
     "Dark" : "Oscuro",
     "Connected" : "Conectado",
+    "Not now" : "No ahora",
     "Active filters" : "Filtros activos",
     "Create appointment" : "Crear cita",
     "Export" : "Exportar",

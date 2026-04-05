@@ -19,6 +19,7 @@ OC.L10N.register(
     "Dark" : "Бараан",
     "Notifications" : "–ú—ç–¥—ç–≥–¥—ç–ª",
     "Connected" : "Холбогдсон",
+    "Not now" : "одоо биш",
     "Active filters" : "Идэвхтэй шүүлтүүрүүд",
     "Export" : "Экспорт",
     "Date range" : "Огнооны хүрээ",

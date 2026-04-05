@@ -13,6 +13,7 @@ OC.L10N.register(
     "Theme" : "ვიზუალური თემა",
     "System" : "სისტემა",
     "Connected" : "კავშირი დამყარებულია",
+    "Not now" : "ახლა არა",
     "Export" : "ექსპორტი",
     "Select all" : "ყველას არჩევა",
     "Deselect all" : "ყველას წაშლა",

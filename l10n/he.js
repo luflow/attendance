@@ -19,6 +19,7 @@ OC.L10N.register(
     "Notifications" : "התראות",
     "Connecting…" : "מתבצעת התחברות…",
     "Connected" : "מחובר",
+    "Not now" : "לא כעת",
     "Export" : "ייצוא",
     "Select all" : "בחר הכל",
     "Deselect all" : "ביטול בחירה",

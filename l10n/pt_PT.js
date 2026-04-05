@@ -37,6 +37,7 @@ OC.L10N.register(
     "Dark" : "Escuro",
     "Connecting…" : "A ligar…",
     "Connected" : "Conectado",
+    "Not now" : "Agora não",
     "Active filters" : "Filtros ativos",
     "Unanswered" : "Sem resposta",
     "Upcoming appointments" : "Próximos compromissos",

@@ -42,6 +42,7 @@ OC.L10N.register(
     "Share link" : "Enlace del recurso compartido",
     "Edit" : "Editar",
     "Delete" : "Eliminar",
+    "Send reminder" : "Enviar recordatorio",
     "Daily" : "Cada día",
     "Weekly" : "Semanalmente",
     "Monthly" : "Mensualmente",
