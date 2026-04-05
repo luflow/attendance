@@ -104,6 +104,8 @@ class ReminderJob extends TimedJob {
 		$appointments = $this->appointmentMapper->findStartingBetween($todayStr, $maxDateStr);
 		$this->logger->info('Found appointments in date range', ['count' => count($appointments)]);
 
+		$shouldFlush = $this->notificationManager->defer();
+
 		$processedCount = 0;
 		$sentCount = 0;
 
@@ -245,6 +247,10 @@ class ReminderJob extends TimedJob {
 				'skippedResponded' => $skippedCount,
 				'sentNotifications' => $sentCount,
 			]);
+		}
+
+		if ($shouldFlush) {
+			$this->notificationManager->flush();
 		}
 
 		$this->logger->info('Reminder job completed', [

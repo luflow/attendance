@@ -377,7 +377,7 @@ class AppointmentService {
 			$existingResponse->setResponse($response);
 			$existingResponse->setComment($comment);
 			$existingResponse->setRespondedAt(gmdate('Y-m-d H:i:s'));
-			return $this->responseMapper->update($existingResponse);
+			$result = $this->responseMapper->update($existingResponse);
 		} catch (DoesNotExistException $e) {
 			$attendanceResponse = new AttendanceResponse();
 			$attendanceResponse->setAppointmentId($appointmentId);
@@ -385,8 +385,12 @@ class AppointmentService {
 			$attendanceResponse->setResponse($response);
 			$attendanceResponse->setComment($comment);
 			$attendanceResponse->setRespondedAt(gmdate('Y-m-d H:i:s'));
-			return $this->responseMapper->insert($attendanceResponse);
+			$result = $this->responseMapper->insert($attendanceResponse);
 		}
+
+		$this->notificationService->markAppointmentNotificationsProcessed($appointmentId, $userId);
+
+		return $result;
 	}
 
 	/**

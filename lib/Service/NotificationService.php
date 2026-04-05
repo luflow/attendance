@@ -36,6 +36,33 @@ class NotificationService {
 	}
 
 	/**
+	 * Mark all attendance notifications as processed for a user on a specific appointment.
+	 * Should be called when a user submits a response.
+	 *
+	 * @param int $appointmentId The appointment ID
+	 * @param string $userId The user ID
+	 */
+	public function markAppointmentNotificationsProcessed(int $appointmentId, string $userId): void {
+		if (!$this->isNotificationsAppEnabled()) {
+			return;
+		}
+
+		try {
+			$notification = $this->notificationManager->createNotification();
+			$notification->setApp('attendance')
+				->setUser($userId)
+				->setObject('appointment', (string)$appointmentId);
+			$this->notificationManager->markProcessed($notification);
+		} catch (\Exception $e) {
+			$this->logger->error('Failed to mark notifications as processed', [
+				'userId' => $userId,
+				'appointmentId' => $appointmentId,
+				'error' => $e->getMessage(),
+			]);
+		}
+	}
+
+	/**
 	 * Send notifications about a new appointment to specified users
 	 */
 	public function sendNewAppointmentNotifications(Appointment $appointment, array $userIds): void {
@@ -55,6 +82,8 @@ class NotificationService {
 			'attendance.page.appointment',
 			['id' => $appointment->getId()]
 		);
+
+		$shouldFlush = $this->notificationManager->defer();
 
 		$sentCount = 0;
 		foreach ($userIds as $userId) {
@@ -87,6 +116,10 @@ class NotificationService {
 			}
 		}
 
+		if ($shouldFlush) {
+			$this->notificationManager->flush();
+		}
+
 		$this->logger->info('Finished sending new appointment notifications', [
 			'appointmentId' => $appointment->getId(),
 			'totalUsers' => count($userIds),
@@ -107,29 +140,7 @@ class NotificationService {
 			return;
 		}
 
-		$appointmentUrl = $this->urlGenerator->linkToRouteAbsolute(
-			'attendance.page.appointment',
-			['id' => $appointment->getId()]
-		);
-
-		$notification = $this->notificationManager->createNotification();
-		$notification->setApp('attendance')
-			->setUser($userId)
-			->setDateTime(new \DateTime())
-			->setObject('appointment', (string)$appointment->getId())
-			->setSubject('appointment_reminder', [
-				'appointmentId' => $appointment->getId(),
-				'name' => $appointment->getName(),
-				'startDatetime' => $appointment->getStartDatetime(),
-			])
-			->setLink($appointmentUrl);
-
-		$this->notificationManager->notify($notification);
-
-		$this->logger->debug('Sent manual reminder notification', [
-			'userId' => $userId,
-			'appointmentId' => $appointment->getId(),
-		]);
+		$this->sendReminderNotification($appointment, $userId);
 	}
 
 	/**
@@ -149,10 +160,12 @@ class NotificationService {
 			return 0;
 		}
 
+		$shouldFlush = $this->notificationManager->defer();
+
 		$sentCount = 0;
 		foreach ($userIds as $userId) {
 			try {
-				$this->sendReminderToUser($appointment, $userId);
+				$this->sendReminderNotification($appointment, $userId);
 				$sentCount++;
 			} catch (\Exception $e) {
 				$this->logger->error('Failed to send manual reminder', [
@@ -163,6 +176,10 @@ class NotificationService {
 			}
 		}
 
+		if ($shouldFlush) {
+			$this->notificationManager->flush();
+		}
+
 		$this->logger->info('Finished sending manual reminders', [
 			'appointmentId' => $appointment->getId(),
 			'totalUsers' => count($userIds),
@@ -170,6 +187,36 @@ class NotificationService {
 		]);
 
 		return $sentCount;
+	}
+
+	/**
+	 * Internal: create and send a single reminder notification.
+	 * Does not check isNotificationsAppEnabled — callers must check first.
+	 */
+	private function sendReminderNotification(Appointment $appointment, string $userId): void {
+		$appointmentUrl = $this->urlGenerator->linkToRouteAbsolute(
+			'attendance.page.appointment',
+			['id' => $appointment->getId()]
+		);
+
+		$notification = $this->notificationManager->createNotification();
+		$notification->setApp('attendance')
+			->setUser($userId)
+			->setDateTime(new \DateTime())
+			->setObject('appointment', (string)$appointment->getId())
+			->setSubject('appointment_reminder', [
+				'appointmentId' => $appointment->getId(),
+				'name' => $appointment->getName(),
+				'startDatetime' => $appointment->getStartDatetime(),
+			])
+			->setLink($appointmentUrl);
+
+		$this->notificationManager->notify($notification);
+
+		$this->logger->debug('Sent reminder notification', [
+			'userId' => $userId,
+			'appointmentId' => $appointment->getId(),
+		]);
 	}
 
 	/**
@@ -186,6 +233,8 @@ class NotificationService {
 		}
 
 		$appUrl = $this->urlGenerator->linkToRouteAbsolute('attendance.page.index');
+
+		$shouldFlush = $this->notificationManager->defer();
 
 		$sentCount = 0;
 		foreach ($userIds as $userId) {
@@ -209,6 +258,10 @@ class NotificationService {
 					'error' => $e->getMessage(),
 				]);
 			}
+		}
+
+		if ($shouldFlush) {
+			$this->notificationManager->flush();
 		}
 
 		$this->logger->info('Finished sending bulk appointment notifications', [

@@ -19,6 +19,7 @@ class ResponseService {
 	private AppointmentMapper $appointmentMapper;
 	private AttendanceResponseMapper $responseMapper;
 	private VisibilityService $visibilityService;
+	private NotificationService $notificationService;
 	private IGroupManager $groupManager;
 	private IUserManager $userManager;
 
@@ -26,12 +27,14 @@ class ResponseService {
 		AppointmentMapper $appointmentMapper,
 		AttendanceResponseMapper $responseMapper,
 		VisibilityService $visibilityService,
+		NotificationService $notificationService,
 		IGroupManager $groupManager,
 		IUserManager $userManager,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
 		$this->visibilityService = $visibilityService;
+		$this->notificationService = $notificationService;
 		$this->groupManager = $groupManager;
 		$this->userManager = $userManager;
 	}
@@ -74,7 +77,7 @@ class ResponseService {
 			$existingResponse->setComment($comment);
 			$existingResponse->setRespondedAt(gmdate('Y-m-d H:i:s'));
 			$existingResponse->setResponseSource($source);
-			return $this->responseMapper->update($existingResponse);
+			$result = $this->responseMapper->update($existingResponse);
 		} catch (DoesNotExistException $e) {
 			// Create new response
 			$attendanceResponse = new AttendanceResponse();
@@ -84,8 +87,12 @@ class ResponseService {
 			$attendanceResponse->setComment($comment);
 			$attendanceResponse->setRespondedAt(gmdate('Y-m-d H:i:s'));
 			$attendanceResponse->setResponseSource($source);
-			return $this->responseMapper->insert($attendanceResponse);
+			$result = $this->responseMapper->insert($attendanceResponse);
 		}
+
+		$this->notificationService->markAppointmentNotificationsProcessed($appointmentId, $userId);
+
+		return $result;
 	}
 
 	/**

@@ -4,30 +4,37 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Notification;
 
+use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Service\QuickResponseTokenService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IConfig;
 use OCP\IURLGenerator;
 use OCP\L10N\IFactory;
+use OCP\Notification\AlreadyProcessedException;
 use OCP\Notification\IAction;
 use OCP\Notification\INotification;
 use OCP\Notification\INotifier;
+use OCP\Notification\UnknownNotificationException;
 
 class Notifier implements INotifier {
 	private IFactory $l10nFactory;
 	private IURLGenerator $urlGenerator;
 	private QuickResponseTokenService $tokenService;
 	private IConfig $config;
+	private AttendanceResponseMapper $responseMapper;
 
 	public function __construct(
 		IFactory $l10nFactory,
 		IURLGenerator $urlGenerator,
 		QuickResponseTokenService $tokenService,
 		IConfig $config,
+		AttendanceResponseMapper $responseMapper,
 	) {
 		$this->l10nFactory = $l10nFactory;
 		$this->urlGenerator = $urlGenerator;
 		$this->tokenService = $tokenService;
 		$this->config = $config;
+		$this->responseMapper = $responseMapper;
 	}
 
 	public function getID(): string {
@@ -40,10 +47,25 @@ class Notifier implements INotifier {
 
 	public function prepare(INotification $notification, string $languageCode): INotification {
 		if ($notification->getApp() !== 'attendance') {
-			throw new \InvalidArgumentException('Unknown app');
+			throw new UnknownNotificationException();
 		}
 
 		$l = $this->l10nFactory->get('attendance', $languageCode);
+
+		// For single-appointment notifications, check if the user already responded
+		if (in_array($notification->getSubject(), ['appointment_reminder', 'appointment_created'])) {
+			$parameters = $notification->getSubjectParameters();
+			$appointmentId = $parameters['appointmentId'] ?? 0;
+			if ($appointmentId > 0) {
+				try {
+					$this->responseMapper->findByAppointmentAndUser($appointmentId, $notification->getUser());
+					// User has already responded — dismiss this notification
+					throw new AlreadyProcessedException();
+				} catch (DoesNotExistException $e) {
+					// No response yet — continue preparing
+				}
+			}
+		}
 
 		switch ($notification->getSubject()) {
 			case 'appointment_reminder':
@@ -118,7 +140,7 @@ class Notifier implements INotifier {
 				return $notification;
 
 			default:
-				throw new \InvalidArgumentException('Unknown subject');
+				throw new UnknownNotificationException();
 		}
 	}
 
