@@ -24,6 +24,7 @@ OC.L10N.register(
     "Notifications" : "Известия",
     "Connecting…" : "Свързване…",
     "Connected" : "Свързан",
+    "Not now" : "Не сега",
     "Active filters" : "Актижни филтри",
     "Create appointment" : "Създаване на среща",
     "Export" : "Експорт /изнасям/",

@@ -24,6 +24,7 @@ OC.L10N.register(
     "Notifications" : "Notificacions",
     "Connecting…" : "S'està connectant…",
     "Connected" : "S'ha connectat",
+    "Not now" : "Ara no",
     "Active filters" : "Filtres actius",
     "Create appointment" : "Crea cita",
     "Export" : "Exporta",

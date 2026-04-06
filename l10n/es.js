@@ -24,6 +24,8 @@ OC.L10N.register(
     "Notifications" : "Notificaciones",
     "Connecting…" : "Conectando…",
     "Connected" : "Conectado",
+    "Open Settings" : "Abrir Ajustes",
+    "Not now" : "Ahora no",
     "Active filters" : "Filtros activos",
     "Create appointment" : "Crear cita",
     "Export" : "Exportar",

@@ -57,6 +57,8 @@ OC.L10N.register(
     "Notifications" : "Upozornění",
     "Connecting…" : "Připojování…",
     "Connected" : "Připojeno",
+    "Open Settings" : "Otevřít nastavení",
+    "Not now" : "Teď ne",
     "Checked in" : "Zapsáno se",
     "Not checked in" : "Nezapsáni",
     "Happening now" : "Děje se nyní",

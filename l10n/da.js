@@ -21,6 +21,8 @@ OC.L10N.register(
     "Notifications" : "Påmindelser",
     "Connecting…" : "Forbinder…",
     "Connected" : "Tilsluttet",
+    "Open Settings" : "Åbn Indstillinger",
+    "Not now" : "Ikke nu",
     "Active filters" : "Aktive filtre",
     "Create appointment" : "Opret aftale",
     "Export" : "Eksportér",

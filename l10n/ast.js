@@ -18,6 +18,7 @@ OC.L10N.register(
     "Light" : "Claridá",
     "Dark" : "Escuridá",
     "Notifications" : "Avisos",
+    "Not now" : "Agora non",
     "Export" : "Esportar",
     "Select all" : "Seleicionar too",
     "Start date" : "Data de comienzu",

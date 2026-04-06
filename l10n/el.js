@@ -42,6 +42,8 @@ OC.L10N.register(
     "Notifications" : "Ειδοποιήσεις",
     "Connecting…" : "Σύνδεση…",
     "Connected" : "Συνδέθηκε",
+    "Open Settings" : "Άνοιγμα Ρυθμίσεων",
+    "Not now" : "Όχι τώρα",
     "Active filters" : "Ενεργά φίλτρα",
     "Unanswered" : "Αναπάντητα",
     "Upcoming appointments" : "Επερχόμενα ραντεβού",

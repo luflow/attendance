@@ -17,6 +17,7 @@ OC.L10N.register(
     "Light" : "Светлая",
     "Dark" : "Цёмная",
     "Notifications" : "Апавяшчэнні",
+    "Not now" : "Не цяпер",
     "Active filters" : "Актыўныя фільтры",
     "Export" : "Экспарт",
     "Date range" : "Дыяпазон дат",
