@@ -6,6 +6,17 @@
 
 - Nightly changes here
 
+## 1.34.1 – 2026-04-07
+
+### Fixed
+
+- Fix oversized app icons in email notifications by reducing SVG dimensions to 20x20
+- Improve notification handling with defer/flush, markProcessed, and proper exceptions
+
+### Maintenance
+
+- Translations updated from Transifex
+
 ## 1.34.0 – 2026-04-04
 
 ### Added
