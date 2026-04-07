@@ -29,6 +29,7 @@ OC.L10N.register(
     "Create appointment" : "Találkozó létrehozása",
     "Export" : "Exportálás",
     "Deselect all" : "Kijelölés megszüntetése",
+    "Custom range" : "Egyéni tartomány",
     "Start date" : "Kezdés ideje",
     "Copy URL" : "URL másolása",
     "Copy" : "Másolás",
