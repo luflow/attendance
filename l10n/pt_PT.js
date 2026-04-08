@@ -90,6 +90,7 @@ OC.L10N.register(
     "View all" : "Ver tudo",
     "Edit appointment" : "Editar reunião",
     "User" : "Utilizador",
+    "Team" : "Grupo",
     "Appointment updated" : "Reunião atualizada",
     "Appointment name" : "Nome da marcação",
     "Description" : "Descrição",
