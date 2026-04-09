@@ -53,7 +53,7 @@ OC.L10N.register(
     "Italic" : "Slīpraksts",
     "Strikethrough" : "Pārsvītrojums",
     "Quote" : "Citāts",
-    "Insert link" : "Ievietojiet saiti",
+    "Insert link" : "Ievietot saiti",
     "Failed to load settings" : "Neizdevās ielādēt iestatījumus",
     "Settings saved" : "Iestatījumi saglabāti",
     "Failed to save settings" : "Neizdevās saglabāt iestatījumus",
