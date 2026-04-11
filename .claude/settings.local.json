@@ -5,7 +5,29 @@
       "Bash(gh issue:*)",
       "Bash(npm ls:*)",
       "Bash(npm run:*)",
-      "Bash(git diff:*)"
+      "Bash(git diff:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(gh api:*)",
+      "WebFetch(domain:sabre.io)",
+      "WebFetch(domain:icalendar.org)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.rfc-editor.org)",
+      "WebSearch",
+      "WebFetch(domain:docs.nextcloud.com)",
+      "Bash(grep -E '\\\\.\\(js|ts\\)$')",
+      "Bash(grep -iE '\\\\.\\(js|ts|vue\\)$')",
+      "Bash(grep -E 'store.*\\\\.\\(js|ts\\)$')",
+      "WebFetch(domain:help.nextcloud.com)",
+      "Bash(python3 -c \":*)",
+      "Bash(gh search:*)",
+      "Bash(grep -E \"\\\\.php$\")",
+      "Bash(curl:*)",
+      "Bash(python3 -c \"import json,sys; [print\\(x[''''path'''']\\) for x in json.loads\\(sys.stdin.read\\(\\)\\)]\")",
+      "Bash(grep:*)",
+      "Bash(npm outdated:*)",
+      "Bash(composer outdated:*)",
+      "WebFetch(domain:devblogs.microsoft.com)",
+      "Bash(python3:*)"
     ]
   }
 }

@@ -150,7 +150,7 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['close', 'select', 'bulk-select'])
+const emit = defineEmits(['close', 'select', 'bulkSelect'])
 
 const selectedCalendar = ref(null)
 const searchQuery = ref('')
@@ -322,7 +322,7 @@ const importSelected = () => {
 	if (eventDataList.length === 1) {
 		emit('select', eventDataList[0])
 	} else {
-		emit('bulk-select', eventDataList)
+		emit('bulkSelect', eventDataList)
 	}
 	emit('close')
 }

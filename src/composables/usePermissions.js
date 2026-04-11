@@ -33,7 +33,7 @@ export function usePermissions() {
 	/**
 	 * Load permissions, capabilities, and config from the server
 	 * Will only make the API calls once unless force=true
-	 * @param force
+	 * @param {boolean} force - Force reload even if already loaded
 	 */
 	const loadPermissions = async (force = false) => {
 		if (state.loaded && !force) {

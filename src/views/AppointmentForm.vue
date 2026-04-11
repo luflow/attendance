@@ -1,1081 +1,1053 @@
 <template>
-    <div class="appointment-form-view" data-test="appointment-form-view">
-        <div class="form-header">
-            <div class="header-actions">
-                <NcButton
-                    variant="tertiary"
-                    data-test="button-back"
-                    @click="goBack"
-                >
-                    <template #icon>
-                        <ArrowLeft :size="20" />
-                    </template>
-                    {{ t("attendance", "Back") }}
-                </NcButton>
-                <NcButton
-                    v-if="mode === 'create' && props.calendarAvailable"
-                    variant="tertiary"
-                    data-test="button-import-calendar"
-                    @click="showCalendarPicker = true"
-                >
-                    <template #icon>
-                        <CalendarImport :size="20" />
-                    </template>
-                    {{ t("attendance", "Import from calendar") }}
-                </NcButton>
-            </div>
-            <h2 data-test="form-title">
-                {{ pageTitle }}
-            </h2>
-        </div>
+	<div class="appointment-form-view" data-test="appointment-form-view">
+		<div class="form-header">
+			<div class="header-actions">
+				<NcButton
+					variant="tertiary"
+					data-test="button-back"
+					@click="goBack">
+					<template #icon>
+						<ArrowLeft :size="20" />
+					</template>
+					{{ t("attendance", "Back") }}
+				</NcButton>
+				<NcButton
+					v-if="mode === 'create' && props.calendarAvailable"
+					variant="tertiary"
+					data-test="button-import-calendar"
+					@click="showCalendarPicker = true">
+					<template #icon>
+						<CalendarImport :size="20" />
+					</template>
+					{{ t("attendance", "Import from calendar") }}
+				</NcButton>
+			</div>
+			<h2 data-test="form-title">
+				{{ pageTitle }}
+			</h2>
+		</div>
 
-        <div v-if="loading || bulkImporting" class="loading-state">
-            <NcLoadingIcon v-if="bulkImporting" :size="32" />
-            {{
-                bulkImporting
-                    ? t("attendance", "Importing appointments …")
-                    : t("attendance", "Loading …")
-            }}
-        </div>
+		<div v-if="loading || bulkImporting" class="loading-state">
+			<NcLoadingIcon v-if="bulkImporting" :size="32" />
+			{{
+				bulkImporting
+					? t("attendance", "Importing appointments\u00A0…")
+					: t("attendance", "Loading\u00A0…")
+			}}
+		</div>
 
-        <form
-            v-else
-            class="appointment-form"
-            data-test="appointment-form"
-            @submit.prevent="handleSubmit"
-        >
-            <!-- Calendar Link Info (shown when linked to calendar, not for copy mode) -->
-            <div
-                v-if="hasCalendarReference && mode !== 'copy'"
-                class="form-section"
-            >
-                <div class="calendar-link-header">
-                    <LinkVariant :size="20" />
-                    <h3>{{ t("attendance", "Linked to calendar") }}</h3>
-                    <a
-                        :href="calendarSyncSettingsUrl"
-                        target="_blank"
-                        class="auto-sync-chip-link"
-                    >
-                        <NcChip
-                            v-if="props.calendarSyncEnabled"
-                            type="success"
-                            :text="t('attendance', 'Auto-sync enabled')"
-                            no-close
-                        >
-                            <template #icon>
-                                <CalendarSync :size="16" />
-                            </template>
-                        </NcChip>
-                    </a>
-                </div>
-                <p class="hint-text">
-                    {{
-                        t(
-                            "attendance",
-                            "This appointment is linked to a calendar event.",
-                        )
-                    }}
-                    <template v-if="props.calendarSyncEnabled">
-                        {{
-                            t(
-                                "attendance",
-                                "Changes to the calendar event will automatically overwrite title, description, and date/time of this appointment.",
-                            )
-                        }}
-                    </template>
-                    <template v-else>
-                        {{
-                            t(
-                                "attendance",
-                                "Changes to the calendar event will not be synced.",
-                            )
-                        }}
-                        <a :href="calendarSyncSettingsUrl" target="_blank">{{
-                            t("attendance", "Enable auto-sync")
-                        }}</a>
-                    </template>
-                </p>
-            </div>
+		<form
+			v-else
+			class="appointment-form"
+			data-test="appointment-form"
+			@submit.prevent="handleSubmit">
+			<!-- Calendar Link Info (shown when linked to calendar, not for copy mode) -->
+			<div
+				v-if="hasCalendarReference && mode !== 'copy'"
+				class="form-section">
+				<div class="calendar-link-header">
+					<LinkVariant :size="20" />
+					<h3>{{ t("attendance", "Linked to calendar") }}</h3>
+					<a
+						:href="calendarSyncSettingsUrl"
+						target="_blank"
+						class="auto-sync-chip-link">
+						<NcChip
+							v-if="props.calendarSyncEnabled"
+							type="success"
+							:text="t('attendance', 'Auto-sync enabled')"
+							no-close>
+							<template #icon>
+								<CalendarSync :size="16" />
+							</template>
+						</NcChip>
+					</a>
+				</div>
+				<p class="hint-text">
+					{{
+						t(
+							"attendance",
+							"This appointment is linked to a calendar event.",
+						)
+					}}
+					<template v-if="props.calendarSyncEnabled">
+						{{
+							t(
+								"attendance",
+								"Changes to the calendar event will automatically overwrite title, description, and date/time of this appointment.",
+							)
+						}}
+					</template>
+					<template v-else>
+						{{
+							t(
+								"attendance",
+								"Changes to the calendar event will not be synced.",
+							)
+						}}
+						<a :href="calendarSyncSettingsUrl" target="_blank">{{
+							t("attendance", "Enable auto-sync")
+						}}</a>
+					</template>
+				</p>
+			</div>
 
-            <!-- Series Info (shown when appointment is part of a series) -->
-            <div
-                v-if="seriesId && mode === 'edit'"
-                class="form-section"
-            >
-                <div class="series-info-header">
-                    <RepeatIcon :size="20" />
-                    <h3>{{ t("attendance", "Part of a recurring series") }}</h3>
-                </div>
-                <p class="hint-text">
-                    {{
-                        t(
-                            "attendance",
-                            "This appointment is part of a series. When saving, you can choose to apply changes to this appointment only, this and future appointments, or all appointments in the series.",
-                        )
-                    }}
-                </p>
-            </div>
+			<!-- Series Info (shown when appointment is part of a series) -->
+			<div
+				v-if="seriesId && mode === 'edit'"
+				class="form-section">
+				<div class="series-info-header">
+					<RepeatIcon :size="20" />
+					<h3>{{ t("attendance", "Part of a recurring series") }}</h3>
+				</div>
+				<p class="hint-text">
+					{{
+						t(
+							"attendance",
+							"This appointment is part of a series. When saving, you can choose to apply changes to this appointment only, this and future appointments, or all appointments in the series.",
+						)
+					}}
+				</p>
+			</div>
 
-            <div class="form-section">
-                <NcTextField
-                    v-model="formData.name"
-                    :label="t('attendance', 'Appointment name')"
-                    data-test="input-appointment-name"
-                />
+			<div class="form-section">
+				<NcTextField
+					v-model="formData.name"
+					:label="t('attendance', 'Appointment name')"
+					data-test="input-appointment-name" />
 
-                <MarkdownEditor
-                    v-model="formData.description"
-                    :label="t('attendance', 'Description')"
-                    :placeholder="
-                        t('attendance', 'Write your description here …')
-                    "
-                    data-test="input-appointment-description"
-                    min-height="150px"
-                />
-            </div>
+				<MarkdownEditor
+					v-model="formData.description"
+					:label="t('attendance', 'Description')"
+					:placeholder="
+						t('attendance', 'Write your description here\u00A0…')
+					"
+					data-test="input-appointment-description"
+					min-height="150px" />
+			</div>
 
-            <div class="form-section">
-                <h3>{{ t("attendance", "Date & Time") }}</h3>
-                <div class="datetime-fields">
-                    <NcDateTimePickerNative
-                        id="start-datetime"
-                        :model-value="startDateObject"
-                        type="datetime-local"
-                        :label="t('attendance', 'Start date & time')"
-                        data-test="input-start-datetime"
-                        @update:model-value="onStartDatetimeChange"
-                        @blur="onStartDatetimeBlur"
-                    />
+			<div class="form-section">
+				<h3>{{ t("attendance", "Date & Time") }}</h3>
+				<div class="datetime-fields">
+					<NcDateTimePickerNative
+						id="start-datetime"
+						:model-value="startDateObject"
+						type="datetime-local"
+						:label="t('attendance', 'Start date & time')"
+						data-test="input-start-datetime"
+						@update:model-value="onStartDatetimeChange"
+						@blur="onStartDatetimeBlur" />
 
-                    <NcDateTimePickerNative
-                        id="end-datetime"
-                        :model-value="endDateObject"
-                        type="datetime-local"
-                        :label="t('attendance', 'End date & time')"
-                        data-test="input-end-datetime"
-                        @update:model-value="onEndDatetimeChange"
-                    />
-                </div>
+					<NcDateTimePickerNative
+						id="end-datetime"
+						:model-value="endDateObject"
+						type="datetime-local"
+						:label="t('attendance', 'End date & time')"
+						data-test="input-end-datetime"
+						@update:model-value="onEndDatetimeChange" />
+				</div>
 
-                <RecurrenceSelector
-                    v-if="mode === 'create'"
-                    :start-date="startDateObject"
-                    :duration="appointmentDuration"
-                    :disabled="saving"
-                    data-test="recurrence-selector"
-                    @update:occurrences="onRecurrenceUpdate"
-                    @update:validation-warning="onRecurrenceWarningUpdate"
-                />
-            </div>
+				<RecurrenceSelector
+					v-if="mode === 'create'"
+					:start-date="startDateObject"
+					:duration="appointmentDuration"
+					:disabled="saving"
+					data-test="recurrence-selector"
+					@update:occurrences="onRecurrenceUpdate"
+					@update:validation-warning="onRecurrenceWarningUpdate" />
+			</div>
 
-            <div
-                v-if="notificationsAppEnabled && (mode === 'create' || mode === 'copy')"
-                class="form-section"
-            >
-                <h3>{{ t("attendance", "Notification") }}</h3>
-                <p class="hint-text">
-                    {{
-                        t(
-                            "attendance",
-                            "Notify users who can see this appointment about its creation",
-                        )
-                    }}
-                </p>
-                <NcCheckboxRadioSwitch
-                    v-model="sendNotification"
-                    data-test="checkbox-send-notification"
-                >
-                    {{ t("attendance", "Send notification") }}
-                </NcCheckboxRadioSwitch>
-            </div>
+			<div
+				v-if="notificationsAppEnabled && (mode === 'create' || mode === 'copy')"
+				class="form-section">
+				<h3>{{ t("attendance", "Notification") }}</h3>
+				<p class="hint-text">
+					{{
+						t(
+							"attendance",
+							"Notify users who can see this appointment about its creation",
+						)
+					}}
+				</p>
+				<NcCheckboxRadioSwitch
+					v-model="sendNotification"
+					data-test="checkbox-send-notification">
+					{{ t("attendance", "Send notification") }}
+				</NcCheckboxRadioSwitch>
+			</div>
 
-            <div class="form-section">
-                <h3>{{ t("attendance", "Attachments") }}</h3>
-                <p class="hint-text">
-                    {{
-                        t(
-                            "attendance",
-                            "Files that are important for this appointment can be selected here.",
-                        )
-                    }}
-                </p>
-                <div
-                    v-if="attachments.length > 0"
-                    class="attachment-list"
-                    data-test="attachment-list"
-                >
-                    <NcChip
-                        v-for="attachment in attachments"
-                        :key="attachment.fileId"
-                        :text="attachment.fileName"
-                        :data-test="`attachment-chip-${attachment.fileId}`"
-                        @close="removeAttachment(attachment.fileId)"
-                    >
-                        <template #icon>
-                            <Paperclip :size="16" />
-                        </template>
-                    </NcChip>
-                </div>
-                <NcButton
-                    variant="secondary"
-                    native-type="button"
-                    data-test="button-add-attachment"
-                    @click.stop.prevent="openFilePicker"
-                >
-                    <template #icon>
-                        <Plus :size="20" />
-                    </template>
-                    {{ t("attendance", "Add from Files") }}
-                </NcButton>
-            </div>
+			<div class="form-section">
+				<h3>{{ t("attendance", "Attachments") }}</h3>
+				<p class="hint-text">
+					{{
+						t(
+							"attendance",
+							"Files that are important for this appointment can be selected here.",
+						)
+					}}
+				</p>
+				<div
+					v-if="attachments.length > 0"
+					class="attachment-list"
+					data-test="attachment-list">
+					<NcChip
+						v-for="attachment in attachments"
+						:key="attachment.fileId"
+						:text="attachment.fileName"
+						:data-test="`attachment-chip-${attachment.fileId}`"
+						@close="removeAttachment(attachment.fileId)">
+						<template #icon>
+							<Paperclip :size="16" />
+						</template>
+					</NcChip>
+				</div>
+				<NcButton
+					variant="secondary"
+					native-type="button"
+					data-test="button-add-attachment"
+					@click.stop.prevent="openFilePicker">
+					<template #icon>
+						<Plus :size="20" />
+					</template>
+					{{ t("attendance", "Add from Files") }}
+				</NcButton>
+			</div>
 
-            <div class="form-section">
-                <h3>{{ t("attendance", "Restrict access") }}</h3>
-                <p class="hint-text">
-                    {{
-                        t(
-                            "attendance",
-                            "Limits who can see this appointment. Leave empty for all users.",
-                        )
-                    }}
-                </p>
-                <NcSelect
-                    v-model="visibilityItems"
-                    :options="searchResults"
-                    :loading="isSearching"
-                    :multiple="true"
-                    :close-on-select="false"
-                    :filterable="false"
-                    label="label"
-                    :placeholder="
-                        t('attendance', 'Search users, groups or teams …')
-                    "
-                    data-test="select-visibility"
-                    @search="onSearch"
-                >
-                    <template #option="{ label, type }">
-                        <span
-                            style="display: flex; align-items: center; gap: 8px"
-                            :title="getTypeLabel(type)"
-                        >
-                            <AccountStar v-if="type === 'team'" :size="20" />
-                            <AccountGroup
-                                v-else-if="type === 'group'"
-                                :size="20"
-                            />
-                            <Account v-else :size="20" />
-                            <span>{{ label }}</span>
-                        </span>
-                    </template>
-                    <template #selected-option="{ label, type }">
-                        <span
-                            style="display: flex; align-items: center; gap: 8px"
-                            :title="getTypeLabel(type)"
-                        >
-                            <AccountStar v-if="type === 'team'" :size="16" />
-                            <AccountGroup
-                                v-else-if="type === 'group'"
-                                :size="16"
-                            />
-                            <Account v-else :size="16" />
-                            <span>{{ label }}</span>
-                        </span>
-                    </template>
-                </NcSelect>
-                <NcNoteCard
-                    v-if="hasTrackingMismatch"
-                    type="warning"
-                    class="visibility-warning"
-                >
-                    {{
-                        t(
-                            "attendance",
-                            'Some users may appear in the section "Others" in the response summary because they are not configured for tracking.',
-                        )
-                    }}
-                    <a :href="adminSettingsUrl" target="_blank">{{
-                        t("attendance", "Configure in administration settings")
-                    }}</a>
-                </NcNoteCard>
-            </div>
+			<div class="form-section">
+				<h3>{{ t("attendance", "Restrict access") }}</h3>
+				<p class="hint-text">
+					{{
+						t(
+							"attendance",
+							"Limits who can see this appointment. Leave empty for all users.",
+						)
+					}}
+				</p>
+				<NcSelect
+					v-model="visibilityItems"
+					:options="searchResults"
+					:loading="isSearching"
+					:multiple="true"
+					:close-on-select="false"
+					:filterable="false"
+					label="label"
+					:placeholder="
+						t('attendance', 'Search users, groups or teams\u00A0…')
+					"
+					data-test="select-visibility"
+					@search="onSearch">
+					<template #option="{ label, type }">
+						<span
+							style="display: flex; align-items: center; gap: 8px"
+							:title="getTypeLabel(type)">
+							<AccountStar v-if="type === 'team'" :size="20" />
+							<AccountGroup
+								v-else-if="type === 'group'"
+								:size="20" />
+							<Account v-else :size="20" />
+							<span>{{ label }}</span>
+						</span>
+					</template>
+					<template #selected-option="{ label, type }">
+						<span
+							style="display: flex; align-items: center; gap: 8px"
+							:title="getTypeLabel(type)">
+							<AccountStar v-if="type === 'team'" :size="16" />
+							<AccountGroup
+								v-else-if="type === 'group'"
+								:size="16" />
+							<Account v-else :size="16" />
+							<span>{{ label }}</span>
+						</span>
+					</template>
+				</NcSelect>
+				<NcNoteCard
+					v-if="hasTrackingMismatch"
+					type="warning"
+					class="visibility-warning">
+					{{
+						t(
+							"attendance",
+							'Some users may appear in the section "Others" in the response summary because they are not configured for tracking.',
+						)
+					}}
+					<a :href="adminSettingsUrl" target="_blank">{{
+						t("attendance", "Configure in administration settings")
+					}}</a>
+				</NcNoteCard>
+			</div>
 
-            <div class="form-actions">
-                <NcButton
-                    variant="secondary"
-                    data-test="button-cancel"
-                    @click="goBack"
-                >
-                    {{ t("attendance", "Cancel") }}
-                </NcButton>
-                <NcButton
-                    variant="primary"
-                    :disabled="saving"
-                    data-test="button-save"
-                    @click="handleSubmit"
-                >
-                    <template v-if="saving" #icon>
-                        <NcLoadingIcon :size="20" />
-                    </template>
-                    {{ saveButtonLabel }}
-                </NcButton>
-            </div>
-        </form>
+			<div class="form-actions">
+				<NcButton
+					variant="secondary"
+					data-test="button-cancel"
+					@click="goBack">
+					{{ t("attendance", "Cancel") }}
+				</NcButton>
+				<NcButton
+					variant="primary"
+					:disabled="saving"
+					data-test="button-save"
+					@click="handleSubmit">
+					<template v-if="saving" #icon>
+						<NcLoadingIcon :size="20" />
+					</template>
+					{{ saveButtonLabel }}
+				</NcButton>
+			</div>
+		</form>
 
-        <!-- Calendar Event Picker Modal -->
-        <CalendarEventPicker
-            :show="showCalendarPicker"
-            @close="showCalendarPicker = false"
-            @select="handleCalendarEventSelect"
-            @bulk-select="handleBulkImport"
-        />
+		<!-- Calendar Event Picker Modal -->
+		<CalendarEventPicker
+			:show="showCalendarPicker"
+			@close="showCalendarPicker = false"
+			@select="handleCalendarEventSelect"
+			@bulk-select="handleBulkImport" />
 
-        <!-- Series Action Dialog (for edit mode) -->
-        <SeriesActionDialog
-            :show="showSeriesDialog"
-            action="edit"
-            :series-count="seriesCount"
-            @confirm="handleSeriesEditConfirm"
-            @cancel="showSeriesDialog = false"
-        />
-    </div>
+		<!-- Series Action Dialog (for edit mode) -->
+		<SeriesActionDialog
+			:show="showSeriesDialog"
+			action="edit"
+			:series-count="seriesCount"
+			@confirm="handleSeriesEditConfirm"
+			@cancel="showSeriesDialog = false" />
+	</div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from "vue";
+import { ref, reactive, computed, watch, onMounted } from 'vue'
 import {
-    NcButton,
-    NcTextField,
-    NcSelect,
-    NcNoteCard,
-    NcCheckboxRadioSwitch,
-    NcChip,
-    NcLoadingIcon,
-    NcDateTimePickerNative,
-} from "@nextcloud/vue";
+	NcButton,
+	NcTextField,
+	NcSelect,
+	NcNoteCard,
+	NcCheckboxRadioSwitch,
+	NcChip,
+	NcLoadingIcon,
+	NcDateTimePickerNative,
+} from '@nextcloud/vue'
 import {
-    getFilePickerBuilder,
-    showSuccess,
-    showError,
-} from "@nextcloud/dialogs";
-import MarkdownEditor from "../components/common/MarkdownEditor.vue";
-import CalendarEventPicker from "../components/calendar/CalendarEventPicker.vue";
-import RecurrenceSelector from "../components/appointment/RecurrenceSelector.vue";
-import { generateUrl } from "@nextcloud/router";
-import axios from "@nextcloud/axios";
-import AccountGroup from "vue-material-design-icons/AccountGroup.vue";
-import Account from "vue-material-design-icons/Account.vue";
-import AccountStar from "vue-material-design-icons/AccountStar.vue";
-import Paperclip from "vue-material-design-icons/Paperclip.vue";
-import Plus from "vue-material-design-icons/Plus.vue";
-import ArrowLeft from "vue-material-design-icons/ArrowLeft.vue";
-import CalendarImport from "vue-material-design-icons/CalendarImport.vue";
-import CalendarSync from "vue-material-design-icons/CalendarSync.vue";
-import LinkVariant from "vue-material-design-icons/LinkVariant.vue";
-import RepeatIcon from "vue-material-design-icons/Repeat.vue";
-import SeriesActionDialog from "../components/appointment/SeriesActionDialog.vue";
-import "@nextcloud/dialogs/style.css";
+	getFilePickerBuilder,
+	showSuccess,
+	showError,
+} from '@nextcloud/dialogs'
+import MarkdownEditor from '../components/common/MarkdownEditor.vue'
+import CalendarEventPicker from '../components/calendar/CalendarEventPicker.vue'
+import RecurrenceSelector from '../components/appointment/RecurrenceSelector.vue'
+import { generateUrl } from '@nextcloud/router'
+import axios from '@nextcloud/axios'
+import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
+import Account from 'vue-material-design-icons/Account.vue'
+import AccountStar from 'vue-material-design-icons/AccountStar.vue'
+import Paperclip from 'vue-material-design-icons/Paperclip.vue'
+import Plus from 'vue-material-design-icons/Plus.vue'
+import ArrowLeft from 'vue-material-design-icons/ArrowLeft.vue'
+import CalendarImport from 'vue-material-design-icons/CalendarImport.vue'
+import CalendarSync from 'vue-material-design-icons/CalendarSync.vue'
+import LinkVariant from 'vue-material-design-icons/LinkVariant.vue'
+import RepeatIcon from 'vue-material-design-icons/Repeat.vue'
+import SeriesActionDialog from '../components/appointment/SeriesActionDialog.vue'
+import '@nextcloud/dialogs/style.css'
 
 const props = defineProps({
-    mode: {
-        type: String,
-        required: true,
-        validator: (value) => ["create", "edit", "copy"].includes(value),
-    },
-    appointmentId: {
-        type: Number,
-        default: null,
-    },
-    notificationsAppEnabled: {
-        type: Boolean,
-        default: false,
-    },
-    calendarAvailable: {
-        type: Boolean,
-        default: false,
-    },
-    calendarSyncEnabled: {
-        type: Boolean,
-        default: false,
-    },
-});
+	mode: {
+		type: String,
+		required: true,
+		validator: (value) => ['create', 'edit', 'copy'].includes(value),
+	},
+	appointmentId: {
+		type: Number,
+		default: null,
+	},
+	notificationsAppEnabled: {
+		type: Boolean,
+		default: false,
+	},
+	calendarAvailable: {
+		type: Boolean,
+		default: false,
+	},
+	calendarSyncEnabled: {
+		type: Boolean,
+		default: false,
+	},
+})
 
-const emit = defineEmits(["saved", "cancelled"]);
+const emit = defineEmits(['saved', 'cancelled'])
 
 // Start with loading=true for edit/copy modes to prevent form flicker
-const loading = ref(props.mode === "edit" || props.mode === "copy");
-const saving = ref(false);
+const loading = ref(props.mode === 'edit' || props.mode === 'copy')
+const saving = ref(false)
 
 const formData = reactive({
-    name: "",
-    description: "",
-    startDatetime: "",
-    endDatetime: "",
-    visibleUsers: [],
-    visibleGroups: [],
-    visibleTeams: [],
-});
+	name: '',
+	description: '',
+	startDatetime: '',
+	endDatetime: '',
+	visibleUsers: [],
+	visibleGroups: [],
+	visibleTeams: [],
+})
 
-const visibilityItems = ref([]);
-const searchResults = ref([]);
-const isSearching = ref(false);
-const sendNotification = ref(false);
-const trackingGroups = ref([]);
-const trackingTeams = ref([]);
-const attachments = ref([]);
-const showCalendarPicker = ref(false);
-const calendarReference = ref({ calendarUri: null, calendarEventUid: null });
-const recurrenceOccurrences = ref([]);
-const recurrenceWarning = ref(null);
-const isRecurring = computed(() => recurrenceOccurrences.value.length > 1);
-const seriesId = ref(null);
-const seriesCount = ref(0);
-const showSeriesDialog = ref(false);
+const visibilityItems = ref([])
+const searchResults = ref([])
+const isSearching = ref(false)
+const sendNotification = ref(false)
+const trackingGroups = ref([])
+const trackingTeams = ref([])
+const attachments = ref([])
+const showCalendarPicker = ref(false)
+const calendarReference = ref({ calendarUri: null, calendarEventUid: null })
+const recurrenceOccurrences = ref([])
+const recurrenceWarning = ref(null)
+const isRecurring = computed(() => recurrenceOccurrences.value.length > 1)
+const seriesId = ref(null)
+const seriesCount = ref(0)
+const showSeriesDialog = ref(false)
 
 const appointmentDuration = computed(() => {
-    if (!formData.startDatetime || !formData.endDatetime) return 0;
-    const start = new Date(formData.startDatetime);
-    const end = new Date(formData.endDatetime);
-    if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
-    return end.getTime() - start.getTime();
-});
+	if (!formData.startDatetime || !formData.endDatetime) return 0
+	const start = new Date(formData.startDatetime)
+	const end = new Date(formData.endDatetime)
+	if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0
+	return end.getTime() - start.getTime()
+})
 
 const onRecurrenceUpdate = (occurrences) => {
-    recurrenceOccurrences.value = occurrences;
-};
+	recurrenceOccurrences.value = occurrences
+}
 
 const onRecurrenceWarningUpdate = (warning) => {
-    recurrenceWarning.value = warning;
-};
+	recurrenceWarning.value = warning
+}
 
 const saveButtonLabel = computed(() => {
-    if (isRecurring.value) {
-        return n(
-            "attendance",
-            "Create {count} appointment",
-            "Create {count} appointments",
-            recurrenceOccurrences.value.length,
-            { count: recurrenceOccurrences.value.length },
-        );
-    }
-    return t("attendance", "Save");
-});
+	if (isRecurring.value) {
+		return n(
+			'attendance',
+			'Create {count} appointment',
+			'Create {count} appointments',
+			recurrenceOccurrences.value.length,
+			{ count: recurrenceOccurrences.value.length },
+		)
+	}
+	return t('attendance', 'Save')
+})
 
 const pageTitle = computed(() => {
-    switch (props.mode) {
-        case "edit":
-            return t("attendance", "Edit appointment");
-        case "copy":
-            return t("attendance", "Copy appointment");
-        default:
-            return t("attendance", "Create appointment");
-    }
-});
+	switch (props.mode) {
+	case 'edit':
+		return t('attendance', 'Edit appointment')
+	case 'copy':
+		return t('attendance', 'Copy appointment')
+	default:
+		return t('attendance', 'Create appointment')
+	}
+})
 
 const hasTrackingMismatch = computed(() => {
-    // No selections at all - no warning needed
-    if (
-        formData.visibleGroups.length === 0 &&
-        formData.visibleUsers.length === 0 &&
-        formData.visibleTeams.length === 0
-    ) {
-        return false;
-    }
-    // No tracking groups AND no tracking teams configured - no warning needed
-    if (trackingGroups.value.length === 0 && trackingTeams.value.length === 0) {
-        return false;
-    }
-    // Individual users selected - they might appear under "Others"
-    if (formData.visibleUsers.length > 0) {
-        return true;
-    }
-    // Check if any selected team is NOT in tracking teams
-    if (formData.visibleTeams.length > 0) {
-        const hasNonTrackingTeam = formData.visibleTeams.some(
-            (teamId) => !trackingTeams.value.includes(teamId),
-        );
-        if (hasNonTrackingTeam) {
-            return true;
-        }
-    }
-    // Check if any selected group is NOT in tracking groups
-    if (formData.visibleGroups.length > 0) {
-        const hasNonTrackingGroup = formData.visibleGroups.some(
-            (groupId) => !trackingGroups.value.includes(groupId),
-        );
-        if (hasNonTrackingGroup) {
-            return true;
-        }
-    }
-    return false;
-});
+	// No selections at all - no warning needed
+	if (
+		formData.visibleGroups.length === 0
+        && formData.visibleUsers.length === 0
+        && formData.visibleTeams.length === 0
+	) {
+		return false
+	}
+	// No tracking groups AND no tracking teams configured - no warning needed
+	if (trackingGroups.value.length === 0 && trackingTeams.value.length === 0) {
+		return false
+	}
+	// Individual users selected - they might appear under "Others"
+	if (formData.visibleUsers.length > 0) {
+		return true
+	}
+	// Check if any selected team is NOT in tracking teams
+	if (formData.visibleTeams.length > 0) {
+		const hasNonTrackingTeam = formData.visibleTeams.some(
+			(teamId) => !trackingTeams.value.includes(teamId),
+		)
+		if (hasNonTrackingTeam) {
+			return true
+		}
+	}
+	// Check if any selected group is NOT in tracking groups
+	if (formData.visibleGroups.length > 0) {
+		const hasNonTrackingGroup = formData.visibleGroups.some(
+			(groupId) => !trackingGroups.value.includes(groupId),
+		)
+		if (hasNonTrackingGroup) {
+			return true
+		}
+	}
+	return false
+})
 
 const adminSettingsUrl = computed(() => {
-    return generateUrl("/settings/admin/attendance");
-});
+	return generateUrl('/settings/admin/attendance')
+})
 
 const calendarSyncSettingsUrl = computed(() => {
-    return generateUrl("/settings/admin/attendance#calendar-sync");
-});
+	return generateUrl('/settings/admin/attendance#calendar-sync')
+})
 
 const hasCalendarReference = computed(() => {
-    return (
-        calendarReference.value.calendarUri &&
-        calendarReference.value.calendarEventUid
-    );
-});
+	return (
+		calendarReference.value.calendarUri
+        && calendarReference.value.calendarEventUid
+	)
+})
 
 const getTypeLabel = (type) => {
-    switch (type) {
-        case "user":
-            return t("attendance", "User");
-        case "group":
-            return t("attendance", "Group");
-        case "team":
-            return t("attendance", "Team");
-        default:
-            return "";
-    }
-};
+	switch (type) {
+	case 'user':
+		return t('attendance', 'User')
+	case 'group':
+		return t('attendance', 'Group')
+	case 'team':
+		return t('attendance', 'Team')
+	default:
+		return ''
+	}
+}
 
 // Convert string datetime to Date object for NcDateTimePickerNative
 const startDateObject = computed(() => {
-    if (!formData.startDatetime) return null;
-    const date = new Date(formData.startDatetime);
-    return isNaN(date.getTime()) ? null : date;
-});
+	if (!formData.startDatetime) return null
+	const date = new Date(formData.startDatetime)
+	return isNaN(date.getTime()) ? null : date
+})
 
 const endDateObject = computed(() => {
-    if (!formData.endDatetime) return null;
-    const date = new Date(formData.endDatetime);
-    return isNaN(date.getTime()) ? null : date;
-});
+	if (!formData.endDatetime) return null
+	const date = new Date(formData.endDatetime)
+	return isNaN(date.getTime()) ? null : date
+})
 
 // Watch for changes to visibilityItems to update formData
 watch(visibilityItems, (selected) => {
-    const selectedArray = Array.isArray(selected)
-        ? selected
-        : selected
-          ? [selected]
-          : [];
-    formData.visibleUsers = selectedArray
-        .filter((item) => item && item.type === "user")
-        .map((item) => item.value);
-    formData.visibleGroups = selectedArray
-        .filter((item) => item && item.type === "group")
-        .map((item) => item.value);
-    formData.visibleTeams = selectedArray
-        .filter((item) => item && item.type === "team")
-        .map((item) => item.value);
-});
+	const selectedArray = Array.isArray(selected)
+		? selected
+		: selected
+			? [selected]
+			: []
+	formData.visibleUsers = selectedArray
+		.filter((item) => item && item.type === 'user')
+		.map((item) => item.value)
+	formData.visibleGroups = selectedArray
+		.filter((item) => item && item.type === 'group')
+		.map((item) => item.value)
+	formData.visibleTeams = selectedArray
+		.filter((item) => item && item.type === 'team')
+		.map((item) => item.value)
+})
 
 const formatDateTimeForInput = (dateTime) => {
-    if (!dateTime) return "";
-    const date = new Date(dateTime);
-    if (isNaN(date.getTime())) return "";
+	if (!dateTime) return ''
+	const date = new Date(dateTime)
+	if (isNaN(date.getTime())) return ''
 
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
+	const year = date.getFullYear()
+	const month = String(date.getMonth() + 1).padStart(2, '0')
+	const day = String(date.getDate()).padStart(2, '0')
+	const hours = String(date.getHours()).padStart(2, '0')
+	const minutes = String(date.getMinutes()).padStart(2, '0')
 
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-};
+	return `${year}-${month}-${day}T${hours}:${minutes}`
+}
 
 const loadAppointment = async () => {
-    if (!props.appointmentId) return;
+	if (!props.appointmentId) return
 
-    loading.value = true;
-    try {
-        const response = await axios.get(
-            generateUrl(
-                `/apps/attendance/api/appointments/${props.appointmentId}`,
-            ),
-        );
-        const appointment = response.data;
+	loading.value = true
+	try {
+		const response = await axios.get(
+			generateUrl(
+				`/apps/attendance/api/appointments/${props.appointmentId}`,
+			),
+		)
+		const appointment = response.data
 
-        formData.name =
-            props.mode === "copy"
-                ? `${appointment.name} (${t("attendance", "Copy")})`
-                : appointment.name;
-        formData.description = appointment.description || "";
+		formData.name = props.mode === 'copy'
+			? `${appointment.name} (${t('attendance', 'Copy')})`
+			: appointment.name
+		formData.description = appointment.description || ''
 
-        // For copy mode, leave dates empty
-        if (props.mode === "copy") {
-            formData.startDatetime = "";
-            formData.endDatetime = "";
-        } else {
-            formData.startDatetime = formatDateTimeForInput(
-                appointment.startDatetime,
-            );
-            formData.endDatetime = formatDateTimeForInput(
-                appointment.endDatetime,
-            );
-        }
+		// For copy mode, leave dates empty
+		if (props.mode === 'copy') {
+			formData.startDatetime = ''
+			formData.endDatetime = ''
+		} else {
+			formData.startDatetime = formatDateTimeForInput(
+				appointment.startDatetime,
+			)
+			formData.endDatetime = formatDateTimeForInput(
+				appointment.endDatetime,
+			)
+		}
 
-        // Load visibility settings (enriched data with id, label, type)
-        const users = appointment.visibleUsers || [];
-        const groups = appointment.visibleGroups || [];
-        const teams = appointment.visibleTeams || [];
+		// Load visibility settings (enriched data with id, label, type)
+		const users = appointment.visibleUsers || []
+		const groups = appointment.visibleGroups || []
+		const teams = appointment.visibleTeams || []
 
-        // Store raw IDs for form submission
-        formData.visibleUsers = users.map((u) => u.id);
-        formData.visibleGroups = groups.map((g) => g.id);
-        formData.visibleTeams = teams.map((t) => t.id);
+		// Store raw IDs for form submission
+		formData.visibleUsers = users.map((u) => u.id)
+		formData.visibleGroups = groups.map((g) => g.id)
+		formData.visibleTeams = teams.map((t) => t.id)
 
-        // Convert enriched data to visibility items for NcSelect
-        const items = [];
-        for (const user of users) {
-            items.push({
-                id: `user:${user.id}`,
-                value: user.id,
-                label: user.label,
-                type: "user",
-            });
-        }
-        for (const group of groups) {
-            items.push({
-                id: `group:${group.id}`,
-                value: group.id,
-                label: group.label,
-                type: "group",
-            });
-        }
-        for (const team of teams) {
-            items.push({
-                id: `team:${team.id}`,
-                value: team.id,
-                label: team.label,
-                type: "team",
-            });
-        }
-        searchResults.value = [...items];
-        visibilityItems.value = [...items];
+		// Convert enriched data to visibility items for NcSelect
+		const items = []
+		for (const user of users) {
+			items.push({
+				id: `user:${user.id}`,
+				value: user.id,
+				label: user.label,
+				type: 'user',
+			})
+		}
+		for (const group of groups) {
+			items.push({
+				id: `group:${group.id}`,
+				value: group.id,
+				label: group.label,
+				type: 'group',
+			})
+		}
+		for (const team of teams) {
+			items.push({
+				id: `team:${team.id}`,
+				value: team.id,
+				label: team.label,
+				type: 'team',
+			})
+		}
+		searchResults.value = [...items]
+		visibilityItems.value = [...items]
 
-        // Load notification preference for copy mode
-        if (props.mode === "copy") {
-            sendNotification.value = appointment.sendNotification;
-        }
+		// Load notification preference for copy mode
+		if (props.mode === 'copy') {
+			sendNotification.value = appointment.sendNotification
+		}
 
-        // Load attachments
-        attachments.value = (appointment.attachments || []).map((a) => ({
-            fileId: a.fileId,
-            fileName: a.fileName,
-            filePath: a.filePath,
-        }));
+		// Load attachments
+		attachments.value = (appointment.attachments || []).map((a) => ({
+			fileId: a.fileId,
+			fileName: a.fileName,
+			filePath: a.filePath,
+		}))
 
-        // Load calendar reference (for edit mode, not copy)
-        if (
-            props.mode === "edit" &&
-            appointment.calendarUri &&
-            appointment.calendarEventUid
-        ) {
-            calendarReference.value = {
-                calendarUri: appointment.calendarUri,
-                calendarEventUid: appointment.calendarEventUid,
-            };
-        }
+		// Load calendar reference (for edit mode, not copy)
+		if (
+			props.mode === 'edit'
+            && appointment.calendarUri
+            && appointment.calendarEventUid
+		) {
+			calendarReference.value = {
+				calendarUri: appointment.calendarUri,
+				calendarEventUid: appointment.calendarEventUid,
+			}
+		}
 
-        // Load series info (for edit mode, not copy)
-        if (props.mode === "edit" && appointment.seriesId) {
-            seriesId.value = appointment.seriesId;
-            seriesCount.value = appointment.seriesCount || 0;
-        }
-    } catch (error) {
-        console.error("Failed to load appointment:", error);
-        showError(t("attendance", "Error loading appointment"));
-    } finally {
-        loading.value = false;
-    }
-};
+		// Load series info (for edit mode, not copy)
+		if (props.mode === 'edit' && appointment.seriesId) {
+			seriesId.value = appointment.seriesId
+			seriesCount.value = appointment.seriesCount || 0
+		}
+	} catch (error) {
+		console.error('Failed to load appointment:', error)
+		showError(t('attendance', 'Error loading appointment'))
+	} finally {
+		loading.value = false
+	}
+}
 
 const loadTrackingGroups = async () => {
-    try {
-        const response = await axios.get(
-            generateUrl("/apps/attendance/api/admin/settings"),
-        );
-        if (response.data.whitelistedGroups) {
-            trackingGroups.value = response.data.whitelistedGroups;
-        }
-        if (response.data.whitelistedTeams) {
-            // Extract team IDs from team objects
-            trackingTeams.value = response.data.whitelistedTeams.map(
-                (t) => t.id,
-            );
-        }
-    } catch (error) {
-        console.debug("Could not load tracking groups:", error);
-    }
-};
+	try {
+		const response = await axios.get(
+			generateUrl('/apps/attendance/api/admin/settings'),
+		)
+		if (response.data.whitelistedGroups) {
+			trackingGroups.value = response.data.whitelistedGroups
+		}
+		if (response.data.whitelistedTeams) {
+			// Extract team IDs from team objects
+			trackingTeams.value = response.data.whitelistedTeams.map(
+				(t) => t.id,
+			)
+		}
+	} catch (error) {
+		console.debug('Could not load tracking groups:', error)
+	}
+}
 
 const onStartDatetimeChange = (newValue) => {
-    // newValue is a Date object from NcDateTimePickerNative
-    formData.startDatetime = newValue
-        ? formatDateTimeForInput(newValue.toISOString())
-        : "";
-};
+	// newValue is a Date object from NcDateTimePickerNative
+	formData.startDatetime = newValue
+		? formatDateTimeForInput(newValue.toISOString())
+		: ''
+}
 
 const onStartDatetimeBlur = () => {
-    // Auto-fill end datetime if not set (only on blur)
-    if (formData.startDatetime && !formData.endDatetime) {
-        const startDate = new Date(formData.startDatetime);
-        if (!isNaN(startDate.getTime())) {
-            const endDate = new Date(
-                startDate.getTime() + 2.5 * 60 * 60 * 1000,
-            );
-            formData.endDatetime = formatDateTimeForInput(
-                endDate.toISOString(),
-            );
-        }
-    }
-};
+	// Auto-fill end datetime if not set (only on blur)
+	if (formData.startDatetime && !formData.endDatetime) {
+		const startDate = new Date(formData.startDatetime)
+		if (!isNaN(startDate.getTime())) {
+			const endDate = new Date(
+				startDate.getTime() + 2.5 * 60 * 60 * 1000,
+			)
+			formData.endDatetime = formatDateTimeForInput(
+				endDate.toISOString(),
+			)
+		}
+	}
+}
 
 const onEndDatetimeChange = (newValue) => {
-    // newValue is a Date object from NcDateTimePickerNative
-    formData.endDatetime = newValue
-        ? formatDateTimeForInput(newValue.toISOString())
-        : "";
-};
+	// newValue is a Date object from NcDateTimePickerNative
+	formData.endDatetime = newValue
+		? formatDateTimeForInput(newValue.toISOString())
+		: ''
+}
 
 const goBack = () => {
-    emit("cancelled");
-};
+	emit('cancelled')
+}
 
 const onSearch = async (query) => {
-    if (!query || query.length < 1) {
-        searchResults.value = [...visibilityItems.value];
-        return;
-    }
+	if (!query || query.length < 1) {
+		searchResults.value = [...visibilityItems.value]
+		return
+	}
 
-    isSearching.value = true;
-    try {
-        const response = await axios.get(
-            generateUrl("/apps/attendance/api/search/users-groups-teams"),
-            { params: { search: query } },
-        );
+	isSearching.value = true
+	try {
+		const response = await axios.get(
+			generateUrl('/apps/attendance/api/search/users-groups-teams'),
+			{ params: { search: query } },
+		)
 
-        const newResults = response.data.map((item) => ({
-            id: `${item.type}:${item.id}`,
-            value: item.id,
-            label: item.label,
-            type: item.type,
-        }));
+		const newResults = response.data.map((item) => ({
+			id: `${item.type}:${item.id}`,
+			value: item.id,
+			label: item.label,
+			type: item.type,
+		}))
 
-        const mergedResults = [...visibilityItems.value];
-        for (const result of newResults) {
-            const isAlreadySelected = visibilityItems.value.some(
-                (item) => item.id === result.id,
-            );
-            if (!isAlreadySelected) {
-                mergedResults.push(result);
-            }
-        }
+		const mergedResults = [...visibilityItems.value]
+		for (const result of newResults) {
+			const isAlreadySelected = visibilityItems.value.some(
+				(item) => item.id === result.id,
+			)
+			if (!isAlreadySelected) {
+				mergedResults.push(result)
+			}
+		}
 
-        searchResults.value = mergedResults;
-    } catch (error) {
-        console.error("Failed to search:", error);
-        searchResults.value = [...visibilityItems.value];
-    } finally {
-        isSearching.value = false;
-    }
-};
+		searchResults.value = mergedResults
+	} catch (error) {
+		console.error('Failed to search:', error)
+		searchResults.value = [...visibilityItems.value]
+	} finally {
+		isSearching.value = false
+	}
+}
 
 const openFilePicker = async () => {
-    try {
-        const picker = getFilePickerBuilder(
-            t("attendance", "Choose files or folders"),
-        )
-            .setMultiSelect(true)
-            .allowDirectories(true)
-            .addButton({
-                label: t("attendance", "Attach"),
-                callback: async (nodes) => {
-                    for (const node of nodes) {
-                        await addAttachment(node);
-                    }
-                },
-            })
-            .build();
-        await picker.pick();
-    } catch (error) {
-        console.debug("File picker cancelled:", error);
-    }
-};
+	try {
+		const picker = getFilePickerBuilder(
+			t('attendance', 'Choose files or folders'),
+		)
+			.setMultiSelect(true)
+			.allowDirectories(true)
+			.addButton({
+				label: t('attendance', 'Attach'),
+				callback: async (nodes) => {
+					for (const node of nodes) {
+						await addAttachment(node)
+					}
+				},
+			})
+			.build()
+		await picker.pick()
+	} catch (error) {
+		console.debug('File picker cancelled:', error)
+	}
+}
 
 const addAttachment = (node) => {
-    if (attachments.value.some((a) => a.fileId === node.fileid)) {
-        return;
-    }
-    attachments.value.push({
-        fileId: node.fileid,
-        fileName: node.basename,
-        filePath: node.path,
-    });
-};
+	if (attachments.value.some((a) => a.fileId === node.fileid)) {
+		return
+	}
+	attachments.value.push({
+		fileId: node.fileid,
+		fileName: node.basename,
+		filePath: node.path,
+	})
+}
 
 const removeAttachment = (fileId) => {
-    attachments.value = attachments.value.filter((a) => a.fileId !== fileId);
-};
+	attachments.value = attachments.value.filter((a) => a.fileId !== fileId)
+}
 
 const attachmentFileIds = computed(() =>
-    attachments.value.map((a) => a.fileId),
-);
+	attachments.value.map((a) => a.fileId),
+)
 
 const toServerTimezone = (datetime) => {
-    if (!datetime) return datetime;
-    const date = new Date(datetime);
-    return date.toISOString();
-};
+	if (!datetime) return datetime
+	const date = new Date(datetime)
+	return date.toISOString()
+}
 
 const handleCalendarEventSelect = (eventData) => {
-    formData.name = eventData.name;
-    formData.description = eventData.description;
-    formData.startDatetime = formatDateTimeForInput(eventData.startDatetime);
-    formData.endDatetime = formatDateTimeForInput(eventData.endDatetime);
-    calendarReference.value = {
-        calendarUri: eventData.calendarUri,
-        calendarEventUid: eventData.calendarEventUid,
-    };
-};
+	formData.name = eventData.name
+	formData.description = eventData.description
+	formData.startDatetime = formatDateTimeForInput(eventData.startDatetime)
+	formData.endDatetime = formatDateTimeForInput(eventData.endDatetime)
+	calendarReference.value = {
+		calendarUri: eventData.calendarUri,
+		calendarEventUid: eventData.calendarEventUid,
+	}
+}
 
-const bulkImporting = ref(false);
+const bulkImporting = ref(false)
 
 const handleBulkImport = async (eventDataList) => {
-    bulkImporting.value = true;
-    saving.value = true;
+	bulkImporting.value = true
+	saving.value = true
 
-    try {
-        const appointments = eventDataList.map((eventData) => ({
-            name: eventData.name,
-            description: eventData.description,
-            startDatetime: toServerTimezone(eventData.startDatetime),
-            endDatetime: toServerTimezone(eventData.endDatetime),
-            calendarUri: eventData.calendarUri,
-            calendarEventUid: eventData.calendarEventUid,
-        }));
+	try {
+		const appointments = eventDataList.map((eventData) => ({
+			name: eventData.name,
+			description: eventData.description,
+			startDatetime: toServerTimezone(eventData.startDatetime),
+			endDatetime: toServerTimezone(eventData.endDatetime),
+			calendarUri: eventData.calendarUri,
+			calendarEventUid: eventData.calendarEventUid,
+		}))
 
-        const response = await axios.post(
-            generateUrl("/apps/attendance/api/appointments/bulk"),
-            { appointments },
-        );
+		const response = await axios.post(
+			generateUrl('/apps/attendance/api/appointments/bulk'),
+			{ appointments },
+		)
 
-        const created = response.data?.created || [];
-        const errors = response.data?.errors || [];
+		const created = response.data?.created || []
+		const errors = response.data?.errors || []
 
-        if (created.length > 0) {
-            showSuccess(
-                n(
-                    "attendance",
-                    "{count} appointment created",
-                    "{count} appointments created",
-                    created.length,
-                    { count: created.length },
-                ),
-            );
-        }
-        if (errors.length > 0) {
-            showError(
-                n(
-                    "attendance",
-                    "{count} appointment failed to import",
-                    "{count} appointments failed to import",
-                    errors.length,
-                    { count: errors.length },
-                ),
-            );
-        }
+		if (created.length > 0) {
+			showSuccess(
+				n(
+					'attendance',
+					'{count} appointment created',
+					'{count} appointments created',
+					created.length,
+					{ count: created.length },
+				),
+			)
+		}
+		if (errors.length > 0) {
+			showError(
+				n(
+					'attendance',
+					'{count} appointment failed to import',
+					'{count} appointments failed to import',
+					errors.length,
+					{ count: errors.length },
+				),
+			)
+		}
 
-        emit("saved");
-    } catch (error) {
-        console.error("Bulk import failed:", error);
-        showError(t("attendance", "Error importing appointments"));
-    } finally {
-        bulkImporting.value = false;
-        saving.value = false;
-    }
-};
+		emit('saved')
+	} catch (error) {
+		console.error('Bulk import failed:', error)
+		showError(t('attendance', 'Error importing appointments'))
+	} finally {
+		bulkImporting.value = false
+		saving.value = false
+	}
+}
 
 const handleRecurringCreate = async () => {
-    saving.value = true;
+	saving.value = true
 
-    try {
-        const duration = appointmentDuration.value;
-        const appointments = recurrenceOccurrences.value.map(
-            (occurrenceDate) => {
-                const startDt = occurrenceDate.toISOString();
-                const endDt = new Date(
-                    occurrenceDate.getTime() + duration,
-                ).toISOString();
-                return {
-                    name: formData.name,
-                    description: formData.description,
-                    startDatetime: startDt,
-                    endDatetime: endDt,
-                    visibleUsers: formData.visibleUsers || [],
-                    visibleGroups: formData.visibleGroups || [],
-                    visibleTeams: formData.visibleTeams || [],
-                };
-            },
-        );
+	try {
+		const duration = appointmentDuration.value
+		const appointments = recurrenceOccurrences.value.map(
+			(occurrenceDate) => {
+				const startDt = occurrenceDate.toISOString()
+				const endDt = new Date(
+					occurrenceDate.getTime() + duration,
+				).toISOString()
+				return {
+					name: formData.name,
+					description: formData.description,
+					startDatetime: startDt,
+					endDatetime: endDt,
+					visibleUsers: formData.visibleUsers || [],
+					visibleGroups: formData.visibleGroups || [],
+					visibleTeams: formData.visibleTeams || [],
+				}
+			},
+		)
 
-        const response = await axios.post(
-            generateUrl("/apps/attendance/api/appointments/bulk"),
-            {
-                appointments,
-                sendNotification: sendNotification.value,
-                attachments: attachmentFileIds.value,
-            },
-        );
+		const response = await axios.post(
+			generateUrl('/apps/attendance/api/appointments/bulk'),
+			{
+				appointments,
+				sendNotification: sendNotification.value,
+				attachments: attachmentFileIds.value,
+			},
+		)
 
-        const created = response.data?.created || [];
-        const errors = response.data?.errors || [];
+		const created = response.data?.created || []
+		const errors = response.data?.errors || []
 
-        if (created.length > 0) {
-            showSuccess(
-                n(
-                    "attendance",
-                    "{count} appointment created",
-                    "{count} appointments created",
-                    created.length,
-                    { count: created.length },
-                ),
-            );
-        }
-        if (errors.length > 0) {
-            showError(
-                n(
-                    "attendance",
-                    "{count} appointment failed to create",
-                    "{count} appointments failed to create",
-                    errors.length,
-                    { count: errors.length },
-                ),
-            );
-        }
+		if (created.length > 0) {
+			showSuccess(
+				n(
+					'attendance',
+					'{count} appointment created',
+					'{count} appointments created',
+					created.length,
+					{ count: created.length },
+				),
+			)
+		}
+		if (errors.length > 0) {
+			showError(
+				n(
+					'attendance',
+					'{count} appointment failed to create',
+					'{count} appointments failed to create',
+					errors.length,
+					{ count: errors.length },
+				),
+			)
+		}
 
-        emit("saved");
-    } catch (error) {
-        console.error("Failed to create recurring appointments:", error);
-        showError(t("attendance", "Error creating appointments"));
-    } finally {
-        saving.value = false;
-    }
-};
+		emit('saved')
+	} catch (error) {
+		console.error('Failed to create recurring appointments:', error)
+		showError(t('attendance', 'Error creating appointments'))
+	} finally {
+		saving.value = false
+	}
+}
 
 const handleSubmit = async () => {
-    if (saving.value) return;
+	if (saving.value) return
 
-    // Manual validation for datetime fields
-    if (!formData.name?.trim()) {
-        showError(t("attendance", "Please enter an appointment name"));
-        return;
-    }
-    if (!formData.startDatetime) {
-        showError(t("attendance", "Please select a start date and time"));
-        return;
-    }
-    if (!formData.endDatetime) {
-        showError(t("attendance", "Please select an end date and time"));
-        return;
-    }
-    if (new Date(formData.endDatetime) <= new Date(formData.startDatetime)) {
-        showError(t("attendance", "End date must be after start date"));
-        return;
-    }
-    if (recurrenceWarning.value) {
-        showError(recurrenceWarning.value);
-        return;
-    }
+	// Manual validation for datetime fields
+	if (!formData.name?.trim()) {
+		showError(t('attendance', 'Please enter an appointment name'))
+		return
+	}
+	if (!formData.startDatetime) {
+		showError(t('attendance', 'Please select a start date and time'))
+		return
+	}
+	if (!formData.endDatetime) {
+		showError(t('attendance', 'Please select an end date and time'))
+		return
+	}
+	if (new Date(formData.endDatetime) <= new Date(formData.startDatetime)) {
+		showError(t('attendance', 'End date must be after start date'))
+		return
+	}
+	if (recurrenceWarning.value) {
+		showError(recurrenceWarning.value)
+		return
+	}
 
-    // Recurring creation uses bulk endpoint
-    if (isRecurring.value) {
-        return handleRecurringCreate();
-    }
+	// Recurring creation uses bulk endpoint
+	if (isRecurring.value) {
+		return handleRecurringCreate()
+	}
 
-    // If editing a series appointment, show the series dialog
-    if (props.mode === "edit" && seriesId.value) {
-        showSeriesDialog.value = true;
-        return;
-    }
+	// If editing a series appointment, show the series dialog
+	if (props.mode === 'edit' && seriesId.value) {
+		showSeriesDialog.value = true
+		return
+	}
 
-    await saveAppointment();
-};
+	await saveAppointment()
+}
 
 const handleSeriesEditConfirm = async (scope) => {
-    showSeriesDialog.value = false;
-    await saveAppointment(scope);
-};
+	showSeriesDialog.value = false
+	await saveAppointment(scope)
+}
 
-const saveAppointment = async (scope = "single") => {
-    saving.value = true;
+const saveAppointment = async (scope = 'single') => {
+	saving.value = true
 
-    try {
-        const startDatetimeWithTz = toServerTimezone(formData.startDatetime);
-        const endDatetimeWithTz = toServerTimezone(formData.endDatetime);
+	try {
+		const startDatetimeWithTz = toServerTimezone(formData.startDatetime)
+		const endDatetimeWithTz = toServerTimezone(formData.endDatetime)
 
-        let appointmentId = props.appointmentId;
+		let appointmentId = props.appointmentId
 
-        if (props.mode === "edit") {
-            // Update existing appointment
-            await axios.put(
-                generateUrl(
-                    `/apps/attendance/api/appointments/${props.appointmentId}`,
-                ),
-                {
-                    name: formData.name,
-                    description: formData.description,
-                    startDatetime: startDatetimeWithTz,
-                    endDatetime: endDatetimeWithTz,
-                    visibleUsers: formData.visibleUsers || [],
-                    visibleGroups: formData.visibleGroups || [],
-                    visibleTeams: formData.visibleTeams || [],
-                    attachments: attachmentFileIds.value,
-                    scope,
-                },
-            );
-            showSuccess(t("attendance", "Appointment updated"));
-        } else {
-            // Create new appointment (or copy)
-            const response = await axios.post(
-                generateUrl("/apps/attendance/api/appointments"),
-                {
-                    name: formData.name,
-                    description: formData.description,
-                    startDatetime: startDatetimeWithTz,
-                    endDatetime: endDatetimeWithTz,
-                    visibleUsers: formData.visibleUsers || [],
-                    visibleGroups: formData.visibleGroups || [],
-                    visibleTeams: formData.visibleTeams || [],
-                    sendNotification: sendNotification.value,
-                    calendarUri: calendarReference.value.calendarUri,
-                    calendarEventUid: calendarReference.value.calendarEventUid,
-                    attachments: attachmentFileIds.value,
-                },
-            );
-            appointmentId = response.data?.id;
-            showSuccess(t("attendance", "Appointment created"));
-        }
+		if (props.mode === 'edit') {
+			// Update existing appointment
+			await axios.put(
+				generateUrl(
+					`/apps/attendance/api/appointments/${props.appointmentId}`,
+				),
+				{
+					name: formData.name,
+					description: formData.description,
+					startDatetime: startDatetimeWithTz,
+					endDatetime: endDatetimeWithTz,
+					visibleUsers: formData.visibleUsers || [],
+					visibleGroups: formData.visibleGroups || [],
+					visibleTeams: formData.visibleTeams || [],
+					attachments: attachmentFileIds.value,
+					scope,
+				},
+			)
+			showSuccess(t('attendance', 'Appointment updated'))
+		} else {
+			// Create new appointment (or copy)
+			const response = await axios.post(
+				generateUrl('/apps/attendance/api/appointments'),
+				{
+					name: formData.name,
+					description: formData.description,
+					startDatetime: startDatetimeWithTz,
+					endDatetime: endDatetimeWithTz,
+					visibleUsers: formData.visibleUsers || [],
+					visibleGroups: formData.visibleGroups || [],
+					visibleTeams: formData.visibleTeams || [],
+					sendNotification: sendNotification.value,
+					calendarUri: calendarReference.value.calendarUri,
+					calendarEventUid: calendarReference.value.calendarEventUid,
+					attachments: attachmentFileIds.value,
+				},
+			)
+			appointmentId = response.data?.id
+			showSuccess(t('attendance', 'Appointment created'))
+		}
 
-        emit("saved", appointmentId);
-    } catch (error) {
-        console.error("Failed to save appointment:", error);
-        showError(
-            props.mode === "edit"
-                ? t("attendance", "Error updating appointment")
-                : t("attendance", "Error creating appointment"),
-        );
-    } finally {
-        saving.value = false;
-    }
-};
+		emit('saved', appointmentId)
+	} catch (error) {
+		console.error('Failed to save appointment:', error)
+		showError(
+			props.mode === 'edit'
+				? t('attendance', 'Error updating appointment')
+				: t('attendance', 'Error creating appointment'),
+		)
+	} finally {
+		saving.value = false
+	}
+}
 
 onMounted(async () => {
-    await loadTrackingGroups();
-    if (props.mode === "edit" || props.mode === "copy") {
-        await loadAppointment();
-    }
-});
+	await loadTrackingGroups()
+	if (props.mode === 'edit' || props.mode === 'copy') {
+		await loadAppointment()
+	}
+})
 </script>
 
 <style scoped lang="scss">

@@ -1,86 +1,82 @@
 <template>
-    <div class="non-responding-users">
-        <div class="non-responding-header">
-            {{ t("attendance", "No response yet:") }}
-        </div>
-        <div class="non-responding-list">
-            <span
-                v-for="(u, idx) in sortedUsers"
-                :key="u.userId"
-                class="non-responding-user"
-            >{{ u.displayName }}<NcPopover
-                    v-if="canManageAppointments && appointmentId"
-                    :shown="openPopover === u.userId"
-                    popup-role="dialog"
-                    class="remind-popover-wrapper"
-                    @update:shown="(val) => openPopover = val ? u.userId : null"
-                >
-                    <template #trigger>
-                        <button
-                            class="remind-btn"
-                            :disabled="remindingUsers.has(u.userId)"
-                        >
-                            <BellRingOutlineIcon :size="14" />
-                        </button>
-                    </template>
-                    <div class="remind-popover" role="dialog" aria-modal="true">
-                        <p>{{ t('attendance', 'Send a reminder to {name}?', { name: u.displayName }) }}</p>
-                        <NcButton
-                            variant="primary"
-                            :disabled="remindingUsers.has(u.userId)"
-                            @click="handleRemind(u.userId)"
-                        >
-                            <template #icon>
-                                <BellRingOutlineIcon :size="20" />
-                            </template>
-                            {{ t('attendance', 'Send reminder') }}
-                        </NcButton>
-                    </div>
-                </NcPopover><template v-if="idx < sortedUsers.length - 1">, </template>
-            </span>
-        </div>
-    </div>
+	<div class="non-responding-users">
+		<div class="non-responding-header">
+			{{ t("attendance", "No response yet:") }}
+		</div>
+		<div class="non-responding-list">
+			<span
+				v-for="(u, idx) in sortedUsers"
+				:key="u.userId"
+				class="non-responding-user">{{ u.displayName }}<NcPopover
+					v-if="canManageAppointments && appointmentId"
+					:shown="openPopover === u.userId"
+					popup-role="dialog"
+					class="remind-popover-wrapper"
+					@update:shown="(val) => openPopover = val ? u.userId : null">
+					<template #trigger>
+						<button
+							class="remind-btn"
+							:disabled="remindingUsers.has(u.userId)">
+							<BellRingOutlineIcon :size="14" />
+						</button>
+					</template>
+					<div class="remind-popover" role="dialog" aria-modal="true">
+						<p>{{ t('attendance', 'Send a reminder to {name}?', { name: u.displayName }) }}</p>
+						<NcButton
+							variant="primary"
+							:disabled="remindingUsers.has(u.userId)"
+							@click="handleRemind(u.userId)">
+							<template #icon>
+								<BellRingOutlineIcon :size="20" />
+							</template>
+							{{ t('attendance', 'Send reminder') }}
+						</NcButton>
+					</div>
+				</NcPopover><template v-if="idx < sortedUsers.length - 1">, </template>
+			</span>
+		</div>
+	</div>
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
-import { NcButton, NcPopover } from "@nextcloud/vue";
-import BellRingOutlineIcon from "vue-material-design-icons/BellRingOutline.vue";
+import { computed, ref } from 'vue'
+import { NcButton, NcPopover } from '@nextcloud/vue'
+import BellRingOutlineIcon from 'vue-material-design-icons/BellRingOutline.vue'
 
 const props = defineProps({
-    users: {
-        type: Array,
-        required: true,
-    },
-    canManageAppointments: {
-        type: Boolean,
-        default: false,
-    },
-    appointmentId: {
-        type: Number,
-        default: null,
-    },
-    remindingUsers: {
-        type: Set,
-        default: () => new Set(),
-    },
-});
+	users: {
+		type: Array,
+		required: true,
+	},
+	canManageAppointments: {
+		type: Boolean,
+		default: false,
+	},
+	appointmentId: {
+		type: Number,
+		default: null,
+	},
+	remindingUsers: {
+		type: Set,
+		default: () => new Set(),
+	},
+})
 
-const emit = defineEmits(["remind"]);
+const emit = defineEmits(['remind'])
 
-const openPopover = ref(null);
+const openPopover = ref(null)
 
 const handleRemind = (userId) => {
-    openPopover.value = null;
-    emit("remind", userId);
-};
+	openPopover.value = null
+	emit('remind', userId)
+}
 
 const sortedUsers = computed(() => {
-    if (!props.users || props.users.length === 0) return [];
-    return [...props.users].sort((a, b) =>
-        a.displayName.localeCompare(b.displayName),
-    );
-});
+	if (!props.users || props.users.length === 0) return []
+	return [...props.users].sort((a, b) =>
+		a.displayName.localeCompare(b.displayName),
+	)
+})
 </script>
 
 <style scoped lang="scss">

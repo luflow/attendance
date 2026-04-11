@@ -5,7 +5,7 @@
 
 		<div v-if="loadingData" class="loading-section">
 			<NcLoadingIcon :size="32" />
-			<p>{{ t('attendance', 'Loading settings …') }}</p>
+			<p>{{ t('attendance', 'Loading settings\u00A0…') }}</p>
 		</div>
 
 		<template v-else>
@@ -16,7 +16,7 @@
 				<GroupSelect
 					v-model="selectedGroups"
 					:options="availableGroups"
-					:placeholder="t('attendance', 'Select groups …')"
+					:placeholder="t('attendance', 'Select groups\u00A0…')"
 					:disabled="loading"
 					data-test="select-whitelisted-groups" />
 				<p class="hint-text">
@@ -25,13 +25,14 @@
 			</NcSettingsSection>
 
 			<!-- TRANSLATORS: Admin settings section title. Similar to groups above, but for Nextcloud Teams (formerly Circles). Teams selected here will have their own sections in the attendance statistics on the appointment detail page, showing how many team members responded yes/no/maybe. -->
-			<NcSettingsSection v-if="teamsAvailable" :name="t('attendance', 'Response summary teams')"
+			<NcSettingsSection v-if="teamsAvailable"
+				:name="t('attendance', 'Response summary teams')"
 				:description="t('attendance', 'Select which teams to include in response summaries. Team members will be grouped together like regular groups.')"
 				data-test="section-tracking-teams">
 				<NcSelect
 					v-model="selectedTeams"
 					:options="teamSearchResults"
-					:placeholder="t('attendance', 'Search and select teams …')"
+					:placeholder="t('attendance', 'Search and select teams\u00A0…')"
 					:multiple="true"
 					:disabled="loading"
 					:loading="isSearchingTeams"
@@ -68,7 +69,7 @@
 					<GroupSelect
 						v-model="selectedManageAppointmentsRoles"
 						:options="availableGroups"
-						:placeholder="t('attendance', 'Select groups …')"
+						:placeholder="t('attendance', 'Select groups\u00A0…')"
 						:disabled="loading"
 						data-test="select-manage-appointments-roles" />
 					<p class="hint-text">
@@ -84,7 +85,7 @@
 					<GroupSelect
 						v-model="selectedCheckinRoles"
 						:options="availableGroups"
-						:placeholder="t('attendance', 'Select groups …')"
+						:placeholder="t('attendance', 'Select groups\u00A0…')"
 						:disabled="loading"
 						data-test="select-checkin-roles" />
 					<p class="hint-text">
@@ -100,7 +101,7 @@
 					<GroupSelect
 						v-model="selectedSeeResponseOverviewRoles"
 						:options="availableGroups"
-						:placeholder="t('attendance', 'Select groups …')"
+						:placeholder="t('attendance', 'Select groups\u00A0…')"
 						:disabled="loading"
 						data-test="select-see-response-overview-roles" />
 					<p class="hint-text">
@@ -116,7 +117,7 @@
 					<GroupSelect
 						v-model="selectedSeeCommentsRoles"
 						:options="availableGroups"
-						:placeholder="t('attendance', 'Select groups …')"
+						:placeholder="t('attendance', 'Select groups\u00A0…')"
 						:disabled="loading"
 						data-test="select-see-comments-roles" />
 					<p class="hint-text">
@@ -228,7 +229,7 @@
 				</template>
 			</NcSettingsSection>
 
-		<div id="calendar-sync">
+			<div id="calendar-sync">
 				<NcSettingsSection
 					:name="t('attendance', 'Calendar sync')"
 					:description="t('attendance', 'Automatically update attendance appointments when their linked calendar events are modified.')">
@@ -412,8 +413,9 @@ const reminderPreviewDates = computed(() => {
 		dates.push({ date: new Date(effectiveStart), daysBefore, isFirst: true, isSingle: true })
 	} else {
 		// Repeated reminders every N days
-		let current = new Date(effectiveStart)
+		const current = new Date(effectiveStart)
 		let isFirst = true
+		// eslint-disable-next-line no-unmodified-loop-condition -- current is mutated via setDate()
 		while (current <= appointmentDay) {
 			const daysBefore = Math.round((appointmentDay - current) / (1000 * 60 * 60 * 24))
 			dates.push({ date: new Date(current), daysBefore, isFirst, isSingle: false })
@@ -530,7 +532,7 @@ const saveSettings = async () => {
 	loading.value = true
 
 	try {
-		const response = await axios.post(
+		await axios.post(
 			generateUrl('/apps/attendance/api/admin/settings'),
 			{
 				whitelistedGroups: selectedGroups.value.map(g => g.id),

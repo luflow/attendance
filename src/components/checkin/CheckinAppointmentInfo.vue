@@ -12,6 +12,7 @@
 				{{ formatDateRange(appointment.startDatetime, appointment.endDatetime) }}
 			</p>
 		</template>
+		<!-- eslint-disable-next-line vue/no-v-html -- sanitized with DOMPurify -->
 		<div v-if="appointment.description" class="appointment-description" v-html="renderedDescription" />
 	</div>
 </template>

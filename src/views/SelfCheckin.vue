@@ -80,7 +80,9 @@
 		<!-- Multiple Appointments: Let user choose -->
 		<template v-else>
 			<h2>{{ t('attendance', 'Which appointment?') }}</h2>
-			<p class="subtitle">{{ t('attendance', 'Select the appointment you want to check into:') }}</p>
+			<p class="subtitle">
+				{{ t('attendance', 'Select the appointment you want to check into:') }}
+			</p>
 			<div class="appointment-list">
 				<div
 					v-for="appointment in appointments"

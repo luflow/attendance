@@ -5,14 +5,14 @@
 				variant="success"
 				:disabled="disabled"
 				data-test="button-bulk-present"
-				@click="$emit('bulk-checkin', 'yes')">
+				@click="$emit('bulkCheckin', 'yes')">
 				{{ t('attendance', 'All present') }}
 			</NcButton>
 			<NcButton
 				variant="error"
 				:disabled="disabled"
 				data-test="button-bulk-absent"
-				@click="$emit('bulk-checkin', 'no')">
+				@click="$emit('bulkCheckin', 'no')">
 				{{ t('attendance', 'All absent') }}
 			</NcButton>
 		</div>
@@ -29,7 +29,7 @@ defineProps({
 	},
 })
 
-defineEmits(['bulk-checkin'])
+defineEmits(['bulkCheckin'])
 </script>
 
 <style scoped lang="scss">

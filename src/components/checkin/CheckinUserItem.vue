@@ -44,7 +44,7 @@
 						variant="tertiary"
 						data-test="button-add-comment"
 						:aria-label="t('attendance', 'Add comment')"
-						@click="$emit('toggle-comment', user.userId)">
+						@click="$emit('toggleComment', user.userId)">
 						<template #icon>
 							<CommentIcon :size="16" />
 						</template>
@@ -85,15 +85,15 @@
 					<NcTextArea
 						:model-value="commentValue"
 						:label="t('attendance', 'Check-in comment')"
-						:placeholder="t('attendance', 'Add a comment for this check-in …')"
+						:placeholder="t('attendance', 'Add a comment for this check-in\u00A0…')"
 						data-test="textarea-checkin-comment"
 						rows="2"
 						@update:model-value="$emit('update:commentValue', $event)" />
 					<div class="comment-actions">
-						<NcButton variant="primary" data-test="button-save-comment" @click="$emit('save-comment', user.userId)">
+						<NcButton variant="primary" data-test="button-save-comment" @click="$emit('saveComment', user.userId)">
 							{{ t('attendance', 'Save') }}
 						</NcButton>
-						<NcButton variant="tertiary" data-test="button-cancel-comment" @click="$emit('cancel-comment', user.userId)">
+						<NcButton variant="tertiary" data-test="button-cancel-comment" @click="$emit('cancelComment', user.userId)">
 							{{ t('attendance', 'Cancel') }}
 						</NcButton>
 					</div>
@@ -127,7 +127,7 @@ defineProps({
 	},
 })
 
-defineEmits(['checkin', 'toggle-comment', 'save-comment', 'cancel-comment', 'update:commentValue'])
+defineEmits(['checkin', 'toggleComment', 'saveComment', 'cancelComment', 'update:commentValue'])
 </script>
 
 <style scoped lang="scss">

@@ -20,7 +20,7 @@ const FREQUENCY_MAP = {
  * Compute the "Nth weekday" position of a date within its month.
  * e.g. 2026-02-18 (Wednesday) -> { n: 3, dayIndex: 3 } meaning "3rd Wednesday"
  *
- * @param {Date} date
+ * @param {Date} date - The date to compute position for
  * @return {{ n: number, dayIndex: number, dayKey: string }}
  */
 export function getMonthlyPosition(date) {

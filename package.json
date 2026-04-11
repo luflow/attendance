@@ -27,7 +27,7 @@
   "dependencies": {
     "@nextcloud/axios": "^2.5.1",
     "@nextcloud/dialogs": "^7.1.0",
-    "@nextcloud/initial-state": "^2.2.0",
+    "@nextcloud/initial-state": "^3.0.0",
     "@nextcloud/l10n": "^3.4.0",
     "@nextcloud/router": "^3.0.1",
     "@nextcloud/vue": "^9.3.0",
@@ -36,7 +36,7 @@
     "date-fns-tz": "^3.2.0",
     "dompurify": "^3.3.1",
     "easymde": "^2.20.0",
-    "marked": "^17.0.1",
+    "marked": "^18.0.0",
     "rrule": "^2.8.1",
     "vue": "^3.5.25",
     "vue-material-design-icons": "^5.3.1"
@@ -48,9 +48,9 @@
     "@nextcloud/stylelint-config": "^3.1.0",
     "@nextcloud/vite-config": "^2.5.2",
     "@playwright/test": "^1.57.0",
-    "@vue/tsconfig": "^0.8.1",
+    "@vue/tsconfig": "^0.9.1",
     "sass-embedded": "^1.83.0",
-    "typescript": "^5.7.2",
+    "typescript": "^6.0.2",
     "vite": "^7.2.4"
   }
 }

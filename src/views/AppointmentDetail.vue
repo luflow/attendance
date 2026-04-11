@@ -3,13 +3,13 @@
 		<div v-if="unansweredCount > 0"
 			class="unanswered-banner"
 			role="button"
-			@click="emit('navigate-to-unanswered')">
+			@click="emit('navigateToUnanswered')">
 			<ProgressQuestion :size="20" />
 			<span>{{ n('attendance', '%n appointment awaiting your response', '%n appointments awaiting your response', unansweredCount) }}</span>
 			<span class="banner-action">{{ t('attendance', 'View all') }} →</span>
 		</div>
 		<div v-if="loading" class="loading-state" data-test="loading-state">
-			{{ t('attendance', 'Loading …') }}
+			{{ t('attendance', 'Loading\u00A0…') }}
 		</div>
 		<div v-else-if="error" class="error-state" data-test="error-state">
 			<p>{{ error }}</p>
@@ -74,7 +74,7 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['response-updated', 'edit-appointment', 'copy-appointment', 'navigate-to-unanswered', 'appointment-deleted'])
+const emit = defineEmits(['responseUpdated', 'editAppointment', 'copyAppointment', 'navigateToUnanswered', 'appointmentDeleted'])
 
 const appointment = ref(null)
 const loading = ref(true)
@@ -88,7 +88,7 @@ const { permissions, config, loadPermissions } = usePermissions()
 // Use the shared response composable
 const { submitResponse: submitResponseApi } = useAppointmentResponse({
 	onSuccess: () => {
-		emit('response-updated')
+		emit('responseUpdated')
 		loadAppointmentSilently()
 	},
 	onError: () => {
@@ -105,11 +105,11 @@ const startCheckin = (appointmentId) => {
 }
 
 const editAppointment = (apt) => {
-	emit('edit-appointment', apt)
+	emit('editAppointment', apt)
 }
 
 const copyAppointment = (apt) => {
-	emit('copy-appointment', apt)
+	emit('copyAppointment', apt)
 }
 
 const deleteAppointment = () => {
@@ -123,7 +123,7 @@ const handleDeleteConfirm = async (scope) => {
 			data: { scope },
 		})
 		showSuccess(t('attendance', 'Appointment deleted'))
-		emit('appointment-deleted')
+		emit('appointmentDeleted')
 	} catch (err) {
 		console.error('Failed to delete appointment:', err)
 		showError(t('attendance', 'Error deleting appointment'))

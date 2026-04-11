@@ -1,486 +1,435 @@
 <template>
-    <div
-        v-if="responseSummary"
-        class="response-summary-detailed"
-        data-test="response-summary"
-    >
-        <h4>{{ t("attendance", "Response summary") }}</h4>
+	<div
+		v-if="responseSummary"
+		class="response-summary-detailed"
+		data-test="response-summary">
+		<h4>{{ t("attendance", "Response summary") }}</h4>
 
-        <!-- Overall Stats -->
-        <div class="summary-stats">
-            <NcChip
-                :text="`${t('attendance', 'Yes')}: ${responseSummary.yes}`"
-                variant="success"
-                no-close
-            />
-            <NcChip
-                :text="`${t('attendance', 'Maybe')}: ${responseSummary.maybe}`"
-                variant="warning"
-                no-close
-            />
-            <NcChip
-                :text="`${t('attendance', 'No')}: ${responseSummary.no}`"
-                variant="error"
-                no-close
-            />
-            <NcChip
-                :text="`${t('attendance', 'No response')}: ${responseSummary.no_response}`"
-                variant="tertiary"
-                no-close
-            />
-        </div>
+		<!-- Overall Stats -->
+		<div class="summary-stats">
+			<NcChip
+				:text="`${t('attendance', 'Yes')}: ${responseSummary.yes}`"
+				variant="success"
+				no-close />
+			<NcChip
+				:text="`${t('attendance', 'Maybe')}: ${responseSummary.maybe}`"
+				variant="warning"
+				no-close />
+			<NcChip
+				:text="`${t('attendance', 'No')}: ${responseSummary.no}`"
+				variant="error"
+				no-close />
+			<NcChip
+				:text="`${t('attendance', 'No response')}: ${responseSummary.no_response}`"
+				variant="tertiary"
+				no-close />
+		</div>
 
-        <!-- Unified Group/Team Summary -->
-        <div
-            v-if="hasGroupsOrTeams"
-            class="group-summary"
-            data-test="group-summary"
-        >
-            <!-- Groups -->
-            <div
-                v-for="(groupStats, groupId) in responseSummary.by_group"
-                :key="`group-${groupId}`"
-                class="group-container"
-                :data-test="`group-container-${groupId}`"
-            >
-                <div
-                    class="group-stats clickable"
-                    data-test="group-header"
-                    @click="toggleGroup(`group-${groupId}`)"
-                >
-                    <div class="group-name">
-                        <span
-                            class="expand-icon"
-                            :class="{
-                                expanded: expandedGroups[`group-${groupId}`],
-                            }"
-                            >▶</span
-                        >
-                        <AccountGroup :size="18" class="type-icon" />
-                        {{ groupId }}
-                    </div>
-                    <div class="group-counts">
-                        <NcChip
-                            :text="String(groupStats.yes)"
-                            variant="success"
-                            no-close
-                        />
-                        <NcChip
-                            :text="String(groupStats.maybe)"
-                            variant="warning"
-                            no-close
-                        />
-                        <NcChip
-                            :text="String(groupStats.no)"
-                            variant="error"
-                            no-close
-                        />
-                        <NcChip
-                            :text="String(groupStats.no_response)"
-                            variant="tertiary"
-                            no-close
-                        />
-                    </div>
-                </div>
+		<!-- Unified Group/Team Summary -->
+		<div
+			v-if="hasGroupsOrTeams"
+			class="group-summary"
+			data-test="group-summary">
+			<!-- Groups -->
+			<div
+				v-for="(groupStats, groupId) in responseSummary.by_group"
+				:key="`group-${groupId}`"
+				class="group-container"
+				:data-test="`group-container-${groupId}`">
+				<div
+					class="group-stats clickable"
+					data-test="group-header"
+					@click="toggleGroup(`group-${groupId}`)">
+					<div class="group-name">
+						<span
+							class="expand-icon"
+							:class="{
+								expanded: expandedGroups[`group-${groupId}`],
+							}">▶</span>
+						<AccountGroup :size="18" class="type-icon" />
+						{{ groupId }}
+					</div>
+					<div class="group-counts">
+						<NcChip
+							:text="String(groupStats.yes)"
+							variant="success"
+							no-close />
+						<NcChip
+							:text="String(groupStats.maybe)"
+							variant="warning"
+							no-close />
+						<NcChip
+							:text="String(groupStats.no)"
+							variant="error"
+							no-close />
+						<NcChip
+							:text="String(groupStats.no_response)"
+							variant="tertiary"
+							no-close />
+					</div>
+				</div>
 
-                <!-- Expanded Group Details -->
-                <div
-                    v-if="expandedGroups[`group-${groupId}`]"
-                    class="group-details"
-                >
-                    <!-- Show responses if any exist -->
-                    <div
-                        v-if="
-                            groupStats.responses &&
-                            groupStats.responses.length > 0
-                        "
-                        class="group-responses"
-                    >
-                        <div
-                            v-for="response in getSortedResponses(
-                                groupStats.responses,
-                            )"
-                            :key="response.id"
-                            class="response-item"
-                        >
-                            <div class="response-header">
-                                <div class="user-info">
-                                    <strong>{{ response.userName }}</strong>
-                                    <NcChip
-                                        :text="
-                                            getResponseText(response.response)
-                                        "
-                                        :variant="
-                                            getResponseVariant(
-                                                response.response,
-                                            )
-                                        "
-                                        no-close
-                                    />
-                                </div>
-                                <div
-                                    v-if="response.isCheckedIn"
-                                    class="checkin-info"
-                                >
-                                    <span class="checkin-badge">{{
-                                        t("attendance", "Checked in?")
-                                    }}</span>
-                                    <NcChip
-                                        :text="
-                                            getResponseText(
-                                                response.checkinState,
-                                            )
-                                        "
-                                        :variant="
-                                            getResponseVariant(
-                                                response.checkinState,
-                                            )
-                                        "
-                                        no-close
-                                    />
-                                </div>
-                            </div>
-                            <div
-                                v-if="
-                                    canSeeComments &&
-                                    response.comment &&
-                                    response.comment.trim()
-                                "
-                                class="response-comment"
-                            >
-                                {{ response.comment }}
-                            </div>
-                        </div>
-                    </div>
+				<!-- Expanded Group Details -->
+				<div
+					v-if="expandedGroups[`group-${groupId}`]"
+					class="group-details">
+					<!-- Show responses if any exist -->
+					<div
+						v-if="
+							groupStats.responses &&
+								groupStats.responses.length > 0
+						"
+						class="group-responses">
+						<div
+							v-for="response in getSortedResponses(
+								groupStats.responses,
+							)"
+							:key="response.id"
+							class="response-item">
+							<div class="response-header">
+								<div class="user-info">
+									<strong>{{ response.userName }}</strong>
+									<NcChip
+										:text="
+											getResponseText(response.response)
+										"
+										:variant="
+											getResponseVariant(
+												response.response,
+											)
+										"
+										no-close />
+								</div>
+								<div
+									v-if="response.isCheckedIn"
+									class="checkin-info">
+									<span class="checkin-badge">{{
+										t("attendance", "Checked in?")
+									}}</span>
+									<NcChip
+										:text="
+											getResponseText(
+												response.checkinState,
+											)
+										"
+										:variant="
+											getResponseVariant(
+												response.checkinState,
+											)
+										"
+										no-close />
+								</div>
+							</div>
+							<div
+								v-if="
+									canSeeComments &&
+										response.comment &&
+										response.comment.trim()
+								"
+								class="response-comment">
+								{{ response.comment }}
+							</div>
+						</div>
+					</div>
 
-                    <!-- Non-responding users -->
-                    <NonRespondingUserList
-                        v-if="
-                            groupStats.non_responding_users &&
-                            groupStats.non_responding_users.length > 0
-                        "
-                        :users="groupStats.non_responding_users"
-                        :can-manage-appointments="canManageAppointments"
-                        :appointment-id="appointmentId"
-                        :reminding-users="remindingUsers"
-                        @remind="remindUser"
-                    />
-                </div>
-            </div>
+					<!-- Non-responding users -->
+					<NonRespondingUserList
+						v-if="
+							groupStats.non_responding_users &&
+								groupStats.non_responding_users.length > 0
+						"
+						:users="groupStats.non_responding_users"
+						:can-manage-appointments="canManageAppointments"
+						:appointment-id="appointmentId"
+						:reminding-users="remindingUsers"
+						@remind="remindUser" />
+				</div>
+			</div>
 
-            <!-- Teams -->
-            <div
-                v-for="(teamStats, teamId) in responseSummary.by_team"
-                :key="`team-${teamId}`"
-                class="group-container"
-                :data-test="`team-container-${teamId}`"
-            >
-                <div
-                    class="group-stats clickable"
-                    data-test="team-header"
-                    @click="toggleGroup(`team-${teamId}`)"
-                >
-                    <div class="group-name">
-                        <span
-                            class="expand-icon"
-                            :class="{
-                                expanded: expandedGroups[`team-${teamId}`],
-                            }"
-                            >▶</span
-                        >
-                        <AccountStar :size="18" class="type-icon" />
-                        {{ teamStats.displayName || teamId }}
-                    </div>
-                    <div class="group-counts">
-                        <NcChip
-                            :text="String(teamStats.yes)"
-                            variant="success"
-                            no-close
-                        />
-                        <NcChip
-                            :text="String(teamStats.maybe)"
-                            variant="warning"
-                            no-close
-                        />
-                        <NcChip
-                            :text="String(teamStats.no)"
-                            variant="error"
-                            no-close
-                        />
-                        <NcChip
-                            :text="String(teamStats.no_response)"
-                            variant="tertiary"
-                            no-close
-                        />
-                    </div>
-                </div>
+			<!-- Teams -->
+			<div
+				v-for="(teamStats, teamId) in responseSummary.by_team"
+				:key="`team-${teamId}`"
+				class="group-container"
+				:data-test="`team-container-${teamId}`">
+				<div
+					class="group-stats clickable"
+					data-test="team-header"
+					@click="toggleGroup(`team-${teamId}`)">
+					<div class="group-name">
+						<span
+							class="expand-icon"
+							:class="{
+								expanded: expandedGroups[`team-${teamId}`],
+							}">▶</span>
+						<AccountStar :size="18" class="type-icon" />
+						{{ teamStats.displayName || teamId }}
+					</div>
+					<div class="group-counts">
+						<NcChip
+							:text="String(teamStats.yes)"
+							variant="success"
+							no-close />
+						<NcChip
+							:text="String(teamStats.maybe)"
+							variant="warning"
+							no-close />
+						<NcChip
+							:text="String(teamStats.no)"
+							variant="error"
+							no-close />
+						<NcChip
+							:text="String(teamStats.no_response)"
+							variant="tertiary"
+							no-close />
+					</div>
+				</div>
 
-                <!-- Expanded Team Details -->
-                <div
-                    v-if="expandedGroups[`team-${teamId}`]"
-                    class="group-details"
-                >
-                    <!-- Show responses if any exist -->
-                    <div
-                        v-if="
-                            teamStats.responses &&
-                            teamStats.responses.length > 0
-                        "
-                        class="group-responses"
-                    >
-                        <div
-                            v-for="response in getSortedResponses(
-                                teamStats.responses,
-                            )"
-                            :key="response.id"
-                            class="response-item"
-                        >
-                            <div class="response-header">
-                                <div class="user-info">
-                                    <strong>{{ response.userName }}</strong>
-                                    <NcChip
-                                        :text="
-                                            getResponseText(response.response)
-                                        "
-                                        :variant="
-                                            getResponseVariant(
-                                                response.response,
-                                            )
-                                        "
-                                        no-close
-                                    />
-                                </div>
-                                <div
-                                    v-if="response.isCheckedIn"
-                                    class="checkin-info"
-                                >
-                                    <span class="checkin-badge">{{
-                                        t("attendance", "Checked in?")
-                                    }}</span>
-                                    <NcChip
-                                        :text="
-                                            getResponseText(
-                                                response.checkinState,
-                                            )
-                                        "
-                                        :variant="
-                                            getResponseVariant(
-                                                response.checkinState,
-                                            )
-                                        "
-                                        no-close
-                                    />
-                                </div>
-                            </div>
-                            <div
-                                v-if="
-                                    canSeeComments &&
-                                    response.comment &&
-                                    response.comment.trim()
-                                "
-                                class="response-comment"
-                            >
-                                {{ response.comment }}
-                            </div>
-                        </div>
-                    </div>
+				<!-- Expanded Team Details -->
+				<div
+					v-if="expandedGroups[`team-${teamId}`]"
+					class="group-details">
+					<!-- Show responses if any exist -->
+					<div
+						v-if="
+							teamStats.responses &&
+								teamStats.responses.length > 0
+						"
+						class="group-responses">
+						<div
+							v-for="response in getSortedResponses(
+								teamStats.responses,
+							)"
+							:key="response.id"
+							class="response-item">
+							<div class="response-header">
+								<div class="user-info">
+									<strong>{{ response.userName }}</strong>
+									<NcChip
+										:text="
+											getResponseText(response.response)
+										"
+										:variant="
+											getResponseVariant(
+												response.response,
+											)
+										"
+										no-close />
+								</div>
+								<div
+									v-if="response.isCheckedIn"
+									class="checkin-info">
+									<span class="checkin-badge">{{
+										t("attendance", "Checked in?")
+									}}</span>
+									<NcChip
+										:text="
+											getResponseText(
+												response.checkinState,
+											)
+										"
+										:variant="
+											getResponseVariant(
+												response.checkinState,
+											)
+										"
+										no-close />
+								</div>
+							</div>
+							<div
+								v-if="
+									canSeeComments &&
+										response.comment &&
+										response.comment.trim()
+								"
+								class="response-comment">
+								{{ response.comment }}
+							</div>
+						</div>
+					</div>
 
-                    <!-- Non-responding users -->
-                    <NonRespondingUserList
-                        v-if="
-                            teamStats.non_responding_users &&
-                            teamStats.non_responding_users.length > 0
-                        "
-                        :users="teamStats.non_responding_users"
-                        :can-manage-appointments="canManageAppointments"
-                        :appointment-id="appointmentId"
-                        :reminding-users="remindingUsers"
-                        @remind="remindUser"
-                    />
-                </div>
-            </div>
+					<!-- Non-responding users -->
+					<NonRespondingUserList
+						v-if="
+							teamStats.non_responding_users &&
+								teamStats.non_responding_users.length > 0
+						"
+						:users="teamStats.non_responding_users"
+						:can-manage-appointments="canManageAppointments"
+						:appointment-id="appointmentId"
+						:reminding-users="remindingUsers"
+						@remind="remindUser" />
+				</div>
+			</div>
 
-            <!-- Others Section -->
-            <div
-                v-if="responseSummary.others && hasOthersResponses()"
-                class="group-container"
-            >
-                <div
-                    class="group-stats clickable"
-                    @click="toggleGroup('others')"
-                >
-                    <div class="group-name">
-                        <span
-                            class="expand-icon"
-                            :class="{ expanded: expandedGroups['others'] }"
-                            >▶</span
-                        >
-                        {{ t("attendance", "Others") }}
-                    </div>
-                    <div class="group-counts">
-                        <NcChip
-                            :text="String(responseSummary.others.yes)"
-                            variant="success"
-                            no-close
-                        />
-                        <NcChip
-                            :text="String(responseSummary.others.maybe)"
-                            variant="warning"
-                            no-close
-                        />
-                        <NcChip
-                            :text="String(responseSummary.others.no)"
-                            variant="error"
-                            no-close
-                        />
-                    </div>
-                </div>
+			<!-- Others Section -->
+			<div
+				v-if="responseSummary.others && hasOthersResponses()"
+				class="group-container">
+				<div
+					class="group-stats clickable"
+					@click="toggleGroup('others')">
+					<div class="group-name">
+						<span
+							class="expand-icon"
+							:class="{ expanded: expandedGroups['others'] }">▶</span>
+						{{ t("attendance", "Others") }}
+					</div>
+					<div class="group-counts">
+						<NcChip
+							:text="String(responseSummary.others.yes)"
+							variant="success"
+							no-close />
+						<NcChip
+							:text="String(responseSummary.others.maybe)"
+							variant="warning"
+							no-close />
+						<NcChip
+							:text="String(responseSummary.others.no)"
+							variant="error"
+							no-close />
+					</div>
+				</div>
 
-                <!-- Expanded Others Details -->
-                <div v-if="expandedGroups['others']" class="group-details">
-                    <div
-                        v-if="responseSummary.others.responses.length > 0"
-                        class="group-responses"
-                    >
-                        <div
-                            v-for="response in getSortedResponses(
-                                responseSummary.others.responses,
-                            )"
-                            :key="response.id"
-                            class="response-item"
-                        >
-                            <div class="response-header">
-                                <div class="user-info">
-                                    <strong>{{ response.userName }}</strong>
-                                    <NcChip
-                                        :text="
-                                            getResponseText(response.response)
-                                        "
-                                        :variant="
-                                            getResponseVariant(
-                                                response.response,
-                                            )
-                                        "
-                                        no-close
-                                    />
-                                </div>
-                                <div
-                                    v-if="response.isCheckedIn"
-                                    class="checkin-info"
-                                >
-                                    <span class="checkin-badge">{{
-                                        t("attendance", "Checked in?")
-                                    }}</span>
-                                    <NcChip
-                                        :text="
-                                            getResponseText(
-                                                response.checkinState,
-                                            )
-                                        "
-                                        :variant="
-                                            getResponseVariant(
-                                                response.checkinState,
-                                            )
-                                        "
-                                        no-close
-                                    />
-                                </div>
-                            </div>
-                            <div
-                                v-if="
-                                    canSeeComments &&
-                                    response.comment &&
-                                    response.comment.trim()
-                                "
-                                class="response-comment"
-                            >
-                                {{ response.comment }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+				<!-- Expanded Others Details -->
+				<div v-if="expandedGroups['others']" class="group-details">
+					<div
+						v-if="responseSummary.others.responses.length > 0"
+						class="group-responses">
+						<div
+							v-for="response in getSortedResponses(
+								responseSummary.others.responses,
+							)"
+							:key="response.id"
+							class="response-item">
+							<div class="response-header">
+								<div class="user-info">
+									<strong>{{ response.userName }}</strong>
+									<NcChip
+										:text="
+											getResponseText(response.response)
+										"
+										:variant="
+											getResponseVariant(
+												response.response,
+											)
+										"
+										no-close />
+								</div>
+								<div
+									v-if="response.isCheckedIn"
+									class="checkin-info">
+									<span class="checkin-badge">{{
+										t("attendance", "Checked in?")
+									}}</span>
+									<NcChip
+										:text="
+											getResponseText(
+												response.checkinState,
+											)
+										"
+										:variant="
+											getResponseVariant(
+												response.checkinState,
+											)
+										"
+										no-close />
+								</div>
+							</div>
+							<div
+								v-if="
+									canSeeComments &&
+										response.comment &&
+										response.comment.trim()
+								"
+								class="response-comment">
+								{{ response.comment }}
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 </template>
 
 <script setup>
-import { reactive, ref, computed } from "vue";
-import { NcChip } from "@nextcloud/vue";
-import { generateUrl } from "@nextcloud/router";
-import { showSuccess, showError } from "@nextcloud/dialogs";
-import axios from "@nextcloud/axios";
-import AccountGroup from "vue-material-design-icons/AccountGroup.vue";
-import AccountStar from "vue-material-design-icons/AccountStar.vue";
-import NonRespondingUserList from "./NonRespondingUserList.vue";
-import { getResponseText, getResponseVariant } from "../../utils/response.js";
+import { reactive, ref, computed } from 'vue'
+import { NcChip } from '@nextcloud/vue'
+import { generateUrl } from '@nextcloud/router'
+import { showSuccess, showError } from '@nextcloud/dialogs'
+import axios from '@nextcloud/axios'
+import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
+import AccountStar from 'vue-material-design-icons/AccountStar.vue'
+import NonRespondingUserList from './NonRespondingUserList.vue'
+import { getResponseText, getResponseVariant } from '../../utils/response.js'
 
 const props = defineProps({
-    responseSummary: {
-        type: Object,
-        default: null,
-    },
-    canSeeComments: {
-        type: Boolean,
-        default: true,
-    },
-    canManageAppointments: {
-        type: Boolean,
-        default: false,
-    },
-    appointmentId: {
-        type: Number,
-        default: null,
-    },
-});
+	responseSummary: {
+		type: Object,
+		default: null,
+	},
+	canSeeComments: {
+		type: Boolean,
+		default: true,
+	},
+	canManageAppointments: {
+		type: Boolean,
+		default: false,
+	},
+	appointmentId: {
+		type: Number,
+		default: null,
+	},
+})
 
-const expandedGroups = ref({});
-const remindingUsers = reactive(new Set());
+const expandedGroups = ref({})
+const remindingUsers = reactive(new Set())
 
 const remindUser = async (userId) => {
-    if (!props.appointmentId) return;
-    remindingUsers.add(userId);
-    try {
-        await axios.post(
-            generateUrl(`/apps/attendance/api/appointments/${props.appointmentId}/remind/${userId}`),
-        );
-        showSuccess(t("attendance", "Reminder sent"));
-    } catch (error) {
-        console.error("Failed to send reminder:", error);
-        showError(t("attendance", "Failed to send reminder"));
-    } finally {
-        remindingUsers.delete(userId);
-    }
-};
+	if (!props.appointmentId) return
+	remindingUsers.add(userId)
+	try {
+		await axios.post(
+			generateUrl(`/apps/attendance/api/appointments/${props.appointmentId}/remind/${userId}`),
+		)
+		showSuccess(t('attendance', 'Reminder sent'))
+	} catch (error) {
+		console.error('Failed to send reminder:', error)
+		showError(t('attendance', 'Failed to send reminder'))
+	} finally {
+		remindingUsers.delete(userId)
+	}
+}
 
 const hasGroupsOrTeams = computed(() => {
-    if (!props.responseSummary) return false;
-    const hasGroups =
-        props.responseSummary.by_group &&
-        Object.keys(props.responseSummary.by_group).length > 0;
-    const hasTeams =
-        props.responseSummary.by_team &&
-        Object.keys(props.responseSummary.by_team).length > 0;
-    return hasGroups || hasTeams;
-});
+	if (!props.responseSummary) return false
+	const hasGroups
+        = props.responseSummary.by_group
+        && Object.keys(props.responseSummary.by_group).length > 0
+	const hasTeams
+        = props.responseSummary.by_team
+        && Object.keys(props.responseSummary.by_team).length > 0
+	return hasGroups || hasTeams
+})
 
 const toggleGroup = (groupId) => {
-    expandedGroups.value[groupId] = !expandedGroups.value[groupId];
-};
+	expandedGroups.value[groupId] = !expandedGroups.value[groupId]
+}
 
 const getSortedResponses = (responses) => {
-    if (!responses || responses.length === 0) return [];
-    return [...responses].sort((a, b) => a.userName.localeCompare(b.userName));
-};
+	if (!responses || responses.length === 0) return []
+	return [...responses].sort((a, b) => a.userName.localeCompare(b.userName))
+}
 
 const hasOthersResponses = () => {
-    if (!props.responseSummary?.others) return false;
-    return (
-        props.responseSummary.others.yes > 0 ||
-        props.responseSummary.others.maybe > 0 ||
-        props.responseSummary.others.no > 0
-    );
-};
+	if (!props.responseSummary?.others) return false
+	return (
+		props.responseSummary.others.yes > 0
+        || props.responseSummary.others.maybe > 0
+        || props.responseSummary.others.no > 0
+	)
+}
 </script>
 
 <style scoped lang="scss">

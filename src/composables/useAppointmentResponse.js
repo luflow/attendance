@@ -230,9 +230,9 @@ export function useMultiAppointmentResponse(options = {}) {
 
 	/**
 	 * Submit a response to an appointment.
-	 * @param appointmentId
-	 * @param response
-	 * @param comment
+	 * @param {number} appointmentId - The appointment ID
+	 * @param {string} response - The response value (yes/no/maybe)
+	 * @param {string} comment - Optional comment text
 	 */
 	const submitResponse = async (appointmentId, response, comment = '') => {
 		try {
@@ -267,9 +267,9 @@ export function useMultiAppointmentResponse(options = {}) {
 
 	/**
 	 * Auto-save comment for a specific appointment.
-	 * @param appointmentId
-	 * @param currentResponse
-	 * @param commentText
+	 * @param {number} appointmentId - The appointment ID
+	 * @param {string} currentResponse - The current response value
+	 * @param {string} commentText - The comment text to save
 	 */
 	const autoSaveComment = async (appointmentId, currentResponse, commentText) => {
 		if (!currentResponse) return
@@ -307,10 +307,10 @@ export function useMultiAppointmentResponse(options = {}) {
 
 	/**
 	 * Handle comment input with debouncing.
-	 * @param appointmentId
-	 * @param getCommentText
-	 * @param getCurrentResponse
-	 * @param delay
+	 * @param {number} appointmentId - The appointment ID
+	 * @param {Function} getCommentText - Getter function for comment text
+	 * @param {Function} getCurrentResponse - Getter function for current response
+	 * @param {number} delay - Debounce delay in milliseconds
 	 */
 	const onCommentInput = (appointmentId, getCommentText, getCurrentResponse, delay = 500) => {
 		if (commentTimeouts[appointmentId]) {
@@ -327,19 +327,19 @@ export function useMultiAppointmentResponse(options = {}) {
 
 	/**
 	 * Check if comment is being saved for an appointment.
-	 * @param appointmentId
+	 * @param {number} appointmentId - The appointment ID
 	 */
 	const isSaving = (appointmentId) => !!savingComments[appointmentId]
 
 	/**
 	 * Check if comment was saved for an appointment.
-	 * @param appointmentId
+	 * @param {number} appointmentId - The appointment ID
 	 */
 	const isSaved = (appointmentId) => !!savedComments[appointmentId]
 
 	/**
 	 * Check if comment save failed for an appointment.
-	 * @param appointmentId
+	 * @param {number} appointmentId - The appointment ID
 	 */
 	const hasError = (appointmentId) => !!errorComments[appointmentId]
 

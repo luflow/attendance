@@ -2,7 +2,7 @@
 	<div class="attendance-container">
 		<!-- Unanswered reminder banner (shown on upcoming view when there are unanswered appointments) -->
 		<div v-if="!showUnanswered && !showPast && !loading && unansweredCount > 0" class="unanswered-banner-container">
-			<div class="unanswered-banner pending clickable" role="button" @click="emit('navigate-to-unanswered')">
+			<div class="unanswered-banner pending clickable" role="button" @click="emit('navigateToUnanswered')">
 				<ProgressQuestion :size="20" />
 				<span>{{ n('attendance', '%n appointment awaiting your response', '%n appointments awaiting your response', unansweredCount) }}</span>
 				<span class="banner-action">{{ t('attendance', 'View all') }} →</span>
@@ -27,7 +27,7 @@
 		<!-- Appointments List -->
 		<div class="appointments-list">
 			<div v-if="loading" class="loading">
-				{{ t('attendance', 'Loading …') }}
+				{{ t('attendance', 'Loading\u00A0…') }}
 			</div>
 			<div v-else-if="appointments.length === 0 && !showUnanswered" class="empty-state">
 				{{ t('attendance', 'No appointments found') }}
@@ -75,10 +75,9 @@ import AppointmentCard from '../components/appointment/AppointmentCard.vue'
 import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
 import DeleteAppointmentDialog from '../components/appointment/DeleteAppointmentDialog.vue'
 import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
-import confettiLib from 'canvas-confetti'
+import { create as createConfetti } from 'canvas-confetti'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { showSuccess, showError } from '@nextcloud/dialogs'
 import { usePermissions } from '../composables/usePermissions.js'
 import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
 
@@ -93,7 +92,7 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['response-updated', 'edit-appointment', 'copy-appointment', 'navigate-to-upcoming', 'navigate-to-unanswered', 'appointment-deleted'])
+const emit = defineEmits(['responseUpdated', 'editAppointment', 'copyAppointment', 'navigateToUpcoming', 'navigateToUnanswered', 'appointmentDeleted'])
 
 const appointments = ref([])
 const exportDialogVisible = ref(false)
@@ -102,7 +101,7 @@ const showDeleteDialog = ref(false)
 const pendingDeleteAppointment = ref(null)
 
 const goToUpcoming = () => {
-	emit('navigate-to-upcoming')
+	emit('navigateToUpcoming')
 }
 
 const unansweredCount = computed(() => {
@@ -116,7 +115,7 @@ const { permissions, config, loadPermissions } = usePermissions()
 // Use the shared response composable
 const { submitResponse: submitResponseApi } = useAppointmentResponse({
 	onSuccess: () => {
-		emit('response-updated')
+		emit('responseUpdated')
 		loadAppointments(true)
 	},
 })
@@ -191,18 +190,18 @@ const handleDeleteConfirm = async (scope) => {
 			data: { scope },
 		})
 		await loadAppointments(true)
-		emit('appointment-deleted')
+		emit('appointmentDeleted')
 	} catch (error) {
 		console.error('Failed to delete appointment:', error)
 	}
 }
 
 const editAppointment = (appointment) => {
-	emit('edit-appointment', appointment)
+	emit('editAppointment', appointment)
 }
 
 const copyAppointment = (appointment) => {
-	emit('copy-appointment', appointment)
+	emit('copyAppointment', appointment)
 }
 
 const startCheckin = (appointmentId) => {
@@ -229,7 +228,7 @@ const getConfetti = () => {
 		confettiCanvas.style.pointerEvents = 'none'
 		confettiCanvas.style.zIndex = '9999'
 		document.body.appendChild(confettiCanvas)
-		confettiInstance = confettiLib.create(confettiCanvas, { resize: true, useWorker: false })
+		confettiInstance = createConfetti(confettiCanvas, { resize: true, useWorker: false })
 	}
 	return confettiInstance
 }

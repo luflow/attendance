@@ -1,535 +1,511 @@
 <template>
-    <div class="appointment-card" data-test="appointment-card">
-        <div class="appointment-header">
-            <div class="appointment-title-block">
-                <template v-if="displayOrder === 'date_first'">
-                    <h3 data-test="appointment-title" class="appointment-date-title">
-                        {{
-                            formatDateRange(
-                                appointment.startDatetime,
-                                appointment.endDatetime,
-                            )
-                        }}
-                        <a
-                            v-if="calendarLink"
-                            :href="calendarLink"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="calendar-link"
-                            :title="t('attendance', 'Imported from calendar')"
-                        >
-                            <CalendarSyncIcon :size="14" />
-                        </a>
-                        <span
-                            v-if="appointment.seriesId"
-                            class="series-indicator"
-                            :title="t('attendance', 'Part of a recurring series')"
-                        >
-                            <RepeatIcon :size="14" />
-                        </span>
-                    </h3>
-                    <span class="appointment-date-subtitle">
-                        {{ appointment.name }}
-                    </span>
-                </template>
-                <template v-else>
-                    <h3 data-test="appointment-title">
-                        {{ appointment.name }}
-                        <span
-                            v-if="appointment.seriesId"
-                            class="series-indicator"
-                            :title="t('attendance', 'Part of a recurring series')"
-                        >
-                            <RepeatIcon :size="14" />
-                        </span>
-                    </h3>
-                    <span class="appointment-date-subtitle">
-                        {{
-                            formatDateRange(
-                                appointment.startDatetime,
-                                appointment.endDatetime,
-                            )
-                        }}
-                        <a
-                            v-if="calendarLink"
-                            :href="calendarLink"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="calendar-link"
-                            :title="t('attendance', 'Imported from calendar')"
-                        >
-                            <CalendarSyncIcon :size="14" />
-                        </a>
-                    </span>
-                </template>
-            </div>
-            <div class="appointment-actions">
-                <NcActions
-                    :force-menu="true"
-                    data-test="appointment-actions-menu"
-                >
-                    <NcActionButton
-                        :close-after-click="true"
-                        data-test="action-share-link"
-                        @click="copyShareLink"
-                    >
-                        <template #icon>
-                            <ShareVariantIcon :size="20" />
-                        </template>
-                        {{ t("attendance", "Share link") }}
-                    </NcActionButton>
-                    <NcActionButton
-                        v-if="canCheckin"
-                        :close-after-click="true"
-                        data-test="action-start-checkin"
-                        @click="handleStartCheckin"
-                    >
-                        <template #icon>
-                            <ListStatusIcon :size="20" />
-                        </template>
-                        {{ t("attendance", "Start check-in") }}
-                    </NcActionButton>
-                    <NcActionButton
-                        v-if="canManageAppointments"
-                        :close-after-click="true"
-                        :disabled="sendingReminders"
-                        data-test="action-remind-all"
-                        @click="handleRemindAll"
-                    >
-                        <template #icon>
-                            <BellRingIcon :size="20" />
-                        </template>
-                        {{ t("attendance", "Remind unanswered") }}
-                    </NcActionButton>
-                    <NcActionButton
-                        v-if="canManageAppointments"
-                        :close-after-click="true"
-                        data-test="action-edit"
-                        @click="handleEdit"
-                    >
-                        <template #icon>
-                            <Pencil :size="20" />
-                        </template>
-                        {{ t("attendance", "Edit") }}
-                    </NcActionButton>
-                    <NcActionButton
-                        v-if="canManageAppointments"
-                        :close-after-click="true"
-                        data-test="action-export"
-                        @click="handleExport"
-                    >
-                        <template #icon>
-                            <DownloadIcon :size="20" />
-                        </template>
-                        {{ t("attendance", "Export") }}
-                    </NcActionButton>
-                    <NcActionButton
-                        v-if="canManageAppointments"
-                        :close-after-click="true"
-                        data-test="action-copy"
-                        @click="handleCopy"
-                    >
-                        <template #icon>
-                            <ContentCopy :size="20" />
-                        </template>
-                        {{ t("attendance", "Copy") }}
-                    </NcActionButton>
-                    <NcActionButton
-                        v-if="canManageAppointments"
-                        :close-after-click="true"
-                        data-test="action-delete"
-                        @click="handleDelete"
-                    >
-                        <template #icon>
-                            <Delete :size="20" />
-                        </template>
-                        {{ t("attendance", "Delete") }}
-                    </NcActionButton>
-                </NcActions>
-            </div>
-        </div>
+	<div class="appointment-card" data-test="appointment-card">
+		<div class="appointment-header">
+			<div class="appointment-title-block">
+				<template v-if="displayOrder === 'date_first'">
+					<h3 data-test="appointment-title" class="appointment-date-title">
+						{{
+							formatDateRange(
+								appointment.startDatetime,
+								appointment.endDatetime,
+							)
+						}}
+						<a
+							v-if="calendarLink"
+							:href="calendarLink"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="calendar-link"
+							:title="t('attendance', 'Imported from calendar')">
+							<CalendarSyncIcon :size="14" />
+						</a>
+						<span
+							v-if="appointment.seriesId"
+							class="series-indicator"
+							:title="t('attendance', 'Part of a recurring series')">
+							<RepeatIcon :size="14" />
+						</span>
+					</h3>
+					<span class="appointment-date-subtitle">
+						{{ appointment.name }}
+					</span>
+				</template>
+				<template v-else>
+					<h3 data-test="appointment-title">
+						{{ appointment.name }}
+						<span
+							v-if="appointment.seriesId"
+							class="series-indicator"
+							:title="t('attendance', 'Part of a recurring series')">
+							<RepeatIcon :size="14" />
+						</span>
+					</h3>
+					<span class="appointment-date-subtitle">
+						{{
+							formatDateRange(
+								appointment.startDatetime,
+								appointment.endDatetime,
+							)
+						}}
+						<a
+							v-if="calendarLink"
+							:href="calendarLink"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="calendar-link"
+							:title="t('attendance', 'Imported from calendar')">
+							<CalendarSyncIcon :size="14" />
+						</a>
+					</span>
+				</template>
+			</div>
+			<div class="appointment-actions">
+				<NcActions
+					:force-menu="true"
+					data-test="appointment-actions-menu">
+					<NcActionButton
+						:close-after-click="true"
+						data-test="action-share-link"
+						@click="copyShareLink">
+						<template #icon>
+							<ShareVariantIcon :size="20" />
+						</template>
+						{{ t("attendance", "Share link") }}
+					</NcActionButton>
+					<NcActionButton
+						v-if="canCheckin"
+						:close-after-click="true"
+						data-test="action-start-checkin"
+						@click="handleStartCheckin">
+						<template #icon>
+							<ListStatusIcon :size="20" />
+						</template>
+						{{ t("attendance", "Start check-in") }}
+					</NcActionButton>
+					<NcActionButton
+						v-if="canManageAppointments"
+						:close-after-click="true"
+						:disabled="sendingReminders"
+						data-test="action-remind-all"
+						@click="handleRemindAll">
+						<template #icon>
+							<BellRingIcon :size="20" />
+						</template>
+						{{ t("attendance", "Remind unanswered") }}
+					</NcActionButton>
+					<NcActionButton
+						v-if="canManageAppointments"
+						:close-after-click="true"
+						data-test="action-edit"
+						@click="handleEdit">
+						<template #icon>
+							<Pencil :size="20" />
+						</template>
+						{{ t("attendance", "Edit") }}
+					</NcActionButton>
+					<NcActionButton
+						v-if="canManageAppointments"
+						:close-after-click="true"
+						data-test="action-export"
+						@click="handleExport">
+						<template #icon>
+							<DownloadIcon :size="20" />
+						</template>
+						{{ t("attendance", "Export") }}
+					</NcActionButton>
+					<NcActionButton
+						v-if="canManageAppointments"
+						:close-after-click="true"
+						data-test="action-copy"
+						@click="handleCopy">
+						<template #icon>
+							<ContentCopy :size="20" />
+						</template>
+						{{ t("attendance", "Copy") }}
+					</NcActionButton>
+					<NcActionButton
+						v-if="canManageAppointments"
+						:close-after-click="true"
+						data-test="action-delete"
+						@click="handleDelete">
+						<template #icon>
+							<Delete :size="20" />
+						</template>
+						{{ t("attendance", "Delete") }}
+					</NcActionButton>
+				</NcActions>
+			</div>
+		</div>
 
-        <div
-            v-if="appointment.description"
-            class="appointment-description"
-            v-html="renderedDescription"
-        />
+		<!-- eslint-disable vue/no-v-html -- sanitized with DOMPurify -->
+		<div
+			v-if="appointment.description"
+			class="appointment-description"
+			v-html="renderedDescription" />
+		<!-- eslint-enable vue/no-v-html -->
 
-        <div
-            v-if="appointment.attachments?.length"
-            class="attachment-chips"
-            data-test="attachment-chips"
-        >
-            <a
-                v-for="attachment in appointment.attachments"
-                :key="attachment.fileId"
-                :href="getAttachmentUrl(attachment)"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="attachment-link"
-                :data-test="`attachment-link-${attachment.fileId}`"
-            >
-                <NcChip :text="attachment.fileName" no-close>
-                    <template #icon>
-                        <Paperclip :size="16" />
-                    </template>
-                </NcChip>
-            </a>
-        </div>
+		<div
+			v-if="appointment.attachments?.length"
+			class="attachment-chips"
+			data-test="attachment-chips">
+			<a
+				v-for="attachment in appointment.attachments"
+				:key="attachment.fileId"
+				:href="getAttachmentUrl(attachment)"
+				target="_blank"
+				rel="noopener noreferrer"
+				class="attachment-link"
+				:data-test="`attachment-link-${attachment.fileId}`">
+				<NcChip :text="attachment.fileName" no-close>
+					<template #icon>
+						<Paperclip :size="16" />
+					</template>
+				</NcChip>
+			</a>
+		</div>
 
-        <!-- Response Section -->
-        <div class="response-section" data-test="response-section">
-            <h4>{{ t("attendance", "Your response") }}</h4>
-            <div
-                class="response-buttons"
-                :class="{ 'has-response': userResponse }"
-            >
-                <NcButton
-                    :class="{ active: userResponse === 'yes' }"
-                    variant="success"
-                    :text="t('attendance', 'Yes')"
-                    data-test="response-yes"
-                    @click="handleResponse('yes')"
-                />
-                <NcButton
-                    :class="{ active: userResponse === 'maybe' }"
-                    variant="warning"
-                    :text="t('attendance', 'Maybe')"
-                    data-test="response-maybe"
-                    @click="handleResponse('maybe')"
-                />
-                <NcButton
-                    :class="{ active: userResponse === 'no' }"
-                    variant="error"
-                    :text="t('attendance', 'No')"
-                    data-test="response-no"
-                    @click="handleResponse('no')"
-                />
-                <!-- Comment Toggle Button (only show when user has responded) -->
-                <NcButton
-                    v-if="userResponse"
-                    :class="{
-                        'comment-active': commentExpanded,
-                        'comment-toggle': true,
-                    }"
-                    variant="tertiary"
-                    data-test="button-toggle-comment"
-                    @click="toggleComment"
-                >
-                    <template #icon>
-                        <CommentIcon :size="20" />
-                    </template>
-                </NcButton>
-            </div>
+		<!-- Response Section -->
+		<div class="response-section" data-test="response-section">
+			<h4>{{ t("attendance", "Your response") }}</h4>
+			<div
+				class="response-buttons"
+				:class="{ 'has-response': userResponse }">
+				<NcButton
+					:class="{ active: userResponse === 'yes' }"
+					variant="success"
+					:text="t('attendance', 'Yes')"
+					data-test="response-yes"
+					@click="handleResponse('yes')" />
+				<NcButton
+					:class="{ active: userResponse === 'maybe' }"
+					variant="warning"
+					:text="t('attendance', 'Maybe')"
+					data-test="response-maybe"
+					@click="handleResponse('maybe')" />
+				<NcButton
+					:class="{ active: userResponse === 'no' }"
+					variant="error"
+					:text="t('attendance', 'No')"
+					data-test="response-no"
+					@click="handleResponse('no')" />
+				<!-- Comment Toggle Button (only show when user has responded) -->
+				<NcButton
+					v-if="userResponse"
+					:class="{
+						'comment-active': commentExpanded,
+						'comment-toggle': true,
+					}"
+					variant="tertiary"
+					data-test="button-toggle-comment"
+					@click="toggleComment">
+					<template #icon>
+						<CommentIcon :size="20" />
+					</template>
+				</NcButton>
+			</div>
 
-            <!-- Comment Section -->
-            <div v-if="commentExpanded" class="comment-section">
-                <div class="textarea-container">
-                    <NcInputField
-                        ref="commentInput"
-                        v-model="localComment"
-                        type="text"
-                        :label="t('attendance', 'Comment (optional)')"
-                        :placeholder="t('attendance', 'Add your comment …')"
-                        data-test="response-comment"
-                        @update:model-value="handleCommentInputEvent"
-                    />
+			<!-- Comment Section -->
+			<div v-if="commentExpanded" class="comment-section">
+				<div class="textarea-container">
+					<NcInputField
+						ref="commentInput"
+						v-model="localComment"
+						type="text"
+						:label="t('attendance', 'Comment (optional)')"
+						:placeholder="t('attendance', 'Add your comment\u00A0…')"
+						data-test="response-comment"
+						@update:model-value="handleCommentInputEvent" />
 
-                    <div v-if="savingComment" class="saving-spinner">
-                        <div class="spinner" />
-                    </div>
-                    <div v-else-if="commentSaved" class="saved-indicator">
-                        <CheckIcon :size="16" class="check-icon" />
-                    </div>
-                    <div v-else-if="errorComment" class="error-indicator">
-                        <CloseCircle :size="16" class="error-icon" />
-                    </div>
-                </div>
-            </div>
-        </div>
+					<div v-if="savingComment" class="saving-spinner">
+						<div class="spinner" />
+					</div>
+					<div v-else-if="commentSaved" class="saved-indicator">
+						<CheckIcon :size="16" class="check-icon" />
+					</div>
+					<div v-else-if="errorComment" class="error-indicator">
+						<CloseCircle :size="16" class="error-icon" />
+					</div>
+				</div>
+			</div>
+		</div>
 
-        <!-- Checkin Summary (only shown when checkins exist and user can see response overview) -->
-        <div
-            v-if="
-                canSeeResponseOverview &&
-                appointment.checkinSummary?.hasCheckins
-            "
-            class="checkin-summary"
-            data-test="checkin-summary"
-        >
-            <h4>{{ t("attendance", "Check-in summary") }}</h4>
-            <div class="summary-stats">
-                <NcChip
-                    :text="
-                        t('attendance', '{count} attended', {
-                            count: appointment.checkinSummary.attended,
-                        })
-                    "
-                    variant="success"
-                    no-close
-                >
-                    <template #icon>
-                        <CheckIcon :size="16" />
-                    </template>
-                </NcChip>
-                <NcChip
-                    :text="
-                        t('attendance', '{count} absent', {
-                            count: appointment.checkinSummary.absent,
-                        })
-                    "
-                    variant="error"
-                    no-close
-                >
-                    <template #icon>
-                        <CloseIcon :size="16" />
-                    </template>
-                </NcChip>
-                <NcChip
-                    v-if="appointment.checkinSummary.notCheckedIn > 0"
-                    :text="
-                        t('attendance', '{count} pending', {
-                            count: appointment.checkinSummary.notCheckedIn,
-                        })
-                    "
-                    variant="tertiary"
-                    no-close
-                >
-                    <template #icon>
-                        <HelpCircleOutlineIcon :size="16" />
-                    </template>
-                </NcChip>
-            </div>
-        </div>
+		<!-- Checkin Summary (only shown when checkins exist and user can see response overview) -->
+		<div
+			v-if="
+				canSeeResponseOverview &&
+					appointment.checkinSummary?.hasCheckins
+			"
+			class="checkin-summary"
+			data-test="checkin-summary">
+			<h4>{{ t("attendance", "Check-in summary") }}</h4>
+			<div class="summary-stats">
+				<NcChip
+					:text="
+						t('attendance', '{count} attended', {
+							count: appointment.checkinSummary.attended,
+						})
+					"
+					variant="success"
+					no-close>
+					<template #icon>
+						<CheckIcon :size="16" />
+					</template>
+				</NcChip>
+				<NcChip
+					:text="
+						t('attendance', '{count} absent', {
+							count: appointment.checkinSummary.absent,
+						})
+					"
+					variant="error"
+					no-close>
+					<template #icon>
+						<CloseIcon :size="16" />
+					</template>
+				</NcChip>
+				<NcChip
+					v-if="appointment.checkinSummary.notCheckedIn > 0"
+					:text="
+						t('attendance', '{count} pending', {
+							count: appointment.checkinSummary.notCheckedIn,
+						})
+					"
+					variant="tertiary"
+					no-close>
+					<template #icon>
+						<HelpCircleOutlineIcon :size="16" />
+					</template>
+				</NcChip>
+			</div>
+		</div>
 
-        <!-- Detailed Response Summary -->
-        <ResponseSummary
-            v-if="canSeeResponseOverview && appointment.responseSummary"
-            :response-summary="appointment.responseSummary"
-            :can-see-comments="canSeeComments"
-            :can-manage-appointments="canManageAppointments"
-            :appointment-id="appointment.id"
-        />
-    </div>
+		<!-- Detailed Response Summary -->
+		<ResponseSummary
+			v-if="canSeeResponseOverview && appointment.responseSummary"
+			:response-summary="appointment.responseSummary"
+			:can-see-comments="canSeeComments"
+			:can-manage-appointments="canManageAppointments"
+			:appointment-id="appointment.id" />
+	</div>
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from "vue";
+import { ref, computed, watch, nextTick } from 'vue'
 import {
-    NcButton,
-    NcActions,
-    NcActionButton,
-    NcInputField,
-    NcChip,
-} from "@nextcloud/vue";
-import ResponseSummary from "./ResponseSummary.vue";
-import { renderMarkdown, sanitizeHtml } from "../../utils/markdown.js";
-import { generateUrl } from "@nextcloud/router";
-import { showSuccess, showError } from "@nextcloud/dialogs";
-import axios from "@nextcloud/axios";
-import BellRingIcon from "vue-material-design-icons/BellRing.vue";
-import ListStatusIcon from "vue-material-design-icons/ListStatus.vue";
-import ShareVariantIcon from "vue-material-design-icons/ShareVariant.vue";
-import Pencil from "vue-material-design-icons/Pencil.vue";
-import Delete from "vue-material-design-icons/Delete.vue";
-import ContentCopy from "vue-material-design-icons/ContentCopy.vue";
-import DownloadIcon from "vue-material-design-icons/Download.vue";
-import CheckIcon from "vue-material-design-icons/Check.vue";
-import CloseIcon from "vue-material-design-icons/Close.vue";
-import CloseCircle from "vue-material-design-icons/CloseCircle.vue";
-import HelpCircleOutlineIcon from "vue-material-design-icons/HelpCircleOutline.vue";
-import Paperclip from "vue-material-design-icons/Paperclip.vue";
-import CommentIcon from "vue-material-design-icons/Comment.vue";
-import CalendarSyncIcon from "vue-material-design-icons/CalendarSync.vue";
-import RepeatIcon from "vue-material-design-icons/Repeat.vue";
-import { formatDateRange } from "../../utils/datetime.js";
-import { useAppointmentResponse } from "../../composables/useAppointmentResponse.js";
+	NcButton,
+	NcActions,
+	NcActionButton,
+	NcInputField,
+	NcChip,
+} from '@nextcloud/vue'
+import ResponseSummary from './ResponseSummary.vue'
+import { renderMarkdown, sanitizeHtml } from '../../utils/markdown.js'
+import { generateUrl } from '@nextcloud/router'
+import { showSuccess, showError } from '@nextcloud/dialogs'
+import axios from '@nextcloud/axios'
+import BellRingIcon from 'vue-material-design-icons/BellRing.vue'
+import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
+import ShareVariantIcon from 'vue-material-design-icons/ShareVariant.vue'
+import Pencil from 'vue-material-design-icons/Pencil.vue'
+import Delete from 'vue-material-design-icons/Delete.vue'
+import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
+import DownloadIcon from 'vue-material-design-icons/Download.vue'
+import CheckIcon from 'vue-material-design-icons/Check.vue'
+import CloseIcon from 'vue-material-design-icons/Close.vue'
+import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
+import HelpCircleOutlineIcon from 'vue-material-design-icons/HelpCircleOutline.vue'
+import Paperclip from 'vue-material-design-icons/Paperclip.vue'
+import CommentIcon from 'vue-material-design-icons/Comment.vue'
+import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
+import RepeatIcon from 'vue-material-design-icons/Repeat.vue'
+import { formatDateRange } from '../../utils/datetime.js'
+import { useAppointmentResponse } from '../../composables/useAppointmentResponse.js'
 
 const props = defineProps({
-    appointment: {
-        type: Object,
-        required: true,
-    },
-    canManageAppointments: {
-        type: Boolean,
-        default: false,
-    },
-    canCheckin: {
-        type: Boolean,
-        default: false,
-    },
-    canSeeResponseOverview: {
-        type: Boolean,
-        default: true,
-    },
-    canSeeComments: {
-        type: Boolean,
-        default: true,
-    },
-    displayOrder: {
-        type: String,
-        default: 'name_first',
-    },
-});
+	appointment: {
+		type: Object,
+		required: true,
+	},
+	canManageAppointments: {
+		type: Boolean,
+		default: false,
+	},
+	canCheckin: {
+		type: Boolean,
+		default: false,
+	},
+	canSeeResponseOverview: {
+		type: Boolean,
+		default: true,
+	},
+	canSeeComments: {
+		type: Boolean,
+		default: true,
+	},
+	displayOrder: {
+		type: String,
+		default: 'name_first',
+	},
+})
 
 const emit = defineEmits([
-    "start-checkin",
-    "edit",
-    "copy",
-    "delete",
-    "export",
-    "submit-response",
-    "update-comment",
-]);
+	'startCheckin',
+	'edit',
+	'copy',
+	'delete',
+	'export',
+	'submitResponse',
+	'updateComment',
+])
 
-const localComment = ref(props.appointment.userResponse?.comment || "");
-const commentExpanded = ref(false);
-const commentInput = ref(null);
-let commentTimeout = null;
+const localComment = ref(props.appointment.userResponse?.comment || '')
+const commentExpanded = ref(false)
+const commentInput = ref(null)
+let commentTimeout = null
 
 // Use the shared response composable for comment auto-save
-const { savingComment, commentSaved, errorComment, autoSaveComment } =
-    useAppointmentResponse();
+const { savingComment, commentSaved, errorComment, autoSaveComment }
+    = useAppointmentResponse()
 
 const toggleComment = async () => {
-    commentExpanded.value = !commentExpanded.value;
-    if (commentExpanded.value) {
-        await nextTick();
-        commentInput.value?.$el?.querySelector("input")?.focus();
-    }
-};
+	commentExpanded.value = !commentExpanded.value
+	if (commentExpanded.value) {
+		await nextTick()
+		commentInput.value?.$el?.querySelector('input')?.focus()
+	}
+}
 
 const userResponse = computed(() => {
-    return props.appointment.userResponse?.response || null;
-});
+	return props.appointment.userResponse?.response || null
+})
 
 const renderedDescription = computed(() => {
-    if (!props.appointment.description) return "";
-    const html = renderMarkdown(props.appointment.description, false);
-    return sanitizeHtml(html);
-});
+	if (!props.appointment.description) return ''
+	const html = renderMarkdown(props.appointment.description, false)
+	return sanitizeHtml(html)
+})
 
 const calendarLink = computed(() => {
-    if (
-        !props.appointment.calendarUri ||
-        !props.appointment.calendarEventUid ||
-        !props.appointment.startDatetime
-    ) {
-        return null;
-    }
+	if (
+		!props.appointment.calendarUri
+        || !props.appointment.calendarEventUid
+        || !props.appointment.startDatetime
+	) {
+		return null
+	}
 
-    // Generate deeplink to open the event popup directly in Calendar app
-    // URL format: /apps/calendar/{view}/{date}/edit/popover/{base64_dav_path}/{recurrenceId}
-    const dateObj = new Date(props.appointment.startDatetime);
-    const year = dateObj.getFullYear();
-    const month = String(dateObj.getMonth() + 1).padStart(2, "0");
-    const day = String(dateObj.getDate()).padStart(2, "0");
-    const dateStr = `${year}-${month}-${day}`;
+	// Generate deeplink to open the event popup directly in Calendar app
+	// URL format: /apps/calendar/{view}/{date}/edit/popover/{base64_dav_path}/{recurrenceId}
+	const dateObj = new Date(props.appointment.startDatetime)
+	const year = dateObj.getFullYear()
+	const month = String(dateObj.getMonth() + 1).padStart(2, '0')
+	const day = String(dateObj.getDate()).padStart(2, '0')
+	const dateStr = `${year}-${month}-${day}`
 
-    // Get current user from Nextcloud
-    const currentUser = window.OC?.currentUser || "admin";
+	// Get current user from Nextcloud
+	const currentUser = window.OC?.currentUser || 'admin'
 
-    // calendarEventUid contains the filename (e.g., "70EB1F77-0025-44EB-88B3-B64F65CC3F84.ics")
-    const eventUri = props.appointment.calendarEventUid;
+	// calendarEventUid contains the filename (e.g., "70EB1F77-0025-44EB-88B3-B64F65CC3F84.ics")
+	const eventUri = props.appointment.calendarEventUid
 
-    // Build the DAV path: /remote.php/dav/calendars/{user}/{calendar}/{filename}
-    const davPath = `/remote.php/dav/calendars/${currentUser}/${props.appointment.calendarUri}/${eventUri}`;
+	// Build the DAV path: /remote.php/dav/calendars/{user}/{calendar}/{filename}
+	const davPath = `/remote.php/dav/calendars/${currentUser}/${props.appointment.calendarUri}/${eventUri}`
 
-    // Base64 encode the path
-    const base64Path = btoa(davPath);
+	// Base64 encode the path
+	const base64Path = btoa(davPath)
 
-    // For non-recurring events, use "next" as recurrenceId
-    const recurrenceId = "next";
+	// For non-recurring events, use "next" as recurrenceId
+	const recurrenceId = 'next'
 
-    return generateUrl(
-        `/apps/calendar/dayGridMonth/${dateStr}/edit/popover/${base64Path}/${recurrenceId}`,
-    );
-});
+	return generateUrl(
+		`/apps/calendar/dayGridMonth/${dateStr}/edit/popover/${base64Path}/${recurrenceId}`,
+	)
+})
 
 watch(
-    () => props.appointment.userResponse,
-    (newResponse) => {
-        if (!commentTimeout) {
-            localComment.value = newResponse?.comment || "";
-        }
-    },
-    { immediate: true, deep: true },
-);
+	() => props.appointment.userResponse,
+	(newResponse) => {
+		if (!commentTimeout) {
+			localComment.value = newResponse?.comment || ''
+		}
+	},
+	{ immediate: true, deep: true },
+)
 
 const copyShareLink = async () => {
-    const appointmentUrl =
-        window.location.origin +
-        generateUrl(`/apps/attendance/appointment/${props.appointment.id}`);
+	const appointmentUrl
+        = window.location.origin
+        + generateUrl(`/apps/attendance/appointment/${props.appointment.id}`)
 
-    try {
-        await navigator.clipboard.writeText(appointmentUrl);
-        showSuccess(t("attendance", "Link copied to clipboard"));
-    } catch (error) {
-        console.error("Failed to copy link:", error);
-    }
-};
+	try {
+		await navigator.clipboard.writeText(appointmentUrl)
+		showSuccess(t('attendance', 'Link copied to clipboard'))
+	} catch (error) {
+		console.error('Failed to copy link:', error)
+	}
+}
 
 const handleStartCheckin = () => {
-    emit("start-checkin", props.appointment.id);
-};
+	emit('startCheckin', props.appointment.id)
+}
 
 const handleEdit = () => {
-    emit("edit", props.appointment);
-};
+	emit('edit', props.appointment)
+}
 
 const handleCopy = () => {
-    emit("copy", props.appointment);
-};
+	emit('copy', props.appointment)
+}
 
 const handleDelete = () => {
-    emit("delete", props.appointment.id);
-};
+	emit('delete', props.appointment.id)
+}
 
 const handleExport = () => {
 	emit('export', props.appointment.id)
 }
 
-const sendingReminders = ref(false);
+const sendingReminders = ref(false)
 
 const handleRemindAll = async () => {
-    sendingReminders.value = true;
-    try {
-        const response = await axios.post(
-            generateUrl(`/apps/attendance/api/appointments/${props.appointment.id}/remind`),
-        );
-        const count = response.data.sent || 0;
-        showSuccess(t("attendance", "{count} reminders sent", { count }));
-    } catch (error) {
-        console.error("Failed to send reminders:", error);
-        showError(t("attendance", "Failed to send reminders"));
-    } finally {
-        sendingReminders.value = false;
-    }
-};
+	sendingReminders.value = true
+	try {
+		const response = await axios.post(
+			generateUrl(`/apps/attendance/api/appointments/${props.appointment.id}/remind`),
+		)
+		const count = response.data.sent || 0
+		showSuccess(t('attendance', '{count} reminders sent', { count }))
+	} catch (error) {
+		console.error('Failed to send reminders:', error)
+		showError(t('attendance', 'Failed to send reminders'))
+	} finally {
+		sendingReminders.value = false
+	}
+}
 
 const handleResponse = (response) => {
-    emit("submit-response", props.appointment.id, response);
-};
+	emit('submitResponse', props.appointment.id, response)
+}
 
 const getAttachmentUrl = (attachment) => {
-    return attachment.downloadUrl || generateUrl(`/f/${attachment.fileId}`);
-};
+	return attachment.downloadUrl || generateUrl(`/f/${attachment.fileId}`)
+}
 
 const handleCommentInputEvent = () => {
-    if (commentTimeout) {
-        clearTimeout(commentTimeout);
-    }
+	if (commentTimeout) {
+		clearTimeout(commentTimeout)
+	}
 
-    commentTimeout = setTimeout(async () => {
-        // Wait for Vue to update the DOM and reactive values
-        await nextTick();
-        autoSaveComment(
-            props.appointment.id,
-            userResponse.value,
-            localComment.value,
-        );
-    }, 500);
-};
+	commentTimeout = setTimeout(async () => {
+		// Wait for Vue to update the DOM and reactive values
+		await nextTick()
+		autoSaveComment(
+			props.appointment.id,
+			userResponse.value,
+			localComment.value,
+		)
+	}, 500)
+}
 </script>
 
 <style scoped lang="scss">

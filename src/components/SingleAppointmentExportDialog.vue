@@ -1,8 +1,8 @@
 <template>
 	<NcModal v-if="show"
-		@close="$emit('close')"
 		:name="t('attendance', 'Export appointment')"
-		size="normal">
+		size="normal"
+		@close="$emit('close')">
 		<div class="single-export-dialog">
 			<h2>{{ t('attendance', 'Export appointment') }}</h2>
 
