@@ -50,6 +50,7 @@ export default defineConfig({
 				'9-recurrence.spec.js',
 				'10-series.spec.js',
 				'11-notification-option.spec.js',
+				'12-calendar-import.spec.js',
 				'checkin.spec.js',
 			],
 			fullyParallel: false, // tests within a file stay sequential
@@ -62,6 +63,7 @@ export default defineConfig({
 				'4-admin-settings.spec.js',
 				'5-visibility-users.spec.js',
 				'6-visibility-groups.spec.js',
+				'13-calendar-sync.spec.js',
 			],
 			fullyParallel: false,
 			workers: 1,

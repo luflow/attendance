@@ -161,6 +161,30 @@ class AppointmentMapper extends QBMapper {
 	}
 
 	/**
+	 * Find imported calendar event identifiers for a given calendar.
+	 * Returns calendarEventUid + startDatetime pairs for building occurrence IDs.
+	 *
+	 * @param string $calendarUri Calendar URI to filter by
+	 * @return list<array{calendar_event_uid: string, start_datetime: string}>
+	 */
+	public function findImportedByCalendarUri(string $calendarUri): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('calendar_event_uid', 'start_datetime')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->andX(
+					$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
+					$qb->expr()->eq('calendar_uri', $qb->createNamedParameter($calendarUri)),
+					$qb->expr()->isNotNull('calendar_event_uid'),
+					$qb->expr()->neq('calendar_event_uid', $qb->createNamedParameter(''))
+				)
+			);
+
+		return $qb->executeQuery()->fetchAll();
+	}
+
+	/**
 	 * Find active appointments within a time window around now.
 	 * Used for self-check-in: returns appointments that are currently happening
 	 * or about to start within the given window.

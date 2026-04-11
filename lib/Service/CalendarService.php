@@ -84,6 +84,7 @@ class CalendarService {
 		$end = new DateTimeImmutable($to . 'T23:59:59', new DateTimeZone('UTC'));
 
 		$query = $this->calendarManager->newQuery($principal);
+		$query->addSearchCalendar($calendarUri);
 		$query->setTimerangeStart($start);
 		$query->setTimerangeEnd($end);
 
@@ -98,10 +99,8 @@ class CalendarService {
 				continue;
 			}
 
-			$event = $this->parseCalendarObject($result);
-			if ($event !== null) {
-				$events[] = $event;
-			}
+			$parsedEvents = $this->parseCalendarObject($result);
+			array_push($events, ...$parsedEvents);
 		}
 
 		// Sort by start date
@@ -113,14 +112,17 @@ class CalendarService {
 	}
 
 	/**
-	 * Parse a calendar search result into a simplified event array.
+	 * Parse a calendar search result into an array of simplified events.
+	 * For recurring events, this returns one entry per occurrence in the time range.
 	 *
 	 * @param array $searchResult
-	 * @return array|null
+	 * @return list<array{id: string, uid: string, uri: ?string, summary: string, description: string, dtstart: string, dtend: string, isAllDay: bool}>
 	 */
-	private function parseCalendarObject(array $searchResult): ?array {
+	private function parseCalendarObject(array $searchResult): array {
 		// The search result contains objects array with event properties directly
 		$objects = $searchResult['objects'] ?? [];
+		$uri = $searchResult['uri'] ?? null;
+		$events = [];
 
 		foreach ($objects as $object) {
 			// Properties are directly on the object (SUMMARY, DTSTART, etc.)
@@ -137,22 +139,23 @@ class CalendarService {
 			// Detect all-day events by checking if both start/end are at midnight
 			// and duration is exactly 24 hours (or multiple)
 			$isAllDay = $this->isAllDayEvent($dtstart, $dtend);
+			$formattedStart = $this->formatDateTime($dtstart, $isAllDay);
 
-			// Get the URI/filename from the search result for building calendar links
-			$uri = $searchResult['uri'] ?? null;
+			$occurrenceId = self::buildOccurrenceId($uid, $formattedStart);
 
-			return [
+			$events[] = [
+				'id' => $occurrenceId,
 				'uid' => $uid,
 				'uri' => $uri,
 				'summary' => $summary ?? '',
 				'description' => $description ?? '',
-				'dtstart' => $this->formatDateTime($dtstart, $isAllDay),
-				'dtend' => $dtend ? $this->formatDateTime($dtend, $isAllDay) : $this->formatDateTime($dtstart, $isAllDay),
+				'dtstart' => $formattedStart,
+				'dtend' => $dtend ? $this->formatDateTime($dtend, $isAllDay) : $formattedStart,
 				'isAllDay' => $isAllDay,
 			];
 		}
 
-		return null;
+		return $events;
 	}
 
 	/**
@@ -262,5 +265,13 @@ class CalendarService {
 		}
 
 		return '';
+	}
+
+	/**
+	 * Build a unique occurrence ID from a VEVENT UID and a datetime string.
+	 * Used to match calendar events with imported appointments.
+	 */
+	public static function buildOccurrenceId(string $uid, string $datetime): string {
+		return $uid . '_' . preg_replace('/[^0-9]/', '', $datetime);
 	}
 }

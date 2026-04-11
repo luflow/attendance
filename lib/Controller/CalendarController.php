@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Controller;
 
+use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Service\CalendarService;
 use OCA\Attendance\Service\PermissionService;
 use OCP\AppFramework\Controller;
@@ -22,6 +23,7 @@ class CalendarController extends Controller {
 	private CalendarService $calendarService;
 	private PermissionService $permissionService;
 	private IUserSession $userSession;
+	private AppointmentMapper $appointmentMapper;
 
 	public function __construct(
 		string $appName,
@@ -29,11 +31,13 @@ class CalendarController extends Controller {
 		CalendarService $calendarService,
 		PermissionService $permissionService,
 		IUserSession $userSession,
+		AppointmentMapper $appointmentMapper,
 	) {
 		parent::__construct($appName, $request);
 		$this->calendarService = $calendarService;
 		$this->permissionService = $permissionService;
 		$this->userSession = $userSession;
+		$this->appointmentMapper = $appointmentMapper;
 	}
 
 	/**
@@ -128,7 +132,22 @@ class CalendarController extends Controller {
 				$from,
 				$to
 			);
-			return new DataResponse(['events' => $events]);
+
+			$importedIds = [];
+			if (!empty($events)) {
+				$imported = $this->appointmentMapper->findImportedByCalendarUri($calendarUri);
+				foreach ($imported as $row) {
+					$importedIds[] = CalendarService::buildOccurrenceId(
+						$row['calendar_event_uid'],
+						$row['start_datetime']
+					);
+				}
+			}
+
+			return new DataResponse([
+				'events' => $events,
+				'importedIds' => $importedIds,
+			]);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 500);
 		}

@@ -281,6 +281,139 @@ export async function createFileViaWebDAV(request, { filename, content = 'Test c
 }
 
 // ---------------------------------------------------------------------------
+// CalDAV helpers for calendar import/sync tests
+// ---------------------------------------------------------------------------
+
+/**
+ * Ensure a calendar exists via MKCALENDAR. No-op if it already exists.
+ */
+export async function ensureCalendarExists(request, { calendarName = 'personal', displayName, username = 'admin', password = 'admin' } = {}) {
+	const body = `<?xml version="1.0" encoding="UTF-8"?>
+<C:mkcalendar xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">
+  <D:set>
+    <D:prop>
+      <D:displayname>${displayName || calendarName}</D:displayname>
+      <C:supported-calendar-component-set>
+        <C:comp name="VEVENT"/>
+      </C:supported-calendar-component-set>
+    </D:prop>
+  </D:set>
+</C:mkcalendar>`
+
+	const resp = await request.fetch(
+		`${BASE_URL}/remote.php/dav/calendars/${username}/${calendarName}`,
+		{
+			method: 'MKCALENDAR',
+			headers: {
+				...authHeaders(username, password),
+				'Content-Type': 'application/xml; charset=utf-8',
+			},
+			data: body,
+		},
+	)
+	// 201 = created, 405/409 = already exists
+	return resp.status() === 201
+}
+
+/**
+ * Create a calendar event via CalDAV PUT
+ * @param {Object} options
+ * @param {string} options.uid - Unique event identifier
+ * @param {string} options.summary - Event title
+ * @param {string} [options.description] - Event description
+ * @param {string} options.dtstart - Start time in iCal format (e.g., '20260415T100000Z')
+ * @param {string} options.dtend - End time in iCal format
+ * @param {string} [options.rrule] - Recurrence rule (e.g., 'FREQ=WEEKLY;COUNT=3')
+ * @param {string} [options.calendarName] - Calendar URI (default: 'personal')
+ * @returns {Promise<boolean>} True if created/updated successfully
+ */
+export async function createCalendarEvent(request, {
+	uid,
+	summary,
+	description = '',
+	dtstart,
+	dtend,
+	rrule = null,
+	calendarName = 'personal',
+	username = 'admin',
+	password = 'admin',
+} = {}) {
+	const lines = [
+		'BEGIN:VCALENDAR',
+		'VERSION:2.0',
+		'PRODID:-//Attendance E2E Tests//EN',
+		'BEGIN:VEVENT',
+		`UID:${uid}`,
+		`DTSTAMP:${dtstart}`,
+		`SUMMARY:${summary}`,
+	]
+	if (description) lines.push(`DESCRIPTION:${description}`)
+	lines.push(`DTSTART:${dtstart}`)
+	lines.push(`DTEND:${dtend}`)
+	if (rrule) lines.push(`RRULE:${rrule}`)
+	lines.push('END:VEVENT', 'END:VCALENDAR')
+
+	const resp = await request.put(
+		`${BASE_URL}/remote.php/dav/calendars/${username}/${calendarName}/${uid}.ics`,
+		{
+			headers: {
+				...authHeaders(username, password),
+				'Content-Type': 'text/calendar; charset=utf-8',
+			},
+			data: lines.join('\r\n'),
+		},
+	)
+	return resp.status() === 201 || resp.status() === 204
+}
+
+/**
+ * Update a calendar event via CalDAV PUT (same function, different name for clarity)
+ */
+export const updateCalendarEvent = createCalendarEvent
+
+/**
+ * Delete a calendar event via CalDAV DELETE
+ */
+export async function deleteCalendarEvent(request, { uid, calendarName = 'personal', username = 'admin', password = 'admin' } = {}) {
+	const resp = await request.delete(
+		`${BASE_URL}/remote.php/dav/calendars/${username}/${calendarName}/${uid}.ics`,
+		{ headers: authHeaders(username, password) },
+	)
+	return resp.status() === 204 || resp.status() === 404
+}
+
+/**
+ * Delete an entire calendar via CalDAV DELETE
+ */
+export async function deleteCalendar(request, { calendarName, username = 'admin', password = 'admin' } = {}) {
+	const resp = await request.delete(
+		`${BASE_URL}/remote.php/dav/calendars/${username}/${calendarName}`,
+		{ headers: authHeaders(username, password) },
+	)
+	return resp.status() === 204 || resp.status() === 404
+}
+
+/**
+ * Import calendar events as attendance appointments via bulk API
+ * @param {Array} events - Array of { name, startDatetime, endDatetime, calendarUri, calendarEventUid }
+ * @returns {Promise<Object>} API response
+ */
+export async function importCalendarEventsViaAPI(request, events, { username = 'admin', password = 'admin' } = {}) {
+	const resp = await request.post(`${API_BASE}/apps/attendance/api/appointments/bulk`, {
+		headers: authHeaders(username, password),
+		data: { appointments: events },
+	})
+	return resp.json()
+}
+
+/**
+ * Format a JS Date to iCal UTC format (YYYYMMDDTHHMMSSZ)
+ */
+export function toICalDate(date) {
+	return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
+}
+
+// ---------------------------------------------------------------------------
 // Playwright test fixtures
 // ---------------------------------------------------------------------------
 

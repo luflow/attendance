@@ -10,6 +10,7 @@ import { translate as t } from '@nextcloud/l10n'
 export function useCalendarEvents() {
 	const calendars = ref([])
 	const events = ref([])
+	const importedIds = ref(new Set())
 	const loadingCalendars = ref(false)
 	const loadingEvents = ref(false)
 	const error = ref(null)
@@ -56,6 +57,7 @@ export function useCalendarEvents() {
 				},
 			})
 			events.value = response.data.events || []
+			importedIds.value = new Set(response.data.importedIds || [])
 		} catch (err) {
 			console.error('Failed to load calendar events:', err)
 			error.value = err
@@ -71,6 +73,7 @@ export function useCalendarEvents() {
 	 */
 	const clearEvents = () => {
 		events.value = []
+		importedIds.value = new Set()
 	}
 
 	/**
@@ -79,6 +82,7 @@ export function useCalendarEvents() {
 	const reset = () => {
 		calendars.value = []
 		events.value = []
+		importedIds.value = new Set()
 		loadingCalendars.value = false
 		loadingEvents.value = false
 		error.value = null
@@ -87,6 +91,7 @@ export function useCalendarEvents() {
 	return {
 		calendars,
 		events,
+		importedIds,
 		loadingCalendars,
 		loadingEvents,
 		error,

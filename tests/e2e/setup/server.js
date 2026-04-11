@@ -23,7 +23,7 @@ async function main() {
 		await waitOnNextcloud(ip)
 		
 		// Configure Nextcloud with the attendance app
-		await configureNextcloud(['notifications', 'attendance'])
+		await configureNextcloud(['notifications', 'attendance', 'calendar'])
 
 		// Create snapshot of clean database state
 		const container = getContainer()

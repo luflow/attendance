@@ -57,5 +57,13 @@ class Application extends App implements IBootstrap {
 				CalendarObjectUpdateListener::class
 			);
 		}
+
+		// Also handle "moved to trash" (default behavior when deleting calendar events)
+		if (class_exists(\OCP\Calendar\Events\CalendarObjectMovedToTrashEvent::class)) {
+			$context->registerEventListener(
+				\OCP\Calendar\Events\CalendarObjectMovedToTrashEvent::class,
+				CalendarObjectUpdateListener::class
+			);
+		}
 	}
 }

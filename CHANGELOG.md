@@ -6,6 +6,18 @@
 
 - Nightly changes here
 
+## 1.35.0 – 2026-04-10
+
+### Added
+
+- Import recurring calendar events as individual appointments
+- "Already imported" badge in the calendar event picker
+
+### Fixed
+
+- Calendar sync did not work reliably for events imported from external calendars (e.g. Google Calendar)
+- Deleting or modifying calendar events now syncs to linked appointments more reliably
+
 ## 1.34.1 – 2026-04-07
 
 ### Fixed

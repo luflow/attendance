@@ -94,17 +94,20 @@
 						class="calendar-search" />
 					<ul class="event-list">
 						<li v-for="event in filteredEvents"
-							:key="event.uid"
+							:key="event.id"
 							class="event-item"
 							@click="toggleEvent(event)">
 							<NcCheckboxRadioSwitch
-								:model-value="selectedEvents.has(event.uid)"
+								:model-value="selectedEvents.has(event.id)"
 								class="event-checkbox">
 								<div class="event-info">
 									<span class="event-name">{{ event.summary || t('attendance', 'Untitled event') }}</span>
 									<span class="event-date">{{ formatDateRange(event.dtstart, event.dtend) }}</span>
 								</div>
 							</NcCheckboxRadioSwitch>
+							<span v-if="importedIds.has(event.id)" class="imported-badge">
+								{{ t('attendance', 'Already imported') }}
+							</span>
 						</li>
 					</ul>
 					<div v-if="showEventSearch && filteredEvents.length === 0" class="empty-state">
@@ -154,7 +157,7 @@ const searchQuery = ref('')
 const eventSearchQuery = ref('')
 const selectedEvents = ref(new Set())
 
-const { calendars, events, loadingCalendars, loadingEvents, loadCalendars, loadEvents, clearEvents, reset } = useCalendarEvents()
+const { calendars, events, importedIds, loadingCalendars, loadingEvents, loadCalendars, loadEvents, clearEvents, reset } = useCalendarEvents()
 
 // Date range for calendar event fetching
 const defaultFromDate = () => {
@@ -231,7 +234,7 @@ const filteredEvents = computed(() => {
 })
 
 const allSelected = computed(() => {
-	return events.value.length > 0 && events.value.every(e => selectedEvents.value.has(e.uid))
+	return events.value.length > 0 && events.value.every(e => selectedEvents.value.has(e.id))
 })
 
 const noneSelected = computed(() => {
@@ -285,10 +288,10 @@ const goBack = () => {
 
 const toggleEvent = (event) => {
 	const newSet = new Set(selectedEvents.value)
-	if (newSet.has(event.uid)) {
-		newSet.delete(event.uid)
+	if (newSet.has(event.id)) {
+		newSet.delete(event.id)
 	} else {
-		newSet.add(event.uid)
+		newSet.add(event.id)
 	}
 	selectedEvents.value = newSet
 }
@@ -296,7 +299,7 @@ const toggleEvent = (event) => {
 const selectAll = () => {
 	const newSet = new Set()
 	for (const event of events.value) {
-		newSet.add(event.uid)
+		newSet.add(event.id)
 	}
 	selectedEvents.value = newSet
 }
@@ -306,14 +309,14 @@ const deselectAll = () => {
 }
 
 const importSelected = () => {
-	const selected = events.value.filter(e => selectedEvents.value.has(e.uid))
+	const selected = events.value.filter(e => selectedEvents.value.has(e.id))
 	const eventDataList = selected.map(event => ({
 		name: event.summary || '',
 		description: event.description || '',
 		startDatetime: event.dtstart,
 		endDatetime: event.dtend,
 		calendarUri: selectedCalendar.value.uri,
-		calendarEventUid: event.uri || event.uid,
+		calendarEventUid: event.uid,
 	}))
 
 	if (eventDataList.length === 1) {
@@ -403,7 +406,6 @@ const importSelected = () => {
 
 .event-checkbox {
 	pointer-events: none;
-	width: 100%;
 	margin: -4px 0;
 }
 
@@ -435,6 +437,20 @@ const importSelected = () => {
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
+	flex: 1;
+	min-width: 0;
+}
+
+.imported-badge {
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--color-text-maxcontrast);
+	background-color: var(--color-background-dark);
+	padding: 1px 8px;
+	border-radius: var(--border-radius-pill);
+	white-space: nowrap;
+	margin-left: auto;
+	flex-shrink: 0;
 }
 
 .event-date {
