@@ -86,7 +86,7 @@ test.describe('Attendance App - Calendar Sync', () => {
 			})
 
 			// Check appointment via API
-			const appointments = await listAppointmentsViaAPI(request, { showPast: true })
+			const appointments = await listAppointmentsViaAPI(request, { showPast: false })
 			const synced = appointments.find(a => a.calendarEventUid === eventUid)
 			expect(synced).toBeTruthy()
 			expect(synced.name).toBe('Sync Single Updated Title')
@@ -107,7 +107,7 @@ test.describe('Attendance App - Calendar Sync', () => {
 			})
 
 			// Check appointment times
-			const appointments = await listAppointmentsViaAPI(request, { showPast: true })
+			const appointments = await listAppointmentsViaAPI(request, { showPast: false })
 			const synced = appointments.find(a => a.calendarEventUid === eventUid)
 			expect(synced).toBeTruthy()
 
@@ -118,7 +118,7 @@ test.describe('Attendance App - Calendar Sync', () => {
 
 		test('delete calendar event removes single appointment', async ({ page, baseURL, request }) => {
 			// Verify appointment exists via API
-			let appointments = await listAppointmentsViaAPI(request, { showPast: true })
+			let appointments = await listAppointmentsViaAPI(request, { showPast: false })
 			expect(appointments.find(a => a.calendarEventUid === eventUid)).toBeTruthy()
 
 			// Verify appointment is visible in the UI
@@ -134,7 +134,7 @@ test.describe('Attendance App - Calendar Sync', () => {
 			})
 
 			// Verify appointment is gone via API
-			appointments = await listAppointmentsViaAPI(request, { showPast: true })
+			appointments = await listAppointmentsViaAPI(request, { showPast: false })
 			expect(appointments.find(a => a.calendarEventUid === eventUid)).toBeUndefined()
 
 			// Verify appointment is gone from the UI
@@ -192,7 +192,7 @@ test.describe('Attendance App - Calendar Sync', () => {
 			})
 
 			// All 3 appointments should have the updated name
-			const appointments = await listAppointmentsViaAPI(request, { showPast: true })
+			const appointments = await listAppointmentsViaAPI(request, { showPast: false })
 			const synced = appointments.filter(a => a.calendarEventUid === eventUid)
 			expect(synced).toHaveLength(3)
 
@@ -203,7 +203,7 @@ test.describe('Attendance App - Calendar Sync', () => {
 
 		test('delete calendar event removes all recurring appointments', async ({ page, baseURL, request }) => {
 			// Verify 3 appointments exist via API
-			let appointments = await listAppointmentsViaAPI(request, { showPast: true })
+			let appointments = await listAppointmentsViaAPI(request, { showPast: false })
 			expect(appointments.filter(a => a.calendarEventUid === eventUid)).toHaveLength(3)
 
 			// Verify appointments are visible in the UI
@@ -219,7 +219,7 @@ test.describe('Attendance App - Calendar Sync', () => {
 			})
 
 			// Verify all appointments are gone via API
-			appointments = await listAppointmentsViaAPI(request, { showPast: true })
+			appointments = await listAppointmentsViaAPI(request, { showPast: false })
 			expect(appointments.filter(a => a.calendarEventUid === eventUid)).toHaveLength(0)
 
 			// Verify appointments are gone from the UI
