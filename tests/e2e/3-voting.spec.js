@@ -99,13 +99,12 @@ test.describe('Attendance App - Dashboard Widget Voting', () => {
 		await page.goto('/apps/dashboard/')
 		await page.waitForLoadState('networkidle')
 
-		const appointmentTitle = page.getByRole('heading', { level: 3 }).first()
+		const appointmentTitle = page.locator('[data-test="widget-appointment-title"]').first()
 		const titleText = await appointmentTitle.textContent()
 
 		await appointmentTitle.click()
-		await page.waitForLoadState('networkidle')
+		await page.waitForURL(/\/apps\/attendance\/appointment\/\d+/, { timeout: 10000 })
 
-		await expect(page).toHaveURL(/\/apps\/attendance\/appointment\/\d+/)
 		await expect(page.getByRole('heading', { level: 3, name: titleText })).toBeVisible()
 		await expect(page.getByRole('heading', { name: 'Your Response' })).toBeVisible()
 		await expect(page.getByRole('heading', { name: 'Response Summary' })).toBeVisible()
