@@ -135,6 +135,7 @@ OC.L10N.register(
     "{count} pending" : "{count} pendentes",
     "Share link" : "Compartilhar link",
     "Start check-in" : "Iniciar o registro de entrada",
+    "Remind unanswered" : "Lembrar as mensagens sem resposta",
     "Edit" : "Editar",
     "Delete" : "Excluir",
     "Check-in summary" : "Resumo das entradas registradas",
