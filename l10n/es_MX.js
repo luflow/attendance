@@ -18,6 +18,8 @@ OC.L10N.register(
     "Connected" : "Conectado",
     "Not now" : "No ahora",
     "Active filters" : "Filtros activos",
+    "Subscribe" : "Suscríbete",
+    "Active" : "Activo",
     "Create appointment" : "Crear cita",
     "Export" : "Exportar",
     "Select all" : "Seleccionar todo",

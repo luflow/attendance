@@ -16,6 +16,7 @@ OC.L10N.register(
     "Light" : "สว่าง",
     "Dark" : "มืด",
     "Not now" : "ไม่ใช่ตอนนี้",
+    "Subscribe" : "สมัครรับข้อมูล",
     "Export" : "ส่งออก",
     "Select all" : "เลือกทั้งหมด",
     "Deselect all" : "ยกเลิกการเลือกทั้งหมด",

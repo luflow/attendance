@@ -24,6 +24,7 @@ OC.L10N.register(
     "Open Settings" : "Åbn Indstillinger",
     "Not now" : "Ikke nu",
     "Active filters" : "Aktive filtre",
+    "Subscription" : "Abonnement",
     "Create appointment" : "Opret aftale",
     "Export" : "Eksportér",
     "Date range" : "Datoområde",

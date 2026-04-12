@@ -26,6 +26,7 @@ OC.L10N.register(
     "Connected" : "S'ha connectat",
     "Not now" : "Ara no",
     "Active filters" : "Filtres actius",
+    "yr" : "any",
     "Create appointment" : "Crea cita",
     "Export" : "Exporta",
     "Select all" : "Selecciona-ho tot",

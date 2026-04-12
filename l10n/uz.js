@@ -18,6 +18,7 @@ OC.L10N.register(
     "Light" : "Nur",
     "Dark" : "Qorong'i",
     "Notifications" : "Bildirishnomalar",
+    "Subscribe" : "Obuna boʻlish",
     "Create appointment" : "Uchrashuv yaratish",
     "Export" : "Eksport",
     "Select all" : "Barchasini tanash",

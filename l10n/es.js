@@ -1,6 +1,8 @@
 OC.L10N.register(
     "attendance",
     {
+    "Response recorded" : "Respuesta guardada",
+    "An error occurred while recording your response. Please try again." : "Ha ocurrido un error guardando su respuesta. Por favor, vuelve a intentarlo.",
     "Yes" : "Sí",
     "No" : "No",
     "Maybe" : "Quizás",
@@ -27,6 +29,10 @@ OC.L10N.register(
     "Open Settings" : "Abrir Ajustes",
     "Not now" : "Ahora no",
     "Active filters" : "Filtros activos",
+    "Subscription" : "Suscripción",
+    "Active" : "Activo",
+    "yr" : "año",
+    "Privacy Policy" : "Política de privacidad",
     "Create appointment" : "Crear cita",
     "Export" : "Exportar",
     "Date range" : "Rango de fechas",

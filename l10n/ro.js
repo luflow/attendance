@@ -18,6 +18,8 @@ OC.L10N.register(
     "Notifications" : "Notificări",
     "Connected" : "Conectat",
     "Active filters" : "Filtre active",
+    "Subscribe" : "Abonare",
+    "Active" : "Activ",
     "Create appointment" : "Creează programare",
     "Export" : "Exportă",
     "Select all" : "Selectează tot",

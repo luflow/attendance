@@ -11,6 +11,7 @@ OC.L10N.register(
     "System" : "System",
     "Notifications" : "Varsel",
     "Connecting…" : "Koplar til…",
+    "Subscription" : "Abonnement",
     "Export" : "Eksporter",
     "Select all" : "Merk alt",
     "Copy" : "Kopier",

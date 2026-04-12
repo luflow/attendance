@@ -39,6 +39,8 @@ OC.L10N.register(
     "Connected" : "Conectado",
     "Not now" : "Agora não",
     "Active filters" : "Filtros ativos",
+    "Subscribe" : "Subscrever",
+    "Privacy Policy" : "Política de Privacidade",
     "Unanswered" : "Sem resposta",
     "Upcoming appointments" : "Próximos compromissos",
     "Past appointments" : "Compromissos anteriores",

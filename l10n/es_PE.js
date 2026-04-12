@@ -13,6 +13,7 @@ OC.L10N.register(
     "Dark" : "Oscuro",
     "Connected" : "Conectado",
     "Not now" : "No ahora",
+    "Subscribe" : "Suscribir",
     "Export" : "Exportar",
     "Select all" : "Seleccionar todo",
     "Deselect all" : "Deseleccionar todo",

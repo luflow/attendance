@@ -14,6 +14,7 @@ OC.L10N.register(
     "System" : "სისტემა",
     "Connected" : "კავშირი დამყარებულია",
     "Not now" : "ახლა არა",
+    "Subscribe" : "გამოწერა",
     "Export" : "ექსპორტი",
     "Select all" : "ყველას არჩევა",
     "Deselect all" : "ყველას წაშლა",

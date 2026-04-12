@@ -7,6 +7,7 @@ OC.L10N.register(
     "Connect" : "Verbannen",
     "Settings" : "Astellungen",
     "None" : "Keng",
+    "Subscribe" : "Umellen",
     "Export" : "Exportéieren",
     "Select all" : "All auswielen",
     "Copy" : "Kopieren",

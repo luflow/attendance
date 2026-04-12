@@ -20,6 +20,8 @@ OC.L10N.register(
     "Notifications" : "Thông báo",
     "Connecting…" : "Đang kết nối…",
     "Active filters" : "Bộ lọc đang hoạt động",
+    "Subscribe" : "Theo dõi",
+    "Active" : "Hoạt động",
     "Create appointment" : "Tạo lịch hẹn",
     "Export" : "Xuất ra",
     "Select all" : "Chọn tất cả",

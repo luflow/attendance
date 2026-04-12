@@ -15,6 +15,7 @@ OC.L10N.register(
     "Light" : "Aceɛlal",
     "Dark" : "Ubrik",
     "Notifications" : "Ilɣa",
+    "Privacy Policy" : "Tasertit n tbaḍnit",
     "Export" : "Sifeḍ",
     "Select all" : "Fren-iten akk",
     "Deselect all" : "Kkes afran i meṛṛa",

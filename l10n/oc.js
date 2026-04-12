@@ -16,6 +16,8 @@ OC.L10N.register(
     "Light" : "Clar",
     "Dark" : "Escur",
     "Notifications" : "Notificacions",
+    "Subscribe" : "S'abonar",
+    "Active" : "Activa",
     "Export" : "Exportar",
     "Cancel" : "Cancel",
     "Share link" : "Partejar via ligam",
