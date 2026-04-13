@@ -45,6 +45,7 @@ OC.L10N.register(
     "Open Settings" : "Άνοιγμα Ρυθμίσεων",
     "Not now" : "Όχι τώρα",
     "Active filters" : "Ενεργά φίλτρα",
+    "Subscribe" : "Εγγραφή",
     "Subscription" : "Συνδρομή",
     "Active" : "Ενεργός",
     "yr" : "έτος",

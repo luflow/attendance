@@ -16,6 +16,7 @@ OC.L10N.register(
     "Light" : "Luma",
     "Dark" : "Malluma",
     "Notifications" : "Atentigoj",
+    "Subscribe" : "Aboni",
     "Export" : "Eksporti",
     "Select all" : "Elekti ĉion",
     "Deselect all" : "Malelekti ĉion",

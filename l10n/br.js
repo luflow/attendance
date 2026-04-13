@@ -14,6 +14,7 @@ OC.L10N.register(
     "Light" : "Lugernus",
     "Dark" : "Teñval",
     "Notifications" : "Kemennadennoù",
+    "Active" : "O labourat",
     "Select all" : "Dibab pep tra",
     "Deselect all" : "Diziuzañ pep tra",
     "Cancel" : "Cancel",

@@ -19,6 +19,7 @@ OC.L10N.register(
     "Notifications" : "Апавяшчэнні",
     "Not now" : "Не цяпер",
     "Active filters" : "Актыўныя фільтры",
+    "Active" : "Актыўны",
     "Export" : "Экспарт",
     "Date range" : "Дыяпазон дат",
     "Select all" : "Выбраць усе",

@@ -11,6 +11,7 @@ OC.L10N.register(
     "System" : "Sistem",
     "Light" : "İşıqlı",
     "Dark" : "Qaranlıq",
+    "Subscribe" : "Abunə",
     "Export" : "Çıxarış",
     "Select all" : "Hamısıı seç",
     "Copy" : "Kopyala",

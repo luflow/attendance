@@ -29,6 +29,7 @@ OC.L10N.register(
     "Open Settings" : "Abrir Ajustes",
     "Not now" : "Ahora no",
     "Active filters" : "Filtros activos",
+    "Subscribe" : "Suscribirse",
     "Subscription" : "Suscripción",
     "Active" : "Activo",
     "yr" : "año",
