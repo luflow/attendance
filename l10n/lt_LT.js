@@ -62,6 +62,7 @@ OC.L10N.register(
     "No response" : "Nėra atsakymo",
     "Save" : "Įrašyti",
     "Import" : "Importuoti",
+    "Select calendar" : "Pasirinkti kalendorių",
     "Back" : "Atgal",
     "From" : "Nuo",
     "To" : "Kam",

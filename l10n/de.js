@@ -65,6 +65,7 @@ OC.L10N.register(
     "Connection failed — tap to retry" : "Verbindung fehlgeschlagen - Tippen, um es erneut zu versuchen",
     "Notifications blocked — tap to open settings" : "Benachrichtigungen blockiert — Tippen, um die Einstellungen zu öffnen",
     "Push not available on this server" : "Push ist auf diesem Server nicht verfügbar",
+    "Push notifications are not enabled" : "Push-Benachrichtigungen sind nicht aktiviert",
     "Notifications Disabled" : "Benachrichtigungen deaktiviert",
     "Open Settings" : "Einstellungen öffnen",
     "Stay up to date" : "Auf dem Laufenden bleiben",
