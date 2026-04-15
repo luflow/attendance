@@ -84,6 +84,7 @@ OC.L10N.register(
     "Edit appointment" : "Taisyti susitikimą",
     "User" : "Naudotojas",
     "Team" : "Komanda",
+    "Attach" : "Pridėti",
     "Appointment updated" : "Susitikimas atnaujintas",
     "Appointment name" : "Susitikimo pavadinimas",
     "Description" : "Aprašas",
