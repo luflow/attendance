@@ -317,7 +317,11 @@ class AppointmentService {
 		$appointmentData = $appointment->jsonSerialize();
 		$appointmentData = $this->enrichVisibilityData($appointmentData);
 		$appointmentData = $this->enrichSeriesCount($appointmentData, $appointment);
-		$appointmentData['userResponse'] = $this->getUserResponse($appointment->getId(), $userId);
+		// Only expose userResponse when the user actually answered yes/no/maybe.
+		// A row with response=NULL exists when an admin checked the user in
+		// before they ever responded; treat that as "no response" (matches list endpoint).
+		$userResponse = $this->getUserResponse($appointment->getId(), $userId);
+		$appointmentData['userResponse'] = ($userResponse && $userResponse->getResponse() !== null) ? $userResponse : null;
 		$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId());
 		$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
 
