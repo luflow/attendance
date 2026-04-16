@@ -15,6 +15,7 @@
 ### Fixed
 
 - Appointment detail endpoint now returns `null` for `userResponse` when the user has not responded, instead of returning partial data
+- Browser tab title correctly shows "Attendance - Nextcloud" again (regressed with the Vite 7 upgrade)
 
 ### Maintenance
 
