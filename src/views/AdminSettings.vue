@@ -254,40 +254,91 @@
 				</NcSettingsSection>
 			</div>
 
-			<NcSettingsSection :name="t('attendance', 'Push notifications')"
-				:description="t('attendance', 'Enable push notifications for the mobile app.')">
-				<NcCheckboxRadioSwitch
-					v-model="pushEnabled"
-					type="switch"
-					:disabled="loading"
-					data-test="switch-push-enabled">
-					{{ t('attendance', 'Enable push notifications') }}
-				</NcCheckboxRadioSwitch>
-
-				<template v-if="pushEnabled">
-					<div class="push-device-status">
-						<NcNoteCard v-if="pushDeviceCount === 0" type="warning">
-							<p>{{ t('attendance', 'No push device registered for your account. Connect the Attendance mobile app to receive push notifications.') }}</p>
-						</NcNoteCard>
-						<template v-else>
-							<p class="push-device-info">
-								<CellphoneCheck :size="20" />
-								{{ n('attendance', '{count} device registered for push notifications', '{count} devices registered for push notifications', pushDeviceCount, { count: pushDeviceCount }) }}
-							</p>
-							<NcButton
-								variant="tertiary"
-								:disabled="sendingTestReminder"
-								class="test-reminder-button"
-								data-test="button-test-push"
-								@click="sendTestReminder">
+			<NcSettingsSection :name="t('attendance', 'Mobile apps')"
+				:description="t('attendance', 'Share these links with your colleagues to install the Attendance mobile app.')">
+				<div class="mobile-app-links">
+					<div v-for="store in mobileAppStores" :key="store.id" class="mobile-app-link">
+						<label class="mobile-app-link__label">
+							<component :is="store.icon" :size="20" />
+							{{ store.label }}
+						</label>
+						<div class="mobile-app-link__row">
+							<code class="mobile-app-link__url" :data-test="`input-${store.id}-store-url`">{{ store.url }}</code>
+							<NcButton variant="secondary"
+								:aria-label="t('attendance', 'Copy URL')"
+								:data-test="`button-copy-${store.id}-url`"
+								@click="copyStoreUrl(store.url)">
 								<template #icon>
-									<BellRingIcon :size="20" />
+									<ContentCopy :size="20" />
 								</template>
-								{{ t('attendance', 'Send test notification') }}
+								{{ t('attendance', 'Copy') }}
 							</NcButton>
-						</template>
+							<NcButton variant="tertiary"
+								:href="store.url"
+								target="_blank"
+								rel="noopener"
+								:data-test="`button-open-${store.id}-url`">
+								<template #icon>
+									<OpenInNew :size="20" />
+								</template>
+								{{ t('attendance', 'Open') }}
+							</NcButton>
+						</div>
 					</div>
-				</template>
+				</div>
+
+				<div class="subsection">
+					<h4>{{ t('attendance', 'Mobile App promotion banner') }}</h4>
+					<p class="subsection-hint">
+						{{ t('attendance', 'Show a banner at the top of the web app advertising the mobile apps. Users can dismiss the banner, and users who already have a push device connected will not see it.') }}
+					</p>
+					<NcCheckboxRadioSwitch
+						v-model="mobileAppBannerEnabled"
+						type="switch"
+						:disabled="loading"
+						data-test="switch-mobile-app-banner-enabled">
+						{{ t('attendance', 'Show promotion banner') }}
+					</NcCheckboxRadioSwitch>
+				</div>
+
+				<div class="subsection">
+					<h4>{{ t('attendance', 'Push notifications') }}</h4>
+					<p class="subsection-hint">
+						{{ t('attendance', 'Enable push notifications for the mobile app.') }}
+					</p>
+					<NcCheckboxRadioSwitch
+						v-model="pushEnabled"
+						type="switch"
+						:disabled="loading"
+						data-test="switch-push-enabled">
+						{{ t('attendance', 'Enable push notifications') }}
+					</NcCheckboxRadioSwitch>
+
+					<template v-if="pushEnabled">
+						<div class="push-device-status">
+							<NcNoteCard v-if="pushDeviceCount === 0" type="warning">
+								<p>{{ t('attendance', 'No push device registered for your account. Connect the Attendance mobile app to receive push notifications.') }}</p>
+							</NcNoteCard>
+							<template v-else>
+								<p class="push-device-info">
+									<CellphoneCheck :size="20" />
+									{{ n('attendance', '{count} device registered for push notifications', '{count} devices registered for push notifications', pushDeviceCount, { count: pushDeviceCount }) }}
+								</p>
+								<NcButton
+									variant="tertiary"
+									:disabled="sendingTestReminder"
+									class="test-reminder-button"
+									data-test="button-test-push"
+									@click="sendTestReminder">
+									<template #icon>
+										<BellRingIcon :size="20" />
+									</template>
+									{{ t('attendance', 'Send test notification') }}
+								</NcButton>
+							</template>
+						</div>
+					</template>
+				</div>
 			</NcSettingsSection>
 
 			<NcSettingsSection :name="t('attendance', 'Display options')"
@@ -349,8 +400,19 @@ import {
 import AccountStar from 'vue-material-design-icons/AccountStar.vue'
 import BellRingIcon from 'vue-material-design-icons/BellRing.vue'
 import CellphoneCheck from 'vue-material-design-icons/CellphoneCheck.vue'
+import AppleIcon from 'vue-material-design-icons/Apple.vue'
+import GoogleIcon from 'vue-material-design-icons/Google.vue'
+import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
+import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
 import GroupSelect from '../components/common/GroupSelect.vue'
 import { formatDate, formatDateTimeMedium } from '../utils/datetime.js'
+import { APPLE_STORE_URL, GOOGLE_STORE_URL } from '../utils/mobileApp.js'
+import { copyToClipboard } from '../utils/clipboard.js'
+
+const mobileAppStores = [
+	{ id: 'apple', icon: AppleIcon, url: APPLE_STORE_URL, label: t('attendance', 'App Store (iOS)') },
+	{ id: 'google', icon: GoogleIcon, url: GOOGLE_STORE_URL, label: t('attendance', 'Google Play (Android)') },
+]
 
 // State
 const availableGroups = ref([])
@@ -373,6 +435,7 @@ const nextReminderRun = ref(null)
 const calendarSyncEnabled = ref(false)
 const calendarSyncAvailable = ref(false)
 const pushEnabled = ref(true)
+const mobileAppBannerEnabled = ref(true)
 const displayOrder = ref('name_first')
 const pushDeviceCount = ref(0)
 const loading = ref(false)
@@ -491,6 +554,9 @@ const loadSettings = async () => {
 		// Load push notifications
 		pushEnabled.value = config.pushEnabled !== false
 		pushDeviceCount.value = status.pushDeviceCount || 0
+
+		// Load mobile app banner setting
+		mobileAppBannerEnabled.value = config.mobileAppBannerEnabled !== false
 	} catch (error) {
 		console.error('Error loading settings:', error)
 		showError(window.t('attendance', 'Failed to load settings'))
@@ -554,6 +620,7 @@ const saveSettings = async () => {
 				},
 				displayOrder: displayOrder.value,
 				pushEnabled: pushEnabled.value,
+				mobileAppBannerEnabled: mobileAppBannerEnabled.value,
 			},
 		)
 
@@ -565,6 +632,11 @@ const saveSettings = async () => {
 		loading.value = false
 	}
 }
+
+const copyStoreUrl = (url) => copyToClipboard(url, {
+	successMessage: window.t('attendance', 'Link copied'),
+	errorMessage: window.t('attendance', 'Failed to copy link'),
+})
 
 const sendTestReminder = async () => {
 	sendingTestReminder.value = true
@@ -707,5 +779,38 @@ onMounted(async () => {
 	gap: 8px;
 	color: var(--color-success);
 	font-weight: 500;
+}
+
+.mobile-app-links {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.mobile-app-link__label {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 6px;
+	font-weight: 600;
+}
+
+.mobile-app-link__row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.mobile-app-link__url {
+	flex: 1 1 300px;
+	padding: 8px 12px;
+	background-color: var(--color-background-dark);
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius);
+	font-family: monospace;
+	font-size: 12px;
+	word-break: break-all;
+	user-select: all;
 }
 </style>

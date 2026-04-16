@@ -702,11 +702,19 @@
             "UserConfig": {
                 "type": "object",
                 "required": [
-                    "displayOrder"
+                    "displayOrder",
+                    "mobileAppBannerEnabled",
+                    "hasPushDevice"
                 ],
                 "properties": {
                     "displayOrder": {
                         "type": "string"
+                    },
+                    "mobileAppBannerEnabled": {
+                        "type": "boolean"
+                    },
+                    "hasPushDevice": {
+                        "type": "boolean"
                     }
                 }
             },

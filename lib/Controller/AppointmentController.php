@@ -646,8 +646,16 @@ class AppointmentController extends Controller {
 	#[NoCSRFRequired]
 	#[OpenAPI]
 	public function getUserConfig(): DataResponse {
+		$bannerEnabled = $this->configService->isMobileAppBannerEnabled();
+		$user = $this->userSession->getUser();
+		$hasPushDevice = $bannerEnabled && $user !== null
+			? $this->notificationService->hasPushDevice($user->getUID())
+			: false;
+
 		return new DataResponse([
 			'displayOrder' => $this->configService->getDisplayOrder(),
+			'mobileAppBannerEnabled' => $bannerEnabled,
+			'hasPushDevice' => $hasPushDevice,
 		]);
 	}
 

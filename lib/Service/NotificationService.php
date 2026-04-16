@@ -6,6 +6,7 @@ namespace OCA\Attendance\Service;
 
 use OCA\Attendance\Db\Appointment;
 use OCP\App\IAppManager;
+use OCP\IDBConnection;
 use OCP\IURLGenerator;
 use OCP\Notification\IManager as INotificationManager;
 use Psr\Log\LoggerInterface;
@@ -14,17 +15,20 @@ class NotificationService {
 	private INotificationManager $notificationManager;
 	private IAppManager $appManager;
 	private IURLGenerator $urlGenerator;
+	private IDBConnection $db;
 	private LoggerInterface $logger;
 
 	public function __construct(
 		INotificationManager $notificationManager,
 		IAppManager $appManager,
 		IURLGenerator $urlGenerator,
+		IDBConnection $db,
 		LoggerInterface $logger,
 	) {
 		$this->notificationManager = $notificationManager;
 		$this->appManager = $appManager;
 		$this->urlGenerator = $urlGenerator;
+		$this->db = $db;
 		$this->logger = $logger;
 	}
 
@@ -33,6 +37,47 @@ class NotificationService {
 	 */
 	public function isNotificationsAppEnabled(): bool {
 		return $this->appManager->isEnabledForUser('notifications');
+	}
+
+	/**
+	 * Count how many push devices (from the notifications app) are registered for a user.
+	 * Returns 0 if the notifications app is not installed or the query fails.
+	 */
+	public function countPushDevices(string $uid): int {
+		try {
+			$qb = $this->db->getQueryBuilder();
+			$qb->select($qb->func()->count('*', 'device_count'))
+				->from('notifications_pushhash')
+				->where($qb->expr()->eq('uid', $qb->createNamedParameter($uid)));
+			$result = $qb->executeQuery();
+			$count = (int)$result->fetchOne();
+			$result->closeCursor();
+			return $count;
+		} catch (\Exception $e) {
+			$this->logger->debug('Could not query push devices: ' . $e->getMessage());
+			return 0;
+		}
+	}
+
+	/**
+	 * Check whether a user has at least one push device registered.
+	 * Cheaper than counting when the caller only needs a boolean.
+	 */
+	public function hasPushDevice(string $uid): bool {
+		try {
+			$qb = $this->db->getQueryBuilder();
+			$qb->select('uid')
+				->from('notifications_pushhash')
+				->where($qb->expr()->eq('uid', $qb->createNamedParameter($uid)))
+				->setMaxResults(1);
+			$result = $qb->executeQuery();
+			$found = $result->fetchOne() !== false;
+			$result->closeCursor();
+			return $found;
+		} catch (\Exception $e) {
+			$this->logger->debug('Could not query push devices: ' . $e->getMessage());
+			return false;
+		}
 	}
 
 	/**

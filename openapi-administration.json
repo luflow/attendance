@@ -40,7 +40,8 @@
                     "reminders",
                     "calendarSync",
                     "displayOrder",
-                    "pushEnabled"
+                    "pushEnabled",
+                    "mobileAppBannerEnabled"
                 ],
                 "properties": {
                     "whitelistedGroups": {
@@ -68,6 +69,9 @@
                         "type": "string"
                     },
                     "pushEnabled": {
+                        "type": "boolean"
+                    },
+                    "mobileAppBannerEnabled": {
                         "type": "boolean"
                     }
                 }
@@ -97,7 +101,8 @@
                 "type": "object",
                 "required": [
                     "nextAppointment",
-                    "nextReminderRun"
+                    "nextReminderRun",
+                    "pushDeviceCount"
                 ],
                 "properties": {
                     "nextAppointment": {
@@ -119,6 +124,10 @@
                     "nextReminderRun": {
                         "type": "string",
                         "nullable": true
+                    },
+                    "pushDeviceCount": {
+                        "type": "integer",
+                        "format": "int64"
                     }
                 }
             },
@@ -427,6 +436,12 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Whether push notifications are enabled"
+                                    },
+                                    "mobileAppBannerEnabled": {
+                                        "type": "boolean",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Whether the mobile app promotion banner is enabled"
                                     }
                                 }
                             }
