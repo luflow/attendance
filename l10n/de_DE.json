@@ -419,6 +419,21 @@
     "Subscription URL regenerated" : "Abonnement-URL neu generiert",
     "Failed to regenerate subscription URL" : "Die Abonnement-URL konnte nicht neu generiert werden",
     "URL copied to clipboard" : "URL wurde in die Zwischenablage kopiert",
-    "Failed to copy URL" : "URL konnte nicht kopiert werden"
+    "Failed to copy URL" : "URL konnte nicht kopiert werden",
+    "Attendance is now on your phone" : "Anwesenheit gibt es jetzt auch auf Ihrem Smartphone",
+    "Get the mobile app for faster access and push notifications." : "Holen Sie sich die mobile App für schnelleren Zugriff und Push-Benachrichtigungen.",
+    "App Store" : "App Store",
+    "Google Play" : "Google Play",
+    "Dismiss" : "Schließen",
+    "Mobile apps" : "Mobile Apps",
+    "Share these links with your colleagues to install the Attendance mobile app." : "Teilen Sie diese Links mit Ihren Kolleginnen und Kollegen, um die Anwesenheit-App auf dem Smartphone zu installieren.",
+    "App Store (iOS)" : "App Store (iOS)",
+    "Google Play (Android)" : "Google Play (Android)",
+    "Open" : "Öffnen",
+    "Mobile App promotion banner" : "Werbebanner für mobile App",
+    "Show a banner at the top of the web app advertising the mobile apps. Users can dismiss the banner, and users who already have a push device connected will not see it." : "Zeigt oben in der Web-App ein Banner, das auf die mobilen Apps hinweist. Nutzer können das Banner schließen; Nutzer mit bereits verbundenem Gerät sehen es gar nicht.",
+    "Show promotion banner" : "Werbebanner anzeigen",
+    "Link copied" : "Link kopiert",
+    "Failed to copy link" : "Link konnte nicht kopiert werden"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

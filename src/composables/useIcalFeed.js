@@ -3,6 +3,7 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
+import { copyToClipboard as copyTextToClipboard } from '../utils/clipboard.js'
 
 /**
  * Composable for managing iCal feed functionality
@@ -64,21 +65,14 @@ export function useIcalFeed() {
 		}
 	}
 
-	/**
-	 * Copy the feed URL to clipboard
-	 */
 	const copyToClipboard = async () => {
 		if (!feedUrl.value) {
 			return
 		}
-
-		try {
-			await navigator.clipboard.writeText(feedUrl.value)
-			showSuccess(t('attendance', 'URL copied to clipboard'))
-		} catch (err) {
-			console.error('Failed to copy to clipboard:', err)
-			showError(t('attendance', 'Failed to copy URL'))
-		}
+		await copyTextToClipboard(feedUrl.value, {
+			successMessage: t('attendance', 'URL copied to clipboard'),
+			errorMessage: t('attendance', 'Failed to copy URL'),
+		})
 	}
 
 	return {

@@ -19,6 +19,8 @@ const state = reactive({
 	},
 	config: {
 		displayOrder: 'name_first',
+		mobileAppBannerEnabled: true,
+		hasPushDevice: false,
 	},
 	loading: false,
 	loaded: false,
@@ -67,6 +69,8 @@ export function usePermissions() {
 			state.capabilities.notificationsAppEnabled = capabilitiesRes.data.notificationsAppEnabled !== false
 
 			state.config.displayOrder = configRes.data.displayOrder || 'name_first'
+			state.config.mobileAppBannerEnabled = configRes.data.mobileAppBannerEnabled !== false
+			state.config.hasPushDevice = configRes.data.hasPushDevice === true
 
 			state.loaded = true
 		} catch (error) {
@@ -84,6 +88,8 @@ export function usePermissions() {
 			state.capabilities.calendarSyncAvailable = false
 			state.capabilities.notificationsAppEnabled = false
 			state.config.displayOrder = 'name_first'
+			state.config.mobileAppBannerEnabled = true
+			state.config.hasPushDevice = false
 		} finally {
 			state.loading = false
 		}

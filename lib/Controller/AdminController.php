@@ -18,10 +18,8 @@ use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\BackgroundJob\IJobList;
 use OCP\IConfig;
-use OCP\IDBConnection;
 use OCP\IRequest;
 use OCP\IUserSession;
-use Psr\Log\LoggerInterface;
 
 class AdminController extends Controller {
 	private PermissionService $permissionService;
@@ -33,8 +31,6 @@ class AdminController extends Controller {
 	private NotificationService $notificationService;
 	private AppointmentMapper $appointmentMapper;
 	private IJobList $jobList;
-	private IDBConnection $db;
-	private LoggerInterface $logger;
 
 	public function __construct(
 		string $appName,
@@ -48,8 +44,6 @@ class AdminController extends Controller {
 		NotificationService $notificationService,
 		AppointmentMapper $appointmentMapper,
 		IJobList $jobList,
-		IDBConnection $db,
-		LoggerInterface $logger,
 	) {
 		parent::__construct($appName, $request);
 		$this->userSession = $userSession;
@@ -61,8 +55,6 @@ class AdminController extends Controller {
 		$this->notificationService = $notificationService;
 		$this->appointmentMapper = $appointmentMapper;
 		$this->jobList = $jobList;
-		$this->db = $db;
-		$this->logger = $logger;
 	}
 
 	/**
@@ -129,20 +121,7 @@ class AdminController extends Controller {
 				}
 			}
 
-			// Query push device registrations for current user
-			$pushDeviceCount = 0;
-			try {
-				$qb = $this->db->getQueryBuilder();
-				$qb->select($qb->func()->count('*', 'device_count'))
-					->from('notifications_pushhash')
-					->where($qb->expr()->eq('uid', $qb->createNamedParameter($user->getUID())));
-				$result = $qb->executeQuery();
-				$pushDeviceCount = (int)$result->fetchOne();
-				$result->closeCursor();
-			} catch (\Exception $e) {
-				// Table may not exist if notifications app is not installed
-				$this->logger->debug('Could not query push devices: ' . $e->getMessage());
-			}
+			$pushDeviceCount = $this->notificationService->countPushDevices($user->getUID());
 
 			return new DataResponse([
 				'config' => [
@@ -159,6 +138,7 @@ class AdminController extends Controller {
 					],
 					'displayOrder' => $this->configService->getDisplayOrder(),
 					'pushEnabled' => $this->configService->isPushEnabled(),
+					'mobileAppBannerEnabled' => $this->configService->isMobileAppBannerEnabled(),
 				],
 				'status' => [
 					'nextAppointment' => $nextAppointment,
@@ -182,6 +162,7 @@ class AdminController extends Controller {
 	 * @param array{enabled?: bool} $calendarSync Calendar sync settings
 	 * @param ?string $displayOrder Display order for appointments: chronological, name, or group
 	 * @param ?bool $pushEnabled Whether push notifications are enabled
+	 * @param ?bool $mobileAppBannerEnabled Whether the mobile app promotion banner is enabled
 	 * @return DataResponse<Http::STATUS_OK, array<string, mixed>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
 	 */
 	#[NoCSRFRequired]
@@ -194,6 +175,7 @@ class AdminController extends Controller {
 		array $calendarSync = [],
 		?string $displayOrder = null,
 		?bool $pushEnabled = null,
+		?bool $mobileAppBannerEnabled = null,
 	): DataResponse {
 		// Get current user
 		$user = $this->userSession->getUser();
@@ -239,9 +221,12 @@ class AdminController extends Controller {
 				$this->configService->setDisplayOrder($displayOrder);
 			}
 
-			// Save push notifications enabled
 			if ($pushEnabled !== null) {
 				$this->configService->setPushEnabled($pushEnabled);
+			}
+
+			if ($mobileAppBannerEnabled !== null) {
+				$this->configService->setMobileAppBannerEnabled($mobileAppBannerEnabled);
 			}
 
 			return new DataResponse([]);

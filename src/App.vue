@@ -152,6 +152,9 @@
 
 		<!-- Main content area -->
 		<NcAppContent>
+			<MobileAppBanner
+				v-if="currentView !== 'checkin' && config.mobileAppBannerEnabled && !config.hasPushDevice" />
+
 			<!-- Check-in View -->
 			<CheckinView
 				v-if="currentView === 'checkin'"
@@ -227,6 +230,7 @@ import AppointmentDetail from './views/AppointmentDetail.vue'
 import AppointmentForm from './views/AppointmentForm.vue'
 import IcalFeedModal from './components/IcalFeedModal.vue'
 import ExportDialog from './components/ExportDialog.vue'
+import MobileAppBanner from './components/common/MobileAppBanner.vue'
 import {
 	NcContent,
 	NcAppNavigation,

@@ -300,6 +300,7 @@ import {
 } from '@nextcloud/vue'
 import ResponseSummary from './ResponseSummary.vue'
 import { renderMarkdown, sanitizeHtml } from '../../utils/markdown.js'
+import { copyToClipboard } from '../../utils/clipboard.js'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
@@ -432,17 +433,13 @@ watch(
 	{ immediate: true, deep: true },
 )
 
-const copyShareLink = async () => {
+const copyShareLink = () => {
 	const appointmentUrl
         = window.location.origin
         + generateUrl(`/apps/attendance/appointment/${props.appointment.id}`)
-
-	try {
-		await navigator.clipboard.writeText(appointmentUrl)
-		showSuccess(t('attendance', 'Link copied to clipboard'))
-	} catch (error) {
-		console.error('Failed to copy link:', error)
-	}
+	return copyToClipboard(appointmentUrl, {
+		successMessage: t('attendance', 'Link copied to clipboard'),
+	})
 }
 
 const handleStartCheckin = () => {

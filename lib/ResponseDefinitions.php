@@ -121,6 +121,8 @@ namespace OCA\Attendance;
  * }
  * @psalm-type AttendanceUserConfig = array{
  *   displayOrder: string,
+ *   mobileAppBannerEnabled: bool,
+ *   hasPushDevice: bool,
  * }
  * @psalm-type AttendanceAdminReminderConfig = array{
  *   enabled: bool,
@@ -138,10 +140,12 @@ namespace OCA\Attendance;
  *   calendarSync: AttendanceAdminCalendarSyncConfig,
  *   displayOrder: string,
  *   pushEnabled: bool,
+ *   mobileAppBannerEnabled: bool,
  * }
  * @psalm-type AttendanceAdminStatus = array{
  *   nextAppointment: ?array{name: string, startDatetime: string},
  *   nextReminderRun: ?string,
+ *   pushDeviceCount: int,
  * }
  * @psalm-type AttendanceSelfCheckinAppointment = array{
  *   id: int,

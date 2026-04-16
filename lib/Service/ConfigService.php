@@ -247,6 +247,24 @@ class ConfigService {
 	}
 
 	/**
+	 * Check if the mobile app promotion banner is enabled.
+	 *
+	 * @return bool True if the banner should be shown to users
+	 */
+	public function isMobileAppBannerEnabled(): bool {
+		return $this->config->getAppValue(self::APP_ID, 'mobile_app_banner_enabled', 'yes') === 'yes';
+	}
+
+	/**
+	 * Set the mobile app promotion banner enabled status.
+	 *
+	 * @param bool $enabled Whether the banner should be shown to users
+	 */
+	public function setMobileAppBannerEnabled(bool $enabled): void {
+		$this->config->setAppValue(self::APP_ID, 'mobile_app_banner_enabled', $enabled ? 'yes' : 'no');
+	}
+
+	/**
 	 * Get the display order for appointments.
 	 *
 	 * @return string 'name_first' or 'date_first'
