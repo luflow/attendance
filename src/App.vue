@@ -301,6 +301,13 @@ t('attendance', 'Not now')
 t('attendance', 'Server Update Available')
 t('attendance', "Your server's Attendance app may be outdated. Please update to version 1.34.0 or later for the best experience.")
 
+t('attendance', 'Attendance is not available')
+t('attendance', 'The Attendance app could not be reached on your Nextcloud server. This usually has one of two reasons:')
+t('attendance', 'The app is not installed on the server.')
+t('attendance', 'Ask an administrator to install the Attendance app from the Nextcloud app store.')
+t('attendance', 'The app is limited to specific groups.')
+t('attendance', 'Ask an administrator to allow your account under Administration settings → Apps → Attendance → "Limit to groups".')
+
 t('attendance', 'Checked in')
 t('attendance', 'Not checked in')
 t('attendance', 'Happening now')
