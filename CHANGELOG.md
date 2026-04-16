@@ -6,6 +6,21 @@
 
 - Nightly changes here
 
+## 1.36.0 – 2026-04-17
+
+### Added
+
+- Promote mobile apps in web UI and admin settings to help users discover the mobile app
+
+### Fixed
+
+- Appointment detail endpoint now returns `null` for `userResponse` when the user has not responded, instead of returning partial data
+
+### Maintenance
+
+- Updated all PHP and JavaScript dependencies, fixed all ESLint errors
+- Translations updated from Transifex
+
 ## 1.35.0 – 2026-04-10
 
 ### Added
