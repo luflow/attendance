@@ -336,6 +336,10 @@ t('attendance', 'Terms of Service')
 t('attendance', 'Privacy Policy')
 t('attendance', 'By connecting, you agree to our {terms} and acknowledge our {privacy}.')
 
+t('attendance', 'About')
+t('attendance', 'Open source licenses')
+t('attendance', 'Version {version} ({build})')
+
 const currentView = ref(null) // 'current', 'past', 'unanswered', 'appointment', 'checkin', 'create', 'edit', 'copy', or null
 const checkinAppointmentId = ref(null)
 const appointmentDetailId = ref(null)
