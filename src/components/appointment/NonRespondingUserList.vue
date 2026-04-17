@@ -96,6 +96,10 @@ const sortedUsers = computed(() => {
     .non-responding-list {
         font-size: 13px;
         color: var(--color-text-lighter);
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: 4px;
+        row-gap: 2px;
 
         .non-responding-user {
             white-space: nowrap;
