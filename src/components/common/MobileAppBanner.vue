@@ -77,7 +77,7 @@ onMounted(() => {
 	align-items: center;
 	gap: 16px;
 	padding: 10px 16px;
-	margin: 12px auto 0;
+	margin: 0 auto;
 	max-width: 800px;
 	background-color: var(--color-primary-element-light, var(--color-background-hover));
 	border: 1px solid var(--color-border);

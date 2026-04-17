@@ -152,8 +152,10 @@
 
 		<!-- Main content area -->
 		<NcAppContent>
-			<MobileAppBanner
-				v-if="currentView !== 'checkin' && config.mobileAppBannerEnabled && !config.hasPushDevice" />
+			<div v-if="currentView !== 'checkin' && config.mobileAppBannerEnabled && !config.hasPushDevice"
+				class="mobile-banner-container">
+				<MobileAppBanner />
+			</div>
 
 			<!-- Check-in View -->
 			<CheckinView
@@ -604,6 +606,12 @@ onMounted(async () => {
     100% {
         transform: rotate(360deg);
     }
+}
+
+.mobile-banner-container {
+    padding: 20px 20px 0;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 /* Style for appointment navigation items - only for nested items */

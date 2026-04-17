@@ -4,21 +4,23 @@
 			{{ t("attendance", "No response yet:") }}
 		</div>
 		<div class="non-responding-list">
-			<span
+			<template
 				v-for="(u, idx) in sortedUsers"
-				:key="u.userId"
-				class="non-responding-user">{{ u.displayName }}<NcPopover
+				:key="u.userId">
+				<NcPopover
 					v-if="canManageAppointments && appointmentId"
 					:shown="openPopover === u.userId"
 					popup-role="dialog"
 					class="remind-popover-wrapper"
 					@update:shown="(val) => openPopover = val ? u.userId : null">
 					<template #trigger>
-						<button
-							class="remind-btn"
-							:disabled="remindingUsers.has(u.userId)">
-							<BellRingOutlineIcon :size="14" />
-						</button>
+						<span
+							class="non-responding-user non-responding-user--clickable"
+							:class="{ 'non-responding-user--pending': remindingUsers.has(u.userId) }"
+							role="button"
+							tabindex="0"
+							@keydown.enter.prevent="openPopover = u.userId"
+							@keydown.space.prevent="openPopover = u.userId">{{ u.displayName }}<BellRingOutlineIcon :size="14" class="remind-icon" /></span>
 					</template>
 					<div class="remind-popover" role="dialog" aria-modal="true">
 						<p>{{ t('attendance', 'Send a reminder to {name}?', { name: u.displayName }) }}</p>
@@ -32,8 +34,10 @@
 							{{ t('attendance', 'Send reminder') }}
 						</NcButton>
 					</div>
-				</NcPopover><template v-if="idx < sortedUsers.length - 1">, </template>
-			</span>
+				</NcPopover><span
+					v-else
+					class="non-responding-user">{{ u.displayName }}</span><template v-if="idx < sortedUsers.length - 1">, </template>
+			</template>
 		</div>
 	</div>
 </template>
@@ -96,42 +100,34 @@ const sortedUsers = computed(() => {
     .non-responding-list {
         font-size: 13px;
         color: var(--color-text-lighter);
-        display: flex;
-        flex-wrap: wrap;
-        column-gap: 4px;
-        row-gap: 2px;
 
         .non-responding-user {
             white-space: nowrap;
         }
 
-        .remind-popover-wrapper {
+        :deep(.remind-popover-wrapper) {
             display: inline;
         }
 
-        .remind-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: none;
-            border: none;
-            padding: 0 2px;
-            margin: 0;
+        .non-responding-user--clickable {
             cursor: pointer;
-            color: var(--color-text-maxcontrast);
-            opacity: 0.5;
-            transition: opacity 0.2s, color 0.2s;
-            vertical-align: middle;
 
-            &:hover:not(:disabled) {
-                opacity: 1;
-                color: var(--color-primary-element);
+            &:hover {
+                text-decoration: underline;
             }
 
-            &:disabled {
-                opacity: 0.3;
+            &.non-responding-user--pending {
+                opacity: 0.5;
                 cursor: wait;
             }
+        }
+
+        .remind-icon {
+            display: inline-flex;
+            margin-left: 2px;
+            opacity: 0.5;
+            vertical-align: middle;
+            cursor: pointer;
         }
     }
 }
