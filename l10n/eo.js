@@ -48,6 +48,7 @@ OC.L10N.register(
     "Bold" : "Grasa",
     "Italic" : "Kursiva",
     "Strikethrough" : "Trastreka",
+    "Dismiss" : "Preterpasi",
     "Failed to load settings" : "Ŝargo de agordoj malsukcesis",
     "Settings saved" : "Agordoj konservitaj",
     "Failed to save settings" : "Konservo de agordoj malsukcesis",

@@ -182,6 +182,8 @@ OC.L10N.register(
     "Numbered list" : "Αριθμημένη λίστα",
     "Quote" : "Προσφορά",
     "Insert link" : "Εισαγωγή συνδέσμου",
+    "App Store" : "Κατάστημα εφαρμογών",
+    "Dismiss" : "Αποδέσμευση",
     "Failed to load settings" : "Αποτυχία φόρτωσης ρυθμίσεων",
     "Settings saved" : "Οι ρυθμίσεις αποθηκεύτηκαν",
     "Failed to save settings" : "Αποτυχία αποθήκευσης ρυθμίσεων",

@@ -85,6 +85,8 @@ OC.L10N.register(
     "Bullet list" : "Lista de viñetas",
     "Quote" : "Presupuesto",
     "Insert link" : "Insertar enlace",
+    "App Store" : "Tienda de aplicaciones",
+    "Dismiss" : "Descartar",
     "Failed to load settings" : "Fallo al cargar ajustes",
     "Settings saved" : "Ajustes guardados",
     "Failed to save settings" : "Fallo al guardar ajustes",

@@ -25,6 +25,8 @@ OC.L10N.register(
     "Sunday" : "Sonndeg",
     "Save" : "Späicheren",
     "Import" : "Import",
+    "Dismiss" : "Ofbriechen",
+    "Link copied" : "Link kopéiert",
     "User" : "User",
     "Description" : "Beschreiwung",
     "Confirm" : "Konfirméieren"

@@ -24,7 +24,9 @@ OC.L10N.register(
     "Saturday" : "සෙනසුරාදා",
     "Sunday" : "ඉරිදා",
     "Back" : "ආපසු",
+    "Link copied" : "සබැඳිය පිටපත් කළා",
     "Preview" : "පෙරදසුන",
+    "Open" : "විවෘත",
     "User" : "පරිශීලක",
     "Description" : "විස්තරය",
     "Confirm" : "තහවුරු කරන්න"

@@ -26,6 +26,7 @@ OC.L10N.register(
     "Sunday" : "Dominica",
     "Ends" : "Fini",
     "Save" : "Salveguardar",
+    "Dismiss" : "Dimitter",
     "Settings saved" : "Configurationes salveguardate",
     "Preview" : "Previsualisar",
     "User" : "User",

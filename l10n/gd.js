@@ -20,6 +20,8 @@ OC.L10N.register(
     "Delete" : "Sguab às",
     "Save" : "Sàbhail",
     "Back" : "Air ais",
+    "Dismiss" : "Leig seachad",
+    "Link copied" : "Chaidh lethbhreac dhen cheangal a dhèanamh",
     "Preview" : "Ro-sheall",
     "Push notifications" : "Brathan putaidh",
     "User" : "Cleachdaiche"

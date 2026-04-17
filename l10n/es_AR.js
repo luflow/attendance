@@ -44,6 +44,8 @@ OC.L10N.register(
     "Back" : "Volver",
     "Bold" : "Negrita",
     "Italic" : "Itálico",
+    "App Store" : "Tienda de aplicaciones",
+    "Dismiss" : "Despedir",
     "Settings saved" : "Configuraciones guardadas",
     "Permissions" : "Permisos",
     "Preview" : "Vista previa",

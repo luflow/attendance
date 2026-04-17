@@ -29,6 +29,8 @@ OC.L10N.register(
     "Sunday" : "Søndag",
     "Save" : "Lagre",
     "Import" : "Importer",
+    "Dismiss" : "Forkast",
+    "Link copied" : "Lenkje kopiert",
     "User" : "Bruker",
     "Description" : "Skildring"
 },

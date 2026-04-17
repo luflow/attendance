@@ -249,6 +249,8 @@ OC.L10N.register(
     "Numbered list" : "Numbered list",
     "Quote" : "Quote",
     "Insert link" : "Insert link",
+    "App Store" : "App Store",
+    "Dismiss" : "Dismiss",
     "Reminders are sent to users in the groups configured under \"Response summary groups\" and \"Response summary teams\". If an appointment has restricted access, only users matching that restriction will be reminded." : "Reminders are sent to users in the groups configured under \"Response summary groups\" and \"Response summary teams\". If an appointment has restricted access, only users matching that restriction will be reminded.",
     "Failed to load settings" : "Failed to load settings",
     "Settings saved" : "Settings saved",

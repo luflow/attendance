@@ -36,6 +36,7 @@ OC.L10N.register(
     "Ends" : "მთავრდება",
     "Save" : "შენახვა",
     "Import" : "იმპორტი",
+    "Dismiss" : "დათხოვნა",
     "Settings saved" : "პარამეტრები შენახულია",
     "Permissions" : "უფლებები",
     "Preview" : "წინასწარი ჩვენება",

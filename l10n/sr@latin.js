@@ -31,6 +31,8 @@ OC.L10N.register(
     "Save" : "Sačuvaj",
     "Bold" : "Podebljano",
     "Italic" : "Kurziv",
+    "Dismiss" : "Odbaci",
+    "Link copied" : "Veza iskopirana",
     "Push notifications" : "Brza obaveštenja",
     "User" : "Korisnik",
     "Description" : "Opis"

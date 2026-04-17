@@ -73,6 +73,7 @@ OC.L10N.register(
     "Bullet list" : "Punktliste",
     "Quote" : "Citat",
     "Insert link" : "Indsæt link",
+    "Dismiss" : "Afvis",
     "Failed to load settings" : "Fejl ved indlæsning af indstillinger",
     "Settings saved" : "Indstillinger gemt",
     "Failed to save settings" : "Kunne ikke gemme indstillinger",
