@@ -6,6 +6,17 @@
 
 - Nightly changes here
 
+## 1.36.1 – 2026-04-17
+
+### Fixed
+
+- Non-responding user list now wraps properly on long lists instead of overflowing and clicking user name now opens the remind popover (instead of only the small bell icon)
+- Mobile app banner now has consistent padding with the rest of the page
+
+### Maintenance
+
+- Translations updated from Transifex
+
 ## 1.36.0 – 2026-04-17
 
 ### Added
