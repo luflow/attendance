@@ -32,6 +32,7 @@ OC.L10N.register(
     "Active" : "Активан",
     "yr" : "год",
     "Privacy Policy" : "Политика приватности",
+    "About" : "О програму",
     "Create appointment" : "Креирај састанак",
     "Export" : "Извези",
     "Date range" : "Опсег датума",

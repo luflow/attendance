@@ -22,6 +22,7 @@ OC.L10N.register(
     "Active filters" : "Bộ lọc đang hoạt động",
     "Subscribe" : "Theo dõi",
     "Active" : "Hoạt động",
+    "About" : "Giới thiệu",
     "Create appointment" : "Tạo lịch hẹn",
     "Export" : "Xuất ra",
     "Select all" : "Chọn tất cả",

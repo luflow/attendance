@@ -50,6 +50,7 @@ OC.L10N.register(
     "Active" : "Actif",
     "yr" : "an",
     "Privacy Policy" : "Politique de confidentialité",
+    "About" : "À propos",
     "Unanswered" : "Non répondu",
     "Upcoming appointments" : "Rendez-vous à venir",
     "Past appointments" : "Rendez-vous précédents",

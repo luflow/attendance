@@ -36,6 +36,7 @@ OC.L10N.register(
     "Import" : "Importar",
     "Dismiss" : "Descartar",
     "Settings saved" : "Se han guardado las configuraciones ",
+    "Link copied" : "Enlace copiado",
     "Permissions" : "Permisos",
     "Preview" : "Previsualizar",
     "Push notifications" : "Notificaciones push",

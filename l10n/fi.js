@@ -41,6 +41,7 @@ OC.L10N.register(
     "Subscription" : "Tilaus",
     "Active" : "Aktiivinen",
     "Privacy Policy" : "Tietosuojakäytäntö",
+    "About" : "Tietoja",
     "Unanswered" : "Vastaamatta",
     "Upcoming appointments" : "Tulevat tapaamiset",
     "Past appointments" : "Menneet tapaamiset",

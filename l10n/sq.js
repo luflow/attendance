@@ -19,6 +19,7 @@ OC.L10N.register(
     "Connected" : "Të lidhur",
     "Not now" : "Jo tani",
     "Subscribe" : "Abonohu",
+    "About" : "Rreth",
     "Export" : "Eksport",
     "Select all" : "Zgjidhi të gjitha",
     "Deselect all" : "Hiqi të gjithë",

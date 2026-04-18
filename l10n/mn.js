@@ -25,6 +25,7 @@ OC.L10N.register(
     "Subscription" : "Захиалга",
     "Active" : "Идэвхтэй",
     "Privacy Policy" : "Нууцлалын бодлого",
+    "About" : "Тухай",
     "Export" : "Экспорт",
     "Date range" : "Огнооны хүрээ",
     "Select all" : "бүгдийг сонгох",

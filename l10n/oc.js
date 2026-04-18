@@ -18,6 +18,7 @@ OC.L10N.register(
     "Notifications" : "Notificacions",
     "Subscribe" : "S'abonar",
     "Active" : "Activa",
+    "About" : "A prepaus",
     "Export" : "Exportar",
     "Cancel" : "Cancel",
     "Share link" : "Partejar via ligam",

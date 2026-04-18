@@ -29,6 +29,7 @@ OC.L10N.register(
     "Subscribe" : "Prenumerera",
     "Subscription" : "Abonnemang",
     "Active" : "Aktiv",
+    "About" : "Om",
     "Create appointment" : "Skapa möte",
     "Export" : "Exportera",
     "Date range" : "Datumintervall",

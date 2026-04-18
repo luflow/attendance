@@ -48,6 +48,7 @@ OC.L10N.register(
     "Subscription" : "Abonnement",
     "Active" : "Actief",
     "Privacy Policy" : "Privacybeleid",
+    "About" : "Over",
     "Create appointment" : "Creëer afspraak",
     "Export" : "Exporteren",
     "Date range" : "Datumbereik",

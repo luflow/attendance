@@ -25,6 +25,7 @@ OC.L10N.register(
     "Subscribe" : "Sutaiscrie",
     "Subscription" : "Sutaiscritzione",
     "Active" : "Ativu",
+    "About" : "In contu de",
     "Export" : "Esporta",
     "Deselect all" : "Deseletziona totu",
     "Start date" : "Data de cumintzu",

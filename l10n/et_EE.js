@@ -35,6 +35,7 @@ OC.L10N.register(
     "Subscription" : "Tellimus",
     "Active" : "Aktiivne",
     "Privacy Policy" : "Privaatsustingimused",
+    "About" : "Rakenduse teave",
     "Upcoming appointments" : "Tulevased kohtumised",
     "Past appointments" : "Varasemad kohtumised",
     "Create appointment" : "Loo kohtumine",

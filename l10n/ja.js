@@ -28,6 +28,7 @@ OC.L10N.register(
     "Subscription" : "サブスクリプション",
     "Active" : "有効",
     "Privacy Policy" : "個人情報保護方針",
+    "About" : "Nextcloud について",
     "Create appointment" : "予定を作成",
     "Export" : "エクスポート",
     "Date range" : "日付範囲",

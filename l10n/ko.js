@@ -45,6 +45,7 @@ OC.L10N.register(
     "Subscription" : "구독",
     "Active" : "활성화",
     "Privacy Policy" : "프라이버시 정책",
+    "About" : "정보",
     "Unanswered" : "답장 없음",
     "Upcoming appointments" : "예정된 약속",
     "Past appointments" : "지난 약속",

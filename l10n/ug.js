@@ -31,6 +31,7 @@ OC.L10N.register(
     "Active" : "ئاكتىپ",
     "yr" : "yr",
     "Privacy Policy" : "مەخپىيەتلىك تۈزۈمى",
+    "About" : "ھەققىدە",
     "Export" : "ئېكسپورت",
     "Date range" : "چېسلا دائىرىسى",
     "Select all" : "ھەممىنى تاللاڭ",

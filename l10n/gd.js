@@ -11,6 +11,7 @@ OC.L10N.register(
     "Light" : "Soilleir",
     "Dark" : "Dorcha",
     "Notifications" : "Brathan",
+    "About" : "Mu dhèidhinn",
     "Select all" : "Tagh na h-uile",
     "Deselect all" : "Dì-thagh na h-uile",
     "Copy" : "Dèan lethbhreac",

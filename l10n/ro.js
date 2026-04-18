@@ -20,6 +20,7 @@ OC.L10N.register(
     "Active filters" : "Filtre active",
     "Subscribe" : "Abonare",
     "Active" : "Activ",
+    "About" : "Despre",
     "Create appointment" : "Creează programare",
     "Export" : "Exportă",
     "Select all" : "Selectează tot",

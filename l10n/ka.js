@@ -23,6 +23,7 @@ OC.L10N.register(
     "Subscribe" : "Subscribe",
     "Active" : "Active",
     "Privacy Policy" : "Privacy Policy",
+    "About" : "About",
     "Create appointment" : "Create appointment",
     "Export" : "Export",
     "Select all" : "Select all",

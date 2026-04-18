@@ -11,6 +11,7 @@ OC.L10N.register(
     "Theme" : "තේමාව",
     "System" : "පද්ධතිය",
     "Dark" : "අඳුරු",
+    "About" : "පිළිබඳ",
     "Select all" : "සියල්ල තෝරන්න",
     "Cancel" : "Cancel",
     "Edit" : "සංස්කරණය",

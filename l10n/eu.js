@@ -31,6 +31,7 @@ OC.L10N.register(
     "Active" : "Aktibo",
     "yr" : "ur",
     "Privacy Policy" : "Pribatutasun politika",
+    "About" : "Honi buruz",
     "Create appointment" : "Sortu hitzordua",
     "Export" : "Esportatu",
     "Date range" : "Data tartea",

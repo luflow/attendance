@@ -70,6 +70,7 @@ OC.L10N.register(
     "Active" : "Etkin",
     "yr" : "yıl",
     "Privacy Policy" : "Gizlilik ilkesi",
+    "About" : "Hakkında",
     "Unanswered" : "Yanıtlanmamış",
     "Upcoming appointments" : "Yaklaşan randevular",
     "Past appointments" : "Geçmiş randevular",

@@ -23,6 +23,7 @@ OC.L10N.register(
     "Subscribe" : "הרשמה",
     "Subscription" : "מינוי",
     "Active" : "פעיל",
+    "About" : "אודות",
     "Export" : "ייצוא",
     "Select all" : "בחר הכל",
     "Deselect all" : "ביטול בחירה",

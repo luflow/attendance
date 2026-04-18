@@ -31,6 +31,7 @@ OC.L10N.register(
     "Active" : "Aktiv",
     "yr" : "yr",
     "Privacy Policy" : "Personvernerklæring",
+    "About" : "Om",
     "Create appointment" : "Opprett avtale",
     "Export" : "Eksporter",
     "Select all" : "Velg alle",

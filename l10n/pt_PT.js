@@ -41,6 +41,7 @@ OC.L10N.register(
     "Active filters" : "Filtros ativos",
     "Subscribe" : "Subscrever",
     "Privacy Policy" : "Política de Privacidade",
+    "About" : "Sobre",
     "Unanswered" : "Sem resposta",
     "Upcoming appointments" : "Próximos compromissos",
     "Past appointments" : "Compromissos anteriores",

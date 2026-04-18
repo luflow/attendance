@@ -28,6 +28,7 @@ OC.L10N.register(
     "Subscribe" : "اشتراک گذاری",
     "Active" : "فعال کردن",
     "Privacy Policy" : "Privacy Policy",
+    "About" : "درباره",
     "Create appointment" : "Create appointment",
     "Export" : "دریافت خروجی",
     "Select all" : "انتخاب همه",

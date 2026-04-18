@@ -13,6 +13,7 @@ OC.L10N.register(
     "Light" : "Svetla",
     "Dark" : "Tamna",
     "Connecting…" : "Povezujem se…",
+    "About" : "O programu",
     "Deselect all" : "Poništi ceo izbor",
     "Copy" : "Kopiraj",
     "Cancel" : "Poništi",

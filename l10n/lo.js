@@ -26,6 +26,7 @@ OC.L10N.register(
     "Subscribe" : "Subscribe",
     "Active" : "ກຳລັງໃຊ້ງານ",
     "Privacy Policy" : "ນະໂຍບາຍຄວາມເປັນສ່ວນຕົວ",
+    "About" : "ກ່ຽວກັບ",
     "Export" : "ສົ່ງອອກ",
     "Select all" : "ເລືອກທັງໝົດ",
     "Deselect all" : "ເລືອກຄຶນທັງໝົດ",

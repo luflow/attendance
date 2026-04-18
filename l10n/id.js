@@ -44,6 +44,7 @@ OC.L10N.register(
     "Subscription" : "Langganan",
     "Active" : "Aktif",
     "Privacy Policy" : "Kebijakan Privasi",
+    "About" : "Tentang",
     "Unanswered" : "Belum dijawab",
     "Upcoming appointments" : "Janji temu mendatang",
     "Past appointments" : "Janji temu sebelumnya",

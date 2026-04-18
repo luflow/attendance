@@ -31,6 +31,7 @@ OC.L10N.register(
     "Subscription" : "Subskrypcja",
     "Active" : "Aktywne",
     "Privacy Policy" : "Polityka prywatności",
+    "About" : "O aplikacji",
     "Create appointment" : "Utwórz spotkanie",
     "Export" : "Eksportuj",
     "Date range" : "Zakres dat",

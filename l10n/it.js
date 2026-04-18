@@ -32,6 +32,7 @@ OC.L10N.register(
     "Active" : "Attivo",
     "yr" : "anno",
     "Privacy Policy" : "Criterio di riservatezza",
+    "About" : "Informazioni",
     "Upcoming appointments" : "Prossimi appuntamenti",
     "Past appointments" : "Appuntamenti passati",
     "Create appointment" : "Crea appuntamento",

@@ -34,7 +34,10 @@ OC.L10N.register(
     "Bold" : "Vet",
     "Italic" : "Skuins",
     "Strikethrough" : "Deurstreep",
+    "Dismiss" : "Ontslaan",
     "Settings saved" : "Instellings gestoor",
+    "Link copied" : "Skakel gekopieer",
+    "Open" : "Open",
     "User" : "Gebruiker",
     "Description" : "Beskrywing",
     "Confirm" : "Bevestig"

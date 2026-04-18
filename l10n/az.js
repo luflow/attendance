@@ -30,7 +30,9 @@ OC.L10N.register(
     "Save" : "Saxla",
     "Import" : "Əlavə et",
     "Back" : "Geri",
+    "Dismiss" : "Rədd et",
     "Settings saved" : "Parametrlər yaddaşa verildi",
+    "Link copied" : "Link kopyalandı",
     "User" : "User",
     "Description" : "Açıqlanma",
     "Confirm" : "Təsdiq edin"

@@ -32,6 +32,7 @@ OC.L10N.register(
     "Active" : "Увімкнено",
     "yr" : "твій.",
     "Privacy Policy" : "Політика конфіденційності",
+    "About" : "Про сервіс",
     "Create appointment" : "Створити зустріч",
     "Export" : "Експортувати",
     "Date range" : "Проміжок часу",

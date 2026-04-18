@@ -20,6 +20,7 @@ OC.L10N.register(
     "Subscribe" : "Gerast áskrifandi",
     "Subscription" : "Áskrift",
     "Active" : "Virkur",
+    "About" : "Um",
     "Create appointment" : "Búa til stefnumót",
     "Export" : "Flytja út",
     "Date range" : "Tímabil",

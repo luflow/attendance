@@ -30,6 +30,7 @@ OC.L10N.register(
     "Subscription" : "Előfizetés",
     "Active" : "Aktív",
     "Privacy Policy" : "Adatvédelmi irányelvek",
+    "About" : "Névjegy",
     "Create appointment" : "Találkozó létrehozása",
     "Export" : "Exportálás",
     "Deselect all" : "Kijelölés megszüntetése",

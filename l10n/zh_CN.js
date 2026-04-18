@@ -30,6 +30,7 @@ OC.L10N.register(
     "Subscription" : "订阅",
     "Active" : "作用",
     "Privacy Policy" : "隐私政策",
+    "About" : "关于",
     "Create appointment" : "创建预约",
     "Export" : "导出",
     "Date range" : "日期范围",

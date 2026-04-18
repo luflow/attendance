@@ -97,6 +97,7 @@ OC.L10N.register(
     "Terms of Service" : "Téarmaí Seirbhíse",
     "Privacy Policy" : "Beartas Príobháideachais",
     "By connecting, you agree to our {terms} and acknowledge our {privacy}." : "Trí nascadh, aontaíonn tú lenár {terms} agus aithníonn tú ár {privacy}.",
+    "About" : "Faoi",
     "Unanswered" : "Gan freagra",
     "Upcoming appointments" : "Coinní atá le teacht",
     "Past appointments" : "Ceapacháin san am atá thart",

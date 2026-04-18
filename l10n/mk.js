@@ -21,6 +21,7 @@ OC.L10N.register(
     "Subscribe" : "Претплата",
     "Subscription" : "Претплата",
     "Active" : "Активно",
+    "About" : "За",
     "Create appointment" : "Креирај термин",
     "Export" : "Извези",
     "Date range" : "Опсег",

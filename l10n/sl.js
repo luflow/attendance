@@ -29,6 +29,7 @@ OC.L10N.register(
     "Subscription" : "Naročnina",
     "Active" : "Dejavno",
     "Privacy Policy" : "Pravila zasebnosti",
+    "About" : "O meni",
     "Create appointment" : "Ustvari sestanek",
     "Export" : "Izvozi",
     "Select all" : "Izberi vse",

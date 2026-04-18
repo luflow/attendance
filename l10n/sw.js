@@ -67,6 +67,7 @@ OC.L10N.register(
     "Active" : "Inayotumika",
     "yr" : "yr",
     "Privacy Policy" : "Sera ya Faragha",
+    "About" : "Kuhusu",
     "Unanswered" : "Haijajibiwa",
     "Upcoming appointments" : "Miadi ijayo",
     "Past appointments" : "Miadi iliyopita",

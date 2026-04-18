@@ -28,6 +28,7 @@ OC.L10N.register(
     "Subscribe" : "Pretplata",
     "Subscription" : "Pretplata",
     "Active" : "Aktivan",
+    "About" : "Informacije",
     "Export" : "Izvoz",
     "Date range" : "Raspon datuma",
     "Select all" : "Odaberi sve",

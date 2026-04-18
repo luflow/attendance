@@ -50,6 +50,7 @@ OC.L10N.register(
     "Active" : "Aktívne",
     "yr" : "rok",
     "Privacy Policy" : "Zásady ochrany osobných údajov",
+    "About" : "O vás",
     "Unanswered" : "Bez odpovede",
     "Upcoming appointments" : "Nadchádzajúce schôdzky",
     "Past appointments" : "Minulé schôdzky",

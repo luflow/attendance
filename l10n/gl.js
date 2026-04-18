@@ -51,6 +51,7 @@ OC.L10N.register(
     "Active" : "Activa",
     "yr" : "ano",
     "Privacy Policy" : "Directiva de privacidade",
+    "About" : "Sobre",
     "Unanswered" : "Sen resposta",
     "Upcoming appointments" : "Próximas citas",
     "Past appointments" : "Citas pasadas",
