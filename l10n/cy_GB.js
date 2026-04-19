@@ -13,6 +13,7 @@ OC.L10N.register(
     "Dark" : "Tywyll",
     "Connected" : "Wedi cysylltu",
     "Subscribe" : "Tanysgrifio",
+    "About" : "Ynglyn â",
     "Create appointment" : "Creu apwyntiad",
     "Export" : "Allforio",
     "Deselect all" : "Dad ddewis popeth",

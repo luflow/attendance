@@ -31,6 +31,7 @@ OC.L10N.register(
     "Active" : "نَشِط",
     "yr" : "سنه",
     "Privacy Policy" : "سياسة الخصوصية",
+    "About" : "حول",
     "Create appointment" : "إنشاء موعد",
     "Export" : "تصدير",
     "Select all" : "تحديد الكل",

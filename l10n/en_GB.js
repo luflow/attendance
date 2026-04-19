@@ -96,6 +96,7 @@ OC.L10N.register(
     "Terms of Service" : "Terms of Service",
     "Privacy Policy" : "Privacy Policy",
     "By connecting, you agree to our {terms} and acknowledge our {privacy}." : "By connecting, you agree to our {terms} and acknowledge our {privacy}.",
+    "About" : "About",
     "Unanswered" : "Unanswered",
     "Upcoming appointments" : "Upcoming appointments",
     "Past appointments" : "Past appointments",

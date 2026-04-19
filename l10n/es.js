@@ -34,6 +34,7 @@ OC.L10N.register(
     "Active" : "Activo",
     "yr" : "año",
     "Privacy Policy" : "Política de privacidad",
+    "About" : "Acerca de",
     "Create appointment" : "Crear cita",
     "Export" : "Exportar",
     "Date range" : "Rango de fechas",

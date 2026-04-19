@@ -30,6 +30,7 @@ OC.L10N.register(
     "Subscription" : "Абонамент",
     "Active" : "Активен",
     "Privacy Policy" : "Политика за поверителност",
+    "About" : "Относно",
     "Create appointment" : "Създаване на среща",
     "Export" : "Експорт /изнасям/",
     "Select all" : "Избери всички",

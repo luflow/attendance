@@ -26,6 +26,7 @@ OC.L10N.register(
     "Active filters" : "Aktive filtre",
     "Subscribe" : "Tilmeld",
     "Subscription" : "Abonnement",
+    "About" : "Om",
     "Create appointment" : "Opret aftale",
     "Export" : "Eksportér",
     "Date range" : "Datoområde",

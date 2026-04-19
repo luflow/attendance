@@ -70,6 +70,7 @@ OC.L10N.register(
     "Active" : "Aktivní",
     "yr" : "yr",
     "Privacy Policy" : "Zásady ochrany soukromí",
+    "About" : "O aplikaci",
     "Unanswered" : "Nezodpovězeno",
     "Upcoming appointments" : "Nadcházející schůzky",
     "Past appointments" : "Minulé schůzky",

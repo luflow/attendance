@@ -15,6 +15,7 @@ OC.L10N.register(
     "Connected" : "Conectado",
     "Not now" : "No ahora",
     "Subscribe" : "Suscribir",
+    "About" : "Acerca",
     "Export" : "Exportar",
     "Select all" : "Seleccionar todo",
     "Deselect all" : "Deseleccionar todo",

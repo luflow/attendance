@@ -31,6 +31,7 @@ OC.L10N.register(
     "Active" : "Actiu",
     "yr" : "any",
     "Privacy Policy" : "Política de privadesa",
+    "About" : "Quant a",
     "Create appointment" : "Crea cita",
     "Export" : "Exporta",
     "Select all" : "Selecciona-ho tot",

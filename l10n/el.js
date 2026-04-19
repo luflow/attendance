@@ -50,6 +50,7 @@ OC.L10N.register(
     "Active" : "Ενεργός",
     "yr" : "έτος",
     "Privacy Policy" : "Πολιτική απορρήτου",
+    "About" : "Περί",
     "Unanswered" : "Αναπάντητα",
     "Upcoming appointments" : "Επερχόμενα ραντεβού",
     "Past appointments" : "Προηγούμενα ραντεβού",

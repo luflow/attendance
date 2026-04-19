@@ -22,6 +22,7 @@ OC.L10N.register(
     "Subscribe" : "Soscribise",
     "Subscription" : "Soscripción",
     "Active" : "Activa",
+    "About" : "Tocante a",
     "Export" : "Esportar",
     "Select all" : "Seleicionar too",
     "Start date" : "Data de comienzu",
