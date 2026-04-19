@@ -660,6 +660,45 @@ class AppointmentController extends Controller {
 	}
 
 	/**
+	 * Get personal user settings
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{icalReminderTriggers: list<string>}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function getUserSettings(): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], Http::STATUS_UNAUTHORIZED);
+		}
+
+		return new DataResponse([
+			'icalReminderTriggers' => $this->configService->getUserIcalReminderTriggers($user->getUID()),
+		]);
+	}
+
+	/**
+	 * Save personal user settings
+	 *
+	 * @param list<string> $icalReminderTriggers List of duration strings for iCal reminder triggers
+	 * @return DataResponse<Http::STATUS_OK, array{success: bool}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function saveUserSettings(array $icalReminderTriggers = []): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], Http::STATUS_UNAUTHORIZED);
+		}
+
+		$this->configService->setUserIcalReminderTriggers($user->getUID(), $icalReminderTriggers);
+
+		return new DataResponse(['success' => true]);
+	}
+
+	/**
 	 * Get check-in data for an appointment
 	 *
 	 * @param int $id Appointment ID

@@ -445,6 +445,17 @@ OC.L10N.register(
     "Subscription URL regenerated" : "Abonnement-URL neu generiert",
     "Failed to regenerate subscription URL" : "Die Abonnement-URL konnte nicht neu generiert werden",
     "URL copied to clipboard" : "URL wurde in die Zwischenablage kopiert",
-    "Failed to copy URL" : "URL konnte nicht kopiert werden"
+    "Failed to copy URL" : "URL konnte nicht kopiert werden",
+    "Calendar reminders" : "Kalender-Erinnerungen",
+    "Personal settings for the Attendance app" : "Persönliche Einstellungen für die Anwesenheits-App",
+    "Configure reminders for appointments you accepted or tentatively accepted in your calendar subscription (iCal feed). You can select multiple reminder times." : "Konfigurieren Sie Erinnerungen für Termine, die Sie zugesagt oder vorläufig zugesagt haben, in Ihrem Kalender-Abonnement (iCal-Feed). Sie können mehrere Erinnerungszeiten auswählen.",
+    "Reminders before appointment" : "Erinnerungen vor dem Termin",
+    "No reminders" : "Keine Erinnerungen",
+    "15 minutes before" : "15 Minuten vorher",
+    "30 minutes before" : "30 Minuten vorher",
+    "1 hour before" : "1 Stunde vorher",
+    "2 hours before" : "2 Stunden vorher",
+    "1 day before" : "1 Tag vorher",
+    "2 days before" : "2 Tage vorher"
 },
 "nplurals=2; plural=(n != 1);");

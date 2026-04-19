@@ -6,6 +6,17 @@
 
 - Nightly changes here
 
+## 1.37.0 – 2026-04-19
+
+### Added
+
+- Personal settings page under Settings > Personal > Attendance
+- Configurable iCal calendar reminders (VALARM) for accepted/tentative appointments – users can select multiple reminder times (default: 1 hour before appointment)
+
+### Improved
+
+- Better industry standards implemented for iCal feed especially for auto refresh in nextcloud calendar (now refreshing every 15 min if possible)
+
 ## 1.36.1 – 2026-04-17
 
 ### Fixed

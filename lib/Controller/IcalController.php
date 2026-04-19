@@ -106,14 +106,25 @@ class IcalController extends Controller {
 		try {
 			$icalContent = $this->icalService->generateIcalFeed($userId);
 
+			// ETag for conditional requests (saves bandwidth on repeated polls)
+			$etag = '"' . md5($icalContent) . '"';
+			$ifNoneMatch = $this->request->getHeader('If-None-Match');
+			if ($ifNoneMatch === $etag) {
+				$response = new Response();
+				$response->setStatus(Http::STATUS_NOT_MODIFIED);
+				$response->addHeader('ETag', $etag);
+				return $response;
+			}
+
 			$response = new DataDownloadResponse(
 				$icalContent,
 				'attendance.ics',
 				'text/calendar; charset=utf-8'
 			);
 
-			// Set appropriate cache headers
 			$response->addHeader('Cache-Control', 'private, no-cache, must-revalidate');
+			$response->addHeader('ETag', $etag);
+			$response->addHeader('Content-Disposition', 'inline; filename="attendance.ics"');
 			$response->addHeader('X-Content-Type-Options', 'nosniff');
 
 			return $response;

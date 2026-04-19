@@ -24,6 +24,7 @@ class IcalService {
 	private AppointmentAttachmentMapper $attachmentMapper;
 	private AttendanceResponseMapper $responseMapper;
 	private VisibilityService $visibilityService;
+	private ConfigService $configService;
 	private ISecureRandom $secureRandom;
 	private IURLGenerator $urlGenerator;
 	private IL10NFactory $l10nFactory;
@@ -38,6 +39,7 @@ class IcalService {
 		AppointmentAttachmentMapper $attachmentMapper,
 		AttendanceResponseMapper $responseMapper,
 		VisibilityService $visibilityService,
+		ConfigService $configService,
 		ISecureRandom $secureRandom,
 		IURLGenerator $urlGenerator,
 		IL10NFactory $l10nFactory,
@@ -48,6 +50,7 @@ class IcalService {
 		$this->attachmentMapper = $attachmentMapper;
 		$this->responseMapper = $responseMapper;
 		$this->visibilityService = $visibilityService;
+		$this->configService = $configService;
 		$this->secureRandom = $secureRandom;
 		$this->urlGenerator = $urlGenerator;
 		$this->l10nFactory = $l10nFactory;
@@ -136,21 +139,29 @@ class IcalService {
 		$domain = $this->urlGenerator->getAbsoluteURL('/');
 		$domain = parse_url($domain, PHP_URL_HOST) ?? 'nextcloud';
 
+		$instanceName = $this->config->getSystemValue('instancename', 'Nextcloud');
+		$calendarName = $l->t('Attendance') . ' – ' . $instanceName;
+
 		$output = "BEGIN:VCALENDAR\r\n";
 		$output .= "VERSION:2.0\r\n";
 		$output .= "PRODID:-//Nextcloud//Attendance App//EN\r\n";
 		$output .= "CALSCALE:GREGORIAN\r\n";
-		$output .= "METHOD:PUBLISH\r\n";
-		$output .= 'X-WR-CALNAME:' . $this->escapeIcalText($l->t('Attendance appointments')) . "\r\n";
+		$output .= 'NAME:' . $this->escapeIcalText($calendarName) . "\r\n";
+		$output .= 'X-WR-CALNAME:' . $this->escapeIcalText($calendarName) . "\r\n";
+		$output .= "REFRESH-INTERVAL;VALUE=DURATION:PT15M\r\n";
+		$output .= "X-PUBLISHED-TTL:PT15M\r\n";
+
+		// Get user's reminder trigger preferences
+		$reminderTriggers = $this->configService->getUserIcalReminderTriggers($userId);
 
 		foreach ($appointments as $appointment) {
 			$response = $userResponses[$appointment->getId()] ?? null;
-			$output .= $this->generateVEvent($appointment, $response, $userId, $l, $domain);
+			$output .= $this->generateVEvent($appointment, $response, $userId, $l, $domain, $reminderTriggers);
 		}
 
 		$output .= "END:VCALENDAR\r\n";
 
-		return $output;
+		return $this->foldIcalContent($output);
 	}
 
 	/**
@@ -177,6 +188,8 @@ class IcalService {
 
 	/**
 	 * Generate VEVENT for an appointment
+	 *
+	 * @param list<string> $reminderTriggers List of duration strings for VALARM triggers
 	 */
 	private function generateVEvent(
 		Appointment $appointment,
@@ -184,6 +197,7 @@ class IcalService {
 		string $userId,
 		$l,
 		string $domain,
+		array $reminderTriggers = [],
 	): string {
 		$responseState = $response ? $response->getResponse() : null;
 		$responseComment = $response ? $response->getComment() : null;
@@ -234,12 +248,15 @@ class IcalService {
 
 		// Add attachments section if there are any
 		$attachments = $this->attachmentMapper->findByAppointment($appointment->getId());
+		$attachmentUrls = [];
+		foreach ($attachments as $attachment) {
+			$attachmentUrls[$attachment->getFileId()] = $this->urlGenerator->getAbsoluteURL('/f/' . $attachment->getFileId());
+		}
 		if (count($attachments) > 0) {
 			$attachmentLines = [$l->t('Attachments') . ':'];
 			foreach ($attachments as $attachment) {
-				$attachUrl = $this->urlGenerator->getAbsoluteURL('/f/' . $attachment->getFileId());
 				$attachmentLines[] = $attachment->getFileName();
-				$attachmentLines[] = $attachUrl;
+				$attachmentLines[] = $attachmentUrls[$attachment->getFileId()];
 				$attachmentLines[] = ''; // Empty line between attachments
 			}
 			// Remove trailing empty line
@@ -285,6 +302,7 @@ class IcalService {
 		$output = "BEGIN:VEVENT\r\n";
 		$output .= 'UID:attendance-appointment-' . $appointment->getId() . '@' . $domain . "\r\n";
 		$output .= 'DTSTAMP:' . $lastModifiedDt->format('Ymd\THis\Z') . "\r\n";
+		$output .= 'CREATED:' . $createdDt->format('Ymd\THis\Z') . "\r\n";
 		$output .= 'LAST-MODIFIED:' . $lastModifiedDt->format('Ymd\THis\Z') . "\r\n";
 		$output .= 'SEQUENCE:' . $sequence . "\r\n";
 		$output .= 'DTSTART:' . $startDt->format('Ymd\THis\Z') . "\r\n";
@@ -295,10 +313,20 @@ class IcalService {
 		$output .= 'STATUS:' . $status . "\r\n";
 		$output .= 'TRANSP:' . $transp . "\r\n";
 
-		// Add attachments as ATTACH properties (using already loaded attachments)
-		foreach ($attachments as $attachment) {
-			$attachUrl = $this->urlGenerator->getAbsoluteURL('/f/' . $attachment->getFileId());
+		// Add attachments as ATTACH properties (using pre-computed URLs)
+		foreach ($attachmentUrls as $attachUrl) {
 			$output .= 'ATTACH:' . $attachUrl . "\r\n";
+		}
+
+		// Add reminders for confirmed/tentative attendance (issue #62)
+		if (($responseState === 'yes' || $responseState === 'maybe') && !empty($reminderTriggers)) {
+			foreach ($reminderTriggers as $trigger) {
+				$output .= "BEGIN:VALARM\r\n";
+				$output .= 'TRIGGER:-' . $trigger . "\r\n";
+				$output .= "ACTION:DISPLAY\r\n";
+				$output .= 'DESCRIPTION:' . $this->escapeIcalText($appointment->getName()) . "\r\n";
+				$output .= "END:VALARM\r\n";
+			}
 		}
 
 		$output .= "END:VEVENT\r\n";
@@ -317,5 +345,52 @@ class IcalService {
 		// Replace actual newlines with \n literal
 		$text = str_replace(["\r\n", "\r", "\n"], '\\n', $text);
 		return $text;
+	}
+
+	/**
+	 * Fold iCal content lines per RFC 5545 Section 3.1
+	 * Lines must not exceed 75 octets; fold with CRLF + space.
+	 */
+	private function foldIcalContent(string $content): string {
+		$content = rtrim($content, "\r\n");
+		$lines = explode("\r\n", $content);
+		$folded = array_map([$this, 'foldIcalLine'], $lines);
+		return implode("\r\n", $folded) . "\r\n";
+	}
+
+	/**
+	 * Fold a single iCal line to max 75 octets, preserving UTF-8 boundaries.
+	 */
+	private function foldIcalLine(string $line): string {
+		if (strlen($line) <= 75) {
+			return $line;
+		}
+
+		$result = '';
+		$pos = 0;
+		$len = strlen($line);
+		$firstLine = true;
+
+		while ($pos < $len) {
+			$maxBytes = $firstLine ? 75 : 74; // continuation lines have leading space
+			$end = min($pos + $maxBytes, $len);
+
+			// Don't split UTF-8 multi-byte characters
+			while ($end > $pos && $end < $len && (ord($line[$end]) & 0xC0) === 0x80) {
+				$end--;
+			}
+
+			$chunk = substr($line, $pos, $end - $pos);
+			if ($firstLine) {
+				$result = $chunk;
+				$firstLine = false;
+			} else {
+				$result .= "\r\n " . $chunk;
+			}
+
+			$pos = $end;
+		}
+
+		return $result;
 	}
 }

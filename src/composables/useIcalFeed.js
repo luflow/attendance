@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
@@ -65,6 +65,16 @@ export function useIcalFeed() {
 		}
 	}
 
+	const webcalUrl = computed(() => {
+		if (!feedUrl.value) return ''
+		return feedUrl.value.replace(/^https?:\/\//, 'webcal://')
+	})
+
+	const googleCalendarUrl = computed(() => {
+		if (!webcalUrl.value) return ''
+		return `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcalUrl.value)}`
+	})
+
 	const copyToClipboard = async () => {
 		if (!feedUrl.value) {
 			return
@@ -77,6 +87,8 @@ export function useIcalFeed() {
 
 	return {
 		feedUrl,
+		webcalUrl,
+		googleCalendarUrl,
 		createdAt,
 		lastUsedAt,
 		loading,

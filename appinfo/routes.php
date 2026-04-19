@@ -44,6 +44,8 @@ return [
 		// User data
 		['name' => 'appointment#getPermissions', 'url' => '/api/user/permissions', 'verb' => 'GET'],
 		['name' => 'appointment#getUserConfig', 'url' => '/api/user/config', 'verb' => 'GET'],
+		['name' => 'appointment#getUserSettings', 'url' => '/api/user/settings', 'verb' => 'GET'],
+		['name' => 'appointment#saveUserSettings', 'url' => '/api/user/settings', 'verb' => 'POST'],
 
 		// Capabilities
 		['name' => 'appointment#getCapabilities', 'url' => '/api/capabilities', 'verb' => 'GET'],

@@ -73,7 +73,7 @@ Perfekt für Organisationen, Teams und Gemeinschaften, die die Anwesenheit bei M
 	<screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/screen-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/screen.jpg</screenshot>
     <screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/admin-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/admin.jpg</screenshot>
     <screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/checkin-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/checkin.jpg</screenshot>
-	<version>1.36.1</version>
+	<version>1.37.0</version>
 	<licence>AGPL-3.0-or-later</licence>
 	<author mail="florian@krautnerds.de" homepage="https://krautnerds.de">Florian Ludwig</author>
 	<namespace>Attendance</namespace>
@@ -103,5 +103,7 @@ Perfekt für Organisationen, Teams und Gemeinschaften, die die Anwesenheit bei M
 	<settings>
 		<admin>OCA\Attendance\Settings\AdminSettings</admin>
 		<admin-section>OCA\Attendance\Settings\AdminSection</admin-section>
+		<personal>OCA\Attendance\Settings\PersonalSettings</personal>
+		<personal-section>OCA\Attendance\Settings\PersonalSection</personal-section>
 	</settings>
 </info>

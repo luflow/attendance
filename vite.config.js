@@ -15,6 +15,7 @@ export default createAppConfig(
     main: resolve(join("src", "main.js")),
     dashboard: resolve(join("src", "dashboard.js")),
     settings: resolve(join("src", "settings.js")),
+    personal: resolve(join("src", "personal.js")),
     quickresponse: resolve(join("src", "quickresponse.js")),
     selfcheckin: resolve(join("src", "selfcheckin.js")),
   },

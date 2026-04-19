@@ -51,7 +51,7 @@
 
 				<div v-if="lastUsedAt" class="last-used-info">
 					<span class="last-used-label">{{ t('attendance', 'Last accessed') }}:</span>
-					<span class="last-used-date">{{ formatDate(lastUsedAt) }}</span>
+					<span class="last-used-date">{{ formatDateTime(lastUsedAt) }}</span>
 				</div>
 
 				<NcNoteCard type="warning" class="security-warning">
@@ -90,7 +90,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue'
+import { ref, watch } from 'vue'
 import { NcDialog, NcButton, NcNoteCard, NcLoadingIcon } from '@nextcloud/vue'
 import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
 import Refresh from 'vue-material-design-icons/Refresh.vue'
@@ -110,19 +110,7 @@ const emit = defineEmits(['close'])
 
 const showRegenerateConfirm = ref(false)
 
-const { feedUrl, lastUsedAt, loading, loadToken, regenerateToken, copyToClipboard } = useIcalFeed()
-
-// Convert https:// URL to webcal:// for Apple Calendar
-const webcalUrl = computed(() => {
-	if (!feedUrl.value) return ''
-	return feedUrl.value.replace(/^https?:\/\//, 'webcal://')
-})
-
-// Google Calendar subscription URL
-const googleCalendarUrl = computed(() => {
-	if (!webcalUrl.value) return ''
-	return `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcalUrl.value)}`
-})
+const { feedUrl, webcalUrl, googleCalendarUrl, lastUsedAt, loading, loadToken, regenerateToken, copyToClipboard } = useIcalFeed()
 
 // Load token when modal opens
 watch(() => props.show, async (newValue) => {
@@ -142,11 +130,6 @@ const handleCopy = () => {
 const handleRegenerate = async () => {
 	showRegenerateConfirm.value = false
 	await regenerateToken()
-}
-
-const formatDate = (dateString) => {
-	if (!dateString) return ''
-	return formatDateTime(dateString)
 }
 </script>
 

@@ -284,4 +284,38 @@ class ConfigService {
 		}
 		$this->config->setAppValue(self::APP_ID, 'display_order', $order);
 	}
+
+	// --- User-level settings ---
+
+	private const ALLOWED_ICAL_TRIGGERS = ['PT15M', 'PT30M', 'PT1H', 'PT2H', 'P1D', 'P2D'];
+
+	/**
+	 * Get the user's iCal reminder trigger durations.
+	 *
+	 * @param string $userId The user ID
+	 * @return list<string> List of duration strings (e.g. ['P1D', 'PT1H'])
+	 */
+	public function getUserIcalReminderTriggers(string $userId): array {
+		$json = $this->config->getUserValue($userId, self::APP_ID, 'ical_reminder_triggers', '["PT1H"]');
+		$values = json_decode($json, true);
+		if (!is_array($values)) {
+			return ['PT1H'];
+		}
+		return array_values(array_filter($values, function (string $v): bool {
+			return in_array($v, self::ALLOWED_ICAL_TRIGGERS, true);
+		}));
+	}
+
+	/**
+	 * Set the user's iCal reminder trigger durations.
+	 *
+	 * @param string $userId The user ID
+	 * @param list<string> $values List of duration strings (e.g. ['P1D', 'PT1H'])
+	 */
+	public function setUserIcalReminderTriggers(string $userId, array $values): void {
+		$filtered = array_values(array_unique(array_filter($values, function (string $v): bool {
+			return in_array($v, self::ALLOWED_ICAL_TRIGGERS, true);
+		})));
+		$this->config->setUserValue($userId, self::APP_ID, 'ical_reminder_triggers', json_encode($filtered));
+	}
 }
