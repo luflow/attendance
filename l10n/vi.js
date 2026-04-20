@@ -75,6 +75,10 @@ OC.L10N.register(
     "Description" : "Mô tả",
     "Notification" : "Thông báo",
     "Confirm" : "Xác nhận",
+    "15 minutes before" : "Trước 15 phút",
+    "30 minutes before" : "Trước 30 phút",
+    "1 hour before" : "Trước 1 tiếng",
+    "2 hours before" : "Trước 2 tiếng",
     "Try again" : "Thử lại"
 },
 "nplurals=1; plural=0;");

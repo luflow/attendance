@@ -104,6 +104,10 @@ OC.L10N.register(
     "All users" : "Alle brukere",
     "No users found" : "Ingen brukere funnet",
     "Confirm" : "Bekreft",
+    "15 minutes before" : "15 minutter før",
+    "30 minutes before" : "30 minutter før",
+    "1 hour before" : "1 time før",
+    "2 hours before" : "2 timer før",
     "Try again" : "Prøv igjen"
 },
 "nplurals=2; plural=(n != 1);");

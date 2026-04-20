@@ -28,6 +28,10 @@ OC.L10N.register(
     "Import" : "Ներմուծում",
     "User" : "User",
     "Description" : "Նկարագրություն",
-    "Notification" : "Ծանուցում"
+    "Notification" : "Ծանուցում",
+    "15 minutes before" : "15 րոպե առաջ",
+    "30 minutes before" : "30 րոպե առաջ",
+    "1 hour before" : "1 ժամ առաջ",
+    "2 hours before" : "2 ժամ առաջ"
 },
 "nplurals=2; plural=(n != 1);");

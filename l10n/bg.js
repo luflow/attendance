@@ -102,6 +102,8 @@ OC.L10N.register(
     "All users" : "Всички потребители",
     "No users found" : "Няма намерени потребители",
     "Confirm" : "Потвърдете",
+    "30 minutes before" : "30 минути по-рано ",
+    "1 hour before" : "1  час по-рано ",
     "Thank you for your response!" : "Благодарим Ви за отговора!",
     "Try again" : "Опитай отново"
 },

@@ -104,6 +104,11 @@ OC.L10N.register(
     "All users" : "Alla användare",
     "No users found" : "Inga användare hittades",
     "Confirm" : "Bekräfta",
+    "15 minutes before" : "15 minuter före",
+    "30 minutes before" : "30 minuter före",
+    "1 hour before" : "1 timme före",
+    "2 hours before" : "2 timmar före",
+    "No reminders" : "Inga påminnelser",
     "Thank you for your response!" : "Tack för ditt svar!",
     "Try again" : "Försök igen"
 },

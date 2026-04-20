@@ -18,7 +18,6 @@ OC.L10N.register(
     "A new appointment has been created. Please respond soon." : "Um novo compromisso foi criado. Por favor responda em breve.",
     "Others" : "Outros",
     "Group" : "Grupo",
-    "Attendance appointments" : "Compromissos de comparência",
     "Me" : "Eu",
     "Please respond! We still need your answer." : "Por favor, responda! Continuamos a precisar da sua resposta.",
     "Your response" : "A sua resposta",
@@ -102,6 +101,10 @@ OC.L10N.register(
     "Description" : "Descrição",
     "Date & Time" : "Data e Hora",
     "No users found" : "Não foram encontrados utilizadores",
-    "Confirm" : "Confirmar"
+    "Confirm" : "Confirmar",
+    "15 minutes before" : "15 minutos antes",
+    "30 minutes before" : "30 minutos antes",
+    "1 hour before" : "1 hora antes",
+    "2 hours before" : "2 horas antes"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

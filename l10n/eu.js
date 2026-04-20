@@ -107,6 +107,10 @@ OC.L10N.register(
     "All users" : "Erabiltzaile guztiak",
     "No users found" : "Ez da erabiltzailerik aurkitu",
     "Confirm" : "Berretsi",
+    "15 minutes before" : "15 minutu lehenago",
+    "30 minutes before" : "30 minutu lehenago",
+    "1 hour before" : "Ordu 1 lehenago",
+    "2 hours before" : "2 ordu lehenago",
     "Try again" : "Saiatu berriz"
 },
 "nplurals=2; plural=(n != 1);");

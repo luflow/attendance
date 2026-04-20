@@ -105,6 +105,7 @@ OC.L10N.register(
     "All users" : "Összes felhasználó",
     "No users found" : "Nem találhatók felhasználók",
     "Confirm" : "Megerősítés",
+    "No reminders" : "Nincsenek emlékeztetők",
     "Thank you for your response!" : "Köszönjük a válaszát!",
     "Try again" : "Próbálja újra"
 },

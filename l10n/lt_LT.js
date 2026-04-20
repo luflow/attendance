@@ -101,6 +101,10 @@ OC.L10N.register(
     "All users" : "Visi naudotojai",
     "No users found" : "Nerasta jokių naudotojų",
     "Confirm" : "Patvirtinti",
+    "15 minutes before" : "Prieš 15 minučių",
+    "30 minutes before" : "Prieš 30 minučių",
+    "1 hour before" : "Prieš 1 valandą",
+    "2 hours before" : "Prieš 2 valandas",
     "Thank you for your response!" : "Ačiū už jūsų atsakymą!",
     "Try again" : "Bandyti dar kartą"
 },

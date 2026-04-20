@@ -99,6 +99,11 @@ OC.L10N.register(
     "All users" : "Svi korisnici",
     "No users found" : "Nije pronađen nijedan korisnik",
     "Confirm" : "Potvrdi",
+    "15 minutes before" : "15 minuta prije",
+    "30 minutes before" : "30 minuta prije",
+    "1 hour before" : "1 sat prije",
+    "2 hours before" : "2 sata prije",
+    "No reminders" : "Nema podsjetnika",
     "Thank you for your response!" : "Hvala na odgovoru!",
     "Try again" : "Pokušajte ponovno"
 },

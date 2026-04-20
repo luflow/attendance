@@ -114,6 +114,11 @@ OC.L10N.register(
     "All users" : "Todos los usuarios",
     "No users found" : "No se han encontrado usuarios",
     "Confirm" : "Confirmar",
+    "15 minutes before" : "15 minutos antes",
+    "30 minutes before" : "30 minutos antes",
+    "1 hour before" : "1 hora antes",
+    "2 hours before" : "2 horas antes",
+    "No reminders" : "Sin recordatorio",
     "Thank you for your response!" : "¡Gracias por su respuesta!",
     "Try again" : "Vuelva a intentarlo"
 },

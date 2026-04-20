@@ -74,6 +74,10 @@ OC.L10N.register(
     "Description" : "Apraksts",
     "Date & Time" : "Datums & Laiks",
     "Add from Files" : "Pievienot no Datnēm",
-    "Confirm" : "Apstiprināt"
+    "Confirm" : "Apstiprināt",
+    "15 minutes before" : "15 minūtes pirms",
+    "30 minutes before" : "30 minūtes pirms",
+    "1 hour before" : "1 stundu pirms",
+    "2 hours before" : "2 stundas pirms"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);");

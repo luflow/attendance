@@ -44,6 +44,10 @@ OC.L10N.register(
     "User" : "მომხმარებელი",
     "Description" : "აღწერილობა",
     "Confirm" : "დადასტურება",
+    "15 minutes before" : "15 წუდით ადრე",
+    "30 minutes before" : "30 წუთით ადრე",
+    "1 hour before" : "1 საათით ადრე",
+    "2 hours before" : "2 საათით ადრე",
     "Try again" : "სცადეთ ახლიდან"
 },
 "nplurals=2; plural=(n!=1);");

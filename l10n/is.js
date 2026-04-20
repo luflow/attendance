@@ -90,6 +90,11 @@ OC.L10N.register(
     "Add from Files" : "Bæta við úr skrám",
     "All users" : "Allir notendur",
     "Confirm" : "Staðfesta",
+    "15 minutes before" : "15 mínútum fyrir",
+    "30 minutes before" : "30 mínútum fyrir",
+    "1 hour before" : "1 klukkustund fyrir ",
+    "2 hours before" : "2 klukkustundum fyrir",
+    "No reminders" : "Engar áminningar",
     "Try again" : "Reyndu aftur"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

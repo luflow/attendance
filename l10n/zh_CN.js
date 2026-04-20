@@ -107,6 +107,11 @@ OC.L10N.register(
     "All users" : "所有用户",
     "No users found" : "未找到用户",
     "Confirm" : "确认",
+    "15 minutes before" : "15分钟前",
+    "30 minutes before" : "30分钟前",
+    "1 hour before" : "1小时前",
+    "2 hours before" : "2小时前",
+    "No reminders" : "无提醒",
     "Thank you for your response!" : "感谢您的回复！",
     "Try again" : "重试"
 },

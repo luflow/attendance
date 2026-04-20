@@ -48,6 +48,10 @@ OC.L10N.register(
     "User" : "Defnyddwyr",
     "Description" : "Disgrifiad",
     "Notification" : "Hysbysiad",
-    "Confirm" : "Cadarnhau"
+    "Confirm" : "Cadarnhau",
+    "15 minutes before" : "15 munud cynt",
+    "30 minutes before" : "30 munud cynt",
+    "1 hour before" : "1 awr cynt",
+    "2 hours before" : "2 awr cynt"
 },
 "nplurals=4; plural=(n==1) ? 0 : (n==2) ? 1 : (n != 8 && n != 11) ? 2 : 3;");

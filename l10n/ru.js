@@ -107,6 +107,11 @@ OC.L10N.register(
     "All users" : "Все пользователи",
     "No users found" : "Пользователи не найдены",
     "Confirm" : "Подтвердить",
+    "15 minutes before" : "За 15 минут до начала",
+    "30 minutes before" : "За 30 минут до начала",
+    "1 hour before" : "За 1 час до начала",
+    "2 hours before" : "За 2 часа до начала",
+    "No reminders" : "Напоминаний нет",
     "Thank you for your response!" : "Спасибо за ваш ответ!",
     "Try again" : "Попытаться снова"
 },

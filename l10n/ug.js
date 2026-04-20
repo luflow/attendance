@@ -108,6 +108,7 @@ OC.L10N.register(
     "All users" : "بارلىق ئىشلەتكۈچىلەر",
     "No users found" : "ئىشلەتكۈچى تېپىلمىدى",
     "Confirm" : "جەزملەشتۈرۈڭ",
+    "No reminders" : "ئەسكەرتىش يوق",
     "Thank you for your response!" : "جاۋابىڭىزغا رەھمەت!",
     "Try again" : "قايتا سىناڭ"
 },
