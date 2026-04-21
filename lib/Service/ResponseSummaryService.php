@@ -378,6 +378,9 @@ class ResponseSummaryService {
 			: $cache['whitelistedGroups'];
 
 		foreach ($groupsToProcess as $groupId) {
+			// Cast to string because PHP auto-converts numeric array keys to int
+			$groupId = (string)$groupId;
+
 			// Skip groups not in whitelist
 			if (!$this->isGroupAllowedCached($groupId, $cache)) {
 				continue;
