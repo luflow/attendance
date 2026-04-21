@@ -378,7 +378,7 @@ class ResponseSummaryService {
 			: $cache['whitelistedGroups'];
 
 		foreach ($groupsToProcess as $groupId) {
-			// Cast to string because PHP auto-converts numeric array keys to int
+			// Numeric-string group IDs get coerced to int when used as array keys (issue #63)
 			$groupId = (string)$groupId;
 
 			// Skip groups not in whitelist
@@ -495,7 +495,9 @@ class ResponseSummaryService {
 	): void {
 		$nonRespondingUsers = [];
 
-		foreach ($cache['allUsers'] as $userId => $user) {
+		foreach ($cache['allUsers'] as $user) {
+			$userId = $user->getUID();
+
 			// Skip if already responded (O(1) lookup)
 			if (isset($respondedUserIds[$userId])) {
 				continue;
