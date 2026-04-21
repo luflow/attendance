@@ -47,6 +47,7 @@ OC.L10N.register(
     "Active" : "Aktiivne",
     "Active app users" : "Aktiivsed rakenduse kasutajad",
     "Manage Subscription" : "Halda tellimusi",
+    "yr" : "a",
     "Privacy Policy" : "Privaatsustingimused",
     "About" : "Rakenduse teave",
     "Open source licenses" : "Avatud lähtekoodiga tarkvara litsentsid",

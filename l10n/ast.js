@@ -75,6 +75,10 @@ OC.L10N.register(
     "All users" : "Tolos usuarios",
     "No users found" : "Nun s'atopó nengún usuariu",
     "Confirm" : "Confirmar",
+    "15 minutes before" : "15 minutos enantes",
+    "30 minutes before" : "30 minutos enantes",
+    "1 hour before" : "1 hora enantes",
+    "2 hours before" : "2 hores enantes",
     "Try again" : "Retentar"
 },
 "nplurals=2; plural=(n != 1);");

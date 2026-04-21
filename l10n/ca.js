@@ -104,8 +104,11 @@ OC.L10N.register(
     "All users" : "Tots els usuaris",
     "No users found" : "No s'ha trobat cap usuari",
     "Confirm" : "Confirma",
+    "15 minutes before" : "15 minuts abans",
     "30 minutes before" : "30 minuts abans",
     "1 hour before" : "1 hora abans",
+    "2 hours before" : "2 hores abans",
+    "No reminders" : "Sense recordatoris",
     "Try again" : "Torneu-ho a provar"
 },
 "nplurals=2; plural=(n != 1);");

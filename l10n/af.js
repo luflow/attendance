@@ -41,6 +41,10 @@ OC.L10N.register(
     "Open" : "Open",
     "User" : "Gebruiker",
     "Description" : "Beskrywing",
-    "Confirm" : "Bevestig"
+    "Confirm" : "Bevestig",
+    "15 minutes before" : "15 minute vooraf",
+    "30 minutes before" : "30 minute vooraf",
+    "1 hour before" : "1 uur vooraf",
+    "2 hours before" : "2 ure vooraf"
 },
 "nplurals=2; plural=(n != 1);");

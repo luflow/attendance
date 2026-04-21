@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Yes" : "Ja",
     "No" : "Nee",
+    "Maybe" : "Misschien",
     "Others" : "Overige",
     "Group" : "Groep",
     "Attachments" : "Bijlagen",
@@ -130,6 +131,7 @@ OC.L10N.register(
     "1 hour before" : "1 uur vooraf",
     "2 hours before" : "2 uur vooraf",
     "No reminders" : "Geen herinneringen",
+    "Thank you for your response!" : "Bedankt voor je reactie!",
     "Failed to load appointments." : "Afspraken laden mislukt",
     "Finding active appointments…" : "Zoeken naar actieve afspraken...",
     "Try again" : "Probeer opnieuw",
