@@ -9,9 +9,14 @@ use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Service\AppointmentService;
-use OCA\Attendance\Service\PermissionService;
+use OCA\Attendance\Service\AttachmentService;
+use OCA\Attendance\Service\ConfigService;
+use OCA\Attendance\Service\NotificationService;
+use OCA\Attendance\Service\ResponseSummaryService;
+use OCA\Attendance\Service\VisibilityService;
+use OCP\App\IAppManager;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\IConfig;
+use OCP\Collaboration\Collaborators\ISearch as ICollaboratorSearch;
 use OCP\IGroupManager;
 use OCP\IUserManager;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -30,11 +35,26 @@ class AppointmentServiceTest extends TestCase {
 	/** @var IUserManager|MockObject */
 	private $userManager;
 
-	/** @var IConfig|MockObject */
-	private $config;
+	/** @var ConfigService|MockObject */
+	private $configService;
 
-	/** @var PermissionService|MockObject */
-	private $permissionService;
+	/** @var VisibilityService|MockObject */
+	private $visibilityService;
+
+	/** @var ResponseSummaryService|MockObject */
+	private $responseSummaryService;
+
+	/** @var NotificationService|MockObject */
+	private $notificationService;
+
+	/** @var AttachmentService|MockObject */
+	private $attachmentService;
+
+	/** @var ICollaboratorSearch|MockObject */
+	private $collaboratorSearch;
+
+	/** @var IAppManager|MockObject */
+	private $appManager;
 
 	private AppointmentService $service;
 
@@ -43,16 +63,26 @@ class AppointmentServiceTest extends TestCase {
 		$this->responseMapper = $this->createMock(AttendanceResponseMapper::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->userManager = $this->createMock(IUserManager::class);
-		$this->config = $this->createMock(IConfig::class);
-		$this->permissionService = $this->createMock(PermissionService::class);
+		$this->configService = $this->createMock(ConfigService::class);
+		$this->visibilityService = $this->createMock(VisibilityService::class);
+		$this->responseSummaryService = $this->createMock(ResponseSummaryService::class);
+		$this->notificationService = $this->createMock(NotificationService::class);
+		$this->attachmentService = $this->createMock(AttachmentService::class);
+		$this->collaboratorSearch = $this->createMock(ICollaboratorSearch::class);
+		$this->appManager = $this->createMock(IAppManager::class);
 
 		$this->service = new AppointmentService(
 			$this->appointmentMapper,
 			$this->responseMapper,
 			$this->groupManager,
 			$this->userManager,
-			$this->config,
-			$this->permissionService
+			$this->configService,
+			$this->visibilityService,
+			$this->responseSummaryService,
+			$this->notificationService,
+			$this->attachmentService,
+			$this->collaboratorSearch,
+			$this->appManager,
 		);
 	}
 
@@ -126,6 +156,11 @@ class AppointmentServiceTest extends TestCase {
 			->with($appointmentId)
 			->willReturn($appointment);
 
+		$this->visibilityService->expects($this->once())
+			->method('canUserSeeAppointment')
+			->with($appointment, $userId)
+			->willReturn(true);
+
 		$this->responseMapper->expects($this->once())
 			->method('findByAppointmentAndUser')
 			->with($appointmentId, $userId)
@@ -161,6 +196,11 @@ class AppointmentServiceTest extends TestCase {
 			->method('find')
 			->with($appointmentId)
 			->willReturn($appointment);
+
+		$this->visibilityService->expects($this->once())
+			->method('canUserSeeAppointment')
+			->with($appointment, $userId)
+			->willReturn(true);
 
 		$existingResponse = new AttendanceResponse();
 		$existingResponse->setId(1);
