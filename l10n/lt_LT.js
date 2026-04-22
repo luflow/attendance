@@ -105,6 +105,7 @@ OC.L10N.register(
     "30 minutes before" : "Prieš 30 minučių",
     "1 hour before" : "Prieš 1 valandą",
     "2 hours before" : "Prieš 2 valandas",
+    "No reminders" : "Nėra priminimų",
     "Thank you for your response!" : "Ačiū už jūsų atsakymą!",
     "Try again" : "Bandyti dar kartą"
 },

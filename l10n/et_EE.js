@@ -137,6 +137,7 @@ OC.L10N.register(
     "Numbered list" : "Nummerdatud loend",
     "Quote" : "Tsitaat",
     "Insert link" : "Lisa link",
+    "Get the mobile app for faster access and push notifications." : "Kiiremaks ligipääsuks ja tõuketeavituste kasutamiseks laadi alla nutirakendus.",
     "App Store" : "Rakendustepood",
     "Google Play" : "Google Play",
     "Dismiss" : "Loobu",
@@ -192,6 +193,10 @@ OC.L10N.register(
     "30 minutes before" : "30 minutit enne",
     "1 hour before" : "1 tund enne",
     "2 hours before" : "2 tundi enne",
+    "1 day before" : "1 päev varem",
+    "2 days before" : "2 päeva varem",
+    "Calendar reminders" : "Kalendri meeldetuletused",
+    "Reminders before appointment" : "Meeldetuletused enne kohtumist",
     "No reminders" : "Meeldetuletusi pole",
     "Thank you for your response!" : "Suur tänu vastamise eest!",
     "Try again" : "Proovi uuesti"
