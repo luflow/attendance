@@ -6,6 +6,18 @@
 
 - Nightly changes here
 
+## 1.37.1 – 2026-04-22
+
+### Fixed
+
+- Creating appointments no longer fails with `TypeError: isGroupAllowedCached(): Argument #1 ($groupId) must be of type string, int given` when a group or user has a numeric-string ID (#63)
+
+### Maintenance
+
+- Repaired stale unit tests (AppointmentServiceTest, AttendanceResponseTest, PermissionServiceTest) and added regression tests for #63
+- Release workflow now runs PHPUnit in parallel with the e2e suite
+- Translations updated from Transifex
+
 ## 1.37.0 – 2026-04-19
 
 ### Added
