@@ -81,8 +81,27 @@ jobs:
           path: playwright-report/
           retention-days: 30
 
+  php_tests:
+    needs: check_version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          coverage: none
+
+      - name: Install composer dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run PHPUnit
+        run: composer test:unit
+
   build_and_publish:
-    needs: [check_version, e2e_tests]
+    needs: [check_version, e2e_tests, php_tests]
     environment: release
     runs-on: ubuntu-latest
     permissions:

@@ -110,11 +110,11 @@ class AttendanceResponseTest extends TestCase {
 		$this->assertEquals('testuser', $json['userId']);
 		$this->assertEquals('yes', $json['response']);
 		$this->assertEquals('Looking forward!', $json['comment']);
-		$this->assertEquals('2024-01-15 10:00:00', $json['respondedAt']);
+		$this->assertEquals('2024-01-15T10:00:00Z', $json['respondedAt']);
 		$this->assertEquals('present', $json['checkinState']);
 		$this->assertEquals('On time', $json['checkinComment']);
 		$this->assertEquals('admin', $json['checkinBy']);
-		$this->assertEquals('2024-01-15 10:05:00', $json['checkinAt']);
+		$this->assertEquals('2024-01-15T10:05:00Z', $json['checkinAt']);
 		$this->assertTrue($json['isCheckedIn']);
 	}
 
