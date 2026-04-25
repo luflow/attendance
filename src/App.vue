@@ -220,6 +220,7 @@
 				:show-unanswered="currentView === 'unanswered'"
 				:show-all="currentView === 'all'"
 				:search-query="searchQuery"
+				:unanswered-count="unansweredAppointments.length"
 				@response-updated="loadAppointments"
 				@appointment-deleted="loadAppointments"
 				@edit-appointment="editAppointment"

@@ -20,6 +20,12 @@ class VisibilityService {
 	private IUserManager $userManager;
 	private PermissionService $permissionService;
 	private ?CirclesManager $teamsManager = null;
+	/** @var array<string, list<string>> userId → group IDs. Request-scoped — the
+	 * service is request-scoped per Nextcloud DI conventions, so this matches
+	 * the lifetime of the data it caches. */
+	private array $userGroupIdsCache = [];
+	/** @var array<string, list<string>> teamId → member user IDs. */
+	private array $teamMembersCache = [];
 
 	public function __construct(
 		IGroupManager $groupManager,
@@ -88,14 +94,9 @@ class VisibilityService {
 
 		// Check if user is in any of the visible groups
 		if (!empty($visibleGroupsList)) {
-			$user = $this->userManager->get($userId);
-			if ($user) {
-				$userGroupIds = $this->groupManager->getUserGroupIds($user);
-				foreach ($visibleGroupsList as $groupId) {
-					if (in_array($groupId, $userGroupIds)) {
-						return true;
-					}
-				}
+			$userGroupIds = $this->getUserGroupIdsCached($userId);
+			if (array_intersect($visibleGroupsList, $userGroupIds) !== []) {
+				return true;
 			}
 		}
 
@@ -109,6 +110,19 @@ class VisibilityService {
 		}
 
 		return false;
+	}
+
+	/**
+	 * @return list<string>
+	 */
+	private function getUserGroupIdsCached(string $userId): array {
+		if (!isset($this->userGroupIdsCache[$userId])) {
+			$user = $this->userManager->get($userId);
+			$this->userGroupIdsCache[$userId] = $user
+				? array_values($this->groupManager->getUserGroupIds($user))
+				: [];
+		}
+		return $this->userGroupIdsCache[$userId];
 	}
 
 	/**
@@ -223,29 +237,13 @@ class VisibilityService {
 	 * @return bool True if the user is a member of the team
 	 */
 	public function isUserInTeam(string $userId, string $teamId): bool {
-		if ($this->teamsManager === null) {
-			return false;
-		}
-
-		try {
-			$this->teamsManager->startSuperSession();
-			$circle = $this->teamsManager->getCircle($teamId);
-			$members = $circle->getMembers();
-			$this->teamsManager->stopSession();
-
-			foreach ($members as $member) {
-				if ($member->getUserType() === Member::TYPE_USER && $member->getUserId() === $userId) {
-					return true;
-				}
-			}
-			return false;
-		} catch (\Exception $e) {
-			return false;
-		}
+		return in_array($userId, $this->getTeamMembers($teamId), true);
 	}
 
 	/**
-	 * Get all members of a team (circle).
+	 * Get all members of a team (circle). Cached per request — looking up a
+	 * circle's members is a Circles-app API call that fans out to the DB and
+	 * adds up quickly across the per-appointment audience checks.
 	 *
 	 * @param string $teamId The team/circle ID
 	 * @return array<string> Array of user IDs who are members of the team
@@ -254,9 +252,11 @@ class VisibilityService {
 		if ($this->teamsManager === null) {
 			return [];
 		}
+		if (isset($this->teamMembersCache[$teamId])) {
+			return $this->teamMembersCache[$teamId];
+		}
 
 		try {
-			// Start a super session to get all members
 			$this->teamsManager->startSuperSession();
 
 			$circle = $this->teamsManager->getCircle($teamId);
@@ -272,6 +272,7 @@ class VisibilityService {
 
 			$this->teamsManager->stopSession();
 
+			$this->teamMembersCache[$teamId] = $userIds;
 			return $userIds;
 		} catch (\Exception $e) {
 			return [];

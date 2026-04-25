@@ -540,15 +540,16 @@ class AppointmentService {
 		$pastAppointments = $this->getPastAppointments();
 
 		return [
-			'current' => $this->buildNavigationData($currentAppointments, $userId),
-			'past' => $this->buildNavigationData($pastAppointments, $userId),
+			// `inAudience` only matters for the sidebar's "Unanswered"
+			// computed, which only ever reads the current list — skip the
+			// per-row visibility resolution on the past list to avoid
+			// touching IGroupManager / Circles for entries no one filters by.
+			'current' => $this->buildNavigationData($currentAppointments, $userId, true),
+			'past' => $this->buildNavigationData($pastAppointments, $userId, false),
 		];
 	}
 
-	/**
-	 * Build navigation data for a list of appointments.
-	 */
-	private function buildNavigationData(array $appointments, string $userId): array {
+	private function buildNavigationData(array $appointments, string $userId, bool $withAudience): array {
 		$result = [];
 
 		foreach ($appointments as $appointment) {
@@ -566,10 +567,8 @@ class AppointmentService {
 					? ['response' => $userResponse->getResponse()]
 					: null,
 				'closedAt' => $this->formatDatetimeToUtc($appointment->getClosedAt()),
-				// Lets the sidebar's "Unanswered" section drop appointments
-				// targeted at someone else (managers see everything via
-				// canUserSeeAppointment but shouldn't get them as a to-do).
-				'inAudience' => $this->visibilityService->isUserTargetAttendee($appointment, $userId),
+				'inAudience' => $withAudience
+					&& $this->visibilityService->isUserTargetAttendee($appointment, $userId),
 			];
 		}
 

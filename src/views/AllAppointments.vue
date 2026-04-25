@@ -30,7 +30,7 @@
 		     "Active filters:". Search lives in the navigation sidebar
 		     (App.vue → NcAppNavigationSearch); when active it appears here
 		     as a chip too. -->
-		<h2 v-if="pageHeading && !hideHeading" class="page-heading" data-test="page-heading">
+		<h2 v-if="!hideHeading" class="page-heading" data-test="page-heading">
 			{{ pageHeading }}
 		</h2>
 
@@ -180,6 +180,12 @@ const props = defineProps({
 		type: String,
 		default: '',
 	},
+	// Sourced from App.vue's `unansweredAppointments` so the banner count
+	// reflects the same audience-filtered set as the sidebar entry.
+	unansweredCount: {
+		type: Number,
+		default: 0,
+	},
 })
 
 const emit = defineEmits([
@@ -194,18 +200,18 @@ const emit = defineEmits([
 
 const activeSearch = computed(() => props.searchQuery.trim())
 
-const pageHeading = computed(() => {
-	if (props.showUnanswered) return t('attendance', 'Unanswered')
-	if (props.showAll) return t('attendance', 'All appointments')
-	if (props.showPast) return t('attendance', 'Past appointments')
-	return t('attendance', 'Upcoming appointments')
+const viewKey = computed(() => {
+	if (props.showUnanswered) return 'unanswered'
+	if (props.showAll) return 'all'
+	if (props.showPast) return 'past'
+	return 'current'
 })
-
-// On the Unanswered view the empty state is the celebratory "Hurray!" banner.
-// Repeating "Unanswered" above it just adds noise.
-const hideHeading = computed(() =>
-	props.showUnanswered && !loading.value && appointments.value.length === 0,
-)
+const pageHeading = computed(() => ({
+	unanswered: t('attendance', 'Unanswered'),
+	all: t('attendance', 'All appointments'),
+	past: t('attendance', 'Past appointments'),
+	current: t('attendance', 'Upcoming appointments'),
+}[viewKey.value]))
 
 const appointments = ref([])
 const exportDialogVisible = ref(false)
@@ -217,48 +223,48 @@ const goToUpcoming = () => {
 	emit('navigateToUpcoming')
 }
 
-const unansweredCount = computed(() => {
-	return appointments.value.filter(a => !a.userResponse && !a.closedAt).length
-})
-
 const FILTER_STORAGE_KEY = 'attendance:list-filters'
 
-// Filter definitions: id, display label, icon, list of {id, label}.
-// Adding a filter = one entry here; the template renders it generically.
-// `visible` lets a filter opt-out per role (e.g. "Only mine" only makes
-// sense for managers, who see appointments created by other people too).
+// Wire IDs centralised so a typo breaks at parse, not silently at runtime.
+const F = Object.freeze({
+	RESPONSE: 'response',
+	STATUS: 'status',
+	AUDIENCE: 'audience',
+})
+const RESPONSE = Object.freeze({ YES: 'yes', MAYBE: 'maybe', NO: 'no', NONE: 'none' })
+const STATUS = Object.freeze({ OPEN: 'open', CLOSED: 'closed' })
+const AUDIENCE = Object.freeze({ ME: 'me' })
+
 const filterDefs = computed(() => [
 	{
-		id: 'response',
+		id: F.RESPONSE,
 		label: t('attendance', 'Your response'),
 		icon: CheckCircleIcon,
 		options: [
-			{ id: 'yes', label: t('attendance', 'Yes') },
-			{ id: 'maybe', label: t('attendance', 'Maybe') },
-			{ id: 'no', label: t('attendance', 'No') },
-			{ id: 'none', label: t('attendance', 'No response') },
+			{ id: RESPONSE.YES, label: t('attendance', 'Yes') },
+			{ id: RESPONSE.MAYBE, label: t('attendance', 'Maybe') },
+			{ id: RESPONSE.NO, label: t('attendance', 'No') },
+			{ id: RESPONSE.NONE, label: t('attendance', 'No response') },
 		],
 	},
 	{
-		id: 'status',
+		id: F.STATUS,
 		label: t('attendance', 'Inquiry status'),
 		icon: LockIcon,
 		options: [
-			{ id: 'open', label: t('attendance', 'Opened') },
-			{ id: 'closed', label: t('attendance', 'Closed') },
+			{ id: STATUS.OPEN, label: t('attendance', 'Opened') },
+			{ id: STATUS.CLOSED, label: t('attendance', 'Closed') },
 		],
 	},
 	{
-		// "Audience" filter, server-side via VisibilityService::isUserTargetAttendee.
-		// Without it, managers see every appointment in the system; with it,
-		// only those that target the manager directly (visibleUsers/Groups/Teams
-		// or "everyone").
-		id: 'audience',
+		// Server-side via VisibilityService::isUserTargetAttendee. Without it,
+		// managers see every appointment in the system.
+		id: F.AUDIENCE,
 		label: t('attendance', 'Audience'),
 		icon: AccountIcon,
 		visible: permissions.canManageAppointments,
 		options: [
-			{ id: 'me', label: t('attendance', 'Only for me') },
+			{ id: AUDIENCE.ME, label: t('attendance', 'Only for me') },
 		],
 	},
 ])
@@ -297,11 +303,15 @@ const setFilter = (id, opt) => {
 }
 
 let persistTimer = null
+let lastPersistedJson = JSON.stringify(filterValues.value)
 watch(filterValues, (next) => {
+	const json = JSON.stringify(next)
+	if (json === lastPersistedJson) return
 	clearTimeout(persistTimer)
 	persistTimer = setTimeout(() => {
 		try {
-			window.localStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(next))
+			window.localStorage.setItem(FILTER_STORAGE_KEY, json)
+			lastPersistedJson = json
 		} catch (e) {
 			// Storage may be unavailable (private mode, quota).
 		}
@@ -314,8 +324,8 @@ const hasActiveFilters = computed(() =>
 
 const visibleAppointments = computed(() => {
 	const query = props.searchQuery.trim().toLowerCase()
-	const status = filterValues.value.status
-	const response = filterValues.value.response
+	const status = filterValues.value[F.STATUS]
+	const response = filterValues.value[F.RESPONSE]
 	if (!query && !status && !response) {
 		return appointments.value
 	}
@@ -324,12 +334,12 @@ const visibleAppointments = computed(() => {
 			const haystack = `${appointment.name} ${appointment.description ?? ''}`.toLowerCase()
 			if (!haystack.includes(query)) return false
 		}
-		if (status === 'open' && appointment.closedAt) return false
-		if (status === 'closed' && !appointment.closedAt) return false
+		if (status === STATUS.OPEN && appointment.closedAt) return false
+		if (status === STATUS.CLOSED && !appointment.closedAt) return false
 		if (response) {
 			const userResponse = appointment.userResponse?.response ?? null
-			if (response === 'none' && userResponse !== null) return false
-			if (response !== 'none' && userResponse !== response) return false
+			if (response === RESPONSE.NONE && userResponse !== null) return false
+			if (response !== RESPONSE.NONE && userResponse !== response) return false
 		}
 		return true
 	})
@@ -343,6 +353,12 @@ const handleClosedToggled = (updated) => {
 }
 const loading = ref(true)
 const responseComments = reactive({})
+
+// On the Unanswered view the empty state is the celebratory "Hurray!" banner;
+// repeating "Unanswered" above it just adds noise.
+const hideHeading = computed(() =>
+	props.showUnanswered && !loading.value && appointments.value.length === 0,
+)
 
 const { permissions, config, loadPermissions } = usePermissions()
 
@@ -360,9 +376,8 @@ const loadAppointments = async (skipLoadingSpinner = false) => {
 			loading.value = true
 		}
 		const url = generateUrl('/apps/attendance/api/appointments')
-		const onlyForMe = filterValues.value.audience === 'me'
+		const onlyForMe = filterValues.value[F.AUDIENCE] === AUDIENCE.ME
 		if (props.showAll) {
-			// Two endpoints, one logical view. Audience filter applies to both.
 			const baseParams = onlyForMe ? { onlyForMe: true } : {}
 			const [upcoming, past] = await Promise.all([
 				axios.get(url, { params: baseParams }),
@@ -395,19 +410,21 @@ const loadAppointments = async (skipLoadingSpinner = false) => {
 }
 
 // The audience filter is server-side, so flipping it requires a refetch.
-watch(() => filterValues.value.audience, () => {
+watch(() => filterValues.value[F.AUDIENCE], () => {
 	loadAppointments(true)
 })
 
 const loadDetailedResponses = async () => {
-	for (const appointment of appointments.value) {
+	// Hundreds of serial XHRs in the All view used to take seconds. The
+	// requests are independent — fan them out and let the browser pipeline.
+	await Promise.all(appointments.value.map(async (appointment) => {
 		try {
 			const response = await axios.get(generateUrl(`/apps/attendance/api/appointments/${appointment.id}/responses`))
 			appointment.detailedResponses = response.data
 		} catch (error) {
 			console.error(`Failed to load detailed responses for appointment ${appointment.id}:`, error)
 		}
-	}
+	}))
 }
 
 const submitResponse = async (appointmentId, response) => {
