@@ -75,6 +75,9 @@
 											'no'
 									"
 									:size="20" />
+								<LockIcon
+									v-else-if="appointment.closedAt"
+									:size="20" />
 							</template>
 						</NcAppNavigationItem>
 					</template>
@@ -252,6 +255,7 @@ import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import DownloadIcon from 'vue-material-design-icons/Download.vue'
 import BellAlertIcon from 'vue-material-design-icons/BellAlert.vue'
 import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
+import LockIcon from 'vue-material-design-icons/Lock.vue'
 import { usePermissions } from './composables/usePermissions.js'
 import { formatDateTime } from './utils/datetime.js'
 
@@ -342,6 +346,24 @@ t('attendance', 'About')
 t('attendance', 'Open source licenses')
 t('attendance', 'Version {version} ({build})')
 
+t('attendance', 'Closed')
+t('attendance', 'Show only open')
+t('attendance', 'Close inquiry')
+t('attendance', 'Reopen inquiry')
+t('attendance', 'Reopen')
+t('attendance', 'Inquiry closed')
+t('attendance', 'Inquiry re-opened')
+t('attendance', 'Failed to close inquiry')
+t('attendance', 'Failed to re-open inquiry')
+t('attendance', 'Closed on {when}')
+t('attendance', 'Closed automatically on {when}')
+t('attendance', 'Response deadline')
+t('attendance', 'No deadline')
+t('attendance', 'Response deadline must be before the appointment starts')
+t('attendance', 'After this date, the inquiry is automatically closed and no further responses are accepted. Reminders are scheduled relative to the deadline.')
+t('attendance', 'Responses possible until {when}')
+t('attendance', 'This appointment is closed and no longer accepts responses.')
+
 const currentView = ref(null) // 'current', 'past', 'unanswered', 'appointment', 'checkin', 'create', 'edit', 'copy', or null
 const checkinAppointmentId = ref(null)
 const appointmentDetailId = ref(null)
@@ -356,17 +378,21 @@ const pastAppointmentsExpanded = ref(false)
 // Use the shared permissions composable
 const { permissions, capabilities, config, loadPermissions } = usePermissions()
 
-// Computed property for unanswered appointments
 const unansweredAppointments = computed(() => {
 	return currentAppointments.value.filter((appointment) => {
-		return !appointment.userResponse || appointment.userResponse === null
+		const noResponse = !appointment.userResponse || appointment.userResponse === null
+		const open = !appointment.closedAt
+		return noResponse && open
 	})
 })
 
-// Computed property for answered appointments (to show under "Upcoming")
+// Closed-but-unanswered appointments bucket here so the user can still find
+// them — they would otherwise vanish (no longer "unanswered", never answered).
 const answeredAppointments = computed(() => {
 	return currentAppointments.value.filter((appointment) => {
-		return appointment.userResponse && appointment.userResponse !== null
+		const hasResponse = appointment.userResponse && appointment.userResponse !== null
+		const closedWithoutResponse = !hasResponse && appointment.closedAt
+		return hasResponse || closedWithoutResponse
 	})
 })
 

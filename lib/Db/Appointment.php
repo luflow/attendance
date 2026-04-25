@@ -42,6 +42,10 @@ use OCP\AppFramework\Db\Entity;
  * @method void setSeriesPosition(?int $seriesPosition)
  * @method bool getSendNotification()
  * @method void setSendNotification(bool $sendNotification)
+ * @method string|null getClosedAt()
+ * @method void setClosedAt(?string $closedAt)
+ * @method string|null getResponseDeadline()
+ * @method void setResponseDeadline(?string $responseDeadline)
  */
 class Appointment extends Entity implements JsonSerializable {
 	use DatetimeFormatTrait;
@@ -61,6 +65,8 @@ class Appointment extends Entity implements JsonSerializable {
 	protected $seriesId = null;
 	protected $seriesPosition = null;
 	protected $sendNotification = false;
+	protected $closedAt = null;
+	protected $responseDeadline = null;
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -80,6 +86,8 @@ class Appointment extends Entity implements JsonSerializable {
 		$this->addType('seriesId', 'string');
 		$this->addType('seriesPosition', 'integer');
 		$this->addType('sendNotification', 'boolean');
+		$this->addType('closedAt', 'string');
+		$this->addType('responseDeadline', 'string');
 	}
 
 	public function jsonSerialize(): array {
@@ -101,7 +109,13 @@ class Appointment extends Entity implements JsonSerializable {
 			'seriesId' => $this->getSeriesId(),
 			'seriesPosition' => $this->getSeriesPosition(),
 			'sendNotification' => (bool) $this->getSendNotification(),
+			'closedAt' => $this->formatDatetimeToUtc($this->getClosedAt()),
+			'responseDeadline' => $this->formatDatetimeToUtc($this->getResponseDeadline()),
 		];
+	}
+
+	public function isClosed(): bool {
+		return $this->getClosedAt() !== null;
 	}
 
 	/**

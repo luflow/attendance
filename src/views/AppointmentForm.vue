@@ -157,6 +157,44 @@
 					@update:validation-warning="onRecurrenceWarningUpdate" />
 			</div>
 
+			<div class="form-section">
+				<h3>{{ t("attendance", "Response deadline") }}</h3>
+				<p class="hint-text">
+					{{
+						t(
+							"attendance",
+							"After this date, the inquiry is automatically closed and no further responses are accepted. Reminders are scheduled relative to the deadline.",
+						)
+					}}
+				</p>
+				<div class="deadline-field">
+					<NcDateTimePickerNative
+						id="response-deadline"
+						:model-value="deadlineDateObject"
+						type="datetime-local"
+						:label="t('attendance', 'Response deadline')"
+						data-test="input-response-deadline"
+						@update:model-value="onDeadlineChange" />
+					<NcButton
+						v-if="formData.responseDeadline"
+						variant="tertiary"
+						native-type="button"
+						data-test="button-clear-deadline"
+						@click.stop.prevent="onDeadlineClear">
+						<template #icon>
+							<Close :size="20" />
+						</template>
+						{{ t("attendance", "No deadline") }}
+					</NcButton>
+				</div>
+				<p
+					v-if="deadlineWarning"
+					class="hint-text deadline-warning"
+					data-test="deadline-warning">
+					{{ deadlineWarning }}
+				</p>
+			</div>
+
 			<div
 				v-if="notificationsAppEnabled && (mode === 'create' || mode === 'copy')"
 				class="form-section">
@@ -341,6 +379,7 @@ import Account from 'vue-material-design-icons/Account.vue'
 import AccountStar from 'vue-material-design-icons/AccountStar.vue'
 import Paperclip from 'vue-material-design-icons/Paperclip.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
+import Close from 'vue-material-design-icons/Close.vue'
 import ArrowLeft from 'vue-material-design-icons/ArrowLeft.vue'
 import CalendarImport from 'vue-material-design-icons/CalendarImport.vue'
 import CalendarSync from 'vue-material-design-icons/CalendarSync.vue'
@@ -387,7 +426,14 @@ const formData = reactive({
 	visibleUsers: [],
 	visibleGroups: [],
 	visibleTeams: [],
+	// Optional response deadline (ISO local string). Empty string = no deadline.
+	responseDeadline: '',
 })
+
+// Tracks whether the appointment had a deadline when the form was opened
+// (edit mode only). Used to decide if the update payload needs to send '' to
+// explicitly clear the server-side deadline.
+const hadDeadlineInitially = ref(false)
 
 const visibilityItems = ref([])
 const searchResults = ref([])
@@ -524,6 +570,37 @@ const endDateObject = computed(() => {
 	return isNaN(date.getTime()) ? null : date
 })
 
+const deadlineDateObject = computed(() => {
+	if (!formData.responseDeadline) return null
+	const date = new Date(formData.responseDeadline)
+	return isNaN(date.getTime()) ? null : date
+})
+
+const deadlineWarning = computed(() => {
+	if (!formData.responseDeadline || !formData.startDatetime) return null
+	const deadline = new Date(formData.responseDeadline)
+	const start = new Date(formData.startDatetime)
+	if (isNaN(deadline.getTime()) || isNaN(start.getTime())) return null
+	if (deadline >= start) {
+		return t('attendance', 'Response deadline must be before the appointment starts')
+	}
+	return null
+})
+
+const onDeadlineChange = (value) => {
+	if (!value) {
+		formData.responseDeadline = ''
+		return
+	}
+	const date = value instanceof Date ? value : new Date(value)
+	if (isNaN(date.getTime())) return
+	formData.responseDeadline = formatDateTimeForInput(date.toISOString())
+}
+
+const onDeadlineClear = () => {
+	formData.responseDeadline = ''
+}
+
 // Watch for changes to visibilityItems to update formData
 watch(visibilityItems, (selected) => {
 	const selectedArray = Array.isArray(selected)
@@ -584,6 +661,19 @@ const loadAppointment = async () => {
 			formData.endDatetime = formatDateTimeForInput(
 				appointment.endDatetime,
 			)
+		}
+
+		// Response deadline. In edit mode we keep the absolute value; in copy
+		// mode we drop it because the new dates don't necessarily make sense
+		// for the previous deadline.
+		if (props.mode === 'edit' && appointment.responseDeadline) {
+			formData.responseDeadline = formatDateTimeForInput(
+				appointment.responseDeadline,
+			)
+			hadDeadlineInitially.value = true
+		} else {
+			formData.responseDeadline = ''
+			hadDeadlineInitially.value = false
 		}
 
 		// Load visibility settings (enriched data with id, label, type)
@@ -873,13 +963,19 @@ const handleRecurringCreate = async () => {
 
 	try {
 		const duration = appointmentDuration.value
+		// Preserve the deadline-to-start offset across all generated occurrences
+		// so a 1-day-before deadline stays 1-day-before for each occurrence.
+		const deadlineOffsetMs = formData.responseDeadline && formData.startDatetime
+			? new Date(formData.startDatetime).getTime()
+				- new Date(formData.responseDeadline).getTime()
+			: null
 		const appointments = recurrenceOccurrences.value.map(
 			(occurrenceDate) => {
 				const startDt = occurrenceDate.toISOString()
 				const endDt = new Date(
 					occurrenceDate.getTime() + duration,
 				).toISOString()
-				return {
+				const item = {
 					name: formData.name,
 					description: formData.description,
 					startDatetime: startDt,
@@ -888,6 +984,12 @@ const handleRecurringCreate = async () => {
 					visibleGroups: formData.visibleGroups || [],
 					visibleTeams: formData.visibleTeams || [],
 				}
+				if (deadlineOffsetMs !== null) {
+					item.responseDeadline = new Date(
+						occurrenceDate.getTime() - deadlineOffsetMs,
+					).toISOString()
+				}
+				return item
 			},
 		)
 
@@ -959,6 +1061,10 @@ const handleSubmit = async () => {
 		showError(recurrenceWarning.value)
 		return
 	}
+	if (deadlineWarning.value) {
+		showError(deadlineWarning.value)
+		return
+	}
 
 	// Recurring creation uses bulk endpoint
 	if (isRecurring.value) {
@@ -985,45 +1091,61 @@ const saveAppointment = async (scope = 'single') => {
 	try {
 		const startDatetimeWithTz = toServerTimezone(formData.startDatetime)
 		const endDatetimeWithTz = toServerTimezone(formData.endDatetime)
+		const deadlineWithTz = formData.responseDeadline
+			? toServerTimezone(formData.responseDeadline)
+			: ''
 
 		let appointmentId = props.appointmentId
 
 		if (props.mode === 'edit') {
-			// Update existing appointment
+			// Update payload: include responseDeadline only when it changed.
+			//   - now empty + previously set → '' clears it on the server.
+			//   - now set                    → ISO string sets/replaces it.
+			//   - now empty + previously empty → omit entirely.
+			const updatePayload = {
+				name: formData.name,
+				description: formData.description,
+				startDatetime: startDatetimeWithTz,
+				endDatetime: endDatetimeWithTz,
+				visibleUsers: formData.visibleUsers || [],
+				visibleGroups: formData.visibleGroups || [],
+				visibleTeams: formData.visibleTeams || [],
+				attachments: attachmentFileIds.value,
+				scope,
+			}
+			if (formData.responseDeadline) {
+				updatePayload.responseDeadline = deadlineWithTz
+			} else if (hadDeadlineInitially.value) {
+				updatePayload.responseDeadline = ''
+			}
 			await axios.put(
 				generateUrl(
 					`/apps/attendance/api/appointments/${props.appointmentId}`,
 				),
-				{
-					name: formData.name,
-					description: formData.description,
-					startDatetime: startDatetimeWithTz,
-					endDatetime: endDatetimeWithTz,
-					visibleUsers: formData.visibleUsers || [],
-					visibleGroups: formData.visibleGroups || [],
-					visibleTeams: formData.visibleTeams || [],
-					attachments: attachmentFileIds.value,
-					scope,
-				},
+				updatePayload,
 			)
 			showSuccess(t('attendance', 'Appointment updated'))
 		} else {
 			// Create new appointment (or copy)
+			const createPayload = {
+				name: formData.name,
+				description: formData.description,
+				startDatetime: startDatetimeWithTz,
+				endDatetime: endDatetimeWithTz,
+				visibleUsers: formData.visibleUsers || [],
+				visibleGroups: formData.visibleGroups || [],
+				visibleTeams: formData.visibleTeams || [],
+				sendNotification: sendNotification.value,
+				calendarUri: calendarReference.value.calendarUri,
+				calendarEventUid: calendarReference.value.calendarEventUid,
+				attachments: attachmentFileIds.value,
+			}
+			if (formData.responseDeadline) {
+				createPayload.responseDeadline = deadlineWithTz
+			}
 			const response = await axios.post(
 				generateUrl('/apps/attendance/api/appointments'),
-				{
-					name: formData.name,
-					description: formData.description,
-					startDatetime: startDatetimeWithTz,
-					endDatetime: endDatetimeWithTz,
-					visibleUsers: formData.visibleUsers || [],
-					visibleGroups: formData.visibleGroups || [],
-					visibleTeams: formData.visibleTeams || [],
-					sendNotification: sendNotification.value,
-					calendarUri: calendarReference.value.calendarUri,
-					calendarEventUid: calendarReference.value.calendarEventUid,
-					attachments: attachmentFileIds.value,
-				},
+				createPayload,
 			)
 			appointmentId = response.data?.id
 			showSuccess(t('attendance', 'Appointment created'))
@@ -1126,6 +1248,23 @@ onMounted(async () => {
     @media (max-width: 600px) {
         grid-template-columns: 1fr;
     }
+}
+
+.deadline-field {
+    display: flex;
+    align-items: end;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    > :first-child {
+        flex: 1;
+        min-width: 200px;
+    }
+}
+
+.deadline-warning {
+    color: var(--color-warning);
+    margin-top: 4px;
 }
 
 .form-field {

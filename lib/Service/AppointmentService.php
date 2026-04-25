@@ -78,11 +78,16 @@ class AppointmentService {
 		?string $calendarEventUid = null,
 		?string $seriesId = null,
 		?int $seriesPosition = null,
+		?string $responseDeadline = null,
 	): Appointment {
 		$this->validateDateRange($startDatetime, $endDatetime);
 
 		$startFormatted = $this->formatDatetime($startDatetime);
 		$endFormatted = $this->formatDatetime($endDatetime);
+		$deadlineFormatted = $this->normalizeOptionalDatetime(
+			$responseDeadline,
+			$startFormatted,
+		);
 
 		$appointment = new Appointment();
 		$appointment->setName($name);
@@ -101,6 +106,7 @@ class AppointmentService {
 		$appointment->setSeriesId($seriesId);
 		$appointment->setSeriesPosition($seriesPosition);
 		$appointment->setSendNotification($sendNotification);
+		$appointment->setResponseDeadline($deadlineFormatted);
 
 		$appointment = $this->appointmentMapper->insert($appointment);
 
@@ -115,6 +121,9 @@ class AppointmentService {
 
 	/**
 	 * Update an existing appointment.
+	 *
+	 * @param ?string $responseDeadline ISO 8601 deadline; pass empty string to clear,
+	 *                                  null to leave unchanged.
 	 */
 	public function updateAppointment(
 		int $id,
@@ -126,6 +135,7 @@ class AppointmentService {
 		array $visibleUsers = [],
 		array $visibleGroups = [],
 		array $visibleTeams = [],
+		?string $responseDeadline = null,
 	): Appointment {
 		$appointment = $this->appointmentMapper->find($id);
 
@@ -143,6 +153,40 @@ class AppointmentService {
 		$appointment->setVisibleGroups(empty($visibleGroups) ? null : json_encode($visibleGroups));
 		$appointment->setVisibleTeams(empty($visibleTeams) ? null : json_encode($visibleTeams));
 
+		if ($responseDeadline !== null) {
+			$appointment->setResponseDeadline(
+				$this->normalizeOptionalDatetime($responseDeadline, $startFormatted),
+			);
+		}
+
+		return $this->appointmentMapper->update($appointment);
+	}
+
+	/**
+	 * Close an appointment inquiry. Marks closedAt with the current UTC time.
+	 * Idempotent: returns the existing appointment unchanged if already closed.
+	 */
+	public function closeAppointment(int $id): Appointment {
+		$appointment = $this->appointmentMapper->find($id);
+		if ($appointment->isClosed()) {
+			return $appointment;
+		}
+		$appointment->setClosedAt(gmdate('Y-m-d H:i:s'));
+		$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
+		return $this->appointmentMapper->update($appointment);
+	}
+
+	/**
+	 * Re-open a previously closed appointment inquiry. Clears closedAt.
+	 * Idempotent: returns the existing appointment unchanged if not closed.
+	 */
+	public function reopenAppointment(int $id): Appointment {
+		$appointment = $this->appointmentMapper->find($id);
+		if (!$appointment->isClosed()) {
+			return $appointment;
+		}
+		$appointment->setClosedAt(null);
+		$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
 		return $this->appointmentMapper->update($appointment);
 	}
 
@@ -169,6 +213,7 @@ class AppointmentService {
 	 * @param list<string> $visibleUsers User IDs
 	 * @param list<string> $visibleGroups Group IDs
 	 * @param list<string> $visibleTeams Team IDs
+	 * @param ?string $responseDeadline ISO 8601 deadline; null = unchanged, '' = clear.
 	 * @return list<Appointment> Updated appointments
 	 */
 	public function updateSeriesAppointments(
@@ -182,6 +227,7 @@ class AppointmentService {
 		array $visibleUsers = [],
 		array $visibleGroups = [],
 		array $visibleTeams = [],
+		?string $responseDeadline = null,
 	): array {
 		$reference = $this->appointmentMapper->find($referenceId);
 
@@ -192,7 +238,8 @@ class AppointmentService {
 			$this->appointmentMapper->update($reference);
 			$updated = $this->updateAppointment(
 				$referenceId, $name, $description, $startDatetime, $endDatetime,
-				$userId, $visibleUsers, $visibleGroups, $visibleTeams
+				$userId, $visibleUsers, $visibleGroups, $visibleTeams,
+				$responseDeadline,
 			);
 			return [$updated];
 		}
@@ -202,7 +249,8 @@ class AppointmentService {
 			// Not part of a series, just update single
 			$updated = $this->updateAppointment(
 				$referenceId, $name, $description, $startDatetime, $endDatetime,
-				$userId, $visibleUsers, $visibleGroups, $visibleTeams
+				$userId, $visibleUsers, $visibleGroups, $visibleTeams,
+				$responseDeadline,
 			);
 			return [$updated];
 		}
@@ -232,6 +280,24 @@ class AppointmentService {
 		$visibleGroupsJson = empty($visibleGroups) ? null : json_encode($visibleGroups);
 		$visibleTeamsJson = empty($visibleTeams) ? null : json_encode($visibleTeams);
 
+		// Decide deadline mode for the series:
+		//  - null  → leave each sibling's existing deadline, but rebase it by startDelta
+		//            so the relative offset to start_datetime is preserved.
+		//  - ''    → clear deadline on every sibling.
+		//  - other → compute the new sibling deadline as (sibling_start + offset),
+		//            where offset is reference_deadline - reference_start.
+		$deadlineOffsetSeconds = null;
+		$clearDeadline = false;
+		if ($responseDeadline !== null) {
+			if ($responseDeadline === '') {
+				$clearDeadline = true;
+			} else {
+				$newDeadline = new \DateTime($responseDeadline);
+				$newDeadline->setTimezone(new \DateTimeZone('UTC'));
+				$deadlineOffsetSeconds = $newDeadline->getTimestamp() - $newStart->getTimestamp();
+			}
+		}
+
 		$updated = [];
 		foreach ($siblings as $sibling) {
 			$sibling->setName($name);
@@ -249,6 +315,18 @@ class AppointmentService {
 			$sibling->setVisibleUsers($visibleUsersJson);
 			$sibling->setVisibleGroups($visibleGroupsJson);
 			$sibling->setVisibleTeams($visibleTeamsJson);
+
+			if ($clearDeadline) {
+				$sibling->setResponseDeadline(null);
+			} elseif ($deadlineOffsetSeconds !== null) {
+				$siblingDeadline = (clone $siblingStart)->modify("{$deadlineOffsetSeconds} seconds");
+				$sibling->setResponseDeadline($siblingDeadline->format('Y-m-d H:i:s'));
+			} elseif ($sibling->getResponseDeadline() !== null) {
+				// Rebase the existing deadline by startDelta so it tracks the new start.
+				$siblingDeadline = new \DateTime($sibling->getResponseDeadline(), new \DateTimeZone('UTC'));
+				$siblingDeadline->modify("{$startDelta} seconds");
+				$sibling->setResponseDeadline($siblingDeadline->format('Y-m-d H:i:s'));
+			}
 
 			$updated[] = $this->appointmentMapper->update($sibling);
 		}
@@ -376,6 +454,10 @@ class AppointmentService {
 			throw new DoesNotExistException('Appointment not found');
 		}
 
+		if ($appointment->isClosed()) {
+			throw new \RuntimeException('This appointment is closed and no longer accepts responses.');
+		}
+
 		try {
 			$existingResponse = $this->responseMapper->findByAppointmentAndUser($appointmentId, $userId);
 			$existingResponse->setResponse($response);
@@ -478,6 +560,7 @@ class AppointmentService {
 				'userResponse' => ($userResponse && $userResponse->getResponse() !== null)
 					? ['response' => $userResponse->getResponse()]
 					: null,
+				'closedAt' => $this->formatDatetimeToUtc($appointment->getClosedAt()),
 			];
 		}
 
@@ -486,11 +569,24 @@ class AppointmentService {
 
 	/**
 	 * Get appointments with user responses.
+	 *
+	 * @param bool $unansweredOnly Drop closed inquiries and any appointment
+	 *                             the user has already answered. Implies
+	 *                             upcoming-only (ignored when combined with
+	 *                             $showPastAppointments).
 	 */
-	public function getAppointmentsWithUserResponses(string $userId, bool $showPastAppointments = false): array {
+	public function getAppointmentsWithUserResponses(
+		string $userId,
+		bool $showPastAppointments = false,
+		bool $unansweredOnly = false,
+	): array {
 		$appointments = $showPastAppointments
 			? $this->getPastAppointments()
 			: $this->getUpcomingAppointments();
+
+		// "Unanswered only" makes no sense on past appointments — silently
+		// suppress to keep the API surface single-purpose.
+		$unansweredOnly = $unansweredOnly && !$showPastAppointments;
 
 		$result = [];
 
@@ -498,14 +594,30 @@ class AppointmentService {
 			if (!$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
 				continue;
 			}
+			if ($unansweredOnly && $appointment->isClosed()) {
+				continue;
+			}
+
+			$userResponse = $this->getUserResponse($appointment->getId(), $userId);
+			$hasResponse = $userResponse && $userResponse->getResponse() !== null;
+			if ($unansweredOnly && $hasResponse) {
+				continue;
+			}
 
 			$appointmentData = $appointment->jsonSerialize();
-			$appointmentData = $this->enrichVisibilityData($appointmentData);
-			$appointmentData = $this->enrichSeriesCount($appointmentData, $appointment);
-			$userResponse = $this->getUserResponse($appointment->getId(), $userId);
-			$appointmentData['userResponse'] = ($userResponse && $userResponse->getResponse() !== null) ? $userResponse : null;
-			$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId());
-			$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
+			$appointmentData['userResponse'] = $hasResponse ? $userResponse : null;
+			// The unanswered list view only renders name/date/swipe-to-respond,
+			// so skip the per-appointment summary/attachments/visibility lookups
+			// (each one fans out into more queries against users/groups/teams).
+			if (!$unansweredOnly) {
+				$appointmentData = $this->enrichVisibilityData($appointmentData);
+				$appointmentData = $this->enrichSeriesCount($appointmentData, $appointment);
+				$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId());
+				$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
+			} else {
+				$appointmentData['responseSummary'] = [];
+				$appointmentData['attachments'] = [];
+			}
 			$result[] = $appointmentData;
 		}
 
@@ -779,6 +891,28 @@ class AppointmentService {
 		} catch (\Exception $e) {
 			return $datetime;
 		}
+	}
+
+	/**
+	 * Normalise an optional datetime input (response deadline).
+	 *
+	 * - Empty string → null (deadline cleared).
+	 * - Invalid string → null.
+	 * - Deadline after start → clamped to start (we never auto-close after the
+	 *   appointment has begun).
+	 *
+	 * @param string $startFormatted Already-formatted start datetime (UTC, Y-m-d H:i:s).
+	 */
+	private function normalizeOptionalDatetime(?string $datetime, string $startFormatted): ?string {
+		if ($datetime === null || $datetime === '') {
+			return null;
+		}
+		$formatted = $this->formatDatetime($datetime);
+		// Sanity check: deadline must not be after start.
+		if ($formatted > $startFormatted) {
+			return $startFormatted;
+		}
+		return $formatted;
 	}
 
 	/**

@@ -36,6 +36,10 @@ return [
 		['name' => 'appointment#sendReminders', 'url' => '/api/appointments/{id}/remind', 'verb' => 'POST'],
 		['name' => 'appointment#sendReminderToUser', 'url' => '/api/appointments/{id}/remind/{userId}', 'verb' => 'POST'],
 
+		// Close / re-open inquiry
+		['name' => 'appointment#close', 'url' => '/api/appointments/{id}/close', 'verb' => 'POST'],
+		['name' => 'appointment#reopen', 'url' => '/api/appointments/{id}/reopen', 'verb' => 'POST'],
+
 		// Admin settings
 		['name' => 'admin#getSettings', 'url' => '/api/admin/settings', 'verb' => 'GET'],
 		['name' => 'admin#saveSettings', 'url' => '/api/admin/settings', 'verb' => 'POST'],

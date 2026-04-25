@@ -66,8 +66,11 @@ class ResponseService {
 			throw new \InvalidArgumentException('Invalid response. Must be yes, no, or maybe.');
 		}
 
-		// Check if appointment exists
-		$this->appointmentMapper->find($appointmentId);
+		// Check if appointment exists and is still open for responses
+		$appointment = $this->appointmentMapper->find($appointmentId);
+		if ($appointment->isClosed()) {
+			throw new \RuntimeException('This appointment is closed and no longer accepts responses.');
+		}
 
 		// Check if user already responded
 		try {

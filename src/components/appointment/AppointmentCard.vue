@@ -83,7 +83,7 @@
 						{{ t("attendance", "Start check-in") }}
 					</NcActionButton>
 					<NcActionButton
-						v-if="canManageAppointments"
+						v-if="canManageAppointments && !isClosed"
 						:close-after-click="true"
 						:disabled="sendingReminders"
 						data-test="action-remind-all"
@@ -92,6 +92,22 @@
 							<BellRingIcon :size="20" />
 						</template>
 						{{ t("attendance", "Remind unanswered") }}
+					</NcActionButton>
+					<NcActionButton
+						v-if="canToggleClosed"
+						:close-after-click="true"
+						:disabled="togglingClosed"
+						:data-test="isClosed ? 'action-reopen-inquiry' : 'action-close-inquiry'"
+						@click="handleToggleClosed">
+						<template #icon>
+							<LockOpenIcon v-if="isClosed" :size="20" />
+							<LockIcon v-else :size="20" />
+						</template>
+						{{
+							isClosed
+								? t("attendance", "Reopen inquiry")
+								: t("attendance", "Close inquiry")
+						}}
 					</NcActionButton>
 					<NcActionButton
 						v-if="canManageAppointments"
@@ -164,8 +180,61 @@
 			</a>
 		</div>
 
-		<!-- Response Section -->
-		<div class="response-section" data-test="response-section">
+		<!-- Closed banner / deadline info -->
+		<div v-if="isClosed" class="closed-banner" data-test="closed-banner">
+			<LockIcon :size="20" />
+			<div class="closed-banner-text">
+				<strong>{{ t("attendance", "Inquiry closed") }}</strong>
+				<span v-if="formattedClosedAt">
+					{{
+						appointment.responseDeadline
+							? t("attendance", "Closed automatically on {when}", {
+								when: formattedClosedAt,
+							})
+							: t("attendance", "Closed on {when}", {
+								when: formattedClosedAt,
+							})
+					}}
+				</span>
+			</div>
+			<NcButton
+				v-if="canToggleClosed"
+				variant="secondary"
+				:disabled="togglingClosed"
+				data-test="banner-reopen-inquiry"
+				@click="handleToggleClosed">
+				{{ t("attendance", "Reopen") }}
+			</NcButton>
+		</div>
+		<div
+			v-else-if="formattedDeadline"
+			class="deadline-info"
+			data-test="deadline-info">
+			<ClockIcon :size="16" />
+			<span>{{
+				t("attendance", "Responses possible until {when}", {
+					when: formattedDeadline,
+				})
+			}}</span>
+		</div>
+
+		<!-- Read-only response chip while the inquiry is closed -->
+		<div
+			v-if="isClosed"
+			class="response-section response-section--readonly"
+			data-test="response-section-readonly">
+			<h4>{{ t("attendance", "Your response") }}</h4>
+			<NcChip
+				:text="userResponse ? getResponseText(userResponse) : t('attendance', 'No response')"
+				:variant="userResponse ? getResponseVariant(userResponse) : 'tertiary'"
+				no-close />
+		</div>
+
+		<!-- Response Section (hidden once the inquiry is closed) -->
+		<div
+			v-if="!isClosed"
+			class="response-section"
+			data-test="response-section">
 			<h4>{{ t("attendance", "Your response") }}</h4>
 			<div
 				class="response-buttons"
@@ -319,8 +388,14 @@ import Paperclip from 'vue-material-design-icons/Paperclip.vue'
 import CommentIcon from 'vue-material-design-icons/Comment.vue'
 import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
 import RepeatIcon from 'vue-material-design-icons/Repeat.vue'
-import { formatDateRange } from '../../utils/datetime.js'
+import LockIcon from 'vue-material-design-icons/Lock.vue'
+import LockOpenIcon from 'vue-material-design-icons/LockOpen.vue'
+import ClockIcon from 'vue-material-design-icons/Clock.vue'
+import { formatDateRange, formatDateTime } from '../../utils/datetime.js'
+import { getResponseText, getResponseVariant } from '../../utils/response.js'
 import { useAppointmentResponse } from '../../composables/useAppointmentResponse.js'
+
+const currentUserUid = window.OC?.getCurrentUser?.()?.uid || window.OC?.currentUser || null
 
 const props = defineProps({
 	appointment: {
@@ -357,6 +432,7 @@ const emit = defineEmits([
 	'export',
 	'submitResponse',
 	'updateComment',
+	'closedToggled',
 ])
 
 const localComment = ref(props.appointment.userResponse?.comment || '')
@@ -379,6 +455,24 @@ const toggleComment = async () => {
 const userResponse = computed(() => {
 	return props.appointment.userResponse?.response || null
 })
+
+const isClosed = computed(() => Boolean(props.appointment.closedAt))
+
+const canToggleClosed = computed(() => {
+	if (props.canManageAppointments) return true
+	return Boolean(currentUserUid) && props.appointment.createdBy === currentUserUid
+})
+
+const formattedClosedAt = computed(() =>
+	props.appointment.closedAt ? formatDateTime(props.appointment.closedAt) : '',
+)
+
+const formattedDeadline = computed(() =>
+	props.appointment.responseDeadline
+		? formatDateTime(props.appointment.responseDeadline)
+		: '',
+)
+
 
 const renderedDescription = computed(() => {
 	if (!props.appointment.description) return ''
@@ -482,6 +576,35 @@ const handleRemindAll = async () => {
 
 const handleResponse = (response) => {
 	emit('submitResponse', props.appointment.id, response)
+}
+
+const togglingClosed = ref(false)
+
+const handleToggleClosed = async () => {
+	if (togglingClosed.value) return
+	togglingClosed.value = true
+	const wantsClose = !isClosed.value
+	const url = generateUrl(
+		`/apps/attendance/api/appointments/${props.appointment.id}/${wantsClose ? 'close' : 'reopen'}`,
+	)
+	try {
+		const response = await axios.post(url)
+		showSuccess(
+			wantsClose
+				? t('attendance', 'Inquiry closed')
+				: t('attendance', 'Inquiry re-opened'),
+		)
+		emit('closedToggled', response.data)
+	} catch (error) {
+		console.error('Failed to toggle closed state:', error)
+		showError(
+			wantsClose
+				? t('attendance', 'Failed to close inquiry')
+				: t('attendance', 'Failed to re-open inquiry'),
+		)
+	} finally {
+		togglingClosed.value = false
+	}
 }
 
 const getAttachmentUrl = (attachment) => {
@@ -789,6 +912,52 @@ const handleCommentInputEvent = () => {
         .textarea-container {
             position: relative;
         }
+    }
+}
+
+.closed-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    border-radius: var(--border-radius-large);
+    background: var(--color-background-dark);
+    border: 1px solid var(--color-border);
+
+    .closed-banner-text {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        strong {
+            font-weight: 600;
+        }
+
+        span {
+            font-size: 0.85em;
+            color: var(--color-text-maxcontrast);
+        }
+    }
+}
+
+.deadline-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+    color: var(--color-text-maxcontrast);
+    font-size: 0.9em;
+}
+
+.response-section--readonly {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    h4 {
+        margin: 0;
     }
 }
 </style>

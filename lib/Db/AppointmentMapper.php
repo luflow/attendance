@@ -261,6 +261,66 @@ class AppointmentMapper extends QBMapper {
 	}
 
 	/**
+	 * Find appointments eligible for reminders within the given date range:
+	 * active, not closed, and either anchored on response_deadline (when set)
+	 * or on start_datetime (otherwise). Single OR-query — one round-trip.
+	 *
+	 * @param string $startDate Y-m-d (inclusive)
+	 * @param string $endDate Y-m-d (inclusive)
+	 * @return array<Appointment>
+	 */
+	public function findRemindable(string $startDate, string $endDate): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$startDateTime = $startDate . ' 00:00:00';
+		$endDateTime = $endDate . ' 23:59:59';
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->andX(
+					$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
+					$qb->expr()->isNull('closed_at'),
+					$qb->expr()->orX(
+						$qb->expr()->andX(
+							$qb->expr()->isNotNull('response_deadline'),
+							$qb->expr()->gte('response_deadline', $qb->createNamedParameter($startDateTime)),
+							$qb->expr()->lte('response_deadline', $qb->createNamedParameter($endDateTime)),
+						),
+						$qb->expr()->andX(
+							$qb->expr()->isNull('response_deadline'),
+							$qb->expr()->gte('start_datetime', $qb->createNamedParameter($startDateTime)),
+							$qb->expr()->lte('start_datetime', $qb->createNamedParameter($endDateTime)),
+						),
+					),
+				)
+			)
+			->orderBy('start_datetime', 'ASC');
+
+		return $this->findEntities($qb);
+	}
+
+	/**
+	 * Bulk-close all active inquiries whose response_deadline is at or before
+	 * the given timestamp. Returns the affected row count.
+	 */
+	public function autoCloseExpired(string $now): int {
+		$qb = $this->db->getQueryBuilder();
+		$qb->update($this->getTableName())
+			->set('closed_at', $qb->createNamedParameter($now))
+			->set('updated_at', $qb->createNamedParameter($now))
+			->where(
+				$qb->expr()->andX(
+					$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
+					$qb->expr()->isNull('closed_at'),
+					$qb->expr()->isNotNull('response_deadline'),
+					$qb->expr()->lte('response_deadline', $qb->createNamedParameter($now)),
+				)
+			);
+		return (int)$qb->executeStatement();
+	}
+
+	/**
 	 * Find appointments with flexible filtering for export functionality
 	 *
 	 * @param array|null $appointmentIds Specific appointment IDs to export (null for all)

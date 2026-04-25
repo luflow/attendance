@@ -23,6 +23,8 @@ namespace OCA\Attendance;
  *   seriesId: ?string,
  *   seriesPosition: ?int,
  *   sendNotification: bool,
+ *   closedAt: ?string,
+ *   responseDeadline: ?string,
  * }
  * @psalm-type AttendanceResponseData = array{
  *   id: int,
@@ -74,6 +76,8 @@ namespace OCA\Attendance;
  *   seriesId: ?string,
  *   seriesPosition: ?int,
  *   sendNotification: bool,
+ *   closedAt: ?string,
+ *   responseDeadline: ?string,
  *   userResponse: AttendanceResponseData|null,
  *   responseSummary: array<string, int>,
  *   attachments: list<array<string, mixed>>,
@@ -85,6 +89,7 @@ namespace OCA\Attendance;
  *   seriesId: ?string,
  *   seriesPosition: ?int,
  *   userResponse: ?array{response: string},
+ *   closedAt: ?string,
  * }
  * @psalm-type AttendanceCheckinData = array{
  *   appointment: AttendanceAppointmentData,
@@ -101,6 +106,7 @@ namespace OCA\Attendance;
  *   visibleTeams?: list<string>,
  *   calendarUri?: string,
  *   calendarEventUid?: string,
+ *   responseDeadline?: string,
  * }
  * @psalm-type AttendanceGroupOption = array{id: string, displayName: string}
  * @psalm-type AttendanceTeamOption = array{id: string, displayName: string}
@@ -165,6 +171,8 @@ namespace OCA\Attendance;
  *   seriesId: ?string,
  *   seriesPosition: ?int,
  *   sendNotification: bool,
+ *   closedAt: ?string,
+ *   responseDeadline: ?string,
  *   alreadyCheckedIn: bool,
  *   checkinState: ?string,
  *   checkinAt: ?string,

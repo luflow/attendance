@@ -24,18 +24,54 @@
 			</div>
 		</div>
 
+		<!-- Search + filter controls -->
+		<div
+			v-if="!loading && (appointments.length > 0 || searchQuery || statusFilter || responseFilter)"
+			class="filter-bar">
+			<NcTextField
+				:model-value="searchQuery"
+				:label="t('attendance', 'Search appointments\u00A0…')"
+				class="filter-bar__search"
+				data-test="filter-search"
+				@update:model-value="searchQuery = $event">
+				<MagnifyIcon :size="16" />
+			</NcTextField>
+			<NcSelect
+				v-if="!showUnanswered"
+				v-model="statusFilter"
+				:options="statusFilterOptions"
+				:placeholder="t('attendance', 'Inquiry status')"
+				:clearable="true"
+				:searchable="false"
+				label="label"
+				class="filter-bar__select"
+				data-test="filter-status" />
+			<NcSelect
+				v-if="!showUnanswered"
+				v-model="responseFilter"
+				:options="responseFilterOptions"
+				:placeholder="t('attendance', 'Your response')"
+				:clearable="true"
+				:searchable="false"
+				label="label"
+				class="filter-bar__select"
+				data-test="filter-response" />
+		</div>
+
 		<!-- Appointments List -->
 		<div class="appointments-list">
 			<div v-if="loading" class="loading">
 				{{ t('attendance', 'Loading\u00A0…') }}
 			</div>
-			<div v-else-if="appointments.length === 0 && !showUnanswered" class="empty-state">
-				{{ t('attendance', 'No appointments found') }}
+			<div v-else-if="visibleAppointments.length === 0 && !showUnanswered" class="empty-state">
+				{{ hasActiveFilters
+					? t('attendance', 'No appointments match the active filters.')
+					: t('attendance', 'No appointments found') }}
 			</div>
 			<div v-else>
 				<!-- Use reusable AppointmentCard component -->
 				<AppointmentCard
-					v-for="appointment in appointments"
+					v-for="appointment in visibleAppointments"
 					:key="appointment.id"
 					:appointment="appointment"
 					:can-manage-appointments="permissions.canManageAppointments"
@@ -49,7 +85,8 @@
 					@delete="deleteAppointment"
 					@export="showExportDialog"
 					@submit-response="submitResponse"
-					@update-comment="updateComment" />
+					@update-comment="updateComment"
+					@closed-toggled="handleClosedToggled" />
 			</div>
 		</div>
 
@@ -70,7 +107,8 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import { NcButton } from '@nextcloud/vue'
+import { NcButton, NcSelect, NcTextField } from '@nextcloud/vue'
+import MagnifyIcon from 'vue-material-design-icons/Magnify.vue'
 import AppointmentCard from '../components/appointment/AppointmentCard.vue'
 import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
 import DeleteAppointmentDialog from '../components/appointment/DeleteAppointmentDialog.vue'
@@ -105,8 +143,106 @@ const goToUpcoming = () => {
 }
 
 const unansweredCount = computed(() => {
-	return appointments.value.filter(a => !a.userResponse).length
+	return appointments.value.filter(a => !a.userResponse && !a.closedAt).length
 })
+
+const FILTER_STORAGE_KEY = 'attendance:list-filters'
+
+const statusFilterOptions = computed(() => [
+	{ id: 'open', label: t('attendance', 'Open') },
+	{ id: 'closed', label: t('attendance', 'Closed') },
+])
+
+const responseFilterOptions = computed(() => [
+	{ id: 'yes', label: t('attendance', 'Yes') },
+	{ id: 'maybe', label: t('attendance', 'Maybe') },
+	{ id: 'no', label: t('attendance', 'No') },
+	{ id: 'none', label: t('attendance', 'No response') },
+])
+
+const findOptionById = (options, id) =>
+	id ? options.find((opt) => opt.id === id) ?? null : null
+
+const loadStoredFilters = () => {
+	try {
+		const raw = window.localStorage.getItem(FILTER_STORAGE_KEY)
+		if (!raw) return { search: '', status: null, response: null }
+		const parsed = JSON.parse(raw)
+		return {
+			search: typeof parsed.search === 'string' ? parsed.search : '',
+			status: findOptionById(statusFilterOptions.value, parsed.status),
+			response: findOptionById(responseFilterOptions.value, parsed.response),
+		}
+	} catch (e) {
+		return { search: '', status: null, response: null }
+	}
+}
+
+const stored = loadStoredFilters()
+const searchQuery = ref(stored.search)
+const statusFilter = ref(stored.status)
+const responseFilter = ref(stored.response)
+
+// Debounce so per-keystroke search edits don't churn localStorage on the
+// main thread. Same-value guard skips redundant writes (e.g. on first mount,
+// when the watcher fires with the just-restored values).
+let persistTimer = null
+let lastPersistedJson = JSON.stringify({
+	search: stored.search,
+	status: stored.status?.id ?? null,
+	response: stored.response?.id ?? null,
+})
+watch([searchQuery, statusFilter, responseFilter], ([search, status, response]) => {
+	const next = JSON.stringify({
+		search: search ?? '',
+		status: status?.id ?? null,
+		response: response?.id ?? null,
+	})
+	if (next === lastPersistedJson) return
+	clearTimeout(persistTimer)
+	persistTimer = setTimeout(() => {
+		try {
+			window.localStorage.setItem(FILTER_STORAGE_KEY, next)
+			lastPersistedJson = next
+		} catch (e) {
+			// Storage may be unavailable (private mode, quota).
+		}
+	}, 300)
+})
+
+const hasActiveFilters = computed(() =>
+	Boolean(searchQuery.value.trim() || statusFilter.value || responseFilter.value),
+)
+
+const visibleAppointments = computed(() => {
+	const query = searchQuery.value.trim().toLowerCase()
+	const status = statusFilter.value?.id ?? null
+	const response = responseFilter.value?.id ?? null
+	if (!query && !status && !response) {
+		return appointments.value
+	}
+	return appointments.value.filter((appointment) => {
+		if (query) {
+			const haystack = `${appointment.name} ${appointment.description ?? ''}`.toLowerCase()
+			if (!haystack.includes(query)) return false
+		}
+		if (status === 'open' && appointment.closedAt) return false
+		if (status === 'closed' && !appointment.closedAt) return false
+		if (response) {
+			const userResponse = appointment.userResponse?.response ?? null
+			if (response === 'none' && userResponse !== null) return false
+			if (response !== 'none' && userResponse !== response) return false
+		}
+		return true
+	})
+})
+
+const handleClosedToggled = (updated) => {
+	const index = appointments.value.findIndex(a => a.id === updated.id)
+	if (index !== -1) {
+		appointments.value[index] = { ...appointments.value[index], ...updated }
+	}
+}
 const loading = ref(true)
 const responseComments = reactive({})
 
@@ -125,16 +261,11 @@ const loadAppointments = async (skipLoadingSpinner = false) => {
 		if (!skipLoadingSpinner) {
 			loading.value = true
 		}
-		const params = props.showPast ? '?showPastAppointments=true' : ''
-		const response = await axios.get(generateUrl('/apps/attendance/api/appointments') + params)
-
-		if (props.showUnanswered) {
-			appointments.value = response.data.filter(appointment => {
-				return !appointment.userResponse || appointment.userResponse === null
-			})
-		} else {
-			appointments.value = response.data
-		}
+		const params = {}
+		if (props.showPast) params.showPastAppointments = true
+		if (props.showUnanswered) params.unansweredOnly = true
+		const response = await axios.get(generateUrl('/apps/attendance/api/appointments'), { params })
+		appointments.value = response.data
 
 		appointments.value.forEach(appointment => {
 			if (appointment.userResponse) {
@@ -242,6 +373,7 @@ onBeforeUnmount(() => {
 		confettiCanvas.remove()
 		confettiCanvas = null
 	}
+	clearTimeout(persistTimer)
 })
 
 const triggerConfetti = () => {
@@ -298,6 +430,25 @@ onMounted(async () => {
 .unanswered-banner-container {
 	max-width: 800px;
 	margin: 0 auto 20px;
+}
+
+.filter-bar {
+	max-width: 800px;
+	margin: 0 auto 16px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	align-items: flex-end;
+
+	&__search {
+		flex: 2 1 240px;
+		min-width: 200px;
+	}
+
+	&__select {
+		flex: 1 1 160px;
+		min-width: 160px;
+	}
 }
 
 .banner-action {

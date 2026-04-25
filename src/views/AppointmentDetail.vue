@@ -32,7 +32,8 @@
 				@delete="deleteAppointment"
 				@export="showExportDialog"
 				@submit-response="submitResponse"
-				@update-comment="updateComment" />
+				@update-comment="updateComment"
+				@closed-toggled="onClosedToggled" />
 		</div>
 
 		<!-- Single Appointment Export Dialog -->
@@ -156,6 +157,12 @@ const updateComment = async (appointmentId, comment) => {
 	appointment.value.userResponse.comment = comment
 
 	await submitResponseApi(appointmentId, response, comment)
+}
+
+const onClosedToggled = (updated) => {
+	if (appointment.value && updated?.id === appointment.value.id) {
+		appointment.value = { ...appointment.value, ...updated }
+	}
 }
 
 const loadAppointmentSilently = async () => {

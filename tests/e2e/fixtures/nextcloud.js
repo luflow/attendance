@@ -106,6 +106,9 @@ export async function login(page, username, password = null, baseURL = BASE_URL)
 
 /**
  * Create an appointment via the REST API
+ *
+ * @param {Date} [opts.responseDeadline] Optional deadline; the cron auto-closes
+ *        the inquiry once it passes.
  * @returns {Promise<Object>} The created appointment data (includes id)
  */
 export async function createAppointmentViaAPI(request, {
@@ -116,6 +119,7 @@ export async function createAppointmentViaAPI(request, {
 	visibleUsers = [],
 	visibleGroups = [],
 	sendNotification = false,
+	responseDeadline,
 	username = 'admin',
 	password = 'admin',
 } = {}) {
@@ -133,6 +137,7 @@ export async function createAppointmentViaAPI(request, {
 			visibleUsers,
 			visibleGroups,
 			sendNotification,
+			...(responseDeadline ? { responseDeadline: responseDeadline.toISOString() } : {}),
 		},
 	})
 	return response.json()
@@ -148,14 +153,43 @@ export async function deleteAppointmentViaAPI(request, id, { username = 'admin',
 }
 
 /**
- * Fetch all appointments via the REST API
+ * Fetch appointments via the REST API.
+ *
+ * @param {object} opts
+ * @param {boolean} [opts.showPast]
+ * @param {boolean} [opts.unansweredOnly] Server-side filter: drop closed
+ *        inquiries and any appointment the user has already answered.
  */
-export async function listAppointmentsViaAPI(request, { showPast = true, username = 'admin', password = 'admin' } = {}) {
+export async function listAppointmentsViaAPI(request, { showPast = true, unansweredOnly = false, username = 'admin', password = 'admin' } = {}) {
+	const params = new URLSearchParams({
+		showPastAppointments: String(showPast),
+	})
+	if (unansweredOnly) params.set('unansweredOnly', 'true')
 	const response = await request.get(
-		`${API_BASE}/apps/attendance/api/appointments?showPastAppointments=${showPast}`,
+		`${API_BASE}/apps/attendance/api/appointments?${params.toString()}`,
 		{ headers: authHeaders(username, password) },
 	)
 	return response.json()
+}
+
+/**
+ * Close an appointment inquiry. Returns the updated appointment payload.
+ */
+export async function closeAppointmentViaAPI(request, id, { username = 'admin', password = 'admin' } = {}) {
+	const resp = await request.post(`${API_BASE}/apps/attendance/api/appointments/${id}/close`, {
+		headers: authHeaders(username, password),
+	})
+	return { status: resp.status(), body: await resp.json() }
+}
+
+/**
+ * Re-open a previously closed appointment inquiry.
+ */
+export async function reopenAppointmentViaAPI(request, id, { username = 'admin', password = 'admin' } = {}) {
+	const resp = await request.post(`${API_BASE}/apps/attendance/api/appointments/${id}/reopen`, {
+		headers: authHeaders(username, password),
+	})
+	return { status: resp.status(), body: await resp.json() }
 }
 
 /**
