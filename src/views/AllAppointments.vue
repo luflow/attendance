@@ -586,7 +586,7 @@ onMounted(async () => {
 	}
 
 	&__reset :deep(.button-vue__text) {
-		color: var(--color-error);
+		color: var(--color-error-text);
 	}
 
 	&__active {
