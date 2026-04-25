@@ -90,6 +90,24 @@ test.describe('Attendance App - Close inquiry (API)', () => {
 		expect(new Date(apt.responseDeadline).toISOString().slice(0, 16))
 			.toBe(deadline.toISOString().slice(0, 16))
 	})
+
+	test('reopen clears the responseDeadline so cron does not re-close', async ({ request }) => {
+		// Without this guard the next auto-close cron tick would close the
+		// same appointment again because the deadline is still in the past.
+		const apt = await createAppointmentViaAPI(request, {
+			name: 'Reopen Clears Deadline',
+			daysFromNow: 14,
+			responseDeadline: new Date(Date.now() + 1 * DAY_MS),
+		})
+		expect(apt.responseDeadline).not.toBeNull()
+
+		await closeAppointmentViaAPI(request, apt.id)
+		const reopened = await reopenAppointmentViaAPI(request, apt.id)
+
+		expect(reopened.status).toBe(200)
+		expect(reopened.body.closedAt).toBeNull()
+		expect(reopened.body.responseDeadline).toBeNull()
+	})
 })
 
 test.describe('Attendance App - Close inquiry (UI)', () => {

@@ -179,6 +179,10 @@ class AppointmentService {
 	/**
 	 * Re-open a previously closed appointment inquiry. Clears closedAt.
 	 * Idempotent: returns the existing appointment unchanged if not closed.
+	 *
+	 * Also clears any responseDeadline — the admin just overruled the
+	 * auto-close, so the deadline that triggered it is moot. Without this,
+	 * the next reminder-job tick would re-close on the same condition.
 	 */
 	public function reopenAppointment(int $id): Appointment {
 		$appointment = $this->appointmentMapper->find($id);
@@ -186,6 +190,7 @@ class AppointmentService {
 			return $appointment;
 		}
 		$appointment->setClosedAt(null);
+		$appointment->setResponseDeadline(null);
 		$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
 		return $this->appointmentMapper->update($appointment);
 	}
