@@ -85,6 +85,11 @@ OC.L10N.register(
     "Add from Files" : "Додади од датотеките",
     "All users" : "Сите корисници",
     "Confirm" : "Потврди",
+    "15 minutes before" : "15 минути пред",
+    "30 minutes before" : "30 минути пред",
+    "1 hour before" : "1 час пред",
+    "2 hours before" : "2 часа пред",
+    "No reminders" : "Нема потсетници",
     "Thank you for your response!" : "Благодариме на вашиот одговор.",
     "Try again" : "Обиди се повторно"
 },

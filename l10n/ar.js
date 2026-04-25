@@ -106,6 +106,11 @@ OC.L10N.register(
     "All users" : "كُلّ المستخدمين",
     "No users found" : "لا يوجد مستخدمون",
     "Confirm" : "تأكيد",
+    "15 minutes before" : "قبل الحدث بـ 15 دقيقة",
+    "30 minutes before" : "قبل الحدث بـ 30 دقيقة",
+    "1 hour before" : "قبل الحدث بـ  1 ساعة",
+    "2 hours before" : "قبل الحدث بـ  2 ساعتين",
+    "No reminders" : "لا توجد أي تذكيرات",
     "Try again" : "عاود المحاولة"
 },
 "nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;");

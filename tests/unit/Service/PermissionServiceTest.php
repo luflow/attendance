@@ -238,13 +238,14 @@ class PermissionServiceTest extends TestCase {
 	}
 
 	public function testGetAllPermissionSettings(): void {
-		$this->config->expects($this->exactly(4))
+		$this->config->expects($this->exactly(5))
 			->method('getAppValue')
 			->willReturnMap([
 				['attendance', 'permission_manage_appointments', '[]', '["admin"]'],
 				['attendance', 'permission_checkin', '[]', '["admin","staff"]'],
 				['attendance', 'permission_see_response_overview', '[]', '["admin"]'],
-				['attendance', 'permission_see_comments', '[]', '["admin","managers"]']
+				['attendance', 'permission_see_comments', '[]', '["admin","managers"]'],
+				['attendance', 'permission_self_checkin', '[]', '["users"]']
 			]);
 
 		$result = $this->service->getAllPermissionSettings();
@@ -253,7 +254,8 @@ class PermissionServiceTest extends TestCase {
 			PermissionService::PERMISSION_MANAGE_APPOINTMENTS => ['admin'],
 			PermissionService::PERMISSION_CHECKIN => ['admin', 'staff'],
 			PermissionService::PERMISSION_SEE_RESPONSE_OVERVIEW => ['admin'],
-			PermissionService::PERMISSION_SEE_COMMENTS => ['admin', 'managers']
+			PermissionService::PERMISSION_SEE_COMMENTS => ['admin', 'managers'],
+			PermissionService::PERMISSION_SELF_CHECKIN => ['users']
 		];
 
 		$this->assertEquals($expected, $result);

@@ -99,6 +99,10 @@ OC.L10N.register(
     "All users" : "Alle brugere",
     "No users found" : "Ingen brugere fundet",
     "Confirm" : "Bekræft",
+    "15 minutes before" : "15 minutter før",
+    "30 minutes before" : "30 minutter før",
+    "1 hour before" : "1 time før",
+    "2 hours before" : "2 timer før",
     "Thank you for your response!" : "Tak for dit svar",
     "Try again" : "Prøv igen"
 },

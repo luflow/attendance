@@ -50,6 +50,10 @@ OC.L10N.register(
     "User" : "ผู้ใช้",
     "Description" : "คำอธิบาย",
     "Notification" : "การแจ้งเตือน",
-    "Confirm" : "ยืนยัน"
+    "Confirm" : "ยืนยัน",
+    "15 minutes before" : "15 นาทีก่อนหน้านั้น",
+    "30 minutes before" : "30 นาทีก่อนหน้านั้น",
+    "1 hour before" : "1 ชั่วโมงก่อนหน้านั้น",
+    "2 hours before" : "2 ชั่วโมงก่อนหน้านั้น"
 },
 "nplurals=1; plural=0;");

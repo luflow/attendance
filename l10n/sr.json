@@ -109,6 +109,11 @@
     "All users" : "Сви корисници",
     "No users found" : "Није пронађен ниједан корисник",
     "Confirm" : "Потврди",
+    "15 minutes before" : "15 минута раније",
+    "30 minutes before" : "30 минута раније",
+    "1 hour before" : "1 сат раније",
+    "2 hours before" : "2 сата раније",
+    "No reminders" : "Нема подсетника",
     "Thank you for your response!" : "Хвала вам на одговору!",
     "Try again" : "Покушајте поново"
 },"pluralForm" :"nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);"

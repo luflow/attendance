@@ -110,6 +110,11 @@ OC.L10N.register(
     "Continue anyway" : "Продовжити все одно",
     "All users" : "Всі користувачі",
     "Confirm" : "Підтвердити",
+    "15 minutes before" : "за 15 хвилин",
+    "30 minutes before" : "за 30 хвилин",
+    "1 hour before" : "за 1 годину",
+    "2 hours before" : "за 2 години",
+    "No reminders" : "Відсутні нагадування",
     "Thank you for your response!" : "Дякуємо за вашу відповідь!",
     "Try again" : "Спробуйте ще раз"
 },

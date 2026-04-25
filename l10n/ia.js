@@ -31,6 +31,10 @@ OC.L10N.register(
     "Preview" : "Previsualisar",
     "User" : "User",
     "Description" : "Description",
-    "Confirm" : "Confirmar"
+    "Confirm" : "Confirmar",
+    "15 minutes before" : "15 minutas antea",
+    "30 minutes before" : "30 minutas antea",
+    "1 hour before" : "1 hora antea",
+    "2 hours before" : "2 horas antea"
 },
 "nplurals=2; plural=(n != 1);");

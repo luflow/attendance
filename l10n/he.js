@@ -80,6 +80,10 @@ OC.L10N.register(
     "Notification" : "הוֹדָעָה",
     "No users found" : "לא נמצאו משתמשים",
     "Confirm" : "אישור",
+    "15 minutes before" : "15 דקות לפני",
+    "30 minutes before" : "30 דקות לפני",
+    "1 hour before" : "1 שעה לפני",
+    "2 hours before" : "2 שעות לפני",
     "Try again" : "ניסיון חוזר"
 },
 "nplurals=3; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: 2;");

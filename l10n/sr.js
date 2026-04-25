@@ -111,6 +111,11 @@ OC.L10N.register(
     "All users" : "Сви корисници",
     "No users found" : "Није пронађен ниједан корисник",
     "Confirm" : "Потврди",
+    "15 minutes before" : "15 минута раније",
+    "30 minutes before" : "30 минута раније",
+    "1 hour before" : "1 сат раније",
+    "2 hours before" : "2 сата раније",
+    "No reminders" : "Нема подсетника",
     "Thank you for your response!" : "Хвала вам на одговору!",
     "Try again" : "Покушајте поново"
 },

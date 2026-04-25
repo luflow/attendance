@@ -29,6 +29,10 @@ OC.L10N.register(
     "Link copied" : "Link kopéiert",
     "User" : "User",
     "Description" : "Beschreiwung",
-    "Confirm" : "Konfirméieren"
+    "Confirm" : "Konfirméieren",
+    "15 minutes before" : "15 Minutte virdrun",
+    "30 minutes before" : "30 Minutte virdrun",
+    "1 hour before" : "1 Stonn virdrun",
+    "2 hours before" : "2 Stonne virdrun"
 },
 "nplurals=2; plural=(n != 1);");

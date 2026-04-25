@@ -20,7 +20,6 @@ OC.L10N.register(
     "Please check the new appointments and respond." : "Bitte die neuen Termine prüfen und antworten.",
     "Others" : "Andere",
     "Group" : "Gruppe",
-    "Attendance appointments" : "Anwesenheitstermine",
     "Me" : "Ich",
     "Please respond! We still need your answer." : "Bitte antworten! Wir benötigen noch deine Antwort.",
     "Your response" : "Deine Antwort",
@@ -411,6 +410,16 @@ OC.L10N.register(
     "Confirm bulk action" : "Massenaktion bestätigen",
     "Confirm" : "Bestätigen",
     "Do you want to reset the check-in for this appointment? This will remove all check-in entries." : "Soll der Check-in für diesen Termin zurückgesetzt werden? Dadurch werden alle Check-in-Einträge entfernt.",
+    "15 minutes before" : "15 Minuten vorher",
+    "30 minutes before" : "30 Minuten vorher",
+    "1 hour before" : "1 Stunde vorher",
+    "2 hours before" : "2 Stunden vorher",
+    "1 day before" : "1 Tag vorher",
+    "2 days before" : "2 Tage vorher",
+    "Calendar reminders" : "Kalendererinnerungen",
+    "Configure reminders for appointments you accepted or tentatively accepted in your calendar subscription (iCal feed). You can select multiple reminder times." : "Erinnerungen für Termine, die in einem Kalenderabonnement angenommen oder vorläufig angenommen wurden (iCal-Feed) einrichten. Es können mehrere Erinnerungszeiten ausgewählt werden.",
+    "Reminders before appointment" : "Erinnerungen vor einem Termin",
+    "No reminders" : "Keine Erinnerungen",
     "Unable to process response" : "Antwort konnte nicht verarbeitet werden",
     "Open Attendance app" : "Anwesenheits-App öffnen",
     "Thank you for your response!" : "Vielen Dank für deine Antwort!",
@@ -502,6 +511,7 @@ OC.L10N.register(
     "mo" : "Mon",
     "wk" : "Wo",
     "Upcoming" : "Anstehend",
-    "Past" : "Vergangen"
+    "Past" : "Vergangen",
+    "Failed to copy URL" : "URL konnte nicht kopiert werden"
 },
 "nplurals=2; plural=(n != 1);");

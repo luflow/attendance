@@ -57,6 +57,10 @@ OC.L10N.register(
     "Description" : "Descripcion",
     "Notification" : "Notificacion",
     "All users" : "Totes los utilizaires",
-    "Confirm" : "Confirmar"
+    "Confirm" : "Confirmar",
+    "15 minutes before" : "15 minutas abans",
+    "30 minutes before" : "30 minutas abans",
+    "1 hour before" : "1 ora abans",
+    "2 hours before" : "2 oras abans"
 },
 "nplurals=2; plural=(n > 1);");

@@ -57,6 +57,10 @@ OC.L10N.register(
     "Description" : "Përshkrim",
     "Date & Time" : "Data & Ora",
     "Confirm" : "Konfirmo",
+    "15 minutes before" : "15 minuta para",
+    "30 minutes before" : "30 minuta para",
+    "1 hour before" : "1 orë para",
+    "2 hours before" : "2 orë para",
     "Try again" : "Provo përsëri"
 },
 "nplurals=2; plural=(n != 1);");

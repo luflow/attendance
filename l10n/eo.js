@@ -59,6 +59,10 @@ OC.L10N.register(
     "User" : "Uzanto",
     "Description" : "Priskribo",
     "Notification" : "Atentigo",
-    "Confirm" : "Konfirmi"
+    "Confirm" : "Konfirmi",
+    "15 minutes before" : "15 minutojn antaŭe",
+    "30 minutes before" : "30 minutojn antaŭe",
+    "1 hour before" : "1 horon antaŭe",
+    "2 hours before" : "2 horojn antaŭe"
 },
 "nplurals=2; plural=(n != 1);");

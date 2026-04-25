@@ -63,6 +63,7 @@ Follow these Nextcloud translation guidelines (see https://docs.nextcloud.com/se
 - All Services in `lib/Service/` directory
 - Controllers in `lib/Controller/` directory
 - Define API routes in `appinfo/routes.php`
+- **Whenever you change backend files (`lib/**`, `appinfo/**`), run `composer test:unit` before handing the change back.** If tests break, update them to match the new behavior or add new ones for the new logic — never leave a red suite behind. When you add a new service or controller, add matching tests in `tests/unit/`. The release workflow also runs PHPUnit in parallel with the e2e tests and will block releases on failure.
 
 ### Database
 - Always create migrations for schema changes

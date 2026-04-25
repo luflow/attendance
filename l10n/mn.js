@@ -85,6 +85,11 @@ OC.L10N.register(
     "Notification" : "Мэдэгдэл",
     "Add from Files" : "Файлуудаас нэмэх",
     "Confirm" : "Батлах",
+    "15 minutes before" : "15 минутын өмнө",
+    "30 minutes before" : "30 минутын өмнө",
+    "1 hour before" : "1 цагийн өмнө",
+    "2 hours before" : "2 цагийн өмнө",
+    "No reminders" : "Сануулга байхгүй",
     "Thank you for your response!" : "Хариултад баярлалаа!",
     "Try again" : "Дахин оролдох"
 },

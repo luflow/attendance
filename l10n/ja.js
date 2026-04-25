@@ -102,6 +102,10 @@ OC.L10N.register(
     "All users" : "すべてのユーザー",
     "No users found" : "ユーザーが見つかりません",
     "Confirm" : "承認",
+    "15 minutes before" : "15分前",
+    "30 minutes before" : "30分前",
+    "1 hour before" : "1 時間前",
+    "2 hours before" : "2時間前",
     "Try again" : "もう一度試してください"
 },
 "nplurals=1; plural=0;");

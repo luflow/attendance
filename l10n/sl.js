@@ -102,6 +102,10 @@ OC.L10N.register(
     "Add from Files" : "Izbor iz datotek",
     "All users" : "Vsi uporabniki",
     "No users found" : "Ni najdenih uporabnikov",
-    "Confirm" : "Potrdi"
+    "Confirm" : "Potrdi",
+    "15 minutes before" : "15 minut prej",
+    "30 minutes before" : "30 minut prej",
+    "1 hour before" : "1 uro prej",
+    "2 hours before" : "2 uri prej"
 },
 "nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);");
