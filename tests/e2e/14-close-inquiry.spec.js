@@ -55,19 +55,26 @@ test.describe('Attendance App - Close inquiry (API)', () => {
 		expect(blocked.error).toMatch(/closed/i)
 	})
 
-	test('unansweredOnly excludes closed and already-answered appointments', async ({ request }) => {
+	test('unansweredOnly excludes closed, already-answered, and not-for-me appointments', async ({ request }) => {
 		// Serial setup: parallel POSTs to the same Nextcloud occasionally race
 		// on the appointments table during DB writes — flake isn't worth the
 		// few hundred ms saved.
 		const open = await createAppointmentViaAPI(request, { name: 'Filter Open Unanswered', daysFromNow: 14 })
 		const answered = await createAppointmentViaAPI(request, { name: 'Filter Open Answered', daysFromNow: 14 })
 		const closed = await createAppointmentViaAPI(request, { name: 'Filter Closed Unanswered', daysFromNow: 14 })
+		// Targeted only at `test`; admin (a manager) sees it via canUserSeeAppointment
+		// but it's not addressed to admin — the unanswered list should drop it.
+		const notForAdmin = await createAppointmentViaAPI(request, {
+			name: 'Filter Unanswered Not For Admin',
+			daysFromNow: 14,
+			visibleUsers: ['test'],
+		})
 		await respondToAppointmentViaAPI(request, answered.id, { response: 'maybe' })
 		await closeAppointmentViaAPI(request, closed.id)
 
 		const all = await listAppointmentsViaAPI(request, { showPast: false })
 		const allIds = all.map(a => a.id)
-		expect(allIds).toEqual(expect.arrayContaining([open.id, answered.id, closed.id]))
+		expect(allIds).toEqual(expect.arrayContaining([open.id, answered.id, closed.id, notForAdmin.id]))
 
 		const onlyUnanswered = await listAppointmentsViaAPI(request, {
 			showPast: false,
@@ -77,6 +84,7 @@ test.describe('Attendance App - Close inquiry (API)', () => {
 		expect(filteredIds).toContain(open.id)
 		expect(filteredIds).not.toContain(answered.id)
 		expect(filteredIds).not.toContain(closed.id)
+		expect(filteredIds).not.toContain(notForAdmin.id)
 	})
 
 	test('responseDeadline round-trips through create and update', async ({ request }) => {

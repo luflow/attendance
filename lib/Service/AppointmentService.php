@@ -598,6 +598,10 @@ class AppointmentService {
 		// "Unanswered only" makes no sense on past appointments — silently
 		// suppress to keep the API surface single-purpose.
 		$unansweredOnly = $unansweredOnly && !$showPastAppointments;
+		// "Unanswered" only makes sense for appointments actually addressed to
+		// the user. For managers, the visibility check otherwise lets through
+		// every unanswered appointment in the system, which defeats the inbox.
+		$onlyForMe = $onlyForMe || $unansweredOnly;
 
 		$result = [];
 
