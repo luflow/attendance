@@ -2,6 +2,12 @@
 	<NcContent app-name="attendance">
 		<!-- Navigation sidebar (hidden during checkin) -->
 		<NcAppNavigation v-if="currentView !== 'checkin'">
+			<template #search>
+				<NcAppNavigationSearch
+					v-model="searchQuery"
+					:label="t('attendance', 'Search appointments')"
+					@update:model-value="onSearchInput" />
+			</template>
 			<template #list>
 				<!-- Unanswered Appointments Section -->
 				<NcAppNavigationItem
@@ -201,12 +207,14 @@
 				:key="currentView"
 				:show-past="currentView === 'past'"
 				:show-unanswered="currentView === 'unanswered'"
+				:search-query="searchQuery"
 				@response-updated="loadAppointments"
 				@appointment-deleted="loadAppointments"
 				@edit-appointment="editAppointment"
 				@copy-appointment="copyAppointment"
 				@navigate-to-upcoming="setView('current')"
-				@navigate-to-unanswered="setView('unanswered')" />
+				@navigate-to-unanswered="setView('unanswered')"
+				@clear-search="searchQuery = ''" />
 
 			<!-- Loading state while routing is determined -->
 			<div v-else class="loading-state">
@@ -240,6 +248,7 @@ import {
 	NcContent,
 	NcAppNavigation,
 	NcAppNavigationItem,
+	NcAppNavigationSearch,
 	NcAppContent,
 } from '@nextcloud/vue'
 import axios from '@nextcloud/axios'
@@ -363,6 +372,15 @@ t('attendance', 'About')
 t('attendance', 'Open source licenses')
 t('attendance', 'Version {version} ({build})')
 
+t('attendance', 'Search appointments')
+t('attendance', 'Search: {query}')
+t('attendance', 'My attendance')
+t('attendance', 'Inquiry status')
+t('attendance', 'Your response')
+t('attendance', 'Owner')
+t('attendance', 'Only mine')
+t('attendance', 'Created by others')
+t('attendance', 'Open')
 t('attendance', 'Closed')
 t('attendance', 'Show only open')
 t('attendance', 'Close inquiry')
@@ -393,6 +411,18 @@ const showExportDialog = ref(false)
 
 const pastAppointmentsExpanded = ref(false)
 
+// Sidebar full-text search lives in NcAppNavigation's #search slot
+// (Files-app pattern). Intentionally NOT persisted — a search term across
+// reloads is more confusing than helpful. Filters above the list ARE
+// persisted (see AllAppointments.vue).
+const searchQuery = ref('')
+const onSearchInput = () => {
+	// Typing in the sidebar should land on a list view.
+	if (currentView.value === 'appointment' || currentView.value === 'checkin') {
+		setView('current')
+	}
+}
+
 // Use the shared permissions composable
 const { permissions, capabilities, config, loadPermissions } = usePermissions()
 
@@ -420,6 +450,11 @@ const allAppointments = computed(() => {
 })
 
 const setView = (view) => {
+	// Switching list views resets the search — search is global, so a
+	// stale term across navigation is more confusing than helpful.
+	if (['current', 'past', 'unanswered'].includes(view) && view !== currentView.value) {
+		searchQuery.value = ''
+	}
 	currentView.value = view
 
 	const baseUrl = window.location.pathname.replace(

@@ -10,7 +10,8 @@ import {
 } from './fixtures/nextcloud.js'
 
 const DAY_MS = 24 * 60 * 60 * 1000
-// Mirrors the storage key in src/views/AllAppointments.vue. Kept in sync by hand.
+// Mirrors the storage key in src/views/AllAppointments.vue. Search is
+// intentionally not persisted, only the structured filters are.
 const FILTER_STORAGE_KEY = 'attendance:list-filters'
 
 test.describe('Attendance App - Close inquiry (API)', () => {
@@ -192,30 +193,78 @@ test.describe('Attendance App - Close inquiry (UI)', () => {
 		await expect(card.locator('[data-test="response-yes"]')).toBeVisible()
 	})
 
-	test('search bar narrows the visible appointments and persists', async ({ page }) => {
+	test('sidebar search narrows the visible appointments and resets on reload', async ({ page }) => {
 		const cards = page.locator('[data-test="appointment-card"]')
 		await expect(cards.filter({ hasText: closeMeetingName }).first()).toBeVisible()
 		await expect(cards.filter({ hasText: otherMeetingName }).first()).toBeVisible()
 
-		const search = page.getByRole('textbox', { name: /Search appointments/ })
+		const search = page.getByRole('searchbox', { name: /Search appointments/ })
 		await search.fill(otherMeetingName)
 
 		await expect(cards.filter({ hasText: otherMeetingName }).first()).toBeVisible()
 		await expect(cards.filter({ hasText: closeMeetingName })).toHaveCount(0)
 
-		// The Vue side debounces the localStorage write 300ms — wait for the
-		// commit before reloading so persistence-after-reload actually exercises
-		// the restore path instead of the still-default empty value.
+		// Search is intentionally NOT persisted — a stale search across reloads
+		// is more confusing than helpful. Filters above the list ARE persisted.
+		await page.reload()
+		await page.waitForLoadState('networkidle')
+		await expect(search).toHaveValue('')
+	})
+
+	test('status filter narrows the visible appointments and persists', async ({ page, request }) => {
+		const closedName = 'UI Status Filter Closed'
+		const closed = await createAppointmentViaAPI(request, { name: closedName, daysFromNow: 13 })
+		await closeAppointmentViaAPI(request, closed.id)
+		await page.reload()
+		await page.waitForLoadState('networkidle')
+
+		const cards = page.locator('[data-test="appointment-card"]')
+		await expect(cards.filter({ hasText: closedName }).first()).toBeVisible()
+		await expect(cards.filter({ hasText: closeMeetingName }).first()).toBeVisible()
+
+		await page.locator('[data-test="filter-status"]').click()
+		await page.getByRole('menuitemradio', { name: 'Closed' }).click()
+
+		await expect(cards.filter({ hasText: closedName })).toHaveCount(1)
+		await expect(cards.filter({ hasText: closeMeetingName })).toHaveCount(0)
+
+		// Filters persist (debounced 300ms) — confirm the restore after reload.
 		await page.waitForFunction(
-			([key, value]) => {
-				const raw = window.localStorage.getItem(key)
-				if (!raw) return false
-				try { return JSON.parse(raw).search === value } catch { return false }
+			([key, expected]) => {
+				try { return JSON.parse(window.localStorage.getItem(key) || '{}').status === expected }
+				catch { return false }
 			},
-			[FILTER_STORAGE_KEY, otherMeetingName],
+			[FILTER_STORAGE_KEY, 'closed'],
 		)
 		await page.reload()
 		await page.waitForLoadState('networkidle')
-		await expect(search).toHaveValue(otherMeetingName)
+		await expect(cards.filter({ hasText: closedName })).toHaveCount(1)
+		await expect(cards.filter({ hasText: closeMeetingName })).toHaveCount(0)
+	})
+
+	test('manager Only-mine filter hides appointments created by other users', async ({ page, request }) => {
+		// admin creates one card, the seeded `test` user creates another;
+		// then admin filters to "mine" and only their card stays visible.
+		const adminCard = await createAppointmentViaAPI(request, { name: 'Owner Filter Admin', daysFromNow: 11 })
+		const otherCard = await createAppointmentViaAPI(request, {
+			name: 'Owner Filter Other',
+			daysFromNow: 11,
+			username: 'test',
+			password: 'test',
+		})
+		expect(adminCard.id).toBeTruthy()
+		expect(otherCard.id).toBeTruthy()
+		await page.reload()
+		await page.waitForLoadState('networkidle')
+
+		const cards = page.locator('[data-test="appointment-card"]')
+		await expect(cards.filter({ hasText: 'Owner Filter Admin' })).toHaveCount(1)
+		await expect(cards.filter({ hasText: 'Owner Filter Other' })).toHaveCount(1)
+
+		await page.locator('[data-test="filter-owner"]').click()
+		await page.getByRole('menuitemradio', { name: 'Only mine' }).click()
+
+		await expect(cards.filter({ hasText: 'Owner Filter Admin' })).toHaveCount(1)
+		await expect(cards.filter({ hasText: 'Owner Filter Other' })).toHaveCount(0)
 	})
 })
