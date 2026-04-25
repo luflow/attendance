@@ -105,24 +105,28 @@
 					: t('attendance', 'No appointments found') }}
 			</div>
 			<div v-else>
-				<!-- Use reusable AppointmentCard component -->
-				<AppointmentCard
-					v-for="appointment in visibleAppointments"
-					:key="appointment.id"
-					:appointment="appointment"
-					:can-manage-appointments="permissions.canManageAppointments"
-					:can-checkin="permissions.canCheckin"
-					:can-see-response-overview="permissions.canSeeResponseOverview"
-					:can-see-comments="permissions.canSeeComments"
-					:display-order="config.displayOrder"
-					@start-checkin="startCheckin"
-					@edit="editAppointment"
-					@copy="copyAppointment"
-					@delete="deleteAppointment"
-					@export="showExportDialog"
-					@submit-response="submitResponse"
-					@update-comment="updateComment"
-					@closed-toggled="handleClosedToggled" />
+				<template v-for="section in visibleSections" :key="section.key">
+					<h3 v-if="section.label" class="section-heading">
+						{{ section.label }}
+					</h3>
+					<AppointmentCard
+						v-for="appointment in section.items"
+						:key="appointment.id"
+						:appointment="appointment"
+						:can-manage-appointments="permissions.canManageAppointments"
+						:can-checkin="permissions.canCheckin"
+						:can-see-response-overview="permissions.canSeeResponseOverview"
+						:can-see-comments="permissions.canSeeComments"
+						:display-order="config.displayOrder"
+						@start-checkin="startCheckin"
+						@edit="editAppointment"
+						@copy="copyAppointment"
+						@delete="deleteAppointment"
+						@export="showExportDialog"
+						@submit-response="submitResponse"
+						@update-comment="updateComment"
+						@closed-toggled="handleClosedToggled" />
+				</template>
 			</div>
 		</div>
 
@@ -345,6 +349,20 @@ const visibleAppointments = computed(() => {
 	})
 })
 
+// All view shows upcoming + past back-to-back; subdivide so the user knows
+// where the boundary is. Other views are a single homogeneous list.
+const visibleSections = computed(() => {
+	if (!props.showAll) {
+		return [{ key: 'all', label: '', items: visibleAppointments.value }]
+	}
+	const upcoming = visibleAppointments.value.filter(a => !a._isPast)
+	const past = visibleAppointments.value.filter(a => a._isPast)
+	return [
+		upcoming.length && { key: 'upcoming', label: t('attendance', 'Upcoming'), items: upcoming },
+		past.length && { key: 'past', label: t('attendance', 'Past'), items: past },
+	].filter(Boolean)
+})
+
 const handleClosedToggled = (updated) => {
 	const index = appointments.value.findIndex(a => a.id === updated.id)
 	if (index !== -1) {
@@ -383,7 +401,12 @@ const loadAppointments = async (skipLoadingSpinner = false) => {
 				axios.get(url, { params: baseParams }),
 				axios.get(url, { params: { ...baseParams, showPastAppointments: true } }),
 			])
-			appointments.value = [...upcoming.data, ...past.data]
+			// Tag for the All-view section split — the server already partitions,
+			// don't re-derive from end_datetime in the browser.
+			appointments.value = [
+				...upcoming.data.map(a => ({ ...a, _isPast: false })),
+				...past.data.map(a => ({ ...a, _isPast: true })),
+			]
 		} else {
 			const params = {}
 			if (props.showPast) params.showPastAppointments = true
@@ -571,6 +594,16 @@ onMounted(async () => {
 	font-size: 1.4em;
 	font-weight: 600;
 	color: var(--color-main-text);
+}
+
+.section-heading {
+	font-size: 1.05em;
+	font-weight: 600;
+	color: var(--color-text-maxcontrast);
+	margin: 16px 0 8px;
+	&:first-child {
+		margin-top: 0;
+	}
 }
 
 .filter-bar {

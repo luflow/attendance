@@ -500,6 +500,8 @@ OC.L10N.register(
     "View subscription plans" : "Abonnement-Tarife ansehen",
     "Your trial has ended" : "Deine Testphase ist beendet",
     "mo" : "Mon",
-    "wk" : "Wo"
+    "wk" : "Wo",
+    "Upcoming" : "Anstehend",
+    "Past" : "Vergangen"
 },
 "nplurals=2; plural=(n != 1);");

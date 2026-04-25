@@ -498,6 +498,8 @@
     "View subscription plans" : "Abonnement-Tarife ansehen",
     "Your trial has ended" : "Ihre Testphase ist beendet",
     "mo" : "Mon",
-    "wk" : "Wo"
+    "wk" : "Wo",
+    "Upcoming" : "Anstehend",
+    "Past" : "Vergangen"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
