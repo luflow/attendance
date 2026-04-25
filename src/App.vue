@@ -447,13 +447,9 @@ const unansweredAppointments = computed(() => {
 	return currentAppointments.value.filter((appointment) => {
 		const noResponse = !appointment.userResponse || appointment.userResponse === null
 		const open = !appointment.closedAt
-		// Mirrors the backend's implicit `onlyForMe` for unansweredOnly:
-		// managers see every appointment via canUserSeeAppointment but the
-		// inbox should only nudge them about ones actually addressed to them.
-		// Default `true` for the field's absence, so older servers without
-		// the flag still behave as before.
-		const inAudience = appointment.inAudience !== false
-		return noResponse && open && inAudience
+		// Managers see everything via canUserSeeAppointment; only flag the
+		// ones actually addressed to them as unanswered to-dos.
+		return noResponse && open && appointment.inAudience
 	})
 })
 
