@@ -1,7 +1,7 @@
 <template>
 	<div class="attendance-container">
 		<!-- Unanswered reminder banner (shown on upcoming view when there are unanswered appointments) -->
-		<div v-if="!showUnanswered && !showPast && !loading && unansweredCount > 0" class="unanswered-banner-container">
+		<div v-if="!showUnanswered && !showPast && !loading && !activeSearch && unansweredCount > 0" class="unanswered-banner-container">
 			<div class="unanswered-banner pending clickable" role="button" @click="emit('navigateToUnanswered')">
 				<ProgressQuestion :size="20" />
 				<span>{{ n('attendance', '%n appointment awaiting your response', '%n appointments awaiting your response', unansweredCount) }}</span>
