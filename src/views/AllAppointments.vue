@@ -60,7 +60,19 @@
 									wide
 									variant="tertiary"
 									@click="setFilter(filter.id, opt)">
-									{{ opt.label }}
+									<span class="filter-bar__option">
+										{{ opt.label }}
+										<CheckIcon v-if="filter.value?.id === opt.id" :size="18" />
+									</span>
+								</NcButton>
+							</li>
+							<li v-if="filter.value" role="presentation" class="filter-bar__reset">
+								<NcButton
+									alignment="start"
+									wide
+									variant="tertiary"
+									@click="setFilter(filter.id, null)">
+									{{ t('attendance', 'Reset filter') }}
 								</NcButton>
 							</li>
 						</ul>
@@ -138,6 +150,7 @@ import DeleteAppointmentDialog from '../components/appointment/DeleteAppointment
 import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
 import CheckCircleIcon from 'vue-material-design-icons/CheckCircle.vue'
+import CheckIcon from 'vue-material-design-icons/Check.vue'
 import AccountIcon from 'vue-material-design-icons/Account.vue'
 import { create as createConfetti } from 'canvas-confetti'
 import axios from '@nextcloud/axios'
@@ -551,7 +564,7 @@ onMounted(async () => {
 	}
 
 	&__options {
-		min-width: 160px;
+		min-width: 200px;
 		padding: 4px 0;
 		list-style: none;
 		margin: 0;
@@ -561,6 +574,19 @@ onMounted(async () => {
 	// bold by default which doesn't read like a list of choices.
 	&__options :deep(.button-vue__text) {
 		font-weight: normal;
+	}
+
+	// Push the trailing tick icon to the right edge of the option button.
+	&__option {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		width: 100%;
+	}
+
+	&__reset :deep(.button-vue__text) {
+		color: var(--color-error);
 	}
 
 	&__active {
