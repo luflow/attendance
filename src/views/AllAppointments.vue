@@ -1,7 +1,7 @@
 <template>
 	<div class="attendance-container">
 		<!-- Unanswered reminder banner (shown on upcoming view when there are unanswered appointments) -->
-		<div v-if="!showUnanswered && !showPast && !loading && !activeSearch && unansweredCount > 0" class="unanswered-banner-container">
+		<div v-if="!showUnanswered && !showPast && !showAll && !loading && unansweredCount > 0" class="unanswered-banner-container">
 			<div class="unanswered-banner pending clickable" role="button" @click="emit('navigateToUnanswered')">
 				<ProgressQuestion :size="20" />
 				<span>{{ n('attendance', '%n appointment awaiting your response', '%n appointments awaiting your response', unansweredCount) }}</span>
@@ -30,6 +30,10 @@
 		     "Active filters:". Search lives in the navigation sidebar
 		     (App.vue → NcAppNavigationSearch); when active it appears here
 		     as a chip too. -->
+		<h2 v-if="pageHeading" class="page-heading" data-test="page-heading">
+			{{ pageHeading }}
+		</h2>
+
 		<div
 			v-if="!loading && !showUnanswered && (appointments.length > 0 || hasActiveFilters)"
 			class="filter-bar"
@@ -150,6 +154,13 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
+	// "All" view: fetches upcoming + past in parallel and concatenates.
+	// This is where the sidebar search lands so the user gets one unified
+	// hit list across both halves without view-scoped surprises.
+	showAll: {
+		type: Boolean,
+		default: false,
+	},
 	// Lifted to App.vue so the search input lives in the sidebar
 	// (NcAppNavigationSearch). Empty string = no search active.
 	searchQuery: {
@@ -169,6 +180,13 @@ const emit = defineEmits([
 ])
 
 const activeSearch = computed(() => props.searchQuery.trim())
+
+const pageHeading = computed(() => {
+	if (props.showUnanswered) return t('attendance', 'Unanswered')
+	if (props.showAll) return t('attendance', 'All appointments')
+	if (props.showPast) return t('attendance', 'Past appointments')
+	return t('attendance', 'Upcoming appointments')
+})
 
 const appointments = ref([])
 const exportDialogVisible = ref(false)
@@ -324,10 +342,8 @@ const loadAppointments = async (skipLoadingSpinner = false) => {
 		}
 		const url = generateUrl('/apps/attendance/api/appointments')
 		const onlyForMe = filterValues.value.audience === 'me'
-		// Active search ignores the active view — type "x" while on Upcoming
-		// and the result still includes past matches. Fetch both halves in
-		// parallel and concat. Audience filter applies to both.
-		if (activeSearch.value) {
+		if (props.showAll) {
+			// Two endpoints, one logical view. Audience filter applies to both.
 			const baseParams = onlyForMe ? { onlyForMe: true } : {}
 			const [upcoming, past] = await Promise.all([
 				axios.get(url, { params: baseParams }),
@@ -358,14 +374,6 @@ const loadAppointments = async (skipLoadingSpinner = false) => {
 		loading.value = false
 	}
 }
-
-// Refetch when the search switches between "active" and "inactive" — moves
-// us between the single-endpoint and dual-endpoint paths.
-watch(activeSearch, (now, prev) => {
-	if (Boolean(now) !== Boolean(prev)) {
-		loadAppointments(true)
-	}
-})
 
 // The audience filter is server-side, so flipping it requires a refetch.
 watch(() => filterValues.value.audience, () => {
@@ -519,6 +527,14 @@ onMounted(async () => {
 .unanswered-banner-container {
 	max-width: 800px;
 	margin: 0 auto 20px;
+}
+
+.page-heading {
+	max-width: 800px;
+	margin: 0 auto 12px;
+	font-size: 1.4em;
+	font-weight: 600;
+	color: var(--color-main-text);
 }
 
 .filter-bar {

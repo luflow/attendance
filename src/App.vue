@@ -90,6 +90,16 @@
 				</NcAppNavigationItem>
 
 				<NcAppNavigationItem
+					:name="t('attendance', 'All appointments')"
+					:active="currentView === 'all'"
+					data-test="nav-all"
+					@click.prevent="setView('all')">
+					<template #icon>
+						<FormatListBulletedIcon :size="20" />
+					</template>
+				</NcAppNavigationItem>
+
+				<NcAppNavigationItem
 					:name="t('attendance', 'Past appointments')"
 					:active="currentView === 'past'"
 					:open="pastAppointmentsExpanded"
@@ -202,11 +212,13 @@
 				v-else-if="
 					currentView === 'current' ||
 						currentView === 'past' ||
-						currentView === 'unanswered'
+						currentView === 'unanswered' ||
+						currentView === 'all'
 				"
 				:key="currentView"
 				:show-past="currentView === 'past'"
 				:show-unanswered="currentView === 'unanswered'"
+				:show-all="currentView === 'all'"
 				:search-query="searchQuery"
 				@response-updated="loadAppointments"
 				@appointment-deleted="loadAppointments"
@@ -255,6 +267,7 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import CalendarClockIcon from 'vue-material-design-icons/CalendarClock.vue'
+import FormatListBulletedIcon from 'vue-material-design-icons/FormatListBulleted.vue'
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
 import HelpCircle from 'vue-material-design-icons/HelpCircle.vue'
 import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
@@ -374,6 +387,7 @@ t('attendance', 'Version {version} ({build})')
 
 t('attendance', 'Search appointments')
 t('attendance', 'Search: {query}')
+t('attendance', 'All appointments')
 t('attendance', 'My attendance')
 t('attendance', 'Inquiry status')
 t('attendance', 'Your response')
@@ -417,9 +431,11 @@ const pastAppointmentsExpanded = ref(false)
 // persisted (see AllAppointments.vue).
 const searchQuery = ref('')
 const onSearchInput = () => {
-	// Typing in the sidebar should land on a list view.
-	if (currentView.value === 'appointment' || currentView.value === 'checkin') {
-		setView('current')
+	// Typing routes the user into the dedicated "All appointments" view
+	// (full upcoming + past list), which is the only place where a
+	// scope-agnostic search makes sense.
+	if (searchQuery.value && currentView.value !== 'all') {
+		setView('all')
 	}
 }
 
@@ -450,15 +466,17 @@ const allAppointments = computed(() => {
 })
 
 const setView = (view) => {
-	// Switching list views resets the search — search is global, so a
-	// stale term across navigation is more confusing than helpful.
+	// Switching to a structured list view (Upcoming/Past/Unanswered) resets
+	// the search — those views are scoped, a stale search term across them
+	// is more confusing than helpful. The "All" view is the search target,
+	// so navigating to it preserves the term.
 	if (['current', 'past', 'unanswered'].includes(view) && view !== currentView.value) {
 		searchQuery.value = ''
 	}
 	currentView.value = view
 
 	const baseUrl = window.location.pathname.replace(
-		/\/(past|unanswered|appointment\/\d+|checkin\/\d+|create|edit\/\d+|copy\/\d+)?$/,
+		/\/(all|past|unanswered|appointment\/\d+|checkin\/\d+|create|edit\/\d+|copy\/\d+)?$/,
 		'',
 	)
 	let newUrl = baseUrl
@@ -467,6 +485,8 @@ const setView = (view) => {
 		newUrl = baseUrl + '/past'
 	} else if (view === 'unanswered') {
 		newUrl = baseUrl + '/unanswered'
+	} else if (view === 'all') {
+		newUrl = baseUrl + '/all'
 	} else if (view === 'current') {
 		newUrl = baseUrl
 	}
@@ -596,6 +616,7 @@ const checkRouting = () => {
 	const isCreateRoute = path.endsWith('/create')
 	const isPastRoute = path.endsWith('/past')
 	const isUnansweredRoute = path.endsWith('/unanswered')
+	const isAllRoute = path.endsWith('/all')
 
 	// Reset all state
 	checkinAppointmentId.value = null
@@ -620,6 +641,8 @@ const checkRouting = () => {
 		currentView.value = 'past'
 	} else if (isUnansweredRoute) {
 		currentView.value = 'unanswered'
+	} else if (isAllRoute) {
+		currentView.value = 'all'
 	} else {
 		currentView.value = 'current'
 	}

@@ -193,21 +193,21 @@ test.describe('Attendance App - Close inquiry (UI)', () => {
 		await expect(card.locator('[data-test="response-yes"]')).toBeVisible()
 	})
 
-	test('sidebar search narrows the visible appointments and resets on reload', async ({ page }) => {
+	test('sidebar search switches to All view and resets on reload', async ({ page }) => {
 		const cards = page.locator('[data-test="appointment-card"]')
 		await expect(cards.filter({ hasText: closeMeetingName }).first()).toBeVisible()
-		await expect(cards.filter({ hasText: otherMeetingName }).first()).toBeVisible()
 
 		const search = page.getByRole('searchbox', { name: /Search appointments/ })
 		await search.fill(otherMeetingName)
 
+		// Typing routes to the dedicated "All appointments" view.
+		await expect(page).toHaveURL(/\/all$/)
 		await expect(cards.filter({ hasText: otherMeetingName }).first()).toBeVisible()
 		await expect(cards.filter({ hasText: closeMeetingName })).toHaveCount(0)
 
-		// Search is intentionally NOT persisted — a stale search across reloads
+		// Search is intentionally NOT persisted — stale search across reloads
 		// is more confusing than helpful. Filters above the list ARE persisted.
 		await page.reload()
-		await page.waitForLoadState('networkidle')
 		await expect(search).toHaveValue('')
 	})
 

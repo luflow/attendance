@@ -6,6 +6,7 @@ return [
 		['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
 		['name' => 'page#unanswered', 'url' => '/unanswered', 'verb' => 'GET'],
 		['name' => 'page#past', 'url' => '/past', 'verb' => 'GET'],
+		['name' => 'page#all', 'url' => '/all', 'verb' => 'GET'],
 		['name' => 'page#appointment', 'url' => '/appointment/{id}', 'verb' => 'GET'],
 		['name' => 'page#checkin', 'url' => '/checkin/{id}', 'verb' => 'GET'],
 		['name' => 'page#create', 'url' => '/create', 'verb' => 'GET'],
