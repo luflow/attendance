@@ -30,7 +30,7 @@
 		     "Active filters:". Search lives in the navigation sidebar
 		     (App.vue → NcAppNavigationSearch); when active it appears here
 		     as a chip too. -->
-		<h2 v-if="pageHeading" class="page-heading" data-test="page-heading">
+		<h2 v-if="pageHeading && !hideHeading" class="page-heading" data-test="page-heading">
 			{{ pageHeading }}
 		</h2>
 
@@ -200,6 +200,12 @@ const pageHeading = computed(() => {
 	if (props.showPast) return t('attendance', 'Past appointments')
 	return t('attendance', 'Upcoming appointments')
 })
+
+// On the Unanswered view the empty state is the celebratory "Hurray!" banner.
+// Repeating "Unanswered" above it just adds noise.
+const hideHeading = computed(() =>
+	props.showUnanswered && !loading.value && appointments.value.length === 0,
+)
 
 const appointments = ref([])
 const exportDialogVisible = ref(false)

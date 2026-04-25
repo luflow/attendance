@@ -90,6 +90,7 @@ namespace OCA\Attendance;
  *   seriesPosition: ?int,
  *   userResponse: ?array{response: string},
  *   closedAt: ?string,
+ *   inAudience: bool,
  * }
  * @psalm-type AttendanceCheckinData = array{
  *   appointment: AttendanceAppointmentData,

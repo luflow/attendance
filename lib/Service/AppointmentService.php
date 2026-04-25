@@ -566,6 +566,10 @@ class AppointmentService {
 					? ['response' => $userResponse->getResponse()]
 					: null,
 				'closedAt' => $this->formatDatetimeToUtc($appointment->getClosedAt()),
+				// Lets the sidebar's "Unanswered" section drop appointments
+				// targeted at someone else (managers see everything via
+				// canUserSeeAppointment but shouldn't get them as a to-do).
+				'inAudience' => $this->visibilityService->isUserTargetAttendee($appointment, $userId),
 			];
 		}
 

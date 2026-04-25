@@ -520,7 +520,8 @@
                     "seriesId",
                     "seriesPosition",
                     "userResponse",
-                    "closedAt"
+                    "closedAt",
+                    "inAudience"
                 ],
                 "properties": {
                     "id": {
@@ -557,6 +558,9 @@
                     "closedAt": {
                         "type": "string",
                         "nullable": true
+                    },
+                    "inAudience": {
+                        "type": "boolean"
                     }
                 }
             },
