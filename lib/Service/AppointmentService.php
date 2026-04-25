@@ -579,11 +579,17 @@ class AppointmentService {
 	 *                             the user has already answered. Implies
 	 *                             upcoming-only (ignored when combined with
 	 *                             $showPastAppointments).
+	 * @param bool $onlyForMe Drop appointments the user is not part of the
+	 *                        target audience for. Same predicate as
+	 *                        VisibilityService::isUserTargetAttendee, so it
+	 *                        bypasses the manage-permission "see everything"
+	 *                        bypass.
 	 */
 	public function getAppointmentsWithUserResponses(
 		string $userId,
 		bool $showPastAppointments = false,
 		bool $unansweredOnly = false,
+		bool $onlyForMe = false,
 	): array {
 		$appointments = $showPastAppointments
 			? $this->getPastAppointments()
@@ -597,6 +603,9 @@ class AppointmentService {
 
 		foreach ($appointments as $appointment) {
 			if (!$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
+				continue;
+			}
+			if ($onlyForMe && !$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
 				continue;
 			}
 			if ($unansweredOnly && $appointment->isClosed()) {

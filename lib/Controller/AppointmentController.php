@@ -74,12 +74,13 @@ class AppointmentController extends Controller {
 	 *
 	 * @param bool $showPastAppointments Whether to show past appointments instead of upcoming ones
 	 * @param bool $unansweredOnly When true, only return upcoming appointments that the user has not answered yet AND that are still open. Ignored when $showPastAppointments is true.
+	 * @param bool $onlyForMe When true, restrict the result to appointments the user is part of the target audience for (visibleUsers/Groups/Teams membership; appointments with no visibility restriction count as "for everyone" and are included). Useful for managers, who otherwise see every appointment in the system.
 	 * @return DataResponse<Http::STATUS_OK, list<AttendanceAppointmentWithResponse>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI]
-	public function index(bool $showPastAppointments = false, bool $unansweredOnly = false): DataResponse {
+	public function index(bool $showPastAppointments = false, bool $unansweredOnly = false, bool $onlyForMe = false): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
@@ -89,6 +90,7 @@ class AppointmentController extends Controller {
 			$user->getUID(),
 			$showPastAppointments,
 			$unansweredOnly,
+			$onlyForMe,
 		);
 
 		// Add checkin summary to each appointment if user can see response overview

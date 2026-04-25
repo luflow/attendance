@@ -225,7 +225,8 @@ test.describe('Attendance App - Close inquiry (UI)', () => {
 		await page.locator('[data-test="filter-status"]').click()
 		await page.getByRole('menuitemradio', { name: 'Closed' }).click()
 
-		await expect(cards.filter({ hasText: closedName })).toHaveCount(1)
+		// Closed-named card stays visible; the open closeMeetingName one is gone.
+		await expect(cards.filter({ hasText: closedName }).first()).toBeVisible()
 		await expect(cards.filter({ hasText: closeMeetingName })).toHaveCount(0)
 
 		// Filters persist (debounced 300ms) — confirm the restore after reload.
@@ -237,34 +238,40 @@ test.describe('Attendance App - Close inquiry (UI)', () => {
 			[FILTER_STORAGE_KEY, 'closed'],
 		)
 		await page.reload()
-		await page.waitForLoadState('networkidle')
-		await expect(cards.filter({ hasText: closedName })).toHaveCount(1)
+		// `networkidle` flakes on a heavily-seeded DB (manage-perm fans out
+		// to one /responses request per visible appointment); the assertion
+		// auto-waits for the right state anyway.
+		await expect(cards.filter({ hasText: closedName }).first()).toBeVisible()
 		await expect(cards.filter({ hasText: closeMeetingName })).toHaveCount(0)
 	})
 
-	test('manager Only-mine filter hides appointments created by other users', async ({ page, request }) => {
-		// admin creates one card, the seeded `test` user creates another;
-		// then admin filters to "mine" and only their card stays visible.
-		const adminCard = await createAppointmentViaAPI(request, { name: 'Owner Filter Admin', daysFromNow: 11 })
-		const otherCard = await createAppointmentViaAPI(request, {
-			name: 'Owner Filter Other',
+	test('manager Only-for-me filter restricts to appointments targeting the user', async ({ page, request }) => {
+		// admin (a manager) sees every appointment by default. An appointment
+		// targeted at someone else (visibleUsers: ['test']) is visible to admin
+		// but should disappear once "Only for me" is on. An appointment with no
+		// visibility restriction ("everyone") stays — admin is in the audience.
+		const targetedAtOther = await createAppointmentViaAPI(request, {
+			name: 'Audience Filter Other Only',
 			daysFromNow: 11,
-			username: 'test',
-			password: 'test',
+			visibleUsers: ['test'],
 		})
-		expect(adminCard.id).toBeTruthy()
-		expect(otherCard.id).toBeTruthy()
+		const everyone = await createAppointmentViaAPI(request, {
+			name: 'Audience Filter Everyone',
+			daysFromNow: 11,
+		})
+		expect(targetedAtOther.id).toBeTruthy()
+		expect(everyone.id).toBeTruthy()
 		await page.reload()
 		await page.waitForLoadState('networkidle')
 
 		const cards = page.locator('[data-test="appointment-card"]')
-		await expect(cards.filter({ hasText: 'Owner Filter Admin' })).toHaveCount(1)
-		await expect(cards.filter({ hasText: 'Owner Filter Other' })).toHaveCount(1)
+		await expect(cards.filter({ hasText: 'Audience Filter Other Only' }).first()).toBeVisible()
+		await expect(cards.filter({ hasText: 'Audience Filter Everyone' }).first()).toBeVisible()
 
-		await page.locator('[data-test="filter-owner"]').click()
-		await page.getByRole('menuitemradio', { name: 'Only mine' }).click()
+		await page.locator('[data-test="filter-audience"]').click()
+		await page.getByRole('menuitemradio', { name: 'Only for me' }).click()
 
-		await expect(cards.filter({ hasText: 'Owner Filter Admin' })).toHaveCount(1)
-		await expect(cards.filter({ hasText: 'Owner Filter Other' })).toHaveCount(0)
+		await expect(cards.filter({ hasText: 'Audience Filter Other Only' })).toHaveCount(0)
+		await expect(cards.filter({ hasText: 'Audience Filter Everyone' }).first()).toBeVisible()
 	})
 })

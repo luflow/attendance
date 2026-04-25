@@ -989,6 +989,15 @@
                             "type": "boolean",
                             "default": false
                         }
+                    },
+                    {
+                        "name": "onlyForMe",
+                        "in": "query",
+                        "description": "When true, restrict the result to appointments the user is part of the target audience for (visibleUsers/Groups/Teams membership; appointments with no visibility restriction count as \"for everyone\" and are included). Useful for managers, who otherwise see every appointment in the system.",
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
                     }
                 ],
                 "responses": {

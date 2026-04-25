@@ -25,43 +25,46 @@
 		</div>
 
 		<!-- Search + filter controls -->
-		<!-- Filter row, Files-app pattern: each filter is a popover trigger,
-		     active filters surface as chips alongside. Search lives in the
-		     navigation sidebar (App.vue → NcAppNavigationSearch); when active
-		     it shows up here as a chip too. -->
+		<!-- Filter row, Files-app pattern. Each filter is a popover trigger;
+		     active values surface as chips on the row below, prefixed with
+		     "Active filters:". Search lives in the navigation sidebar
+		     (App.vue → NcAppNavigationSearch); when active it appears here
+		     as a chip too. -->
 		<div
 			v-if="!loading && !showUnanswered && (appointments.length > 0 || hasActiveFilters)"
 			class="filter-bar"
 			data-test="appointment-filters">
-			<NcPopover v-for="filter in filters" :key="filter.id">
-				<template #trigger>
-					<NcButton
-						variant="tertiary"
-						:pressed="!!filter.value"
-						:data-test="`filter-${filter.id}`">
-						<template #icon>
-							<component :is="filter.icon" :size="20" />
-						</template>
-						{{ filter.value?.label ?? filter.label }}
-					</NcButton>
-				</template>
-				<template #default>
-					<ul class="filter-bar__options" role="menu">
-						<li v-for="opt in filter.options" :key="opt.id" role="presentation">
-							<NcButton
-								role="menuitemradio"
-								:aria-checked="filter.value?.id === opt.id"
-								alignment="start"
-								wide
-								variant="tertiary"
-								@click="setFilter(filter.id, opt)">
-								{{ opt.label }}
-							</NcButton>
-						</li>
-					</ul>
-				</template>
-			</NcPopover>
-			<div v-if="hasActiveFilters" class="filter-bar__chips">
+			<div class="filter-bar__triggers">
+				<NcPopover v-for="filter in filters" :key="filter.id">
+					<template #trigger>
+						<NcButton
+							:variant="filter.value ? 'secondary' : 'tertiary'"
+							:data-test="`filter-${filter.id}`">
+							<template #icon>
+								<component :is="filter.icon" :size="20" />
+							</template>
+							{{ filter.label }}
+						</NcButton>
+					</template>
+					<template #default>
+						<ul class="filter-bar__options" role="menu">
+							<li v-for="opt in filter.options" :key="opt.id" role="presentation">
+								<NcButton
+									role="menuitemradio"
+									:aria-checked="filter.value?.id === opt.id"
+									alignment="start"
+									wide
+									variant="tertiary"
+									@click="setFilter(filter.id, opt)">
+									{{ opt.label }}
+								</NcButton>
+							</li>
+						</ul>
+					</template>
+				</NcPopover>
+			</div>
+			<div v-if="hasActiveFilters" class="filter-bar__active">
+				<span class="filter-bar__active-label">{{ t('attendance', 'Active filters:') }}</span>
 				<NcChip
 					v-if="activeSearch"
 					:text="t('attendance', 'Search: {query}', { query: activeSearch })"
@@ -183,8 +186,6 @@ const unansweredCount = computed(() => {
 
 const FILTER_STORAGE_KEY = 'attendance:list-filters'
 
-const currentUserUid = window.OC?.getCurrentUser?.()?.uid || window.OC?.currentUser || null
-
 // Filter definitions: id, display label, icon, list of {id, label}.
 // Adding a filter = one entry here; the template renders it generically.
 // `visible` lets a filter opt-out per role (e.g. "Only mine" only makes
@@ -195,7 +196,7 @@ const filterDefs = computed(() => [
 		label: t('attendance', 'Inquiry status'),
 		icon: LockIcon,
 		options: [
-			{ id: 'open', label: t('attendance', 'Open') },
+			{ id: 'open', label: t('attendance', 'Opened') },
 			{ id: 'closed', label: t('attendance', 'Closed') },
 		],
 	},
@@ -211,13 +212,16 @@ const filterDefs = computed(() => [
 		],
 	},
 	{
-		id: 'owner',
-		label: t('attendance', 'Owner'),
+		// "Audience" filter, server-side via VisibilityService::isUserTargetAttendee.
+		// Without it, managers see every appointment in the system; with it,
+		// only those that target the manager directly (visibleUsers/Groups/Teams
+		// or "everyone").
+		id: 'audience',
+		label: t('attendance', 'Audience'),
 		icon: AccountIcon,
-		visible: permissions.canManageAppointments && Boolean(currentUserUid),
+		visible: permissions.canManageAppointments,
 		options: [
-			{ id: 'mine', label: t('attendance', 'Only mine') },
-			{ id: 'others', label: t('attendance', 'Created by others') },
+			{ id: 'me', label: t('attendance', 'Only for me') },
 		],
 	},
 ])
@@ -275,8 +279,7 @@ const visibleAppointments = computed(() => {
 	const query = props.searchQuery.trim().toLowerCase()
 	const status = filterValues.value.status
 	const response = filterValues.value.response
-	const owner = filterValues.value.owner
-	if (!query && !status && !response && !owner) {
+	if (!query && !status && !response) {
 		return appointments.value
 	}
 	return appointments.value.filter((appointment) => {
@@ -291,8 +294,6 @@ const visibleAppointments = computed(() => {
 			if (response === 'none' && userResponse !== null) return false
 			if (response !== 'none' && userResponse !== response) return false
 		}
-		if (owner === 'mine' && appointment.createdBy !== currentUserUid) return false
-		if (owner === 'others' && appointment.createdBy === currentUserUid) return false
 		return true
 	})
 })
@@ -322,19 +323,22 @@ const loadAppointments = async (skipLoadingSpinner = false) => {
 			loading.value = true
 		}
 		const url = generateUrl('/apps/attendance/api/appointments')
+		const onlyForMe = filterValues.value.audience === 'me'
 		// Active search ignores the active view — type "x" while on Upcoming
 		// and the result still includes past matches. Fetch both halves in
-		// parallel and concat.
+		// parallel and concat. Audience filter applies to both.
 		if (activeSearch.value) {
+			const baseParams = onlyForMe ? { onlyForMe: true } : {}
 			const [upcoming, past] = await Promise.all([
-				axios.get(url, { params: {} }),
-				axios.get(url, { params: { showPastAppointments: true } }),
+				axios.get(url, { params: baseParams }),
+				axios.get(url, { params: { ...baseParams, showPastAppointments: true } }),
 			])
 			appointments.value = [...upcoming.data, ...past.data]
 		} else {
 			const params = {}
 			if (props.showPast) params.showPastAppointments = true
 			if (props.showUnanswered) params.unansweredOnly = true
+			if (onlyForMe) params.onlyForMe = true
 			const response = await axios.get(url, { params })
 			appointments.value = response.data
 		}
@@ -361,6 +365,11 @@ watch(activeSearch, (now, prev) => {
 	if (Boolean(now) !== Boolean(prev)) {
 		loadAppointments(true)
 	}
+})
+
+// The audience filter is server-side, so flipping it requires a refetch.
+watch(() => filterValues.value.audience, () => {
+	loadAppointments(true)
 })
 
 const loadDetailedResponses = async () => {
@@ -516,9 +525,14 @@ onMounted(async () => {
 	max-width: 800px;
 	margin: 0 auto 12px;
 	display: flex;
-	flex-wrap: wrap;
+	flex-direction: column;
 	gap: 8px;
-	align-items: center;
+
+	&__triggers {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
 
 	&__options {
 		min-width: 160px;
@@ -527,11 +541,23 @@ onMounted(async () => {
 		margin: 0;
 	}
 
-	&__chips {
+	// Make filter-option labels normal weight — Nc tertiary buttons render
+	// bold by default which doesn't read like a list of choices.
+	&__options :deep(.button-vue__text) {
+		font-weight: normal;
+	}
+
+	&__active {
 		display: flex;
 		flex-wrap: wrap;
+		align-items: center;
 		gap: 6px;
-		margin-inline-start: 8px;
+	}
+
+	&__active-label {
+		font-weight: 600;
+		color: var(--color-text-maxcontrast);
+		margin-inline-end: 4px;
 	}
 }
 
