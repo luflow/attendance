@@ -1,7 +1,7 @@
 <template>
 	<div class="attendance-container">
 		<!-- Unanswered reminder banner (shown on upcoming view when there are unanswered appointments) -->
-		<div v-if="!showUnanswered && !showPast && !loading && unansweredCount > 0" class="unanswered-banner-container">
+		<div v-if="!showUnanswered && !showPast && !showAll && !loading && unansweredCount > 0" class="unanswered-banner-container">
 			<div class="unanswered-banner pending clickable" role="button" @click="emit('navigateToUnanswered')">
 				<ProgressQuestion :size="20" />
 				<span>{{ n('attendance', '%n appointment awaiting your response', '%n appointments awaiting your response', unansweredCount) }}</span>
@@ -24,32 +24,109 @@
 			</div>
 		</div>
 
+		<!-- Search + filter controls -->
+		<!-- Filter row, Files-app pattern. Each filter is a popover trigger;
+		     active values surface as chips on the row below, prefixed with
+		     "Active filters:". Search lives in the navigation sidebar
+		     (App.vue → NcAppNavigationSearch); when active it appears here
+		     as a chip too. -->
+		<h2 v-if="!hideHeading" class="page-heading" data-test="page-heading">
+			{{ pageHeading }}
+		</h2>
+
+		<div
+			v-if="!loading && !showUnanswered && (appointments.length > 0 || hasActiveFilters)"
+			class="filter-bar"
+			data-test="appointment-filters">
+			<div class="filter-bar__triggers">
+				<NcPopover v-for="filter in filters" :key="filter.id">
+					<template #trigger>
+						<NcButton
+							:variant="filter.value ? 'secondary' : 'tertiary'"
+							:data-test="`filter-${filter.id}`">
+							<template #icon>
+								<component :is="filter.icon" :size="20" />
+							</template>
+							{{ filter.label }}
+						</NcButton>
+					</template>
+					<template #default>
+						<ul class="filter-bar__options" role="menu">
+							<li v-for="opt in filter.options" :key="opt.id" role="presentation">
+								<NcButton
+									role="menuitemradio"
+									:aria-checked="filter.value?.id === opt.id"
+									alignment="start"
+									wide
+									variant="tertiary"
+									@click="setFilter(filter.id, opt)">
+									<span class="filter-bar__option">
+										{{ opt.label }}
+										<CheckIcon v-if="filter.value?.id === opt.id" :size="18" />
+									</span>
+								</NcButton>
+							</li>
+							<li v-if="filter.value" role="presentation" class="filter-bar__reset">
+								<NcButton
+									alignment="start"
+									wide
+									variant="tertiary"
+									@click="setFilter(filter.id, null)">
+									{{ t('attendance', 'Reset filter') }}
+								</NcButton>
+							</li>
+						</ul>
+					</template>
+				</NcPopover>
+			</div>
+			<div v-if="hasActiveFilters" class="filter-bar__active">
+				<span class="filter-bar__active-label">{{ t('attendance', 'Active filters:') }}</span>
+				<NcChip
+					v-if="activeSearch"
+					:text="t('attendance', 'Search: {query}', { query: activeSearch })"
+					data-test="active-search-chip"
+					@close="emit('clearSearch')" />
+				<NcChip
+					v-for="filter in activeFilters"
+					:key="filter.id"
+					:text="`${filter.label}: ${filter.value.label}`"
+					@close="setFilter(filter.id, null)" />
+			</div>
+		</div>
+
 		<!-- Appointments List -->
 		<div class="appointments-list">
 			<div v-if="loading" class="loading">
 				{{ t('attendance', 'Loading\u00A0…') }}
 			</div>
-			<div v-else-if="appointments.length === 0 && !showUnanswered" class="empty-state">
-				{{ t('attendance', 'No appointments found') }}
+			<div v-else-if="visibleAppointments.length === 0 && !showUnanswered" class="empty-state">
+				{{ hasActiveFilters
+					? t('attendance', 'No appointments match the active filters.')
+					: t('attendance', 'No appointments found') }}
 			</div>
 			<div v-else>
-				<!-- Use reusable AppointmentCard component -->
-				<AppointmentCard
-					v-for="appointment in appointments"
-					:key="appointment.id"
-					:appointment="appointment"
-					:can-manage-appointments="permissions.canManageAppointments"
-					:can-checkin="permissions.canCheckin"
-					:can-see-response-overview="permissions.canSeeResponseOverview"
-					:can-see-comments="permissions.canSeeComments"
-					:display-order="config.displayOrder"
-					@start-checkin="startCheckin"
-					@edit="editAppointment"
-					@copy="copyAppointment"
-					@delete="deleteAppointment"
-					@export="showExportDialog"
-					@submit-response="submitResponse"
-					@update-comment="updateComment" />
+				<template v-for="section in visibleSections" :key="section.key">
+					<h3 v-if="section.label" class="section-heading">
+						{{ section.label }}
+					</h3>
+					<AppointmentCard
+						v-for="appointment in section.items"
+						:key="appointment.id"
+						:appointment="appointment"
+						:can-manage-appointments="permissions.canManageAppointments"
+						:can-checkin="permissions.canCheckin"
+						:can-see-response-overview="permissions.canSeeResponseOverview"
+						:can-see-comments="permissions.canSeeComments"
+						:display-order="config.displayOrder"
+						@start-checkin="startCheckin"
+						@edit="editAppointment"
+						@copy="copyAppointment"
+						@delete="deleteAppointment"
+						@export="showExportDialog"
+						@submit-response="submitResponse"
+						@update-comment="updateComment"
+						@closed-toggled="handleClosedToggled" />
+				</template>
 			</div>
 		</div>
 
@@ -70,11 +147,15 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import { NcButton } from '@nextcloud/vue'
+import { NcButton, NcChip, NcPopover } from '@nextcloud/vue'
 import AppointmentCard from '../components/appointment/AppointmentCard.vue'
 import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
 import DeleteAppointmentDialog from '../components/appointment/DeleteAppointmentDialog.vue'
 import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
+import LockIcon from 'vue-material-design-icons/Lock.vue'
+import CheckCircleIcon from 'vue-material-design-icons/CheckCircle.vue'
+import CheckIcon from 'vue-material-design-icons/Check.vue'
+import AccountIcon from 'vue-material-design-icons/Account.vue'
 import { create as createConfetti } from 'canvas-confetti'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
@@ -90,9 +171,51 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
+	// "All" view: fetches upcoming + past in parallel and concatenates.
+	// This is where the sidebar search lands so the user gets one unified
+	// hit list across both halves without view-scoped surprises.
+	showAll: {
+		type: Boolean,
+		default: false,
+	},
+	// Lifted to App.vue so the search input lives in the sidebar
+	// (NcAppNavigationSearch). Empty string = no search active.
+	searchQuery: {
+		type: String,
+		default: '',
+	},
+	// Sourced from App.vue's `unansweredAppointments` so the banner count
+	// reflects the same audience-filtered set as the sidebar entry.
+	unansweredCount: {
+		type: Number,
+		default: 0,
+	},
 })
 
-const emit = defineEmits(['responseUpdated', 'editAppointment', 'copyAppointment', 'navigateToUpcoming', 'navigateToUnanswered', 'appointmentDeleted'])
+const emit = defineEmits([
+	'responseUpdated',
+	'editAppointment',
+	'copyAppointment',
+	'navigateToUpcoming',
+	'navigateToUnanswered',
+	'appointmentDeleted',
+	'clearSearch',
+])
+
+const activeSearch = computed(() => props.searchQuery.trim())
+
+const viewKey = computed(() => {
+	if (props.showUnanswered) return 'unanswered'
+	if (props.showAll) return 'all'
+	if (props.showPast) return 'past'
+	return 'current'
+})
+const pageHeading = computed(() => ({
+	unanswered: t('attendance', 'Unanswered'),
+	all: t('attendance', 'All appointments'),
+	past: t('attendance', 'Past appointments'),
+	current: t('attendance', 'Upcoming appointments'),
+}[viewKey.value]))
 
 const appointments = ref([])
 const exportDialogVisible = ref(false)
@@ -104,11 +227,156 @@ const goToUpcoming = () => {
 	emit('navigateToUpcoming')
 }
 
-const unansweredCount = computed(() => {
-	return appointments.value.filter(a => !a.userResponse).length
+const FILTER_STORAGE_KEY = 'attendance:list-filters'
+
+// Wire IDs centralised so a typo breaks at parse, not silently at runtime.
+const F = Object.freeze({
+	RESPONSE: 'response',
+	STATUS: 'status',
+	AUDIENCE: 'audience',
 })
+const RESPONSE = Object.freeze({ YES: 'yes', MAYBE: 'maybe', NO: 'no', NONE: 'none' })
+const STATUS = Object.freeze({ OPEN: 'open', CLOSED: 'closed' })
+const AUDIENCE = Object.freeze({ ME: 'me' })
+
+const filterDefs = computed(() => [
+	{
+		id: F.RESPONSE,
+		label: t('attendance', 'Your response'),
+		icon: CheckCircleIcon,
+		options: [
+			{ id: RESPONSE.YES, label: t('attendance', 'Yes') },
+			{ id: RESPONSE.MAYBE, label: t('attendance', 'Maybe') },
+			{ id: RESPONSE.NO, label: t('attendance', 'No') },
+			{ id: RESPONSE.NONE, label: t('attendance', 'No response') },
+		],
+	},
+	{
+		id: F.STATUS,
+		label: t('attendance', 'Inquiry status'),
+		icon: LockIcon,
+		options: [
+			{ id: STATUS.OPEN, label: t('attendance', 'Opened') },
+			{ id: STATUS.CLOSED, label: t('attendance', 'Closed') },
+		],
+	},
+	{
+		// Server-side via VisibilityService::isUserTargetAttendee. Without it,
+		// managers see every appointment in the system.
+		id: F.AUDIENCE,
+		label: t('attendance', 'Audience'),
+		icon: AccountIcon,
+		visible: permissions.canManageAppointments,
+		options: [
+			{ id: AUDIENCE.ME, label: t('attendance', 'Only for me') },
+		],
+	},
+])
+
+const filterValues = ref(loadStoredFilterValues())
+
+function loadStoredFilterValues() {
+	try {
+		const parsed = JSON.parse(window.localStorage.getItem(FILTER_STORAGE_KEY) || '{}')
+		// Only keep string values; drop anything else (legacy keys, garbage).
+		return Object.fromEntries(
+			Object.entries(parsed).filter(([, v]) => typeof v === 'string'),
+		)
+	} catch (e) {
+		return {}
+	}
+}
+
+const filters = computed(() => filterDefs.value
+	.filter(def => def.visible !== false)
+	.map(def => ({
+		...def,
+		value: def.options.find(opt => opt.id === filterValues.value[def.id]) ?? null,
+	})))
+
+const activeFilters = computed(() => filters.value.filter(f => f.value))
+
+const setFilter = (id, opt) => {
+	const next = { ...filterValues.value }
+	if (opt) {
+		next[id] = opt.id
+	} else {
+		delete next[id]
+	}
+	filterValues.value = next
+}
+
+let persistTimer = null
+let lastPersistedJson = JSON.stringify(filterValues.value)
+watch(filterValues, (next) => {
+	const json = JSON.stringify(next)
+	if (json === lastPersistedJson) return
+	clearTimeout(persistTimer)
+	persistTimer = setTimeout(() => {
+		try {
+			window.localStorage.setItem(FILTER_STORAGE_KEY, json)
+			lastPersistedJson = json
+		} catch (e) {
+			// Storage may be unavailable (private mode, quota).
+		}
+	}, 300)
+}, { deep: true })
+
+const hasActiveFilters = computed(() =>
+	Boolean(props.searchQuery.trim() || activeFilters.value.length),
+)
+
+const visibleAppointments = computed(() => {
+	const query = props.searchQuery.trim().toLowerCase()
+	const status = filterValues.value[F.STATUS]
+	const response = filterValues.value[F.RESPONSE]
+	if (!query && !status && !response) {
+		return appointments.value
+	}
+	return appointments.value.filter((appointment) => {
+		if (query) {
+			const haystack = `${appointment.name} ${appointment.description ?? ''}`.toLowerCase()
+			if (!haystack.includes(query)) return false
+		}
+		if (status === STATUS.OPEN && appointment.closedAt) return false
+		if (status === STATUS.CLOSED && !appointment.closedAt) return false
+		if (response) {
+			const userResponse = appointment.userResponse?.response ?? null
+			if (response === RESPONSE.NONE && userResponse !== null) return false
+			if (response !== RESPONSE.NONE && userResponse !== response) return false
+		}
+		return true
+	})
+})
+
+// All view shows upcoming + past back-to-back; subdivide so the user knows
+// where the boundary is. Other views are a single homogeneous list.
+const visibleSections = computed(() => {
+	if (!props.showAll) {
+		return [{ key: 'all', label: '', items: visibleAppointments.value }]
+	}
+	const upcoming = visibleAppointments.value.filter(a => !a._isPast)
+	const past = visibleAppointments.value.filter(a => a._isPast)
+	return [
+		upcoming.length && { key: 'upcoming', label: t('attendance', 'Upcoming'), items: upcoming },
+		past.length && { key: 'past', label: t('attendance', 'Past'), items: past },
+	].filter(Boolean)
+})
+
+const handleClosedToggled = (updated) => {
+	const index = appointments.value.findIndex(a => a.id === updated.id)
+	if (index !== -1) {
+		appointments.value[index] = { ...appointments.value[index], ...updated }
+	}
+}
 const loading = ref(true)
 const responseComments = reactive({})
+
+// On the Unanswered view the empty state is the celebratory "Hurray!" banner;
+// repeating "Unanswered" above it just adds noise.
+const hideHeading = computed(() =>
+	props.showUnanswered && !loading.value && appointments.value.length === 0,
+)
 
 const { permissions, config, loadPermissions } = usePermissions()
 
@@ -125,14 +393,26 @@ const loadAppointments = async (skipLoadingSpinner = false) => {
 		if (!skipLoadingSpinner) {
 			loading.value = true
 		}
-		const params = props.showPast ? '?showPastAppointments=true' : ''
-		const response = await axios.get(generateUrl('/apps/attendance/api/appointments') + params)
-
-		if (props.showUnanswered) {
-			appointments.value = response.data.filter(appointment => {
-				return !appointment.userResponse || appointment.userResponse === null
-			})
+		const url = generateUrl('/apps/attendance/api/appointments')
+		const onlyForMe = filterValues.value[F.AUDIENCE] === AUDIENCE.ME
+		if (props.showAll) {
+			const baseParams = onlyForMe ? { onlyForMe: true } : {}
+			const [upcoming, past] = await Promise.all([
+				axios.get(url, { params: baseParams }),
+				axios.get(url, { params: { ...baseParams, showPastAppointments: true } }),
+			])
+			// Tag for the All-view section split — the server already partitions,
+			// don't re-derive from end_datetime in the browser.
+			appointments.value = [
+				...upcoming.data.map(a => ({ ...a, _isPast: false })),
+				...past.data.map(a => ({ ...a, _isPast: true })),
+			]
 		} else {
+			const params = {}
+			if (props.showPast) params.showPastAppointments = true
+			if (props.showUnanswered) params.unansweredOnly = true
+			if (onlyForMe) params.onlyForMe = true
+			const response = await axios.get(url, { params })
 			appointments.value = response.data
 		}
 
@@ -152,15 +432,22 @@ const loadAppointments = async (skipLoadingSpinner = false) => {
 	}
 }
 
+// The audience filter is server-side, so flipping it requires a refetch.
+watch(() => filterValues.value[F.AUDIENCE], () => {
+	loadAppointments(true)
+})
+
 const loadDetailedResponses = async () => {
-	for (const appointment of appointments.value) {
+	// Hundreds of serial XHRs in the All view used to take seconds. The
+	// requests are independent — fan them out and let the browser pipeline.
+	await Promise.all(appointments.value.map(async (appointment) => {
 		try {
 			const response = await axios.get(generateUrl(`/apps/attendance/api/appointments/${appointment.id}/responses`))
 			appointment.detailedResponses = response.data
 		} catch (error) {
 			console.error(`Failed to load detailed responses for appointment ${appointment.id}:`, error)
 		}
-	}
+	}))
 }
 
 const submitResponse = async (appointmentId, response) => {
@@ -242,6 +529,7 @@ onBeforeUnmount(() => {
 		confettiCanvas.remove()
 		confettiCanvas = null
 	}
+	clearTimeout(persistTimer)
 })
 
 const triggerConfetti = () => {
@@ -298,6 +586,77 @@ onMounted(async () => {
 .unanswered-banner-container {
 	max-width: 800px;
 	margin: 0 auto 20px;
+}
+
+.page-heading {
+	max-width: 800px;
+	margin: 0 auto 12px;
+	font-size: 1.4em;
+	font-weight: 600;
+	color: var(--color-main-text);
+}
+
+.section-heading {
+	font-size: 1.05em;
+	font-weight: 600;
+	color: var(--color-text-maxcontrast);
+	margin: 16px 0 8px;
+	&:first-child {
+		margin-top: 0;
+	}
+}
+
+.filter-bar {
+	max-width: 800px;
+	margin: 0 auto 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+
+	&__triggers {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	&__options {
+		min-width: 200px;
+		padding: 4px 0;
+		list-style: none;
+		margin: 0;
+	}
+
+	// Make filter-option labels normal weight — Nc tertiary buttons render
+	// bold by default which doesn't read like a list of choices.
+	&__options :deep(.button-vue__text) {
+		font-weight: normal;
+	}
+
+	// Push the trailing tick icon to the right edge of the option button.
+	&__option {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		width: 100%;
+	}
+
+	&__reset :deep(.button-vue__text) {
+		color: var(--color-error-text);
+	}
+
+	&__active {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 6px;
+	}
+
+	&__active-label {
+		font-weight: 600;
+		color: var(--color-text-maxcontrast);
+		margin-inline-end: 4px;
+	}
 }
 
 .banner-action {

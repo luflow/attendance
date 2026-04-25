@@ -67,7 +67,11 @@ class ReminderJob extends TimedJob {
 	protected function run($argument): void {
 		$this->logger->info('Reminder job starting...');
 
-		// Check if reminders are enabled
+		// Auto-close runs even when reminders are disabled — a missed deadline
+		// is a promise we made to the inquirer, not a reminder feature.
+		$nowSql = gmdate('Y-m-d H:i:s');
+		$this->autoCloseExpiredAppointments($nowSql);
+
 		$enabled = $this->config->getAppValue('attendance', 'reminders_enabled', 'no') === 'yes';
 		$this->logger->info('Reminders enabled check', ['enabled' => $enabled ? 'yes' : 'no']);
 
@@ -76,33 +80,24 @@ class ReminderJob extends TimedJob {
 			return;
 		}
 
-		// Get reminder days setting (how far in advance to remind)
 		$reminderDays = (int)$this->config->getAppValue('attendance', 'reminder_days', (string)self::DEFAULT_REMINDER_DAYS);
-		$this->logger->info('Reminder days configuration', ['days' => $reminderDays]);
-
-		// Get reminder frequency setting (how often to remind in days)
 		$reminderFrequency = (int)$this->config->getAppValue('attendance', 'reminder_frequency', (string)self::DEFAULT_REMINDER_FREQUENCY);
-		$this->logger->info('Reminder frequency configuration', ['frequency_days' => $reminderFrequency]);
+		$this->logger->info('Reminder configuration', [
+			'reminderDays' => $reminderDays,
+			'reminderFrequencyDays' => $reminderFrequency,
+		]);
 
-		// Calculate date range: today until X days in the future
-		// Use UTC to match the stored appointment datetimes (which are in UTC)
 		$utc = new \DateTimeZone('UTC');
 		$today = new \DateTime('now', $utc);
 		$todayStr = $today->format('Y-m-d');
+		$maxDateStr = (clone $today)->modify("+{$reminderDays} days")->format('Y-m-d');
 
-		$maxDate = new \DateTime('now', $utc);
-		$maxDate->modify("+{$reminderDays} days");
-		$maxDateStr = $maxDate->format('Y-m-d');
-
-		$this->logger->info('Checking appointments in date range', [
+		$appointments = $this->appointmentMapper->findRemindable($todayStr, $maxDateStr);
+		$this->logger->info('Found appointments in date range', [
 			'today' => $todayStr,
 			'maxDate' => $maxDateStr,
-			'reminderDays' => $reminderDays,
+			'count' => count($appointments),
 		]);
-
-		// Find appointments starting in the next X days (query filters in database)
-		$appointments = $this->appointmentMapper->findStartingBetween($todayStr, $maxDateStr);
-		$this->logger->info('Found appointments in date range', ['count' => count($appointments)]);
 
 		$shouldFlush = $this->notificationManager->defer();
 
@@ -257,5 +252,15 @@ class ReminderJob extends TimedJob {
 			'processedAppointments' => $processedCount,
 			'sentNotifications' => $sentCount,
 		]);
+	}
+
+	private function autoCloseExpiredAppointments(string $nowSql): void {
+		$count = $this->appointmentMapper->autoCloseExpired($nowSql);
+		if ($count > 0) {
+			$this->logger->info('Auto-closed appointments past their deadline', [
+				'count' => $count,
+				'now' => $nowSql,
+			]);
+		}
 	}
 }

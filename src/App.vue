@@ -2,6 +2,12 @@
 	<NcContent app-name="attendance">
 		<!-- Navigation sidebar (hidden during checkin) -->
 		<NcAppNavigation v-if="currentView !== 'checkin'">
+			<template #search>
+				<NcAppNavigationSearch
+					v-model="searchQuery"
+					:label="t('attendance', 'Search appointments')"
+					@update:model-value="onSearchInput" />
+			</template>
 			<template #list>
 				<!-- Unanswered Appointments Section -->
 				<NcAppNavigationItem
@@ -75,6 +81,9 @@
 											'no'
 									"
 									:size="20" />
+								<LockIcon
+									v-else-if="appointment.closedAt"
+									:size="20" />
 							</template>
 						</NcAppNavigationItem>
 					</template>
@@ -115,6 +124,16 @@
 								<ChevronRightIcon :size="20" />
 							</template>
 						</NcAppNavigationItem>
+					</template>
+				</NcAppNavigationItem>
+
+				<NcAppNavigationItem
+					:name="t('attendance', 'All appointments')"
+					:active="currentView === 'all'"
+					data-test="nav-all"
+					@click.prevent="setView('all')">
+					<template #icon>
+						<FormatListBulletedIcon :size="20" />
 					</template>
 				</NcAppNavigationItem>
 			</template>
@@ -193,17 +212,22 @@
 				v-else-if="
 					currentView === 'current' ||
 						currentView === 'past' ||
-						currentView === 'unanswered'
+						currentView === 'unanswered' ||
+						currentView === 'all'
 				"
 				:key="currentView"
 				:show-past="currentView === 'past'"
 				:show-unanswered="currentView === 'unanswered'"
+				:show-all="currentView === 'all'"
+				:search-query="searchQuery"
+				:unanswered-count="unansweredAppointments.length"
 				@response-updated="loadAppointments"
 				@appointment-deleted="loadAppointments"
 				@edit-appointment="editAppointment"
 				@copy-appointment="copyAppointment"
 				@navigate-to-upcoming="setView('current')"
-				@navigate-to-unanswered="setView('unanswered')" />
+				@navigate-to-unanswered="setView('unanswered')"
+				@clear-search="searchQuery = ''" />
 
 			<!-- Loading state while routing is determined -->
 			<div v-else class="loading-state">
@@ -237,12 +261,14 @@ import {
 	NcContent,
 	NcAppNavigation,
 	NcAppNavigationItem,
+	NcAppNavigationSearch,
 	NcAppContent,
 } from '@nextcloud/vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import CalendarClockIcon from 'vue-material-design-icons/CalendarClock.vue'
+import FormatListBulletedIcon from 'vue-material-design-icons/FormatListBulleted.vue'
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
 import HelpCircle from 'vue-material-design-icons/HelpCircle.vue'
 import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
@@ -252,6 +278,7 @@ import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import DownloadIcon from 'vue-material-design-icons/Download.vue'
 import BellAlertIcon from 'vue-material-design-icons/BellAlert.vue'
 import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
+import LockIcon from 'vue-material-design-icons/Lock.vue'
 import { usePermissions } from './composables/usePermissions.js'
 import { formatDateTime } from './utils/datetime.js'
 
@@ -332,15 +359,64 @@ t('attendance', 'Trial')
 t('attendance', 'days remaining')
 t('attendance', 'Full access to the Attendance app for your entire Nextcloud server.')
 t('attendance', 'yr')
+t('attendance', 'mo')
+t('attendance', 'wk')
 t('attendance', 'More than 100 active app users?')
 t('attendance', 'Restore Purchases')
 t('attendance', 'Terms of Service')
 t('attendance', 'Privacy Policy')
 t('attendance', 'By connecting, you agree to our {terms} and acknowledge our {privacy}.')
+t('attendance', 'Current plan')
+t('attendance', 'Expired')
+t('attendance', 'Your trial has ended')
+t('attendance', 'View subscription plans')
+t('attendance', 'No subscription plans available at this time.')
+t('attendance', 'No previous purchases found.')
+t('attendance', 'Purchase failed. Please try again.')
+t('attendance', 'One subscription covers everyone on your server — no per-user fees.')
+t('attendance', 'Thanks for trying Attendance! To continue using all features, activate a subscription for your organization.')
+
+t('attendance', 'OK')
+t('attendance', 'Something went wrong')
+t('attendance', 'Not available on this server')
+t('attendance', 'All notifications are end-to-end encrypted — only you can read them.')
+t('attendance', 'To receive notifications about new appointments and reminders, please enable notifications in your device settings.')
 
 t('attendance', 'About')
 t('attendance', 'Open source licenses')
 t('attendance', 'Version {version} ({build})')
+
+t('attendance', 'Search appointments')
+t('attendance', 'Search: {query}')
+t('attendance', 'All appointments')
+t('attendance', 'Upcoming')
+t('attendance', 'Past')
+t('attendance', 'My attendance')
+t('attendance', 'Inquiry status')
+t('attendance', 'Your response')
+t('attendance', 'Audience')
+t('attendance', 'Only for me')
+t('attendance', 'Opened')
+t('attendance', 'Closed')
+t('attendance', 'Active filters:')
+t('attendance', 'Reset filter')
+t('attendance', 'Show only open')
+t('attendance', 'Close inquiry')
+t('attendance', 'Reopen inquiry')
+t('attendance', 'Reopen')
+t('attendance', 'Inquiry closed')
+t('attendance', 'Inquiry re-opened')
+t('attendance', 'Failed to close inquiry')
+t('attendance', 'Failed to re-open inquiry')
+t('attendance', 'Closed on {when}')
+t('attendance', 'Closed automatically on {when}')
+t('attendance', 'Response deadline')
+t('attendance', 'No deadline')
+t('attendance', 'Response deadline must be before the appointment starts')
+t('attendance', 'Response deadline must be in the future')
+t('attendance', 'After this date, the inquiry is automatically closed and no further responses are accepted. Reminders are scheduled relative to the deadline.')
+t('attendance', 'Responses possible until {when}')
+t('attendance', 'This appointment is closed and no longer accepts responses.')
 
 const currentView = ref(null) // 'current', 'past', 'unanswered', 'appointment', 'checkin', 'create', 'edit', 'copy', or null
 const checkinAppointmentId = ref(null)
@@ -353,20 +429,40 @@ const showExportDialog = ref(false)
 
 const pastAppointmentsExpanded = ref(false)
 
+// Sidebar full-text search lives in NcAppNavigation's #search slot
+// (Files-app pattern). Intentionally NOT persisted — a search term across
+// reloads is more confusing than helpful. Filters above the list ARE
+// persisted (see AllAppointments.vue).
+const searchQuery = ref('')
+const onSearchInput = () => {
+	// Typing routes the user into the dedicated "All appointments" view
+	// (full upcoming + past list), which is the only place where a
+	// scope-agnostic search makes sense.
+	if (searchQuery.value && currentView.value !== 'all') {
+		setView('all')
+	}
+}
+
 // Use the shared permissions composable
 const { permissions, capabilities, config, loadPermissions } = usePermissions()
 
-// Computed property for unanswered appointments
 const unansweredAppointments = computed(() => {
 	return currentAppointments.value.filter((appointment) => {
-		return !appointment.userResponse || appointment.userResponse === null
+		const noResponse = !appointment.userResponse || appointment.userResponse === null
+		const open = !appointment.closedAt
+		// Managers see everything via canUserSeeAppointment; only flag the
+		// ones actually addressed to them as unanswered to-dos.
+		return noResponse && open && appointment.inAudience
 	})
 })
 
-// Computed property for answered appointments (to show under "Upcoming")
+// Closed-but-unanswered appointments bucket here so the user can still find
+// them — they would otherwise vanish (no longer "unanswered", never answered).
 const answeredAppointments = computed(() => {
 	return currentAppointments.value.filter((appointment) => {
-		return appointment.userResponse && appointment.userResponse !== null
+		const hasResponse = appointment.userResponse && appointment.userResponse !== null
+		const closedWithoutResponse = !hasResponse && appointment.closedAt
+		return hasResponse || closedWithoutResponse
 	})
 })
 
@@ -376,10 +472,17 @@ const allAppointments = computed(() => {
 })
 
 const setView = (view) => {
+	// Switching to a structured list view (Upcoming/Past/Unanswered) resets
+	// the search — those views are scoped, a stale search term across them
+	// is more confusing than helpful. The "All" view is the search target,
+	// so navigating to it preserves the term.
+	if (['current', 'past', 'unanswered'].includes(view) && view !== currentView.value) {
+		searchQuery.value = ''
+	}
 	currentView.value = view
 
 	const baseUrl = window.location.pathname.replace(
-		/\/(past|unanswered|appointment\/\d+|checkin\/\d+|create|edit\/\d+|copy\/\d+)?$/,
+		/\/(all|past|unanswered|appointment\/\d+|checkin\/\d+|create|edit\/\d+|copy\/\d+)?$/,
 		'',
 	)
 	let newUrl = baseUrl
@@ -388,6 +491,8 @@ const setView = (view) => {
 		newUrl = baseUrl + '/past'
 	} else if (view === 'unanswered') {
 		newUrl = baseUrl + '/unanswered'
+	} else if (view === 'all') {
+		newUrl = baseUrl + '/all'
 	} else if (view === 'current') {
 		newUrl = baseUrl
 	}
@@ -517,6 +622,7 @@ const checkRouting = () => {
 	const isCreateRoute = path.endsWith('/create')
 	const isPastRoute = path.endsWith('/past')
 	const isUnansweredRoute = path.endsWith('/unanswered')
+	const isAllRoute = path.endsWith('/all')
 
 	// Reset all state
 	checkinAppointmentId.value = null
@@ -541,6 +647,8 @@ const checkRouting = () => {
 		currentView.value = 'past'
 	} else if (isUnansweredRoute) {
 		currentView.value = 'unanswered'
+	} else if (isAllRoute) {
+		currentView.value = 'all'
 	} else {
 		currentView.value = 'current'
 	}

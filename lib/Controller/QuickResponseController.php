@@ -260,6 +260,14 @@ class QuickResponseController extends Controller {
 			];
 		}
 
+		// Block once the inquiry has been closed (manually or via deadline)
+		if ($appointment->isClosed()) {
+			return [
+				'error' => true,
+				'errorMessage' => $this->l->t('This appointment is closed and no longer accepts responses.'),
+			];
+		}
+
 		return ['error' => false];
 	}
 

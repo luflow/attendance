@@ -150,7 +150,9 @@
                     "calendarEventUid",
                     "seriesId",
                     "seriesPosition",
-                    "sendNotification"
+                    "sendNotification",
+                    "closedAt",
+                    "responseDeadline"
                 ],
                 "properties": {
                     "id": {
@@ -219,6 +221,14 @@
                     },
                     "sendNotification": {
                         "type": "boolean"
+                    },
+                    "closedAt": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "responseDeadline": {
+                        "type": "string",
+                        "nullable": true
                     }
                 }
             },
@@ -242,6 +252,8 @@
                     "seriesId",
                     "seriesPosition",
                     "sendNotification",
+                    "closedAt",
+                    "responseDeadline",
                     "userResponse",
                     "responseSummary",
                     "attachments"
@@ -314,6 +326,14 @@
                     "sendNotification": {
                         "type": "boolean"
                     },
+                    "closedAt": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "responseDeadline": {
+                        "type": "string",
+                        "nullable": true
+                    },
                     "userResponse": {
                         "nullable": true,
                         "allOf": [
@@ -384,6 +404,9 @@
                     },
                     "calendarEventUid": {
                         "type": "string"
+                    },
+                    "responseDeadline": {
+                        "type": "string"
                     }
                 }
             },
@@ -394,7 +417,8 @@
                     "calendarSyncEnabled",
                     "teamsAvailable",
                     "calendarSyncAvailable",
-                    "notificationsAppEnabled"
+                    "notificationsAppEnabled",
+                    "closing"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -410,6 +434,9 @@
                         "type": "boolean"
                     },
                     "notificationsAppEnabled": {
+                        "type": "boolean"
+                    },
+                    "closing": {
                         "type": "boolean"
                     }
                 }
@@ -492,7 +519,9 @@
                     "startDatetime",
                     "seriesId",
                     "seriesPosition",
-                    "userResponse"
+                    "userResponse",
+                    "closedAt",
+                    "inAudience"
                 ],
                 "properties": {
                     "id": {
@@ -525,6 +554,13 @@
                                 "type": "string"
                             }
                         }
+                    },
+                    "closedAt": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "inAudience": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -725,6 +761,8 @@
                     "seriesId",
                     "seriesPosition",
                     "sendNotification",
+                    "closedAt",
+                    "responseDeadline",
                     "alreadyCheckedIn",
                     "checkinState",
                     "checkinAt"
@@ -796,6 +834,14 @@
                     },
                     "sendNotification": {
                         "type": "boolean"
+                    },
+                    "closedAt": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "responseDeadline": {
+                        "type": "string",
+                        "nullable": true
                     },
                     "alreadyCheckedIn": {
                         "type": "boolean"
@@ -934,6 +980,24 @@
                         "name": "showPastAppointments",
                         "in": "query",
                         "description": "Whether to show past appointments instead of upcoming ones",
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    {
+                        "name": "unansweredOnly",
+                        "in": "query",
+                        "description": "When true, only return upcoming appointments that the user has not answered yet AND that are still open. Ignored when $showPastAppointments is true.",
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    {
+                        "name": "onlyForMe",
+                        "in": "query",
+                        "description": "When true, restrict the result to appointments the user is part of the target audience for (visibleUsers/Groups/Teams membership; appointments with no visibility restriction count as \"for everyone\" and are included). Useful for managers, who otherwise see every appointment in the system.",
                         "schema": {
                             "type": "boolean",
                             "default": false
@@ -1081,6 +1145,12 @@
                                             "type": "integer",
                                             "format": "int64"
                                         }
+                                    },
+                                    "responseDeadline": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Optional response deadline (ISO 8601). Cron auto-closes the inquiry once passed."
                                     }
                                 }
                             }
@@ -1656,6 +1726,12 @@
                                         "type": "string",
                                         "default": "single",
                                         "description": "Series update scope: single, future, or all"
+                                    },
+                                    "responseDeadline": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Optional response deadline (ISO 8601). Empty string clears it; null leaves unchanged."
                                     }
                                 }
                             }
@@ -2725,6 +2801,227 @@
                 }
             }
         },
+        "/index.php/apps/attendance/api/appointments/{id}/close": {
+            "post": {
+                "operationId": "appointment-close",
+                "summary": "Close an appointment inquiry",
+                "description": "Marks the appointment as closed: no further responses are accepted and the reminder cron skips it. The appointment stays in the \"upcoming\" list with a closed badge; only when its end_datetime passes does it move to the past list.",
+                "tags": [
+                    "appointment"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Appointment ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AppointmentData"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/attendance/api/appointments/{id}/reopen": {
+            "post": {
+                "operationId": "appointment-reopen",
+                "summary": "Re-open a closed appointment inquiry",
+                "tags": [
+                    "appointment"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Appointment ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AppointmentData"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/index.php/apps/attendance/api/user/permissions": {
             "get": {
                 "operationId": "appointment-get-permissions",
@@ -2827,6 +3124,167 @@
                                             "type": "string"
                                         }
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/attendance/api/user/settings": {
+            "get": {
+                "operationId": "appointment-get-user-settings",
+                "summary": "Get personal user settings",
+                "tags": [
+                    "appointment"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "icalReminderTriggers"
+                                    ],
+                                    "properties": {
+                                        "icalReminderTriggers": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "operationId": "appointment-save-user-settings",
+                "summary": "Save personal user settings",
+                "tags": [
+                    "appointment"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "icalReminderTriggers": {
+                                        "type": "array",
+                                        "default": [],
+                                        "description": "List of duration strings for iCal reminder triggers",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "success"
+                                    ],
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }

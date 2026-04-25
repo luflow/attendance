@@ -73,18 +73,25 @@ class AppointmentController extends Controller {
 	 * List appointments visible to the current user
 	 *
 	 * @param bool $showPastAppointments Whether to show past appointments instead of upcoming ones
+	 * @param bool $unansweredOnly When true, only return upcoming appointments that the user has not answered yet AND that are still open. Ignored when $showPastAppointments is true.
+	 * @param bool $onlyForMe When true, restrict the result to appointments the user is part of the target audience for (visibleUsers/Groups/Teams membership; appointments with no visibility restriction count as "for everyone" and are included). Useful for managers, who otherwise see every appointment in the system.
 	 * @return DataResponse<Http::STATUS_OK, list<AttendanceAppointmentWithResponse>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI]
-	public function index(bool $showPastAppointments = false): DataResponse {
+	public function index(bool $showPastAppointments = false, bool $unansweredOnly = false, bool $onlyForMe = false): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
-		$appointments = $this->appointmentService->getAppointmentsWithUserResponses($user->getUID(), $showPastAppointments);
+		$appointments = $this->appointmentService->getAppointmentsWithUserResponses(
+			$user->getUID(),
+			$showPastAppointments,
+			$unansweredOnly,
+			$onlyForMe,
+		);
 
 		// Add checkin summary to each appointment if user can see response overview
 		if ($this->permissionService->canSeeResponseOverview($user->getUID())) {
@@ -128,6 +135,7 @@ class AppointmentController extends Controller {
 	 * @param ?string $calendarUri URI of the source calendar (when imported from calendar)
 	 * @param ?string $calendarEventUid UID of the source calendar event
 	 * @param list<int> $attachments File IDs to attach to the appointment
+	 * @param ?string $responseDeadline Optional response deadline (ISO 8601). Cron auto-closes the inquiry once passed.
 	 * @return DataResponse<Http::STATUS_CREATED, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
@@ -145,6 +153,7 @@ class AppointmentController extends Controller {
 		?string $calendarUri = null,
 		?string $calendarEventUid = null,
 		array $attachments = [],
+		?string $responseDeadline = null,
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -168,7 +177,10 @@ class AppointmentController extends Controller {
 				$visibleTeams,
 				$sendNotification,
 				$calendarUri,
-				$calendarEventUid
+				$calendarEventUid,
+				null,
+				null,
+				$responseDeadline,
 			);
 
 			$this->addAttachmentsToAppointment($appointment->getId(), $attachments, $user->getUID());
@@ -223,6 +235,7 @@ class AppointmentController extends Controller {
 					$data['calendarEventUid'] ?? null,
 					$seriesId,
 					$index,
+					$data['responseDeadline'] ?? null,
 				);
 				$createdIds[] = $appointment->getId();
 				if ($firstAppointment === null) {
@@ -274,6 +287,7 @@ class AppointmentController extends Controller {
 	 * @param list<string> $visibleTeams Team IDs to make the appointment visible to
 	 * @param list<int> $attachments File IDs to attach to the appointment
 	 * @param string $scope Series update scope: single, future, or all
+	 * @param ?string $responseDeadline Optional response deadline (ISO 8601). Empty string clears it; null leaves unchanged.
 	 * @return DataResponse<Http::STATUS_OK, AttendanceAppointmentData|list<AttendanceAppointmentData>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
@@ -290,6 +304,7 @@ class AppointmentController extends Controller {
 		array $visibleTeams = [],
 		array $attachments = [],
 		string $scope = 'single',
+		?string $responseDeadline = null,
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -310,7 +325,8 @@ class AppointmentController extends Controller {
 			if ($scope === 'future' || $scope === 'all') {
 				$updatedAppointments = $this->appointmentService->updateSeriesAppointments(
 					$id, $scope, $name, $description, $startDatetime, $endDatetime,
-					$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams
+					$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
+					$responseDeadline,
 				);
 
 				// Sync attachments across all affected appointments
@@ -325,7 +341,8 @@ class AppointmentController extends Controller {
 			if ($appointment->getSeriesId() !== null) {
 				$updatedAppointments = $this->appointmentService->updateSeriesAppointments(
 					$id, 'single', $name, $description, $startDatetime, $endDatetime,
-					$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams
+					$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
+					$responseDeadline,
 				);
 				$this->syncAttachments($id, $attachments, $user->getUID());
 				return new DataResponse($updatedAppointments[0]);
@@ -333,7 +350,8 @@ class AppointmentController extends Controller {
 
 			$appointment = $this->appointmentService->updateAppointment(
 				$id, $name, $description, $startDatetime, $endDatetime,
-				$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams
+				$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
+				$responseDeadline,
 			);
 
 			$this->syncAttachments($id, $attachments, $user->getUID());
@@ -342,6 +360,69 @@ class AppointmentController extends Controller {
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 400);
 		}
+	}
+
+	/**
+	 * Close an appointment inquiry
+	 *
+	 * Marks the appointment as closed: no further responses are accepted and
+	 * the reminder cron skips it. The appointment stays in the "upcoming" list
+	 * with a closed badge; only when its end_datetime passes does it move to
+	 * the past list.
+	 *
+	 * @param int $id Appointment ID
+	 * @return DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function close(int $id): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		try {
+			$appointment = $this->appointmentService->getAppointment($id);
+			if (!$this->permissionService->canManageAppointments($user->getUID())
+				&& $appointment->getCreatedBy() !== $user->getUID()) {
+				return new DataResponse(['error' => 'Insufficient permissions to close this appointment'], 403);
+			}
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => 'Appointment not found'], 404);
+		}
+
+		$updated = $this->appointmentService->closeAppointment($id);
+		return new DataResponse($updated);
+	}
+
+	/**
+	 * Re-open a closed appointment inquiry
+	 *
+	 * @param int $id Appointment ID
+	 * @return DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function reopen(int $id): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		try {
+			$appointment = $this->appointmentService->getAppointment($id);
+			if (!$this->permissionService->canManageAppointments($user->getUID())
+				&& $appointment->getCreatedBy() !== $user->getUID()) {
+				return new DataResponse(['error' => 'Insufficient permissions to re-open this appointment'], 403);
+			}
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => 'Appointment not found'], 404);
+		}
+
+		$updated = $this->appointmentService->reopenAppointment($id);
+		return new DataResponse($updated);
 	}
 
 	/**
@@ -617,6 +698,10 @@ class AppointmentController extends Controller {
 			'teamsAvailable' => $this->visibilityService->isTeamsAvailable(),
 			'calendarSyncAvailable' => \OCP\Util::getVersion()[0] >= 32,
 			'notificationsAppEnabled' => $this->appManager->isEnabledForUser('notifications'),
+			// Closing an inquiry (manual or via responseDeadline auto-close) +
+			// the server-side `unansweredOnly` filter. Older servers omit this
+			// flag → mobile clients hide the related UI.
+			'closing' => true,
 		]);
 	}
 

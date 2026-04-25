@@ -50,6 +50,7 @@ export default defineConfig({
 				'9-recurrence.spec.js',
 				'10-series.spec.js',
 				'11-notification-option.spec.js',
+				'14-close-inquiry.spec.js',
 				'checkin.spec.js',
 			],
 			fullyParallel: false, // tests within a file stay sequential
