@@ -229,15 +229,6 @@ const FILTER_STORAGE_KEY = 'attendance:list-filters'
 // sense for managers, who see appointments created by other people too).
 const filterDefs = computed(() => [
 	{
-		id: 'status',
-		label: t('attendance', 'Inquiry status'),
-		icon: LockIcon,
-		options: [
-			{ id: 'open', label: t('attendance', 'Opened') },
-			{ id: 'closed', label: t('attendance', 'Closed') },
-		],
-	},
-	{
 		id: 'response',
 		label: t('attendance', 'Your response'),
 		icon: CheckCircleIcon,
@@ -246,6 +237,15 @@ const filterDefs = computed(() => [
 			{ id: 'maybe', label: t('attendance', 'Maybe') },
 			{ id: 'no', label: t('attendance', 'No') },
 			{ id: 'none', label: t('attendance', 'No response') },
+		],
+	},
+	{
+		id: 'status',
+		label: t('attendance', 'Inquiry status'),
+		icon: LockIcon,
+		options: [
+			{ id: 'open', label: t('attendance', 'Opened') },
+			{ id: 'closed', label: t('attendance', 'Closed') },
 		],
 	},
 	{

@@ -90,16 +90,6 @@
 				</NcAppNavigationItem>
 
 				<NcAppNavigationItem
-					:name="t('attendance', 'All appointments')"
-					:active="currentView === 'all'"
-					data-test="nav-all"
-					@click.prevent="setView('all')">
-					<template #icon>
-						<FormatListBulletedIcon :size="20" />
-					</template>
-				</NcAppNavigationItem>
-
-				<NcAppNavigationItem
 					:name="t('attendance', 'Past appointments')"
 					:active="currentView === 'past'"
 					:open="pastAppointmentsExpanded"
@@ -134,6 +124,16 @@
 								<ChevronRightIcon :size="20" />
 							</template>
 						</NcAppNavigationItem>
+					</template>
+				</NcAppNavigationItem>
+
+				<NcAppNavigationItem
+					:name="t('attendance', 'All appointments')"
+					:active="currentView === 'all'"
+					data-test="nav-all"
+					@click.prevent="setView('all')">
+					<template #icon>
+						<FormatListBulletedIcon :size="20" />
 					</template>
 				</NcAppNavigationItem>
 			</template>
