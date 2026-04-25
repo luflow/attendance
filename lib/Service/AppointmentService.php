@@ -619,19 +619,11 @@ class AppointmentService {
 			}
 
 			$appointmentData = $appointment->jsonSerialize();
+			$appointmentData = $this->enrichVisibilityData($appointmentData);
+			$appointmentData = $this->enrichSeriesCount($appointmentData, $appointment);
 			$appointmentData['userResponse'] = $hasResponse ? $userResponse : null;
-			// The unanswered list view only renders name/date/swipe-to-respond,
-			// so skip the per-appointment summary/attachments/visibility lookups
-			// (each one fans out into more queries against users/groups/teams).
-			if (!$unansweredOnly) {
-				$appointmentData = $this->enrichVisibilityData($appointmentData);
-				$appointmentData = $this->enrichSeriesCount($appointmentData, $appointment);
-				$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId());
-				$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
-			} else {
-				$appointmentData['responseSummary'] = [];
-				$appointmentData['attachments'] = [];
-			}
+			$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId());
+			$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
 			$result[] = $appointmentData;
 		}
 
