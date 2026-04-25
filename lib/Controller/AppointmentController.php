@@ -696,6 +696,10 @@ class AppointmentController extends Controller {
 			'teamsAvailable' => $this->visibilityService->isTeamsAvailable(),
 			'calendarSyncAvailable' => \OCP\Util::getVersion()[0] >= 32,
 			'notificationsAppEnabled' => $this->appManager->isEnabledForUser('notifications'),
+			// Closing an inquiry (manual or via responseDeadline auto-close) +
+			// the server-side `unansweredOnly` filter. Older servers omit this
+			// flag → mobile clients hide the related UI.
+			'closing' => true,
 		]);
 	}
 

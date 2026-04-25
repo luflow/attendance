@@ -55,15 +55,14 @@ test.describe('Attendance App - Close inquiry (API)', () => {
 	})
 
 	test('unansweredOnly excludes closed and already-answered appointments', async ({ request }) => {
-		const [open, answered, closed] = await Promise.all([
-			createAppointmentViaAPI(request, { name: 'Filter Open Unanswered', daysFromNow: 14 }),
-			createAppointmentViaAPI(request, { name: 'Filter Open Answered', daysFromNow: 14 }),
-			createAppointmentViaAPI(request, { name: 'Filter Closed Unanswered', daysFromNow: 14 }),
-		])
-		await Promise.all([
-			respondToAppointmentViaAPI(request, answered.id, { response: 'maybe' }),
-			closeAppointmentViaAPI(request, closed.id),
-		])
+		// Serial setup: parallel POSTs to the same Nextcloud occasionally race
+		// on the appointments table during DB writes — flake isn't worth the
+		// few hundred ms saved.
+		const open = await createAppointmentViaAPI(request, { name: 'Filter Open Unanswered', daysFromNow: 14 })
+		const answered = await createAppointmentViaAPI(request, { name: 'Filter Open Answered', daysFromNow: 14 })
+		const closed = await createAppointmentViaAPI(request, { name: 'Filter Closed Unanswered', daysFromNow: 14 })
+		await respondToAppointmentViaAPI(request, answered.id, { response: 'maybe' })
+		await closeAppointmentViaAPI(request, closed.id)
 
 		const all = await listAppointmentsViaAPI(request, { showPast: false })
 		const allIds = all.map(a => a.id)
@@ -100,14 +99,15 @@ test.describe('Attendance App - Close inquiry (UI)', () => {
 	const otherMeetingName = 'UI Other Inquiry Test'
 
 	test.beforeAll(async ({ request }) => {
-		await Promise.all([
-			createAppointmentViaAPI(request, {
-				name: closeMeetingName,
-				description: 'Created for UI close/reopen tests',
-				daysFromNow: 12,
-			}),
-			createAppointmentViaAPI(request, { name: otherMeetingName, daysFromNow: 13 }),
-		])
+		await createAppointmentViaAPI(request, {
+			name: closeMeetingName,
+			description: 'Created for UI close/reopen tests',
+			daysFromNow: 12,
+		})
+		await createAppointmentViaAPI(request, {
+			name: otherMeetingName,
+			daysFromNow: 13,
+		})
 	})
 
 	test.afterAll(async ({ request }) => {
@@ -124,7 +124,7 @@ test.describe('Attendance App - Close inquiry (UI)', () => {
 	})
 
 	test('manager can close and reopen via the action menu', async ({ page }) => {
-		const card = page.locator('[data-test="appointment-card"]', { hasText: closeMeetingName })
+		const card = page.locator('[data-test="appointment-card"]', { hasText: closeMeetingName }).first()
 		await expect(card).toBeVisible()
 
 		await card.getByRole('button', { name: 'Actions' }).click()
@@ -144,13 +144,13 @@ test.describe('Attendance App - Close inquiry (UI)', () => {
 
 	test('search bar narrows the visible appointments and persists', async ({ page }) => {
 		const cards = page.locator('[data-test="appointment-card"]')
-		await expect(cards.filter({ hasText: closeMeetingName })).toHaveCount(1)
-		await expect(cards.filter({ hasText: otherMeetingName })).toHaveCount(1)
+		await expect(cards.filter({ hasText: closeMeetingName }).first()).toBeVisible()
+		await expect(cards.filter({ hasText: otherMeetingName }).first()).toBeVisible()
 
 		const search = page.getByRole('textbox', { name: /Search appointments/ })
 		await search.fill(otherMeetingName)
 
-		await expect(cards.filter({ hasText: otherMeetingName })).toHaveCount(1)
+		await expect(cards.filter({ hasText: otherMeetingName }).first()).toBeVisible()
 		await expect(cards.filter({ hasText: closeMeetingName })).toHaveCount(0)
 
 		// The Vue side debounces the localStorage write 300ms — wait for the

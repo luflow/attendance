@@ -306,7 +306,8 @@
                     "calendarSyncEnabled",
                     "teamsAvailable",
                     "calendarSyncAvailable",
-                    "notificationsAppEnabled"
+                    "notificationsAppEnabled",
+                    "closing"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -322,6 +323,9 @@
                         "type": "boolean"
                     },
                     "notificationsAppEnabled": {
+                        "type": "boolean"
+                    },
+                    "closing": {
                         "type": "boolean"
                     }
                 }

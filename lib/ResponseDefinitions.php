@@ -124,6 +124,7 @@ namespace OCA\Attendance;
  *   teamsAvailable: bool,
  *   calendarSyncAvailable: bool,
  *   notificationsAppEnabled: bool,
+ *   closing: bool,
  * }
  * @psalm-type AttendanceUserConfig = array{
  *   displayOrder: string,

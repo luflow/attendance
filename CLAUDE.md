@@ -146,6 +146,30 @@ use OCP\AppFramework\Http\Attribute\OpenAPI;
 - Push the tag to the remote repository
 - Create a new release on GitHub via GitHub MCP which triggers the release process and upload to nextcloud app store
 
+## Mobile (Flutter) compatibility
+
+A Flutter mobile client (repo `luflow/attendance-flutter`) is a first-class
+consumer of the API. Older builds stay in users' hands long after the server
+is updated, so:
+
+- **Always check API and behavioural changes for breaking impact on the mobile
+  client.** Adding a required field to a response, removing a field, changing
+  semantics of an endpoint, or removing an endpoint are all breaking. Ask
+  yourself: does an old client still work against this server?
+- **For new client-visible features, expose a feature flag in
+  `getCapabilities()`** (`AppointmentController::getCapabilities`,
+  psalm-type `AttendanceCapabilities`). The mobile client gates UI on these
+  flags so that older app versions don't show buttons that hit endpoints
+  the server they're talking to may also be older than. New feature → new
+  capability key, default `false` semantics on absence.
+- Examples already in the wild: `calendarSyncAvailable`, `teamsAvailable`,
+  `notificationsAppEnabled`, `closing` (close-inquiry feature).
+- When you add a capability, also add the corresponding gate on the Flutter
+  side in the same change (or a paired PR), so the rollout is atomic.
+- Migrations may add nullable columns freely, but **do not remove columns**
+  the mobile client may still send/expect — schedule a deprecation cycle
+  instead.
+
 ## Avoid
 - NO coauthoring of commits with "claude"!
 - No hardcoded admin checks - use PermissionService
