@@ -91,6 +91,38 @@ test.describe('Attendance App - Close inquiry (API)', () => {
 			.toBe(deadline.toISOString().slice(0, 16))
 	})
 
+	test('rejects a deadline in the past with HTTP 400', async ({ request, baseURL }) => {
+		// A past deadline would auto-close on the next cron tick — almost always
+		// a typo. Server enforces this with a 60s grace for clock skew.
+		const auth = 'Basic ' + Buffer.from('admin:admin').toString('base64')
+		const start = new Date(Date.now() + 14 * DAY_MS)
+		const end = new Date(start.getTime() + 60 * 60 * 1000)
+		const past = new Date(Date.now() - 5 * 60 * 1000)
+		const resp = await request.post(
+			`${baseURL}/index.php/apps/attendance/api/appointments`,
+			{
+				headers: {
+					Authorization: auth,
+					'Content-Type': 'application/json',
+					'OCS-APIREQUEST': 'true',
+				},
+				data: {
+					name: 'Past Deadline',
+					description: '',
+					startDatetime: start.toISOString(),
+					endDatetime: end.toISOString(),
+					visibleUsers: [],
+					visibleGroups: [],
+					sendNotification: false,
+					responseDeadline: past.toISOString(),
+				},
+			},
+		)
+		expect(resp.status()).toBe(400)
+		const body = await resp.json()
+		expect(body.error).toMatch(/future/i)
+	})
+
 	test('reopen clears the responseDeadline so cron does not re-close', async ({ request }) => {
 		// Without this guard the next auto-close cron tick would close the
 		// same appointment again because the deadline is still in the past.

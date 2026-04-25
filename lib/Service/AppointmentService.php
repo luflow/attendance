@@ -902,18 +902,24 @@ class AppointmentService {
 	 * Normalise an optional datetime input (response deadline).
 	 *
 	 * - Empty string → null (deadline cleared).
-	 * - Invalid string → null.
+	 * - Past deadline → InvalidArgumentException (would auto-close immediately
+	 *   on the next cron tick, almost always a mistake). 60s grace absorbs
+	 *   client/server clock skew.
 	 * - Deadline after start → clamped to start (we never auto-close after the
 	 *   appointment has begun).
 	 *
 	 * @param string $startFormatted Already-formatted start datetime (UTC, Y-m-d H:i:s).
+	 * @throws \InvalidArgumentException
 	 */
 	private function normalizeOptionalDatetime(?string $datetime, string $startFormatted): ?string {
 		if ($datetime === null || $datetime === '') {
 			return null;
 		}
 		$formatted = $this->formatDatetime($datetime);
-		// Sanity check: deadline must not be after start.
+		$nowWithGrace = gmdate('Y-m-d H:i:s', time() - 60);
+		if ($formatted < $nowWithGrace) {
+			throw new \InvalidArgumentException('Response deadline must be in the future.');
+		}
 		if ($formatted > $startFormatted) {
 			return $startFormatted;
 		}

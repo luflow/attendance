@@ -581,6 +581,9 @@ const deadlineWarning = computed(() => {
 	const deadline = new Date(formData.responseDeadline)
 	const start = new Date(formData.startDatetime)
 	if (isNaN(deadline.getTime()) || isNaN(start.getTime())) return null
+	if (deadline.getTime() <= Date.now()) {
+		return t('attendance', 'Response deadline must be in the future')
+	}
 	if (deadline >= start) {
 		return t('attendance', 'Response deadline must be before the appointment starts')
 	}
