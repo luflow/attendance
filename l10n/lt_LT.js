@@ -82,6 +82,7 @@ OC.L10N.register(
     "Failed to save settings" : "Nepavyko įrašyti nustatymų",
     "Link copied" : "Nuoroda nukopijuota",
     "Permissions" : "Leidimai",
+    "Select groups …" : "Pasirinkti grupes...",
     "Preview" : "Peržiūra",
     "Open" : "Atverti",
     "Push notifications" : "Tiesioginiai (angl. Push) pranešimai",
