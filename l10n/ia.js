@@ -9,6 +9,7 @@ OC.L10N.register(
     "System" : "Systema",
     "Connected" : "Connectite",
     "Subscribe" : "Subscribe",
+    "OK" : "OK",
     "Export" : "Exportar",
     "Select all" : "Selectionar toto",
     "Cancel" : "Cancel",

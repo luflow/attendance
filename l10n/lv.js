@@ -21,6 +21,7 @@ OC.L10N.register(
     "Not now" : "Ne tagad",
     "Subscribe" : "Abonēt",
     "Privacy Policy" : "Privātuma pamatnostādnes",
+    "OK" : "Labi",
     "Create appointment" : "Izveidot plānotu tikšanos",
     "Export" : "Izgūt",
     "Select all" : "Atzīmēt visu",

@@ -9,6 +9,7 @@ OC.L10N.register(
     "None" : "គ្មាន",
     "Light" : "ភ្លឺt",
     "Dark" : "ងងឹត",
+    "OK" : "OK",
     "Export" : "នាំចេញ",
     "Cancel" : "Cancel",
     "Edit" : "កែប្រែ",

@@ -8,6 +8,7 @@ OC.L10N.register(
     "Settings" : "Կարգավորումներ",
     "Notifications" : "Ծանուցում",
     "Connected" : "միացված է",
+    "OK" : "OK",
     "About" : "Մասին",
     "Export" : "Արտահանում",
     "Select all" : "Նշել բոլորը",
