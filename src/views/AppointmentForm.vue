@@ -169,30 +169,27 @@
 				</p>
 				<div class="deadline-mode-row" data-test="deadline-mode-row">
 					<NcCheckboxRadioSwitch
-						:checked="deadlineMode === 'none'"
+						v-model="deadlineMode"
 						value="none"
 						name="deadline-mode"
 						type="radio"
-						data-test="deadline-mode-none"
-						@update:checked="setDeadlineMode('none')">
+						data-test="deadline-mode-none">
 						{{ t("attendance", "No deadline") }}
 					</NcCheckboxRadioSwitch>
 					<NcCheckboxRadioSwitch
-						:checked="deadlineMode === 'relative'"
+						v-model="deadlineMode"
 						value="relative"
 						name="deadline-mode"
 						type="radio"
-						data-test="deadline-mode-relative"
-						@update:checked="setDeadlineMode('relative')">
+						data-test="deadline-mode-relative">
 						{{ t("attendance", "Relative to start") }}
 					</NcCheckboxRadioSwitch>
 					<NcCheckboxRadioSwitch
-						:checked="deadlineMode === 'absolute'"
+						v-model="deadlineMode"
 						value="absolute"
 						name="deadline-mode"
 						type="radio"
-						data-test="deadline-mode-absolute"
-						@update:checked="setDeadlineMode('absolute')">
+						data-test="deadline-mode-absolute">
 						{{ t("attendance", "Specific date and time") }}
 					</NcCheckboxRadioSwitch>
 				</div>
@@ -233,10 +230,9 @@
 				</div>
 				<NcCheckboxRadioSwitch
 					v-if="deadlineMode === 'absolute' && isRecurring"
-					:checked="deadlineAbsoluteLiteral"
+					v-model="deadlineAbsoluteLiteral"
 					type="switch"
-					data-test="deadline-absolute-literal"
-					@update:checked="(v) => deadlineAbsoluteLiteral = v">
+					data-test="deadline-absolute-literal">
 					{{
 						t(
 							"attendance",
@@ -519,10 +515,6 @@ const deadlineRelativeValue = computed(() => {
 const deadlineRelativeOffsetMs = computed(
 	() => deadlineRelativeValue.value * UNIT_MS[deadlineRelativeUnit.value],
 )
-
-const setDeadlineMode = (mode) => {
-	deadlineMode.value = mode
-}
 
 const visibilityItems = ref([])
 const searchResults = ref([])
