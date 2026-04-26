@@ -6,6 +6,13 @@
 
 - Nightly changes here
 
+## 1.39.0 – 2026-04-26
+
+### Added
+
+- Reminders for maybe-responders: bell icon inline next to each "Maybe" badge, bulk remind dialog with target picker (non-responders / maybe / both)
+- Admin setting to choose who receives automatic reminders
+
 ## 1.38.0 – 2026-04-26
 
 ### Added
