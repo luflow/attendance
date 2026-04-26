@@ -1431,20 +1431,21 @@ onMounted(async () => {
 .deadline-relative-row {
     display: flex;
     flex-wrap: wrap;
-    align-items: end;
+    align-items: center;
     gap: 8px;
 }
 
 .deadline-relative-value {
-    width: 96px;
+    flex: 0 0 110px;
+    max-width: 110px;
 }
 
 .deadline-relative-unit {
-    min-width: 140px;
+    flex: 0 0 150px;
+    max-width: 150px;
 }
 
 .deadline-relative-suffix {
-    align-self: center;
     color: var(--color-text-maxcontrast);
 }
 
