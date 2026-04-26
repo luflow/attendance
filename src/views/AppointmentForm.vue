@@ -204,14 +204,18 @@
 						class="deadline-relative-value"
 						:label="t('attendance', 'Number')"
 						data-test="input-deadline-relative-value" />
-					<NcSelect
+					<select
 						v-model="deadlineRelativeUnit"
-						:options="deadlineUnitOptions"
-						:reduce="(o) => o.value"
-						:clearable="false"
-						:searchable="false"
 						class="deadline-relative-unit"
-						data-test="select-deadline-relative-unit" />
+						data-test="select-deadline-relative-unit"
+						:aria-label="t('attendance', 'Unit')">
+						<option
+							v-for="opt in deadlineUnitOptions"
+							:key="opt.value"
+							:value="opt.value">
+							{{ opt.label }}
+						</option>
+					</select>
 					<span class="deadline-relative-suffix">{{
 						t("attendance", "before each appointment starts")
 					}}</span>
@@ -1440,22 +1444,35 @@ onMounted(async () => {
     max-width: 110px;
 }
 
-/* NcSelect's dropdown toggle is --default-clickable-area + 1px borders top
- * and bottom (≈36px on stock Nextcloud). NcTextField has no such borders, so
- * its outer height stays one --default-clickable-area shorter and the two
- * controls render at visibly different heights. Match them by stretching
- * the text-field wrapper. */
+/* Match the native <select>'s outer height (border-box, 1px border top
+ * and bottom = clickable-area + 2px) with the NcTextField wrapper so the
+ * two controls share a baseline. */
 .deadline-relative-value :deep(.input-field__main-wrapper) {
     min-height: calc(var(--default-clickable-area, 34px) + 2px);
 }
 
-/* @nextcloud/vue ships .v-select.select with min-width: 260px, which would
- * defeat our flex-basis. The chained .deadline-relative-row selector lifts
- * the specificity above NcSelect's two-class rule. */
-.deadline-relative-row .deadline-relative-unit {
+.deadline-relative-unit {
     flex: 0 0 150px;
     max-width: 150px;
-    min-width: 0;
+    height: calc(var(--default-clickable-area, 34px) + 2px);
+    padding: 0 32px 0 12px;
+    border: 1px solid var(--color-border-dark, #ccc);
+    border-radius: var(--border-radius-element, var(--border-radius, 4px));
+    background-color: var(--color-main-background, #fff);
+    color: var(--color-main-text, #000);
+    font: inherit;
+    /* Replace the default arrow with one positioned by us so the trigger
+     * matches the rest of the form's controls. */
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+}
+
+.deadline-relative-unit:focus {
+    outline: 2px solid var(--color-primary-element, var(--color-primary));
+    outline-offset: 1px;
 }
 
 .deadline-relative-suffix {
