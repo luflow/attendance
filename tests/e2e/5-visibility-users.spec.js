@@ -187,9 +187,7 @@ test.describe('Attendance App - User Visibility Filtering', () => {
 		await page.waitForLoadState('networkidle')
 
 		// Count appointments in the sidebar navigation under "Unanswered" section
-		// This shows all appointments that the user hasn't responded to yet
-		// The sidebar lists appointments as links under the "Unanswered" section
-		const unansweredSection = page.getByRole('link', { name: 'Unanswered' })
+		const unansweredSection = page.getByRole('link', { name: 'Unanswered', exact: true })
 		await unansweredSection.waitFor({ state: 'visible' })
 
 		// Get the list of appointments under Unanswered (next sibling list element)
@@ -203,11 +201,11 @@ test.describe('Attendance App - User Visibility Filtering', () => {
 	})
 
 	test('should allow editing visibility settings', async ({ page }) => {
-		// Open the "Private Meeting - Test1 Only" for editing
-		await page.getByText('Private Meeting - Test1 Only').first().click()
+		// Scope to the correct appointment card to avoid clicking the wrong Actions button
+		const card = page.locator('[data-test="appointment-card"]', { hasText: 'Private Meeting - Test1 Only' }).first()
+		await card.click()
 
-		// Wait for actions button to be ready and click Edit
-		const actionsButton = page.getByRole('button', { name: 'Actions' }).first()
+		const actionsButton = card.getByRole('button', { name: 'Actions' })
 		await actionsButton.waitFor({ state: 'visible' })
 		await actionsButton.click()
 		await page.getByRole('menuitem', { name: 'Edit' }).click()

@@ -219,11 +219,11 @@ test.describe('Attendance App - Group Visibility Filtering', () => {
 			await attendanceApp()
 			await page.waitForLoadState('networkidle')
 
-			// Click on "Cross-Team Sync" appointment
-			await page.getByText('Cross-Team Sync').first().click()
+			// Scope to the correct appointment card to avoid clicking the wrong Actions button
+			const card = page.locator('[data-test="appointment-card"]', { hasText: 'Cross-Team Sync' }).first()
+			await card.click()
 
-			// Wait for actions button to be ready and click Edit
-			const actionsButton = page.getByRole('button', { name: 'Actions' }).first()
+			const actionsButton = card.getByRole('button', { name: 'Actions' })
 			await actionsButton.waitFor({ state: 'visible' })
 			await actionsButton.click()
 			await page.getByRole('menuitem', { name: 'Edit' }).click()
