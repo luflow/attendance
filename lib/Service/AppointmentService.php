@@ -799,6 +799,73 @@ class AppointmentService {
 	}
 
 	/**
+	 * Get user IDs of users who responded "maybe" to an appointment.
+	 *
+	 * @param Appointment $appointment The appointment
+	 * @return list<string> User IDs that responded with "maybe"
+	 */
+	public function getMaybeRespondingUserIds(Appointment $appointment): array {
+		$appointmentId = $appointment->getId();
+
+		$responses = $this->responseMapper->findByAppointment($appointmentId);
+		$maybeUserIds = [];
+		foreach ($responses as $response) {
+			if ($response->getResponse() === 'maybe') {
+				$maybeUserIds[$response->getUserId()] = true;
+			}
+		}
+
+		// Filter to only relevant/visible users
+		$whitelistedGroups = $this->configService->getWhitelistedGroups();
+		$relevantUsers = $this->visibilityService->getRelevantUsersForAppointment($appointment, $whitelistedGroups);
+
+		$result = [];
+		foreach ($relevantUsers as $userId => $user) {
+			if (isset($maybeUserIds[$userId])) {
+				$result[] = $userId;
+			}
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Get user IDs to remind based on the target setting.
+	 *
+	 * @param Appointment $appointment The appointment
+	 * @param string $target One of 'non_responders', 'maybe', 'both'
+	 * @return list<string> User IDs to remind
+	 */
+	public function getReminderTargetUserIds(Appointment $appointment, string $target): array {
+		if ($target === 'non_responders') {
+			return $this->getNonRespondingUserIds($appointment);
+		}
+		if ($target === 'maybe') {
+			return $this->getMaybeRespondingUserIds($appointment);
+		}
+
+		// 'both': single pass to avoid duplicate DB queries
+		$responses = $this->responseMapper->findByAppointment($appointment->getId());
+		$responseByUser = [];
+		foreach ($responses as $response) {
+			$responseByUser[$response->getUserId()] = $response->getResponse();
+		}
+
+		$whitelistedGroups = $this->configService->getWhitelistedGroups();
+		$relevantUsers = $this->visibilityService->getRelevantUsersForAppointment($appointment, $whitelistedGroups);
+
+		$result = [];
+		foreach ($relevantUsers as $userId => $user) {
+			$userResponse = $responseByUser[$userId] ?? null;
+			if ($userResponse === null || $userResponse === 'maybe') {
+				$result[] = $userId;
+			}
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Get all users who can see an appointment.
 	 */
 	public function getAffectedUsers(Appointment $appointment): array {

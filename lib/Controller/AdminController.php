@@ -132,6 +132,7 @@ class AdminController extends Controller {
 						'enabled' => $this->config->getAppValue('attendance', 'reminders_enabled', 'no') === 'yes',
 						'reminderDays' => (int)$this->config->getAppValue('attendance', 'reminder_days', '7'),
 						'reminderFrequency' => (int)$this->config->getAppValue('attendance', 'reminder_frequency', '0'),
+						'reminderTarget' => $this->configService->getReminderTarget(),
 					],
 					'calendarSync' => [
 						'enabled' => $this->configService->isCalendarSyncEnabled(),
@@ -158,7 +159,7 @@ class AdminController extends Controller {
 	 * @param list<string> $whitelistedGroups Group IDs allowed to use the app
 	 * @param list<string> $whitelistedTeams Team IDs allowed to use the app
 	 * @param array<string, list<string>> $permissions Permission name to group IDs mapping
-	 * @param array{enabled?: bool, reminderDays?: int, reminderFrequency?: int} $reminders Reminder settings
+	 * @param array{enabled?: bool, reminderDays?: int, reminderFrequency?: int, reminderTarget?: string} $reminders Reminder settings
 	 * @param array{enabled?: bool} $calendarSync Calendar sync settings
 	 * @param ?string $displayOrder Display order for appointments: chronological, name, or group
 	 * @param ?bool $pushEnabled Whether push notifications are enabled
@@ -209,6 +210,9 @@ class AdminController extends Controller {
 				// Frequency: 0 = once, 1-30 = days between reminders
 				$reminderFrequency = max(0, min(30, (int)$reminders['reminderFrequency']));
 				$this->config->setAppValue('attendance', 'reminder_frequency', (string)$reminderFrequency);
+			}
+			if (isset($reminders['reminderTarget'])) {
+				$this->configService->setReminderTarget($reminders['reminderTarget']);
 			}
 
 			// Save calendar sync settings

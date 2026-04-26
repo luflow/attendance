@@ -703,6 +703,7 @@ class AppointmentController extends Controller {
 			'notificationsAppEnabled' => $this->appManager->isEnabledForUser('notifications'),
 			// Older servers omit this flag → mobile clients hide close-inquiry UI.
 			'closing' => true,
+			'remindMaybe' => true,
 		]);
 	}
 
@@ -888,15 +889,16 @@ class AppointmentController extends Controller {
 	}
 
 	/**
-	 * Send reminder notifications to all non-responding users for an appointment
+	 * Send reminder notifications to users for an appointment
 	 *
 	 * @param int $id Appointment ID
-	 * @return DataResponse<Http::STATUS_OK, AttendanceReminderResult, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
+	 * @param string $target Who to remind: 'non_responders', 'maybe', or 'both'
+	 * @return DataResponse<Http::STATUS_OK, AttendanceReminderResult, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI]
-	public function sendReminders(int $id): DataResponse {
+	public function sendReminders(int $id, string $target = 'non_responders'): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
@@ -906,14 +908,18 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'Insufficient permissions'], 403);
 		}
 
+		if (!in_array($target, ConfigService::VALID_REMINDER_TARGETS, true)) {
+			return new DataResponse(['error' => 'Invalid target, must be one of: non_responders, maybe, both'], 400);
+		}
+
 		try {
 			$appointment = $this->appointmentService->getAppointment($id);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => 'Appointment not found'], 404);
 		}
 
-		$nonRespondingUserIds = $this->appointmentService->getNonRespondingUserIds($appointment);
-		$sent = $this->notificationService->sendReminderToUsers($appointment, $nonRespondingUserIds);
+		$userIds = $this->appointmentService->getReminderTargetUserIds($appointment, $target);
+		$sent = $this->notificationService->sendReminderToUsers($appointment, $userIds);
 
 		return new DataResponse(['sent' => $sent]);
 	}
@@ -944,11 +950,13 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'Appointment not found'], 404);
 		}
 
-		// Validate: user must be visible for this appointment and not have responded yet
+		// Validate: user must be visible for this appointment
 		if (!$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
 			return new DataResponse(['error' => 'User is not a member of this appointment'], 400);
 		}
-		if ($this->appointmentService->getUserResponse($id, $userId) !== null) {
+		// Allow reminding non-responders and maybe-responders, but not yes/no
+		$existingResponse = $this->appointmentService->getUserResponse($id, $userId);
+		if ($existingResponse !== null && $existingResponse->getResponse() !== 'maybe') {
 			return new DataResponse(['error' => 'User has already responded'], 400);
 		}
 

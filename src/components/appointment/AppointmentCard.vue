@@ -87,11 +87,11 @@
 						:close-after-click="true"
 						:disabled="sendingReminders"
 						data-test="action-remind-all"
-						@click="handleRemindAll">
+						@click="showRemindDialog = true">
 						<template #icon>
 							<BellRingIcon :size="20" />
 						</template>
-						{{ t("attendance", "Remind unanswered") }}
+						{{ t("attendance", "Remind") }}
 					</NcActionButton>
 					<NcActionButton
 						v-if="canToggleClosed"
@@ -349,6 +349,39 @@
 			:can-see-comments="canSeeComments"
 			:can-manage-appointments="canManageAppointments"
 			:appointment-id="appointment.id" />
+
+		<!-- Remind target dialog -->
+		<NcDialog
+			v-if="showRemindDialog"
+			:name="t('attendance', 'Send reminders')"
+			@closing="showRemindDialog = false">
+			<div class="remind-target-choices">
+				<NcButton
+					variant="primary"
+					wide
+					:disabled="sendingReminders"
+					data-test="remind-non-responders"
+					@click="handleRemindAll('non_responders')">
+					{{ t('attendance', 'Non-responders') }}
+				</NcButton>
+				<NcButton
+					variant="secondary"
+					wide
+					:disabled="sendingReminders"
+					data-test="remind-maybe"
+					@click="handleRemindAll('maybe')">
+					{{ t('attendance', 'Maybe responders') }}
+				</NcButton>
+				<NcButton
+					variant="secondary"
+					wide
+					:disabled="sendingReminders"
+					data-test="remind-both"
+					@click="handleRemindAll('both')">
+					{{ t('attendance', 'Both') }}
+				</NcButton>
+			</div>
+		</NcDialog>
 	</div>
 </template>
 
@@ -358,6 +391,7 @@ import {
 	NcButton,
 	NcActions,
 	NcActionButton,
+	NcDialog,
 	NcInputField,
 	NcChip,
 } from '@nextcloud/vue'
@@ -561,12 +595,15 @@ const handleExport = () => {
 }
 
 const sendingReminders = ref(false)
+const showRemindDialog = ref(false)
 
-const handleRemindAll = async () => {
+const handleRemindAll = async (target = 'non_responders') => {
+	showRemindDialog.value = false
 	sendingReminders.value = true
 	try {
 		const response = await axios.post(
 			generateUrl(`/apps/attendance/api/appointments/${props.appointment.id}/remind`),
+			{ target },
 		)
 		const count = response.data.sent || 0
 		showSuccess(t('attendance', '{count} reminders sent', { count }))
@@ -634,6 +671,13 @@ const handleCommentInputEvent = () => {
 
 <style scoped lang="scss">
 @use "../../styles/shared.scss";
+
+.remind-target-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 0;
+}
 
 .appointment-card {
     background: var(--color-main-background);

@@ -126,6 +126,7 @@ namespace OCA\Attendance;
  *   calendarSyncAvailable: bool,
  *   notificationsAppEnabled: bool,
  *   closing: bool,
+ *   remindMaybe: bool,
  * }
  * @psalm-type AttendanceUserConfig = array{
  *   displayOrder: string,
@@ -136,6 +137,7 @@ namespace OCA\Attendance;
  *   enabled: bool,
  *   reminderDays: int,
  *   reminderFrequency: int,
+ *   reminderTarget: string,
  * }
  * @psalm-type AttendanceAdminCalendarSyncConfig = array{
  *   enabled: bool,

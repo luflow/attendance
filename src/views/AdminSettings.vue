@@ -176,6 +176,36 @@
 							:helper-text="t('attendance', 'How often to remind users who haven\'t responded. Set to 0 to only remind once, or 1-30 to repeat reminders every N days.')"
 							data-test="input-reminder-frequency"
 							:input-props="{ min: 0, max: 30 }" />
+
+						<div class="reminder-target-section">
+							<label class="reminder-target-label">
+								{{ t('attendance', 'Remind recipients') }}
+							</label>
+							<NcCheckboxRadioSwitch
+								v-model="reminderTarget"
+								type="radio"
+								value="non_responders"
+								name="reminder-target"
+								data-test="radio-reminder-target-non-responders">
+								{{ t('attendance', 'Non-responders only') }}
+							</NcCheckboxRadioSwitch>
+							<NcCheckboxRadioSwitch
+								v-model="reminderTarget"
+								type="radio"
+								value="maybe"
+								name="reminder-target"
+								data-test="radio-reminder-target-maybe">
+								{{ t('attendance', 'Maybe responders only') }}
+							</NcCheckboxRadioSwitch>
+							<NcCheckboxRadioSwitch
+								v-model="reminderTarget"
+								type="radio"
+								value="both"
+								name="reminder-target"
+								data-test="radio-reminder-target-both">
+								{{ t('attendance', 'Both non-responders and maybe responders') }}
+							</NcCheckboxRadioSwitch>
+						</div>
 					</div>
 
 					<div v-if="remindersEnabled" class="reminder-preview" data-test="reminder-preview">
@@ -429,6 +459,7 @@ const selectedSelfCheckinRoles = ref([])
 const remindersEnabled = ref(false)
 const reminderDays = ref(7)
 const reminderFrequency = ref(0)
+const reminderTarget = ref('non_responders')
 const notificationsAppEnabled = ref(true)
 const nextAppointment = ref(null)
 const nextReminderRun = ref(null)
@@ -540,6 +571,7 @@ const loadSettings = async () => {
 		remindersEnabled.value = config.reminders.enabled || false
 		reminderDays.value = config.reminders.reminderDays || 7
 		reminderFrequency.value = config.reminders.reminderFrequency || 0
+		reminderTarget.value = config.reminders.reminderTarget || 'non_responders'
 		notificationsAppEnabled.value = caps.notificationsAppEnabled !== false
 		nextAppointment.value = status.nextAppointment || null
 		nextReminderRun.value = status.nextReminderRun || null
@@ -614,6 +646,7 @@ const saveSettings = async () => {
 					enabled: remindersEnabled.value,
 					reminderDays: reminderDays.value,
 					reminderFrequency: reminderFrequency.value,
+					reminderTarget: reminderTarget.value,
 				},
 				calendarSync: {
 					enabled: calendarSyncEnabled.value,
@@ -724,6 +757,17 @@ onMounted(async () => {
 
 .input-field.reminder-frequency-field {
 	margin-block-start: 40px;
+}
+
+.reminder-target-section {
+	margin-top: 24px;
+}
+
+.reminder-target-label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 8px;
+	font-size: 14px;
 }
 
 .reminder-preview {

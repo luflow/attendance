@@ -261,7 +261,7 @@ class ResponseSummaryService {
 		}
 
 		$summary[$responseValue]++;
-		$respondedUserIds[$userId] = true;
+		$respondedUserIds[$userId] = $responseValue;
 
 		// Get user from cache
 		$user = $cache['users'][$userId] ?? null;
@@ -400,28 +400,33 @@ class ResponseSummaryService {
 			// Get users from cache
 			$groupUsers = $cache['groupUsers'][$groupId] ?? [];
 			$nonRespondingUsers = [];
+			$maybeUsers = [];
 
 			foreach ($groupUsers as $user) {
 				$userId = $user->getUID();
-
-				// Skip if already responded (O(1) lookup)
-				if (isset($respondedUserIds[$userId])) {
-					continue;
-				}
 
 				// Filter to only actual target attendees
 				if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
 					continue;
 				}
 
-				$nonRespondingUsers[] = [
-					'userId' => $userId,
-					'displayName' => $user->getDisplayName()
-				];
+				$userResponse = $respondedUserIds[$userId] ?? null;
+				if ($userResponse === null) {
+					$nonRespondingUsers[] = [
+						'userId' => $userId,
+						'displayName' => $user->getDisplayName()
+					];
+				} elseif ($userResponse === 'maybe') {
+					$maybeUsers[] = [
+						'userId' => $userId,
+						'displayName' => $user->getDisplayName()
+					];
+				}
 			}
 
 			$summary['by_group'][$groupId]['no_response'] = count($nonRespondingUsers);
 			$summary['by_group'][$groupId]['non_responding_users'] = $nonRespondingUsers;
+			$summary['by_group'][$groupId]['maybe_users'] = $maybeUsers;
 		}
 	}
 
@@ -457,30 +462,34 @@ class ResponseSummaryService {
 			// Get team members from cache
 			$teamMemberIds = $cache['teamMembers'][$teamId] ?? [];
 			$nonRespondingUsers = [];
+			$maybeUsers = [];
 
 			foreach ($teamMemberIds as $userId) {
-				// Skip if already responded (O(1) lookup)
-				if (isset($respondedUserIds[$userId])) {
-					continue;
-				}
-
 				// Filter to only actual target attendees
 				if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
 					continue;
 				}
 
-				// Get user for display name
-				$user = $this->userManager->get($userId);
-				if ($user) {
-					$nonRespondingUsers[] = [
-						'userId' => $userId,
-						'displayName' => $user->getDisplayName()
-					];
+				$userResponse = $respondedUserIds[$userId] ?? null;
+				if ($userResponse === null || $userResponse === 'maybe') {
+					$user = $this->userManager->get($userId);
+					if ($user) {
+						$userData = [
+							'userId' => $userId,
+							'displayName' => $user->getDisplayName()
+						];
+						if ($userResponse === null) {
+							$nonRespondingUsers[] = $userData;
+						} else {
+							$maybeUsers[] = $userData;
+						}
+					}
 				}
 			}
 
 			$summary['by_team'][$teamId]['no_response'] = count($nonRespondingUsers);
 			$summary['by_team'][$teamId]['non_responding_users'] = $nonRespondingUsers;
+			$summary['by_team'][$teamId]['maybe_users'] = $maybeUsers;
 		}
 	}
 
@@ -494,17 +503,20 @@ class ResponseSummaryService {
 		array $cache,
 	): void {
 		$nonRespondingUsers = [];
+		$maybeUsers = [];
 
 		foreach ($cache['allUsers'] as $user) {
 			$userId = $user->getUID();
 
-			// Skip if already responded (O(1) lookup)
-			if (isset($respondedUserIds[$userId])) {
+			// Filter: Only include actual target attendees
+			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
 				continue;
 			}
 
-			// Filter: Only include actual target attendees
-			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
+			$userResponse = $respondedUserIds[$userId] ?? null;
+
+			// Only process non-responders and maybe-responders
+			if ($userResponse !== null && $userResponse !== 'maybe') {
 				continue;
 			}
 
@@ -538,15 +550,21 @@ class ResponseSummaryService {
 
 			// Only count users who belong to at least one relevant group or team
 			if ($hasRelevantGroup || $hasRelevantTeam) {
-				$nonRespondingUsers[] = [
+				$userData = [
 					'userId' => $userId,
 					'displayName' => $user->getDisplayName()
 				];
+				if ($userResponse === null) {
+					$nonRespondingUsers[] = $userData;
+				} else {
+					$maybeUsers[] = $userData;
+				}
 			}
 		}
 
 		$summary['no_response'] = count($nonRespondingUsers);
 		$summary['non_responding_users'] = $nonRespondingUsers;
+		$summary['maybe_users'] = $maybeUsers;
 	}
 
 	/**
@@ -558,10 +576,11 @@ class ResponseSummaryService {
 	 */
 	private function filterEmptyGroups(array $byGroup): array {
 		return array_filter($byGroup, function (array $group): bool {
-			// A group is considered non-empty if it has any responses or non-responding users
+			// A group is considered non-empty if it has any responses, non-responding, or maybe users
 			$hasResponses = !empty($group['responses']);
 			$hasNonResponding = !empty($group['non_responding_users']);
-			return $hasResponses || $hasNonResponding;
+			$hasMaybeUsers = !empty($group['maybe_users']);
+			return $hasResponses || $hasNonResponding || $hasMaybeUsers;
 		});
 	}
 

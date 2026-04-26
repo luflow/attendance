@@ -13,6 +13,7 @@ use OCP\IConfig;
 class ConfigService {
 	private const APP_ID = 'attendance';
 	public const DEFAULT_PUSH_PROXY_SERVER = 'https://push.anwesenheit.app';
+	public const VALID_REMINDER_TARGETS = ['non_responders', 'maybe', 'both'];
 
 	private IConfig $config;
 
@@ -137,22 +138,48 @@ class ConfigService {
 	}
 
 	/**
+	 * Get the reminder target: who should receive reminders.
+	 *
+	 * @return string One of 'non_responders', 'maybe', 'both'
+	 */
+	public function getReminderTarget(): string {
+		$target = $this->config->getAppValue(self::APP_ID, 'reminder_target', 'non_responders');
+		if (!in_array($target, self::VALID_REMINDER_TARGETS, true)) {
+			return 'non_responders';
+		}
+		return $target;
+	}
+
+	/**
+	 * Set the reminder target.
+	 *
+	 * @param string $target One of 'non_responders', 'maybe', 'both'
+	 */
+	public function setReminderTarget(string $target): void {
+		if (!in_array($target, self::VALID_REMINDER_TARGETS, true)) {
+			$target = 'non_responders';
+		}
+		$this->config->setAppValue(self::APP_ID, 'reminder_target', $target);
+	}
+
+	/**
 	 * Get all reminder settings at once.
 	 *
-	 * @return array{enabled: bool, reminderDays: int, reminderFrequency: int}
+	 * @return array{enabled: bool, reminderDays: int, reminderFrequency: int, reminderTarget: string}
 	 */
 	public function getReminderSettings(): array {
 		return [
 			'enabled' => $this->areRemindersEnabled(),
 			'reminderDays' => $this->getReminderDays(),
 			'reminderFrequency' => $this->getReminderFrequency(),
+			'reminderTarget' => $this->getReminderTarget(),
 		];
 	}
 
 	/**
 	 * Set all reminder settings at once.
 	 *
-	 * @param array{enabled?: bool, reminderDays?: int, reminderFrequency?: int} $settings
+	 * @param array{enabled?: bool, reminderDays?: int, reminderFrequency?: int, reminderTarget?: string} $settings
 	 */
 	public function setReminderSettings(array $settings): void {
 		if (isset($settings['enabled'])) {
@@ -163,6 +190,9 @@ class ConfigService {
 		}
 		if (isset($settings['reminderFrequency'])) {
 			$this->setReminderFrequency($settings['reminderFrequency']);
+		}
+		if (isset($settings['reminderTarget'])) {
+			$this->setReminderTarget($settings['reminderTarget']);
 		}
 	}
 

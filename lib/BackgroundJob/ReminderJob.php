@@ -77,9 +77,14 @@ class ReminderJob extends TimedJob {
 
 		$reminderDays = (int)$this->config->getAppValue('attendance', 'reminder_days', (string)self::DEFAULT_REMINDER_DAYS);
 		$reminderFrequency = (int)$this->config->getAppValue('attendance', 'reminder_frequency', (string)self::DEFAULT_REMINDER_FREQUENCY);
+		$reminderTarget = $this->config->getAppValue('attendance', 'reminder_target', 'non_responders');
+		if (!in_array($reminderTarget, ConfigService::VALID_REMINDER_TARGETS, true)) {
+			$reminderTarget = 'non_responders';
+		}
 		$this->logger->info('Reminder configuration', [
 			'reminderDays' => $reminderDays,
 			'reminderFrequencyDays' => $reminderFrequency,
+			'reminderTarget' => $reminderTarget,
 		]);
 
 		$utc = new \DateTimeZone('UTC');
@@ -107,11 +112,11 @@ class ReminderJob extends TimedJob {
 				'startDatetime' => $appointment->getStartDatetime(),
 			]);
 
-			// Get all responses for this appointment
+			// Get all responses for this appointment (store response value for target-aware filtering)
 			$responses = $this->responseMapper->findByAppointment($appointment->getId());
 			$respondedUserIds = [];
 			foreach ($responses as $response) {
-				$respondedUserIds[$response->getUserId()] = true;
+				$respondedUserIds[$response->getUserId()] = $response->getResponse();
 			}
 
 			$this->logger->info('Responses found for appointment', [
@@ -145,11 +150,24 @@ class ReminderJob extends TimedJob {
 			foreach ($relevantUsers as $user) {
 				$userId = $user->getUID();
 
-				// Skip if user already responded (O(1) lookup with hash map)
-				if (isset($respondedUserIds[$userId])) {
-					$skippedCount++;
-					$this->logger->debug('Skipping user - already responded', ['userId' => $userId]);
-					continue;
+				// Target-aware skip logic
+				$userResponse = $respondedUserIds[$userId] ?? null;
+				if ($userResponse !== null) {
+					// User responded — only remind if they said 'maybe' and target includes maybe
+					$shouldRemindMaybe = ($userResponse === 'maybe')
+						&& in_array($reminderTarget, ['maybe', 'both'], true);
+					if (!$shouldRemindMaybe) {
+						$skippedCount++;
+						$this->logger->debug('Skipping user - already responded', ['userId' => $userId, 'response' => $userResponse]);
+						continue;
+					}
+				} else {
+					// No response — only remind if target includes non_responders
+					if (!in_array($reminderTarget, ['non_responders', 'both'], true)) {
+						$skippedCount++;
+						$this->logger->debug('Skipping user - no response but target excludes non-responders', ['userId' => $userId]);
+						continue;
+					}
 				}
 
 				// Check if user was recently reminded (O(1) lookup from pre-fetched map)

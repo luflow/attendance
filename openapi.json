@@ -307,7 +307,8 @@
                     "teamsAvailable",
                     "calendarSyncAvailable",
                     "notificationsAppEnabled",
-                    "closing"
+                    "closing",
+                    "remindMaybe"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -326,6 +327,9 @@
                         "type": "boolean"
                     },
                     "closing": {
+                        "type": "boolean"
+                    },
+                    "remindMaybe": {
                         "type": "boolean"
                     }
                 }
@@ -2409,7 +2413,7 @@
         "/index.php/apps/attendance/api/appointments/{id}/remind": {
             "post": {
                 "operationId": "appointment-send-reminders",
-                "summary": "Send reminder notifications to all non-responding users for an appointment",
+                "summary": "Send reminder notifications to users for an appointment",
                 "tags": [
                     "appointment"
                 ],
@@ -2421,6 +2425,23 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "target": {
+                                        "type": "string",
+                                        "default": "non_responders",
+                                        "description": "Who to remind: 'non_responders', 'maybe', or 'both'"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
                     {
                         "name": "id",
@@ -2440,6 +2461,24 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/ReminderResult"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
                                 }
                             }
                         }

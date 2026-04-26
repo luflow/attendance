@@ -106,16 +106,27 @@ class ReminderJobTest extends TestCase {
 	/**
 	 * Helper: set up the standard config mock for enabled reminders.
 	 */
-	private function configureReminders(bool $enabled, int $days, int $frequency): void {
+	private function configureReminders(bool $enabled, int $days, int $frequency, string $target = 'non_responders'): void {
 		$this->config->method('getAppValue')
-			->willReturnCallback(function (string $app, string $key, string $default) use ($enabled, $days, $frequency) {
+			->willReturnCallback(function (string $app, string $key, string $default) use ($enabled, $days, $frequency, $target) {
 				return match ($key) {
 					'reminders_enabled' => $enabled ? 'yes' : 'no',
 					'reminder_days' => (string)$days,
 					'reminder_frequency' => (string)$frequency,
+					'reminder_target' => $target,
 					default => $default,
 				};
 			});
+	}
+
+	/**
+	 * Helper: create an AttendanceResponse mock with userId and response value.
+	 */
+	private function makeResponse(string $userId, string $response = 'yes'): AttendanceResponse {
+		$r = new AttendanceResponse();
+		$r->setUserId($userId);
+		$r->setResponse($response);
+		return $r;
 	}
 
 	/**
@@ -392,8 +403,7 @@ class ReminderJobTest extends TestCase {
 		$appointmentDate = (new \DateTime('now', $utc))->modify('+3 days')->format('Y-m-d H:i:s');
 		$appointment = $this->makeAppointment(1, 'Test', $appointmentDate);
 
-		$response = new AttendanceResponse();
-		$response->setUserId('alice');
+		$response = $this->makeResponse('alice', 'yes');
 
 		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
 		$this->responseMapper->method('findByAppointment')->willReturn([$response]);
@@ -420,9 +430,8 @@ class ReminderJobTest extends TestCase {
 		$appointmentDate = (new \DateTime('now', $utc))->modify('+2 days')->format('Y-m-d H:i:s');
 		$appointment = $this->makeAppointment(1, 'Meeting', $appointmentDate);
 
-		// alice responded
-		$response = new AttendanceResponse();
-		$response->setUserId('alice');
+		// alice responded with 'yes'
+		$response = $this->makeResponse('alice', 'yes');
 
 		// bob was reminded 1 day ago (too recent for frequency=3)
 		$oneDayAgo = (new \DateTime('now', $utc))->modify('-1 day')->format('Y-m-d H:i:s');
@@ -718,6 +727,129 @@ class ReminderJobTest extends TestCase {
 
 		// Only bob's reminder should be logged (alice's notification failed)
 		$this->reminderLogMapper->expects($this->once())->method('insert');
+
+		$this->runJob();
+	}
+
+	// =========================================================================
+	// Maybe-responder reminder target tests
+	// =========================================================================
+
+	public function testMaybeResponderIsRemindedWhenTargetIsMaybe(): void {
+		$this->configureReminders(true, 7, 0, 'maybe');
+		$this->mockNotifications();
+
+		$utc = new \DateTimeZone('UTC');
+		$appointmentDate = (new \DateTime('now', $utc))->modify('+3 days')->format('Y-m-d H:i:s');
+		$appointment = $this->makeAppointment(1, 'Test', $appointmentDate);
+
+		$response = $this->makeResponse('alice', 'maybe');
+
+		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
+		$this->responseMapper->method('findByAppointment')->willReturn([$response]);
+		$this->reminderLogMapper->method('findByAppointment')->willReturn([]);
+		$this->configService->method('getWhitelistedGroups')->willReturn(['group1']);
+		$this->visibilityService->method('getRelevantUsersForAppointment')
+			->willReturn(['alice' => $this->makeUser('alice')]);
+		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(false);
+
+		$this->notificationManager->expects($this->once())->method('notify');
+
+		$this->runJob();
+	}
+
+	public function testMaybeResponderIsRemindedWhenTargetIsBoth(): void {
+		$this->configureReminders(true, 7, 0, 'both');
+		$this->mockNotifications();
+
+		$utc = new \DateTimeZone('UTC');
+		$appointmentDate = (new \DateTime('now', $utc))->modify('+3 days')->format('Y-m-d H:i:s');
+		$appointment = $this->makeAppointment(1, 'Test', $appointmentDate);
+
+		$maybeResponse = $this->makeResponse('alice', 'maybe');
+
+		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
+		$this->responseMapper->method('findByAppointment')->willReturn([$maybeResponse]);
+		$this->reminderLogMapper->method('findByAppointment')->willReturn([]);
+		$this->configService->method('getWhitelistedGroups')->willReturn(['group1']);
+		$this->visibilityService->method('getRelevantUsersForAppointment')
+			->willReturn([
+				'alice' => $this->makeUser('alice'),
+				'bob' => $this->makeUser('bob'),
+			]);
+		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(false);
+
+		// Both alice (maybe) and bob (no response) should be reminded
+		$this->notificationManager->expects($this->exactly(2))->method('notify');
+
+		$this->runJob();
+	}
+
+	public function testMaybeResponderIsSkippedWhenTargetIsNonResponders(): void {
+		$this->configureReminders(true, 7, 0, 'non_responders');
+		$this->mockNotifications();
+
+		$utc = new \DateTimeZone('UTC');
+		$appointmentDate = (new \DateTime('now', $utc))->modify('+3 days')->format('Y-m-d H:i:s');
+		$appointment = $this->makeAppointment(1, 'Test', $appointmentDate);
+
+		$response = $this->makeResponse('alice', 'maybe');
+
+		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
+		$this->responseMapper->method('findByAppointment')->willReturn([$response]);
+		$this->reminderLogMapper->method('findByAppointment')->willReturn([]);
+		$this->configService->method('getWhitelistedGroups')->willReturn(['group1']);
+		$this->visibilityService->method('getRelevantUsersForAppointment')
+			->willReturn(['alice' => $this->makeUser('alice')]);
+		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(false);
+
+		$this->notificationManager->expects($this->never())->method('notify');
+
+		$this->runJob();
+	}
+
+	public function testNonResponderIsSkippedWhenTargetIsMaybeOnly(): void {
+		$this->configureReminders(true, 7, 0, 'maybe');
+		$this->mockNotifications();
+
+		$utc = new \DateTimeZone('UTC');
+		$appointmentDate = (new \DateTime('now', $utc))->modify('+3 days')->format('Y-m-d H:i:s');
+		$appointment = $this->makeAppointment(1, 'Test', $appointmentDate);
+
+		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
+		$this->responseMapper->method('findByAppointment')->willReturn([]);
+		$this->reminderLogMapper->method('findByAppointment')->willReturn([]);
+		$this->configService->method('getWhitelistedGroups')->willReturn(['group1']);
+		$this->visibilityService->method('getRelevantUsersForAppointment')
+			->willReturn(['alice' => $this->makeUser('alice')]);
+		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(false);
+
+		// alice has no response, but target is 'maybe' only → skip
+		$this->notificationManager->expects($this->never())->method('notify');
+
+		$this->runJob();
+	}
+
+	public function testYesResponderIsNeverReminded(): void {
+		$this->configureReminders(true, 7, 0, 'both');
+		$this->mockNotifications();
+
+		$utc = new \DateTimeZone('UTC');
+		$appointmentDate = (new \DateTime('now', $utc))->modify('+3 days')->format('Y-m-d H:i:s');
+		$appointment = $this->makeAppointment(1, 'Test', $appointmentDate);
+
+		$response = $this->makeResponse('alice', 'yes');
+
+		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
+		$this->responseMapper->method('findByAppointment')->willReturn([$response]);
+		$this->reminderLogMapper->method('findByAppointment')->willReturn([]);
+		$this->configService->method('getWhitelistedGroups')->willReturn(['group1']);
+		$this->visibilityService->method('getRelevantUsersForAppointment')
+			->willReturn(['alice' => $this->makeUser('alice')]);
+		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(false);
+
+		// Even with target='both', a 'yes' response should never be reminded
+		$this->notificationManager->expects($this->never())->method('notify');
 
 		$this->runJob();
 	}

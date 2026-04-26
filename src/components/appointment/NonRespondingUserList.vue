@@ -1,9 +1,9 @@
 <template>
-	<div class="non-responding-users">
-		<div class="non-responding-header">
-			{{ t("attendance", "No response yet:") }}
+	<div class="reminder-user-list" :class="`reminder-user-list--${variant}`">
+		<div class="reminder-user-list__header">
+			{{ headerText }}
 		</div>
-		<div class="non-responding-list">
+		<div class="reminder-user-list__users">
 			<template
 				v-for="(u, idx) in sortedUsers"
 				:key="u.userId">
@@ -15,8 +15,8 @@
 					@update:shown="(val) => openPopover = val ? u.userId : null">
 					<template #trigger>
 						<span
-							class="non-responding-user non-responding-user--clickable"
-							:class="{ 'non-responding-user--pending': remindingUsers.has(u.userId) }"
+							class="reminder-user reminder-user--clickable"
+							:class="{ 'reminder-user--pending': remindingUsers.has(u.userId) }"
 							role="button"
 							tabindex="0"
 							@keydown.enter.prevent="openPopover = u.userId"
@@ -36,7 +36,7 @@
 					</div>
 				</NcPopover><span
 					v-else
-					class="non-responding-user">{{ u.displayName }}</span><template v-if="idx < sortedUsers.length - 1">, </template>
+					class="reminder-user">{{ u.displayName }}</span><template v-if="idx < sortedUsers.length - 1">, </template>
 			</template>
 		</div>
 	</div>
@@ -51,6 +51,15 @@ const props = defineProps({
 	users: {
 		type: Array,
 		required: true,
+	},
+	headerText: {
+		type: String,
+		default: '',
+	},
+	variant: {
+		type: String,
+		default: 'default',
+		validator: (v) => ['default', 'warning'].includes(v),
 	},
 	canManageAppointments: {
 		type: Boolean,
@@ -84,24 +93,28 @@ const sortedUsers = computed(() => {
 </script>
 
 <style scoped lang="scss">
-.non-responding-users {
+.reminder-user-list {
     margin-top: 10px;
     padding: 8px;
     background: var(--color-background-dark);
     border-radius: var(--border-radius);
 
-    .non-responding-header {
+    &--warning {
+        background: var(--color-warning-hover, rgba(250, 200, 0, 0.08));
+    }
+
+    .reminder-user-list__header {
         font-weight: 500;
         margin-bottom: 5px;
         font-size: 13px;
         color: var(--color-text-maxcontrast);
     }
 
-    .non-responding-list {
+    .reminder-user-list__users {
         font-size: 13px;
         color: var(--color-text-lighter);
 
-        .non-responding-user {
+        .reminder-user {
             white-space: nowrap;
         }
 
@@ -109,14 +122,14 @@ const sortedUsers = computed(() => {
             display: inline;
         }
 
-        .non-responding-user--clickable {
+        .reminder-user--clickable {
             cursor: pointer;
 
             &:hover {
                 text-decoration: underline;
             }
 
-            &.non-responding-user--pending {
+            &.reminder-user--pending {
                 opacity: 0.5;
                 cursor: wait;
             }

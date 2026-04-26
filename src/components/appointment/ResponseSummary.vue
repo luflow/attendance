@@ -99,6 +99,33 @@
 											)
 										"
 										no-close />
+								<NcPopover
+									v-if="response.response === 'maybe' && canManageAppointments && appointmentId"
+									:shown="openRemindPopover === response.userId"
+									popup-role="dialog"
+									class="remind-maybe-popover-wrapper"
+									@update:shown="(val) => openRemindPopover = val ? response.userId : null">
+									<template #trigger>
+										<span
+											class="remind-maybe-btn"
+											:class="{ 'remind-maybe-btn--pending': remindingUsers.has(response.userId) }"
+											role="button"
+											tabindex="0"
+											@click.stop><BellRingOutlineIcon :size="14" class="remind-icon" /></span>
+									</template>
+									<div class="remind-popover" role="dialog" aria-modal="true">
+										<p>{{ t('attendance', 'Send a reminder to {name}?', { name: response.userName }) }}</p>
+										<NcButton
+											variant="primary"
+											:disabled="remindingUsers.has(response.userId)"
+											@click="handleRemindFromPopover(response.userId)">
+											<template #icon>
+												<BellRingOutlineIcon :size="20" />
+											</template>
+											{{ t('attendance', 'Send reminder') }}
+										</NcButton>
+									</div>
+								</NcPopover>
 								</div>
 								<div
 									v-if="response.isCheckedIn"
@@ -139,6 +166,7 @@
 								groupStats.non_responding_users.length > 0
 						"
 						:users="groupStats.non_responding_users"
+						:header-text="t('attendance', 'No response yet:')"
 						:can-manage-appointments="canManageAppointments"
 						:appointment-id="appointmentId"
 						:reminding-users="remindingUsers"
@@ -215,6 +243,33 @@
 											)
 										"
 										no-close />
+								<NcPopover
+									v-if="response.response === 'maybe' && canManageAppointments && appointmentId"
+									:shown="openRemindPopover === response.userId"
+									popup-role="dialog"
+									class="remind-maybe-popover-wrapper"
+									@update:shown="(val) => openRemindPopover = val ? response.userId : null">
+									<template #trigger>
+										<span
+											class="remind-maybe-btn"
+											:class="{ 'remind-maybe-btn--pending': remindingUsers.has(response.userId) }"
+											role="button"
+											tabindex="0"
+											@click.stop><BellRingOutlineIcon :size="14" class="remind-icon" /></span>
+									</template>
+									<div class="remind-popover" role="dialog" aria-modal="true">
+										<p>{{ t('attendance', 'Send a reminder to {name}?', { name: response.userName }) }}</p>
+										<NcButton
+											variant="primary"
+											:disabled="remindingUsers.has(response.userId)"
+											@click="handleRemindFromPopover(response.userId)">
+											<template #icon>
+												<BellRingOutlineIcon :size="20" />
+											</template>
+											{{ t('attendance', 'Send reminder') }}
+										</NcButton>
+									</div>
+								</NcPopover>
 								</div>
 								<div
 									v-if="response.isCheckedIn"
@@ -255,6 +310,7 @@
 								teamStats.non_responding_users.length > 0
 						"
 						:users="teamStats.non_responding_users"
+						:header-text="t('attendance', 'No response yet:')"
 						:can-manage-appointments="canManageAppointments"
 						:appointment-id="appointmentId"
 						:reminding-users="remindingUsers"
@@ -315,6 +371,33 @@
 											)
 										"
 										no-close />
+								<NcPopover
+									v-if="response.response === 'maybe' && canManageAppointments && appointmentId"
+									:shown="openRemindPopover === response.userId"
+									popup-role="dialog"
+									class="remind-maybe-popover-wrapper"
+									@update:shown="(val) => openRemindPopover = val ? response.userId : null">
+									<template #trigger>
+										<span
+											class="remind-maybe-btn"
+											:class="{ 'remind-maybe-btn--pending': remindingUsers.has(response.userId) }"
+											role="button"
+											tabindex="0"
+											@click.stop><BellRingOutlineIcon :size="14" class="remind-icon" /></span>
+									</template>
+									<div class="remind-popover" role="dialog" aria-modal="true">
+										<p>{{ t('attendance', 'Send a reminder to {name}?', { name: response.userName }) }}</p>
+										<NcButton
+											variant="primary"
+											:disabled="remindingUsers.has(response.userId)"
+											@click="handleRemindFromPopover(response.userId)">
+											<template #icon>
+												<BellRingOutlineIcon :size="20" />
+											</template>
+											{{ t('attendance', 'Send reminder') }}
+										</NcButton>
+									</div>
+								</NcPopover>
 								</div>
 								<div
 									v-if="response.isCheckedIn"
@@ -355,12 +438,13 @@
 
 <script setup>
 import { reactive, ref, computed } from 'vue'
-import { NcChip } from '@nextcloud/vue'
+import { NcButton, NcChip, NcPopover } from '@nextcloud/vue'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
 import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
 import AccountStar from 'vue-material-design-icons/AccountStar.vue'
+import BellRingOutlineIcon from 'vue-material-design-icons/BellRingOutline.vue'
 import NonRespondingUserList from './NonRespondingUserList.vue'
 import { getResponseText, getResponseVariant } from '../../utils/response.js'
 
@@ -385,6 +469,7 @@ const props = defineProps({
 
 const expandedGroups = ref({})
 const remindingUsers = reactive(new Set())
+const openRemindPopover = ref(null)
 
 const remindUser = async (userId) => {
 	if (!props.appointmentId) return
@@ -400,6 +485,11 @@ const remindUser = async (userId) => {
 	} finally {
 		remindingUsers.delete(userId)
 	}
+}
+
+const handleRemindFromPopover = (userId) => {
+	openRemindPopover.value = null
+	remindUser(userId)
 }
 
 const hasGroupsOrTeams = computed(() => {
@@ -540,6 +630,31 @@ const hasOthersResponses = () => {
 
                     strong {
                         font-size: 14px;
+                    }
+
+                    :deep(.remind-maybe-popover-wrapper) {
+                        display: inline-flex;
+                    }
+
+                    .remind-maybe-btn {
+                        cursor: pointer;
+
+                        .remind-icon {
+                            display: inline-flex;
+                            margin-left: 2px;
+                            opacity: 0.5;
+                            vertical-align: middle;
+                            cursor: pointer;
+                        }
+
+                        &:hover .remind-icon {
+                            opacity: 1;
+                        }
+
+                        &--pending {
+                            opacity: 0.3;
+                            cursor: wait;
+                        }
                     }
                 }
 

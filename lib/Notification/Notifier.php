@@ -58,9 +58,12 @@ class Notifier implements INotifier {
 			$appointmentId = $parameters['appointmentId'] ?? 0;
 			if ($appointmentId > 0) {
 				try {
-					$this->responseMapper->findByAppointmentAndUser($appointmentId, $notification->getUser());
-					// User has already responded — dismiss this notification
-					throw new AlreadyProcessedException();
+					$response = $this->responseMapper->findByAppointmentAndUser($appointmentId, $notification->getUser());
+					// Only dismiss if user gave a definitive answer (yes or no).
+					// Maybe-responders may still receive reminders to decide.
+					if ($response->getResponse() !== 'maybe') {
+						throw new AlreadyProcessedException();
+					}
 				} catch (DoesNotExistException $e) {
 					// No response yet — continue preparing
 				}
