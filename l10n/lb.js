@@ -8,7 +8,6 @@ OC.L10N.register(
     "Settings" : "Astellungen",
     "None" : "Keng",
     "Subscribe" : "Umellen",
-    "OK" : "OK",
     "Export" : "Exportéieren",
     "Select all" : "All auswielen",
     "Copy" : "Kopieren",

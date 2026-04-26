@@ -16,7 +16,6 @@ OC.L10N.register(
     "Dark" : "Ubrik",
     "Notifications" : "Ilɣa",
     "Privacy Policy" : "Tasertit n tbaḍnit",
-    "OK" : "Ih",
     "About" : "Ɣef",
     "Export" : "Sifeḍ",
     "Select all" : "Fren-iten akk",

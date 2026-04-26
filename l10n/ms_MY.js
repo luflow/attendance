@@ -6,7 +6,6 @@ OC.L10N.register(
     "Connect" : "Berhubung",
     "Settings" : "Tetapan",
     "Notifications" : "Pemberitahuan",
-    "OK" : "OK",
     "Export" : "Eksport",
     "Cancel" : "Cancel",
     "Edit" : "Sunting",

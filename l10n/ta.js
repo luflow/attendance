@@ -7,7 +7,6 @@ OC.L10N.register(
     "Connect" : "இணைக்க",
     "Settings" : "அமைப்புகள்",
     "None" : "ஒன்றுமில்லை",
-    "OK" : "OK",
     "Export" : "ஏற்றுமதி",
     "Cancel" : "Cancel",
     "Share link" : "இணைப்பைப் பகிரவும்",
