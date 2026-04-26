@@ -722,23 +722,6 @@ const onDeadlineAbsoluteChange = (value) => {
 	deadlineAbsolute.value = formatDateTimeForInput(date.toISOString())
 }
 
-/**
- * Express a positive ms offset in the largest unit that divides cleanly,
- * so an existing 86_400_000 ms deadline shows up as "1 days" rather than
- * "1440 minutes" when a user opens the edit form.
- *
- * @param {number} ms Offset in milliseconds.
- * @return {{value: number, unit: string}}
- */
-const decomposeOffset = (ms) => {
-	if (ms <= 0) return { value: 1, unit: 'days' }
-	for (const unit of ['weeks', 'days', 'hours', 'minutes']) {
-		const u = UNIT_MS[unit]
-		if (ms % u === 0) return { value: ms / u, unit }
-	}
-	return { value: Math.round(ms / UNIT_MS.minutes), unit: 'minutes' }
-}
-
 // Watch for changes to visibilityItems to update formData
 watch(visibilityItems, (selected) => {
 	const selectedArray = Array.isArray(selected)
@@ -801,31 +784,20 @@ const loadAppointment = async () => {
 			)
 		}
 
-		// Initialise the deadline UI from the loaded appointment. We pick the
-		// mode that reads most naturally to the user:
-		//  - no deadline             → 'none'
-		//  - deadline at start − offset (positive offset) → 'relative'
-		//  - anything else (legacy / on-or-after start)   → 'absolute'
-		// Copy mode drops the deadline entirely; the new dates may be far
-		// away from the source deadline and reusing it would surprise users.
+		// In edit mode we always default to the absolute picker — the stored
+		// deadline is a single absolute moment and decomposing it back into
+		// "X minutes/hours/..." can produce awkward numbers (e.g. "47
+		// minutes"). The user can switch to relative mode explicitly if they
+		// want to re-anchor it to the start. Copy mode drops the deadline
+		// entirely; the new dates may be far away from the source deadline.
 		hadDeadlineInitially.value = Boolean(
 			props.mode === 'edit' && appointment.responseDeadline,
 		)
 		if (hadDeadlineInitially.value) {
-			const startMs = new Date(appointment.startDatetime).getTime()
-			const deadlineMs = new Date(appointment.responseDeadline).getTime()
-			const offsetMs = startMs - deadlineMs
-			if (Number.isFinite(offsetMs) && offsetMs > 0) {
-				const { value, unit } = decomposeOffset(offsetMs)
-				deadlineMode.value = 'relative'
-				deadlineRelativeValueStr.value = String(value)
-				deadlineRelativeUnit.value = unit
-			} else {
-				deadlineMode.value = 'absolute'
-				deadlineAbsolute.value = formatDateTimeForInput(
-					appointment.responseDeadline,
-				)
-			}
+			deadlineMode.value = 'absolute'
+			deadlineAbsolute.value = formatDateTimeForInput(
+				appointment.responseDeadline,
+			)
 		} else {
 			deadlineMode.value = 'none'
 			deadlineAbsolute.value = ''
