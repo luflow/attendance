@@ -67,11 +67,6 @@ class ReminderJob extends TimedJob {
 	protected function run($argument): void {
 		$this->logger->info('Reminder job starting...');
 
-		// Auto-close runs even when reminders are disabled — a missed deadline
-		// is a promise we made to the inquirer, not a reminder feature.
-		$nowSql = gmdate('Y-m-d H:i:s');
-		$this->autoCloseExpiredAppointments($nowSql);
-
 		$enabled = $this->config->getAppValue('attendance', 'reminders_enabled', 'no') === 'yes';
 		$this->logger->info('Reminders enabled check', ['enabled' => $enabled ? 'yes' : 'no']);
 
@@ -252,15 +247,5 @@ class ReminderJob extends TimedJob {
 			'processedAppointments' => $processedCount,
 			'sentNotifications' => $sentCount,
 		]);
-	}
-
-	private function autoCloseExpiredAppointments(string $nowSql): void {
-		$count = $this->appointmentMapper->autoCloseExpired($nowSql);
-		if ($count > 0) {
-			$this->logger->info('Auto-closed appointments past their deadline', [
-				'count' => $count,
-				'now' => $nowSql,
-			]);
-		}
 	}
 }

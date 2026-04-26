@@ -180,54 +180,54 @@
 			</a>
 		</div>
 
-		<!-- Closed banner / deadline info -->
-		<div v-if="isClosed" class="closed-banner" data-test="closed-banner">
-			<LockIcon :size="20" />
-			<div class="closed-banner-text">
-				<strong>{{ t("attendance", "Inquiry closed") }}</strong>
-				<span v-if="formattedClosedAt">
-					{{
-						appointment.responseDeadline
-							? t("attendance", "Closed automatically on {when}", {
-								when: formattedClosedAt,
-							})
-							: t("attendance", "Closed on {when}", {
-								when: formattedClosedAt,
-							})
-					}}
-				</span>
-			</div>
-			<NcButton
-				v-if="canToggleClosed"
-				variant="secondary"
-				:disabled="togglingClosed"
-				data-test="banner-reopen-inquiry"
-				@click="handleToggleClosed">
-				{{ t("attendance", "Reopen") }}
-			</NcButton>
-		</div>
-		<div
-			v-else-if="formattedDeadline"
-			class="deadline-info"
-			data-test="deadline-info">
-			<ClockIcon :size="16" />
-			<span>{{
-				t("attendance", "Responses possible until {when}", {
-					when: formattedDeadline,
-				})
-			}}</span>
-		</div>
-
 		<!-- Read-only response chip while the inquiry is closed -->
 		<div
 			v-if="isClosed"
 			class="response-section response-section--readonly"
 			data-test="response-section-readonly">
-			<h4>{{ t("attendance", "Your response") }}</h4>
-			<NcChip
-				:text="userResponse ? getResponseText(userResponse) : t('attendance', 'No response')"
-				:variant="userResponse ? getResponseVariant(userResponse) : 'tertiary'"
-				no-close />
+			<div class="response-row">
+				<h4>{{ t("attendance", "Your response") }}</h4>
+				<NcChip
+					:text="userResponse ? getResponseText(userResponse) : t('attendance', 'No response')"
+					:variant="userResponse ? getResponseVariant(userResponse) : 'tertiary'"
+					no-close />
+			</div>
+			<!-- Manager / creator: full banner with Reopen button -->
+			<div v-if="canToggleClosed" class="closed-banner" data-test="closed-banner">
+				<LockIcon :size="20" />
+				<div class="closed-banner-text">
+					<strong>{{ t("attendance", "Inquiry closed") }}</strong>
+					<span v-if="formattedClosedAt">
+						{{
+							appointment.responseDeadline
+								? t("attendance", "Closed automatically on {when}", {
+									when: formattedClosedAt,
+								})
+								: t("attendance", "Closed on {when}", {
+									when: formattedClosedAt,
+								})
+						}}
+					</span>
+				</div>
+				<NcButton
+					variant="secondary"
+					:disabled="togglingClosed"
+					data-test="banner-reopen-inquiry"
+					@click="handleToggleClosed">
+					{{ t("attendance", "Reopen") }}
+				</NcButton>
+			</div>
+			<!-- Other users: minimal closed-info line, mirrors deadline-info styling -->
+			<div v-else class="closed-info" data-test="closed-info">
+				<LockIcon :size="16" />
+				<span>{{
+					formattedClosedAt
+						? (appointment.responseDeadline
+							? t("attendance", "Closed automatically on {when}", { when: formattedClosedAt })
+							: t("attendance", "Closed on {when}", { when: formattedClosedAt }))
+						: t("attendance", "Inquiry closed")
+				}}</span>
+			</div>
 		</div>
 
 		<!-- Response Section (hidden once the inquiry is closed) -->
@@ -271,6 +271,18 @@
 						<CommentIcon :size="20" />
 					</template>
 				</NcButton>
+			</div>
+
+			<div
+				v-if="formattedDeadline"
+				class="deadline-info"
+				data-test="deadline-info">
+				<ClockIcon :size="16" />
+				<span>{{
+					t("attendance", "Responses possible until {when}", {
+						when: formattedDeadline,
+					})
+				}}</span>
 			</div>
 
 			<!-- Comment Section -->
@@ -942,7 +954,8 @@ const handleCommentInputEvent = () => {
     }
 }
 
-.deadline-info {
+.deadline-info,
+.closed-info {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -953,11 +966,25 @@ const handleCommentInputEvent = () => {
 
 .response-section--readonly {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 12px;
+
+    .response-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
 
     h4 {
         margin: 0;
+    }
+
+    .closed-banner {
+        margin-bottom: 0;
+    }
+
+    .closed-info {
+        margin-bottom: 0;
     }
 }
 </style>

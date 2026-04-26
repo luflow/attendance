@@ -141,7 +141,7 @@ class ReminderJobTest extends TestCase {
 	public function testRemindersDisabledSendsNothing(): void {
 		$this->configureReminders(false, 7, 0);
 
-		$this->appointmentMapper->expects($this->never())->method('findStartingBetween');
+		$this->appointmentMapper->expects($this->never())->method('findRemindable');
 		$this->notificationManager->expects($this->never())->method('notify');
 
 		$this->runJob();
@@ -159,7 +159,7 @@ class ReminderJobTest extends TestCase {
 		$appointmentDate = (new \DateTime('now', $utc))->modify('+3 days')->format('Y-m-d H:i:s');
 		$appointment = $this->makeAppointment(1, 'Test', $appointmentDate);
 
-		$this->appointmentMapper->method('findStartingBetween')->willReturn([$appointment]);
+		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
 		$this->responseMapper->method('findByAppointment')->willReturn([]);
 		$this->reminderLogMapper->method('findByAppointment')->willReturn([]);
 		$this->configService->method('getWhitelistedGroups')->willReturn(['group1']);
@@ -189,7 +189,7 @@ class ReminderJobTest extends TestCase {
 		$yesterdayUtc = (new \DateTime('now', $utc))->modify('-1 day')->format('Y-m-d H:i:s');
 		$reminderLog = $this->makeReminderLog(1, 'alice', $yesterdayUtc);
 
-		$this->appointmentMapper->method('findStartingBetween')->willReturn([$appointment]);
+		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
 		$this->responseMapper->method('findByAppointment')->willReturn([]);
 		$this->reminderLogMapper->method('findByAppointment')->willReturn([$reminderLog]);
 		$this->configService->method('getWhitelistedGroups')->willReturn(['group1']);
@@ -218,7 +218,7 @@ class ReminderJobTest extends TestCase {
 		$twoDaysAgo = (new \DateTime('now', $utc))->modify('-2 days')->format('Y-m-d H:i:s');
 		$reminderLog = $this->makeReminderLog(1, 'alice', $twoDaysAgo);
 
-		$this->appointmentMapper->method('findStartingBetween')->willReturn([$appointment]);
+		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
 		$this->responseMapper->method('findByAppointment')->willReturn([]);
 		$this->reminderLogMapper->method('findByAppointment')->willReturn([$reminderLog]);
 		$this->configService->method('getWhitelistedGroups')->willReturn(['group1']);
@@ -243,7 +243,7 @@ class ReminderJobTest extends TestCase {
 		$oneDayAgo = (new \DateTime('now', $utc))->modify('-1 day')->format('Y-m-d H:i:s');
 		$reminderLog = $this->makeReminderLog(1, 'alice', $oneDayAgo);
 
-		$this->appointmentMapper->method('findStartingBetween')->willReturn([$appointment]);
+		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
 		$this->responseMapper->method('findByAppointment')->willReturn([]);
 		$this->reminderLogMapper->method('findByAppointment')->willReturn([$reminderLog]);
 		$this->configService->method('getWhitelistedGroups')->willReturn(['group1']);
@@ -279,7 +279,7 @@ class ReminderJobTest extends TestCase {
 			->format('Y-m-d H:i:s');
 		$reminderLog = $this->makeReminderLog(1, 'alice', $twoDaysAgoLateEvening);
 
-		$this->appointmentMapper->method('findStartingBetween')->willReturn([$appointment]);
+		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
 		$this->responseMapper->method('findByAppointment')->willReturn([]);
 		$this->reminderLogMapper->method('findByAppointment')->willReturn([$reminderLog]);
 		$this->configService->method('getWhitelistedGroups')->willReturn(['group1']);
@@ -311,7 +311,7 @@ class ReminderJobTest extends TestCase {
 			->format('Y-m-d H:i:s');
 		$reminderLog = $this->makeReminderLog(1, 'alice', $earlierToday);
 
-		$this->appointmentMapper->method('findStartingBetween')->willReturn([$appointment]);
+		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
 		$this->responseMapper->method('findByAppointment')->willReturn([]);
 		$this->reminderLogMapper->method('findByAppointment')->willReturn([$reminderLog]);
 		$this->configService->method('getWhitelistedGroups')->willReturn(['group1']);
@@ -335,7 +335,7 @@ class ReminderJobTest extends TestCase {
 		$appointmentDate = (new \DateTime('now', $utc))->modify('+3 days')->format('Y-m-d H:i:s');
 		$appointment = $this->makeAppointment(1, 'Test', $appointmentDate);
 
-		$this->appointmentMapper->method('findStartingBetween')->willReturn([$appointment]);
+		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
 		$this->responseMapper->method('findByAppointment')->willReturn([]);
 		$this->configService->method('getWhitelistedGroups')->willReturn(['group1']);
 		$this->visibilityService->method('getRelevantUsersForAppointment')
@@ -366,7 +366,7 @@ class ReminderJobTest extends TestCase {
 		$sentToday = (new \DateTime('now', $utc))->setTime(2, 0, 0)->format('Y-m-d H:i:s');
 		$reminderLog = $this->makeReminderLog(1, 'alice', $sentToday);
 
-		$this->appointmentMapper->method('findStartingBetween')->willReturn([$appointment]);
+		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
 		$this->responseMapper->method('findByAppointment')->willReturn([]);
 		$this->reminderLogMapper->method('findByAppointment')->willReturn([$reminderLog]);
 		$this->configService->method('getWhitelistedGroups')->willReturn(['group1']);
@@ -395,7 +395,7 @@ class ReminderJobTest extends TestCase {
 		$response = new AttendanceResponse();
 		$response->setUserId('alice');
 
-		$this->appointmentMapper->method('findStartingBetween')->willReturn([$appointment]);
+		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
 		$this->responseMapper->method('findByAppointment')->willReturn([$response]);
 		$this->reminderLogMapper->method('findByAppointment')->willReturn([]);
 		$this->configService->method('getWhitelistedGroups')->willReturn(['group1']);
@@ -435,7 +435,7 @@ class ReminderJobTest extends TestCase {
 		// dave has never been reminded
 		// (no log entry)
 
-		$this->appointmentMapper->method('findStartingBetween')->willReturn([$appointment]);
+		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
 		$this->responseMapper->method('findByAppointment')->willReturn([$response]);
 		$this->reminderLogMapper->method('findByAppointment')->willReturn([$bobLog, $carolLog]);
 		$this->configService->method('getWhitelistedGroups')->willReturn(['group1']);
@@ -464,7 +464,7 @@ class ReminderJobTest extends TestCase {
 		$this->mockNotifications();
 
 		// No appointments in the window
-		$this->appointmentMapper->method('findStartingBetween')->willReturn([]);
+		$this->appointmentMapper->method('findRemindable')->willReturn([]);
 
 		$this->notificationManager->expects($this->never())->method('notify');
 
@@ -487,7 +487,7 @@ class ReminderJobTest extends TestCase {
 		$yesterday = (new \DateTime('now', $utc))->modify('-1 day')->format('Y-m-d H:i:s');
 		$reminderLog = $this->makeReminderLog(1, 'alice', $yesterday);
 
-		$this->appointmentMapper->method('findStartingBetween')->willReturn([$appointment]);
+		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
 		$this->responseMapper->method('findByAppointment')->willReturn([]);
 		$this->reminderLogMapper->method('findByAppointment')->willReturn([$reminderLog]);
 		$this->configService->method('getWhitelistedGroups')->willReturn(['group1']);
@@ -513,7 +513,7 @@ class ReminderJobTest extends TestCase {
 		$today = (new \DateTime('now', $utc))->format('Y-m-d H:i:s');
 		$reminderLog = $this->makeReminderLog(1, 'alice', $today);
 
-		$this->appointmentMapper->method('findStartingBetween')->willReturn([$appointment]);
+		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
 		$this->responseMapper->method('findByAppointment')->willReturn([]);
 		$this->reminderLogMapper->method('findByAppointment')->willReturn([$reminderLog]);
 		$this->configService->method('getWhitelistedGroups')->willReturn(['group1']);
@@ -543,7 +543,7 @@ class ReminderJobTest extends TestCase {
 		$fiveDaysAgo = (new \DateTime('now', $utc))->modify('-5 days')->format('Y-m-d H:i:s');
 		$reminderLog = $this->makeReminderLog(1, 'alice', $fiveDaysAgo);
 
-		$this->appointmentMapper->method('findStartingBetween')->willReturn([$appointment]);
+		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
 		$this->responseMapper->method('findByAppointment')->willReturn([]);
 		$this->reminderLogMapper->method('findByAppointment')->willReturn([$reminderLog]);
 		$this->configService->method('getWhitelistedGroups')->willReturn(['group1']);
@@ -568,7 +568,7 @@ class ReminderJobTest extends TestCase {
 		$sevenDaysAgo = (new \DateTime('now', $utc))->modify('-7 days')->format('Y-m-d H:i:s');
 		$reminderLog = $this->makeReminderLog(1, 'alice', $sevenDaysAgo);
 
-		$this->appointmentMapper->method('findStartingBetween')->willReturn([$appointment]);
+		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
 		$this->responseMapper->method('findByAppointment')->willReturn([]);
 		$this->reminderLogMapper->method('findByAppointment')->willReturn([$reminderLog]);
 		$this->configService->method('getWhitelistedGroups')->willReturn(['group1']);
@@ -600,7 +600,7 @@ class ReminderJobTest extends TestCase {
 			->format('Y-m-d H:i:s');
 		$appointment = $this->makeAppointment(1, 'Meeting', $appointmentDate);
 
-		$this->appointmentMapper->method('findStartingBetween')->willReturn([$appointment]);
+		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
 		$this->responseMapper->method('findByAppointment')->willReturn([]);
 		$this->configService->method('getWhitelistedGroups')->willReturn(['group1']);
 		$this->visibilityService->method('getRelevantUsersForAppointment')
@@ -658,7 +658,7 @@ class ReminderJobTest extends TestCase {
 		$appointment1 = $this->makeAppointment(1, 'Meeting A', $date1);
 		$appointment2 = $this->makeAppointment(2, 'Meeting B', $date2);
 
-		$this->appointmentMapper->method('findStartingBetween')
+		$this->appointmentMapper->method('findRemindable')
 			->willReturn([$appointment1, $appointment2]);
 
 		// alice has no response and no prior reminder for either
@@ -705,7 +705,7 @@ class ReminderJobTest extends TestCase {
 				null,
 			);
 
-		$this->appointmentMapper->method('findStartingBetween')->willReturn([$appointment]);
+		$this->appointmentMapper->method('findRemindable')->willReturn([$appointment]);
 		$this->responseMapper->method('findByAppointment')->willReturn([]);
 		$this->reminderLogMapper->method('findByAppointment')->willReturn([]);
 		$this->configService->method('getWhitelistedGroups')->willReturn(['group1']);

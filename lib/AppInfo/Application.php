@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\AppInfo;
 
+use OCA\Attendance\BackgroundJob\AutoCloseJob;
 use OCA\Attendance\BackgroundJob\ReminderJob;
 use OCA\Attendance\Dashboard\Widget;
 use OCA\Attendance\Listener\CalendarObjectUpdateListener;
@@ -35,6 +36,9 @@ class Application extends App implements IBootstrap {
 		$jobList = $container->get(\OCP\BackgroundJob\IJobList::class);
 		if (!$jobList->has(ReminderJob::class, null)) {
 			$jobList->add(ReminderJob::class);
+		}
+		if (!$jobList->has(AutoCloseJob::class, null)) {
+			$jobList->add(AutoCloseJob::class);
 		}
 	}
 
