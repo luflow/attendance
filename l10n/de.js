@@ -512,6 +512,16 @@ OC.L10N.register(
     "wk" : "Wo",
     "Upcoming" : "Anstehend",
     "Past" : "Vergangen",
-    "Failed to copy URL" : "URL konnte nicht kopiert werden"
+    "Failed to copy URL" : "URL konnte nicht kopiert werden",
+    "Relative to start" : "Relativ zum Beginn",
+    "Specific date and time" : "Bestimmtes Datum und Uhrzeit",
+    "before each appointment starts" : "vor Beginn des Termins",
+    "Apply this exact deadline to every appointment" : "Diese Frist für jeden Termin genau so übernehmen",
+    "Time before start must be at least 1 minute" : "Vorlaufzeit muss mindestens 1 Minute betragen",
+    "Number" : "Anzahl",
+    "minutes" : "Minuten",
+    "hours" : "Stunden",
+    "days" : "Tage",
+    "weeks" : "Wochen"
 },
 "nplurals=2; plural=(n != 1);");

@@ -167,26 +167,83 @@
 						)
 					}}
 				</p>
-				<div class="deadline-field">
+				<div class="deadline-mode-row" data-test="deadline-mode-row">
+					<NcCheckboxRadioSwitch
+						:checked="deadlineMode === 'none'"
+						value="none"
+						name="deadline-mode"
+						type="radio"
+						data-test="deadline-mode-none"
+						@update:checked="setDeadlineMode('none')">
+						{{ t("attendance", "No deadline") }}
+					</NcCheckboxRadioSwitch>
+					<NcCheckboxRadioSwitch
+						:checked="deadlineMode === 'relative'"
+						value="relative"
+						name="deadline-mode"
+						type="radio"
+						data-test="deadline-mode-relative"
+						@update:checked="setDeadlineMode('relative')">
+						{{ t("attendance", "Relative to start") }}
+					</NcCheckboxRadioSwitch>
+					<NcCheckboxRadioSwitch
+						:checked="deadlineMode === 'absolute'"
+						value="absolute"
+						name="deadline-mode"
+						type="radio"
+						data-test="deadline-mode-absolute"
+						@update:checked="setDeadlineMode('absolute')">
+						{{ t("attendance", "Specific date and time") }}
+					</NcCheckboxRadioSwitch>
+				</div>
+				<div
+					v-if="deadlineMode === 'relative'"
+					class="deadline-relative-row"
+					data-test="deadline-relative-row">
+					<NcTextField
+						v-model:value="deadlineRelativeValueStr"
+						type="number"
+						min="1"
+						class="deadline-relative-value"
+						:label="t('attendance', 'Number')"
+						data-test="input-deadline-relative-value" />
+					<NcSelect
+						v-model="deadlineRelativeUnit"
+						:options="deadlineUnitOptions"
+						:reduce="(o) => o.value"
+						:clearable="false"
+						:searchable="false"
+						class="deadline-relative-unit"
+						data-test="select-deadline-relative-unit" />
+					<span class="deadline-relative-suffix">{{
+						t("attendance", "before each appointment starts")
+					}}</span>
+				</div>
+				<div
+					v-if="deadlineMode === 'absolute'"
+					class="deadline-field"
+					data-test="deadline-absolute-row">
 					<NcDateTimePickerNative
 						id="response-deadline"
-						:model-value="deadlineDateObject"
+						:model-value="deadlineAbsoluteDateObject"
 						type="datetime-local"
 						:label="t('attendance', 'Response deadline')"
 						data-test="input-response-deadline"
-						@update:model-value="onDeadlineChange" />
-					<NcButton
-						v-if="formData.responseDeadline"
-						variant="tertiary"
-						native-type="button"
-						data-test="button-clear-deadline"
-						@click.stop.prevent="onDeadlineClear">
-						<template #icon>
-							<Close :size="20" />
-						</template>
-						{{ t("attendance", "No deadline") }}
-					</NcButton>
+						@update:model-value="onDeadlineAbsoluteChange" />
 				</div>
+				<NcCheckboxRadioSwitch
+					v-if="deadlineMode === 'absolute' && isRecurring"
+					:checked="deadlineAbsoluteLiteral"
+					type="switch"
+					data-test="deadline-absolute-literal"
+					@update:checked="(v) => deadlineAbsoluteLiteral = v">
+					{{
+						t(
+							"attendance",
+							"Apply this exact deadline to every appointment",
+						)
+					}}
+				</NcCheckboxRadioSwitch>
 				<p
 					v-if="deadlineWarning"
 					class="hint-text deadline-warning"
@@ -379,7 +436,6 @@ import Account from 'vue-material-design-icons/Account.vue'
 import AccountStar from 'vue-material-design-icons/AccountStar.vue'
 import Paperclip from 'vue-material-design-icons/Paperclip.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
-import Close from 'vue-material-design-icons/Close.vue'
 import ArrowLeft from 'vue-material-design-icons/ArrowLeft.vue'
 import CalendarImport from 'vue-material-design-icons/CalendarImport.vue'
 import CalendarSync from 'vue-material-design-icons/CalendarSync.vue'
@@ -426,14 +482,47 @@ const formData = reactive({
 	visibleUsers: [],
 	visibleGroups: [],
 	visibleTeams: [],
-	// Optional response deadline (ISO local string). Empty string = no deadline.
-	responseDeadline: '',
 })
 
-// Tracks whether the appointment had a deadline when the form was opened
-// (edit mode only). Used to decide if the update payload needs to send '' to
-// explicitly clear the server-side deadline.
+// Deadline UI is split into three modes that the user toggles between:
+//   'none'     → no deadline
+//   'relative' → integer + unit, applied per-occurrence (start − offset)
+//   'absolute' → a specific datetime; for series/recurring, an extra toggle
+//                decides whether the picked datetime is used literally for
+//                every occurrence or rebased per-occurrence.
+const deadlineMode = ref('none')
+const deadlineRelativeValueStr = ref('1')
+const deadlineRelativeUnit = ref('days')
+const deadlineAbsolute = ref('') // datetime-local string
+const deadlineAbsoluteLiteral = ref(true)
 const hadDeadlineInitially = ref(false)
+
+const UNIT_MS = {
+	minutes: 60 * 1000,
+	hours: 60 * 60 * 1000,
+	days: 24 * 60 * 60 * 1000,
+	weeks: 7 * 24 * 60 * 60 * 1000,
+}
+
+const deadlineUnitOptions = computed(() => [
+	{ value: 'minutes', label: t('attendance', 'minutes') },
+	{ value: 'hours', label: t('attendance', 'hours') },
+	{ value: 'days', label: t('attendance', 'days') },
+	{ value: 'weeks', label: t('attendance', 'weeks') },
+])
+
+const deadlineRelativeValue = computed(() => {
+	const n = Number(deadlineRelativeValueStr.value)
+	return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 0
+})
+
+const deadlineRelativeOffsetMs = computed(
+	() => deadlineRelativeValue.value * UNIT_MS[deadlineRelativeUnit.value],
+)
+
+const setDeadlineMode = (mode) => {
+	deadlineMode.value = mode
+}
 
 const visibilityItems = ref([])
 const searchResults = ref([])
@@ -570,38 +659,88 @@ const endDateObject = computed(() => {
 	return isNaN(date.getTime()) ? null : date
 })
 
-const deadlineDateObject = computed(() => {
-	if (!formData.responseDeadline) return null
-	const date = new Date(formData.responseDeadline)
+const deadlineAbsoluteDateObject = computed(() => {
+	if (!deadlineAbsolute.value) return null
+	const date = new Date(deadlineAbsolute.value)
 	return isNaN(date.getTime()) ? null : date
 })
 
+/**
+ * Resolve the deadline (as a Date) for a given occurrence start.
+ * Returns null when no deadline applies.
+ *
+ * @param {string} occurrenceStartLocal Local-input datetime ("YYYY-MM-DDTHH:mm").
+ * @return {Date|null}
+ */
+const resolveDeadlineFor = (occurrenceStartLocal) => {
+	if (deadlineMode.value === 'none') return null
+	if (deadlineMode.value === 'relative') {
+		if (!occurrenceStartLocal) return null
+		const start = new Date(occurrenceStartLocal)
+		if (isNaN(start.getTime())) return null
+		return new Date(start.getTime() - deadlineRelativeOffsetMs.value)
+	}
+	// absolute
+	if (!deadlineAbsolute.value) return null
+	const abs = new Date(deadlineAbsolute.value)
+	if (isNaN(abs.getTime())) return null
+	if (!isRecurring.value || deadlineAbsoluteLiteral.value) {
+		return abs
+	}
+	// Recurring + non-literal: shift by the delta between this occurrence and
+	// the reference start. Same offset semantics as the legacy implementation.
+	if (!formData.startDatetime || !occurrenceStartLocal) return abs
+	const refStart = new Date(formData.startDatetime).getTime()
+	const occStart = new Date(occurrenceStartLocal).getTime()
+	if (isNaN(refStart) || isNaN(occStart)) return abs
+	return new Date(abs.getTime() + (occStart - refStart))
+}
+
 const deadlineWarning = computed(() => {
-	if (!formData.responseDeadline || !formData.startDatetime) return null
-	const deadline = new Date(formData.responseDeadline)
-	const start = new Date(formData.startDatetime)
-	if (isNaN(deadline.getTime()) || isNaN(start.getTime())) return null
+	if (deadlineMode.value === 'none') return null
+	if (deadlineMode.value === 'relative' && deadlineRelativeValue.value < 1) {
+		return t('attendance', 'Time before start must be at least 1 minute')
+	}
+	if (deadlineMode.value === 'absolute' && !deadlineAbsolute.value) {
+		return null
+	}
+	const deadline = resolveDeadlineFor(formData.startDatetime)
+	if (!deadline) return null
+	const start = formData.startDatetime ? new Date(formData.startDatetime) : null
 	if (deadline.getTime() <= Date.now()) {
 		return t('attendance', 'Response deadline must be in the future')
 	}
-	if (deadline >= start) {
+	if (start && !isNaN(start.getTime()) && deadline >= start) {
 		return t('attendance', 'Response deadline must be before the appointment starts')
 	}
 	return null
 })
 
-const onDeadlineChange = (value) => {
+const onDeadlineAbsoluteChange = (value) => {
 	if (!value) {
-		formData.responseDeadline = ''
+		deadlineAbsolute.value = ''
 		return
 	}
 	const date = value instanceof Date ? value : new Date(value)
 	if (isNaN(date.getTime())) return
-	formData.responseDeadline = formatDateTimeForInput(date.toISOString())
+	deadlineAbsolute.value = formatDateTimeForInput(date.toISOString())
 }
 
-const onDeadlineClear = () => {
-	formData.responseDeadline = ''
+/**
+ * Express a positive ms offset in the largest unit that divides cleanly,
+ * so an existing 86_400_000 ms deadline shows up as "1 days" rather than
+ * "1440 minutes" when a user opens the edit form.
+ *
+ * @param {number} ms Offset in milliseconds.
+ * @return {{value: number, unit: string}}
+ */
+const decomposeOffset = (ms) => {
+	if (ms <= 0) return { value: 1, unit: 'days' }
+	for (const unit of ['weeks', 'days', 'hours', 'minutes']) {
+		const u = UNIT_MS[unit]
+		if (ms % u === 0) return { value: ms / u, unit }
+	}
+	return { value: Math.round(ms / UNIT_MS.minutes), unit: 'minutes' }
 }
 
 // Watch for changes to visibilityItems to update formData
@@ -666,17 +805,34 @@ const loadAppointment = async () => {
 			)
 		}
 
-		// Response deadline. In edit mode we keep the absolute value; in copy
-		// mode we drop it because the new dates don't necessarily make sense
-		// for the previous deadline.
-		if (props.mode === 'edit' && appointment.responseDeadline) {
-			formData.responseDeadline = formatDateTimeForInput(
-				appointment.responseDeadline,
-			)
-			hadDeadlineInitially.value = true
+		// Initialise the deadline UI from the loaded appointment. We pick the
+		// mode that reads most naturally to the user:
+		//  - no deadline             → 'none'
+		//  - deadline at start − offset (positive offset) → 'relative'
+		//  - anything else (legacy / on-or-after start)   → 'absolute'
+		// Copy mode drops the deadline entirely; the new dates may be far
+		// away from the source deadline and reusing it would surprise users.
+		hadDeadlineInitially.value = Boolean(
+			props.mode === 'edit' && appointment.responseDeadline,
+		)
+		if (hadDeadlineInitially.value) {
+			const startMs = new Date(appointment.startDatetime).getTime()
+			const deadlineMs = new Date(appointment.responseDeadline).getTime()
+			const offsetMs = startMs - deadlineMs
+			if (Number.isFinite(offsetMs) && offsetMs > 0) {
+				const { value, unit } = decomposeOffset(offsetMs)
+				deadlineMode.value = 'relative'
+				deadlineRelativeValueStr.value = String(value)
+				deadlineRelativeUnit.value = unit
+			} else {
+				deadlineMode.value = 'absolute'
+				deadlineAbsolute.value = formatDateTimeForInput(
+					appointment.responseDeadline,
+				)
+			}
 		} else {
-			formData.responseDeadline = ''
-			hadDeadlineInitially.value = false
+			deadlineMode.value = 'none'
+			deadlineAbsolute.value = ''
 		}
 
 		// Load visibility settings (enriched data with id, label, type)
@@ -911,14 +1067,23 @@ const handleBulkImport = async (eventDataList) => {
 	saving.value = true
 
 	try {
-		const appointments = eventDataList.map((eventData) => ({
-			name: eventData.name,
-			description: eventData.description,
-			startDatetime: toServerTimezone(eventData.startDatetime),
-			endDatetime: toServerTimezone(eventData.endDatetime),
-			calendarUri: eventData.calendarUri,
-			calendarEventUid: eventData.calendarEventUid,
-		}))
+		const appointments = eventDataList.map((eventData) => {
+			const item = {
+				name: eventData.name,
+				description: eventData.description,
+				startDatetime: toServerTimezone(eventData.startDatetime),
+				endDatetime: toServerTimezone(eventData.endDatetime),
+				calendarUri: eventData.calendarUri,
+				calendarEventUid: eventData.calendarEventUid,
+			}
+			const deadline = resolveDeadlineFor(
+				formatDateTimeForInput(eventData.startDatetime),
+			)
+			if (deadline) {
+				item.responseDeadline = deadline.toISOString()
+			}
+			return item
+		})
 
 		const response = await axios.post(
 			generateUrl('/apps/attendance/api/appointments/bulk'),
@@ -966,12 +1131,6 @@ const handleRecurringCreate = async () => {
 
 	try {
 		const duration = appointmentDuration.value
-		// Preserve the deadline-to-start offset across all generated occurrences
-		// so a 1-day-before deadline stays 1-day-before for each occurrence.
-		const deadlineOffsetMs = formData.responseDeadline && formData.startDatetime
-			? new Date(formData.startDatetime).getTime()
-				- new Date(formData.responseDeadline).getTime()
-			: null
 		const appointments = recurrenceOccurrences.value.map(
 			(occurrenceDate) => {
 				const startDt = occurrenceDate.toISOString()
@@ -987,10 +1146,11 @@ const handleRecurringCreate = async () => {
 					visibleGroups: formData.visibleGroups || [],
 					visibleTeams: formData.visibleTeams || [],
 				}
-				if (deadlineOffsetMs !== null) {
-					item.responseDeadline = new Date(
-						occurrenceDate.getTime() - deadlineOffsetMs,
-					).toISOString()
+				const occurrenceDeadline = resolveDeadlineFor(
+					formatDateTimeForInput(startDt),
+				)
+				if (occurrenceDeadline) {
+					item.responseDeadline = occurrenceDeadline.toISOString()
 				}
 				return item
 			},
@@ -1094,17 +1254,21 @@ const saveAppointment = async (scope = 'single') => {
 	try {
 		const startDatetimeWithTz = toServerTimezone(formData.startDatetime)
 		const endDatetimeWithTz = toServerTimezone(formData.endDatetime)
-		const deadlineWithTz = formData.responseDeadline
-			? toServerTimezone(formData.responseDeadline)
+		// Resolve the deadline against the form's reference start. For series
+		// updates the server rebases the result onto each sibling, so this
+		// reference value is what we always send.
+		const deadlineDate = resolveDeadlineFor(formData.startDatetime)
+		const deadlineWithTz = deadlineDate
+			? toServerTimezone(formatDateTimeForInput(deadlineDate.toISOString()))
 			: ''
 
 		let appointmentId = props.appointmentId
 
 		if (props.mode === 'edit') {
-			// Update payload: include responseDeadline only when it changed.
-			//   - now empty + previously set → '' clears it on the server.
-			//   - now set                    → ISO string sets/replaces it.
-			//   - now empty + previously empty → omit entirely.
+			// Send responseDeadline only when it would change something:
+			//   - resolved value present → set/replace.
+			//   - resolved empty + had one before → '' clears it server-side.
+			//   - resolved empty + never had one  → omit entirely.
 			const updatePayload = {
 				name: formData.name,
 				description: formData.description,
@@ -1116,7 +1280,7 @@ const saveAppointment = async (scope = 'single') => {
 				attachments: attachmentFileIds.value,
 				scope,
 			}
-			if (formData.responseDeadline) {
+			if (deadlineWithTz) {
 				updatePayload.responseDeadline = deadlineWithTz
 			} else if (hadDeadlineInitially.value) {
 				updatePayload.responseDeadline = ''
@@ -1143,7 +1307,7 @@ const saveAppointment = async (scope = 'single') => {
 				calendarEventUid: calendarReference.value.calendarEventUid,
 				attachments: attachmentFileIds.value,
 			}
-			if (formData.responseDeadline) {
+			if (deadlineWithTz) {
 				createPayload.responseDeadline = deadlineWithTz
 			}
 			const response = await axios.post(
@@ -1263,6 +1427,33 @@ onMounted(async () => {
         flex: 1;
         min-width: 200px;
     }
+}
+
+.deadline-mode-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.deadline-relative-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 8px;
+}
+
+.deadline-relative-value {
+    width: 96px;
+}
+
+.deadline-relative-unit {
+    min-width: 140px;
+}
+
+.deadline-relative-suffix {
+    align-self: center;
+    color: var(--color-text-maxcontrast);
 }
 
 .deadline-warning {
