@@ -1440,6 +1440,10 @@ onMounted(async () => {
     max-width: 110px;
 }
 
+.deadline-relative-value :deep(input) {
+    height: var(--default-clickable-area, 44px);
+}
+
 .deadline-relative-unit {
     flex: 0 0 150px;
     max-width: 150px;
