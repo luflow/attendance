@@ -1440,13 +1440,22 @@ onMounted(async () => {
     max-width: 110px;
 }
 
-.deadline-relative-value :deep(input) {
-    height: var(--default-clickable-area, 44px);
+/* NcSelect's dropdown toggle is --default-clickable-area + 1px borders top
+ * and bottom (≈36px on stock Nextcloud). NcTextField has no such borders, so
+ * its outer height stays one --default-clickable-area shorter and the two
+ * controls render at visibly different heights. Match them by stretching
+ * the text-field wrapper. */
+.deadline-relative-value :deep(.input-field__main-wrapper) {
+    min-height: calc(var(--default-clickable-area, 34px) + 2px);
 }
 
-.deadline-relative-unit {
+/* @nextcloud/vue ships .v-select.select with min-width: 260px, which would
+ * defeat our flex-basis. The chained .deadline-relative-row selector lifts
+ * the specificity above NcSelect's two-class rule. */
+.deadline-relative-row .deadline-relative-unit {
     flex: 0 0 150px;
     max-width: 150px;
+    min-width: 0;
 }
 
 .deadline-relative-suffix {
