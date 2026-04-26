@@ -92,10 +92,10 @@ async function createAppointmentWithGroupVisibility(page, { name, description, d
 	// Add visible groups if specified
 	if (visibleGroups.length > 0) {
 		for (const groupName of visibleGroups) {
-			// Use getByRole('searchbox') as it works reliably even after selections
-			// The placeholder changes after first selection, so getByPlaceholder won't work
-			await page.getByRole('searchbox').click()
-			await page.getByRole('searchbox').fill(groupName)
+			// Scope to the visibility selector to avoid matching the sidebar search
+			const visibilitySearch = page.locator('[data-test="select-visibility"]').getByRole('searchbox')
+			await visibilitySearch.click()
+			await visibilitySearch.fill(groupName)
 
 			// Wait for search results option to appear
 			const groupOption = page.getByRole('option', { name: groupName })

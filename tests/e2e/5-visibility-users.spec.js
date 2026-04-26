@@ -36,10 +36,10 @@ async function createAppointmentWithVisibility(page, { name, description, daysFr
 	// Add visible users if specified
 	if (visibleUsers.length > 0) {
 		for (const username of visibleUsers) {
-			// Use getByRole('searchbox') as it works reliably even after selections
-			// The placeholder changes after first selection, so getByPlaceholder won't work
-			await page.getByRole('searchbox').click()
-			await page.getByRole('searchbox').fill(username)
+			// Scope to the visibility selector to avoid matching the sidebar search
+			const visibilitySearch = page.locator('[data-test="select-visibility"]').getByRole('searchbox')
+			await visibilitySearch.click()
+			await visibilitySearch.fill(username)
 
 			// Wait for search results option to appear
 			const userOption = page.getByRole('option', { name: username })
@@ -223,8 +223,9 @@ test.describe('Attendance App - User Visibility Filtering', () => {
 		await expect(visibilitySelector.locator('.vs__selected', { hasText: 'test1' })).toBeVisible()
 
 		// Add another user to visibility
-		await page.getByRole('searchbox').click()
-		await page.getByRole('searchbox').fill('test2')
+		const editVisibilitySearch = page.locator('[data-test="select-visibility"]').getByRole('searchbox')
+		await editVisibilitySearch.click()
+		await editVisibilitySearch.fill('test2')
 
 		// Wait for test2 option to appear and select it
 		const test2Option = page.getByRole('option', { name: 'test2' })

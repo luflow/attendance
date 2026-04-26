@@ -6,6 +6,24 @@
 
 - Nightly changes here
 
+## 1.38.0 – 2026-04-26
+
+### Added
+
+- Close inquiry: close an appointment with an optional response deadline, after which the appointment is automatically closed by a background job
+- Relative deadline mode: set deadlines relative to appointment start (e.g. "2 hours before") with a toggle for absolute/relative in the bulk editor
+- Auto-close appointments once they have started (via background job)
+- Dedicated "All appointments" view with Upcoming and Past sections
+- New Filter row with sidebar search and "Only for me" filter (for admins seeing normally all appointments)
+
+### Improved
+
+- Unanswered view and widget now implicitly filters to appointments addressed to the current user so you don't see unecessary stuff
+
+### Maintenance
+
+- Translations updated from Transifex
+
 ## 1.37.1 – 2026-04-22
 
 ### Fixed

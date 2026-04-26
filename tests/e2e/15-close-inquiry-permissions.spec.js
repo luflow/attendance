@@ -30,6 +30,14 @@ function setManageAppointmentsRoles(roles) {
 		`curl -fsS -u admin:admin -H 'OCS-APIREQUEST: true' -H 'Content-Type: application/json' -X POST -d ${JSON.stringify(body)} 'http://localhost:8080/index.php/apps/attendance/api/admin/settings'`,
 		{ stdio: 'pipe' },
 	)
+	// APCu (the local memcache) is per-Apache-worker — a graceful restart
+	// forces all workers to reload, so the next request sees the fresh config.
+	execSync(
+		'docker exec nextcloud-e2e-test-server_attendance apachectl graceful',
+		{ stdio: 'pipe' },
+	)
+	// Give Apache a moment to cycle workers.
+	execSync('sleep 1', { stdio: 'pipe' })
 }
 
 // Mirrors the storage key in src/views/AllAppointments.vue.

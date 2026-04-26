@@ -30,6 +30,23 @@ export default async function globalSetup() {
 
 		// Clear auth cache after database restore to ensure fresh logins
 		clearAuthCache()
+
+		// Warm up the server so the first parallel workers don't hit a cold start.
+		const baseURL = process.env.NEXTCLOUD_URL || 'http://localhost:8080'
+		const auth = 'Basic ' + Buffer.from('admin:admin').toString('base64')
+		for (let i = 0; i < 5; i++) {
+			try {
+				const resp = await fetch(`${baseURL}/index.php/apps/attendance/api/appointments?showPastAppointments=true`, {
+					headers: { Authorization: auth, 'OCS-APIREQUEST': 'true' },
+				})
+				if (resp.ok && (resp.headers.get('content-type') || '').includes('json')) {
+					console.log('✅ Server warm-up successful')
+					break
+				}
+			} catch { /* retry */ }
+			await new Promise(r => setTimeout(r, 2000))
+		}
+
 		console.log('')
 	} catch (error) {
 		console.log('⚠️  No snapshot found or restore failed - running with current database state')

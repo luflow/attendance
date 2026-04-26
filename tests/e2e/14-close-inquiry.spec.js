@@ -107,26 +107,33 @@ test.describe('Attendance App - Close inquiry (API)', () => {
 		const start = new Date(Date.now() + 14 * DAY_MS)
 		const end = new Date(start.getTime() + 60 * 60 * 1000)
 		const past = new Date(Date.now() - 5 * 60 * 1000)
-		const resp = await request.post(
-			`${baseURL}/index.php/apps/attendance/api/appointments`,
-			{
-				headers: {
-					Authorization: auth,
-					'Content-Type': 'application/json',
-					'OCS-APIREQUEST': 'true',
+
+		// Retry on transient HTML responses (server under parallel load).
+		let resp
+		for (let attempt = 0; attempt < 3; attempt++) {
+			resp = await request.post(
+				`${baseURL}/index.php/apps/attendance/api/appointments`,
+				{
+					headers: {
+						Authorization: auth,
+						'Content-Type': 'application/json',
+						'OCS-APIREQUEST': 'true',
+					},
+					data: {
+						name: 'Past Deadline',
+						description: '',
+						startDatetime: start.toISOString(),
+						endDatetime: end.toISOString(),
+						visibleUsers: [],
+						visibleGroups: [],
+						sendNotification: false,
+						responseDeadline: past.toISOString(),
+					},
 				},
-				data: {
-					name: 'Past Deadline',
-					description: '',
-					startDatetime: start.toISOString(),
-					endDatetime: end.toISOString(),
-					visibleUsers: [],
-					visibleGroups: [],
-					sendNotification: false,
-					responseDeadline: past.toISOString(),
-				},
-			},
-		)
+			)
+			if ((resp.headers()['content-type'] || '').includes('json')) break
+			await new Promise(r => setTimeout(r, 1000 * (attempt + 1)))
+		}
 		expect(resp.status()).toBe(400)
 		const body = await resp.json()
 		expect(body.error).toMatch(/future/i)

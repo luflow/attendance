@@ -11,6 +11,27 @@ const BASE_URL = process.env.NEXTCLOUD_URL || 'http://localhost:8080'
 const API_BASE = `${BASE_URL}/index.php`
 
 /**
+ * Resilient JSON parser with retry — Nextcloud sometimes returns an HTML
+ * error page (<!DOCTYPE …) under heavy parallel load instead of JSON.
+ * When that happens we wait briefly and replay the request.
+ */
+async function resilientJson(responseFn, { retries = 3, delay = 1000 } = {}) {
+	for (let attempt = 1; attempt <= retries; attempt++) {
+		const resp = await responseFn()
+		const ct = resp.headers()['content-type'] || ''
+		if (ct.includes('application/json') || ct.includes('text/json')) {
+			return resp
+		}
+		// Non-JSON (likely HTML error page) — retry unless last attempt.
+		if (attempt < retries) {
+			await new Promise(r => setTimeout(r, delay * attempt))
+		} else {
+			return resp // let the caller deal with the failure
+		}
+	}
+}
+
+/**
  * Detect the correct OCS API base URL.
  * Installations with mod_rewrite use /ocs/v2.php directly,
  * installations without mod_rewrite need /index.php/ocs/v2.php.
@@ -127,29 +148,34 @@ export async function createAppointmentViaAPI(request, {
 	const startDate = new Date(now.getTime() + daysFromNow * 24 * 60 * 60 * 1000)
 	const endDate = new Date(startDate.getTime() + durationHours * 60 * 60 * 1000)
 
-	const response = await request.post(`${API_BASE}/apps/attendance/api/appointments`, {
-		headers: authHeaders(username, password),
-		data: {
-			name,
-			description,
-			startDatetime: startDate.toISOString(),
-			endDatetime: endDate.toISOString(),
-			visibleUsers,
-			visibleGroups,
-			sendNotification,
-			...(responseDeadline ? { responseDeadline: responseDeadline.toISOString() } : {}),
-		},
-	})
-	return response.json()
+	const data = {
+		name,
+		description,
+		startDatetime: startDate.toISOString(),
+		endDatetime: endDate.toISOString(),
+		visibleUsers,
+		visibleGroups,
+		sendNotification,
+		...(responseDeadline ? { responseDeadline: responseDeadline.toISOString() } : {}),
+	}
+	const resp = await resilientJson(() =>
+		request.post(`${API_BASE}/apps/attendance/api/appointments`, {
+			headers: authHeaders(username, password),
+			data,
+		}),
+	)
+	return resp.json()
 }
 
 /**
  * Delete a single appointment via the REST API
  */
 export async function deleteAppointmentViaAPI(request, id, { username = 'admin', password = 'admin' } = {}) {
-	await request.delete(`${API_BASE}/apps/attendance/api/appointments/${id}`, {
-		headers: authHeaders(username, password),
-	})
+	await resilientJson(() =>
+		request.delete(`${API_BASE}/apps/attendance/api/appointments/${id}`, {
+			headers: authHeaders(username, password),
+		}),
+	)
 }
 
 /**
@@ -165,20 +191,24 @@ export async function listAppointmentsViaAPI(request, { showPast = true, unanswe
 		showPastAppointments: String(showPast),
 	})
 	if (unansweredOnly) params.set('unansweredOnly', 'true')
-	const response = await request.get(
-		`${API_BASE}/apps/attendance/api/appointments?${params.toString()}`,
-		{ headers: authHeaders(username, password) },
+	const resp = await resilientJson(() =>
+		request.get(
+			`${API_BASE}/apps/attendance/api/appointments?${params.toString()}`,
+			{ headers: authHeaders(username, password) },
+		),
 	)
-	return response.json()
+	return resp.json()
 }
 
 /**
  * Close an appointment inquiry. Returns the updated appointment payload.
  */
 export async function closeAppointmentViaAPI(request, id, { username = 'admin', password = 'admin' } = {}) {
-	const resp = await request.post(`${API_BASE}/apps/attendance/api/appointments/${id}/close`, {
-		headers: authHeaders(username, password),
-	})
+	const resp = await resilientJson(() =>
+		request.post(`${API_BASE}/apps/attendance/api/appointments/${id}/close`, {
+			headers: authHeaders(username, password),
+		}),
+	)
 	return { status: resp.status(), body: await resp.json() }
 }
 
@@ -186,9 +216,11 @@ export async function closeAppointmentViaAPI(request, id, { username = 'admin', 
  * Re-open a previously closed appointment inquiry.
  */
 export async function reopenAppointmentViaAPI(request, id, { username = 'admin', password = 'admin' } = {}) {
-	const resp = await request.post(`${API_BASE}/apps/attendance/api/appointments/${id}/reopen`, {
-		headers: authHeaders(username, password),
-	})
+	const resp = await resilientJson(() =>
+		request.post(`${API_BASE}/apps/attendance/api/appointments/${id}/reopen`, {
+			headers: authHeaders(username, password),
+		}),
+	)
 	return { status: resp.status(), body: await resp.json() }
 }
 
@@ -212,12 +244,14 @@ export async function respondToAppointmentViaAPI(request, appointmentId, {
 	username = 'admin',
 	password = 'admin',
 } = {}) {
-	const resp = await request.post(
-		`${API_BASE}/apps/attendance/api/appointments/${appointmentId}/respond`,
-		{
-			headers: authHeaders(username, password),
-			data: { response: vote, comment },
-		},
+	const resp = await resilientJson(() =>
+		request.post(
+			`${API_BASE}/apps/attendance/api/appointments/${appointmentId}/respond`,
+			{
+				headers: authHeaders(username, password),
+				data: { response: vote, comment },
+			},
+		),
 	)
 	return resp.json()
 }
@@ -231,12 +265,14 @@ export async function checkinUserViaAPI(request, appointmentId, targetUserId, {
 	username = 'admin',
 	password = 'admin',
 } = {}) {
-	const resp = await request.post(
-		`${API_BASE}/apps/attendance/api/appointments/${appointmentId}/checkin/${targetUserId}`,
-		{
-			headers: authHeaders(username, password),
-			data: { response, comment },
-		},
+	const resp = await resilientJson(() =>
+		request.post(
+			`${API_BASE}/apps/attendance/api/appointments/${appointmentId}/checkin/${targetUserId}`,
+			{
+				headers: authHeaders(username, password),
+				data: { response, comment },
+			},
+		),
 	)
 	return resp.json()
 }
@@ -245,10 +281,12 @@ export async function checkinUserViaAPI(request, appointmentId, targetUserId, {
  * Save admin settings via the REST API
  */
 export async function saveAdminSettings(request, settings = {}) {
-	const resp = await request.post(`${API_BASE}/apps/attendance/api/admin/settings`, {
-		headers: authHeaders('admin', 'admin'),
-		data: settings,
-	})
+	const resp = await resilientJson(() =>
+		request.post(`${API_BASE}/apps/attendance/api/admin/settings`, {
+			headers: authHeaders('admin', 'admin'),
+			data: settings,
+		}),
+	)
 	return resp.json()
 }
 
