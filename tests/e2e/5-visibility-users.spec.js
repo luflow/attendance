@@ -50,7 +50,7 @@ async function createAppointmentWithVisibility(page, { name, description, daysFr
 
 			// Verify the user is now shown as selected in .vs__selected span
 			const visibilitySelector = page.locator('[data-test="select-visibility"]')
-			await expect(visibilitySelector.locator('.vs__selected', { hasText: username })).toBeVisible()
+			await expect(visibilitySelector.locator('.vs__selected').filter({ hasText: username })).toBeVisible()
 		}
 	}
 
@@ -220,7 +220,7 @@ test.describe('Attendance App - User Visibility Filtering', () => {
 		// The visibility selector should show the selected user(s) in .vs__selected spans
 		// Scope to the visibility selector component to avoid ambiguity
 		const visibilitySelector = page.locator('[data-test="select-visibility"]')
-		await expect(visibilitySelector.locator('.vs__selected', { hasText: 'test1' })).toBeVisible()
+		await expect(visibilitySelector.locator('.vs__selected').filter({ hasText: 'test1' })).toBeVisible()
 
 		// Add another user to visibility
 		const editVisibilitySearch = page.locator('[data-test="select-visibility"]').getByRole('searchbox')
@@ -233,7 +233,7 @@ test.describe('Attendance App - User Visibility Filtering', () => {
 		await test2Option.click()
 
 		// Verify test2 is now shown as selected in .vs__selected span
-		await expect(visibilitySelector.locator('.vs__selected', { hasText: 'test2' })).toBeVisible()
+		await expect(visibilitySelector.locator('.vs__selected').filter({ hasText: 'test2' })).toBeVisible()
 
 		// Save
 		await page.getByRole('button', { name: 'Save' }).click()

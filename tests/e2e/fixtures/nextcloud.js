@@ -75,6 +75,7 @@ function authHeaders(username = 'admin', password = 'admin') {
 		'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
 		'Content-Type': 'application/json',
 		'OCS-APIREQUEST': 'true',
+		'Cookie': '',
 	}
 }
 

@@ -106,7 +106,7 @@ async function createAppointmentWithGroupVisibility(page, { name, description, d
 
 			// Verify the group is now shown as selected in .vs__selected span
 			const visibilitySelector = page.locator('[data-test="select-visibility"]')
-			await expect(visibilitySelector.locator('.vs__selected', { hasText: groupName })).toBeVisible()
+			await expect(visibilitySelector.locator('.vs__selected').filter({ hasText: groupName })).toBeVisible()
 		}
 	}
 
@@ -235,7 +235,7 @@ test.describe('Attendance App - Group Visibility Filtering', () => {
 			// Verify that the developers group is shown in the visibility field in .vs__selected span
 			// Scope to the visibility selector component to avoid ambiguity
 			const visibilitySelector = page.locator('[data-test="select-visibility"]')
-			await expect(visibilitySelector.locator('.vs__selected', { hasText: 'developers' })).toBeVisible()
+			await expect(visibilitySelector.locator('.vs__selected').filter({ hasText: 'developers' })).toBeVisible()
 
 			// Try to add another group (if available)
 			// For now, we'll just verify the current selection is preserved
@@ -293,7 +293,7 @@ test.describe('Attendance App - Group Visibility Filtering', () => {
 
 			// Verify test2 is now shown as selected in .vs__selected span
 			const visibilitySelector = page.locator('[data-test="select-visibility"]')
-			await expect(visibilitySelector.locator('.vs__selected', { hasText: 'test2' })).toBeVisible()
+			await expect(visibilitySelector.locator('.vs__selected').filter({ hasText: 'test2' })).toBeVisible()
 
 			// Save
 			await page.getByRole('button', { name: 'Save' }).click()
