@@ -9,6 +9,7 @@ use OCA\Attendance\Service\AttachmentService;
 use OCA\Attendance\Service\CalendarService;
 use OCA\Attendance\Service\CheckinService;
 use OCA\Attendance\Service\ConfigService;
+use OCA\Attendance\Service\DeadlineUpdate;
 use OCA\Attendance\Service\ExportService;
 use OCA\Attendance\Service\NotificationService;
 use OCA\Attendance\Service\PermissionService;
@@ -322,11 +323,13 @@ class AppointmentController extends Controller {
 		}
 
 		try {
+			$deadlineUpdate = DeadlineUpdate::fromWire($responseDeadline);
+
 			if ($scope === 'future' || $scope === 'all') {
 				$updatedAppointments = $this->appointmentService->updateSeriesAppointments(
 					$id, $scope, $name, $description, $startDatetime, $endDatetime,
 					$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
-					$responseDeadline,
+					$deadlineUpdate,
 				);
 
 				// Sync attachments across all affected appointments
@@ -342,7 +345,7 @@ class AppointmentController extends Controller {
 				$updatedAppointments = $this->appointmentService->updateSeriesAppointments(
 					$id, 'single', $name, $description, $startDatetime, $endDatetime,
 					$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
-					$responseDeadline,
+					$deadlineUpdate,
 				);
 				$this->syncAttachments($id, $attachments, $user->getUID());
 				return new DataResponse($updatedAppointments[0]);
@@ -351,7 +354,7 @@ class AppointmentController extends Controller {
 			$appointment = $this->appointmentService->updateAppointment(
 				$id, $name, $description, $startDatetime, $endDatetime,
 				$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
-				$responseDeadline,
+				$deadlineUpdate,
 			);
 
 			$this->syncAttachments($id, $attachments, $user->getUID());
@@ -698,9 +701,7 @@ class AppointmentController extends Controller {
 			'teamsAvailable' => $this->visibilityService->isTeamsAvailable(),
 			'calendarSyncAvailable' => \OCP\Util::getVersion()[0] >= 32,
 			'notificationsAppEnabled' => $this->appManager->isEnabledForUser('notifications'),
-			// Closing an inquiry (manual or via responseDeadline auto-close) +
-			// the server-side `unansweredOnly` filter. Older servers omit this
-			// flag → mobile clients hide the related UI.
+			// Older servers omit this flag → mobile clients hide close-inquiry UI.
 			'closing' => true,
 		]);
 	}

@@ -121,9 +121,6 @@ class AppointmentService {
 
 	/**
 	 * Update an existing appointment.
-	 *
-	 * @param ?string $responseDeadline ISO 8601 deadline; pass empty string to clear,
-	 *                                  null to leave unchanged.
 	 */
 	public function updateAppointment(
 		int $id,
@@ -135,7 +132,7 @@ class AppointmentService {
 		array $visibleUsers = [],
 		array $visibleGroups = [],
 		array $visibleTeams = [],
-		?string $responseDeadline = null,
+		?DeadlineUpdate $deadlineUpdate = null,
 	): Appointment {
 		$appointment = $this->appointmentMapper->find($id);
 
@@ -153,9 +150,12 @@ class AppointmentService {
 		$appointment->setVisibleGroups(empty($visibleGroups) ? null : json_encode($visibleGroups));
 		$appointment->setVisibleTeams(empty($visibleTeams) ? null : json_encode($visibleTeams));
 
-		if ($responseDeadline !== null) {
+		$deadlineUpdate ??= DeadlineUpdate::unchanged();
+		if ($deadlineUpdate->isClear()) {
+			$appointment->setResponseDeadline(null);
+		} elseif ($deadlineUpdate->isSet()) {
 			$appointment->setResponseDeadline(
-				$this->normalizeOptionalDatetime($responseDeadline, $startFormatted),
+				$this->normalizeOptionalDatetime($deadlineUpdate->value(), $startFormatted),
 			);
 		}
 
@@ -218,7 +218,7 @@ class AppointmentService {
 	 * @param list<string> $visibleUsers User IDs
 	 * @param list<string> $visibleGroups Group IDs
 	 * @param list<string> $visibleTeams Team IDs
-	 * @param ?string $responseDeadline ISO 8601 deadline; null = unchanged, '' = clear.
+	 * @param ?DeadlineUpdate $deadlineUpdate Deadline change instruction.
 	 * @return list<Appointment> Updated appointments
 	 */
 	public function updateSeriesAppointments(
@@ -232,8 +232,9 @@ class AppointmentService {
 		array $visibleUsers = [],
 		array $visibleGroups = [],
 		array $visibleTeams = [],
-		?string $responseDeadline = null,
+		?DeadlineUpdate $deadlineUpdate = null,
 	): array {
+		$deadlineUpdate ??= DeadlineUpdate::unchanged();
 		$reference = $this->appointmentMapper->find($referenceId);
 
 		if ($scope === 'single') {
@@ -244,7 +245,7 @@ class AppointmentService {
 			$updated = $this->updateAppointment(
 				$referenceId, $name, $description, $startDatetime, $endDatetime,
 				$userId, $visibleUsers, $visibleGroups, $visibleTeams,
-				$responseDeadline,
+				$deadlineUpdate,
 			);
 			return [$updated];
 		}
@@ -255,7 +256,7 @@ class AppointmentService {
 			$updated = $this->updateAppointment(
 				$referenceId, $name, $description, $startDatetime, $endDatetime,
 				$userId, $visibleUsers, $visibleGroups, $visibleTeams,
-				$responseDeadline,
+				$deadlineUpdate,
 			);
 			return [$updated];
 		}
@@ -285,22 +286,15 @@ class AppointmentService {
 		$visibleGroupsJson = empty($visibleGroups) ? null : json_encode($visibleGroups);
 		$visibleTeamsJson = empty($visibleTeams) ? null : json_encode($visibleTeams);
 
-		// Decide deadline mode for the series:
-		//  - null  → leave each sibling's existing deadline, but rebase it by startDelta
-		//            so the relative offset to start_datetime is preserved.
-		//  - ''    → clear deadline on every sibling.
-		//  - other → compute the new sibling deadline as (sibling_start + offset),
-		//            where offset is reference_deadline - reference_start.
+		// Per-sibling deadline rule. Three cases by $deadlineUpdate:
+		//   set     → sibling_start + (new_deadline - new_start)
+		//   clear   → null
+		//   unchanged → rebase the existing deadline by startDelta
 		$deadlineOffsetSeconds = null;
-		$clearDeadline = false;
-		if ($responseDeadline !== null) {
-			if ($responseDeadline === '') {
-				$clearDeadline = true;
-			} else {
-				$newDeadline = new \DateTime($responseDeadline);
-				$newDeadline->setTimezone(new \DateTimeZone('UTC'));
-				$deadlineOffsetSeconds = $newDeadline->getTimestamp() - $newStart->getTimestamp();
-			}
+		if ($deadlineUpdate->isSet()) {
+			$newDeadline = new \DateTime($deadlineUpdate->value());
+			$newDeadline->setTimezone(new \DateTimeZone('UTC'));
+			$deadlineOffsetSeconds = $newDeadline->getTimestamp() - $newStart->getTimestamp();
 		}
 
 		$updated = [];
@@ -321,7 +315,7 @@ class AppointmentService {
 			$sibling->setVisibleGroups($visibleGroupsJson);
 			$sibling->setVisibleTeams($visibleTeamsJson);
 
-			if ($clearDeadline) {
+			if ($deadlineUpdate->isClear()) {
 				$sibling->setResponseDeadline(null);
 			} elseif ($deadlineOffsetSeconds !== null) {
 				$siblingDeadline = (clone $siblingStart)->modify("{$deadlineOffsetSeconds} seconds");
@@ -540,10 +534,8 @@ class AppointmentService {
 		$pastAppointments = $this->getPastAppointments();
 
 		return [
-			// `inAudience` only matters for the sidebar's "Unanswered"
-			// computed, which only ever reads the current list — skip the
-			// per-row visibility resolution on the past list to avoid
-			// touching IGroupManager / Circles for entries no one filters by.
+			// Past list skips inAudience: it's only used by the "Unanswered"
+			// sidebar, which never reads past entries.
 			'current' => $this->buildNavigationData($currentAppointments, $userId, true),
 			'past' => $this->buildNavigationData($pastAppointments, $userId, false),
 		];

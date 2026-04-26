@@ -24,12 +24,6 @@
 			</div>
 		</div>
 
-		<!-- Search + filter controls -->
-		<!-- Filter row, Files-app pattern. Each filter is a popover trigger;
-		     active values surface as chips on the row below, prefixed with
-		     "Active filters:". Search lives in the navigation sidebar
-		     (App.vue → NcAppNavigationSearch); when active it appears here
-		     as a chip too. -->
 		<h2 v-if="!hideHeading" class="page-heading" data-test="page-heading">
 			{{ pageHeading }}
 		</h2>
@@ -172,20 +166,14 @@ const props = defineProps({
 		default: false,
 	},
 	// "All" view: fetches upcoming + past in parallel and concatenates.
-	// This is where the sidebar search lands so the user gets one unified
-	// hit list across both halves without view-scoped surprises.
 	showAll: {
 		type: Boolean,
 		default: false,
 	},
-	// Lifted to App.vue so the search input lives in the sidebar
-	// (NcAppNavigationSearch). Empty string = no search active.
 	searchQuery: {
 		type: String,
 		default: '',
 	},
-	// Sourced from App.vue's `unansweredAppointments` so the banner count
-	// reflects the same audience-filtered set as the sidebar entry.
 	unansweredCount: {
 		type: Number,
 		default: 0,

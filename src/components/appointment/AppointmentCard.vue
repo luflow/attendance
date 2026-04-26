@@ -192,22 +192,11 @@
 					:variant="userResponse ? getResponseVariant(userResponse) : 'tertiary'"
 					no-close />
 			</div>
-			<!-- Manager / creator: full banner with Reopen button -->
 			<div v-if="canToggleClosed" class="closed-banner" data-test="closed-banner">
 				<LockIcon :size="20" />
 				<div class="closed-banner-text">
 					<strong>{{ t("attendance", "Inquiry closed") }}</strong>
-					<span v-if="formattedClosedAt">
-						{{
-							appointment.responseDeadline
-								? t("attendance", "Closed automatically on {when}", {
-									when: formattedClosedAt,
-								})
-								: t("attendance", "Closed on {when}", {
-									when: formattedClosedAt,
-								})
-						}}
-					</span>
+					<span v-if="formattedClosedAt">{{ closedLabel }}</span>
 				</div>
 				<NcButton
 					variant="secondary"
@@ -217,16 +206,9 @@
 					{{ t("attendance", "Reopen") }}
 				</NcButton>
 			</div>
-			<!-- Other users: minimal closed-info line, mirrors deadline-info styling -->
 			<div v-else class="closed-info" data-test="closed-info">
 				<LockIcon :size="16" />
-				<span>{{
-					formattedClosedAt
-						? (appointment.responseDeadline
-							? t("attendance", "Closed automatically on {when}", { when: formattedClosedAt })
-							: t("attendance", "Closed on {when}", { when: formattedClosedAt }))
-						: t("attendance", "Inquiry closed")
-				}}</span>
+				<span>{{ closedLabel }}</span>
 			</div>
 		</div>
 
@@ -484,6 +466,16 @@ const formattedDeadline = computed(() =>
 		? formatDateTime(props.appointment.responseDeadline)
 		: '',
 )
+
+const closedLabel = computed(() => {
+	if (!formattedClosedAt.value) {
+		return t('attendance', 'Inquiry closed')
+	}
+	if (props.appointment.responseDeadline) {
+		return t('attendance', 'Closed automatically on {when}', { when: formattedClosedAt.value })
+	}
+	return t('attendance', 'Closed on {when}', { when: formattedClosedAt.value })
+})
 
 
 const renderedDescription = computed(() => {

@@ -429,15 +429,10 @@ const showExportDialog = ref(false)
 
 const pastAppointmentsExpanded = ref(false)
 
-// Sidebar full-text search lives in NcAppNavigation's #search slot
-// (Files-app pattern). Intentionally NOT persisted — a search term across
-// reloads is more confusing than helpful. Filters above the list ARE
-// persisted (see AllAppointments.vue).
+// Intentionally not persisted — a search term carrying across reloads is
+// more confusing than helpful. Filters in AllAppointments.vue are persisted.
 const searchQuery = ref('')
 const onSearchInput = () => {
-	// Typing routes the user into the dedicated "All appointments" view
-	// (full upcoming + past list), which is the only place where a
-	// scope-agnostic search makes sense.
 	if (searchQuery.value && currentView.value !== 'all') {
 		setView('all')
 	}
@@ -456,8 +451,8 @@ const unansweredAppointments = computed(() => {
 	})
 })
 
-// Closed-but-unanswered appointments bucket here so the user can still find
-// them — they would otherwise vanish (no longer "unanswered", never answered).
+// Closed-but-unanswered appointments bucket here so they don't vanish from
+// the UI (no longer "unanswered", never answered).
 const answeredAppointments = computed(() => {
 	return currentAppointments.value.filter((appointment) => {
 		const hasResponse = appointment.userResponse && appointment.userResponse !== null
@@ -466,16 +461,13 @@ const answeredAppointments = computed(() => {
 	})
 })
 
-// Computed property for all appointments for export dialog
 const allAppointments = computed(() => {
 	return [...currentAppointments.value, ...pastAppointments.value]
 })
 
 const setView = (view) => {
-	// Switching to a structured list view (Upcoming/Past/Unanswered) resets
-	// the search — those views are scoped, a stale search term across them
-	// is more confusing than helpful. The "All" view is the search target,
-	// so navigating to it preserves the term.
+	// Scoped views (Upcoming/Past/Unanswered) reset the search; the "All"
+	// view is the search target, so navigating there preserves the term.
 	if (['current', 'past', 'unanswered'].includes(view) && view !== currentView.value) {
 		searchQuery.value = ''
 	}
