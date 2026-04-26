@@ -198,7 +198,7 @@
 					class="deadline-relative-row"
 					data-test="deadline-relative-row">
 					<NcTextField
-						v-model:value="deadlineRelativeValueStr"
+						v-model="deadlineRelativeValueStr"
 						type="number"
 						min="1"
 						class="deadline-relative-value"
