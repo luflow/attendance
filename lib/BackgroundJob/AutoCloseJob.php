@@ -33,7 +33,7 @@ class AutoCloseJob extends TimedJob {
 		$now = gmdate('Y-m-d H:i:s');
 		$count = $this->appointmentMapper->autoCloseExpired($now);
 		if ($count > 0) {
-			$this->logger->info('Auto-closed appointments past their deadline', [
+			$this->logger->info('Auto-closed appointments past their deadline or start time', [
 				'count' => $count,
 				'now' => $now,
 			]);

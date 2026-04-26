@@ -49,7 +49,7 @@ class AutoCloseJobTest extends TestCase {
 		$this->logger->expects($this->once())
 			->method('info')
 			->with(
-				'Auto-closed appointments past their deadline',
+				'Auto-closed appointments past their deadline or start time',
 				$this->callback(fn ($ctx) => ($ctx['count'] ?? null) === 3 && isset($ctx['now'])),
 			);
 

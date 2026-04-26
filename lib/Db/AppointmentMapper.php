@@ -301,8 +301,10 @@ class AppointmentMapper extends QBMapper {
 	}
 
 	/**
-	 * Bulk-close all active inquiries whose response_deadline is at or before
-	 * the given timestamp. Returns the affected row count.
+	 * Bulk-close all active inquiries whose response_deadline or start_datetime
+	 * is at or before the given timestamp. Once an appointment has started,
+	 * further responses are pointless, so it gets closed regardless of any
+	 * configured deadline. Returns the affected row count.
 	 */
 	public function autoCloseExpired(string $now): int {
 		$qb = $this->db->getQueryBuilder();
@@ -313,8 +315,13 @@ class AppointmentMapper extends QBMapper {
 				$qb->expr()->andX(
 					$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
 					$qb->expr()->isNull('closed_at'),
-					$qb->expr()->isNotNull('response_deadline'),
-					$qb->expr()->lte('response_deadline', $qb->createNamedParameter($now)),
+					$qb->expr()->orX(
+						$qb->expr()->andX(
+							$qb->expr()->isNotNull('response_deadline'),
+							$qb->expr()->lte('response_deadline', $qb->createNamedParameter($now)),
+						),
+						$qb->expr()->lte('start_datetime', $qb->createNamedParameter($now)),
+					),
 				)
 			);
 		return (int)$qb->executeStatement();
