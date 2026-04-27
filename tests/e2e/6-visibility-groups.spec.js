@@ -277,16 +277,17 @@ test.describe('Attendance App - Group Visibility Filtering', () => {
 			await page.getByRole('textbox', { name: 'Start Date & Time' }).fill(startDate.toISOString().slice(0, 16))
 			await page.getByRole('textbox', { name: 'End Date & Time' }).fill(endDate.toISOString().slice(0, 16))
 
-			// Add developers group (no ambiguity)
-			await page.getByRole('searchbox').click()
-			await page.getByRole('searchbox').fill('developers')
+			// Add developers group
+			const visibilitySearch = page.locator('[data-test="select-visibility"]').getByRole('searchbox')
+			await visibilitySearch.click()
+			await visibilitySearch.fill('developers')
 			const developersOption = page.getByRole('option', { name: 'developers' })
 			await developersOption.waitFor({ state: 'visible' })
 			await developersOption.click()
 
 			// Add test2 user
-			await page.getByRole('searchbox').click()
-			await page.getByRole('searchbox').fill('test2')
+			await visibilitySearch.click()
+			await visibilitySearch.fill('test2')
 			const test2Option = page.getByRole('option', { name: 'test2' })
 			await test2Option.waitFor({ state: 'visible' })
 			await test2Option.click()
