@@ -6,14 +6,7 @@
 
 - Nightly changes here
 
-## 1.39.0 – 2026-04-26
-
-### Added
-
-- Reminders for maybe-responders: bell icon inline next to each "Maybe" badge, bulk remind dialog with target picker (non-responders / maybe / both)
-- Admin setting to choose who receives automatic reminders
-
-## 1.38.0 – 2026-04-26
+## 1.38.0 – 2026-04-27
 
 ### Added
 
@@ -22,10 +15,12 @@
 - Auto-close appointments once they have started (via background job)
 - Dedicated "All appointments" view with Upcoming and Past sections
 - New Filter row with sidebar search and "Only for me" filter (for admins seeing normally all appointments)
+- Reminders for maybe-responders: bell icon inline next to each "Maybe" badge, bulk remind dialog with target picker (non-responders / maybe / both)
+- Admin setting to choose who receives automatic reminders
 
 ### Improved
 
-- Unanswered view and widget now implicitly filters to appointments addressed to the current user so you don't see unecessary stuff
+- Unanswered view and widget now implicitly filters to appointments addressed to the current user so you don't see unnecessary stuff
 
 ### Maintenance
 
