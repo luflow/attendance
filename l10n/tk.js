@@ -11,6 +11,7 @@ OC.L10N.register(
     "Light" : "Ýagtylyk",
     "Dark" : "Garaňky",
     "Notifications" : "Duýduryşlar",
+    "OK" : "OK",
     "About" : "Hakynda",
     "Select all" : "Hemmesini saýlaň",
     "Deselect all" : "Hemmesini aýyryň",

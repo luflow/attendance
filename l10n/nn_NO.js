@@ -12,6 +12,7 @@ OC.L10N.register(
     "Notifications" : "Varsel",
     "Connecting…" : "Koplar til…",
     "Subscription" : "Abonnement",
+    "OK" : "OK",
     "Export" : "Eksporter",
     "Select all" : "Merk alt",
     "Copy" : "Kopier",
@@ -31,6 +32,7 @@ OC.L10N.register(
     "Import" : "Importer",
     "Dismiss" : "Forkast",
     "Link copied" : "Lenkje kopiert",
+    "days" : "dagar",
     "User" : "Bruker",
     "Description" : "Skildring"
 },

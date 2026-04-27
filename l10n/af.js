@@ -11,6 +11,7 @@ OC.L10N.register(
     "Subscribe" : "Teken in",
     "Subscription" : "Intekening",
     "Active" : "Aktief",
+    "OK" : "OK",
     "About" : "Aangaande",
     "Export" : "Voer uit",
     "Select all" : "Kies alle",

@@ -10,6 +10,7 @@ OC.L10N.register(
     "Light" : "হাল্কা",
     "Dark" : "গাঢ়",
     "Subscribe" : "গ্রাহক হোন",
+    "OK" : "OK",
     "Export" : "রপ্তানি",
     "Cancel" : "Cancel",
     "Edit" : "সম্পাদনা",
@@ -25,6 +26,7 @@ OC.L10N.register(
     "Sunday" : "রবিবার",
     "Save" : "সংরক্ষণ",
     "Import" : "আমদানি",
+    "hours" : "ঘন্টাসমূহ",
     "User" : "User",
     "Description" : "বিবরণ",
     "Notification" : "নোটিফিকেশন "

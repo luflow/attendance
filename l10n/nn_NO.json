@@ -10,6 +10,7 @@
     "Notifications" : "Varsel",
     "Connecting…" : "Koplar til…",
     "Subscription" : "Abonnement",
+    "OK" : "OK",
     "Export" : "Eksporter",
     "Select all" : "Merk alt",
     "Copy" : "Kopier",
@@ -29,6 +30,7 @@
     "Import" : "Importer",
     "Dismiss" : "Forkast",
     "Link copied" : "Lenkje kopiert",
+    "days" : "dagar",
     "User" : "Bruker",
     "Description" : "Skildring"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
