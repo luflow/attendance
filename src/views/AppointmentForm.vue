@@ -331,31 +331,44 @@
 					"
 					data-test="select-visibility"
 					@search="onSearch">
-					<template #option="{ label, type }">
+					<template #option="{ label, type, isGuest }">
 						<span
 							style="display: flex; align-items: center; gap: 8px"
-							:title="getTypeLabel(type)">
+							:title="getTypeLabel(type, isGuest)">
 							<AccountStar v-if="type === 'team'" :size="20" />
 							<AccountGroup
 								v-else-if="type === 'group'"
+								:size="20" />
+							<AccountPlus
+								v-else-if="type === 'create-guest'"
+								:size="20" />
+							<AccountQuestion
+								v-else-if="isGuest"
 								:size="20" />
 							<Account v-else :size="20" />
 							<span>{{ label }}</span>
 						</span>
 					</template>
-					<template #selected-option="{ label, type }">
+					<template #selected-option="{ label, type, isGuest }">
 						<span
 							style="display: flex; align-items: center; gap: 8px"
-							:title="getTypeLabel(type)">
+							:title="getTypeLabel(type, isGuest)">
 							<AccountStar v-if="type === 'team'" :size="16" />
 							<AccountGroup
 								v-else-if="type === 'group'"
+								:size="16" />
+							<AccountQuestion
+								v-else-if="isGuest"
 								:size="16" />
 							<Account v-else :size="16" />
 							<span>{{ label }}</span>
 						</span>
 					</template>
 				</NcSelect>
+				<p v-if="guestInvitationAvailable" class="guest-invite-hint">
+					<AccountPlus :size="14" />
+					{{ t('attendance', 'Enter an email address to invite a guest without a Nextcloud account.') }}
+				</p>
 				<NcNoteCard
 					v-if="hasTrackingMismatch"
 					type="warning"
@@ -410,7 +423,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import {
 	NcButton,
 	NcTextField,
@@ -430,9 +443,13 @@ import MarkdownEditor from '../components/common/MarkdownEditor.vue'
 import CalendarEventPicker from '../components/calendar/CalendarEventPicker.vue'
 import RecurrenceSelector from '../components/appointment/RecurrenceSelector.vue'
 import { generateUrl } from '@nextcloud/router'
+import { subscribe as subscribeToEvent, unsubscribe as unsubscribeFromEvent } from '@nextcloud/event-bus'
 import axios from '@nextcloud/axios'
+import { usePermissions } from '../composables/usePermissions.js'
 import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
 import Account from 'vue-material-design-icons/Account.vue'
+import AccountPlus from 'vue-material-design-icons/AccountPlus.vue'
+import AccountQuestion from 'vue-material-design-icons/AccountQuestion.vue'
 import AccountStar from 'vue-material-design-icons/AccountStar.vue'
 import Paperclip from 'vue-material-design-icons/Paperclip.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
@@ -520,9 +537,15 @@ const deadlineRelativeOffsetMs = computed(
 	() => deadlineRelativeValue.value * UNIT_MS[deadlineRelativeUnit.value],
 )
 
+const { capabilities, loadPermissions } = usePermissions()
+
 const visibilityItems = ref([])
 const searchResults = ref([])
 const isSearching = ref(false)
+const guestInvitationAvailable = computed(() => capabilities.guestInvitation === true)
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const isEmailAddress = (value) => typeof value === 'string' && EMAIL_REGEX.test(value.trim())
 const sendNotification = ref(false)
 const trackingGroups = ref([])
 const trackingTeams = ref([])
@@ -629,10 +652,10 @@ const hasCalendarReference = computed(() => {
 	)
 })
 
-const getTypeLabel = (type) => {
+const getTypeLabel = (type, isGuest = false) => {
 	switch (type) {
 	case 'user':
-		return t('attendance', 'User')
+		return isGuest ? t('attendance', 'Guest account') : t('attendance', 'User')
 	case 'group':
 		return t('attendance', 'Group')
 	case 'team':
@@ -949,6 +972,7 @@ const onSearch = async (query) => {
 			value: item.id,
 			label: item.label,
 			type: item.type,
+			isGuest: !!item.isGuest,
 		}))
 
 		const mergedResults = [...visibilityItems.value]
@@ -961,6 +985,25 @@ const onSearch = async (query) => {
 			}
 		}
 
+		// Offer to provision a guest account when the query is an email and
+		// no existing user matches it. Gated on `guestInvitation` capability.
+		const trimmedQuery = query.trim()
+		if (guestInvitationAvailable.value && isEmailAddress(trimmedQuery)) {
+			const exactUserMatch = newResults.some(
+				(r) => r.type === 'user' && (r.value === trimmedQuery || r.label === trimmedQuery),
+			)
+			if (!exactUserMatch) {
+				mergedResults.push({
+					id: `create-guest:${trimmedQuery.toLowerCase()}`,
+					value: trimmedQuery,
+					label: t('attendance', 'Create guest account for {email}', { email: trimmedQuery }),
+					type: 'create-guest',
+					email: trimmedQuery,
+					isGuest: false,
+				})
+			}
+		}
+
 		searchResults.value = mergedResults
 	} catch (error) {
 		console.error('Failed to search:', error)
@@ -969,6 +1012,98 @@ const onSearch = async (query) => {
 		isSearching.value = false
 	}
 }
+
+const removePlaceholder = (placeholder) => {
+	visibilityItems.value = visibilityItems.value.filter((i) => i.id !== placeholder.id)
+}
+
+const addUserItem = (userItem) => {
+	const alreadySelected = visibilityItems.value.some((i) => i.id === userItem.id)
+	if (!alreadySelected) {
+		// Reassign instead of .push() — the visibilityItems watcher fires only
+		// on .value reassignment, not in-place array mutation.
+		visibilityItems.value = [...visibilityItems.value, userItem]
+	}
+}
+
+const guestCreatedHandlers = new Set()
+
+const provisionGuestViaDialog = (email) => {
+	// The Guests app exposes `OCA.Guests.openGuestDialog(app, shareWith)`. The
+	// promise it returns never resolves for non-files/talk integrations, so we
+	// listen for the `guests:user:created` bus event instead.
+	if (!window.OCA?.Guests?.openGuestDialog) {
+		return false
+	}
+	const handler = ({ username, name }) => {
+		unsubscribeFromEvent('guests:user:created', handler)
+		guestCreatedHandlers.delete(handler)
+		const uid = username || email
+		addUserItem({
+			id: `user:${uid}`,
+			value: uid,
+			label: name || uid,
+			type: 'user',
+			isGuest: true,
+		})
+		showSuccess(t('attendance', 'Guest account created for {email}', { email }))
+	}
+	subscribeToEvent('guests:user:created', handler)
+	guestCreatedHandlers.add(handler)
+	try {
+		window.OCA.Guests.openGuestDialog('attendance', email)
+	} catch (error) {
+		console.error('Failed to open Guests app dialog:', error)
+		unsubscribeFromEvent('guests:user:created', handler)
+		guestCreatedHandlers.delete(handler)
+		return false
+	}
+	return true
+}
+
+const provisionGuestAccount = async (placeholder) => {
+	const email = (placeholder.email || '').trim()
+	if (!email) {
+		return
+	}
+	removePlaceholder(placeholder)
+	if (provisionGuestViaDialog(email)) {
+		return
+	}
+	try {
+		const response = await axios.post(
+			generateUrl('/apps/attendance/api/guests'),
+			{ email },
+		)
+		addUserItem({
+			id: `user:${response.data.userId}`,
+			value: response.data.userId,
+			label: response.data.displayName || response.data.email,
+			type: 'user',
+			isGuest: !!response.data.isGuest,
+		})
+		showSuccess(
+			response.data.alreadyExisted
+				? t('attendance', 'Added existing guest {email}', { email })
+				: t('attendance', 'Guest account created for {email}', { email }),
+		)
+	} catch (error) {
+		console.error('Failed to create guest account:', error)
+		const serverMessage = error?.response?.data?.error
+		showError(serverMessage || t('attendance', 'Failed to create guest account'))
+	}
+}
+
+watch(
+	visibilityItems,
+	(items) => {
+		const placeholders = items.filter((i) => i.type === 'create-guest')
+		for (const placeholder of placeholders) {
+			provisionGuestAccount(placeholder)
+		}
+	},
+	{ deep: true },
+)
 
 const openFilePicker = async () => {
 	try {
@@ -1300,10 +1435,20 @@ const saveAppointment = async (scope = 'single') => {
 }
 
 onMounted(async () => {
-	await loadTrackingGroups()
+	await Promise.all([loadTrackingGroups(), loadPermissions()])
 	if (props.mode === 'edit' || props.mode === 'copy') {
 		await loadAppointment()
 	}
+})
+
+onBeforeUnmount(() => {
+	// Cancel any guest-creation listeners still waiting for a Guests-app
+	// dialog that the user closed without submitting — otherwise a later
+	// unrelated `guests:user:created` event would fire stale handlers.
+	for (const handler of guestCreatedHandlers) {
+		unsubscribeFromEvent('guests:user:created', handler)
+	}
+	guestCreatedHandlers.clear()
 })
 </script>
 
@@ -1372,6 +1517,15 @@ onMounted(async () => {
             text-decoration: underline;
             color: inherit;
         }
+    }
+
+    .guest-invite-hint {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 8px 0 0 0;
+        font-size: 12px;
+        color: var(--color-text-maxcontrast);
     }
 }
 

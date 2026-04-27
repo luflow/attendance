@@ -16,6 +16,7 @@ const state = reactive({
 		teamsAvailable: false,
 		calendarSyncAvailable: false,
 		notificationsAppEnabled: false,
+		guestInvitation: false,
 	},
 	config: {
 		displayOrder: 'name_first',
@@ -67,6 +68,7 @@ export function usePermissions() {
 			state.capabilities.teamsAvailable = capabilitiesRes.data.teamsAvailable || false
 			state.capabilities.calendarSyncAvailable = capabilitiesRes.data.calendarSyncAvailable || false
 			state.capabilities.notificationsAppEnabled = capabilitiesRes.data.notificationsAppEnabled !== false
+			state.capabilities.guestInvitation = capabilitiesRes.data.guestInvitation === true
 
 			state.config.displayOrder = configRes.data.displayOrder || 'name_first'
 			state.config.mobileAppBannerEnabled = configRes.data.mobileAppBannerEnabled !== false

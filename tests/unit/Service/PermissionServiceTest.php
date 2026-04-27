@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Tests\Unit\Service;
 
+use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\PermissionService;
 use OCP\IConfig;
 use OCP\IGroup;
@@ -27,6 +28,9 @@ class PermissionServiceTest extends TestCase {
 	/** @var IUserManager|MockObject */
 	private $userManager;
 
+	/** @var GuestService|MockObject */
+	private $guestService;
+
 	private PermissionService $service;
 
 	protected function setUp(): void {
@@ -34,12 +38,14 @@ class PermissionServiceTest extends TestCase {
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->userManager = $this->createMock(IUserManager::class);
+		$this->guestService = $this->createMock(GuestService::class);
 
 		$this->service = new PermissionService(
 			$this->config,
 			$this->groupManager,
 			$this->userSession,
-			$this->userManager
+			$this->userManager,
+			$this->guestService,
 		);
 	}
 
@@ -259,6 +265,75 @@ class PermissionServiceTest extends TestCase {
 		];
 
 		$this->assertEquals($expected, $result);
+	}
+
+	public function testGuestUserIsBlockedFromManageAppointments(): void {
+		$this->guestService->expects($this->once())
+			->method('isGuestUser')
+			->with('guestuser')
+			->willReturn(true);
+
+		// Guest hard-block runs before role lookup; config and userManager
+		// must not be consulted at all.
+		$this->config->expects($this->never())->method('getAppValue');
+		$this->userManager->expects($this->never())->method('get');
+
+		$this->assertFalse(
+			$this->service->hasPermission('guestuser', PermissionService::PERMISSION_MANAGE_APPOINTMENTS),
+		);
+	}
+
+	public function testGuestUserIsBlockedFromCheckin(): void {
+		$this->guestService->expects($this->once())
+			->method('isGuestUser')
+			->with('guestuser')
+			->willReturn(true);
+
+		$this->assertFalse(
+			$this->service->hasPermission('guestuser', PermissionService::PERMISSION_CHECKIN),
+		);
+	}
+
+	public function testGuestUserCanStillSelfCheckin(): void {
+		// SELF_CHECKIN is not in the guest hard-block list, so the regular
+		// group lookup runs. With no roles configured, the user gets access.
+		$this->config->expects($this->once())
+			->method('getAppValue')
+			->willReturn('[]');
+
+		$this->assertTrue(
+			$this->service->hasPermission('guestuser', PermissionService::PERMISSION_SELF_CHECKIN),
+		);
+	}
+
+	public function testNonGuestUserNotBlocked(): void {
+		$this->guestService->expects($this->once())
+			->method('isGuestUser')
+			->with('regularuser')
+			->willReturn(false);
+
+		$this->config->expects($this->once())
+			->method('getAppValue')
+			->willReturn('[]');
+
+		$this->assertTrue(
+			$this->service->hasPermission('regularuser', PermissionService::PERMISSION_MANAGE_APPOINTMENTS),
+		);
+	}
+
+	public function testGuestBlockOverridesGroupWhitelist(): void {
+		// Even if the admin accidentally adds the `guests` group to the
+		// management whitelist, the hard-block must still kick in.
+		$this->guestService->expects($this->once())
+			->method('isGuestUser')
+			->with('guestuser')
+			->willReturn(true);
+
+		$this->config->expects($this->never())->method('getAppValue');
+
+		$this->assertFalse(
+			$this->service->hasPermission('guestuser', PermissionService::PERMISSION_MANAGE_APPOINTMENTS),
+		);
 	}
 
 	public function testSetAllPermissionSettings(): void {

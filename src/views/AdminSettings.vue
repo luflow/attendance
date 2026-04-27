@@ -397,6 +397,70 @@
 				</NcCheckboxRadioSwitch>
 			</NcSettingsSection>
 
+			<NcSettingsSection :name="t('attendance', 'Guest invitation')"
+				:description="t('attendance', 'Invite people without a Nextcloud account by integrating with the Nextcloud Guests app.')"
+				data-test="section-guests-warning">
+				<template v-if="guestsHintVariant === 'install'">
+					<NcNoteCard type="info" data-test="guests-install-hint">
+						{{ t('attendance', 'Want to invite guests? Install the Nextcloud Guests app — once enabled, organizers can create guest accounts directly from the appointment editor.') }}
+					</NcNoteCard>
+					<p class="guests-warning-actions">
+						<NcButton variant="primary"
+							:href="guestsAppStoreUrl"
+							target="_blank"
+							rel="noopener"
+							data-test="button-open-guests-app-store">
+							<template #icon>
+								<OpenInNew :size="20" />
+							</template>
+							{{ t('attendance', 'Open in app store') }}
+						</NcButton>
+					</p>
+				</template>
+				<template v-else-if="guestsHintVariant === 'whitelist'">
+					<NcNoteCard type="warning" data-test="guests-whitelist-warning">
+						{{ t('attendance', 'The Guests app is enabled but Attendance is not in its allowed apps list. Invited guests will not see this app.') }}
+					</NcNoteCard>
+					<div class="guests-occ-row">
+						<code class="guests-occ-row__command" data-test="input-guests-occ">{{ guestsWhitelistOccCommand }}</code>
+						<NcButton variant="secondary"
+							:aria-label="t('attendance', 'Copy occ command')"
+							data-test="button-copy-guests-occ"
+							@click="copyGuestsOccCommand">
+							<template #icon>
+								<ContentCopy :size="20" />
+							</template>
+							{{ t('attendance', 'Copy') }}
+						</NcButton>
+					</div>
+					<p class="guests-warning-or">{{ t('attendance', 'or') }}</p>
+					<p class="guests-warning-actions">
+						<NcButton variant="primary"
+							:href="guestsAdminUrl"
+							data-test="button-open-guests-settings">
+							<template #icon>
+								<OpenInNew :size="20" />
+							</template>
+							{{ t('attendance', 'Open Guests app settings') }}
+						</NcButton>
+					</p>
+				</template>
+
+				<div class="guests-info-block">
+					<h4>{{ t('attendance', 'How guest accounts are restricted') }}</h4>
+					<p>
+						{{ t('attendance', 'Guest users can submit RSVPs and self-check-in but can never manage appointments or check in other attendees. This is enforced server-side and cannot be granted via group permissions.') }}
+					</p>
+				</div>
+
+				<div class="guests-info-block">
+					<h4>{{ t('attendance', 'Converting guests to full accounts') }}</h4>
+					<p>
+						{{ t('attendance', 'When a guest later registers a full Nextcloud account with the same email (for example via SAML or LDAP), the Guests app converts them automatically. Past attendance responses remain attached to the original guest user ID — they are not migrated to the new account.') }}
+					</p>
+				</div>
+			</NcSettingsSection>
+
 			<NcSettingsSection>
 				<NcButton
 					variant="primary"
@@ -472,8 +536,26 @@ const pushDeviceCount = ref(0)
 const loading = ref(false)
 const loadingData = ref(true)
 const sendingTestReminder = ref(false)
+const guestsApp = ref({ enabled: false, whitelistEnabled: false, attendanceInWhitelist: false })
 
 // Computed
+// 'install' = Guests app missing (offer to install)
+// 'whitelist' = Guests app enabled but `attendance` missing from its whitelist
+// null = nothing to surface (either fully configured or a state we don't act on)
+const guestsHintVariant = computed(() => {
+	if (!guestsApp.value.enabled) {
+		return 'install'
+	}
+	if (guestsApp.value.whitelistEnabled && !guestsApp.value.attendanceInWhitelist) {
+		return 'whitelist'
+	}
+	return null
+})
+
+const guestsAdminUrl = computed(() => generateUrl('/settings/admin/guests'))
+const guestsAppStoreUrl = 'https://apps.nextcloud.com/apps/guests'
+const guestsWhitelistOccCommand = 'occ config:app:set guests whitelist --value=$(occ config:app:get guests whitelist),attendance'
+
 const reminderSectionDescription = computed(() => {
 	return t('attendance', 'Reminders are sent to users in the groups configured under "Response summary groups" and "Response summary teams". If an appointment has restricted access, only users matching that restriction will be reminded.')
 })
@@ -589,6 +671,11 @@ const loadSettings = async () => {
 
 		// Load mobile app banner setting
 		mobileAppBannerEnabled.value = config.mobileAppBannerEnabled !== false
+
+		// Load guests app status (for whitelist warning)
+		if (config.guestsApp) {
+			guestsApp.value = config.guestsApp
+		}
 	} catch (error) {
 		console.error('Error loading settings:', error)
 		showError(window.t('attendance', 'Failed to load settings'))
@@ -671,6 +758,14 @@ const copyStoreUrl = (url) => copyToClipboard(url, {
 	errorMessage: window.t('attendance', 'Failed to copy link'),
 })
 
+const copyGuestsOccCommand = () => copyToClipboard(
+	guestsWhitelistOccCommand,
+	{
+		successMessage: window.t('attendance', 'Command copied'),
+		errorMessage: window.t('attendance', 'Failed to copy command'),
+	},
+)
+
 const sendTestReminder = async () => {
 	sendingTestReminder.value = true
 	try {
@@ -725,6 +820,57 @@ onMounted(async () => {
 	margin-top: 8px;
 	color: var(--color-text-maxcontrast);
 	font-size: 13px;
+}
+
+.guests-warning-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 12px;
+}
+
+.guests-occ-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin-top: 8px;
+}
+
+.guests-warning-or {
+	margin: 8px 0;
+	color: var(--color-text-maxcontrast);
+	font-size: 13px;
+	font-style: italic;
+}
+
+.guests-info-block {
+	margin-top: 20px;
+
+	h4 {
+		margin: 0 0 6px 0;
+		font-size: 14px;
+		font-weight: 600;
+	}
+
+	p {
+		margin: 0 0 8px 0;
+		color: var(--color-text-lighter);
+		font-size: 13px;
+		line-height: 1.5;
+	}
+}
+
+.guests-occ-row__command {
+	flex: 1 1 300px;
+	padding: 8px 12px;
+	background-color: var(--color-background-dark);
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius);
+	font-family: monospace;
+	font-size: 12px;
+	word-break: break-all;
+	user-select: all;
 }
 
 .subsection {

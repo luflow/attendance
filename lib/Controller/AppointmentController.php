@@ -11,6 +11,7 @@ use OCA\Attendance\Service\CheckinService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\DeadlineUpdate;
 use OCA\Attendance\Service\ExportService;
+use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\NotificationService;
 use OCA\Attendance\Service\PermissionService;
 use OCA\Attendance\Service\VisibilityService;
@@ -38,6 +39,7 @@ class AppointmentController extends Controller {
 	private IAppManager $appManager;
 	private IUserSession $userSession;
 	private ISecureRandom $secureRandom;
+	private GuestService $guestService;
 
 	public function __construct(
 		string $appName,
@@ -54,6 +56,7 @@ class AppointmentController extends Controller {
 		IAppManager $appManager,
 		IUserSession $userSession,
 		ISecureRandom $secureRandom,
+		GuestService $guestService,
 	) {
 		parent::__construct($appName, $request);
 		$this->appointmentService = $appointmentService;
@@ -68,6 +71,7 @@ class AppointmentController extends Controller {
 		$this->appManager = $appManager;
 		$this->userSession = $userSession;
 		$this->secureRandom = $secureRandom;
+		$this->guestService = $guestService;
 	}
 
 	/**
@@ -704,6 +708,10 @@ class AppointmentController extends Controller {
 			// Older servers omit this flag → mobile clients hide close-inquiry UI.
 			'closing' => true,
 			'remindMaybe' => true,
+			// True when the Guests app is available, meaning the server can
+			// service POST /api/guests so clients may surface an "invite guest"
+			// affordance in the appointment editor.
+			'guestInvitation' => $this->guestService->isGuestsAppEnabled(),
 		]);
 	}
 
@@ -864,7 +872,7 @@ class AppointmentController extends Controller {
 	 * Search for users, groups, and teams
 	 *
 	 * @param string $search Search query
-	 * @return DataResponse<Http::STATUS_OK, list<array{id: string, label: string, type: string, icon: string}>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, list<array{id: string, label: string, type: string, icon: string, isGuest: bool}>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -885,6 +893,42 @@ class AppointmentController extends Controller {
 			return new DataResponse($results);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 400);
+		}
+	}
+
+	/**
+	 * Create a guest account via the Nextcloud Guests app
+	 *
+	 * Allows organizers to invite people without a Nextcloud account by
+	 * provisioning a guest user. The new account is identified by its email
+	 * (used both as UID and email). Guests cannot manage appointments or
+	 * check in others — that is enforced by `PermissionService` regardless of
+	 * group configuration.
+	 *
+	 * @param string $email Email address that becomes both the guest's UID and contact address
+	 * @param string $displayName Optional human-readable name for the guest
+	 * @return DataResponse<Http::STATUS_OK, AttendanceGuestCreationResult, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function createGuest(string $email = '', string $displayName = ''): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		if (!$this->permissionService->canManageAppointments($user->getUID())) {
+			return new DataResponse(['error' => 'Insufficient permissions'], 403);
+		}
+
+		try {
+			$result = $this->guestService->createGuest($user, $email, $displayName);
+			return new DataResponse($result);
+		} catch (\InvalidArgumentException $e) {
+			return new DataResponse(['error' => $e->getMessage()], 400);
+		} catch (\RuntimeException $e) {
+			return new DataResponse(['error' => $e->getMessage()], 500);
 		}
 	}
 

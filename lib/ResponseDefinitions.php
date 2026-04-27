@@ -57,6 +57,19 @@ namespace OCA\Attendance;
  *   checkinSource: ?string,
  *   userName: string,
  *   userGroups: list<string>,
+ *   isGuest: bool,
+ * }
+ * @psalm-type AttendanceGuestsAppStatus = array{
+ *   enabled: bool,
+ *   whitelistEnabled: bool,
+ *   attendanceInWhitelist: bool,
+ * }
+ * @psalm-type AttendanceGuestCreationResult = array{
+ *   userId: string,
+ *   displayName: string,
+ *   email: string,
+ *   isGuest: bool,
+ *   alreadyExisted: bool,
  * }
  * @psalm-type AttendanceAppointmentWithResponse = array{
  *   id: int,
@@ -127,6 +140,7 @@ namespace OCA\Attendance;
  *   notificationsAppEnabled: bool,
  *   closing: bool,
  *   remindMaybe: bool,
+ *   guestInvitation: bool,
  * }
  * @psalm-type AttendanceUserConfig = array{
  *   displayOrder: string,
@@ -151,6 +165,7 @@ namespace OCA\Attendance;
  *   displayOrder: string,
  *   pushEnabled: bool,
  *   mobileAppBannerEnabled: bool,
+ *   guestsApp: AttendanceGuestsAppStatus,
  * }
  * @psalm-type AttendanceAdminStatus = array{
  *   nextAppointment: ?array{name: string, startDatetime: string},

@@ -22,6 +22,7 @@ class ResponseSummaryService {
 	private VisibilityService $visibilityService;
 	private IGroupManager $groupManager;
 	private IUserManager $userManager;
+	private GuestService $guestService;
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -30,6 +31,7 @@ class ResponseSummaryService {
 		VisibilityService $visibilityService,
 		IGroupManager $groupManager,
 		IUserManager $userManager,
+		GuestService $guestService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -37,6 +39,7 @@ class ResponseSummaryService {
 		$this->visibilityService = $visibilityService;
 		$this->groupManager = $groupManager;
 		$this->userManager = $userManager;
+		$this->guestService = $guestService;
 	}
 
 	/**
@@ -64,8 +67,10 @@ class ResponseSummaryService {
 		$this->addNonRespondingUsers($appointment, $summary, $respondedUserIds, $cache);
 		$this->addNonRespondingTeamUsers($appointment, $summary, $respondedUserIds, $cache);
 
-		// Calculate total non-responding users
-		$this->calculateTotalNonResponding($appointment, $summary, $respondedUserIds, $cache);
+		// Single pass: populate the global non-responder list AND the Others
+		// bucket (target attendees who don't surface in any visible section,
+		// e.g. guests whose `guest_app` group is hidden).
+		$this->collectMissingResponders($appointment, $summary, $respondedUserIds, $cache);
 
 		// Filter out empty groups and teams (can occur with visibility restrictions)
 		$summary['by_group'] = $this->filterEmptyGroups($summary['by_group']);
@@ -198,6 +203,21 @@ class ResponseSummaryService {
 	}
 
 	/**
+	 * Check if a group should appear as its own section in the summary.
+	 *
+	 * Same as isGroupAllowedCached but hides the Guests app's system group
+	 * unless an admin opts in via the whitelist — otherwise every guest user
+	 * would be lumped under one section regardless of context.
+	 */
+	private function isGroupVisibleAsSection(string $groupId, array $cache): bool {
+		if (GuestService::isGuestsSystemGroup($groupId)
+			&& !in_array(GuestService::GUESTS_SYSTEM_GROUP, $cache['whitelistedGroupsLower'], true)) {
+			return false;
+		}
+		return $this->isGroupAllowedCached($groupId, $cache);
+	}
+
+	/**
 	 * Check if a team is allowed for the appointment (using cache).
 	 * Checks both admin whitelist and appointment-specific restrictions.
 	 */
@@ -230,7 +250,10 @@ class ResponseSummaryService {
 				'yes' => 0,
 				'no' => 0,
 				'maybe' => 0,
-				'responses' => []
+				'no_response' => 0,
+				'responses' => [],
+				'non_responding_users' => [],
+				'maybe_users' => [],
 			]
 		];
 	}
@@ -275,7 +298,7 @@ class ResponseSummaryService {
 				$groupId = $group->getGID();
 
 				// Check if group is allowed (using cache)
-				if ($this->isGroupAllowedCached($groupId, $cache)) {
+				if ($this->isGroupVisibleAsSection($groupId, $cache)) {
 					$userInWhitelistedGroup = true;
 					$this->addResponseToGroup($summary, $groupId, $responseValue, $response, $user);
 				}
@@ -300,6 +323,7 @@ class ResponseSummaryService {
 				$summary['others'][$responseValue]++;
 				$responseData = $response->jsonSerialize();
 				$responseData['userName'] = $user->getDisplayName();
+				$responseData['isGuest'] = $this->guestService->isGuestUser($userId);
 				$summary['others']['responses'][] = $responseData;
 			}
 		}
@@ -330,6 +354,7 @@ class ResponseSummaryService {
 		// Add the detailed response to this group
 		$responseData = $response->jsonSerialize();
 		$responseData['userName'] = $user->getDisplayName();
+		$responseData['isGuest'] = $this->guestService->isGuestUser($user->getUID());
 		$summary['by_group'][$groupId]['responses'][] = $responseData;
 	}
 
@@ -361,6 +386,7 @@ class ResponseSummaryService {
 		// Add the detailed response to this team
 		$responseData = $response->jsonSerialize();
 		$responseData['userName'] = $user->getDisplayName();
+		$responseData['isGuest'] = $this->guestService->isGuestUser($user->getUID());
 		$summary['by_team'][$teamId]['responses'][] = $responseData;
 	}
 
@@ -381,8 +407,8 @@ class ResponseSummaryService {
 			// Numeric-string group IDs get coerced to int when used as array keys (issue #63)
 			$groupId = (string)$groupId;
 
-			// Skip groups not in whitelist
-			if (!$this->isGroupAllowedCached($groupId, $cache)) {
+			// Skip groups not in whitelist or system groups (e.g. guest_app)
+			if (!$this->isGroupVisibleAsSection($groupId, $cache)) {
 				continue;
 			}
 
@@ -414,12 +440,14 @@ class ResponseSummaryService {
 				if ($userResponse === null) {
 					$nonRespondingUsers[] = [
 						'userId' => $userId,
-						'displayName' => $user->getDisplayName()
+						'displayName' => $user->getDisplayName(),
+						'isGuest' => $this->guestService->isGuestUser($userId),
 					];
 				} elseif ($userResponse === 'maybe') {
 					$maybeUsers[] = [
 						'userId' => $userId,
-						'displayName' => $user->getDisplayName()
+						'displayName' => $user->getDisplayName(),
+						'isGuest' => $this->guestService->isGuestUser($userId),
 					];
 				}
 			}
@@ -476,7 +504,8 @@ class ResponseSummaryService {
 					if ($user) {
 						$userData = [
 							'userId' => $userId,
-							'displayName' => $user->getDisplayName()
+							'displayName' => $user->getDisplayName(),
+							'isGuest' => $this->guestService->isGuestUser($userId),
 						];
 						if ($userResponse === null) {
 							$nonRespondingUsers[] = $userData;
@@ -494,52 +523,54 @@ class ResponseSummaryService {
 	}
 
 	/**
-	 * Calculate total non-responding users.
+	 * Walk all target attendees once and populate both the global
+	 * non-responder lists and the Others bucket. A user is in the Others
+	 * bucket when they have no visible section (no allowed group/team that
+	 * renders) — typically a guest with only `guest_app` membership.
 	 */
-	private function calculateTotalNonResponding(
+	private function collectMissingResponders(
 		Appointment $appointment,
 		array &$summary,
 		array $respondedUserIds,
 		array $cache,
 	): void {
-		$nonRespondingUsers = [];
-		$maybeUsers = [];
+		$totalNonResponding = [];
+		$totalMaybe = [];
+		$othersNonResponding = [];
+		$othersMaybe = [];
 
 		foreach ($cache['allUsers'] as $user) {
 			$userId = $user->getUID();
 
-			// Filter: Only include actual target attendees
 			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
 				continue;
 			}
 
 			$userResponse = $respondedUserIds[$userId] ?? null;
-
-			// Only process non-responders and maybe-responders
 			if ($userResponse !== null && $userResponse !== 'maybe') {
 				continue;
 			}
 
-			// Check if user belongs to at least one whitelisted group
 			$userGroups = $cache['allUserGroups'][$userId] ?? [];
-			$hasRelevantGroup = false;
-
+			$hasAllowedGroup = false;
+			$hasVisibleGroup = false;
 			foreach ($userGroups as $group) {
-				if ($this->isGroupAllowedCached($group->getGID(), $cache)) {
-					$hasRelevantGroup = true;
-					break;
+				$gid = $group->getGID();
+				if ($this->isGroupAllowedCached($gid, $cache)) {
+					$hasAllowedGroup = true;
+					if ($this->isGroupVisibleAsSection($gid, $cache)) {
+						$hasVisibleGroup = true;
+						break;
+					}
 				}
 			}
 
-			// Check if user belongs to at least one allowed team
 			$hasRelevantTeam = false;
-			if (!$hasRelevantGroup) {
+			if (!$hasVisibleGroup) {
 				foreach ($cache['whitelistedTeams'] as $teamId) {
-					// Skip teams not allowed for this appointment
 					if (!$this->isTeamAllowedCached($teamId, $cache)) {
 						continue;
 					}
-
 					$teamMemberIds = $cache['teamMembers'][$teamId] ?? [];
 					if (in_array($userId, $teamMemberIds)) {
 						$hasRelevantTeam = true;
@@ -548,23 +579,37 @@ class ResponseSummaryService {
 				}
 			}
 
-			// Only count users who belong to at least one relevant group or team
-			if ($hasRelevantGroup || $hasRelevantTeam) {
-				$userData = [
-					'userId' => $userId,
-					'displayName' => $user->getDisplayName()
-				];
+			if (!$hasAllowedGroup && !$hasRelevantTeam && !$hasVisibleGroup) {
+				continue;
+			}
+
+			$userData = [
+				'userId' => $userId,
+				'displayName' => $user->getDisplayName(),
+				'isGuest' => $this->guestService->isGuestUser($userId),
+			];
+
+			if ($userResponse === null) {
+				$totalNonResponding[] = $userData;
+			} else {
+				$totalMaybe[] = $userData;
+			}
+
+			if (!$hasVisibleGroup && !$hasRelevantTeam) {
 				if ($userResponse === null) {
-					$nonRespondingUsers[] = $userData;
+					$othersNonResponding[] = $userData;
 				} else {
-					$maybeUsers[] = $userData;
+					$othersMaybe[] = $userData;
 				}
 			}
 		}
 
-		$summary['no_response'] = count($nonRespondingUsers);
-		$summary['non_responding_users'] = $nonRespondingUsers;
-		$summary['maybe_users'] = $maybeUsers;
+		$summary['no_response'] = count($totalNonResponding);
+		$summary['non_responding_users'] = $totalNonResponding;
+		$summary['maybe_users'] = $totalMaybe;
+		$summary['others']['non_responding_users'] = $othersNonResponding;
+		$summary['others']['maybe_users'] = $othersMaybe;
+		$summary['others']['no_response'] = count($othersNonResponding);
 	}
 
 	/**

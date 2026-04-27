@@ -66,6 +66,7 @@ export default defineConfig({
 				'12-calendar-import.spec.js',
 				'13-calendar-sync.spec.js',
 				'15-close-inquiry-permissions.spec.js',
+				'16-guests-integration.spec.js',
 			],
 			fullyParallel: false,
 			workers: 1,

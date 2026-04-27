@@ -100,7 +100,7 @@
 										"
 										no-close />
 								<NcPopover
-									v-if="response.response === 'maybe' && canManageAppointments && appointmentId"
+									v-if="response.response === 'maybe' && canSendReminders && appointmentId"
 									:shown="openRemindPopover === response.userId"
 									popup-role="dialog"
 									class="remind-maybe-popover-wrapper"
@@ -167,7 +167,7 @@
 						"
 						:users="groupStats.non_responding_users"
 						:header-text="t('attendance', 'No response yet:')"
-						:can-manage-appointments="canManageAppointments"
+						:can-manage-appointments="canSendReminders"
 						:appointment-id="appointmentId"
 						:reminding-users="remindingUsers"
 						@remind="remindUser" />
@@ -244,7 +244,7 @@
 										"
 										no-close />
 								<NcPopover
-									v-if="response.response === 'maybe' && canManageAppointments && appointmentId"
+									v-if="response.response === 'maybe' && canSendReminders && appointmentId"
 									:shown="openRemindPopover === response.userId"
 									popup-role="dialog"
 									class="remind-maybe-popover-wrapper"
@@ -311,7 +311,7 @@
 						"
 						:users="teamStats.non_responding_users"
 						:header-text="t('attendance', 'No response yet:')"
-						:can-manage-appointments="canManageAppointments"
+						:can-manage-appointments="canSendReminders"
 						:appointment-id="appointmentId"
 						:reminding-users="remindingUsers"
 						@remind="remindUser" />
@@ -320,7 +320,7 @@
 
 			<!-- Others Section -->
 			<div
-				v-if="responseSummary.others && hasOthersResponses()"
+				v-if="responseSummary.others && (hasOthersResponses() || hasOthersNonResponders())"
 				class="group-container">
 				<div
 					class="group-stats clickable"
@@ -343,6 +343,11 @@
 						<NcChip
 							:text="String(responseSummary.others.no)"
 							variant="error"
+							no-close />
+						<NcChip
+							v-if="responseSummary.others.no_response > 0"
+							:text="String(responseSummary.others.no_response)"
+							variant="tertiary"
 							no-close />
 					</div>
 				</div>
@@ -372,7 +377,7 @@
 										"
 										no-close />
 								<NcPopover
-									v-if="response.response === 'maybe' && canManageAppointments && appointmentId"
+									v-if="response.response === 'maybe' && canSendReminders && appointmentId"
 									:shown="openRemindPopover === response.userId"
 									popup-role="dialog"
 									class="remind-maybe-popover-wrapper"
@@ -430,6 +435,19 @@
 							</div>
 						</div>
 					</div>
+
+					<!-- Non-responding users in Others (e.g. invited guests) -->
+					<NonRespondingUserList
+						v-if="
+							responseSummary.others.non_responding_users
+								&& responseSummary.others.non_responding_users.length > 0
+						"
+						:users="responseSummary.others.non_responding_users"
+						:header-text="t('attendance', 'No response yet:')"
+						:can-manage-appointments="canSendReminders"
+						:appointment-id="appointmentId"
+						:reminding-users="remindingUsers"
+						@remind="remindUser" />
 				</div>
 			</div>
 		</div>
@@ -465,7 +483,15 @@ const props = defineProps({
 		type: Number,
 		default: null,
 	},
+	isClosed: {
+		type: Boolean,
+		default: false,
+	},
 })
+
+const canSendReminders = computed(
+	() => props.canManageAppointments && !props.isClosed,
+)
 
 const expandedGroups = ref({})
 const remindingUsers = reactive(new Set())
@@ -500,7 +526,8 @@ const hasGroupsOrTeams = computed(() => {
 	const hasTeams
         = props.responseSummary.by_team
         && Object.keys(props.responseSummary.by_team).length > 0
-	return hasGroups || hasTeams
+	const hasOthers = hasOthersResponses() || hasOthersNonResponders()
+	return hasGroups || hasTeams || hasOthers
 })
 
 const toggleGroup = (groupId) => {
@@ -519,6 +546,12 @@ const hasOthersResponses = () => {
         || props.responseSummary.others.maybe > 0
         || props.responseSummary.others.no > 0
 	)
+}
+
+const hasOthersNonResponders = () => {
+	const others = props.responseSummary?.others
+	if (!others) return false
+	return (others.non_responding_users?.length ?? 0) > 0
 }
 </script>
 

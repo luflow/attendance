@@ -33,6 +33,44 @@ A Nextcloud app for managing event attendance with advance RSVP functionality. A
 2. Enable the app in Nextcloud admin settings
 3. The database tables will be created automatically via migration
 
+## Guest participation
+
+External participants without a Nextcloud account can be invited by integrating
+with the official [Nextcloud Guests app](https://apps.nextcloud.com/apps/guests).
+With both apps installed, organizers type an email address into the
+appointment's user picker and choose **Create guest account for {email}** —
+the Guests app then provisions a guest user, sends them an invitation email,
+and adds them to the appointment audience in one step.
+
+Setup:
+
+1. Install the Guests app from the Nextcloud app store and enable it.
+2. Add `attendance` to the Guests app whitelist so guests can access it. The
+   Attendance admin settings will warn you if this step is missing and offer
+   an `occ` command snippet:
+
+   ```bash
+   occ config:app:set guests whitelist --value=$(occ config:app:get guests whitelist),attendance
+   ```
+
+3. Optionally add the `guests` group to **Response summary groups** in the
+   Attendance admin settings to render guests in their own section instead of
+   under "Others".
+
+Guest accounts are technically restricted users:
+
+- Guests can submit RSVPs and self-check-in (when permitted), but they can
+  never manage appointments or check-in others — this is enforced server-side
+  regardless of how groups are configured.
+- When a guest later registers a full Nextcloud account with the same email
+  (e.g. via SAML/LDAP), the Guests app's automatic conversion takes over.
+  Past attendance responses remain attached to the original guest UID; if you
+  want to migrate them to the new account, use:
+
+  ```bash
+  occ db:execute "UPDATE oc_att_responses SET user_id='<new-uid>' WHERE user_id='<old-uid>'"
+  ```
+
 ## Development
 
 ### Creating a Release

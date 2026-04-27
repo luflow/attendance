@@ -41,7 +41,8 @@
                     "calendarSync",
                     "displayOrder",
                     "pushEnabled",
-                    "mobileAppBannerEnabled"
+                    "mobileAppBannerEnabled",
+                    "guestsApp"
                 ],
                 "properties": {
                     "whitelistedGroups": {
@@ -73,6 +74,9 @@
                     },
                     "mobileAppBannerEnabled": {
                         "type": "boolean"
+                    },
+                    "guestsApp": {
+                        "$ref": "#/components/schemas/GuestsAppStatus"
                     }
                 }
             },
@@ -144,7 +148,8 @@
                     "calendarSyncAvailable",
                     "notificationsAppEnabled",
                     "closing",
-                    "remindMaybe"
+                    "remindMaybe",
+                    "guestInvitation"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -167,6 +172,9 @@
                     },
                     "remindMaybe": {
                         "type": "boolean"
+                    },
+                    "guestInvitation": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -182,6 +190,25 @@
                     },
                     "displayName": {
                         "type": "string"
+                    }
+                }
+            },
+            "GuestsAppStatus": {
+                "type": "object",
+                "required": [
+                    "enabled",
+                    "whitelistEnabled",
+                    "attendanceInWhitelist"
+                ],
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "whitelistEnabled": {
+                        "type": "boolean"
+                    },
+                    "attendanceInWhitelist": {
+                        "type": "boolean"
                     }
                 }
             },

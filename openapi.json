@@ -308,7 +308,8 @@
                     "calendarSyncAvailable",
                     "notificationsAppEnabled",
                     "closing",
-                    "remindMaybe"
+                    "remindMaybe",
+                    "guestInvitation"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -330,6 +331,9 @@
                         "type": "boolean"
                     },
                     "remindMaybe": {
+                        "type": "boolean"
+                    },
+                    "guestInvitation": {
                         "type": "boolean"
                     }
                 }
@@ -386,6 +390,33 @@
                     },
                     "filename": {
                         "type": "string"
+                    }
+                }
+            },
+            "GuestCreationResult": {
+                "type": "object",
+                "required": [
+                    "userId",
+                    "displayName",
+                    "email",
+                    "isGuest",
+                    "alreadyExisted"
+                ],
+                "properties": {
+                    "userId": {
+                        "type": "string"
+                    },
+                    "displayName": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "isGuest": {
+                        "type": "boolean"
+                    },
+                    "alreadyExisted": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -551,7 +582,8 @@
                     "responseSource",
                     "checkinSource",
                     "userName",
-                    "userGroups"
+                    "userGroups",
+                    "isGuest"
                 ],
                 "properties": {
                     "id": {
@@ -607,6 +639,9 @@
                         "items": {
                             "type": "string"
                         }
+                    },
+                    "isGuest": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -3299,7 +3334,8 @@
                                             "id",
                                             "label",
                                             "type",
-                                            "icon"
+                                            "icon",
+                                            "isGuest"
                                         ],
                                         "properties": {
                                             "id": {
@@ -3313,6 +3349,9 @@
                                             },
                                             "icon": {
                                                 "type": "string"
+                                            },
+                                            "isGuest": {
+                                                "type": "boolean"
                                             }
                                         }
                                     }
@@ -3372,6 +3411,145 @@
                         }
                     },
                     "403": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/attendance/api/guests": {
+            "post": {
+                "operationId": "appointment-create-guest",
+                "summary": "Create a guest account via the Nextcloud Guests app",
+                "description": "Allows organizers to invite people without a Nextcloud account by provisioning a guest user. The new account is identified by its email (used both as UID and email). Guests cannot manage appointments or check in others — that is enforced by `PermissionService` regardless of group configuration.",
+                "tags": [
+                    "appointment"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "Email address that becomes both the guest's UID and contact address"
+                                    },
+                                    "displayName": {
+                                        "type": "string",
+                                        "default": "",
+                                        "description": "Optional human-readable name for the guest"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GuestCreationResult"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
                         "description": "",
                         "content": {
                             "application/json": {

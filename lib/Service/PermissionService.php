@@ -14,6 +14,7 @@ class PermissionService {
 	private IGroupManager $groupManager;
 	private IUserSession $userSession;
 	private IUserManager $userManager;
+	private GuestService $guestService;
 
 	public const PERMISSION_MANAGE_APPOINTMENTS = 'manage_appointments';
 	public const PERMISSION_CHECKIN = 'checkin';
@@ -21,11 +22,23 @@ class PermissionService {
 	public const PERMISSION_SEE_COMMENTS = 'see_comments';
 	public const PERMISSION_SELF_CHECKIN = 'self_checkin';
 
-	public function __construct(IConfig $config, IGroupManager $groupManager, IUserSession $userSession, IUserManager $userManager) {
+	private const GUEST_BLOCKED_PERMISSIONS = [
+		self::PERMISSION_MANAGE_APPOINTMENTS,
+		self::PERMISSION_CHECKIN,
+	];
+
+	public function __construct(
+		IConfig $config,
+		IGroupManager $groupManager,
+		IUserSession $userSession,
+		IUserManager $userManager,
+		GuestService $guestService,
+	) {
 		$this->config = $config;
 		$this->groupManager = $groupManager;
 		$this->userSession = $userSession;
 		$this->userManager = $userManager;
+		$this->guestService = $guestService;
 	}
 
 	/**
@@ -51,6 +64,14 @@ class PermissionService {
 	 * Check if a user has a specific permission
 	 */
 	public function hasPermission(string $userId, string $permission): bool {
+		// Guests must never gain management permissions, regardless of how
+		// groups are configured. Runs before the role lookup so accidental
+		// whitelisting of the `guest_app` group cannot grant admin actions.
+		if (in_array($permission, self::GUEST_BLOCKED_PERMISSIONS, true)
+			&& $this->guestService->isGuestUser($userId)) {
+			return false;
+		}
+
 		$allowedRoles = $this->getRolesForPermission($permission);
 
 		// If no roles are configured, allow all users

@@ -34,6 +34,7 @@ class AppointmentService {
 	private AttachmentService $attachmentService;
 	private ICollaboratorSearch $collaboratorSearch;
 	private IAppManager $appManager;
+	private GuestService $guestService;
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -47,6 +48,7 @@ class AppointmentService {
 		AttachmentService $attachmentService,
 		ICollaboratorSearch $collaboratorSearch,
 		IAppManager $appManager,
+		GuestService $guestService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -59,6 +61,7 @@ class AppointmentService {
 		$this->attachmentService = $attachmentService;
 		$this->collaboratorSearch = $collaboratorSearch;
 		$this->appManager = $appManager;
+		$this->guestService = $guestService;
 	}
 
 	/**
@@ -721,11 +724,15 @@ class AppointmentService {
 					continue;
 				}
 
+				$id = $item['value']['shareWith'] ?? $item['shareWith'] ?? '';
 				$results[] = [
-					'id' => $item['value']['shareWith'] ?? $item['shareWith'] ?? '',
+					'id' => $id,
 					'label' => $item['label'] ?? '',
 					'type' => $type,
 					'icon' => $this->getIconForType($type),
+					'isGuest' => $type === 'user' && $id !== ''
+						? $this->guestService->isGuestUser((string)$id)
+						: false,
 				];
 			}
 		}

@@ -20,6 +20,7 @@ class CheckinService {
 	private ConfigService $configService;
 	private VisibilityService $visibilityService;
 	private IGroupManager $groupManager;
+	private GuestService $guestService;
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -27,12 +28,14 @@ class CheckinService {
 		ConfigService $configService,
 		VisibilityService $visibilityService,
 		IGroupManager $groupManager,
+		GuestService $guestService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
 		$this->configService = $configService;
 		$this->visibilityService = $visibilityService;
 		$this->groupManager = $groupManager;
+		$this->guestService = $guestService;
 	}
 
 	/**
@@ -138,10 +141,14 @@ class CheckinService {
 		if (empty($whitelistedGroups)) {
 			$allGroups = $this->groupManager->search('');
 			$groups = array_map(fn ($group) => $group->getGID(), $allGroups);
-			// Add "Others" group only when no whitelisted groups are configured
+			// Hide the Guests app system group; guests fall under "Others"
+			// unless an admin opted them in explicitly via the whitelist.
+			$groups = array_values(array_filter(
+				$groups,
+				fn (string $g) => !GuestService::isGuestsSystemGroup($g),
+			));
 			$groups[] = 'Others';
 		} else {
-			// When whitelisted groups are configured, only show those groups (no "Others")
 			$groups = $whitelistedGroups;
 		}
 
@@ -243,6 +250,20 @@ class CheckinService {
 		$userId = $user->getUID();
 		$userGroupIds = $this->groupManager->getUserGroupIds($user);
 
+		// Hide the Guests app system group from the per-user group list
+		// unless the admin explicitly whitelisted it.
+		$guestAppWhitelisted = in_array(
+			GuestService::GUESTS_SYSTEM_GROUP,
+			array_map('strtolower', $whitelistedGroups),
+			true,
+		);
+		if (!$guestAppWhitelisted) {
+			$userGroupIds = array_values(array_filter(
+				$userGroupIds,
+				fn (string $g) => !GuestService::isGuestsSystemGroup($g),
+			));
+		}
+
 		// Check if user belongs to any whitelisted group
 		$userInWhitelistedGroup = empty($whitelistedGroups);
 		if (!empty($whitelistedGroups)) {
@@ -255,13 +276,14 @@ class CheckinService {
 		}
 
 		// Determine effective groups
-		$effectiveGroups = $userInWhitelistedGroup ? $userGroupIds : ['Others'];
+		$effectiveGroups = $userInWhitelistedGroup && !empty($userGroupIds) ? $userGroupIds : ['Others'];
 
 		// Base user data
 		$userData = [
 			'userId' => $userId,
 			'displayName' => $user->getDisplayName(),
 			'groups' => $effectiveGroups,
+			'isGuest' => $this->guestService->isGuestUser($userId),
 			'response' => null,
 			'comment' => null,
 			'isCheckedIn' => false,

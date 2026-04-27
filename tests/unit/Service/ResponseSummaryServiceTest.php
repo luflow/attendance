@@ -8,6 +8,7 @@ use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Service\ConfigService;
+use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\ResponseSummaryService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\IGroup;
@@ -36,6 +37,9 @@ class ResponseSummaryServiceTest extends TestCase {
 	/** @var IUserManager|MockObject */
 	private $userManager;
 
+	/** @var GuestService|MockObject */
+	private $guestService;
+
 	private ResponseSummaryService $service;
 
 	protected function setUp(): void {
@@ -45,6 +49,7 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->visibilityService = $this->createMock(VisibilityService::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->userManager = $this->createMock(IUserManager::class);
+		$this->guestService = $this->createMock(GuestService::class);
 
 		$this->service = new ResponseSummaryService(
 			$this->appointmentMapper,
@@ -53,6 +58,7 @@ class ResponseSummaryServiceTest extends TestCase {
 			$this->visibilityService,
 			$this->groupManager,
 			$this->userManager,
+			$this->guestService,
 		);
 	}
 

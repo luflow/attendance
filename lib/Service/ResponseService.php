@@ -22,6 +22,7 @@ class ResponseService {
 	private NotificationService $notificationService;
 	private IGroupManager $groupManager;
 	private IUserManager $userManager;
+	private GuestService $guestService;
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -30,6 +31,7 @@ class ResponseService {
 		NotificationService $notificationService,
 		IGroupManager $groupManager,
 		IUserManager $userManager,
+		GuestService $guestService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -37,6 +39,7 @@ class ResponseService {
 		$this->notificationService = $notificationService;
 		$this->groupManager = $groupManager;
 		$this->userManager = $userManager;
+		$this->guestService = $guestService;
 	}
 
 	// Response source constants
@@ -153,6 +156,8 @@ class ResponseService {
 			} else {
 				$responseData['userGroups'] = [];
 			}
+
+			$responseData['isGuest'] = $this->guestService->isGuestUser($response->getUserId());
 
 			$result[] = $responseData;
 		}

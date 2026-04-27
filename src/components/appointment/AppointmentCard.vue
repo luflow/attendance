@@ -348,7 +348,8 @@
 			:response-summary="appointment.responseSummary"
 			:can-see-comments="canSeeComments"
 			:can-manage-appointments="canManageAppointments"
-			:appointment-id="appointment.id" />
+			:appointment-id="appointment.id"
+			:is-closed="isClosed" />
 
 		<!-- Remind target dialog -->
 		<NcDialog

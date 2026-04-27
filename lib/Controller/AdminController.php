@@ -7,6 +7,7 @@ namespace OCA\Attendance\Controller;
 use OCA\Attendance\BackgroundJob\ReminderJob;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Service\ConfigService;
+use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\NotificationService;
 use OCA\Attendance\Service\PermissionService;
 use OCA\Attendance\Service\VisibilityService;
@@ -31,6 +32,7 @@ class AdminController extends Controller {
 	private NotificationService $notificationService;
 	private AppointmentMapper $appointmentMapper;
 	private IJobList $jobList;
+	private GuestService $guestService;
 
 	public function __construct(
 		string $appName,
@@ -44,6 +46,7 @@ class AdminController extends Controller {
 		NotificationService $notificationService,
 		AppointmentMapper $appointmentMapper,
 		IJobList $jobList,
+		GuestService $guestService,
 	) {
 		parent::__construct($appName, $request);
 		$this->userSession = $userSession;
@@ -55,6 +58,7 @@ class AdminController extends Controller {
 		$this->notificationService = $notificationService;
 		$this->appointmentMapper = $appointmentMapper;
 		$this->jobList = $jobList;
+		$this->guestService = $guestService;
 	}
 
 	/**
@@ -140,6 +144,11 @@ class AdminController extends Controller {
 					'displayOrder' => $this->configService->getDisplayOrder(),
 					'pushEnabled' => $this->configService->isPushEnabled(),
 					'mobileAppBannerEnabled' => $this->configService->isMobileAppBannerEnabled(),
+					'guestsApp' => [
+						'enabled' => $this->guestService->isGuestsAppEnabled(),
+						'whitelistEnabled' => $this->guestService->isGuestsWhitelistEnabled(),
+						'attendanceInWhitelist' => $this->guestService->isAttendanceInGuestsWhitelist(),
+					],
 				],
 				'status' => [
 					'nextAppointment' => $nextAppointment,

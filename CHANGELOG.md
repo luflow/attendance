@@ -4,7 +4,11 @@
 
 ### Added
 
-- Nightly changes here
+- Guest participation via the Nextcloud Guests app: organizers can invite people without a Nextcloud account directly from the appointment editor by typing an email address; the new "Create guest account for {email}" entry provisions a guest user and adds it to the appointment audience in one step (#43)
+- New `guestInvitation` capability flag so mobile clients can hide the invite-guest UI on servers without the Guests app
+- New `isGuest` field on user objects in API responses, surfaced as a "Guest" badge throughout the UI
+- Admin settings now warn when the Guests app is enabled but Attendance is missing from its app whitelist, with a one-click `occ` command snippet
+- Guest accounts can never gain `manage_appointments` or `checkin` permissions, even if the `guests` group is whitelisted
 
 ## 1.38.0 – 2026-04-27
 
