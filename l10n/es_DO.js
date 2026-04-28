@@ -44,6 +44,7 @@ OC.L10N.register(
     "Preview" : "Previsualizar",
     "Push notifications" : "Notificaciones push",
     "hours" : "horas",
+    "days" : "días",
     "weeks" : "semanas",
     "User" : "Usuario",
     "Description" : "Descripción",

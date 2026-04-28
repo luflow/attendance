@@ -26,7 +26,10 @@ OC.L10N.register(
     "Sunday" : "রবিবার",
     "Save" : "সংরক্ষণ",
     "Import" : "আমদানি",
+    "minutes" : "মিনিটসমূহ",
     "hours" : "ঘন্টাসমূহ",
+    "days" : "দিনগুলি",
+    "weeks" : "সপ্তাহসমূহ",
     "User" : "User",
     "Description" : "বিবরণ",
     "Notification" : "নোটিফিকেশন "

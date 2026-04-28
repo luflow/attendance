@@ -40,6 +40,7 @@ OC.L10N.register(
     "Open" : "Digeriñ",
     "Push notifications" : "Kemennadennoù bount",
     "hours" : "eur",
+    "days" : "devezh",
     "User" : "Implijer",
     "Description" : "Deskrivadur",
     "Notification" : "Kemennadenn",

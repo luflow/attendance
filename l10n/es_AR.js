@@ -55,6 +55,7 @@ OC.L10N.register(
     "Push notifications" : "Notificaciones push",
     "minutes" : "minutos",
     "hours" : "horas",
+    "days" : "días",
     "weeks" : "semanas",
     "User" : "Usuario",
     "Description" : "Descripción",

@@ -81,6 +81,7 @@ OC.L10N.register(
     "Appointment not found" : "Cita no encontrada",
     "minutes" : "minutos",
     "hours" : "horas",
+    "days" : "días",
     "weeks" : "semanas",
     "Edit appointment" : "Editar cita",
     "User" : "Usuario",
