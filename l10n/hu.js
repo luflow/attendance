@@ -96,6 +96,7 @@ OC.L10N.register(
     "Preview" : "Előnézet",
     "Open" : "Megnyitás",
     "Push notifications" : "Leküldéses értesítések",
+    "or" : "vagy",
     "View all" : "Összes megtekintése",
     "Loading …" : "Betöltés…",
     "Appointment not found" : "A találkozó nem található",

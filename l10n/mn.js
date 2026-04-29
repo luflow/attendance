@@ -82,6 +82,7 @@ OC.L10N.register(
     "Permissions" : "Зөвшөөрлүүд",
     "Preview" : "—à–∞–ª–≥–∞—Ö",
     "Open" : "–ù—ç—ç—Ö",
+    "or" : "эсвэл",
     "Loading …" : "Ачаалж байна …",
     "Appointment not found" : "Уулзалт олдсонгүй",
     "minutes" : "минут",

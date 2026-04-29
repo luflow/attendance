@@ -91,6 +91,7 @@ OC.L10N.register(
     "Preview" : "Forhåndsvisning",
     "Open" : "Åbn",
     "Push notifications" : "Pushbeskeder",
+    "or" : "eller",
     "Loading …" : "Indlæser …",
     "Appointment not found" : "Aftale ikke fundet",
     "minutes" : "minutter",

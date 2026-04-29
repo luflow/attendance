@@ -104,6 +104,7 @@ OC.L10N.register(
     "Preview" : "Попередній перегляд",
     "Open" : "Відкрити",
     "Push notifications" : "Сповіщення push",
+    "or" : "або",
     "View all" : "Переглянути всі",
     "Loading …" : "Завантаження …",
     "Appointment not found" : "Запрошення на зустріч не знайдено",

@@ -70,6 +70,7 @@ OC.L10N.register(
     "Preview" : "Xem trước",
     "Open" : "Mở",
     "Push notifications" : "Thông báo đẩy",
+    "or" : "hoặc",
     "Loading …" : "Đang tải …",
     "Appointment not found" : "Không tìm thấy cuộc hẹn",
     "minutes" : "phút",

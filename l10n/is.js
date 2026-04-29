@@ -82,6 +82,7 @@ OC.L10N.register(
     "Preview" : "Forskoðun",
     "Open" : "Opna",
     "Push notifications" : "Ýti-tilkynningar",
+    "or" : "eða",
     "Loading …" : "Hleð inn…",
     "Appointment not found" : "Stefnumót fannst ekki",
     "minutes" : "mínútur",

@@ -77,6 +77,7 @@ OC.L10N.register(
     "Permissions" : "Permissos",
     "Open" : "Aberi",
     "Push notifications" : "Notìficas push",
+    "or" : "o",
     "minutes" : "minutos",
     "hours" : "oras",
     "days" : "dies",

@@ -55,6 +55,7 @@ OC.L10N.register(
     "Permissions" : "Autorizacions",
     "Preview" : "Apercebut",
     "Open" : "Dobrir",
+    "or" : "o",
     "Loading …" : "Cargament …",
     "minutes" : "minutas",
     "hours" : "oras",

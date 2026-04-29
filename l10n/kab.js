@@ -42,6 +42,7 @@ OC.L10N.register(
     "Link copied" : "Aseɣwen yettwanɣel",
     "Open" : "Ldi",
     "Push notifications" : "Ilɣa yettwaznen",
+    "or" : "neɣ",
     "View all" : "Wali-ten akk",
     "days" : "ussan",
     "User" : "Aseqdac",

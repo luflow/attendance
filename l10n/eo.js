@@ -59,6 +59,7 @@ OC.L10N.register(
     "Preview" : "Antaŭvidi",
     "Open" : "Malfermi",
     "Push notifications" : "Tujaj sciigoj",
+    "or" : "aŭ",
     "minutes" : "minutoj",
     "hours" : "horojn",
     "days" : "tagojn",

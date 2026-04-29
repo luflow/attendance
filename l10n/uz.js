@@ -61,6 +61,7 @@ OC.L10N.register(
     "Preview" : "Ko‘rib chiqish",
     "Open" : "Ochish",
     "Push notifications" : "Push-bildirishnomalar",
+    "or" : "yoki",
     "Loading …" : "Yuklanmoqda...",
     "Appointment not found" : "Uchrashuv topilmadi",
     "minutes" : "minut",

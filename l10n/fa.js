@@ -89,6 +89,7 @@ OC.L10N.register(
     "Preview" : "پیش‌نمایش",
     "Open" : "باز کردن",
     "Push notifications" : "ارسال اعلانات",
+    "or" : "یا",
     "View all" : "View all",
     "Loading …" : "بارگیری",
     "Appointment not found" : "Appointment not found",

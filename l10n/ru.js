@@ -97,6 +97,7 @@ OC.L10N.register(
     "Preview" : "Предварительный просмотр",
     "Open" : "Открытые",
     "Push notifications" : "Push-уведомления",
+    "or" : "или",
     "View all" : "Просмотреть все",
     "Loading …" : "Загрузка …",
     "Appointment not found" : "Встреча не найдена",

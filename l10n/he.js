@@ -79,6 +79,7 @@ OC.L10N.register(
     "Preview" : "תצוגה מקדימה",
     "Open" : "פתוח",
     "Push notifications" : "התרעות בדחיפה",
+    "or" : "או",
     "minutes" : "דקות",
     "hours" : "שעות",
     "days" : "ימים",

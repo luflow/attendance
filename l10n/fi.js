@@ -156,6 +156,7 @@ OC.L10N.register(
     "Display options" : "Näkymävalinnat",
     "Name first" : "Nimi ensin",
     "Date first" : "Päiväys ensin",
+    "or" : "tai",
     "_%n group selected_::_%n groups selected_" : ["%n ryhmä valittu","%n ryhmää valittu"],
     "_%n team selected_::_%n teams selected_" : ["%n tiimi valittu","%n tiimiä valittu"],
     "View all" : "Näytä kaikki",

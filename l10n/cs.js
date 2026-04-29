@@ -296,6 +296,7 @@ OC.L10N.register(
     "Show appointment name prominently, with date below" : "Zobrazovat název schůzky jako první (datum až pod)",
     "Date first" : "Datum první",
     "Show date and time prominently, with name below" : "Zobrazit datum a čas jako první (název až pod)",
+    "or" : "nebo",
     "_%n group selected_::_%n groups selected_" : ["Vybrána %n skupina","Vybrány %n skupiny","Vybráno %n skupin","Vybrány %n skupiny"],
     "_%n team selected_::_%n teams selected_" : ["Vybrán %n tým","Vybrány %n týmy","Vybráno %n týmů","Vybrány %n týmy"],
     "_({count} day before)_::_({count} days before)_" : ["({count} den před)","({count} dny před)","({count} dnů před)","({count} dny před)"],

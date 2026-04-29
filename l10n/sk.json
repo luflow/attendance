@@ -235,6 +235,7 @@
     "Show appointment name prominently, with date below" : "Zobraziť názov schôdzky výrazne, s dátumom nižšie",
     "Date first" : "Najskôr dátum",
     "Show date and time prominently, with name below" : "Zobrazte dátum a čas viditeľne, s menom nižšie",
+    "or" : "alebo",
     "_%n group selected_::_%n groups selected_" : ["%n skupina vybraná","%n skupín vybraných","%n skupín vybraných","%n skupiny vybrané"],
     "_%n team selected_::_%n teams selected_" : ["%n tím vybraný","%n tímov vybraných","%n tímov vybraných","%n tímy vybrané"],
     "View all" : "Zobraziť všetko",

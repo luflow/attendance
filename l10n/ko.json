@@ -170,6 +170,7 @@
     "When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time)." : "이 기능을 활성화하면 캘린더 이벤트 변경 사항이 연결된 참석 약속(제목, 설명, 날짜/시간)에 자동으로 업데이트됩니다.",
     "Open" : "열기",
     "Push notifications" : "푸쉬 알림",
+    "or" : "또는",
     "_%n group selected_::_%n groups selected_" : ["선택된 그룹%n"],
     "_%n team selected_::_%n teams selected_" : ["선정된 팀%n"],
     "View all" : "모두 보기",

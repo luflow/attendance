@@ -98,6 +98,7 @@ OC.L10N.register(
     "Preview" : "Aurrebista",
     "Open" : "Ireki",
     "Push notifications" : "Push jakinarazpenak",
+    "or" : "edo",
     "View all" : "Ikusi denak",
     "Loading …" : "Kargatzen …",
     "Appointment not found" : "Ez da hitzordua aurkitu",

@@ -259,6 +259,7 @@
     "Show appointment name prominently, with date below" : "Onyesha jina la miadi kwa uwazi, na tarehe ikiwa chini",
     "Date first" : "Tarehe kwanza",
     "Show date and time prominently, with name below" : "Onyesha tarehe na saa kwa uwazi, jina likiwa hapa chini",
+    "or" : "au",
     "_%n group selected_::_%n groups selected_" : ["%n group selected","%n makundi yaliyochaguliwa "],
     "_%n team selected_::_%n teams selected_" : ["%n team selected","%n timu zilizochaguliwa"],
     "View all" : "Tazama zote",

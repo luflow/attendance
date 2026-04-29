@@ -66,6 +66,7 @@ OC.L10N.register(
     "Preview" : "Previzualizare",
     "Open" : "Deschide",
     "Push notifications" : "Notificări push",
+    "or" : "sau",
     "Appointment not found" : "Programarea nu a fost găsită",
     "minutes" : "minute",
     "hours" : "ore",

@@ -243,6 +243,7 @@ OC.L10N.register(
     "Show appointment name prominently, with date below" : "Amosar o nome da cita de xeito destacado, coa data embaixo",
     "Date first" : "Primeiro a data",
     "Show date and time prominently, with name below" : "Amosar a data e a hora de xeito destacado, co nome embaixo",
+    "or" : "ou",
     "_%n group selected_::_%n groups selected_" : ["%n grupo seleccionado","%n grupos seleccionados"],
     "_%n team selected_::_%n teams selected_" : ["%n equipo seleccionado","%n equipos seleccionados"],
     "View all" : "Ver todo",

@@ -92,6 +92,7 @@ OC.L10N.register(
     "Preview" : "プレビュー",
     "Open" : "開く",
     "Push notifications" : "プッシュ通知",
+    "or" : "或いは",
     "Loading …" : "読み込み中…",
     "Appointment not found" : "予定が見つかりません",
     "minutes" : "分",

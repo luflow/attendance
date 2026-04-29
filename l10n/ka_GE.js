@@ -44,6 +44,7 @@ OC.L10N.register(
     "Settings saved" : "პარამეტრები შენახულია",
     "Permissions" : "უფლებები",
     "Preview" : "წინასწარი ჩვენება",
+    "or" : "ან",
     "days" : "დღე",
     "weeks" : "კვირა",
     "User" : "მომხმარებელი",

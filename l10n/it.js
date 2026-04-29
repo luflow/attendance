@@ -110,6 +110,7 @@ OC.L10N.register(
     "Preview" : "Anteprima",
     "Open" : "Aperte",
     "Push notifications" : "Notifiche push",
+    "or" : "o",
     "View all" : "Vedi tutto",
     "Loading …" : "Caricamento in corso...",
     "Appointment not found" : "Appuntamento non trovato",

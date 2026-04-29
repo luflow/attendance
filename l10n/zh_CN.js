@@ -98,6 +98,7 @@ OC.L10N.register(
     "Preview" : "预览",
     "Open" : "打开",
     "Push notifications" : "推送通知",
+    "or" : "或",
     "View all" : "查看全部",
     "Loading …" : "正在加载 …",
     "Appointment not found" : "未找到预约",

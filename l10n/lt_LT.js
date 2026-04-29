@@ -92,6 +92,7 @@ OC.L10N.register(
     "Preview" : "Peržiūra",
     "Open" : "Atverti",
     "Push notifications" : "Tiesioginiai (angl. Push) pranešimai",
+    "or" : "ar",
     "Loading …" : "Įkeliama …",
     "Appointment not found" : "Susitikimas nerastas",
     "minutes" : "minučių",

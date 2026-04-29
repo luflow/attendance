@@ -41,6 +41,7 @@ OC.L10N.register(
     "Settings saved" : "Se han guardado las configuraciones ",
     "Permissions" : "Permisos",
     "Preview" : "Previsualizar",
+    "or" : "o",
     "minutes" : "minutos",
     "hours" : "horas",
     "days" : "días",

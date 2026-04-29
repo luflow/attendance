@@ -95,6 +95,7 @@ OC.L10N.register(
     "Preview" : "Pré-visualizar",
     "Open" : "Abrir",
     "Push notifications" : "Notificações \"push\"",
+    "or" : "ou",
     "View all" : "Ver tudo",
     "minutes" : "minutos",
     "hours" : "horas",

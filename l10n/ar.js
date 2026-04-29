@@ -98,6 +98,7 @@ OC.L10N.register(
     "Preview" : "معاينة",
     "Open" : "فتح",
     "Push notifications" : "دفع الإخطارات",
+    "or" : "او",
     "View all" : "عرض الكل",
     "Appointment not found" : "الموعد غير موجود",
     "minutes" : "دقائق",

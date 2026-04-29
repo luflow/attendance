@@ -44,6 +44,7 @@ OC.L10N.register(
     "Link copied" : "Dolen wedi'i gopïo",
     "Preview" : "Rhagolwg",
     "Open" : "Ar Agor",
+    "or" : "neu",
     "Appointment not found" : "Apwyntiad heb ei ganfod",
     "minutes" : "munud",
     "hours" : "awr",

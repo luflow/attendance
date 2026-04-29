@@ -342,6 +342,7 @@ OC.L10N.register(
     "Show appointment name prominently, with date below" : "ສະແດງຊື່ການນັດໝາຍໃຫ້ເຫັນຈະແຈ້ງ, ໂດຍມີວັນທີຢູ່ດ້ານລຸ່ມ",
     "Date first" : "ເອົາວັນທີຂຶ້ນກ່ອນ",
     "Show date and time prominently, with name below" : "ສະແດງວັນທີ ແລະ ເວລາໃຫ້ເຫັນຈະແຈ້ງ, ໂດຍມີຊື່ຢູ່ດ້ານລຸ່ມ",
+    "or" : "ຫຼື",
     "_%n group selected_::_%n groups selected_" : ["ເລືອກແລ້ວ %n ກຸ່ມ"],
     "_%n team selected_::_%n teams selected_" : ["ເລືອກແລ້ວ %n ທີມ"],
     "_({count} day before)_::_({count} days before)_" : ["({count} ມື້ກ່ອນ)"],

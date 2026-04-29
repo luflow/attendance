@@ -68,6 +68,7 @@ OC.L10N.register(
     "Mobile apps" : "Мабільныя праграмы",
     "Open" : "Адкрыта",
     "Push notifications" : "Push-апавяшчэнні",
+    "or" : "або",
     "Loading …" : "Загрузка …",
     "User" : "Карыстальнік",
     "Team" : "Каманда",

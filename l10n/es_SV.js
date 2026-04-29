@@ -42,6 +42,7 @@ OC.L10N.register(
     "Permissions" : "Permisos",
     "Preview" : "Previsualizar",
     "Push notifications" : "Notificaciones push",
+    "or" : "o",
     "days" : "días",
     "weeks" : "semanas",
     "User" : "Usuario",

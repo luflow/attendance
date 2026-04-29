@@ -91,6 +91,7 @@ OC.L10N.register(
     "Preview" : "Predogled",
     "Open" : "Odpri",
     "Push notifications" : "Potisna obvestila",
+    "or" : "ali",
     "View all" : "Poglej vse",
     "Appointment not found" : "Sestanka ni mogoče najti",
     "minutes" : "minute",

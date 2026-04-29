@@ -387,6 +387,7 @@ OC.L10N.register(
     "Show appointment name prominently, with date below" : "Show appointment name prominently, with date below",
     "Date first" : "Date first",
     "Show date and time prominently, with name below" : "Show date and time prominently, with name below",
+    "or" : "or",
     "_%n group selected_::_%n groups selected_" : ["%n group selected","%n groups selected"],
     "_%n team selected_::_%n teams selected_" : ["%n team selected","%n teams selected"],
     "_({count} day before)_::_({count} days before)_" : ["({count} day before)","({count} days before)"],

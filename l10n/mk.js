@@ -79,6 +79,7 @@ OC.L10N.register(
     "Permissions" : "Дозволи",
     "Open" : "Отвори",
     "Push notifications" : "Push известувања",
+    "or" : "или",
     "View all" : "Види ги сите",
     "Loading …" : "Се вчитува …",
     "Appointment not found" : "Терминот не е пронајден",

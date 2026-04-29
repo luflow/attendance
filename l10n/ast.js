@@ -70,6 +70,7 @@ OC.L10N.register(
     "Preview" : "Previsualizar",
     "Open" : "Abrir",
     "Push notifications" : "Avisos push",
+    "or" : "o",
     "minutes" : "minutos",
     "hours" : "Hores",
     "days" : "díes",

@@ -174,6 +174,7 @@ OC.L10N.register(
     "When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time)." : "Jika diaktifkan, perubahan pada acara kalender akan secara otomatis memperbarui janji temu kehadiran yang tertaut (judul, deskripsi, tanggal/waktu).",
     "Open" : "Buka",
     "Push notifications" : "Notifikasi push",
+    "or" : "atau",
     "_%n group selected_::_%n groups selected_" : ["%n grup dipilih"],
     "_%n team selected_::_%n teams selected_" : ["%n tim dipilih"],
     "View all" : "Lihat semua",

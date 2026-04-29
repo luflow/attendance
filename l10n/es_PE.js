@@ -43,6 +43,7 @@ OC.L10N.register(
     "Permissions" : "Permisos",
     "Preview" : "Previsualizar",
     "Open" : "Abrir",
+    "or" : "o",
     "minutes" : "minutos",
     "hours" : "horas",
     "days" : "días",

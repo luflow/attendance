@@ -102,6 +102,7 @@ OC.L10N.register(
     "Preview" : "ئالدىن كۆرۈش",
     "Open" : "ئېچىڭ",
     "Push notifications" : "ئىتتىرىش ئۇقتۇرۇشى",
+    "or" : "ياكى",
     "View all" : "ھەممىنى كۆرۈش",
     "Loading …" : "يۈكلەۋاتىدۇ ...",
     "Appointment not found" : "تەيىنلەنمىدى",

@@ -65,6 +65,7 @@ OC.L10N.register(
     "Permissions" : "Atļaujas",
     "Preview" : "Priekšskatīt",
     "Open" : "Atvērt",
+    "or" : "vai",
     "View all" : "Skatīt visu",
     "Appointment not found" : "Tikšanās nav atrasta",
     "minutes" : "minūtes",

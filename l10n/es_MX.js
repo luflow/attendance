@@ -78,6 +78,7 @@ OC.L10N.register(
     "Preview" : "Previsualizar",
     "Open" : "Abrir",
     "Push notifications" : "Notificaciones push",
+    "or" : "o",
     "Appointment not found" : "Cita no encontrada",
     "minutes" : "minutos",
     "hours" : "horas",

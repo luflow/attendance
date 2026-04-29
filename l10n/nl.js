@@ -115,6 +115,7 @@ OC.L10N.register(
     "Open" : "Openen",
     "Push notifications" : "Push meldingen",
     "Enable push notifications" : "Activeer push notificaties",
+    "or" : "of",
     "View all" : "Toon alles",
     "Loading …" : "Aan het laden...",
     "Appointment not found" : "Afspraak niet gevonden",

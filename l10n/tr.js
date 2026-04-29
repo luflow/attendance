@@ -276,6 +276,7 @@ OC.L10N.register(
     "Show appointment name prominently, with date below" : "Randevu adının altında tarihi görüntülenir",
     "Date first" : "Önce tarih",
     "Show date and time prominently, with name below" : "Randevu tarihinin altında adı görüntülenir",
+    "or" : "ya da",
     "_%n group selected_::_%n groups selected_" : ["%n grup seçildi","%n grup seçildi"],
     "_%n team selected_::_%n teams selected_" : ["%n takım seçildi","%n takım seçildi"],
     "_({count} day before)_::_({count} days before)_" : ["({count} gün önce)","({count} gün önce)"],

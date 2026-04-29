@@ -70,6 +70,7 @@ OC.L10N.register(
     "Preview" : "Preview",
     "Open" : "Open",
     "Push notifications" : "Push notifications",
+    "or" : "or",
     "Appointment not found" : "Appointment not found",
     "minutes" : "minutes",
     "hours" : "hours",

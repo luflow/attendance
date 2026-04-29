@@ -241,6 +241,7 @@ OC.L10N.register(
     "Show appointment name prominently, with date below" : "Εμφάνιση του ονόματος του ραντεβού σε περίοπτη θέση, με την ημερομηνία από κάτω",
     "Date first" : "Ημερομηνία πρώτα",
     "Show date and time prominently, with name below" : "Εμφάνιση της ημερομηνίας και ώρας σε περίοπτη θέση, με το όνομα από κάτω",
+    "or" : "ή",
     "_%n group selected_::_%n groups selected_" : ["%n ομάδα επιλέχθηκε","%n ομάδες επιλέχθηκαν"],
     "_%n team selected_::_%n teams selected_" : ["%n ομάδα εργασίας επιλέχθηκε","%n ομάδες εργασίας επιλέχθηκαν"],
     "View all" : "Προβολή όλων",

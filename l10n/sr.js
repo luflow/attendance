@@ -101,6 +101,7 @@ OC.L10N.register(
     "Preview" : "Преглед",
     "Open" : "Отвори",
     "Push notifications" : "Брза обавештења",
+    "or" : "или",
     "View all" : "Прикажи све",
     "Loading …" : "Учитава се…",
     "Appointment not found" : "Састанак није пронађен",

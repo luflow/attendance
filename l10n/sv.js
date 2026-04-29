@@ -95,6 +95,7 @@ OC.L10N.register(
     "Preview" : "Förhandsgranskning",
     "Open" : "Öppna",
     "Push notifications" : "Push-aviseringar",
+    "or" : "eller",
     "View all" : "Visa alla",
     "Loading …" : "Laddar …",
     "Appointment not found" : "Mötet hittades inte",
