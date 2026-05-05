@@ -59,6 +59,7 @@
     "Failed to export appointments" : "약속 내보내기에 실패했습니다",
     "Select all" : "모두 선택",
     "Deselect all" : "모두 선택 해제",
+    "Custom range" : "맞춤 범위",
     "Start date" : "시작 날짜",
     "Subscribe to your appointments in external calendar apps like Google Calendar, Apple Calendar, or Thunderbird." : "Google 캘린더, Apple 캘린더 또는 Thunderbird와 같은 외부 캘린더 앱에서 약속을 구독하세요.",
     "Subscription URL" : "구독 URL",
