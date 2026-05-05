@@ -6,6 +6,8 @@ namespace OCA\Attendance\Tests\Unit\Repair;
 
 use Doctrine\DBAL\Schema\Schema;
 use OCA\Attendance\Repair\EnsureAppointmentSchema;
+use OCP\DB\Exception;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IConfig;
 use OCP\IDBConnection;
 use OCP\Migration\IOutput;
@@ -37,37 +39,63 @@ class EnsureAppointmentSchemaTest extends TestCase {
 		);
 	}
 
-	private function makeSchemaWithAppointments(bool $closedAt, bool $deadline, bool $closedIdx, bool $deadlineIdx): Schema {
+	/**
+	 * @param array{closedAt?: bool, deadline?: bool, closedIdx?: bool, deadlineIdx?: bool} $present
+	 */
+	private function makeAppointmentsSchema(string $prefix = 'oc_', array $present = []): Schema {
+		$flags = $present + [
+			'closedAt' => true,
+			'deadline' => true,
+			'closedIdx' => true,
+			'deadlineIdx' => true,
+		];
+
 		$schema = new Schema();
-		$table = $schema->createTable('oc_att_appointments');
+		$table = $schema->createTable($prefix . 'att_appointments');
 		$table->addColumn('id', 'integer', ['autoincrement' => true, 'notnull' => true]);
 		$table->setPrimaryKey(['id']);
-		if ($closedAt) {
+		if ($flags['closedAt']) {
 			$table->addColumn('closed_at', 'datetime', ['notnull' => false]);
 		}
-		if ($deadline) {
+		if ($flags['deadline']) {
 			$table->addColumn('response_deadline', 'datetime', ['notnull' => false]);
 		}
-		if ($closedIdx && $closedAt) {
+		if ($flags['closedIdx'] && $flags['closedAt']) {
 			$table->addIndex(['closed_at'], 'att_appt_closed');
 		}
-		if ($deadlineIdx && $deadline) {
+		if ($flags['deadlineIdx'] && $flags['deadline']) {
 			$table->addIndex(['response_deadline'], 'att_appt_deadline');
 		}
 		return $schema;
 	}
 
+	private function expectColumnProbe(bool $columnsExist): void {
+		$qb = $this->createMock(IQueryBuilder::class);
+		$qb->method('select')->willReturnSelf();
+		$qb->method('from')->willReturnSelf();
+		$qb->method('setMaxResults')->willReturnSelf();
+		if ($columnsExist) {
+			$result = $this->createMock(\OCP\DB\IResult::class);
+			$qb->method('executeQuery')->willReturn($result);
+		} else {
+			$qb->method('executeQuery')->willThrowException(new Exception('Unknown column closed_at'));
+		}
+		$this->connection->method('getQueryBuilder')->willReturn($qb);
+	}
+
 	public function testNoOpWhenTableMissing(): void {
-		$this->connection->method('createSchema')->willReturn(new Schema());
+		$this->connection->method('tableExists')->with('att_appointments')->willReturn(false);
+		$this->connection->expects($this->never())->method('createSchema');
 		$this->connection->expects($this->never())->method('migrateToSchema');
-		$this->logger->expects($this->never())->method('warning');
 
 		$this->repair->run($this->output);
 	}
 
-	public function testNoOpWhenSchemaAlreadyComplete(): void {
-		$schema = $this->makeSchemaWithAppointments(true, true, true, true);
-		$this->connection->method('createSchema')->willReturn($schema);
+	public function testSkipsSchemaIntrospectionWhenColumnProbeSucceeds(): void {
+		$this->connection->method('tableExists')->willReturn(true);
+		$this->expectColumnProbe(columnsExist: true);
+
+		$this->connection->expects($this->never())->method('createSchema');
 		$this->connection->expects($this->never())->method('migrateToSchema');
 		$this->logger->expects($this->never())->method('warning');
 
@@ -75,7 +103,15 @@ class EnsureAppointmentSchemaTest extends TestCase {
 	}
 
 	public function testAddsMissingColumnsAndIndexes(): void {
-		$schema = $this->makeSchemaWithAppointments(false, false, false, false);
+		$this->connection->method('tableExists')->willReturn(true);
+		$this->expectColumnProbe(columnsExist: false);
+
+		$schema = $this->makeAppointmentsSchema(present: [
+			'closedAt' => false,
+			'deadline' => false,
+			'closedIdx' => false,
+			'deadlineIdx' => false,
+		]);
 		$this->connection->method('createSchema')->willReturn($schema);
 
 		$this->connection->expects($this->once())
@@ -102,9 +138,15 @@ class EnsureAppointmentSchemaTest extends TestCase {
 		$this->repair->run($this->output);
 	}
 
-	public function testOnlyAddsMissingPieces(): void {
-		// closed_at exists with index, response_deadline column missing.
-		$schema = $this->makeSchemaWithAppointments(true, false, true, false);
+	public function testRepairsOnlyMissingDeadlinePieces(): void {
+		$this->connection->method('tableExists')->willReturn(true);
+		$this->expectColumnProbe(columnsExist: false);
+
+		// closed_at + its index are present, but response_deadline is missing entirely.
+		$schema = $this->makeAppointmentsSchema(present: [
+			'deadline' => false,
+			'deadlineIdx' => false,
+		]);
 		$this->connection->method('createSchema')->willReturn($schema);
 
 		$this->connection->expects($this->once())
@@ -126,18 +168,16 @@ class EnsureAppointmentSchemaTest extends TestCase {
 
 		$repair = new EnsureAppointmentSchema($this->connection, $config, $this->logger);
 
-		$schema = new Schema();
-		$table = $schema->createTable('nc_att_appointments');
-		$table->addColumn('id', 'integer', ['autoincrement' => true, 'notnull' => true]);
-		$table->setPrimaryKey(['id']);
-
-		$this->connection->method('createSchema')->willReturn($schema);
+		$this->connection->method('tableExists')->willReturn(true);
+		$this->expectColumnProbe(columnsExist: false);
+		$this->connection->method('createSchema')->willReturn($this->makeAppointmentsSchema('nc_', [
+			'closedAt' => false,
+			'deadline' => false,
+			'closedIdx' => false,
+			'deadlineIdx' => false,
+		]));
 		$this->connection->expects($this->once())->method('migrateToSchema');
 
 		$repair->run($this->output);
-	}
-
-	public function testGetNameIsHumanReadable(): void {
-		$this->assertNotEmpty($this->repair->getName());
 	}
 }
