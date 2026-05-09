@@ -12,6 +12,7 @@ OC.L10N.register(
     "Let's go!" : "さあ始めましょう！",
     "Settings" : "設定",
     "Account" : "アカウント",
+    "Log out" : "ログアウト",
     "Appearance" : "表示",
     "Color" : "色",
     "None" : "なし",
