@@ -106,6 +106,7 @@ OC.L10N.register(
     "Appointment updated" : "Susitikimas atnaujintas",
     "Appointment name" : "Susitikimo pavadinimas",
     "Description" : "Aprašas",
+    "Number" : "Skaičius",
     "Date & Time" : "Data ir laikas",
     "Notification" : "Pranešimas",
     "Add from Files" : "Pridėti iš Failų",
