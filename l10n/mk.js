@@ -71,6 +71,7 @@ OC.L10N.register(
     "Bold" : "Болд",
     "Italic" : "Италик",
     "Strikethrough" : "Прецртај",
+    "Insert link" : "Вметни линк",
     "Dismiss" : "Отфрли",
     "Failed to load settings" : "Неуспешно вчитување на параметрите",
     "Settings saved" : "Параматрите се зачувани",

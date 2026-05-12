@@ -8,6 +8,7 @@ OC.L10N.register(
     "Group" : "Група",
     "Attachments" : "Вкладення",
     "Connect" : "Підключення",
+    "Start over" : "Розпочати",
     "Add account" : "Додати обліковий запис",
     "Let's go!" : "Ходімо!",
     "Settings" : "Налаштування",

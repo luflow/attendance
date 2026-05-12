@@ -80,6 +80,7 @@ OC.L10N.register(
     "Bold" : "Pusjuodis",
     "Italic" : "Kursyvas",
     "Strikethrough" : "Perbrauktas",
+    "Bullet list" : "Sąrašas su punktų žymėmis",
     "Insert link" : "Įterpti nuorodą",
     "App Store" : "App Store",
     "Dismiss" : "Atmesti",
