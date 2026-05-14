@@ -8,6 +8,7 @@ OC.L10N.register(
     "Group" : "Grupė",
     "Attachments" : "Priedai",
     "Connect" : "Prisijungti",
+    "Start over" : "Pradėkite iš naujo",
     "Add account" : "Pridėti paskyrą",
     "Let's go!" : "Pirmyn!",
     "Settings" : "Nustatymai",
