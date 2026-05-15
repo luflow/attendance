@@ -435,9 +435,12 @@ const pastAppointmentsExpanded = ref(false)
 // more confusing than helpful. Filters in AllAppointments.vue are persisted.
 const searchQuery = ref('')
 const onSearchInput = () => {
-	if (searchQuery.value && currentView.value !== 'all') {
-		setView('all')
-	}
+	if (!searchQuery.value) return
+	// Admin's default landing leaves currentView='all' but the URL bare —
+	// re-run setView so the URL also reflects the searchable All view.
+	const urlMatches = window.location.pathname.endsWith('/all')
+	if (currentView.value === 'all' && urlMatches) return
+	setView('all')
 }
 
 // Use the shared permissions composable
@@ -671,15 +674,18 @@ watch(currentView, async (newView, oldView) => {
 })
 
 onMounted(async () => {
-	// Permissions first: the bare-URL default view depends on the
-	// canManageAppointments flag (admins → All, others → Unanswered).
-	await loadPermissions()
+	// Both server fetches are independent — fan out before awaiting either.
+	// checkRouting then resolves the bare-URL default view (admin → All,
+	// others → Unanswered) once permissions are in.
+	const permissionsPromise = loadPermissions()
+	const isCheckinView = /\/checkin\/\d+/.test(window.location.pathname)
+	const appointmentsPromise = isCheckinView ? null : loadAppointments()
+
+	await permissionsPromise
 	checkRouting()
 
-	// Skip loading appointments only for checkin view (no navigation sidebar)
-	// All other views show navigation and need appointment data
-	if (currentView.value !== 'checkin') {
-		await loadAppointments()
+	if (appointmentsPromise) {
+		await appointmentsPromise
 		appointmentsLoaded.value = true
 	}
 

@@ -104,20 +104,13 @@ class AdminController extends Controller {
 			// Get permission settings
 			$permissionSettings = $this->permissionService->getAllPermissionSettings();
 
-			// Compute status: next appointment that would actually receive a
-			// reminder. Closed inquiries are skipped so the preview matches
-			// the cron's findRemindable filter.
-			$nextAppointment = null;
-			foreach ($this->appointmentMapper->findUpcoming() as $appointment) {
-				if ($appointment->isClosed()) {
-					continue;
-				}
-				$nextAppointment = [
-					'name' => $appointment->getName(),
-					'startDatetime' => $appointment->getStartDatetime(),
-				];
-				break;
-			}
+			// Closed inquiries are skipped so the preview matches the cron's
+			// findRemindable filter.
+			$next = $this->findFirstOpenUpcoming();
+			$nextAppointment = $next ? [
+				'name' => $next->getName(),
+				'startDatetime' => $next->getStartDatetime(),
+			] : null;
 
 			// Compute status: next reminder run
 			$nextReminderRun = null;
@@ -271,13 +264,7 @@ class AdminController extends Controller {
 			return new DataResponse(['error' => 'Insufficient permissions'], 403);
 		}
 
-		$appointment = null;
-		foreach ($this->appointmentMapper->findUpcoming() as $candidate) {
-			if (!$candidate->isClosed()) {
-				$appointment = $candidate;
-				break;
-			}
-		}
+		$appointment = $this->findFirstOpenUpcoming();
 		if ($appointment === null) {
 			return new DataResponse(['error' => 'No upcoming appointment found'], 404);
 		}
@@ -291,5 +278,14 @@ class AdminController extends Controller {
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 500);
 		}
+	}
+
+	private function findFirstOpenUpcoming(): ?\OCA\Attendance\Db\Appointment {
+		foreach ($this->appointmentMapper->findUpcoming() as $candidate) {
+			if (!$candidate->isClosed()) {
+				return $candidate;
+			}
+		}
+		return null;
 	}
 }
