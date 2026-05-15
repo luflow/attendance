@@ -51,6 +51,7 @@ export default defineConfig({
 				'10-series.spec.js',
 				'11-notification-option.spec.js',
 				'14-close-inquiry.spec.js',
+				'22-response-rescind.spec.js',
 				'checkin.spec.js',
 			],
 			fullyParallel: false, // tests within a file stay sequential
