@@ -140,6 +140,7 @@ namespace OCA\Attendance;
  *   notificationsAppEnabled: bool,
  *   closing: bool,
  *   remindMaybe: bool,
+ *   responseToggle: bool,
  *   guestInvitation: bool,
  * }
  * @psalm-type AttendanceUserConfig = array{

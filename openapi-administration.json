@@ -149,6 +149,7 @@
                     "notificationsAppEnabled",
                     "closing",
                     "remindMaybe",
+                    "responseToggle",
                     "guestInvitation"
                 ],
                 "properties": {
@@ -171,6 +172,9 @@
                         "type": "boolean"
                     },
                     "remindMaybe": {
+                        "type": "boolean"
+                    },
+                    "responseToggle": {
                         "type": "boolean"
                     },
                     "guestInvitation": {

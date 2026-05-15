@@ -3,10 +3,45 @@
  * Centralizes response submission and comment auto-save logic.
  */
 
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, onBeforeUnmount } from 'vue'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
+
+/**
+ * Short cooldown for the yes/maybe/no buttons that prevents button-smashing
+ * from accidentally toggling a just-submitted answer back to null.
+ *
+ * @param {import('vue').Ref<string|null>|(() => string|null)} currentResponse
+ *   Reactive source for the user's current response (ref or getter).
+ * @param {number} cooldownMs - Disable duration in milliseconds.
+ * @return {{ responseCooldown: import('vue').Ref<boolean>, resolveNext: (clicked: string) => string|null, startCooldown: () => void }}
+ */
+export function useResponseCooldown(currentResponse, cooldownMs = 800) {
+	const responseCooldown = ref(false)
+	let timer = null
+
+	const read = () => (typeof currentResponse === 'function'
+		? currentResponse()
+		: currentResponse?.value)
+
+	const resolveNext = (clicked) => (read() === clicked ? null : clicked)
+
+	const startCooldown = () => {
+		responseCooldown.value = true
+		if (timer) clearTimeout(timer)
+		timer = setTimeout(() => {
+			responseCooldown.value = false
+			timer = null
+		}, cooldownMs)
+	}
+
+	onBeforeUnmount(() => {
+		if (timer) clearTimeout(timer)
+	})
+
+	return { responseCooldown, resolveNext, startCooldown }
+}
 
 /**
  * Create a response handler for a specific appointment.
@@ -31,7 +66,7 @@ export function useAppointmentResponse(options = {}) {
 	 * Submit a response to an appointment.
 	 *
 	 * @param {number} appointmentId - The appointment ID
-	 * @param {string} response - The response (yes, no, maybe)
+	 * @param {string|null} response - The response (yes, no, maybe) or null to withdraw
 	 * @param {string} comment - Optional comment
 	 * @return {Promise<object>} The API response
 	 */
@@ -49,7 +84,9 @@ export function useAppointmentResponse(options = {}) {
 				throw new Error(`API returned status ${axiosResponse.status}`)
 			}
 
-			showSuccess(t('attendance', 'Response updated'))
+			showSuccess(response === null
+				? t('attendance', 'Response withdrawn')
+				: t('attendance', 'Response updated'))
 
 			if (onSuccess) {
 				onSuccess(axiosResponse.data)
@@ -231,7 +268,7 @@ export function useMultiAppointmentResponse(options = {}) {
 	/**
 	 * Submit a response to an appointment.
 	 * @param {number} appointmentId - The appointment ID
-	 * @param {string} response - The response value (yes/no/maybe)
+	 * @param {string|null} response - The response value (yes/no/maybe) or null to withdraw
 	 * @param {string} comment - Optional comment text
 	 */
 	const submitResponse = async (appointmentId, response, comment = '') => {
@@ -246,7 +283,9 @@ export function useMultiAppointmentResponse(options = {}) {
 				throw new Error(`API returned status ${axiosResponse.status}`)
 			}
 
-			showSuccess(t('attendance', 'Response updated'))
+			showSuccess(response === null
+				? t('attendance', 'Response withdrawn')
+				: t('attendance', 'Response updated'))
 
 			if (onSuccess) {
 				onSuccess(appointmentId, axiosResponse.data)

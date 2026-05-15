@@ -438,20 +438,23 @@ class AppointmentService {
 
 	/**
 	 * Submit attendance response.
+	 *
+	 * Pass $response = null to withdraw an existing response: the row stays
+	 * (so any admin check-in data is preserved) but response/comment are
+	 * cleared so the user is treated as "not yet responded" again.
 	 */
 	public function submitResponse(
 		int $appointmentId,
 		string $userId,
-		string $response,
+		?string $response,
 		string $comment = '',
 	): AttendanceResponse {
-		if (!in_array($response, ['yes', 'no', 'maybe'])) {
-			throw new \InvalidArgumentException('Invalid response. Must be yes, no, or maybe.');
+		if ($response !== null && !in_array($response, ['yes', 'no', 'maybe'])) {
+			throw new \InvalidArgumentException('Invalid response. Must be yes, no, maybe, or null.');
 		}
 
 		$appointment = $this->appointmentMapper->find($appointmentId);
 
-		// Verify user can see this appointment before allowing a response
 		if (!$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
 			throw new DoesNotExistException('Appointment not found');
 		}
@@ -460,13 +463,35 @@ class AppointmentService {
 			throw new \RuntimeException('This appointment is closed and no longer accepts responses.');
 		}
 
+		// Withdrawing also wipes the comment so an orphan comment can't survive
+		// the response that gave it context.
+		if ($response === null) {
+			$comment = '';
+		}
+
 		try {
 			$existingResponse = $this->responseMapper->findByAppointmentAndUser($appointmentId, $userId);
+
+			// Withdrawing an already-withdrawn (or never-set) response is a no-op:
+			// don't churn responded_at or notification state on repeated clicks.
+			if ($response === null && $existingResponse->getResponse() === null) {
+				return $existingResponse;
+			}
+
 			$existingResponse->setResponse($response);
 			$existingResponse->setComment($comment);
 			$existingResponse->setRespondedAt(gmdate('Y-m-d H:i:s'));
 			$result = $this->responseMapper->update($existingResponse);
 		} catch (DoesNotExistException $e) {
+			// No row to withdraw from — return a transient placeholder rather
+			// than inserting a junk row that filters would have to skip later.
+			if ($response === null) {
+				$placeholder = new AttendanceResponse();
+				$placeholder->setAppointmentId($appointmentId);
+				$placeholder->setUserId($userId);
+				$placeholder->setResponse(null);
+				return $placeholder;
+			}
 			$attendanceResponse = new AttendanceResponse();
 			$attendanceResponse->setAppointmentId($appointmentId);
 			$attendanceResponse->setUserId($userId);

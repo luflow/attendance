@@ -138,11 +138,14 @@ const showExportDialog = () => {
 const submitResponse = async (appointmentId, response) => {
 	const comment = appointment.value.userResponse?.comment || ''
 
-	// Optimistic update
-	if (!appointment.value.userResponse) {
-		appointment.value.userResponse = {}
+	if (response === null) {
+		appointment.value.userResponse = null
+	} else {
+		if (!appointment.value.userResponse) {
+			appointment.value.userResponse = {}
+		}
+		appointment.value.userResponse.response = response
 	}
-	appointment.value.userResponse.response = response
 
 	await submitResponseApi(appointmentId, response, comment)
 }

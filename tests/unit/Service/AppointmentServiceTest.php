@@ -233,9 +233,75 @@ class AppointmentServiceTest extends TestCase {
 
 	public function testSubmitResponseThrowsExceptionForInvalidResponse(): void {
 		$this->expectException(\InvalidArgumentException::class);
-		$this->expectExceptionMessage('Invalid response. Must be yes, no, or maybe.');
+		$this->expectExceptionMessage('Invalid response. Must be yes, no, maybe, or null.');
 
 		$this->service->submitResponse(1, 'user', 'invalid', '');
+	}
+
+	public function testSubmitResponseWithNullWithdrawsExistingResponse(): void {
+		$appointmentId = 1;
+		$userId = 'testuser';
+
+		$appointment = new Appointment();
+		$appointment->setId($appointmentId);
+
+		$this->appointmentMapper->expects($this->once())
+			->method('find')
+			->with($appointmentId)
+			->willReturn($appointment);
+
+		$this->visibilityService->expects($this->once())
+			->method('canUserSeeAppointment')
+			->with($appointment, $userId)
+			->willReturn(true);
+
+		$existingResponse = new AttendanceResponse();
+		$existingResponse->setId(1);
+		$existingResponse->setResponse('yes');
+		$existingResponse->setComment('was excited');
+		$existingResponse->setCheckinState('yes');
+
+		$this->responseMapper->expects($this->once())
+			->method('findByAppointmentAndUser')
+			->with($appointmentId, $userId)
+			->willReturn($existingResponse);
+
+		$this->responseMapper->expects($this->once())
+			->method('update')
+			->willReturnCallback(function (AttendanceResponse $r) {
+				$this->assertNull($r->getResponse());
+				$this->assertSame('', $r->getComment());
+				// Existing check-in state must be preserved
+				$this->assertSame('yes', $r->getCheckinState());
+				return $r;
+			});
+
+		$result = $this->service->submitResponse($appointmentId, $userId, null);
+		$this->assertInstanceOf(AttendanceResponse::class, $result);
+	}
+
+	public function testSubmitResponseWithNullThrowsOnClosedAppointment(): void {
+		$appointmentId = 1;
+		$userId = 'testuser';
+
+		$appointment = new Appointment();
+		$appointment->setId($appointmentId);
+		$appointment->setClosedAt('2026-01-01 12:00:00');
+
+		$this->appointmentMapper->expects($this->once())
+			->method('find')
+			->with($appointmentId)
+			->willReturn($appointment);
+
+		$this->visibilityService->expects($this->once())
+			->method('canUserSeeAppointment')
+			->willReturn(true);
+
+		$this->responseMapper->expects($this->never())->method('update');
+		$this->responseMapper->expects($this->never())->method('insert');
+
+		$this->expectException(\RuntimeException::class);
+		$this->service->submitResponse($appointmentId, $userId, null);
 	}
 
 	public function testGetUserResponseReturnsNullWhenNotFound(): void {

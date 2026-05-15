@@ -105,13 +105,11 @@ const items = computed(() => {
 const respond = async (appointmentId, response) => {
 	try {
 		await submitResponseApi(appointmentId, response, '')
-		// Update local state after successful response
 		const appointmentIndex = appointments.value.findIndex(a => a.id === appointmentId)
 		if (appointmentIndex !== -1) {
-			appointments.value[appointmentIndex].userResponse = {
-				response,
-				comment: '',
-			}
+			appointments.value[appointmentIndex].userResponse = response === null
+				? null
+				: { response, comment: '' }
 		}
 	} catch (error) {
 		// Error already handled by composable

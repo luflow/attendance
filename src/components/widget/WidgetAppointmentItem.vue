@@ -51,20 +51,23 @@
 					:class="{ active: item.userResponse?.response === 'yes' }"
 					variant="success"
 					:text="t('attendance', 'Yes')"
+					:disabled="responseCooldown"
 					data-test="widget-response-yes"
-					@click="$emit('respond', item.id, 'yes')" />
+					@click="handleResponse('yes')" />
 				<NcButton
 					:class="{ active: item.userResponse?.response === 'maybe' }"
 					variant="warning"
 					:text="t('attendance', 'Maybe')"
+					:disabled="responseCooldown"
 					data-test="widget-response-maybe"
-					@click="$emit('respond', item.id, 'maybe')" />
+					@click="handleResponse('maybe')" />
 				<NcButton
 					:class="{ active: item.userResponse?.response === 'no' }"
 					variant="error"
 					:text="t('attendance', 'No')"
+					:disabled="responseCooldown"
 					data-test="widget-response-no"
-					@click="$emit('respond', item.id, 'no')" />
+					@click="handleResponse('no')" />
 				<!-- Comment Toggle Button (only show when user has responded) -->
 				<NcButton
 					v-if="item.userResponse"
@@ -117,7 +120,7 @@ import CommentIcon from 'vue-material-design-icons/Comment.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
 import { formatDateTime } from '../../utils/datetime.js'
 import { stripMarkdown } from '../../utils/markdown.js'
-import { useAppointmentResponse } from '../../composables/useAppointmentResponse.js'
+import { useAppointmentResponse, useResponseCooldown } from '../../composables/useAppointmentResponse.js'
 
 const props = defineProps({
 	item: {
@@ -134,7 +137,17 @@ const props = defineProps({
 	},
 })
 
-defineEmits(['respond', 'openCheckin', 'openDetail'])
+const emit = defineEmits(['respond', 'openCheckin', 'openDetail'])
+
+const { responseCooldown, resolveNext, startCooldown } = useResponseCooldown(
+	() => props.item.userResponse?.response ?? null,
+)
+
+const handleResponse = (response) => {
+	if (responseCooldown.value) return
+	startCooldown()
+	emit('respond', props.item.id, resolveNext(response))
+}
 
 // Local state for comment
 const commentExpanded = ref(false)

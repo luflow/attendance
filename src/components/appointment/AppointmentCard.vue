@@ -225,18 +225,21 @@
 					:class="{ active: userResponse === 'yes' }"
 					variant="success"
 					:text="t('attendance', 'Yes')"
+					:disabled="responseCooldown"
 					data-test="response-yes"
 					@click="handleResponse('yes')" />
 				<NcButton
 					:class="{ active: userResponse === 'maybe' }"
 					variant="warning"
 					:text="t('attendance', 'Maybe')"
+					:disabled="responseCooldown"
 					data-test="response-maybe"
 					@click="handleResponse('maybe')" />
 				<NcButton
 					:class="{ active: userResponse === 'no' }"
 					variant="error"
 					:text="t('attendance', 'No')"
+					:disabled="responseCooldown"
 					data-test="response-no"
 					@click="handleResponse('no')" />
 				<!-- Comment Toggle Button (only show when user has responded) -->
@@ -423,7 +426,7 @@ import ClockIcon from 'vue-material-design-icons/Clock.vue'
 import { formatDateRange, formatDateTime } from '../../utils/datetime.js'
 import { getResponseText, getResponseVariant } from '../../utils/response.js'
 import { formatClosedLabel } from '../../utils/appointment.js'
-import { useAppointmentResponse } from '../../composables/useAppointmentResponse.js'
+import { useAppointmentResponse, useResponseCooldown } from '../../composables/useAppointmentResponse.js'
 
 const currentUserUid = window.OC?.getCurrentUser?.()?.uid || window.OC?.currentUser || null
 
@@ -506,7 +509,6 @@ const formattedDeadline = computed(() =>
 const closedLabel = computed(() =>
 	formatClosedLabel(props.appointment.closedAt, props.appointment.responseDeadline),
 )
-
 
 const renderedDescription = computed(() => {
 	if (!props.appointment.description) return ''
@@ -611,8 +613,12 @@ const handleRemindAll = async (target = 'non_responders') => {
 	}
 }
 
+const { responseCooldown, resolveNext, startCooldown } = useResponseCooldown(userResponse)
+
 const handleResponse = (response) => {
-	emit('submitResponse', props.appointment.id, response)
+	if (responseCooldown.value) return
+	startCooldown()
+	emit('submitResponse', props.appointment.id, resolveNext(response))
 }
 
 const togglingClosed = ref(false)

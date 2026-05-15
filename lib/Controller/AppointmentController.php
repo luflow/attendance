@@ -540,14 +540,14 @@ class AppointmentController extends Controller {
 	 * Submit the current user's response to an appointment
 	 *
 	 * @param int $id Appointment ID
-	 * @param string $response Response value: yes, no, or maybe
+	 * @param ?string $response Response value: yes, no, maybe — or null to withdraw an existing response
 	 * @param string $comment Optional comment
 	 * @return DataResponse<Http::STATUS_OK, AttendanceResponseData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI]
-	public function respond(int $id, string $response, string $comment = ''): DataResponse {
+	public function respond(int $id, ?string $response, string $comment = ''): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
@@ -708,6 +708,9 @@ class AppointmentController extends Controller {
 			// Older servers omit this flag → mobile clients hide close-inquiry UI.
 			'closing' => true,
 			'remindMaybe' => true,
+			// Older servers reject response=null. Mobile clients gate the
+			// withdraw-response affordance on this flag.
+			'responseToggle' => true,
 			// True when the Guests app is available, meaning the server can
 			// service POST /api/guests so clients may surface an "invite guest"
 			// affordance in the appointment editor.

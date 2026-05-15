@@ -309,6 +309,7 @@
                     "notificationsAppEnabled",
                     "closing",
                     "remindMaybe",
+                    "responseToggle",
                     "guestInvitation"
                 ],
                 "properties": {
@@ -331,6 +332,9 @@
                         "type": "boolean"
                     },
                     "remindMaybe": {
+                        "type": "boolean"
+                    },
+                    "responseToggle": {
                         "type": "boolean"
                     },
                     "guestInvitation": {
@@ -1885,18 +1889,16 @@
                     }
                 ],
                 "requestBody": {
-                    "required": true,
+                    "required": false,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "type": "object",
-                                "required": [
-                                    "response"
-                                ],
                                 "properties": {
                                     "response": {
                                         "type": "string",
-                                        "description": "Response value: yes, no, or maybe"
+                                        "nullable": true,
+                                        "description": "Response value: yes, no, maybe — or null to withdraw an existing response"
                                     },
                                     "comment": {
                                         "type": "string",
