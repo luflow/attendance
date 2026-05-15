@@ -845,6 +845,9 @@ const loadAppointment = async () => {
 				value: user.id,
 				label: user.label,
 				type: 'user',
+				// Without this the AccountQuestion icon falls back to Account
+				// when an admin reopens an existing appointment for edit.
+				isGuest: !!user.isGuest,
 			})
 		}
 		for (const group of groups) {

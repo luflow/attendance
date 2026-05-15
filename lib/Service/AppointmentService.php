@@ -1019,6 +1019,7 @@ class AppointmentService {
 				'id' => $userId,
 				'label' => $user ? $user->getDisplayName() : $userId,
 				'type' => 'user',
+				'isGuest' => $this->guestService->isGuestUser($userId),
 			];
 		}
 		$appointmentData['visibleUsers'] = $enrichedUsers;
