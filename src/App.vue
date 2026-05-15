@@ -9,6 +9,16 @@
 					@update:model-value="onSearchInput" />
 			</template>
 			<template #list>
+				<NcAppNavigationItem
+					:name="t('attendance', 'All appointments')"
+					:active="currentView === 'all'"
+					data-test="nav-all"
+					@click.prevent="setView('all')">
+					<template #icon>
+						<FormatListBulletedIcon :size="20" />
+					</template>
+				</NcAppNavigationItem>
+
 				<!-- Unanswered Appointments Section -->
 				<NcAppNavigationItem
 					v-if="unansweredAppointments.length > 0"
@@ -37,16 +47,6 @@
 								<ProgressQuestion :size="20" />
 							</template>
 						</NcAppNavigationItem>
-					</template>
-				</NcAppNavigationItem>
-
-				<NcAppNavigationItem
-					:name="t('attendance', 'All appointments')"
-					:active="currentView === 'all'"
-					data-test="nav-all"
-					@click.prevent="setView('all')">
-					<template #icon>
-						<FormatListBulletedIcon :size="20" />
 					</template>
 				</NcAppNavigationItem>
 
@@ -643,7 +643,10 @@ const checkRouting = () => {
 	} else if (isAllRoute) {
 		currentView.value = 'all'
 	} else {
-		currentView.value = 'current'
+		// Default landing: admins drop into "All appointments" (their natural
+		// overview); everyone else lands in "Unanswered" so the pending
+		// action is right in front of them.
+		currentView.value = permissions.canManageAppointments ? 'all' : 'unanswered'
 	}
 }
 
@@ -667,8 +670,10 @@ watch(currentView, async (newView, oldView) => {
 })
 
 onMounted(async () => {
-	checkRouting()
+	// Permissions first: the bare-URL default view depends on the
+	// canManageAppointments flag (admins → All, others → Unanswered).
 	await loadPermissions()
+	checkRouting()
 
 	// Skip loading appointments only for checkin view (no navigation sidebar)
 	// All other views show navigation and need appointment data
