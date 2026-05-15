@@ -418,6 +418,7 @@ t('attendance', 'After this date, the inquiry is automatically closed and no fur
 t('attendance', 'Responses possible until {when}')
 t('attendance', 'This appointment is closed and no longer accepts responses.')
 t('attendance', 'Response no longer possible')
+t('attendance', 'Guests')
 
 const currentView = ref(null) // 'current', 'past', 'unanswered', 'appointment', 'checkin', 'create', 'edit', 'copy', or null
 const checkinAppointmentId = ref(null)

@@ -1,7 +1,7 @@
 <template>
 	<NcSelect
 		:model-value="modelValue"
-		:options="options"
+		:options="decoratedOptions"
 		:placeholder="placeholder"
 		:multiple="true"
 		:disabled="disabled"
@@ -24,10 +24,12 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { NcSelect } from '@nextcloud/vue'
 import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
+import { formatGroupLabel } from '../../utils/groups.js'
 
-defineProps({
+const props = defineProps({
 	modelValue: {
 		type: Array,
 		default: () => [],
@@ -47,4 +49,14 @@ defineProps({
 })
 
 defineEmits(['update:modelValue'])
+
+// Rewrite the displayName for known system groups (e.g. guest_app → "Guests")
+// before they reach NcSelect, so the option list, the selected-options pill,
+// and the search filter all see the same friendly label.
+const decoratedOptions = computed(() =>
+	props.options.map(option => ({
+		...option,
+		displayName: formatGroupLabel(option.id, option.displayName),
+	})),
+)
 </script>

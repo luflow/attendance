@@ -446,6 +446,7 @@ import { generateUrl } from '@nextcloud/router'
 import { subscribe as subscribeToEvent, unsubscribe as unsubscribeFromEvent } from '@nextcloud/event-bus'
 import axios from '@nextcloud/axios'
 import { usePermissions } from '../composables/usePermissions.js'
+import { formatGroupLabel } from '../utils/groups.js'
 import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
 import Account from 'vue-material-design-icons/Account.vue'
 import AccountPlus from 'vue-material-design-icons/AccountPlus.vue'
@@ -850,7 +851,7 @@ const loadAppointment = async () => {
 			items.push({
 				id: `group:${group.id}`,
 				value: group.id,
-				label: group.label,
+				label: formatGroupLabel(group.id, group.label),
 				type: 'group',
 			})
 		}
@@ -970,7 +971,7 @@ const onSearch = async (query) => {
 		const newResults = response.data.map((item) => ({
 			id: `${item.type}:${item.id}`,
 			value: item.id,
-			label: item.label,
+			label: item.type === 'group' ? formatGroupLabel(item.id, item.label) : item.label,
 			type: item.type,
 			isGuest: !!item.isGuest,
 		}))

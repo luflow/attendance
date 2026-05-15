@@ -47,7 +47,7 @@
 								expanded: expandedGroups[`group-${groupId}`],
 							}">▶</span>
 						<AccountGroup :size="18" class="type-icon" />
-						{{ groupId }}
+						{{ formatGroupLabel(groupId) }}
 					</div>
 					<div class="group-counts">
 						<NcChip
@@ -465,6 +465,7 @@ import AccountStar from 'vue-material-design-icons/AccountStar.vue'
 import BellRingOutlineIcon from 'vue-material-design-icons/BellRingOutline.vue'
 import NonRespondingUserList from './NonRespondingUserList.vue'
 import { getResponseText, getResponseVariant } from '../../utils/response.js'
+import { formatGroupLabel } from '../../utils/groups.js'
 
 const props = defineProps({
 	responseSummary: {
