@@ -185,6 +185,14 @@ class NotificationService {
 			return;
 		}
 
+		if ($appointment->isClosed()) {
+			$this->logger->warning('Refusing to send reminder for closed appointment', [
+				'appointmentId' => $appointment->getId(),
+				'userId' => $userId,
+			]);
+			return;
+		}
+
 		$this->sendReminderNotification($appointment, $userId);
 	}
 
@@ -198,6 +206,14 @@ class NotificationService {
 	public function sendReminderToUsers(Appointment $appointment, array $userIds): int {
 		if (!$this->isNotificationsAppEnabled()) {
 			$this->logger->warning('Cannot send reminders - notifications app is not enabled');
+			return 0;
+		}
+
+		if ($appointment->isClosed()) {
+			$this->logger->warning('Refusing to send reminders for closed appointment', [
+				'appointmentId' => $appointment->getId(),
+				'userCount' => count($userIds),
+			]);
 			return 0;
 		}
 

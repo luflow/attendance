@@ -962,6 +962,10 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'Appointment not found'], 404);
 		}
 
+		if ($appointment->isClosed()) {
+			return new DataResponse(['error' => 'Inquiry is closed'], 400);
+		}
+
 		$userIds = $this->appointmentService->getReminderTargetUserIds($appointment, $target);
 		$sent = $this->notificationService->sendReminderToUsers($appointment, $userIds);
 
@@ -992,6 +996,10 @@ class AppointmentController extends Controller {
 			$appointment = $this->appointmentService->getAppointment($id);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => 'Appointment not found'], 404);
+		}
+
+		if ($appointment->isClosed()) {
+			return new DataResponse(['error' => 'Inquiry is closed'], 400);
 		}
 
 		// Audience check on the reminder target (not the requester) — admin
