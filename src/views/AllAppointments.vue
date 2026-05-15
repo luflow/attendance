@@ -252,7 +252,7 @@ const filterDefs = computed(() => [
 		// Server-side via VisibilityService::isUserTargetAttendee. Without it,
 		// managers see every appointment in the system.
 		id: F.AUDIENCE,
-		label: t('attendance', 'Audience'),
+		label: t('attendance', 'Relevance'),
 		icon: AccountIcon,
 		visible: permissions.canManageAppointments,
 		options: [
