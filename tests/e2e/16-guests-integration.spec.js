@@ -258,4 +258,72 @@ test.describe('Attendance App - Guests integration', () => {
 			await resetAdminSettings(request)
 		}
 	})
+
+	test('admin settings whitelist select renders guest_app as "Guests"', async ({ page, loginAsUser, request }) => {
+		// Whitelist guest_app so the select shows it as a selected pill, then
+		// verify the friendly label replaces the raw id.
+		await saveAdminSettings(request, {
+			whitelistedGroups: ['guest_app'],
+			whitelistedTeams: [],
+			permissions: {
+				manage_appointments: [],
+				checkin: [],
+				see_response_overview: [],
+				see_comments: [],
+			},
+			reminders: { enabled: false },
+		})
+
+		try {
+			await loginAsUser('admin', 'admin')
+			await page.goto('/settings/admin/attendance')
+			await page.waitForLoadState('networkidle')
+
+			const whitelistSelect = page.locator('[data-test="select-whitelisted-groups"]')
+			await expect(whitelistSelect).toContainText('Guests')
+			await expect(whitelistSelect).not.toContainText('guest_app')
+		} finally {
+			await resetAdminSettings(request)
+		}
+	})
+
+	test('response summary renders the whitelisted guest_app section as "Guests"', async ({ page, loginAsUser, request, attendanceApp }) => {
+		// Whitelist guest_app + provision a guest + create an appointment they
+		// can answer. The section header rendered to admins must read "Guests".
+		await request.post(`${API_BASE}/apps/attendance/api/guests`, {
+			headers: authHeaders(),
+			data: { email: GUEST_EMAIL_B, displayName: 'E2E Guest B' },
+		})
+		await saveAdminSettings(request, {
+			whitelistedGroups: ['guest_app'],
+			whitelistedTeams: [],
+			permissions: {
+				manage_appointments: [],
+				checkin: [],
+				see_response_overview: [],
+				see_comments: [],
+			},
+			reminders: { enabled: false },
+		})
+
+		try {
+			const apt = await createAppointmentViaAPI(request, {
+				name: 'Guest Label Summary Test',
+				daysFromNow: 4,
+				visibleUsers: [GUEST_EMAIL_B],
+			})
+
+			await loginAsUser('admin', 'admin')
+			await attendanceApp()
+			await page.goto(`/apps/attendance/appointment/${apt.id}`)
+			await page.waitForLoadState('networkidle')
+
+			const guestSection = page.locator('[data-test="group-container-guest_app"]')
+			await expect(guestSection).toBeVisible()
+			await expect(guestSection.locator('.group-name').first()).toContainText('Guests')
+			await expect(guestSection.locator('.group-name').first()).not.toContainText('guest_app')
+		} finally {
+			await resetAdminSettings(request)
+		}
+	})
 })
