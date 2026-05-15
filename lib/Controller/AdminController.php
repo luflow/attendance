@@ -104,15 +104,19 @@ class AdminController extends Controller {
 			// Get permission settings
 			$permissionSettings = $this->permissionService->getAllPermissionSettings();
 
-			// Compute status: next appointment
-			$upcomingAppointments = $this->appointmentMapper->findUpcoming();
+			// Compute status: next appointment that would actually receive a
+			// reminder. Closed inquiries are skipped so the preview matches
+			// the cron's findRemindable filter.
 			$nextAppointment = null;
-			if (!empty($upcomingAppointments)) {
-				$first = $upcomingAppointments[0];
+			foreach ($this->appointmentMapper->findUpcoming() as $appointment) {
+				if ($appointment->isClosed()) {
+					continue;
+				}
 				$nextAppointment = [
-					'name' => $first->getName(),
-					'startDatetime' => $first->getStartDatetime(),
+					'name' => $appointment->getName(),
+					'startDatetime' => $appointment->getStartDatetime(),
 				];
+				break;
 			}
 
 			// Compute status: next reminder run
@@ -267,12 +271,16 @@ class AdminController extends Controller {
 			return new DataResponse(['error' => 'Insufficient permissions'], 403);
 		}
 
-		$upcomingAppointments = $this->appointmentMapper->findUpcoming();
-		if (empty($upcomingAppointments)) {
+		$appointment = null;
+		foreach ($this->appointmentMapper->findUpcoming() as $candidate) {
+			if (!$candidate->isClosed()) {
+				$appointment = $candidate;
+				break;
+			}
+		}
+		if ($appointment === null) {
 			return new DataResponse(['error' => 'No upcoming appointment found'], 404);
 		}
-
-		$appointment = $upcomingAppointments[0];
 
 		try {
 			$this->notificationService->sendReminderToUser($appointment, $user->getUID());
