@@ -581,9 +581,9 @@ class ResponseSummaryService {
 				}
 			}
 
-			// Direct visibleUsers assignments must always render — otherwise
-			// admins who invite a fresh hire (no whitelisted group yet) by
-			// individual pick lose them from the summary completely.
+			// Direct visibleUsers entries must render regardless of group
+			// membership; otherwise an individually invited user with no
+			// whitelisted-group ties would never reach the Others bucket.
 			$isDirectlyAddressedUser = in_array($userId, $cache['appointmentVisibleUsers'], true);
 
 			if (!$hasAllowedGroup && !$hasRelevantTeam && !$hasVisibleGroup && !$isDirectlyAddressedUser) {

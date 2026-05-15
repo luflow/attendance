@@ -153,12 +153,9 @@ class ResponseSummaryServiceTest extends TestCase {
 	}
 
 	/**
-	 * Regression: an admin invites a fresh hire who isn't in any whitelisted
-	 * skill group yet — either as the sole attendee or alongside a regular
-	 * skill group. The directly-listed user used to be filtered out of the
-	 * summary because collectMissingResponders skipped anyone without an
-	 * allowed group / team / visible group, leaving the admin to wonder
-	 * why "their" invitee never shows up.
+	 * Regression: a user added only via visibleUsers (and not part of any
+	 * whitelisted group) used to be dropped from the summary entirely. The
+	 * Others bucket exists precisely so such users still surface.
 	 */
 	public function testGetResponseSummaryIncludesDirectlyAddressedUserOutsideAnyWhitelistedGroup(): void {
 		$appointmentId = 3;
