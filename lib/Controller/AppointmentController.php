@@ -994,8 +994,10 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'Appointment not found'], 404);
 		}
 
-		// Validate: user must be visible for this appointment
-		if (!$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
+		// Audience check on the reminder target (not the requester) — admin
+		// bypass would let managers receive reminders for appointments
+		// they're not actually in the audience for.
+		if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
 			return new DataResponse(['error' => 'User is not a member of this appointment'], 400);
 		}
 		// Allow reminding non-responders and maybe-responders, but not yes/no
