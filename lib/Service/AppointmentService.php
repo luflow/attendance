@@ -684,9 +684,9 @@ class AppointmentService {
 		[$searchResult, $hasMore] = $this->collaboratorSearch->search(
 			$search,
 			$shareTypes,
-			false, // lookup
-			20,    // limit
-			0      // offset
+			false,        // lookup
+			PHP_INT_MAX,  // limit (no cap)
+			0             // offset
 		);
 
 		return $this->formatCollaboratorResults($searchResult);
