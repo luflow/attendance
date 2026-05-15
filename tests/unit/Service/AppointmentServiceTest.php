@@ -310,6 +310,49 @@ class AppointmentServiceTest extends TestCase {
 		$this->service->deleteAppointment($appointmentId, $userId);
 	}
 
+	public function testGetUpcomingAppointmentsForWidgetIncludesUnrestrictedAppointmentsCreatedByOthers(): void {
+		// Regression: widget previously filtered to appointments created by
+		// the current user, which hid "everyone" appointments authored by
+		// somebody else.
+		$userId = 'alice';
+
+		$ownRestricted = $this->createAppointment(1, 'Own restricted');
+		$ownRestricted->setCreatedBy($userId);
+		$ownRestricted->setVisibleUsers(json_encode([$userId]));
+
+		$globalByOther = $this->createAppointment(2, 'Everyone meeting');
+		$globalByOther->setCreatedBy('bob');
+
+		$othersOnlyByOther = $this->createAppointment(3, 'Bob private');
+		$othersOnlyByOther->setCreatedBy('bob');
+		$othersOnlyByOther->setVisibleUsers(json_encode(['bob']));
+
+		$this->appointmentMapper->expects($this->once())
+			->method('findUpcoming')
+			->willReturn([$ownRestricted, $globalByOther, $othersOnlyByOther]);
+
+		$this->visibilityService->expects($this->exactly(3))
+			->method('isUserTargetAttendee')
+			->willReturnCallback(function (Appointment $appointment, string $uid) use ($userId): bool {
+				$this->assertSame($userId, $uid);
+				return match ($appointment->getId()) {
+					1, 2 => true,
+					3 => false,
+					default => false,
+				};
+			});
+
+		$this->attachmentService->method('getAttachments')->willReturn([]);
+		$this->responseMapper->method('findByAppointmentAndUser')
+			->willThrowException(new DoesNotExistException(''));
+
+		$result = $this->service->getUpcomingAppointmentsForWidget($userId, 5);
+
+		$this->assertCount(2, $result);
+		$ids = array_map(static fn (array $a): int => $a['id'], $result);
+		$this->assertSame([1, 2], $ids);
+	}
+
 	private function createAppointment(int $id, string $name): Appointment {
 		$appointment = new Appointment();
 		$appointment->setId($id);

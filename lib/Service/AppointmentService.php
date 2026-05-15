@@ -633,10 +633,10 @@ class AppointmentService {
 	}
 
 	/**
-	 * Get upcoming appointments for the dashboard widget. Restricted to the
-	 * appointments the current user CREATED — managers otherwise see noise
-	 * from every appointment in the system, which defeats the dashboard's
-	 * purpose. The full list is one click away in the app.
+	 * Get upcoming appointments for the dashboard widget. Restricted to
+	 * appointments the user is a target attendee of (incl. unrestricted
+	 * "everyone" appointments) — without admin bypass, so managers don't
+	 * see noise from every appointment in the system.
 	 */
 	public function getUpcomingAppointmentsForWidget(string $userId, int $limit = 5): array {
 		$appointments = $this->getUpcomingAppointments();
@@ -647,10 +647,7 @@ class AppointmentService {
 			if ($count >= $limit) {
 				break;
 			}
-			if ($appointment->getCreatedBy() !== $userId) {
-				continue;
-			}
-			if (!$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
+			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
 				continue;
 			}
 
