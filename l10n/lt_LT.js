@@ -83,7 +83,7 @@ OC.L10N.register(
     "Strikethrough" : "Perbrauktas",
     "Bullet list" : "Sąrašas su punktų žymėmis",
     "Insert link" : "Įterpti nuorodą",
-    "App Store" : "App Store",
+    "App Store" : "Programėlių parduotuvė",
     "Dismiss" : "Atmesti",
     "Failed to load settings" : "Nepavyko įkelti nustatymų",
     "Settings saved" : "Nustatymai įrašyti",
