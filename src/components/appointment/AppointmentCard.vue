@@ -422,6 +422,7 @@ import LockOpenIcon from 'vue-material-design-icons/LockOpen.vue'
 import ClockIcon from 'vue-material-design-icons/Clock.vue'
 import { formatDateRange, formatDateTime } from '../../utils/datetime.js'
 import { getResponseText, getResponseVariant } from '../../utils/response.js'
+import { formatClosedLabel } from '../../utils/appointment.js'
 import { useAppointmentResponse } from '../../composables/useAppointmentResponse.js'
 
 const currentUserUid = window.OC?.getCurrentUser?.()?.uid || window.OC?.currentUser || null
@@ -502,15 +503,9 @@ const formattedDeadline = computed(() =>
 		: '',
 )
 
-const closedLabel = computed(() => {
-	if (!formattedClosedAt.value) {
-		return t('attendance', 'Inquiry closed')
-	}
-	if (props.appointment.responseDeadline) {
-		return t('attendance', 'Closed automatically on {when}', { when: formattedClosedAt.value })
-	}
-	return t('attendance', 'Closed on {when}', { when: formattedClosedAt.value })
-})
+const closedLabel = computed(() =>
+	formatClosedLabel(props.appointment.closedAt, props.appointment.responseDeadline),
+)
 
 
 const renderedDescription = computed(() => {

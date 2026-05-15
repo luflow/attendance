@@ -20,7 +20,7 @@
 				<LockIcon :size="20" />
 				<div class="closed-banner-text">
 					<strong>{{ t('attendance', 'Inquiry closed') }}</strong>
-					<span v-if="closedLabel">{{ closedLabel }}</span>
+					<span v-if="closedAt">{{ closedLabel }}</span>
 				</div>
 			</div>
 
@@ -120,13 +120,12 @@ import axios from '@nextcloud/axios'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
-import { formatDateRange, formatDateTime } from '../utils/datetime.js'
+import { formatDateRange } from '../utils/datetime.js'
 import { getResponseVariant } from '../utils/response.js'
+import { formatClosedLabel } from '../utils/appointment.js'
 
-// Load initial state from server
 const initialState = loadState('attendance', 'quick-response-data', {})
 
-// Load NC version for CSS compatibility
 let ncVersionState = 31
 try {
 	ncVersionState = loadState('attendance', 'nc-version')
@@ -135,14 +134,14 @@ try {
 }
 const ncVersion = ref(ncVersionState)
 
-// Reactive state
+// Reactive state — only flags that the user can mutate after load.
 const error = ref(initialState.error || false)
 const errorMessage = ref(initialState.errorMessage || '')
 const confirmed = ref(initialState.confirmed || false)
-const closed = ref(initialState.closed || false)
 const submitting = ref(false)
 
-// Appointment data
+// Static payload from the server-rendered initial state.
+const closed = initialState.closed || false
 const appointmentId = initialState.appointmentId || 0
 const appointmentName = initialState.appointmentName || ''
 const appointmentDatetime = initialState.appointmentDatetime || ''
@@ -155,20 +154,8 @@ const token = initialState.token || ''
 const userId = initialState.userId || ''
 const userName = initialState.userName || ''
 
-// Computed date/time using app utilities
 const formattedDateRange = computed(() => formatDateRange(appointmentDatetime, appointmentEndDatetime))
-
-// Mirrors AppointmentCard's closedLabel: distinguishes manual close from
-// auto-close-by-deadline so the message matches what the user sees in the app.
-const closedLabel = computed(() => {
-	if (!closedAt) return ''
-	const when = formatDateTime(closedAt)
-	return responseDeadline
-		? t('attendance', 'Closed automatically on {when}', { when })
-		: t('attendance', 'Closed on {when}', { when })
-})
-
-// Computed URLs
+const closedLabel = formatClosedLabel(closedAt, responseDeadline)
 const appUrl = computed(() => generateUrl('/apps/attendance/'))
 const appointmentUrl = computed(() => generateUrl('/apps/attendance/appointment/{id}', { id: appointmentId }))
 
