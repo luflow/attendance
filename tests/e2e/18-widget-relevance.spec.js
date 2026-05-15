@@ -3,6 +3,7 @@ import {
 	expect,
 	createAppointmentViaAPI,
 	deleteAllAppointments,
+	forceWipeAllAppointments,
 } from './fixtures/nextcloud.js'
 
 const BASE = `${process.env.NEXTCLOUD_URL || 'http://localhost:8080'}/index.php`
@@ -23,6 +24,10 @@ async function getWidgetAppointments(request, { username, password }) {
 }
 
 test.describe('Dashboard widget — audience-based filtering', () => {
+	test.beforeAll(async ({ request }) => {
+		await forceWipeAllAppointments(request)
+	})
+
 	test.afterAll(async ({ request }) => {
 		await deleteAllAppointments(request)
 	})
@@ -31,11 +36,11 @@ test.describe('Dashboard widget — audience-based filtering', () => {
 		// Regression: the widget used to filter to appointments created by the
 		// current user, which hid the everyday "everyone meeting" appointments
 		// authored by a manager.
-		await deleteAllAppointments(request)
+		await forceWipeAllAppointments(request)
 
 		const everyoneByAdmin = await createAppointmentViaAPI(request, {
 			name: 'Widget Everyone By Admin',
-			daysFromNow: 4,
+			daysFromNow: 0.01,
 		})
 		expect(everyoneByAdmin.id).toBeTruthy()
 
@@ -49,11 +54,11 @@ test.describe('Dashboard widget — audience-based filtering', () => {
 		// Manager admin creates an appointment scoped only to user "test".
 		// Other regular users should not see it in their widget — the gate is
 		// isUserTargetAttendee, no admin bypass.
-		await deleteAllAppointments(request)
+		await forceWipeAllAppointments(request)
 
 		const onlyForTest = await createAppointmentViaAPI(request, {
 			name: 'Widget Only For Test',
-			daysFromNow: 4,
+			daysFromNow: 0.01,
 			visibleUsers: ['test'],
 		})
 		expect(onlyForTest.id).toBeTruthy()
@@ -62,10 +67,11 @@ test.describe('Dashboard widget — audience-based filtering', () => {
 		const testWidget = await getWidgetAppointments(request, { username: 'test', password: 'test' })
 		expect(testWidget.map(a => a.name)).toContain('Widget Only For Test')
 
-		// `user1` is not in the audience → must not see it. Admin bypass would
-		// not apply here (user1 isn't a manager) but we keep the assertion as a
+		// `test1` is not in the audience → must not see it. Admin bypass would
+		// not apply here (test1 isn't a manager) but we keep the assertion as a
 		// belt-and-braces check.
-		const otherWidget = await getWidgetAppointments(request, { username: 'user1', password: 'user1' })
+		const otherWidget = await getWidgetAppointments(request, { username: 'test1', password: 'test1' })
+		expect(Array.isArray(otherWidget)).toBe(true)
 		expect(otherWidget.map(a => a.name)).not.toContain('Widget Only For Test')
 	})
 
@@ -74,16 +80,16 @@ test.describe('Dashboard widget — audience-based filtering', () => {
 		// everything via the admin bypass — but the widget should only show
 		// what admin is actually a target attendee of. Otherwise busy managers
 		// drown in noise on their dashboard.
-		await deleteAllAppointments(request)
+		await forceWipeAllAppointments(request)
 
 		await createAppointmentViaAPI(request, {
 			name: 'Widget Restricted To Test Not Admin',
-			daysFromNow: 4,
+			daysFromNow: 0.01,
 			visibleUsers: ['test'],
 		})
 		await createAppointmentViaAPI(request, {
 			name: 'Widget Everyone Includes Admin',
-			daysFromNow: 4,
+			daysFromNow: 0.02,
 		})
 
 		const adminWidget = await getWidgetAppointments(request, { username: 'admin', password: 'admin' })

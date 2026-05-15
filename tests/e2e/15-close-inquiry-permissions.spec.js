@@ -101,6 +101,12 @@ test.describe('Attendance App - Close inquiry permissions (sequential)', () => {
 		await page.reload()
 		await page.waitForLoadState('networkidle')
 
+		// Non-managers now land on Unanswered by default, which filters out
+		// closed inquiries. Drop into the "All appointments" view explicitly
+		// so the closed card is reachable.
+		await page.locator('[data-test="nav-all"]').click()
+		await page.waitForLoadState('networkidle')
+
 		const card = page.locator('[data-test="appointment-card"]', { hasText: 'Non-Manager Closed View' }).first()
 		await expect(card).toBeVisible()
 

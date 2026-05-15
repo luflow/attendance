@@ -180,24 +180,26 @@ test.describe('Attendance App - User Visibility Filtering', () => {
 		await expect(restrictedMeetingHeading).not.toBeVisible()
 	})
 
-	test('appointment manager should see all appointments regardless of visibility', async ({ page, loginAsUser, attendanceApp }) => {
-		// Admin has manage_appointments permission, so they should see everything
+	test('appointment manager sees restricted appointments via the All view, not Unanswered', async ({ page, loginAsUser, attendanceApp }) => {
+		// Admin has manage_appointments permission, so they can SEE every
+		// appointment — but the Unanswered sidebar implicitly filters to
+		// appointments addressed to the current user (inAudience). For an
+		// admin who isn't part of `visibleUsers`, those entries surface only
+		// in the All-appointments view, not the Unanswered to-do list.
 		await loginAsUser('admin', 'admin')
 		await attendanceApp()
 		await page.waitForLoadState('networkidle')
 
-		// Count appointments in the sidebar navigation under "Unanswered" section
-		const unansweredSection = page.getByRole('link', { name: 'Unanswered', exact: true })
-		await unansweredSection.waitFor({ state: 'visible' })
+		// Drop into the All-appointments view (admin's default already, but be
+		// explicit so the test is independent of landing-view changes).
+		await page.locator('[data-test="nav-all"]').click()
+		await page.waitForLoadState('networkidle')
 
-		// Get the list of appointments under Unanswered (next sibling list element)
-		const unansweredList = page.locator('li:has(a[href="#"]:has-text("Unanswered")) > ul')
-		const appointmentLinks = unansweredList.locator('> li')
-		const count = await appointmentLinks.count()
-
-		// Should see at least the appointments we created in this test suite
-		// (Private Meeting - Test1 Only, Public Team Meeting, Selective Access Meeting, Test1 Only Meeting)
-		expect(count).toBeGreaterThanOrEqual(4)
+		const cards = page.locator('[data-test="appointment-card"]')
+		await expect(cards.filter({ hasText: 'Private Meeting - Test1 Only' }).first()).toBeVisible()
+		await expect(cards.filter({ hasText: 'Public Team Meeting' }).first()).toBeVisible()
+		await expect(cards.filter({ hasText: 'Selective Access Meeting' }).first()).toBeVisible()
+		await expect(cards.filter({ hasText: 'Test1 Only Meeting' }).first()).toBeVisible()
 	})
 
 	test('should allow editing visibility settings', async ({ page }) => {

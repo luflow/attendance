@@ -5,6 +5,7 @@ import {
 	createGroupViaOCS,
 	addUserToGroupViaOCS,
 	deleteAllAppointments,
+	forceWipeAllAppointments,
 	saveAdminSettings,
 	resetAdminSettings,
 } from './fixtures/nextcloud.js'
@@ -33,12 +34,13 @@ test.describe('Response summary — directly-addressed user without a whiteliste
 	const skillGroup = 'attendance-e2e-skill-group'
 
 	test.beforeAll(async ({ request }) => {
-		// "test" is the regular non-admin user; "user1" plays the fresh hire
+		await forceWipeAllAppointments(request)
+		// "test" is the regular non-admin user; "test2" plays the fresh hire
 		// who is NOT a member of any whitelisted skill group.
 		await createGroupViaOCS(request, skillGroup)
 		await addUserToGroupViaOCS(request, 'test', skillGroup)
 
-		// Tracking whitelist = just the skill group. user1 is not in it.
+		// Tracking whitelist = just the skill group. test2 is not in it.
 		await saveAdminSettings(request, {
 			whitelistedGroups: [skillGroup],
 			whitelistedTeams: [],
@@ -58,14 +60,12 @@ test.describe('Response summary — directly-addressed user without a whiteliste
 	})
 
 	test('shows up in the Others bucket so admins can see their invitee', async ({ request }) => {
-		// Andreas's scenario: invite a fresh hire (user1, no whitelisted group)
-		// alongside an existing skill group. Previously user1 disappeared from
-		// the summary entirely because collectMissingResponders dropped users
-		// without any allowed/visible group.
+		// Regression: a user added only via visibleUsers (and not via a
+		// whitelisted group) used to drop out of collectMissingResponders.
 		const apt = await createAppointmentViaAPI(request, {
-			name: 'A2 Direct User Plus Group',
+			name: 'Summary Direct User Plus Group',
 			daysFromNow: 6,
-			visibleUsers: ['user1'],
+			visibleUsers: ['test2'],
 			visibleGroups: [skillGroup],
 		})
 
@@ -78,26 +78,26 @@ test.describe('Response summary — directly-addressed user without a whiteliste
 		const groupUserIds = (groupSection.non_responding_users || []).map(u => u.userId)
 		expect(groupUserIds).toContain('test')
 
-		// user1 has no whitelisted-group membership — must surface in Others.
+		// test2 has no whitelisted-group membership — must surface in Others.
 		const othersIds = (summary.others?.non_responding_users || []).map(u => u.userId)
-		expect(othersIds).toContain('user1')
+		expect(othersIds).toContain('test2')
 
-		// And the global non-responder list must count user1 too.
+		// And the global non-responder list must count test2 too.
 		const allNonRespondingIds = (summary.non_responding_users || []).map(u => u.userId)
-		expect(allNonRespondingIds).toContain('user1')
+		expect(allNonRespondingIds).toContain('test2')
 	})
 
 	test('still shows up when invited as the sole attendee', async ({ request }) => {
 		// Same fix, narrower setup: only the direct visibleUsers entry, no
 		// group on the appointment. Used to be invisible.
 		const apt = await createAppointmentViaAPI(request, {
-			name: 'A2 Direct User Only',
+			name: 'Summary Direct User Only',
 			daysFromNow: 7,
-			visibleUsers: ['user1'],
+			visibleUsers: ['test2'],
 		})
 
 		const summary = await getResponseSummary(request, apt.id)
 		const othersIds = (summary.others?.non_responding_users || []).map(u => u.userId)
-		expect(othersIds).toContain('user1')
+		expect(othersIds).toContain('test2')
 	})
 })

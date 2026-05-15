@@ -51,9 +51,6 @@ export default defineConfig({
 				'10-series.spec.js',
 				'11-notification-option.spec.js',
 				'14-close-inquiry.spec.js',
-				'17-reminder-closed-state.spec.js',
-				'18-widget-relevance.spec.js',
-				'19-default-view.spec.js',
 				'checkin.spec.js',
 			],
 			fullyParallel: false, // tests within a file stay sequential
@@ -70,6 +67,12 @@ export default defineConfig({
 				'13-calendar-sync.spec.js',
 				'15-close-inquiry-permissions.spec.js',
 				'16-guests-integration.spec.js',
+				// 17-19 changed global state (admin preview, permissions for
+				// default-view) or rely on the widget's 10-item cap — parallel
+				// pollution makes them flaky.
+				'17-reminder-closed-state.spec.js',
+				'18-widget-relevance.spec.js',
+				'19-default-view.spec.js',
 				'20-summary-direct-user.spec.js',
 			],
 			fullyParallel: false,

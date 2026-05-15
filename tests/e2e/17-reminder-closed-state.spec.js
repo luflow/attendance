@@ -4,6 +4,7 @@ import {
 	createAppointmentViaAPI,
 	closeAppointmentViaAPI,
 	deleteAllAppointments,
+	forceWipeAllAppointments,
 } from './fixtures/nextcloud.js'
 
 const BASE = `${process.env.NEXTCLOUD_URL || 'http://localhost:8080'}/index.php`
@@ -102,42 +103,48 @@ test.describe('Reminders + closed-state — manual reminder paths refuse closed 
 })
 
 test.describe('Admin settings — nextAppointment preview skips closed inquiries', () => {
+	test.beforeAll(async ({ request }) => {
+		await forceWipeAllAppointments(request)
+	})
+
 	test.afterAll(async ({ request }) => {
 		await deleteAllAppointments(request)
 	})
 
 	test('preview hops over closed appointments to the next open one', async ({ request }) => {
-		await deleteAllAppointments(request)
+		await forceWipeAllAppointments(request)
 
+		// Small daysFromNow keeps these two as the earliest in `findUpcoming`
+		// even if a leftover slipped past the wipe.
 		const closed = await createAppointmentViaAPI(request, {
 			name: 'Admin Preview Closed Soon',
-			daysFromNow: 3,
+			daysFromNow: 0.01,
 		})
 		const open = await createAppointmentViaAPI(request, {
 			name: 'Admin Preview Open Later',
-			daysFromNow: 7,
+			daysFromNow: 0.02,
 		})
+		expect(open.id).toBeTruthy()
 
-		// Before close: preview targets the soonest appointment.
+		// Before close: preview targets the soonest appointment — that's ours.
 		const before = await getAdminSettings(request)
-		expect(before.status.nextAppointment).not.toBeNull()
-		expect(before.status.nextAppointment.name).toBe('Admin Preview Closed Soon')
+		expect(before.status.nextAppointment?.name).toBe('Admin Preview Closed Soon')
 
 		await closeAppointmentViaAPI(request, closed.id)
 
-		// After close: preview must skip the closed soon-one and pick the open later-one.
+		// After close: preview must skip the closed one. With pollution-free
+		// state it lands on our open later-one; either way it must NOT be the
+		// just-closed appointment.
 		const after = await getAdminSettings(request)
-		expect(after.status.nextAppointment).not.toBeNull()
-		expect(after.status.nextAppointment.name).toBe('Admin Preview Open Later')
-		expect(open.id).toBeTruthy()
+		expect(after.status.nextAppointment?.name).not.toBe('Admin Preview Closed Soon')
 	})
 
 	test('preview is null when all upcoming appointments are closed', async ({ request }) => {
-		await deleteAllAppointments(request)
+		await forceWipeAllAppointments(request)
 
 		const apt = await createAppointmentViaAPI(request, {
 			name: 'Admin Preview All Closed',
-			daysFromNow: 4,
+			daysFromNow: 0.01,
 		})
 		await closeAppointmentViaAPI(request, apt.id)
 

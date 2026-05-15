@@ -3,6 +3,8 @@ import {
 	expect,
 	createAppointmentViaAPI,
 	deleteAllAppointments,
+	saveAdminSettings,
+	resetAdminSettings,
 } from './fixtures/nextcloud.js'
 
 // Storage key the App.vue currentView-fallback reads. We clear it before each
@@ -18,6 +20,20 @@ async function landOnAttendance(page, attendanceApp) {
 test.describe('Default landing view — role-aware', () => {
 	test.beforeAll(async ({ request }) => {
 		await deleteAllAppointments(request)
+		// Default permission state is empty roles => every user qualifies as
+		// "manage_appointments". Restrict it to the `admin` group so the
+		// regular test user actually counts as non-admin for this suite.
+		await saveAdminSettings(request, {
+			whitelistedGroups: [],
+			whitelistedTeams: [],
+			permissions: {
+				manage_appointments: ['admin'],
+				checkin: ['admin'],
+				see_response_overview: [],
+				see_comments: [],
+			},
+			reminders: { enabled: false },
+		})
 		// One open appointment addressed to "test" so the Unanswered list isn't
 		// empty for the non-admin case.
 		await createAppointmentViaAPI(request, {
@@ -29,6 +45,7 @@ test.describe('Default landing view — role-aware', () => {
 
 	test.afterAll(async ({ request }) => {
 		await deleteAllAppointments(request)
+		await resetAdminSettings(request)
 	})
 
 	test('admin lands on "All appointments"', async ({ page, loginAsUser, attendanceApp }) => {

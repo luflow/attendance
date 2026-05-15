@@ -225,14 +225,44 @@ export async function reopenAppointmentViaAPI(request, id, { username = 'admin',
 	return { status: resp.status(), body: await resp.json() }
 }
 
+async function collectAppointmentIds(request, partitions, auth) {
+	const ids = new Set()
+	for (const showPast of partitions) {
+		const list = await listAppointmentsViaAPI(request, { showPast, ...auth })
+		if (!Array.isArray(list)) continue
+		for (const appt of list) ids.add(appt.id)
+	}
+	return ids
+}
+
 /**
- * Delete all appointments (useful for afterAll cleanup)
+ * Delete all appointments (useful for afterAll cleanup).
+ *
+ * Walks only the past partition. Parallel tests share the test server, so
+ * deleting upcoming appointments here would wipe rows other workers are still
+ * using. Sequential-admin specs that need a known-empty state should use
+ * forceWipeAllAppointments() below instead.
  */
 export async function deleteAllAppointments(request, { username = 'admin', password = 'admin' } = {}) {
-	const appointments = await listAppointmentsViaAPI(request, { showPast: true, username, password })
-	if (!Array.isArray(appointments)) return
-	for (const appt of appointments) {
-		await deleteAppointmentViaAPI(request, appt.id, { username, password })
+	const ids = await collectAppointmentIds(request, [true], { username, password })
+	for (const id of ids) {
+		await deleteAppointmentViaAPI(request, id, { username, password })
+	}
+}
+
+/**
+ * Hard cleanup — deletes both past and upcoming appointments. Only safe in
+ * sequential-admin tests (workers=1, runs after the parallel project). Retries
+ * because workers' afterAll inserts can race with the list call.
+ */
+export async function forceWipeAllAppointments(request, { username = 'admin', password = 'admin' } = {}) {
+	for (let attempt = 0; attempt < 5; attempt++) {
+		const ids = await collectAppointmentIds(request, [true, false], { username, password })
+		if (ids.size === 0) return
+		for (const id of ids) {
+			await deleteAppointmentViaAPI(request, id, { username, password })
+		}
+		await new Promise(r => setTimeout(r, 200))
 	}
 }
 
