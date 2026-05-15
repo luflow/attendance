@@ -446,19 +446,21 @@
 					</p>
 				</template>
 
-				<div class="guests-info-block">
-					<h4>{{ t('attendance', 'How guest accounts are restricted') }}</h4>
-					<p>
-						{{ t('attendance', 'Guest users can submit RSVPs and self-check-in but can never manage appointments or check in other attendees. This is enforced server-side and cannot be granted via group permissions.') }}
-					</p>
-				</div>
+				<template v-if="guestsApp.enabled">
+					<div class="guests-info-block">
+						<h4>{{ t('attendance', 'How guest accounts are restricted') }}</h4>
+						<p>
+							{{ t('attendance', 'Guest users can submit RSVPs and self-check-in but can never manage appointments or check in other attendees. This is enforced server-side and cannot be granted via group permissions.') }}
+						</p>
+					</div>
 
-				<div class="guests-info-block">
-					<h4>{{ t('attendance', 'Converting guests to full accounts') }}</h4>
-					<p>
-						{{ t('attendance', 'When a guest later registers a full Nextcloud account with the same email (for example via SAML or LDAP), the Guests app converts them automatically. Past attendance responses remain attached to the original guest user ID — they are not migrated to the new account.') }}
-					</p>
-				</div>
+					<div class="guests-info-block">
+						<h4>{{ t('attendance', 'Converting guests to full accounts') }}</h4>
+						<p>
+							{{ t('attendance', 'When a guest later registers a full Nextcloud account with the same email (for example via SAML or LDAP), the Guests app converts them automatically. Past attendance responses remain attached to the original guest user ID — they are not migrated to the new account.') }}
+						</p>
+					</div>
+				</template>
 			</NcSettingsSection>
 
 			<NcSettingsSection>
