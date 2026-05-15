@@ -13,6 +13,35 @@
 			</div>
 		</template>
 
+		<!-- Closed State: link is valid but the inquiry was closed after the mail went out -->
+		<template v-else-if="closed">
+			<h2>{{ t('attendance', 'Response no longer possible') }}</h2>
+			<div class="closed-banner" data-test="quickresponse-closed-banner">
+				<LockIcon :size="20" />
+				<div class="closed-banner-text">
+					<strong>{{ t('attendance', 'Inquiry closed') }}</strong>
+					<span v-if="closedLabel">{{ closedLabel }}</span>
+				</div>
+			</div>
+
+			<div class="appointment-details">
+				<h3>{{ appointmentName }}</h3>
+				<p class="date-time">
+					<CalendarIcon :size="18" />
+					{{ formattedDateRange }}
+				</p>
+			</div>
+
+			<div class="button-row">
+				<NcButton :href="appointmentUrl">
+					{{ t('attendance', 'View appointment details') }}
+				</NcButton>
+				<NcButton variant="primary" :href="appUrl">
+					{{ t('attendance', 'Open Attendance app') }}
+				</NcButton>
+			</div>
+		</template>
+
 		<!-- Success State -->
 		<template v-else-if="confirmed">
 			<NcNoteCard type="success">
@@ -90,7 +119,8 @@ import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
-import { formatDateRange } from '../utils/datetime.js'
+import LockIcon from 'vue-material-design-icons/Lock.vue'
+import { formatDateRange, formatDateTime } from '../utils/datetime.js'
 import { getResponseVariant } from '../utils/response.js'
 
 // Load initial state from server
@@ -109,6 +139,7 @@ const ncVersion = ref(ncVersionState)
 const error = ref(initialState.error || false)
 const errorMessage = ref(initialState.errorMessage || '')
 const confirmed = ref(initialState.confirmed || false)
+const closed = ref(initialState.closed || false)
 const submitting = ref(false)
 
 // Appointment data
@@ -116,6 +147,8 @@ const appointmentId = initialState.appointmentId || 0
 const appointmentName = initialState.appointmentName || ''
 const appointmentDatetime = initialState.appointmentDatetime || ''
 const appointmentEndDatetime = initialState.appointmentEndDatetime || ''
+const closedAt = initialState.closedAt || null
+const responseDeadline = initialState.responseDeadline || null
 const response = initialState.response || ''
 const responseLabel = initialState.responseLabel || ''
 const token = initialState.token || ''
@@ -124,6 +157,16 @@ const userName = initialState.userName || ''
 
 // Computed date/time using app utilities
 const formattedDateRange = computed(() => formatDateRange(appointmentDatetime, appointmentEndDatetime))
+
+// Mirrors AppointmentCard's closedLabel: distinguishes manual close from
+// auto-close-by-deadline so the message matches what the user sees in the app.
+const closedLabel = computed(() => {
+	if (!closedAt) return ''
+	const when = formatDateTime(closedAt)
+	return responseDeadline
+		? t('attendance', 'Closed automatically on {when}', { when })
+		: t('attendance', 'Closed on {when}', { when })
+})
 
 // Computed URLs
 const appUrl = computed(() => generateUrl('/apps/attendance/'))
@@ -166,6 +209,33 @@ const confirmResponse = async () => {
 .responding-as {
 	color: var(--color-text-maxcontrast);
 	margin-bottom: 20px;
+}
+
+.closed-banner {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 12px 16px;
+	margin-bottom: 16px;
+	border-radius: var(--border-radius-large);
+	background: var(--color-background-dark);
+	border: 1px solid var(--color-border);
+
+	.closed-banner-text {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+
+		strong {
+			font-weight: 600;
+		}
+
+		span {
+			font-size: 0.85em;
+			color: var(--color-text-maxcontrast);
+		}
+	}
 }
 
 .appointment-details {

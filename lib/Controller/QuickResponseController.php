@@ -102,6 +102,9 @@ class QuickResponseController extends Controller {
 
 		$data = [
 			'error' => false,
+			'closed' => $validationResult['closed'] ?? false,
+			'closedAt' => $appointmentData['closedAt'] ?? null,
+			'responseDeadline' => $appointmentData['responseDeadline'] ?? null,
 			'confirmed' => false,
 			'appointmentId' => $appointmentId,
 			'appointmentName' => $appointment->getName(),
@@ -165,6 +168,26 @@ class QuickResponseController extends Controller {
 			return $errorResponse;
 		}
 
+		// Closed inquiries: reject with a clear message but don't throttle
+		// — the link is legitimate, the user is just late. The GET page
+		// already hides the confirm button; this is defense in depth.
+		if ($validationResult['closed'] ?? false) {
+			$closedMessage = $this->l->t('This appointment is closed and no longer accepts responses.');
+			$this->tokenService->logQuickResponse(
+				$appointmentId,
+				$userId,
+				$response,
+				false,
+				$closedMessage,
+				$this->request->getRemoteAddress()
+			);
+
+			return new DataResponse([
+				'success' => false,
+				'message' => $closedMessage,
+			], 400);
+		}
+
 		// Record the response
 		try {
 			$this->responseService->submitResponse(
@@ -210,7 +233,12 @@ class QuickResponseController extends Controller {
 	/**
 	 * Validate the quick response request.
 	 *
-	 * @return array{error: bool, errorMessage?: string}
+	 * The `closed` flag is set instead of `error` when the inquiry was
+	 * closed after the link was issued — callers may want to render the
+	 * appointment context with a "closed" banner instead of throttling
+	 * the user (the link is legitimate, the user is just late).
+	 *
+	 * @return array{error: bool, closed?: bool, errorMessage?: string}
 	 */
 	private function validateQuickResponse(
 		int $appointmentId,
@@ -260,11 +288,12 @@ class QuickResponseController extends Controller {
 			];
 		}
 
-		// Block once the inquiry has been closed (manually or via deadline)
+		// Inquiry was closed after the link was sent — surface as a
+		// distinct state so the page can render the appointment context.
 		if ($appointment->isClosed()) {
 			return [
-				'error' => true,
-				'errorMessage' => $this->l->t('This appointment is closed and no longer accepts responses.'),
+				'error' => false,
+				'closed' => true,
 			];
 		}
 
