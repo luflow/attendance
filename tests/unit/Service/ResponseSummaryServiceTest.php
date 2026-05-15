@@ -151,4 +151,57 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->assertIsArray($summary);
 		$this->assertSame(1, $summary['no_response']);
 	}
+
+	/**
+	 * Regression: an admin invites a fresh hire who isn't in any whitelisted
+	 * skill group yet — either as the sole attendee or alongside a regular
+	 * skill group. The directly-listed user used to be filtered out of the
+	 * summary because collectMissingResponders skipped anyone without an
+	 * allowed group / team / visible group, leaving the admin to wonder
+	 * why "their" invitee never shows up.
+	 */
+	public function testGetResponseSummaryIncludesDirectlyAddressedUserOutsideAnyWhitelistedGroup(): void {
+		$appointmentId = 3;
+		$appointment = new Appointment();
+		$appointment->setId($appointmentId);
+		$appointment->setVisibleUsers(json_encode(['new_hire']));
+		$appointment->setVisibleGroups('[]');
+		$appointment->setVisibleTeams('[]');
+
+		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
+		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([]);
+
+		$this->configService->method('getWhitelistedGroups')->willReturn(['staff']);
+		$this->configService->method('getWhitelistedTeams')->willReturn([]);
+
+		$this->visibilityService->method('getVisibilitySettings')
+			->willReturn(['users' => ['new_hire'], 'groups' => [], 'teams' => []]);
+		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(true);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+
+		// `new_hire` has not been added to "staff" yet — getUserGroups returns []
+		// so hasAllowedGroup/hasVisibleGroup are both false.
+		$newHire = $this->createMock(IUser::class);
+		$newHire->method('getUID')->willReturn('new_hire');
+		$newHire->method('getDisplayName')->willReturn('New Hire');
+
+		$staffGroup = $this->createMock(IGroup::class);
+		$staffGroup->method('getGID')->willReturn('staff');
+		$staffGroup->method('getUsers')->willReturn([]);
+
+		$this->groupManager->method('get')->with('staff')->willReturn($staffGroup);
+		$this->groupManager->method('getUserGroups')->willReturn([]);
+
+		$this->visibilityService->method('getRelevantUsersForAppointment')
+			->willReturn(['new_hire' => $newHire]);
+
+		$summary = $this->service->getResponseSummary($appointmentId);
+
+		// The user must appear in the global non-responder count and in the
+		// Others bucket (no visible section to render under).
+		$this->assertSame(1, $summary['no_response']);
+		$this->assertSame(1, $summary['others']['no_response']);
+		$othersIds = array_map(static fn (array $u): string => $u['userId'], $summary['others']['non_responding_users']);
+		$this->assertContains('new_hire', $othersIds);
+	}
 }

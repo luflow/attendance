@@ -101,6 +101,7 @@ class ResponseSummaryService {
 		// Cache appointment visibility restrictions
 		$visibilitySettings = $this->visibilityService->getVisibilitySettings($appointment);
 		$appointmentHasRestrictions = $this->visibilityService->hasRestrictedVisibility($appointment);
+		$appointmentVisibleUsers = $visibilitySettings['users'];
 		$appointmentVisibleGroups = $visibilitySettings['groups'];
 		$appointmentVisibleGroupsLower = array_map('strtolower', $appointmentVisibleGroups);
 		$appointmentVisibleTeams = $visibilitySettings['teams'];
@@ -177,6 +178,7 @@ class ResponseSummaryService {
 			'allUserGroups' => $allUserGroups,
 			// Appointment-specific visibility restrictions
 			'appointmentHasRestrictions' => $appointmentHasRestrictions,
+			'appointmentVisibleUsers' => $appointmentVisibleUsers,
 			'appointmentVisibleGroups' => $appointmentVisibleGroups,
 			'appointmentVisibleGroupsLower' => $appointmentVisibleGroupsLower,
 			'appointmentVisibleTeams' => $appointmentVisibleTeams,
@@ -579,7 +581,12 @@ class ResponseSummaryService {
 				}
 			}
 
-			if (!$hasAllowedGroup && !$hasRelevantTeam && !$hasVisibleGroup) {
+			// Direct visibleUsers assignments must always render — otherwise
+			// admins who invite a fresh hire (no whitelisted group yet) by
+			// individual pick lose them from the summary completely.
+			$isDirectlyAddressedUser = in_array($userId, $cache['appointmentVisibleUsers'], true);
+
+			if (!$hasAllowedGroup && !$hasRelevantTeam && !$hasVisibleGroup && !$isDirectlyAddressedUser) {
 				continue;
 			}
 
