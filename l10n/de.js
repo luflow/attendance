@@ -572,6 +572,7 @@ OC.L10N.register(
     "Everyone who can see the response overview" : "Alle, die die Antwortübersicht sehen können",
     "%1$s changed their response from %2$s to %3$s on \"%4$s\"" : "%1$s hat die Antwort auf „%4$s“ von %2$s zu %3$s geändert",
     "%1$s took back their response on \"%2$s\"" : "%1$s hat die Antwort auf „%2$s“ zurückgenommen",
-    "%1$s answered %2$s on \"%3$s\"" : "%1$s hat auf „%3$s“ mit %2$s geantwortet"
+    "%1$s answered %2$s on \"%3$s\"" : "%1$s hat auf „%3$s“ mit %2$s geantwortet",
+    "Show activity history" : "Aktivitätsverlauf anzeigen"
 },
 "nplurals=2; plural=(n != 1);");

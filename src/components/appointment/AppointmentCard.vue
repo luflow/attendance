@@ -140,6 +140,16 @@
 						{{ t("attendance", "Copy") }}
 					</NcActionButton>
 					<NcActionButton
+						v-if="canSeeAuditLog"
+						:close-after-click="true"
+						data-test="action-show-audit-log"
+						@click="emit('showAuditLog', appointment.id)">
+						<template #icon>
+							<HistoryIcon :size="20" />
+						</template>
+						{{ t("attendance", "Show activity history") }}
+					</NcActionButton>
+					<NcActionButton
 						v-if="canManageAppointments"
 						:close-after-click="true"
 						data-test="action-delete"
@@ -423,6 +433,7 @@ import RepeatIcon from 'vue-material-design-icons/Repeat.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
 import LockOpenIcon from 'vue-material-design-icons/LockOpen.vue'
 import ClockIcon from 'vue-material-design-icons/Clock.vue'
+import HistoryIcon from 'vue-material-design-icons/History.vue'
 import { formatDateRange, formatDateTime } from '../../utils/datetime.js'
 import { getResponseText, getResponseVariant } from '../../utils/response.js'
 import { formatClosedLabel } from '../../utils/appointment.js'
@@ -455,6 +466,10 @@ const props = defineProps({
 		type: String,
 		default: 'name_first',
 	},
+	canSeeAuditLog: {
+		type: Boolean,
+		default: false,
+	},
 })
 
 const emit = defineEmits([
@@ -466,6 +481,7 @@ const emit = defineEmits([
 	'submitResponse',
 	'updateComment',
 	'closedToggled',
+	'showAuditLog',
 ])
 
 const localComment = ref(props.appointment.userResponse?.comment || '')

@@ -25,6 +25,7 @@
 				:can-checkin="permissions.canCheckin"
 				:can-see-response-overview="permissions.canSeeResponseOverview"
 				:can-see-comments="permissions.canSeeComments"
+				:can-see-audit-log="canSeeAuditTimeline"
 				:display-order="config.displayOrder"
 				@start-checkin="startCheckin"
 				@edit="editAppointment"
@@ -33,9 +34,10 @@
 				@export="showExportDialog"
 				@submit-response="submitResponse"
 				@update-comment="updateComment"
-				@closed-toggled="onClosedToggled" />
+				@closed-toggled="onClosedToggled"
+				@show-audit-log="scrollToAuditLog" />
 
-			<AuditTimeline v-if="canSeeAuditTimeline" :appointment-id="appointment.id" />
+			<AuditTimeline v-if="canSeeAuditTimeline" ref="auditTimeline" :appointment-id="appointment.id" />
 		</div>
 
 		<!-- Single Appointment Export Dialog -->
@@ -54,7 +56,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, nextTick, onMounted, watch } from 'vue'
 import { NcButton } from '@nextcloud/vue'
 import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
 import axios from '@nextcloud/axios'
@@ -76,9 +78,17 @@ const props = defineProps({
 		type: Number,
 		default: 0,
 	},
+	// Set to 'audit' to auto-scroll to the activity history after the
+	// appointment loads — used when navigating in from another view.
+	scrollTarget: {
+		type: String,
+		default: null,
+	},
 })
 
-const emit = defineEmits(['responseUpdated', 'editAppointment', 'copyAppointment', 'navigateToUnanswered', 'appointmentDeleted'])
+const emit = defineEmits(['responseUpdated', 'editAppointment', 'copyAppointment', 'navigateToUnanswered', 'appointmentDeleted', 'scrollTargetConsumed'])
+
+const auditTimeline = ref(null)
 
 const appointment = ref(null)
 const loading = ref(true)
@@ -204,9 +214,24 @@ const loadAppointment = async () => {
 	}
 }
 
+const scrollToAuditLog = async () => {
+	// Wait two ticks: one for the audit ref to bind after appointment loads,
+	// one for the timeline's own onMounted fetch to render its first frame.
+	await nextTick()
+	const el = auditTimeline.value?.$el ?? document.querySelector('[data-test="audit-timeline"]')
+	el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+const honourScrollTarget = async () => {
+	if (props.scrollTarget !== 'audit' || !canSeeAuditTimeline.value) return
+	await scrollToAuditLog()
+	emit('scrollTargetConsumed')
+}
+
 onMounted(async () => {
 	await loadPermissions()
 	await loadAppointment()
+	await honourScrollTarget()
 })
 
 // Watch for appointmentId changes when navigating between appointments

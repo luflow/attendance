@@ -201,11 +201,13 @@
 				v-else-if="currentView === 'appointment'"
 				:appointment-id="appointmentDetailId"
 				:unanswered-count="unansweredAppointments.length"
+				:scroll-target="appointmentDetailScrollTarget"
 				@response-updated="loadAppointments"
 				@appointment-deleted="handleAppointmentDeleted"
 				@edit-appointment="editAppointment"
 				@copy-appointment="copyAppointment"
-				@navigate-to-unanswered="setView('unanswered')" />
+				@navigate-to-unanswered="setView('unanswered')"
+				@scroll-target-consumed="appointmentDetailScrollTarget = null" />
 
 			<!-- All Appointments View -->
 			<AllAppointments
@@ -227,6 +229,7 @@
 				@copy-appointment="copyAppointment"
 				@navigate-to-upcoming="setView('current')"
 				@navigate-to-unanswered="setView('unanswered')"
+				@show-audit-log="openAuditLog"
 				@clear-search="searchQuery = ''" />
 
 			<!-- Loading state while routing is determined -->
@@ -426,6 +429,9 @@ const appointmentDetailId = ref(null)
 const formAppointmentId = ref(null) // For edit/copy modes
 const currentAppointments = ref([])
 const pastAppointments = ref([])
+// Scroll target carried into the appointment-detail view; cleared by the
+// child once it has scrolled. Used by the "Show activity history" action.
+const appointmentDetailScrollTarget = ref(null)
 const showIcalFeedModal = ref(false)
 const showExportDialog = ref(false)
 
@@ -512,6 +518,11 @@ const navigateToAppointment = (appointmentId) => {
 		'',
 		newUrl,
 	)
+}
+
+const openAuditLog = (appointmentId) => {
+	appointmentDetailScrollTarget.value = 'audit'
+	navigateToAppointment(appointmentId)
 }
 
 const loadAppointments = async () => {

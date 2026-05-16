@@ -111,6 +111,7 @@
 						:can-checkin="permissions.canCheckin"
 						:can-see-response-overview="permissions.canSeeResponseOverview"
 						:can-see-comments="permissions.canSeeComments"
+						:can-see-audit-log="canSeeAuditLog"
 						:display-order="config.displayOrder"
 						@start-checkin="startCheckin"
 						@edit="editAppointment"
@@ -119,7 +120,8 @@
 						@export="showExportDialog"
 						@submit-response="submitResponse"
 						@update-comment="updateComment"
-						@closed-toggled="handleClosedToggled" />
+						@closed-toggled="handleClosedToggled"
+						@show-audit-log="(id) => emit('showAuditLog', id)" />
 				</template>
 			</div>
 		</div>
@@ -188,6 +190,7 @@ const emit = defineEmits([
 	'navigateToUnanswered',
 	'appointmentDeleted',
 	'clearSearch',
+	'showAuditLog',
 ])
 
 const activeSearch = computed(() => props.searchQuery.trim())
@@ -366,7 +369,12 @@ const hideHeading = computed(() =>
 	props.showUnanswered && !loading.value && appointments.value.length === 0,
 )
 
-const { permissions, config, loadPermissions } = usePermissions()
+const { permissions, capabilities, config, loadPermissions } = usePermissions()
+
+const canSeeAuditLog = computed(() => {
+	if (!capabilities.auditLog) return false
+	return permissions.canManageAppointments || permissions.canSeeResponseOverview
+})
 
 // Use the shared response composable
 const { submitResponse: submitResponseApi } = useAppointmentResponse({
