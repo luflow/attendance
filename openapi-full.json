@@ -20,6 +20,21 @@
             }
         },
         "schemas": {
+            "AdminAuditConfig": {
+                "type": "object",
+                "required": [
+                    "enabled",
+                    "visibility"
+                ],
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "visibility": {
+                        "type": "string"
+                    }
+                }
+            },
             "AdminCalendarSyncConfig": {
                 "type": "object",
                 "required": [
@@ -39,6 +54,7 @@
                     "permissions",
                     "reminders",
                     "calendarSync",
+                    "audit",
                     "displayOrder",
                     "pushEnabled",
                     "mobileAppBannerEnabled",
@@ -65,6 +81,9 @@
                     },
                     "calendarSync": {
                         "$ref": "#/components/schemas/AdminCalendarSyncConfig"
+                    },
+                    "audit": {
+                        "$ref": "#/components/schemas/AdminAuditConfig"
                     },
                     "displayOrder": {
                         "type": "string"
@@ -368,6 +387,110 @@
                     }
                 }
             },
+            "AuditEvent": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "appointmentId",
+                    "verb",
+                    "actorId",
+                    "subjectId",
+                    "meta",
+                    "source",
+                    "createdAt",
+                    "actor",
+                    "subject"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "appointmentId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "verb": {
+                        "type": "string"
+                    },
+                    "actorId": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "subjectId": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "meta": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object"
+                        }
+                    },
+                    "source": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "actor": {
+                        "nullable": true,
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/AuditUserRef"
+                            }
+                        ]
+                    },
+                    "subject": {
+                        "nullable": true,
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/AuditUserRef"
+                            }
+                        ]
+                    }
+                }
+            },
+            "AuditPage": {
+                "type": "object",
+                "required": [
+                    "items",
+                    "total",
+                    "hasMore"
+                ],
+                "properties": {
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AuditEvent"
+                        }
+                    },
+                    "total": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "hasMore": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "AuditUserRef": {
+                "type": "object",
+                "required": [
+                    "userId",
+                    "displayName"
+                ],
+                "properties": {
+                    "userId": {
+                        "type": "string"
+                    },
+                    "displayName": {
+                        "type": "string"
+                    }
+                }
+            },
             "BulkAppointmentItem": {
                 "type": "object",
                 "required": [
@@ -429,7 +552,8 @@
                     "closing",
                     "remindMaybe",
                     "responseToggle",
-                    "guestInvitation"
+                    "guestInvitation",
+                    "auditLog"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -457,6 +581,9 @@
                         "type": "boolean"
                     },
                     "guestInvitation": {
+                        "type": "boolean"
+                    },
+                    "auditLog": {
                         "type": "boolean"
                     }
                 }
@@ -2275,6 +2402,174 @@
                 }
             }
         },
+        "/index.php/apps/attendance/api/appointments/{id}/audit": {
+            "get": {
+                "operationId": "audit-index",
+                "summary": "List audit events for an appointment, newest-first",
+                "tags": [
+                    "audit"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Appointment ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "verb",
+                        "in": "query",
+                        "description": "Optional verb filter (supports trailing wildcard, e.g. `response.*`)",
+                        "schema": {
+                            "type": "string",
+                            "nullable": true,
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "subject",
+                        "in": "query",
+                        "description": "Optional subject (user) filter",
+                        "schema": {
+                            "type": "string",
+                            "nullable": true,
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Maximum number of events to return (1-200)",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "default": 50
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "description": "Pagination offset",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "default": 0
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AuditPage"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "412": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/index.php/apps/attendance/api/appointments/{appointmentId}/checkin/{targetUserId}": {
             "post": {
                 "operationId": "appointment-checkin-response",
@@ -3238,6 +3533,7 @@
             "get": {
                 "operationId": "appointment-get-user-settings",
                 "summary": "Get personal user settings",
+                "description": "Response-change notification toggle is only included for users who can actually receive these notifications (manage_appointments + audit log enabled). Frontend uses the key's presence to decide whether to render the toggle at all.",
                 "tags": [
                     "appointment"
                 ],
@@ -3265,6 +3561,9 @@
                                             "items": {
                                                 "type": "string"
                                             }
+                                        },
+                                        "notifyResponseChanges": {
+                                            "type": "boolean"
                                         }
                                     }
                                 }
@@ -3334,6 +3633,12 @@
                                         "items": {
                                             "type": "string"
                                         }
+                                    },
+                                    "notifyResponseChanges": {
+                                        "type": "boolean",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Opt-in toggle for response-change notifications (only honoured for eligible users)"
                                     }
                                 }
                             }
@@ -4898,6 +5203,19 @@
                                         "properties": {
                                             "enabled": {
                                                 "type": "boolean"
+                                            }
+                                        }
+                                    },
+                                    "audit": {
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Audit log settings (master switch + read visibility)",
+                                        "properties": {
+                                            "enabled": {
+                                                "type": "boolean"
+                                            },
+                                            "visibility": {
+                                                "type": "string"
                                             }
                                         }
                                     },

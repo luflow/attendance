@@ -28,6 +28,9 @@ return [
 		['name' => 'appointment#respond', 'url' => '/api/appointments/{id}/respond', 'verb' => 'POST'],
 		['name' => 'appointment#getResponses', 'url' => '/api/appointments/{id}/responses', 'verb' => 'GET'],
 
+		// Audit log
+		['name' => 'audit#index', 'url' => '/api/appointments/{id}/audit', 'verb' => 'GET'],
+
 		// Check-in functionality routes
 		['name' => 'appointment#checkinResponse', 'url' => '/api/appointments/{appointmentId}/checkin/{targetUserId}', 'verb' => 'POST'],
 		['name' => 'appointment#getCheckinData', 'url' => '/api/appointments/{id}/checkin-data', 'verb' => 'GET'],

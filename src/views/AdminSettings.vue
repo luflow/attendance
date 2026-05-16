@@ -284,6 +284,43 @@
 				</NcSettingsSection>
 			</div>
 
+			<div id="audit-log">
+				<NcSettingsSection :name="t('attendance', 'Audit log')"
+					:description="t('attendance', 'Records who responded what and when, and surfaces a timeline on every appointment. Also drives the response-change push notifications that managers can opt into in their personal settings.')">
+					<NcCheckboxRadioSwitch v-model="auditLogEnabled"
+						type="switch"
+						:disabled="loading"
+						data-test="switch-audit-log-enabled">
+						{{ t('attendance', 'Enable audit log') }}
+					</NcCheckboxRadioSwitch>
+					<p class="hint-text">
+						{{ t('attendance', 'Disabling stops new events from being recorded and silences response notifications. Existing entries are kept and reappear once you re-enable.') }}
+					</p>
+
+					<template v-if="auditLogEnabled">
+						<div class="subsection">
+							<h4>{{ t('attendance', 'Who can see the audit log?') }}</h4>
+							<NcCheckboxRadioSwitch v-model="auditLogVisibility"
+								value="managers"
+								name="audit_log_visibility"
+								type="radio"
+								:disabled="loading"
+								data-test="radio-audit-visibility-managers">
+								{{ t('attendance', 'Only users who can manage appointments') }}
+							</NcCheckboxRadioSwitch>
+							<NcCheckboxRadioSwitch v-model="auditLogVisibility"
+								value="all_with_response_overview"
+								name="audit_log_visibility"
+								type="radio"
+								:disabled="loading"
+								data-test="radio-audit-visibility-overview">
+								{{ t('attendance', 'Everyone who can see the response overview') }}
+							</NcCheckboxRadioSwitch>
+						</div>
+					</template>
+				</NcSettingsSection>
+			</div>
+
 			<NcSettingsSection :name="t('attendance', 'Mobile apps')"
 				:description="t('attendance', 'Share these links with your colleagues to install the Attendance mobile app.')">
 				<div class="mobile-app-links">
@@ -531,6 +568,8 @@ const nextAppointment = ref(null)
 const nextReminderRun = ref(null)
 const calendarSyncEnabled = ref(false)
 const calendarSyncAvailable = ref(false)
+const auditLogEnabled = ref(true)
+const auditLogVisibility = ref('managers')
 const pushEnabled = ref(true)
 const mobileAppBannerEnabled = ref(true)
 const displayOrder = ref('name_first')
@@ -664,6 +703,12 @@ const loadSettings = async () => {
 		calendarSyncEnabled.value = config.calendarSync.enabled || false
 		calendarSyncAvailable.value = caps.calendarSyncAvailable || false
 
+		// Load audit log settings
+		if (config.audit) {
+			auditLogEnabled.value = config.audit.enabled !== false
+			auditLogVisibility.value = config.audit.visibility || 'managers'
+		}
+
 		// Load display order
 		displayOrder.value = config.displayOrder || 'name_first'
 
@@ -739,6 +784,10 @@ const saveSettings = async () => {
 				},
 				calendarSync: {
 					enabled: calendarSyncEnabled.value,
+				},
+				audit: {
+					enabled: auditLogEnabled.value,
+					visibility: auditLogVisibility.value,
 				},
 				displayOrder: displayOrder.value,
 				pushEnabled: pushEnabled.value,

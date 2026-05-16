@@ -715,6 +715,9 @@ class AppointmentController extends Controller {
 			// service POST /api/guests so clients may surface an "invite guest"
 			// affordance in the appointment editor.
 			'guestInvitation' => $this->guestService->isGuestsAppEnabled(),
+			// True when the audit log + response-change notifications feature
+			// is enabled. Clients hide the timeline tab when this is false.
+			'auditLog' => $this->configService->isAuditLogEnabled(),
 		]);
 	}
 
@@ -760,7 +763,12 @@ class AppointmentController extends Controller {
 	/**
 	 * Get personal user settings
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{icalReminderTriggers: list<string>}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
+	 * Response-change notification toggle is only included for users who can
+	 * actually receive these notifications (manage_appointments + audit log
+	 * enabled). Frontend uses the key's presence to decide whether to render
+	 * the toggle at all.
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{icalReminderTriggers: list<string>, notifyResponseChanges?: bool}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -771,27 +779,41 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'User not authenticated'], Http::STATUS_UNAUTHORIZED);
 		}
 
-		return new DataResponse([
+		$payload = [
 			'icalReminderTriggers' => $this->configService->getUserIcalReminderTriggers($user->getUID()),
-		]);
+		];
+
+		if ($this->configService->isAuditLogEnabled()
+			&& $this->permissionService->canManageAppointments($user->getUID())) {
+			$payload['notifyResponseChanges'] = $this->configService->wantsResponseChangeNotifications($user->getUID());
+		}
+
+		return new DataResponse($payload);
 	}
 
 	/**
 	 * Save personal user settings
 	 *
 	 * @param list<string> $icalReminderTriggers List of duration strings for iCal reminder triggers
+	 * @param ?bool $notifyResponseChanges Opt-in toggle for response-change notifications (only honoured for eligible users)
 	 * @return DataResponse<Http::STATUS_OK, array{success: bool}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI]
-	public function saveUserSettings(array $icalReminderTriggers = []): DataResponse {
+	public function saveUserSettings(array $icalReminderTriggers = [], ?bool $notifyResponseChanges = null): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], Http::STATUS_UNAUTHORIZED);
 		}
 
 		$this->configService->setUserIcalReminderTriggers($user->getUID(), $icalReminderTriggers);
+
+		if ($notifyResponseChanges !== null
+			&& $this->configService->isAuditLogEnabled()
+			&& $this->permissionService->canManageAppointments($user->getUID())) {
+			$this->configService->setWantsResponseChangeNotifications($user->getUID(), $notifyResponseChanges);
+		}
 
 		return new DataResponse(['success' => true]);
 	}

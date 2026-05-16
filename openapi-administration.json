@@ -20,6 +20,21 @@
             }
         },
         "schemas": {
+            "AdminAuditConfig": {
+                "type": "object",
+                "required": [
+                    "enabled",
+                    "visibility"
+                ],
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "visibility": {
+                        "type": "string"
+                    }
+                }
+            },
             "AdminCalendarSyncConfig": {
                 "type": "object",
                 "required": [
@@ -39,6 +54,7 @@
                     "permissions",
                     "reminders",
                     "calendarSync",
+                    "audit",
                     "displayOrder",
                     "pushEnabled",
                     "mobileAppBannerEnabled",
@@ -65,6 +81,9 @@
                     },
                     "calendarSync": {
                         "$ref": "#/components/schemas/AdminCalendarSyncConfig"
+                    },
+                    "audit": {
+                        "$ref": "#/components/schemas/AdminAuditConfig"
                     },
                     "displayOrder": {
                         "type": "string"
@@ -150,7 +169,8 @@
                     "closing",
                     "remindMaybe",
                     "responseToggle",
-                    "guestInvitation"
+                    "guestInvitation",
+                    "auditLog"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -178,6 +198,9 @@
                         "type": "boolean"
                     },
                     "guestInvitation": {
+                        "type": "boolean"
+                    },
+                    "auditLog": {
                         "type": "boolean"
                     }
                 }
@@ -468,6 +491,19 @@
                                         "properties": {
                                             "enabled": {
                                                 "type": "boolean"
+                                            }
+                                        }
+                                    },
+                                    "audit": {
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Audit log settings (master switch + read visibility)",
+                                        "properties": {
+                                            "enabled": {
+                                                "type": "boolean"
+                                            },
+                                            "visibility": {
+                                                "type": "string"
                                             }
                                         }
                                     },

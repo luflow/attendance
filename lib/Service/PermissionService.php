@@ -15,6 +15,8 @@ class PermissionService {
 	private IUserSession $userSession;
 	private IUserManager $userManager;
 	private GuestService $guestService;
+	/** @var array<string, list<string>> per-request cache for getUsersWith() */
+	private array $usersWithCache = [];
 
 	public const PERMISSION_MANAGE_APPOINTMENTS = 'manage_appointments';
 	public const PERMISSION_CHECKIN = 'checkin';
@@ -215,5 +217,54 @@ class PermissionService {
 	 */
 	public function isAdmin(string $userId): bool {
 		return $this->groupManager->isAdmin($userId);
+	}
+
+	/**
+	 * Get all user IDs that have the given permission. When no roles are
+	 * configured for a permission, every existing user is considered to have
+	 * it (matches hasPermission()'s "empty roles = allow all" semantics).
+	 *
+	 * Cached per request — on a large instance the unconfigured-permission
+	 * branch walks every user via userManager->search(''), so the per-event
+	 * audit-notification listener must not pay that cost N times.
+	 *
+	 * @return list<string>
+	 */
+	public function getUsersWith(string $permission): array {
+		if (isset($this->usersWithCache[$permission])) {
+			return $this->usersWithCache[$permission];
+		}
+
+		$allowedRoles = $this->getRolesForPermission($permission);
+		$guestBlocked = in_array($permission, self::GUEST_BLOCKED_PERMISSIONS, true);
+		$userIds = [];
+
+		$candidates = empty($allowedRoles)
+			? $this->userManager->search('')
+			: $this->collectGroupMembers($allowedRoles);
+
+		foreach ($candidates as $user) {
+			$uid = $user->getUID();
+			if ($guestBlocked && $this->guestService->isGuestUser($uid)) {
+				continue;
+			}
+			$userIds[$uid] = true;
+		}
+
+		return $this->usersWithCache[$permission] = array_keys($userIds);
+	}
+
+	/**
+	 * @param list<string> $groupIds
+	 * @return iterable<\OCP\IUser>
+	 */
+	private function collectGroupMembers(array $groupIds): iterable {
+		foreach ($groupIds as $groupId) {
+			$group = $this->groupManager->get($groupId);
+			if ($group === null) {
+				continue;
+			}
+			yield from $group->getUsers();
+		}
 	}
 }

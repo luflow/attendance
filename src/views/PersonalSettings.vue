@@ -97,19 +97,21 @@
 						:placeholder="t('attendance', 'No reminders')"
 						label="label"
 						track-by="value"
-						/>
+						@update:model-value="save" />
 				</div>
-
-				<NcButton variant="primary"
-					:disabled="saving"
-					class="save-button"
-					@click="save">
-					<template #icon>
-						<NcLoadingIcon v-if="saving" />
-					</template>
-					{{ t('attendance', 'Save') }}
-				</NcButton>
 			</div>
+		</NcSettingsSection>
+
+		<NcSettingsSection v-if="notifyResponseChanges !== null"
+			:name="t('attendance', 'Response notifications')"
+			:description="t('attendance', 'Get notified when team members respond to appointments. Only available for users who can manage appointments.')">
+			<NcCheckboxRadioSwitch v-model="notifyResponseChanges"
+				type="switch"
+				data-test="switch-notify-response-changes"
+				:disabled="saving"
+				@update:model-value="save">
+				{{ t('attendance', 'Receive notifications for response changes') }}
+			</NcCheckboxRadioSwitch>
 		</NcSettingsSection>
 	</div>
 </template>
@@ -124,6 +126,7 @@ import {
 	NcSettingsSection,
 	NcSelect,
 	NcButton,
+	NcCheckboxRadioSwitch,
 	NcLoadingIcon,
 	NcNoteCard,
 	NcDialog,
@@ -150,6 +153,8 @@ const handleRegenerate = async () => {
 const settingsLoading = ref(true)
 const saving = ref(false)
 const icalReminderTriggers = ref([])
+// null = toggle hidden (user is not eligible). Boolean = toggle visible.
+const notifyResponseChanges = ref(null)
 
 const reminderOptions = [
 	{ value: 'PT15M', label: t('attendance', '15 minutes before') },
@@ -175,6 +180,9 @@ async function loadSettings() {
 	try {
 		const response = await axios.get(generateUrl('/apps/attendance/api/user/settings'))
 		icalReminderTriggers.value = response.data.icalReminderTriggers ?? []
+		notifyResponseChanges.value = Object.prototype.hasOwnProperty.call(response.data, 'notifyResponseChanges')
+			? response.data.notifyResponseChanges === true
+			: null
 	} catch (e) {
 		showError(t('attendance', 'Failed to load settings'))
 	} finally {
@@ -185,9 +193,13 @@ async function loadSettings() {
 async function save() {
 	saving.value = true
 	try {
-		await axios.post(generateUrl('/apps/attendance/api/user/settings'), {
+		const payload = {
 			icalReminderTriggers: icalReminderTriggers.value,
-		})
+		}
+		if (notifyResponseChanges.value !== null) {
+			payload.notifyResponseChanges = notifyResponseChanges.value
+		}
+		await axios.post(generateUrl('/apps/attendance/api/user/settings'), payload)
 		showSuccess(t('attendance', 'Settings saved'))
 	} catch (e) {
 		showError(t('attendance', 'Failed to save settings'))
@@ -273,9 +285,5 @@ onMounted(() => {
 
 .setting-row label {
 	font-weight: bold;
-}
-
-.save-button {
-	margin-top: 12px;
 }
 </style>

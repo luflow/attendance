@@ -142,6 +142,28 @@ namespace OCA\Attendance;
  *   remindMaybe: bool,
  *   responseToggle: bool,
  *   guestInvitation: bool,
+ *   auditLog: bool,
+ * }
+ * @psalm-type AttendanceAuditUserRef = array{
+ *   userId: string,
+ *   displayName: string,
+ * }
+ * @psalm-type AttendanceAuditEvent = array{
+ *   id: int,
+ *   appointmentId: int,
+ *   verb: string,
+ *   actorId: ?string,
+ *   subjectId: ?string,
+ *   meta: array<string, mixed>,
+ *   source: ?string,
+ *   createdAt: ?string,
+ *   actor: ?AttendanceAuditUserRef,
+ *   subject: ?AttendanceAuditUserRef,
+ * }
+ * @psalm-type AttendanceAuditPage = array{
+ *   items: list<AttendanceAuditEvent>,
+ *   total: int,
+ *   hasMore: bool,
  * }
  * @psalm-type AttendanceUserConfig = array{
  *   displayOrder: string,
@@ -157,12 +179,17 @@ namespace OCA\Attendance;
  * @psalm-type AttendanceAdminCalendarSyncConfig = array{
  *   enabled: bool,
  * }
+ * @psalm-type AttendanceAdminAuditConfig = array{
+ *   enabled: bool,
+ *   visibility: string,
+ * }
  * @psalm-type AttendanceAdminConfig = array{
  *   whitelistedGroups: list<string>,
  *   whitelistedTeams: list<AttendanceTeamOption>,
  *   permissions: AttendancePermissionSettings,
  *   reminders: AttendanceAdminReminderConfig,
  *   calendarSync: AttendanceAdminCalendarSyncConfig,
+ *   audit: AttendanceAdminAuditConfig,
  *   displayOrder: string,
  *   pushEnabled: bool,
  *   mobileAppBannerEnabled: bool,

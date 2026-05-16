@@ -138,6 +138,10 @@ class AdminController extends Controller {
 					'calendarSync' => [
 						'enabled' => $this->configService->isCalendarSyncEnabled(),
 					],
+					'audit' => [
+						'enabled' => $this->configService->isAuditLogEnabled(),
+						'visibility' => $this->configService->getAuditLogVisibility(),
+					],
 					'displayOrder' => $this->configService->getDisplayOrder(),
 					'pushEnabled' => $this->configService->isPushEnabled(),
 					'mobileAppBannerEnabled' => $this->configService->isMobileAppBannerEnabled(),
@@ -167,6 +171,7 @@ class AdminController extends Controller {
 	 * @param array<string, list<string>> $permissions Permission name to group IDs mapping
 	 * @param array{enabled?: bool, reminderDays?: int, reminderFrequency?: int, reminderTarget?: string} $reminders Reminder settings
 	 * @param array{enabled?: bool} $calendarSync Calendar sync settings
+	 * @param array{enabled?: bool, visibility?: string} $audit Audit log settings (master switch + read visibility)
 	 * @param ?string $displayOrder Display order for appointments: chronological, name, or group
 	 * @param ?bool $pushEnabled Whether push notifications are enabled
 	 * @param ?bool $mobileAppBannerEnabled Whether the mobile app promotion banner is enabled
@@ -180,6 +185,7 @@ class AdminController extends Controller {
 		array $permissions = [],
 		array $reminders = [],
 		array $calendarSync = [],
+		array $audit = [],
 		?string $displayOrder = null,
 		?bool $pushEnabled = null,
 		?bool $mobileAppBannerEnabled = null,
@@ -224,6 +230,14 @@ class AdminController extends Controller {
 			// Save calendar sync settings
 			if (isset($calendarSync['enabled'])) {
 				$this->configService->setCalendarSyncEnabled((bool)$calendarSync['enabled']);
+			}
+
+			// Save audit log settings
+			if (isset($audit['enabled'])) {
+				$this->configService->setAuditLogEnabled((bool)$audit['enabled']);
+			}
+			if (isset($audit['visibility']) && is_string($audit['visibility'])) {
+				$this->configService->setAuditLogVisibility($audit['visibility']);
 			}
 
 			// Save display order

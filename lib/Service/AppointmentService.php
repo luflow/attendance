@@ -35,6 +35,7 @@ class AppointmentService {
 	private ICollaboratorSearch $collaboratorSearch;
 	private IAppManager $appManager;
 	private GuestService $guestService;
+	private AuditEventService $auditEventService;
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -49,6 +50,7 @@ class AppointmentService {
 		ICollaboratorSearch $collaboratorSearch,
 		IAppManager $appManager,
 		GuestService $guestService,
+		AuditEventService $auditEventService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -62,6 +64,7 @@ class AppointmentService {
 		$this->collaboratorSearch = $collaboratorSearch;
 		$this->appManager = $appManager;
 		$this->guestService = $guestService;
+		$this->auditEventService = $auditEventService;
 	}
 
 	/**
@@ -469,12 +472,17 @@ class AppointmentService {
 			$comment = '';
 		}
 
+		$beforeResponse = null;
+		$beforeComment = '';
+
 		try {
 			$existingResponse = $this->responseMapper->findByAppointmentAndUser($appointmentId, $userId);
+			$beforeResponse = $existingResponse->getResponse();
+			$beforeComment = (string)$existingResponse->getComment();
 
 			// Withdrawing an already-withdrawn (or never-set) response is a no-op:
 			// don't churn responded_at or notification state on repeated clicks.
-			if ($response === null && $existingResponse->getResponse() === null) {
+			if ($response === null && $beforeResponse === null) {
 				return $existingResponse;
 			}
 
@@ -500,6 +508,16 @@ class AppointmentService {
 			$attendanceResponse->setRespondedAt(gmdate('Y-m-d H:i:s'));
 			$result = $this->responseMapper->insert($attendanceResponse);
 		}
+
+		$this->auditEventService->recordResponseChange(
+			$appointmentId,
+			$userId,
+			$beforeResponse,
+			$beforeComment,
+			$response,
+			$comment,
+			\OCA\Attendance\Audit\Verb::SOURCE_APP,
+		);
 
 		$this->notificationService->markAppointmentNotificationsProcessed($appointmentId, $userId);
 

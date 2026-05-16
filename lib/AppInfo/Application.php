@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\AppInfo;
 
+use OCA\Attendance\Audit\AuditEventDispatcher;
 use OCA\Attendance\BackgroundJob\AutoCloseJob;
 use OCA\Attendance\BackgroundJob\ReminderJob;
 use OCA\Attendance\Dashboard\Widget;
 use OCA\Attendance\Listener\CalendarObjectUpdateListener;
+use OCA\Attendance\Listener\ResponseChangeNotificationListener;
+use OCA\Attendance\Listener\UserDeletedListener;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\User\Events\UserDeletedEvent;
 
 class Application extends App implements IBootstrap {
 	public const APP_ID = 'attendance';
@@ -23,6 +27,7 @@ class Application extends App implements IBootstrap {
 	public function register(IRegistrationContext $context): void {
 		$context->registerDashboardWidget(Widget::class);
 		$context->registerNotifierService(\OCA\Attendance\Notification\Notifier::class);
+		$context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
 
 		// Register calendar event listeners (NC 32+ only)
 		// These event classes only exist in Nextcloud 32 and later
@@ -31,6 +36,12 @@ class Application extends App implements IBootstrap {
 
 	public function boot(IBootContext $context): void {
 		$container = $context->getAppContainer();
+
+		// Wire the audit-event dispatcher to its listeners. Done at boot so
+		// container-resolved services are available.
+		$dispatcher = $container->get(AuditEventDispatcher::class);
+		$listener = $container->get(ResponseChangeNotificationListener::class);
+		$dispatcher->register([$listener, 'handle']);
 
 		// Register background job for reminders
 		$jobList = $container->get(\OCP\BackgroundJob\IJobList::class);

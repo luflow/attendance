@@ -21,6 +21,7 @@ class CheckinService {
 	private VisibilityService $visibilityService;
 	private IGroupManager $groupManager;
 	private GuestService $guestService;
+	private AuditEventService $auditEventService;
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -29,6 +30,7 @@ class CheckinService {
 		VisibilityService $visibilityService,
 		IGroupManager $groupManager,
 		GuestService $guestService,
+		AuditEventService $auditEventService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -36,6 +38,7 @@ class CheckinService {
 		$this->visibilityService = $visibilityService;
 		$this->groupManager = $groupManager;
 		$this->guestService = $guestService;
+		$this->auditEventService = $auditEventService;
 	}
 
 	/**
@@ -61,9 +64,12 @@ class CheckinService {
 			throw new \InvalidArgumentException('Invalid response. Must be yes or no.');
 		}
 
+		$beforeCheckin = null;
+
 		// Find existing response or create new one
 		try {
 			$attendanceResponse = $this->responseMapper->findByAppointmentAndUser($appointmentId, $targetUserId);
+			$beforeCheckin = $attendanceResponse->getCheckinState();
 		} catch (DoesNotExistException $e) {
 			// Create new response if none exists
 			$attendanceResponse = new AttendanceResponse();
@@ -83,11 +89,20 @@ class CheckinService {
 		$attendanceResponse->setCheckinSource('manual');
 
 		// Save or update
-		if ($attendanceResponse->getId()) {
-			return $this->responseMapper->update($attendanceResponse);
-		} else {
-			return $this->responseMapper->insert($attendanceResponse);
-		}
+		$saved = $attendanceResponse->getId()
+			? $this->responseMapper->update($attendanceResponse)
+			: $this->responseMapper->insert($attendanceResponse);
+
+		$this->auditEventService->recordCheckin(
+			$appointmentId,
+			$adminUserId,
+			$targetUserId,
+			$beforeCheckin,
+			$saved->getCheckinState(),
+			(string)$saved->getCheckinComment(),
+		);
+
+		return $saved;
 	}
 
 	/**

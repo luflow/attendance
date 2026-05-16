@@ -34,6 +34,8 @@
 				@submit-response="submitResponse"
 				@update-comment="updateComment"
 				@closed-toggled="onClosedToggled" />
+
+			<AuditTimeline v-if="canSeeAuditTimeline" :appointment-id="appointment.id" />
 		</div>
 
 		<!-- Single Appointment Export Dialog -->
@@ -52,13 +54,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { NcButton } from '@nextcloud/vue'
 import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { showSuccess, showError } from '@nextcloud/dialogs'
 import AppointmentCard from '../components/appointment/AppointmentCard.vue'
+import AuditTimeline from '../components/appointment/AuditTimeline.vue'
 import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
 import DeleteAppointmentDialog from '../components/appointment/DeleteAppointmentDialog.vue'
 import { usePermissions } from '../composables/usePermissions.js'
@@ -84,7 +87,12 @@ const exportDialogVisible = ref(false)
 const showDeleteDialog = ref(false)
 
 // Use the shared permissions composable
-const { permissions, config, loadPermissions } = usePermissions()
+const { permissions, capabilities, config, loadPermissions } = usePermissions()
+
+const canSeeAuditTimeline = computed(() => {
+	if (!capabilities.auditLog) return false
+	return permissions.canManageAppointments || permissions.canSeeResponseOverview
+})
 
 // Use the shared response composable
 const { submitResponse: submitResponseApi } = useAppointmentResponse({

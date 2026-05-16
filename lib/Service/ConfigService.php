@@ -315,6 +315,45 @@ class ConfigService {
 		$this->config->setAppValue(self::APP_ID, 'display_order', $order);
 	}
 
+	public const AUDIT_LOG_VISIBILITY_MANAGERS = 'managers';
+	public const AUDIT_LOG_VISIBILITY_ALL_WITH_OVERVIEW = 'all_with_response_overview';
+	public const VALID_AUDIT_LOG_VISIBILITIES = [
+		self::AUDIT_LOG_VISIBILITY_MANAGERS,
+		self::AUDIT_LOG_VISIBILITY_ALL_WITH_OVERVIEW,
+	];
+
+	/**
+	 * Master kill switch for the audit log + response-change notifications.
+	 * When disabled, no events are recorded and no pushes fire.
+	 */
+	public function isAuditLogEnabled(): bool {
+		return $this->config->getAppValue(self::APP_ID, 'audit_log_enabled', 'yes') === 'yes';
+	}
+
+	public function setAuditLogEnabled(bool $enabled): void {
+		$this->config->setAppValue(self::APP_ID, 'audit_log_enabled', $enabled ? 'yes' : 'no');
+	}
+
+	/**
+	 * Visibility scope for the audit-log read endpoint. 'managers' restricts
+	 * to manage_appointments users; 'all_with_response_overview' opens it up
+	 * to anyone who can already see the response summary.
+	 */
+	public function getAuditLogVisibility(): string {
+		$value = $this->config->getAppValue(self::APP_ID, 'audit_log_visibility', self::AUDIT_LOG_VISIBILITY_MANAGERS);
+		if (!in_array($value, self::VALID_AUDIT_LOG_VISIBILITIES, true)) {
+			return self::AUDIT_LOG_VISIBILITY_MANAGERS;
+		}
+		return $value;
+	}
+
+	public function setAuditLogVisibility(string $visibility): void {
+		if (!in_array($visibility, self::VALID_AUDIT_LOG_VISIBILITIES, true)) {
+			$visibility = self::AUDIT_LOG_VISIBILITY_MANAGERS;
+		}
+		$this->config->setAppValue(self::APP_ID, 'audit_log_visibility', $visibility);
+	}
+
 	// --- User-level settings ---
 
 	private const ALLOWED_ICAL_TRIGGERS = ['PT15M', 'PT30M', 'PT1H', 'PT2H', 'P1D', 'P2D'];
@@ -347,5 +386,17 @@ class ConfigService {
 			return in_array($v, self::ALLOWED_ICAL_TRIGGERS, true);
 		})));
 		$this->config->setUserValue($userId, self::APP_ID, 'ical_reminder_triggers', json_encode($filtered));
+	}
+
+	/**
+	 * Per-user opt-in for response-change push notifications. Default is off
+	 * so users only receive these notifications after explicitly enabling them.
+	 */
+	public function wantsResponseChangeNotifications(string $userId): bool {
+		return $this->config->getUserValue($userId, self::APP_ID, 'notify_response_changes', 'no') === 'yes';
+	}
+
+	public function setWantsResponseChangeNotifications(string $userId, bool $enabled): void {
+		$this->config->setUserValue($userId, self::APP_ID, 'notify_response_changes', $enabled ? 'yes' : 'no');
 	}
 }

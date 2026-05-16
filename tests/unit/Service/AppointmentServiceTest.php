@@ -10,6 +10,7 @@ use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Service\AppointmentService;
 use OCA\Attendance\Service\AttachmentService;
+use OCA\Attendance\Service\AuditEventService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\NotificationService;
@@ -60,6 +61,9 @@ class AppointmentServiceTest extends TestCase {
 	/** @var GuestService|MockObject */
 	private $guestService;
 
+	/** @var AuditEventService|MockObject */
+	private $auditEventService;
+
 	private AppointmentService $service;
 
 	protected function setUp(): void {
@@ -75,6 +79,7 @@ class AppointmentServiceTest extends TestCase {
 		$this->collaboratorSearch = $this->createMock(ICollaboratorSearch::class);
 		$this->appManager = $this->createMock(IAppManager::class);
 		$this->guestService = $this->createMock(GuestService::class);
+		$this->auditEventService = $this->createMock(AuditEventService::class);
 
 		$this->service = new AppointmentService(
 			$this->appointmentMapper,
@@ -89,6 +94,7 @@ class AppointmentServiceTest extends TestCase {
 			$this->collaboratorSearch,
 			$this->appManager,
 			$this->guestService,
+			$this->auditEventService,
 		);
 	}
 

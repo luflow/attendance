@@ -125,6 +125,11 @@ class Notifier implements INotifier {
 
 				return $notification;
 
+			case 'response_submitted':
+			case 'response_changed':
+			case 'response_rescinded':
+				return $this->prepareResponseChangeNotification($notification, $l);
+
 			case 'appointments_bulk_created':
 				$parameters = $notification->getSubjectParameters();
 				$count = $parameters['count'] ?? 0;
@@ -144,6 +149,62 @@ class Notifier implements INotifier {
 
 			default:
 				throw new UnknownNotificationException();
+		}
+	}
+
+	private function prepareResponseChangeNotification(INotification $notification, \OCP\IL10N $l): INotification {
+		$params = $notification->getSubjectParameters();
+		$actor = (string)($params['actor'] ?? '');
+		$appointmentName = (string)($params['appointmentName'] ?? '');
+		$from = (string)($params['from'] ?? '');
+		$to = (string)($params['to'] ?? '');
+
+		$actorLabel = $actor !== '' ? $actor : $l->t('Someone');
+		$fromLabel = $this->translateResponseValue($from, $l);
+		$toLabel = $this->translateResponseValue($to, $l);
+
+		switch ($notification->getSubject()) {
+			case 'response_changed':
+				$subject = $l->t('%1$s changed their response from %2$s to %3$s on "%4$s"', [
+					$actorLabel,
+					$fromLabel,
+					$toLabel,
+					$appointmentName,
+				]);
+				break;
+			case 'response_rescinded':
+				$subject = $l->t('%1$s took back their response on "%2$s"', [
+					$actorLabel,
+					$appointmentName,
+				]);
+				break;
+			case 'response_submitted':
+			default:
+				$subject = $l->t('%1$s answered %2$s on "%3$s"', [
+					$actorLabel,
+					$toLabel,
+					$appointmentName,
+				]);
+				break;
+		}
+
+		$notification->setParsedSubject($subject);
+		$notification->setIcon($this->urlGenerator->getAbsoluteURL(
+			$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
+		));
+		return $notification;
+	}
+
+	private function translateResponseValue(string $value, \OCP\IL10N $l): string {
+		switch ($value) {
+			case 'yes':
+				return $l->t('Yes');
+			case 'no':
+				return $l->t('No');
+			case 'maybe':
+				return $l->t('Maybe');
+			default:
+				return $value;
 		}
 	}
 

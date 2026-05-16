@@ -23,6 +23,7 @@ class ResponseService {
 	private IGroupManager $groupManager;
 	private IUserManager $userManager;
 	private GuestService $guestService;
+	private AuditEventService $auditEventService;
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -32,6 +33,7 @@ class ResponseService {
 		IGroupManager $groupManager,
 		IUserManager $userManager,
 		GuestService $guestService,
+		AuditEventService $auditEventService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -40,6 +42,7 @@ class ResponseService {
 		$this->groupManager = $groupManager;
 		$this->userManager = $userManager;
 		$this->guestService = $guestService;
+		$this->auditEventService = $auditEventService;
 	}
 
 	// Response source constants
@@ -75,9 +78,14 @@ class ResponseService {
 			throw new \RuntimeException('This appointment is closed and no longer accepts responses.');
 		}
 
+		$beforeResponse = null;
+		$beforeComment = '';
+
 		// Check if user already responded
 		try {
 			$existingResponse = $this->responseMapper->findByAppointmentAndUser($appointmentId, $userId);
+			$beforeResponse = $existingResponse->getResponse();
+			$beforeComment = (string)$existingResponse->getComment();
 			// Update existing response
 			$existingResponse->setResponse($response);
 			$existingResponse->setComment($comment);
@@ -95,6 +103,19 @@ class ResponseService {
 			$attendanceResponse->setResponseSource($source);
 			$result = $this->responseMapper->insert($attendanceResponse);
 		}
+
+		$auditSource = $source === self::SOURCE_QUICK_LINK
+			? \OCA\Attendance\Audit\Verb::SOURCE_QUICK_LINK
+			: \OCA\Attendance\Audit\Verb::SOURCE_APP;
+		$this->auditEventService->recordResponseChange(
+			$appointmentId,
+			$userId,
+			$beforeResponse,
+			$beforeComment,
+			$response,
+			$comment,
+			$auditSource,
+		);
 
 		$this->notificationService->markAppointmentNotificationsProcessed($appointmentId, $userId);
 
