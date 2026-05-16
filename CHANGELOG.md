@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## 1.39.1 – 2026-05-16
+
+### Added
+
+- **Inquiry lifecycle in the activity history**: the timeline now also records when an inquiry was created, edited, closed, or re-opened. Auto-close events show as "Inquiry closed automatically"; edits list which categories changed (name, time, description, visibility, response deadline) without storing the raw before/after values
+
+### Improved
+
+- Per-response icons in the activity history: ✓ / ? / ✗ for yes / maybe / no, tinted in the matching response color so a glance is enough to tell entries apart
+- `AutoCloseJob` records one audit row per affected appointment (with `source: auto_close`) so the timeline distinguishes manual and automatic closes
+
 ## 1.39.0 – 2026-05-16
 
 ### Added
