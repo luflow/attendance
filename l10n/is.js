@@ -24,6 +24,7 @@ OC.L10N.register(
     "OK" : "OK",
     "Something went wrong" : "Eitthvað fór úrskeiðis",
     "About" : "Um",
+    "Relevance" : "Samsvörun",
     "Closed" : "Lokað",
     "Reset filter" : "Endurstilla síu",
     "Create appointment" : "Búa til stefnumót",

@@ -31,6 +31,7 @@ OC.L10N.register(
     "Expired" : "Istekao",
     "OK" : "OK",
     "About" : "Informacije",
+    "Relevance" : "Važnost",
     "Closed" : "Zatvoreno",
     "Reset filter" : "Poništi filtar",
     "Export" : "Izvoz",

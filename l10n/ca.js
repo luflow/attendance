@@ -37,6 +37,7 @@ OC.L10N.register(
     "Something went wrong" : "Alguna cosa ha anat malament",
     "About" : "Quant a",
     "Upcoming" : "Pròxims",
+    "Relevance" : "Rellevància",
     "Closed" : "Tancat",
     "Reset filter" : "Reinicia el filtre",
     "Create appointment" : "Crea cita",

@@ -27,6 +27,7 @@ OC.L10N.register(
     "OK" : "OK",
     "Something went wrong" : "משהו השתבש",
     "About" : "אודות",
+    "Relevance" : "רלוונטיות",
     "Closed" : "סגור",
     "Export" : "ייצוא",
     "Select all" : "בחר הכל",

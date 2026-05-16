@@ -31,6 +31,7 @@ OC.L10N.register(
     "Something went wrong" : "Noget gik galt",
     "About" : "Om",
     "Upcoming" : "Kommende",
+    "Relevance" : "Relevans",
     "Closed" : "Lukket",
     "Reset filter" : "Nulstil filter",
     "Create appointment" : "Opret aftale",

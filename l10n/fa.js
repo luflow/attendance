@@ -33,6 +33,7 @@ OC.L10N.register(
     "OK" : "OK",
     "Something went wrong" : "Something went wrong",
     "About" : "درباره",
+    "Relevance" : "ارتباط",
     "Closed" : "بسته شده",
     "Create appointment" : "Create appointment",
     "Export" : "دریافت خروجی",

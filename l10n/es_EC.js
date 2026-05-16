@@ -32,6 +32,7 @@ OC.L10N.register(
     "OK" : "OK",
     "Something went wrong" : "Algo salió mal",
     "About" : "Acerca",
+    "Relevance" : "Relevancia",
     "Closed" : "Cerrado",
     "Create appointment" : "Crear cita",
     "Export" : "Exportar",

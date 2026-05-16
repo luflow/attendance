@@ -36,6 +36,7 @@ OC.L10N.register(
     "OK" : "OK",
     "Something went wrong" : "Zerbait gaizki joan da",
     "About" : "Honi buruz",
+    "Relevance" : "Garrantzia",
     "Closed" : "Itxia",
     "Reset filter" : "Berrezarri iragazkia",
     "Create appointment" : "Sortu hitzordua",

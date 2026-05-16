@@ -29,6 +29,7 @@ OC.L10N.register(
     "OK" : "–æ–∫",
     "Something went wrong" : "Ямар нэг зүйл буруу болсон",
     "About" : "Тухай",
+    "Relevance" : "Хамаарал",
     "Closed" : "Хаагдсан",
     "Reset filter" : "Шүүлтүүр цэвэрлэх",
     "Export" : "Экспорт",

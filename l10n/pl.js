@@ -35,6 +35,7 @@ OC.L10N.register(
     "OK" : "OK",
     "About" : "O aplikacji",
     "Upcoming" : "Nadchodzące",
+    "Relevance" : "Ważne",
     "Closed" : "Zamknij ",
     "Reset filter" : "Zresetuj filtr",
     "Create appointment" : "Utwórz spotkanie",

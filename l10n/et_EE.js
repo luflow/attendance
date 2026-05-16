@@ -1,6 +1,7 @@
 OC.L10N.register(
     "attendance",
     {
+    "This appointment is closed and no longer accepts responses." : "See kohtumine on suletud ja siia ei saa enam vastuseid lisada.",
     "Response recorded" : "Vastus on salvestatud",
     "An error occurred while recording your response. Please try again." : "Sinu vastuse salvestamisel tekkis viga. Palun proovi uuesti.",
     "Invalid response type." : "Vigane vastuse tüüp.",
@@ -8,7 +9,6 @@ OC.L10N.register(
     "This link has expired. The appointment has already ended." : "See link on aegunud. Kohtumine on juba lõppenud.",
     "This link is no longer valid." : "Selle link enam ei kehti.",
     "This appointment no longer exists." : "Seda kohtumist pole enam olemas",
-    "This appointment is closed and no longer accepts responses." : "See kohtumine on suletud ja siia ei saa enam vastuseid lisada.",
     "Yes" : "Jah",
     "No" : "Ei",
     "Maybe" : "Võib-olla",
@@ -115,6 +115,7 @@ OC.L10N.register(
     "Upcoming" : "Lähitulevikus",
     "Past" : "Minevikus",
     "Inquiry status" : "Järelpärimise olek",
+    "Relevance" : "Asjakohasus",
     "Opened" : "Avatud",
     "Closed" : "Suletud",
     "Active filters:" : "Aktiivsed filtrid:",
@@ -123,6 +124,7 @@ OC.L10N.register(
     "Close inquiry" : "Sulge järelpärimine",
     "Reopen inquiry" : "Ava järelpärimine uuesti",
     "Reopen" : "Ava uuesti",
+    "Guests" : "Külalised",
     "Upcoming appointments" : "Tulevased kohtumised",
     "Past appointments" : "Varasemad kohtumised",
     "Create appointment" : "Loo kohtumine",
