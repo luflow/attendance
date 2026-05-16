@@ -30,9 +30,17 @@
 				:key="row.id"
 				class="audit-timeline__item"
 				:data-test-verb="row.verb">
-				<component :is="iconMap[row.icon] ?? Information" :size="20" class="audit-timeline__icon" />
+				<component :is="iconMap[row.icon] ?? Information"
+					:size="20"
+					class="audit-timeline__icon"
+					:class="iconVariantClass(row.iconVariant)" />
 				<div class="audit-timeline__body">
-					<div class="audit-timeline__message">{{ row.message }}</div>
+					<div class="audit-timeline__message">
+						<template v-for="(seg, idx) in row.segments">
+							<strong v-if="seg.type === 'response'" :key="`r-${idx}`">{{ getResponseText(seg.value) }}</strong>
+							<template v-else :key="`t-${idx}`">{{ seg.value }}</template>
+						</template>
+					</div>
 					<div class="audit-timeline__meta">
 						<span class="audit-timeline__time">{{ formatDateTime(row.createdAt) }}</span>
 						<span v-if="row.source" class="audit-timeline__source">{{ formatSource(row.source) }}</span>
@@ -56,17 +64,24 @@ import { computed, onMounted } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import { NcButton, NcEmptyContent, NcLoadingIcon } from '@nextcloud/vue'
 import CheckCircleOutline from 'vue-material-design-icons/CheckCircleOutline.vue'
+import CloseCircleOutline from 'vue-material-design-icons/CloseCircleOutline.vue'
+import HelpCircleOutline from 'vue-material-design-icons/HelpCircleOutline.vue'
 import SwapHorizontal from 'vue-material-design-icons/SwapHorizontal.vue'
 import UndoVariant from 'vue-material-design-icons/UndoVariant.vue'
 import CommentEdit from 'vue-material-design-icons/CommentEdit.vue'
 import AccountCheck from 'vue-material-design-icons/AccountCheck.vue'
 import AccountSync from 'vue-material-design-icons/AccountSync.vue'
+import CalendarPlus from 'vue-material-design-icons/CalendarPlus.vue'
+import CalendarEditOutline from 'vue-material-design-icons/CalendarEditOutline.vue'
+import LockOutline from 'vue-material-design-icons/LockOutline.vue'
+import LockOpenVariantOutline from 'vue-material-design-icons/LockOpenVariantOutline.vue'
 import Information from 'vue-material-design-icons/Information.vue'
 import History from 'vue-material-design-icons/History.vue'
 import AlertCircle from 'vue-material-design-icons/AlertCircle.vue'
 import { usePermissions } from '../../composables/usePermissions.js'
 import { useAuditLog } from '../../composables/useAuditLog.js'
 import { formatAuditEvent, formatSource } from '../../utils/auditFormat.js'
+import { getResponseText } from '../../utils/response.js'
 import { formatDateTime } from '../../utils/datetime.js'
 
 const props = defineProps({
@@ -83,11 +98,17 @@ const { items, hasMore, loading, error, load } = useAuditLog()
 
 const iconMap = {
 	CheckCircleOutline,
+	CloseCircleOutline,
+	HelpCircleOutline,
 	SwapHorizontal,
 	UndoVariant,
 	CommentEdit,
 	AccountCheck,
 	AccountSync,
+	CalendarPlus,
+	CalendarEditOutline,
+	LockOutline,
+	LockOpenVariantOutline,
 	Information,
 }
 
@@ -98,6 +119,13 @@ const formattedItems = computed(() => items.value.map(event => ({
 	source: event.source,
 	...formatAuditEvent(event),
 })))
+
+function iconVariantClass(variant) {
+	if (!variant || variant === 'default') {
+		return ''
+	}
+	return `audit-timeline__icon--${variant}`
+}
 
 async function loadMore() {
 	await load(props.appointmentId, { limit: PAGE_SIZE, offset: items.value.length, append: true })
@@ -148,6 +176,18 @@ onMounted(() => {
 	flex-shrink: 0;
 	color: var(--color-primary-element);
 	margin-top: 2px;
+}
+
+.audit-timeline__icon--success {
+	color: var(--color-success-text);
+}
+
+.audit-timeline__icon--warning {
+	color: var(--color-warning-text);
+}
+
+.audit-timeline__icon--error {
+	color: var(--color-error-text);
 }
 
 .audit-timeline__body {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Tests\Unit\Service;
 
+use OCA\Attendance\Audit\Verb;
 use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponse;
@@ -112,6 +113,10 @@ class AppointmentServiceTest extends TestCase {
 			->method('insert')
 			->willReturn($appointment);
 
+		$this->auditEventService->expects($this->once())
+			->method('recordAppointmentLifecycle')
+			->with(Verb::APPOINTMENT_CREATED, 1, Verb::SOURCE_APP);
+
 		$result = $this->service->createAppointment(
 			$name,
 			$description,
@@ -122,6 +127,120 @@ class AppointmentServiceTest extends TestCase {
 
 		$this->assertInstanceOf(Appointment::class, $result);
 		$this->assertEquals(1, $result->getId());
+	}
+
+	public function testCloseAppointmentRecordsAuditEvent(): void {
+		$appointment = new Appointment();
+		$appointment->setId(5);
+
+		$this->appointmentMapper->expects($this->once())
+			->method('find')
+			->with(5)
+			->willReturn($appointment);
+
+		$this->appointmentMapper->expects($this->once())
+			->method('update')
+			->willReturnArgument(0);
+
+		$this->auditEventService->expects($this->once())
+			->method('recordAppointmentLifecycle')
+			->with(Verb::APPOINTMENT_CLOSED, 5, Verb::SOURCE_APP);
+
+		$result = $this->service->closeAppointment(5);
+		$this->assertNotNull($result->getClosedAt());
+	}
+
+	public function testCloseAppointmentIsIdempotentForAlreadyClosed(): void {
+		$appointment = new Appointment();
+		$appointment->setId(5);
+		$appointment->setClosedAt('2026-01-01 12:00:00');
+
+		$this->appointmentMapper->expects($this->once())
+			->method('find')
+			->with(5)
+			->willReturn($appointment);
+		$this->appointmentMapper->expects($this->never())->method('update');
+		$this->auditEventService->expects($this->never())->method('recordAppointmentLifecycle');
+
+		$this->service->closeAppointment(5);
+	}
+
+	public function testUpdateAppointmentRecordsAuditWithChangedFields(): void {
+		$appointment = new Appointment();
+		$appointment->setId(3);
+		$appointment->setName('Old name');
+		$appointment->setDescription('Old description');
+		$appointment->setStartDatetime('2026-01-01 10:00:00');
+		$appointment->setEndDatetime('2026-01-01 11:00:00');
+
+		$this->appointmentMapper->expects($this->once())
+			->method('find')
+			->with(3)
+			->willReturn($appointment);
+		$this->appointmentMapper->expects($this->once())
+			->method('update')
+			->willReturnArgument(0);
+
+		$this->auditEventService->expects($this->once())
+			->method('recordAppointmentUpdate')
+			->with(3, $this->callback(function (array $fields) {
+				sort($fields);
+				return $fields === ['name', 'time'];
+			}));
+
+		$this->service->updateAppointment(
+			3,
+			'New name',
+			'Old description',
+			'2026-01-02T12:00:00Z',
+			'2026-01-02T13:00:00Z',
+			'admin',
+		);
+	}
+
+	public function testUpdateAppointmentSkipsAuditWhenNothingChanged(): void {
+		$appointment = new Appointment();
+		$appointment->setId(3);
+		$appointment->setName('Same');
+		$appointment->setDescription('Same');
+		$appointment->setStartDatetime('2026-01-01 10:00:00');
+		$appointment->setEndDatetime('2026-01-01 11:00:00');
+
+		$this->appointmentMapper->expects($this->once())->method('find')->willReturn($appointment);
+		$this->appointmentMapper->expects($this->once())->method('update')->willReturnArgument(0);
+
+		$this->auditEventService->expects($this->never())->method('recordAppointmentUpdate');
+
+		$this->service->updateAppointment(
+			3,
+			'Same',
+			'Same',
+			'2026-01-01T10:00:00Z',
+			'2026-01-01T11:00:00Z',
+			'admin',
+		);
+	}
+
+	public function testReopenAppointmentRecordsAuditEvent(): void {
+		$appointment = new Appointment();
+		$appointment->setId(7);
+		$appointment->setClosedAt('2026-01-01 12:00:00');
+
+		$this->appointmentMapper->expects($this->once())
+			->method('find')
+			->with(7)
+			->willReturn($appointment);
+
+		$this->appointmentMapper->expects($this->once())
+			->method('update')
+			->willReturnArgument(0);
+
+		$this->auditEventService->expects($this->once())
+			->method('recordAppointmentLifecycle')
+			->with(Verb::APPOINTMENT_REOPENED, 7, Verb::SOURCE_APP);
+
+		$result = $this->service->reopenAppointment(7);
+		$this->assertNull($result->getClosedAt());
 	}
 
 	public function testGetAppointment(): void {

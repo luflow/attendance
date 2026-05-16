@@ -66,16 +66,20 @@ export function isValidResponse(response) {
  * For use with Material Design Icons.
  *
  * @param {string} response - The response value (yes, no, maybe)
+ * @param {'filled'|'outline'} [style] - Icon family
  * @return {string} The icon name
  */
-export function getResponseIcon(response) {
-	const icons = {
+export function getResponseIcon(response, style = 'filled') {
+	const base = {
 		yes: 'CheckCircle',
 		no: 'CloseCircle',
 		maybe: 'HelpCircle',
-	}
+	}[response]
 
-	return icons[response] || 'ProgressQuestion'
+	if (!base) {
+		return style === 'outline' ? 'CheckCircleOutline' : 'ProgressQuestion'
+	}
+	return style === 'outline' ? `${base}Outline` : base
 }
 
 /**

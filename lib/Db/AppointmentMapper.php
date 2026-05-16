@@ -277,27 +277,47 @@ class AppointmentMapper extends QBMapper {
 	 * Bulk-close all active inquiries whose response_deadline or start_datetime
 	 * is at or before the given timestamp. Once an appointment has started,
 	 * further responses are pointless, so it gets closed regardless of any
-	 * configured deadline. Returns the affected row count.
+	 * configured deadline. Returns the IDs of the affected rows so the caller
+	 * can record matching audit events.
+	 *
+	 * @return list<int>
 	 */
-	public function autoCloseExpired(string $now): int {
-		$qb = $this->db->getQueryBuilder();
-		$qb->update($this->getTableName())
-			->set('closed_at', $qb->createNamedParameter($now))
-			->set('updated_at', $qb->createNamedParameter($now))
+	public function autoCloseExpired(string $now): array {
+		$select = $this->db->getQueryBuilder();
+		$select->select('id')
+			->from($this->getTableName())
 			->where(
-				$qb->expr()->andX(
-					$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
-					$qb->expr()->isNull('closed_at'),
-					$qb->expr()->orX(
-						$qb->expr()->andX(
-							$qb->expr()->isNotNull('response_deadline'),
-							$qb->expr()->lte('response_deadline', $qb->createNamedParameter($now)),
+				$select->expr()->andX(
+					$select->expr()->eq('is_active', $select->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
+					$select->expr()->isNull('closed_at'),
+					$select->expr()->orX(
+						$select->expr()->andX(
+							$select->expr()->isNotNull('response_deadline'),
+							$select->expr()->lte('response_deadline', $select->createNamedParameter($now)),
 						),
-						$qb->expr()->lte('start_datetime', $qb->createNamedParameter($now)),
+						$select->expr()->lte('start_datetime', $select->createNamedParameter($now)),
 					),
 				)
 			);
-		return (int)$qb->executeStatement();
+		$result = $select->executeQuery();
+		$ids = [];
+		while ($row = $result->fetch()) {
+			$ids[] = (int)$row['id'];
+		}
+		$result->closeCursor();
+
+		if (empty($ids)) {
+			return [];
+		}
+
+		$update = $this->db->getQueryBuilder();
+		$update->update($this->getTableName())
+			->set('closed_at', $update->createNamedParameter($now))
+			->set('updated_at', $update->createNamedParameter($now))
+			->where($update->expr()->in('id', $update->createNamedParameter($ids, IQueryBuilder::PARAM_INT_ARRAY)));
+		$update->executeStatement();
+
+		return $ids;
 	}
 
 	/**

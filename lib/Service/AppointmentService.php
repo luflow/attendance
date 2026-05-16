@@ -116,6 +116,12 @@ class AppointmentService {
 
 		$appointment = $this->appointmentMapper->insert($appointment);
 
+		$this->auditEventService->recordAppointmentLifecycle(
+			\OCA\Attendance\Audit\Verb::APPOINTMENT_CREATED,
+			$appointment->getId(),
+			\OCA\Attendance\Audit\Verb::SOURCE_APP,
+		);
+
 		if ($sendNotification) {
 			$affectedUsers = $this->getAffectedUsers($appointment);
 			$affectedUsers = array_filter($affectedUsers, fn ($userId) => $userId !== $createdBy);
@@ -144,6 +150,8 @@ class AppointmentService {
 
 		$this->validateDateRange($startDatetime, $endDatetime);
 
+		$before = clone $appointment;
+
 		$startFormatted = $this->formatDatetime($startDatetime);
 		$endFormatted = $this->formatDatetime($endDatetime);
 
@@ -165,7 +173,46 @@ class AppointmentService {
 			);
 		}
 
-		return $this->appointmentMapper->update($appointment);
+		$updated = $this->appointmentMapper->update($appointment);
+
+		$changedFields = $this->computeAppointmentChanges($before, $updated);
+		if ($changedFields !== []) {
+			$this->auditEventService->recordAppointmentUpdate($id, $changedFields);
+		}
+
+		return $updated;
+	}
+
+	/**
+	 * Diff the audit-worthy fields of an appointment. Returns just the field
+	 * keys that changed — before/after values are intentionally not stored to
+	 * keep the audit row small (description in particular could be very long).
+	 *
+	 * @return list<string>
+	 */
+	private function computeAppointmentChanges(Appointment $before, Appointment $after): array {
+		$fields = [];
+
+		if ($before->getName() !== $after->getName()) {
+			$fields[] = 'name';
+		}
+		if ($before->getDescription() !== $after->getDescription()) {
+			$fields[] = 'description';
+		}
+		if ($before->getStartDatetime() !== $after->getStartDatetime()
+			|| $before->getEndDatetime() !== $after->getEndDatetime()) {
+			$fields[] = 'time';
+		}
+		if ($before->getVisibleUsers() !== $after->getVisibleUsers()
+			|| $before->getVisibleGroups() !== $after->getVisibleGroups()
+			|| $before->getVisibleTeams() !== $after->getVisibleTeams()) {
+			$fields[] = 'visibility';
+		}
+		if ($before->getResponseDeadline() !== $after->getResponseDeadline()) {
+			$fields[] = 'deadline';
+		}
+
+		return $fields;
 	}
 
 	/**
@@ -179,7 +226,15 @@ class AppointmentService {
 		}
 		$appointment->setClosedAt(gmdate('Y-m-d H:i:s'));
 		$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
-		return $this->appointmentMapper->update($appointment);
+		$updated = $this->appointmentMapper->update($appointment);
+
+		$this->auditEventService->recordAppointmentLifecycle(
+			\OCA\Attendance\Audit\Verb::APPOINTMENT_CLOSED,
+			$id,
+			\OCA\Attendance\Audit\Verb::SOURCE_APP,
+		);
+
+		return $updated;
 	}
 
 	/**
@@ -198,7 +253,15 @@ class AppointmentService {
 		$appointment->setClosedAt(null);
 		$appointment->setResponseDeadline(null);
 		$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
-		return $this->appointmentMapper->update($appointment);
+		$updated = $this->appointmentMapper->update($appointment);
+
+		$this->auditEventService->recordAppointmentLifecycle(
+			\OCA\Attendance\Audit\Verb::APPOINTMENT_REOPENED,
+			$id,
+			\OCA\Attendance\Audit\Verb::SOURCE_APP,
+		);
+
+		return $updated;
 	}
 
 	/**
@@ -305,6 +368,8 @@ class AppointmentService {
 
 		$updated = [];
 		foreach ($siblings as $sibling) {
+			$before = clone $sibling;
+
 			$sibling->setName($name);
 			$sibling->setDescription($descriptionClean);
 
@@ -333,7 +398,15 @@ class AppointmentService {
 				$sibling->setResponseDeadline($siblingDeadline->format('Y-m-d H:i:s'));
 			}
 
-			$updated[] = $this->appointmentMapper->update($sibling);
+			$updatedSibling = $this->appointmentMapper->update($sibling);
+			$changedFields = $this->computeAppointmentChanges($before, $updatedSibling);
+			if ($changedFields !== []) {
+				$this->auditEventService->recordAppointmentUpdate(
+					$updatedSibling->getId(),
+					$changedFields,
+				);
+			}
+			$updated[] = $updatedSibling;
 		}
 
 		return $updated;

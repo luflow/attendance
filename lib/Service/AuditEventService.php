@@ -8,6 +8,7 @@ use OCA\Attendance\Audit\AuditEventDispatcher;
 use OCA\Attendance\Audit\Verb;
 use OCA\Attendance\Db\AuditEvent;
 use OCA\Attendance\Db\AuditEventMapper;
+use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -15,22 +16,30 @@ use Psr\Log\LoggerInterface;
  * switch is enforced inside record() so callers always invoke the service
  * unconditionally — disabling the feature instantly stops both writes and
  * notification dispatch.
+ *
+ * When a caller passes no actorId, the current session user is used. In a
+ * background-job context IUserSession::getUser() returns null, which we
+ * persist as-is — the source field (e.g. SOURCE_AUTO_CLOSE) carries the
+ * "no actor" context for the timeline renderer.
  */
 class AuditEventService {
 	private AuditEventMapper $mapper;
 	private AuditEventDispatcher $dispatcher;
 	private ConfigService $configService;
+	private IUserSession $userSession;
 	private LoggerInterface $logger;
 
 	public function __construct(
 		AuditEventMapper $mapper,
 		AuditEventDispatcher $dispatcher,
 		ConfigService $configService,
+		IUserSession $userSession,
 		LoggerInterface $logger,
 	) {
 		$this->mapper = $mapper;
 		$this->dispatcher = $dispatcher;
 		$this->configService = $configService;
+		$this->userSession = $userSession;
 		$this->logger = $logger;
 	}
 
@@ -39,6 +48,10 @@ class AuditEventService {
 	 * via the kill switch, or when persistence fails — audit is best-effort
 	 * logging and must never break the calling mutation (e.g. a response
 	 * submit) just because the table is missing during an upgrade window.
+	 *
+	 * Pass $actorId=null to default to the current session user. Background
+	 * jobs end up with null after the session lookup, which is the desired
+	 * "no actor" state.
 	 */
 	public function record(
 		string $verb,
@@ -51,6 +64,8 @@ class AuditEventService {
 		if (!$this->configService->isAuditLogEnabled()) {
 			return null;
 		}
+
+		$actorId ??= $this->userSession->getUser()?->getUID();
 
 		try {
 			$event = new AuditEvent();
@@ -143,6 +158,43 @@ class AuditEventService {
 			]];
 		}
 		return null;
+	}
+
+	/**
+	 * Record an appointment lifecycle event (created / closed / reopened).
+	 * Actor is taken from the current session — null in background-job
+	 * contexts (e.g. AutoCloseJob), which is what we want: the audit row
+	 * then reflects "system closed it" via the $source field.
+	 */
+	public function recordAppointmentLifecycle(
+		string $verb,
+		int $appointmentId,
+		string $source,
+	): ?AuditEvent {
+		return $this->record($verb, $appointmentId, null, null, [], $source);
+	}
+
+	/**
+	 * Record an appointment edit. Callers must filter out no-op edits before
+	 * invoking — passing an empty $fields list would write a meaningless row.
+	 *
+	 * @param list<string> $fields changed field keys ('name', 'description',
+	 *   'time', 'visibility', 'deadline'). Before/after values are not stored —
+	 *   the field list is enough for the timeline and keeps the audit row lean.
+	 */
+	public function recordAppointmentUpdate(
+		int $appointmentId,
+		array $fields,
+		string $source = Verb::SOURCE_APP,
+	): ?AuditEvent {
+		return $this->record(
+			Verb::APPOINTMENT_UPDATED,
+			$appointmentId,
+			null,
+			null,
+			['fields' => $fields],
+			$source,
+		);
 	}
 
 	public function recordCheckin(
