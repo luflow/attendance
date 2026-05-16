@@ -2,13 +2,34 @@
 
 ## [Unreleased]
 
+## 1.39.0 – 2026-05-16
+
 ### Added
 
-- Guest participation via the Nextcloud Guests app: organizers can invite people without a Nextcloud account directly from the appointment editor by typing an email address; the new "Create guest account for {email}" entry provisions a guest user and adds it to the appointment audience in one step (#43)
-- New `guestInvitation` capability flag so mobile clients can hide the invite-guest UI on servers without the Guests app
-- New `isGuest` field on user objects in API responses, surfaced as a "Guest" badge throughout the UI
-- Admin settings now warn when the Guests app is enabled but Attendance is missing from its app whitelist, with a one-click `occ` command snippet
-- Guest accounts can never gain `manage_appointments` or `checkin` permissions, even if the `guests` group is whitelisted
+- **Activity history**: every response submit, change, withdraw, comment update, and every check-in is recorded in a new audit log. The appointment detail view shows the events as an "Activity history" section with verb-specific icons, actor, timestamp, and source (web / email link / admin check-in / historic backfill)
+- User-deletion hook anonymises actor and subject IDs to `__deleted_user__` and strips PII from event metadata while preserving the audit chain
+- **Opt-in activity push notifications** when team members respond, change, or withdraw a response. The toggle in personal settings is only shown to users who can actually receive them (manage-appointments permission and audit log enabled)
+- **Response withdraw**: users can take back their own response by clicking the active answer again. The row stays (preserves admin check-in data) but the user appears as unanswered again. Short cool-down absorbs accidental double-taps; closed inquiries refuse the toggle
+- **Guest participation** via the Nextcloud Guests app: organizers can invite people without a Nextcloud account directly from the appointment editor by typing an email address. The new "Create guest account for {email}" entry provisions a guest user and adds it to the appointment audience in one step (#43)
+- `guest_app` system group renders as "Guests" everywhere (admin selector, response summary, user details); guest accounts can never gain `manage_appointments` or `checkin` permissions even if their group is whitelisted
+
+### Improved
+
+- Personal settings auto-save the calendar-reminder triggers and the new notifications toggle on change — the dangling Save button is gone
+- "All appointments" navigation item moved to the very top of the sidebar; admins now land there by default, everyone else still lands on "Unanswered"
+- Quick-response confirmation page shows a dedicated "closed inquiry" banner instead of a generic error
+
+### Fixed
+
+- Reminders refuse to send for closed inquiries (bulk + individual paths, plus the admin preview)
+- Dashboard widget filters by target audience instead of by appointment creator, matching the in-app sidebar behaviour
+- Collaborator search in the appointment editor no longer caps at 20 results
+- "Audience" filter renamed to "Relevance" for consistency with the surrounding terminology
+
+### Maintenance
+
+- Translations updated from Transifex
+- Repair step short-circuits on the happy path (skips schema introspection when the column probe succeeds)
 
 ## 1.38.0 – 2026-04-27
 
