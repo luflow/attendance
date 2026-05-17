@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "Igen",
     "No" : "Nem",
     "Maybe" : "Talán",
+    "Someone" : "Valaki",
     "Others" : "Egyebek",
     "Group" : "Csoport",
     "Attachments" : "Mellékletek",
@@ -55,6 +56,8 @@ OC.L10N.register(
     "Share link" : "Megosztási hivatkozás",
     "Edit" : "Szerkesztés",
     "Delete" : "Törlés",
+    "Loading …" : "Betöltés…",
+    "No activity yet" : "Még nincsenek tevékenységek",
     "Send reminder" : "Emlékeztető küldése",
     "Daily" : "Naponta",
     "Weekly" : "Hetente",
@@ -122,6 +125,9 @@ OC.L10N.register(
     "Confirm" : "Megerősítés",
     "No reminders" : "Nincsenek emlékeztetők",
     "Thank you for your response!" : "Köszönjük a válaszát!",
-    "Try again" : "Próbálja újra"
+    "Try again" : "Próbálja újra",
+    "Historic" : "Történelmi",
+    "name" : "név",
+    "time" : "alkalom"
 },
 "nplurals=2; plural=(n != 1);");

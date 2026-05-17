@@ -1,6 +1,7 @@
 OC.L10N.register(
     "attendance",
     {
+    "Someone" : "מישהו",
     "Others" : "חרים",
     "Group" : "קבוצה",
     "Attachments" : "קבצים מצורפים",
@@ -43,6 +44,8 @@ OC.L10N.register(
     "Share link" : "שיתוף קישור",
     "Edit" : "עריכה",
     "Delete" : "מחיקה",
+    "Loading …" : "בטעינה…",
+    "No activity yet" : "אין פעילות עדיין",
     "Daily" : "יומי",
     "Weekly" : "שבועי",
     "Monthly" : "חודשי",
@@ -95,6 +98,8 @@ OC.L10N.register(
     "30 minutes before" : "30 דקות לפני",
     "1 hour before" : "1 שעה לפני",
     "2 hours before" : "2 שעות לפני",
-    "Try again" : "ניסיון חוזר"
+    "Try again" : "ניסיון חוזר",
+    "name" : "שם",
+    "time" : "בשעה"
 },
 "nplurals=3; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: 2;");

@@ -2,6 +2,7 @@
     "Yes" : "Igen",
     "No" : "Nem",
     "Maybe" : "Talán",
+    "Someone" : "Valaki",
     "Others" : "Egyebek",
     "Group" : "Csoport",
     "Attachments" : "Mellékletek",
@@ -53,6 +54,8 @@
     "Share link" : "Megosztási hivatkozás",
     "Edit" : "Szerkesztés",
     "Delete" : "Törlés",
+    "Loading …" : "Betöltés…",
+    "No activity yet" : "Még nincsenek tevékenységek",
     "Send reminder" : "Emlékeztető küldése",
     "Daily" : "Naponta",
     "Weekly" : "Hetente",
@@ -120,6 +123,9 @@
     "Confirm" : "Megerősítés",
     "No reminders" : "Nincsenek emlékeztetők",
     "Thank you for your response!" : "Köszönjük a válaszát!",
-    "Try again" : "Próbálja újra"
+    "Try again" : "Próbálja újra",
+    "Historic" : "Történelmi",
+    "name" : "név",
+    "time" : "alkalom"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

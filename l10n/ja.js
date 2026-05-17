@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "はい",
     "No" : "いいえ",
     "Maybe" : "たぶん",
+    "Someone" : "誰か",
     "Others" : "その他",
     "Group" : "グループ",
     "Attachments" : "添付ファイル",
@@ -53,6 +54,8 @@ OC.L10N.register(
     "Share link" : "共有リンク",
     "Edit" : "編集",
     "Delete" : "削除",
+    "Loading …" : "読み込み中…",
+    "No activity yet" : "まだアクティビティはありません",
     "Daily" : "毎日",
     "Weekly" : "毎週",
     "Monthly" : "毎月",
@@ -120,6 +123,9 @@ OC.L10N.register(
     "30 minutes before" : "30分前",
     "1 hour before" : "1 時間前",
     "2 hours before" : "2時間前",
-    "Try again" : "もう一度試してください"
+    "Try again" : "もう一度試してください",
+    "Automatic" : "自動",
+    "name" : "名前",
+    "description" : "説明"
 },
 "nplurals=1; plural=0;");

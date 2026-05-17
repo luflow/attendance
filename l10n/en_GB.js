@@ -521,6 +521,8 @@ OC.L10N.register(
     "Subscription URL regenerated" : "Subscription URL regenerated",
     "Failed to regenerate subscription URL" : "Failed to regenerate subscription URL",
     "URL copied to clipboard" : "URL copied to clipboard",
-    "Failed to copy URL" : "Failed to copy URL"
+    "Failed to copy URL" : "Failed to copy URL",
+    "description" : "description",
+    "time" : "time"
 },
 "nplurals=2; plural=(n != 1);");

@@ -18,6 +18,7 @@ OC.L10N.register(
     "A new appointment has been created. Please respond soon." : "Creouse unha nova cita. Responda logo.",
     "_%1$s new appointment added (e.g. \"%2$s\")_::_%1$s new appointments added (e.g. \"%2$s\")_" : ["Engadiuse %1$s nova cita (p. ex., «%2$s»)","Engadíronse %1$s novas citas (p. ex., «%2$s»)"],
     "Please check the new appointments and respond." : "Revise as novas citas e responda.",
+    "Someone" : "Alguén",
     "Others" : "Outros",
     "Group" : "Grupo",
     "Me" : "Eu",
@@ -119,6 +120,8 @@ OC.L10N.register(
     "Edit" : "Editar",
     "Delete" : "Eliminar",
     "Check-in summary" : "Resumo do rexistro de entrada",
+    "Loading …" : "Cargando…",
+    "No activity yet" : "Aínda non houbo actividade",
     "Send reminder" : "Enviar lembrete",
     "Daily" : "A diario",
     "Weekly" : "Cada semana",
@@ -349,6 +352,10 @@ OC.L10N.register(
     "Subscription URL regenerated" : "O URL de subscrición foi rexenerado",
     "Failed to regenerate subscription URL" : "Produciuse un fallo ao rexenerar o URL da subscrición",
     "URL copied to clipboard" : "O URL foi copiado no portapapeis",
-    "Failed to copy URL" : "Produciuse un fallo ao copiar o URL"
+    "Failed to copy URL" : "Produciuse un fallo ao copiar o URL",
+    "Historic" : "Histórico",
+    "name" : "nome",
+    "description" : "descrición",
+    "time" : "vez"
 },
 "nplurals=2; plural=(n != 1);");

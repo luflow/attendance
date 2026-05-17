@@ -27,6 +27,8 @@ OC.L10N.register(
     "Share link" : "Partejar via ligam",
     "Edit" : "Modificar",
     "Delete" : "Suprimir",
+    "Loading …" : "Cargament…",
+    "No activity yet" : "Cap d’activitat pel moment",
     "Daily" : "Quotidian",
     "Weekly" : "Setmanièr",
     "Monthly" : "Cada mes",
@@ -69,6 +71,8 @@ OC.L10N.register(
     "15 minutes before" : "15 minutas abans",
     "30 minutes before" : "30 minutas abans",
     "1 hour before" : "1 ora abans",
-    "2 hours before" : "2 oras abans"
+    "2 hours before" : "2 oras abans",
+    "Automatic" : "Automatic",
+    "time" : "còp"
 },
 "nplurals=2; plural=(n > 1);");

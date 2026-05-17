@@ -1,4 +1,5 @@
 { "translations": {
+    "Someone" : "מישהו",
     "Others" : "חרים",
     "Group" : "קבוצה",
     "Attachments" : "קבצים מצורפים",
@@ -41,6 +42,8 @@
     "Share link" : "שיתוף קישור",
     "Edit" : "עריכה",
     "Delete" : "מחיקה",
+    "Loading …" : "בטעינה…",
+    "No activity yet" : "אין פעילות עדיין",
     "Daily" : "יומי",
     "Weekly" : "שבועי",
     "Monthly" : "חודשי",
@@ -93,6 +96,8 @@
     "30 minutes before" : "30 דקות לפני",
     "1 hour before" : "1 שעה לפני",
     "2 hours before" : "2 שעות לפני",
-    "Try again" : "ניסיון חוזר"
+    "Try again" : "ניסיון חוזר",
+    "name" : "שם",
+    "time" : "בשעה"
 },"pluralForm" :"nplurals=3; plural=(n == 1 && n % 1 == 0) ? 0 : (n == 2 && n % 1 == 0) ? 1: 2;"
 }

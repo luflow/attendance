@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "Ja",
     "No" : "Nee",
     "Maybe" : "Misschien",
+    "Someone" : "Iemand",
     "Others" : "Overige",
     "Group" : "Groep",
     "Attachments" : "Bijlagen",
@@ -73,6 +74,9 @@ OC.L10N.register(
     "Share link" : "Deel link",
     "Edit" : "Bewerken",
     "Delete" : "Verwijderen",
+    "Loading …" : "Laden …",
+    "Please try again later." : "Probeer het alstublieft later opnieuw.",
+    "No activity yet" : "Nog geen activiteiten",
     "Send reminder" : "Versturen herinnering",
     "Daily" : "Dagelijks",
     "Weekly" : "Wekelijks",
@@ -151,6 +155,11 @@ OC.L10N.register(
     "Try again" : "Probeer opnieuw",
     "No active appointments" : "Geen actieve afspraken",
     "Which appointment?" : "Welke afspraak?",
-    "Comment could not be saved" : "Reactie kon niet worden opgeslagen"
+    "Comment could not be saved" : "Reactie kon niet worden opgeslagen",
+    "Historic" : "Historisch",
+    "Automatic" : "Automatisch",
+    "name" : "naam",
+    "description" : "omschrijving",
+    "time" : "keer"
 },
 "nplurals=2; plural=(n != 1);");

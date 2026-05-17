@@ -26,6 +26,8 @@ OC.L10N.register(
     "Share link" : "Bḍu aseɣwen",
     "Edit" : "Ẓreg",
     "Delete" : "Kkes",
+    "Loading …" : "Asali ...",
+    "No activity yet" : "Ulac armud yakan",
     "Daily" : "S wass",
     "Weekly" : "S umalas",
     "Monday" : "Arim",

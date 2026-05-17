@@ -20,6 +20,8 @@ OC.L10N.register(
     "Share link" : "Veza deljenja",
     "Edit" : "Izmeni",
     "Delete" : "Obriši",
+    "Loading …" : "Učitavanje...",
+    "No activity yet" : "Još nema aktivnosti",
     "Daily" : "дневно",
     "Weekly" : "недељно",
     "Monday" : "Ponedeljak",

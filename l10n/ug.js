@@ -5,6 +5,7 @@ OC.L10N.register(
     "No" : "ياق",
     "Maybe" : "مۇمكىن",
     "Response missing: %1$s on %2$s" : "جاۋاب كەم: %2$s دا %1$s",
+    "Someone" : "بىرەيلەن",
     "Others" : "باشقىلار",
     "Group" : "گۇرۇپپا",
     "Attachments" : "قوشۇمچە ھۆججەتلەر",
@@ -60,6 +61,9 @@ OC.L10N.register(
     "Share link" : "ھەمبەھىر ئۇلىنىشى",
     "Edit" : "تەھرىر",
     "Delete" : "ئۆچۈر",
+    "Loading …" : "يۈكلەۋاتىدۇ…",
+    "Please try again later." : "كېيىن قايتا سىناپ بېقىڭ.",
+    "No activity yet" : "تېخى پائالىيەت يوق",
     "Send reminder" : "ئەسكەرتىش ئەۋەتىڭ",
     "Daily" : "كۈندىلىك",
     "Weekly" : "ھەپتىلىك",
@@ -128,6 +132,11 @@ OC.L10N.register(
     "Confirm" : "جەزملەشتۈرۈڭ",
     "No reminders" : "ئەسكەرتىش يوق",
     "Thank you for your response!" : "جاۋابىڭىزغا رەھمەت!",
-    "Try again" : "قايتا سىناڭ"
+    "Try again" : "قايتا سىناڭ",
+    "Historic" : "تارىخى",
+    "Automatic" : "ئاپتوماتىك",
+    "name" : "ئىسمى",
+    "description" : "چۈشەندۈرۈش",
+    "time" : "ۋاقىت"
 },
 "nplurals=2; plural=(n != 1);");

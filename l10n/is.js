@@ -43,6 +43,8 @@ OC.L10N.register(
     "Share link" : "Tengill á sameign",
     "Edit" : "Breyta",
     "Delete" : "Eyða",
+    "Loading …" : "Hleð inn …",
+    "No activity yet" : "Engar athafnir ennþá",
     "Daily" : "Daglega",
     "Weekly" : "Vikulega",
     "Monthly" : "Mánaðarlega",
@@ -107,6 +109,8 @@ OC.L10N.register(
     "1 hour before" : "1 klukkustund fyrir ",
     "2 hours before" : "2 klukkustundum fyrir",
     "No reminders" : "Engar áminningar",
-    "Try again" : "Reyndu aftur"
+    "Try again" : "Reyndu aftur",
+    "name" : "heiti",
+    "time" : "sinni"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");

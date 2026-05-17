@@ -16,6 +16,7 @@ OC.L10N.register(
     "Please respond to the upcoming appointment!" : "Silakan berikan respons untuk janji temu mendatang!",
     "New appointment: %1$s on %2$s" : "Janji temu baru: %1$s pada %2$s",
     "A new appointment has been created. Please respond soon." : "Janji temu baru telah dibuat. Silakan segera berikan respons.",
+    "Someone" : "Seseorang",
     "Others" : "Lainnya",
     "Group" : "Grup",
     "Me" : "Saya",
@@ -90,6 +91,9 @@ OC.L10N.register(
     "Start check-in" : "Mulai check-in",
     "Edit" : "Edit",
     "Delete" : "Hapus",
+    "Loading …" : "Memuat …",
+    "Please try again later." : "Silakan coba lagi nanti.",
+    "No activity yet" : "Belum ada aktivitas",
     "Send reminder" : "Kirim pengingat",
     "Daily" : "Harian",
     "Weekly" : "Mingguan",
@@ -255,6 +259,7 @@ OC.L10N.register(
     "Subscription URL regenerated" : "URL langganan dibuat ulang",
     "Failed to regenerate subscription URL" : "Gagal membuat ulang URL langganan",
     "URL copied to clipboard" : "URL disalin ke papan klip",
-    "Failed to copy URL" : "Gagal menyalin URL"
+    "Failed to copy URL" : "Gagal menyalin URL",
+    "name" : "nama"
 },
 "nplurals=1; plural=0;");

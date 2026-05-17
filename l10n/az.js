@@ -13,6 +13,7 @@ OC.L10N.register(
     "Dark" : "Qaranlıq",
     "Subscribe" : "Abunə",
     "OK" : "OK",
+    "Guests" : "Qonaqlar",
     "Export" : "Çıxarış",
     "Select all" : "Hamısıı seç",
     "Copy" : "Kopyala",

@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Yes" : "Si",
     "No" : "No",
+    "Someone" : "Calecuna persone",
     "Others" : "Àtere",
     "Group" : "Grupu",
     "Attachments" : "Alligongiados",
@@ -43,6 +44,8 @@ OC.L10N.register(
     "Share link" : "Cumpartzi ligòngiu",
     "Edit" : "Modìfica",
     "Delete" : "Cantzella",
+    "Loading …" : "Carrigamentu …",
+    "No activity yet" : "Ancora peruna atividade ",
     "Send reminder" : "Imbia promemòria",
     "Daily" : "Ogni die",
     "Weekly" : "Ogni chida",
@@ -90,6 +93,9 @@ OC.L10N.register(
     "Date & Time" : "Data e ora",
     "All users" : "Totu is utentes",
     "No users found" : "Peruna utèntzia agatada",
-    "Confirm" : "Cunfirma"
+    "Confirm" : "Cunfirma",
+    "Automatic" : "Automàticu",
+    "name" : "nùmene",
+    "time" : "borta"
 },
 "nplurals=2; plural=(n != 1);");

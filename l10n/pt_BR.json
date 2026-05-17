@@ -18,6 +18,7 @@
     "A new appointment has been created. Please respond soon." : "Um novo compromisso foi criado. Responda o mais rápido possível.",
     "_%1$s new appointment added (e.g. \"%2$s\")_::_%1$s new appointments added (e.g. \"%2$s\")_" : ["%1$s novo compromisso adicionado (p. ex., \"%2$s\")","%1$s de novos compromissos adicionados (p. ex., \"%2$s\")","%1$s novos compromissos adicionados (p. ex., \"%2$s\")"],
     "Please check the new appointments and respond." : "Verifique os novos compromissos e responda.",
+    "Someone" : "Alguém",
     "Others" : "Outros",
     "Group" : "Grupo",
     "Me" : "Eu",
@@ -149,6 +150,7 @@
     "Response deadline must be in the future" : "O prazo para resposta deve ser futuro",
     "After this date, the inquiry is automatically closed and no further responses are accepted. Reminders are scheduled relative to the deadline." : "Após essa data, a consulta é automaticamente fechada e não serão aceitas mais respostas. Os lembretes são programados em função do prazo.",
     "Responses possible until {when}" : "As respostas podem ser enviadas até {when}",
+    "Response no longer possible" : "Não é mais possível responder",
     "Guests" : "Convidados",
     "Unanswered" : "Sem resposta",
     "Upcoming appointments" : "Próximos compromissos",
@@ -211,6 +213,9 @@
     "Edit" : "Editar",
     "Delete" : "Excluir",
     "Check-in summary" : "Resumo das entradas registradas",
+    "Loading …" : "Carregando …",
+    "Please try again later." : "Por favor, tente novamente mais tarde.",
+    "No activity yet" : "Ainda sem atividades",
     "Delete appointment" : "Excluir compromisso",
     "This appointment is part of a series of {count} appointments. How would you like to apply this change?" : "Esta consulta faz parte de uma série de {count} compromissos. Como você gostaria de aplicar essa alteração?",
     "This appointment only" : "Só este compromisso",
@@ -529,6 +534,7 @@
     "Select the appointment you want to check into:" : "Selecione o compromisso para o qual deseja registrar a entrada:",
     "Show all appointments" : "Exibir todos os compromissos",
     "Approximately {datetime}. The exact time depends on when the server background job runs." : "Por volta das {datetime}. A hora exata depende do momento em que a tarefa em segundo plano do servidor for executada.",
+    "Response withdrawn" : "Resposta retirada",
     "Response updated" : "Resposta atualizada",
     "Error updating response" : "Erro ao atualizar a resposta",
     "Comment updated" : "Comentário atualizado",
@@ -538,6 +544,11 @@
     "Subscription URL regenerated" : "URL de inscrição regenerado",
     "Failed to regenerate subscription URL" : "Falha ao regenerar o URL de inscrição",
     "URL copied to clipboard" : "URL copiado para a área de transferência",
-    "Failed to copy URL" : "Falha ao copiar o URL"
+    "Failed to copy URL" : "Falha ao copiar o URL",
+    "Historic" : "Histórico",
+    "Automatic" : "Automático",
+    "name" : "nome",
+    "description" : "descrição",
+    "time" : "vez"
 },"pluralForm" :"nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

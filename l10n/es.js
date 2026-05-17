@@ -135,6 +135,8 @@ OC.L10N.register(
     "2 hours before" : "2 horas antes",
     "No reminders" : "Sin recordatorio",
     "Thank you for your response!" : "¡Gracias por su respuesta!",
-    "Try again" : "Vuelva a intentarlo"
+    "Try again" : "Vuelva a intentarlo",
+    "description" : "descripción",
+    "time" : "vez"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

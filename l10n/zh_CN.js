@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "是",
     "No" : "否",
     "Maybe" : "可能",
+    "Someone" : "某人",
     "Others" : "其它",
     "Group" : "群组",
     "Attachments" : "附件",
@@ -57,6 +58,8 @@ OC.L10N.register(
     "Share link" : "共享链接",
     "Edit" : "编辑",
     "Delete" : "删除",
+    "Loading …" : "正在加载…",
+    "No activity yet" : "暂无动态",
     "Send reminder" : "发送提醒",
     "Daily" : "每天",
     "Weekly" : "每周",
@@ -128,6 +131,10 @@ OC.L10N.register(
     "2 hours before" : "2小时前",
     "No reminders" : "无提醒",
     "Thank you for your response!" : "感谢您的回复！",
-    "Try again" : "重试"
+    "Try again" : "重试",
+    "Historic" : "具有历史意义",
+    "Automatic" : "自动",
+    "name" : "名称",
+    "description" : "描述"
 },
 "nplurals=1; plural=0;");

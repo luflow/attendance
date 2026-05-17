@@ -19,6 +19,7 @@ OC.L10N.register(
     "A new appointment has been created. Please respond soon." : "Uus kohtumine on loodud. Palun vasta õige pea.",
     "_%1$s new appointment added (e.g. \"%2$s\")_::_%1$s new appointments added (e.g. \"%2$s\")_" : ["%1$s uus kohtumine on lisatud (nt. „%2$s“)","%1$s uut kohtumist on lisatud (nt. „%2$s“)"],
     "Please check the new appointments and respond." : "Palun kontrolli uusi kohtumispäringuid ja vasta neile.",
+    "Someone" : "Keegi",
     "Others" : "Muud",
     "Group" : "Grupp",
     "Me" : "Mina",
@@ -159,6 +160,8 @@ OC.L10N.register(
     "Share link" : "Jaga linki",
     "Edit" : "Muuda",
     "Delete" : "Kustuta",
+    "Loading …" : "Laadin...",
+    "No activity yet" : "Tegevusi veel pole",
     "Delete appointment" : "Kustuta kohtumine",
     "This appointment only" : "Vaid see kohtumine",
     "This and all future appointments" : "See ja kõik tulevased kohtumised",
@@ -296,6 +299,7 @@ OC.L10N.register(
     "Reminders before appointment" : "Meeldetuletused enne kohtumist",
     "No reminders" : "Meeldetuletusi pole",
     "Thank you for your response!" : "Suur tänu vastamise eest!",
-    "Try again" : "Proovi uuesti"
+    "Try again" : "Proovi uuesti",
+    "time" : "kord"
 },
 "nplurals=2; plural=(n != 1);");

@@ -12,6 +12,7 @@ OC.L10N.register(
     "Attendance" : "Osallistuminen",
     "Please respond to the upcoming appointment!" : "Anna vastaus tulevaan tapaamiseen!",
     "A new appointment has been created. Please respond soon." : "Uusi tapaaminen on luotu. Vastaa pian.",
+    "Someone" : "Joku",
     "Others" : "Muut",
     "Group" : "Ryhmä",
     "Please respond! We still need your answer." : "Vastaa! Tarvitsemme vastauksesi.",
@@ -81,6 +82,8 @@ OC.L10N.register(
     "Share link" : "Jaa linkki",
     "Edit" : "Muokkaa",
     "Delete" : "Poista",
+    "Loading …" : "Ladataan…",
+    "No activity yet" : "Ei vielä tapahtumia",
     "Send reminder" : "Lähetä muistutus",
     "Daily" : "Päivittäin",
     "Weekly" : "Viikottain",
@@ -233,6 +236,8 @@ OC.L10N.register(
     "Failed to load calendar events" : "Kalenteritapahtumien lataaminen epäonnistui",
     "Subscription URL regenerated" : "Tilausosoite luotu uudelleen",
     "URL copied to clipboard" : "Osoite kopioitu leikepöydälle",
-    "Failed to copy URL" : "Osoitteen kopioiminen epäonnistui"
+    "Failed to copy URL" : "Osoitteen kopioiminen epäonnistui",
+    "name" : "nimi",
+    "time" : "kerran"
 },
 "nplurals=2; plural=(n != 1);");

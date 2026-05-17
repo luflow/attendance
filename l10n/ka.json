@@ -1,6 +1,7 @@
 { "translations": {
     "Yes" : "კი",
     "No" : "არა",
+    "Someone" : "Someone",
     "Group" : "Group",
     "Attachments" : "Attachments",
     "Connect" : "Connect",
@@ -40,6 +41,8 @@
     "Share link" : "გაზიარების ლინკი",
     "Edit" : "Edit",
     "Delete" : "წაშლა",
+    "Loading …" : "Loading …",
+    "No activity yet" : "აქტივობა ჯერ არ არის",
     "Daily" : "დღიურად",
     "Weekly" : "კვირეულად",
     "Monthly" : "Monthly",
@@ -84,6 +87,8 @@
     "Add from Files" : "Add from Files",
     "All users" : "All users",
     "No users found" : "No users found",
-    "Confirm" : "Confirm"
+    "Confirm" : "Confirm",
+    "Automatic" : "Automatic",
+    "time" : "time"
 },"pluralForm" :"nplurals=2; plural=(n!=1);"
 }

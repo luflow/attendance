@@ -2,6 +2,7 @@
     "Yes" : "Ja",
     "No" : "Nee",
     "Maybe" : "Misschien",
+    "Someone" : "Iemand",
     "Others" : "Overige",
     "Group" : "Groep",
     "Attachments" : "Bijlagen",
@@ -71,6 +72,9 @@
     "Share link" : "Deel link",
     "Edit" : "Bewerken",
     "Delete" : "Verwijderen",
+    "Loading …" : "Laden …",
+    "Please try again later." : "Probeer het alstublieft later opnieuw.",
+    "No activity yet" : "Nog geen activiteiten",
     "Send reminder" : "Versturen herinnering",
     "Daily" : "Dagelijks",
     "Weekly" : "Wekelijks",
@@ -149,6 +153,11 @@
     "Try again" : "Probeer opnieuw",
     "No active appointments" : "Geen actieve afspraken",
     "Which appointment?" : "Welke afspraak?",
-    "Comment could not be saved" : "Reactie kon niet worden opgeslagen"
+    "Comment could not be saved" : "Reactie kon niet worden opgeslagen",
+    "Historic" : "Historisch",
+    "Automatic" : "Automatisch",
+    "name" : "naam",
+    "description" : "omschrijving",
+    "time" : "keer"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

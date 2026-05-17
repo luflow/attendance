@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "Da",
     "No" : "Ne",
     "Maybe" : "Možda",
+    "Someone" : "Netko",
     "Others" : "Ostalo",
     "Group" : "Grupa",
     "Attachments" : "Privici",
@@ -50,6 +51,8 @@ OC.L10N.register(
     "Share link" : "Dijeli poveznicu",
     "Edit" : "Uredi",
     "Delete" : "Izbriši",
+    "Loading …" : "Učitavanje…",
+    "No activity yet" : "Trenutno nema aktivnosti",
     "Send reminder" : "Pošalji podsjetnik",
     "Daily" : "Svaki dan",
     "Weekly" : "Svaki tjedan",
@@ -117,6 +120,8 @@ OC.L10N.register(
     "2 hours before" : "2 sata prije",
     "No reminders" : "Nema podsjetnika",
     "Thank you for your response!" : "Hvala na odgovoru!",
-    "Try again" : "Pokušajte ponovno"
+    "Try again" : "Pokušajte ponovno",
+    "name" : "naziv",
+    "time" : "put"
 },
 "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;");

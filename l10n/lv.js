@@ -33,6 +33,8 @@ OC.L10N.register(
     "Share link" : "Dalīt saiti",
     "Edit" : "Labot",
     "Delete" : "Izdzēst",
+    "Loading …" : "Ielādē…",
+    "No activity yet" : "Vēl nav darbību",
     "Daily" : "Katru dienu",
     "Weekly" : "Katru nedēļu",
     "Monthly" : "Ikmēneša",
@@ -84,6 +86,8 @@ OC.L10N.register(
     "15 minutes before" : "15 minūtes pirms",
     "30 minutes before" : "30 minūtes pirms",
     "1 hour before" : "1 stundu pirms",
-    "2 hours before" : "2 stundas pirms"
+    "2 hours before" : "2 stundas pirms",
+    "Automatic" : "Automātisks",
+    "description" : "apraksts"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);");

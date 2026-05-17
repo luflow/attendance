@@ -19,6 +19,7 @@ OC.L10N.register(
     "Cancel" : "Cancel",
     "Edit" : "Rediger",
     "Delete" : "Slett",
+    "No activity yet" : "Ingen aktivitetar enno",
     "Daily" : "Kvar dag",
     "Weekly" : "Kvar veke",
     "Monday" : "Måndag",

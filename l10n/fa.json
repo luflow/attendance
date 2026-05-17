@@ -2,6 +2,7 @@
     "Yes" : "بله",
     "No" : "خیر",
     "Maybe" : "Maybe",
+    "Someone" : "Someone",
     "Others" : "دیگران",
     "Group" : "گروه",
     "Attachments" : "پیوست ها",
@@ -48,6 +49,8 @@
     "Share link" : "اشتراک‌گذاری لینک",
     "Edit" : "ویرایش",
     "Delete" : "حذف",
+    "Loading …" : "در حال بارگذاری...",
+    "No activity yet" : "هنوز فعّالیت ندارد",
     "Send reminder" : "Send reminder",
     "Daily" : "روزانه",
     "Weekly" : "هفته گی",
@@ -110,6 +113,8 @@
     "All users" : "All users",
     "No users found" : "No users found",
     "Confirm" : "تأیید",
-    "Try again" : "تلاش دوباره"
+    "Try again" : "تلاش دوباره",
+    "Historic" : "Historic",
+    "time" : "بار"
 },"pluralForm" :"nplurals=2; plural=(n > 1);"
 }

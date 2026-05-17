@@ -34,6 +34,7 @@ OC.L10N.register(
     "Expired" : "Изтекъл",
     "OK" : "OK",
     "About" : "Относно",
+    "Relevance" : " Съответствие",
     "Closed" : "Затворено",
     "Create appointment" : "Създаване на среща",
     "Export" : "Експорт /изнасям/",

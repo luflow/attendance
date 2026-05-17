@@ -29,6 +29,8 @@ OC.L10N.register(
     "Share link" : "Havolani ulashish",
     "Edit" : "Tahrirlash",
     "Delete" : "Oʻchirish",
+    "Loading …" : "Yuklanmoqda…",
+    "No activity yet" : "Afsuski, faollik mavjud emas",
     "Daily" : "Kunlik",
     "Weekly" : "Haftalik",
     "Monthly" : "Oylik",
@@ -76,6 +78,7 @@ OC.L10N.register(
     "Notification" : "Bildirishnomalar",
     "Add from Files" : "Fayllardan qo'shish",
     "Confirm" : "Tasdiqlash",
-    "Thank you for your response!" : "Javobingiz uchun rahmat!"
+    "Thank you for your response!" : "Javobingiz uchun rahmat!",
+    "Automatic" : "Automatik"
 },
 "nplurals=1; plural=0;");

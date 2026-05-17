@@ -32,6 +32,7 @@ OC.L10N.register(
     "Share link" : "Lidhje ndarjeje",
     "Edit" : "Përpuno",
     "Delete" : "Fshi",
+    "No activity yet" : "Akoma asnjë aktivitet",
     "Daily" : "Përditë",
     "Weekly" : "Çdo javë",
     "Monday" : "E hënë",
@@ -67,6 +68,7 @@ OC.L10N.register(
     "30 minutes before" : "30 minuta para",
     "1 hour before" : "1 orë para",
     "2 hours before" : "2 orë para",
-    "Try again" : "Provo përsëri"
+    "Try again" : "Provo përsëri",
+    "Automatic" : "Automatike"
 },
 "nplurals=2; plural=(n != 1);");

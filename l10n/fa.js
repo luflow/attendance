@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "بله",
     "No" : "خیر",
     "Maybe" : "Maybe",
+    "Someone" : "Someone",
     "Others" : "دیگران",
     "Group" : "گروه",
     "Attachments" : "پیوست ها",
@@ -50,6 +51,8 @@ OC.L10N.register(
     "Share link" : "اشتراک‌گذاری لینک",
     "Edit" : "ویرایش",
     "Delete" : "حذف",
+    "Loading …" : "در حال بارگذاری...",
+    "No activity yet" : "هنوز فعّالیت ندارد",
     "Send reminder" : "Send reminder",
     "Daily" : "روزانه",
     "Weekly" : "هفته گی",
@@ -112,6 +115,8 @@ OC.L10N.register(
     "All users" : "All users",
     "No users found" : "No users found",
     "Confirm" : "تأیید",
-    "Try again" : "تلاش دوباره"
+    "Try again" : "تلاش دوباره",
+    "Historic" : "Historic",
+    "time" : "بار"
 },
 "nplurals=2; plural=(n > 1);");

@@ -28,6 +28,7 @@ OC.L10N.register(
     "Share link" : "ბმულს გაზიარება",
     "Edit" : "შეცვლა",
     "Delete" : "წაშლა",
+    "No activity yet" : "აქტოვობა ჯერ არაა",
     "Daily" : "ყოველდღიური",
     "Weekly" : "ყოველკვირეული",
     "Monday" : "ორშაბათი",
@@ -54,6 +55,7 @@ OC.L10N.register(
     "30 minutes before" : "30 წუთით ადრე",
     "1 hour before" : "1 საათით ადრე",
     "2 hours before" : "2 საათით ადრე",
-    "Try again" : "სცადეთ ახლიდან"
+    "Try again" : "სცადეთ ახლიდან",
+    "Automatic" : "ავტომატური"
 },
 "nplurals=2; plural=(n!=1);");

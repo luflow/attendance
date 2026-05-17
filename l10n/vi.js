@@ -36,6 +36,8 @@ OC.L10N.register(
     "Share link" : "Chia sẻ liên kết",
     "Edit" : "Chỉnh sửa",
     "Delete" : "Xóa",
+    "Loading …" : "Đang tải …",
+    "No activity yet" : "Chưa có hoạt động nào",
     "Daily" : "Hằng ngày",
     "Weekly" : "Hằng tuần",
     "Monthly" : "Hằng tháng",
@@ -89,6 +91,7 @@ OC.L10N.register(
     "30 minutes before" : "Trước 30 phút",
     "1 hour before" : "Trước 1 tiếng",
     "2 hours before" : "Trước 2 tiếng",
-    "Try again" : "Thử lại"
+    "Try again" : "Thử lại",
+    "Automatic" : "Tự động"
 },
 "nplurals=1; plural=0;");

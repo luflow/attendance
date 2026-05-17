@@ -25,6 +25,7 @@ OC.L10N.register(
     "Expired" : "Caducó",
     "OK" : "OK",
     "About" : "Tocante a",
+    "Relevance" : "Relevancia",
     "Reset filter" : "Reafitar la peñera",
     "Export" : "Esportar",
     "Select all" : "Seleicionar too",

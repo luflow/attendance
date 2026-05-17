@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "Ja",
     "No" : "Nei",
     "Maybe" : "Kanskje",
+    "Someone" : "Noen",
     "Others" : "Andre",
     "Group" : "Gruppe",
     "Attachments" : "Vedlegg",
@@ -54,6 +55,8 @@ OC.L10N.register(
     "Share link" : "Del lenke",
     "Edit" : "Rediger",
     "Delete" : "Slett",
+    "Loading …" : "Laster ...",
+    "No activity yet" : "Ingen aktivitet enda",
     "Send reminder" : "Send påminnelse",
     "Daily" : "Daglig",
     "Weekly" : "Ukentlig",
@@ -122,6 +125,11 @@ OC.L10N.register(
     "30 minutes before" : "30 minutter før",
     "1 hour before" : "1 time før",
     "2 hours before" : "2 timer før",
-    "Try again" : "Prøv igjen"
+    "Try again" : "Prøv igjen",
+    "Historic" : "Historisk",
+    "Automatic" : "Automatisk",
+    "name" : "navn",
+    "description" : "beskrivelse",
+    "time" : "gang"
 },
 "nplurals=2; plural=(n != 1);");

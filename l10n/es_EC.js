@@ -48,6 +48,7 @@ OC.L10N.register(
     "Share link" : "Compartir liga",
     "Edit" : "Editar",
     "Delete" : "Eliminar",
+    "Loading …" : "Cargando …",
     "Send reminder" : "Enviar recordatorio",
     "Daily" : "Diariamente",
     "Weekly" : "Semanalmente",
@@ -112,6 +113,7 @@ OC.L10N.register(
     "30 minutes before" : "30 minutos antes",
     "1 hour before" : "1 hora antes",
     "2 hours before" : "2 horas antes",
-    "Try again" : "Reintentar"
+    "Try again" : "Reintentar",
+    "time" : "hora"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

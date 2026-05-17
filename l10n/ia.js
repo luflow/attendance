@@ -16,6 +16,7 @@ OC.L10N.register(
     "Share link" : "Divulgar ligamine",
     "Edit" : "Modificar",
     "Delete" : "Deler",
+    "No activity yet" : "Nulle activitate ancora",
     "Daily" : "Cata die",
     "Weekly" : "Cata septimana",
     "Monday" : "Lunedi",

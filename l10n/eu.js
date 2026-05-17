@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "Bai",
     "No" : "Ez",
     "Maybe" : "Agian",
+    "Someone" : "Norbait",
     "Others" : "Bestelakoak",
     "Group" : "Taldea",
     "Attachments" : "Eranskinak",
@@ -56,6 +57,8 @@ OC.L10N.register(
     "Share link" : "Partekatu esteka",
     "Edit" : "Editatu",
     "Delete" : "Ezabatu",
+    "Loading …" : "Kargatzen ...",
+    "No activity yet" : "Jarduerarik ez oraindik",
     "Send reminder" : "Bidali gogorarazpena",
     "Daily" : "Egunero",
     "Weekly" : "Astero",
@@ -125,6 +128,9 @@ OC.L10N.register(
     "30 minutes before" : "30 minutu lehenago",
     "1 hour before" : "Ordu 1 lehenago",
     "2 hours before" : "2 ordu lehenago",
-    "Try again" : "Saiatu berriz"
+    "Try again" : "Saiatu berriz",
+    "Historic" : "Historikoa",
+    "description" : "deskribapena",
+    "time" : "aldiz"
 },
 "nplurals=2; plural=(n != 1);");

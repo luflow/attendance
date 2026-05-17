@@ -18,6 +18,7 @@ OC.L10N.register(
     "A new appointment has been created. Please respond soon." : "Yeni bir randevu oluşturuldu. Lütfen kısa süre içinde yanıt verin.",
     "_%1$s new appointment added (e.g. \"%2$s\")_::_%1$s new appointments added (e.g. \"%2$s\")_" : ["%1$s yeni randevu eklendi (örneğin \"%2$s\")","%1$s yeni randevu eklendi (örneğin \"%2$s\")"],
     "Please check the new appointments and respond." : "Lütfen yeni randevulara bakıp değerlendirin.",
+    "Someone" : "Biri",
     "Others" : "Diğerleri",
     "Group" : "Grup",
     "Me" : "Benim",
@@ -138,6 +139,9 @@ OC.L10N.register(
     "Edit" : "Düzenle",
     "Delete" : "Sil",
     "Check-in summary" : "Giriş özeti",
+    "Loading …" : "Yükleniyor…",
+    "Please try again later." : "Lütfen bir süre sonra yeniden deneyin.",
+    "No activity yet" : "Henüz bir işlem yok",
     "Send reminder" : "Anımsatıcı gönder",
     "Daily" : "Günlük",
     "Weekly" : "Haftalık",
@@ -397,6 +401,11 @@ OC.L10N.register(
     "Subscription URL regenerated" : "Abonelik adresi yeniden oluşturuldu",
     "Failed to regenerate subscription URL" : "Abonelik adresi yeniden oluşturulamadı",
     "URL copied to clipboard" : "Adres panoya kopyalanamadı",
-    "Failed to copy URL" : "Adres kopyalanamadı"
+    "Failed to copy URL" : "Adres kopyalanamadı",
+    "Historic" : "Tarihi",
+    "Automatic" : "Otomatik",
+    "name" : "ad",
+    "description" : "açıklama",
+    "time" : "kez"
 },
 "nplurals=2; plural=(n > 1);");

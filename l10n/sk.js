@@ -18,6 +18,7 @@ OC.L10N.register(
     "A new appointment has been created. Please respond soon." : "Bola vytvorená nová schôdzka. Prosím, odpovedzte čoskoro.",
     "_%1$s new appointment added (e.g. \"%2$s\")_::_%1$s new appointments added (e.g. \"%2$s\")_" : ["%1$s nová schôdzka pridaná (napr.. \"%2$s\")","%1$s nových schôdzok pridaných (napr.. \"%2$s\")","%1$s nových schôdzok pridaných (napr.. \"%2$s\")","%1$s nové schôdzky pridané (napr. \"%2$s\")"],
     "Please check the new appointments and respond." : "Prosím, skontrolujte nové schôdzky a odpovedzte.",
+    "Someone" : "Niekto",
     "Others" : "Ostatné",
     "Group" : "Skupina",
     "Me" : "Ja",
@@ -113,6 +114,8 @@ OC.L10N.register(
     "Edit" : "Upraviť",
     "Delete" : "Vymazať",
     "Check-in summary" : "Sumár prihlásenia",
+    "Loading …" : "Načítavam …",
+    "No activity yet" : "Zatiaľ žiadne aktivity.",
     "Send reminder" : "Odoslať pripomienku",
     "Daily" : "Denne",
     "Weekly" : "Týždenne",
@@ -343,6 +346,10 @@ OC.L10N.register(
     "Subscription URL regenerated" : "URL odberu regenerované",
     "Failed to regenerate subscription URL" : "Zlyhalo regenerovanie URL odberu",
     "URL copied to clipboard" : "URL skopírovaná do schránky",
-    "Failed to copy URL" : "Nepodarilo sa skopírovať URL"
+    "Failed to copy URL" : "Nepodarilo sa skopírovať URL",
+    "Historic" : "Historické",
+    "Automatic" : "Automaticky",
+    "name" : "názov",
+    "time" : "krát"
 },
 "nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);");

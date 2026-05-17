@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "Да",
     "No" : "Не",
     "Maybe" : "Можеби",
+    "Someone" : "Некој",
     "Others" : "Останати",
     "Group" : "Група",
     "Attachments" : "Прилози",
@@ -45,6 +46,8 @@ OC.L10N.register(
     "Share link" : "Сподели ја врската",
     "Edit" : "Уреди",
     "Delete" : "Избриши",
+    "Loading …" : "Се вчитува…",
+    "No activity yet" : "Сеуште нема активности",
     "Send reminder" : "Испрати потсетник",
     "Daily" : "Дневно",
     "Weekly" : "Неделно",
@@ -105,6 +108,10 @@ OC.L10N.register(
     "2 hours before" : "2 часа пред",
     "No reminders" : "Нема потсетници",
     "Thank you for your response!" : "Благодариме на вашиот одговор.",
-    "Try again" : "Обиди се повторно"
+    "Try again" : "Обиди се повторно",
+    "Historic" : "Историја",
+    "Automatic" : "Автоматски",
+    "description" : "опис",
+    "time" : "еднаш"
 },
 "nplurals=2; plural=(n % 10 == 1 && n % 100 != 11) ? 0 : 1;");

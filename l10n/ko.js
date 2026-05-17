@@ -88,6 +88,9 @@ OC.L10N.register(
     "Start check-in" : "체크인 시작",
     "Edit" : "편집",
     "Delete" : "삭제",
+    "Loading …" : "불러오는 중 ...",
+    "Please try again later." : "다음에 다시 시도해주십시오.",
+    "No activity yet" : "아직 활동 없음",
     "Send reminder" : "알림 전송",
     "Daily" : "매일",
     "Weekly" : "매주",
@@ -259,6 +262,9 @@ OC.L10N.register(
     "Subscription URL regenerated" : "구독 URL이 다시 생성되었습니다",
     "Failed to regenerate subscription URL" : "구독 URL을 다시 생성하는 데 실패했습니다.",
     "URL copied to clipboard" : "URL이 클립보드에 복사되었습니다.",
-    "Failed to copy URL" : "URL 복사에 실패했습니다"
+    "Failed to copy URL" : "URL 복사에 실패했습니다",
+    "Historic" : "역사적",
+    "Automatic" : "자동",
+    "name" : "이름"
 },
 "nplurals=1; plural=0;");

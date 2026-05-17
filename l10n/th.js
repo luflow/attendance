@@ -29,6 +29,7 @@ OC.L10N.register(
     "Share link" : "แชร์ลิงก์",
     "Edit" : "แก้ไข",
     "Delete" : "ลบ",
+    "No activity yet" : "ยังไม่มีกิจกรรม",
     "Daily" : "รายวัน",
     "Weekly" : "รายสัปดาห์",
     "Monthly" : "ทุก ๆ เดือน",
@@ -59,6 +60,7 @@ OC.L10N.register(
     "15 minutes before" : "15 นาทีก่อนหน้านั้น",
     "30 minutes before" : "30 นาทีก่อนหน้านั้น",
     "1 hour before" : "1 ชั่วโมงก่อนหน้านั้น",
-    "2 hours before" : "2 ชั่วโมงก่อนหน้านั้น"
+    "2 hours before" : "2 ชั่วโมงก่อนหน้านั้น",
+    "Automatic" : "อัตโนมัติ"
 },
 "nplurals=1; plural=0;");

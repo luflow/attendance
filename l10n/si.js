@@ -2,6 +2,7 @@ OC.L10N.register(
     "attendance",
     {
     "No" : "නැහැ",
+    "Someone" : "යමෙක්",
     "Others" : "වෙනත්",
     "Attachments" : "ඇමිණුම්",
     "Connect" : "සම්බන්ධ කරන්න",

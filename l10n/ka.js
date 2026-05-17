@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Yes" : "კი",
     "No" : "არა",
+    "Someone" : "Someone",
     "Group" : "Group",
     "Attachments" : "Attachments",
     "Connect" : "Connect",
@@ -42,6 +43,8 @@ OC.L10N.register(
     "Share link" : "გაზიარების ლინკი",
     "Edit" : "Edit",
     "Delete" : "წაშლა",
+    "Loading …" : "Loading …",
+    "No activity yet" : "აქტივობა ჯერ არ არის",
     "Daily" : "დღიურად",
     "Weekly" : "კვირეულად",
     "Monthly" : "Monthly",
@@ -86,6 +89,8 @@ OC.L10N.register(
     "Add from Files" : "Add from Files",
     "All users" : "All users",
     "No users found" : "No users found",
-    "Confirm" : "Confirm"
+    "Confirm" : "Confirm",
+    "Automatic" : "Automatic",
+    "time" : "time"
 },
 "nplurals=2; plural=(n!=1);");

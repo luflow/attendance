@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "Da",
     "No" : "Ne",
     "Maybe" : "Morda",
+    "Someone" : "Nekdo",
     "Others" : "Ostali",
     "Group" : "Skupina",
     "Attachments" : "Priloge",
@@ -49,6 +50,8 @@ OC.L10N.register(
     "Share link" : "Povezava za souporabo",
     "Edit" : "Uredi",
     "Delete" : "Izbriši",
+    "Loading …" : "Poteka nalaganje …",
+    "No activity yet" : "Ni še zabeležene dejavnosti",
     "Send reminder" : "Pošlji opomnik",
     "Daily" : "Dnevno",
     "Weekly" : "Tedensko",
@@ -117,6 +120,9 @@ OC.L10N.register(
     "15 minutes before" : "15 minut prej",
     "30 minutes before" : "30 minut prej",
     "1 hour before" : "1 uro prej",
-    "2 hours before" : "2 uri prej"
+    "2 hours before" : "2 uri prej",
+    "Automatic" : "Samodejno",
+    "name" : "ime",
+    "time" : " ponovitvi"
 },
 "nplurals=4; plural=(n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3);");

@@ -16,6 +16,7 @@ OC.L10N.register(
     "Cancel" : "Cancel",
     "Edit" : "մշակել",
     "Delete" : "հեռացնել",
+    "No activity yet" : "Գործունեություն առկա չէ",
     "Daily" : "Օրական",
     "Weekly" : "Շաբաթական",
     "Monday" : "Երկուշաբթի",

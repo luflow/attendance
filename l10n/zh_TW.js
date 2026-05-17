@@ -18,6 +18,7 @@ OC.L10N.register(
     "A new appointment has been created. Please respond soon." : "已建立新預約。請儘快回應。",
     "_%1$s new appointment added (e.g. \"%2$s\")_::_%1$s new appointments added (e.g. \"%2$s\")_" : ["新增了 %1$s 個新預約（例如「%2$s」）"],
     "Please check the new appointments and respond." : "請檢查新的預約並回應。",
+    "Someone" : "某人",
     "Others" : "其他",
     "Group" : "群組",
     "Me" : "我",
@@ -171,6 +172,8 @@ OC.L10N.register(
     "Edit" : "編輯",
     "Delete" : "刪除",
     "Check-in summary" : "簽到摘要",
+    "Loading …" : "正在載入……",
+    "No activity yet" : "尚未有活動狀態",
     "Delete appointment" : "刪除預約",
     "This appointment is part of a series of {count} appointments. How would you like to apply this change?" : "此預約為 {count} 個預約中的其中一個。您想要怎麼套用此變更？",
     "This appointment only" : "僅此預約",
@@ -468,6 +471,9 @@ OC.L10N.register(
     "Subscription URL regenerated" : "已重新產生訂閱 URL",
     "Failed to regenerate subscription URL" : "重新產生訂閱 URL 失敗",
     "URL copied to clipboard" : "URL 已複製到剪貼簿",
-    "Failed to copy URL" : "複製 URL 失敗"
+    "Failed to copy URL" : "複製 URL 失敗",
+    "Automatic" : "自動",
+    "name" : "名稱",
+    "description" : "描述"
 },
 "nplurals=1; plural=0;");

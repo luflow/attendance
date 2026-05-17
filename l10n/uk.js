@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "Так",
     "No" : "Ні",
     "Maybe" : "Можливо.",
+    "Someone" : "Хтось",
     "Others" : "Інші",
     "Group" : "Група",
     "Attachments" : "Вкладення",
@@ -64,6 +65,9 @@ OC.L10N.register(
     "Share link" : "Надати у публічний доступ",
     "Edit" : "Редагувати",
     "Delete" : "Видалити",
+    "Loading …" : "Завантаження …",
+    "Please try again later." : "Будь ласка, спробуйте пізніше.",
+    "No activity yet" : "Події відсутні",
     "Send reminder" : "Надіслати нагадування",
     "Daily" : "Щоденно",
     "Weekly" : "Щотижня",
@@ -135,6 +139,11 @@ OC.L10N.register(
     "2 hours before" : "за 2 години",
     "No reminders" : "Відсутні нагадування",
     "Thank you for your response!" : "Дякуємо за вашу відповідь!",
-    "Try again" : "Спробуйте ще раз"
+    "Try again" : "Спробуйте ще раз",
+    "Historic" : "Історичний",
+    "Automatic" : "Автоматично",
+    "name" : "ім'я",
+    "description" : "опис",
+    "time" : "раз"
 },
 "nplurals=4; plural=(n % 1 == 0 && n % 10 == 1 && n % 100 != 11 ? 0 : n % 1 == 0 && n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : n % 1 == 0 && (n % 10 ==0 || (n % 10 >=5 && n % 10 <=9) || (n % 100 >=11 && n % 100 <=14 )) ? 2: 3);");

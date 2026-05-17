@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "Ja",
     "No" : "Nej",
     "Maybe" : "Kanske",
+    "Someone" : "Någon",
     "Others" : "Övriga",
     "Group" : "Grupp",
     "Attachments" : "Bilagor",
@@ -54,6 +55,8 @@ OC.L10N.register(
     "Share link" : "Delningslänk",
     "Edit" : "Redigera",
     "Delete" : "Ta bort",
+    "Loading …" : "Laddar ...",
+    "No activity yet" : "Ingen aktivitet än",
     "Send reminder" : "Skicka påminnelse",
     "Daily" : "Varje dag",
     "Weekly" : "Varje vecka",
@@ -124,6 +127,10 @@ OC.L10N.register(
     "2 hours before" : "2 timmar före",
     "No reminders" : "Inga påminnelser",
     "Thank you for your response!" : "Tack för ditt svar!",
-    "Try again" : "Försök igen"
+    "Try again" : "Försök igen",
+    "Automatic" : "Automatisk",
+    "name" : "namn",
+    "description" : "beskrivning",
+    "time" : "gång"
 },
 "nplurals=2; plural=(n != 1);");

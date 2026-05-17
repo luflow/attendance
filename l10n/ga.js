@@ -20,6 +20,7 @@ OC.L10N.register(
     "A new appointment has been created. Please respond soon." : "Tá coinne nua cruthaithe. Freagair go luath le do thoil.",
     "_%1$s new appointment added (e.g. \"%2$s\")_::_%1$s new appointments added (e.g. \"%2$s\")_" : ["%1$s ceapachán nua curtha leis (m.sh. \"%2$s\")","%1$s ceapacháin nua curtha leis (m.sh. \"%2$s\")","%1$s ceapacháin nua curtha leis (m.sh. \"%2$s\")","%1$s ceapacháin nua curtha leis (m.sh. \"%2$s\")","%1$s ceapacháin nua curtha leis (m.sh. \"%2$s\")"],
     "Please check the new appointments and respond." : "Seiceáil na ceapacháin nua agus freagair le do thoil.",
+    "Someone" : "Duine éigin",
     "Others" : "Daoine eile",
     "Group" : "Grúpa",
     "Me" : "Mise",
@@ -213,6 +214,8 @@ OC.L10N.register(
     "Edit" : "Cuir in eagar",
     "Delete" : "Scrios",
     "Check-in summary" : "Achoimre ar an tseiceáil isteach",
+    "Loading …" : "Á lódáil…",
+    "No activity yet" : "Níl aon ghníomhaíocht fós",
     "Delete appointment" : "Scrios an ceapachán",
     "This appointment is part of a series of {count} appointments. How would you like to apply this change?" : "Tá an coinne seo mar chuid de shraith de {count} coinne. Cén chaoi ar mhaith leat an t-athrú seo a chur i bhfeidhm?",
     "This appointment only" : "An coinne seo amháin",
@@ -540,6 +543,10 @@ OC.L10N.register(
     "Subscription URL regenerated" : "URL síntiúis athghinte",
     "Failed to regenerate subscription URL" : "Theip ar URL an tsíntiúis a athghiniúint",
     "URL copied to clipboard" : "URL cóipeáilte chuig an ghearrthaisce",
-    "Failed to copy URL" : "Theip ar an URL a chóipeáil"
+    "Failed to copy URL" : "Theip ar an URL a chóipeáil",
+    "Historic" : "Stairiúil",
+    "name" : "ainm",
+    "description" : "tuairisc",
+    "time" : "am"
 },
 "nplurals=5; plural=(n==1 ? 0 : n==2 ? 1 : n<7 ? 2 : n<11 ? 3 : 4);");

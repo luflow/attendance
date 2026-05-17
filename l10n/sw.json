@@ -16,6 +16,7 @@
     "A new appointment has been created. Please respond soon." : "Uteuzi mpya umeundwa. Tafadhali jibu hivi karibuni.",
     "_%1$s new appointment added (e.g. \"%2$s\")_::_%1$s new appointments added (e.g. \"%2$s\")_" : ["%1$s new appointment added (e.g. \"%2$s\")","Miadi mipya ya %1$s imeongezwa (k.m. \"%2$s\")"],
     "Please check the new appointments and respond." : "Tafadhali angalia miadi mipya na ujibu.",
+    "Someone" : "Mtu fulani",
     "Others" : "Wengine",
     "Group" : "Kundi",
     "Me" : "Mimi",
@@ -131,6 +132,9 @@
     "Edit" : "Hariri",
     "Delete" : "Futa",
     "Check-in summary" : "Muhtasari wa kuingia",
+    "Loading …" : "Inapakia",
+    "Please try again later." : "Tafadhali jaribu tena baadaye.",
+    "No activity yet" : "Bado hakuna shughuli",
     "Send reminder" : "Send reminder",
     "Daily" : "Kwa kila siku",
     "Weekly" : "Kwa kila wiki",
@@ -374,6 +378,9 @@
     "Subscription URL regenerated" : "URL ya usajili imeundwa upya",
     "Failed to regenerate subscription URL" : "Imeshindwa kuzalisha tena URL ya usajili",
     "URL copied to clipboard" : "URL imenakiliwa kwenye ubao wa kunakili",
-    "Failed to copy URL" : "Imeshindwa kunakili URL"
+    "Failed to copy URL" : "Imeshindwa kunakili URL",
+    "Automatic" : "Moja kwa moja",
+    "description" : "maelezo",
+    "time" : "time"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

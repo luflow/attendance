@@ -18,6 +18,7 @@ OC.L10N.register(
     "A new appointment has been created. Please respond soon." : "ມີການສ້າງການນັດໝາຍໃໝ່. ກະລຸນາຕອບກັບໃນໄວໆນີ້.",
     "_%1$s new appointment added (e.g. \"%2$s\")_::_%1$s new appointments added (e.g. \"%2$s\")_" : ["%1$s ການນັດໝາຍໃໝ່ຖືກເພີ່ມເຂົ້າ (ຕົວຢ່າງ: \"%2$s\")"],
     "Please check the new appointments and respond." : "ກະລຸນາກວດສອບການນັດໝາຍໃໝ່ ແລະ ຕອບກັບ.",
+    "Someone" : "ບາງຄົນ",
     "Others" : "ອື່ນໆ",
     "Group" : "ກຸ່ມ",
     "Me" : "ຂ້ອຍ",
@@ -173,6 +174,9 @@ OC.L10N.register(
     "Edit" : "ແກ້ໄຂ",
     "Delete" : "ລຶບ",
     "Check-in summary" : "ສະຫຼຸບການເຊັກອິນ",
+    "Loading …" : "ກຳລັງໂຫຼດ...",
+    "Please try again later." : "ກະລຸນາລອງໃໝ່ອີກຄັ້ງ.",
+    "No activity yet" : "ຍັງບໍ່ມີກິດຈະກຳເທື່ອ",
     "Delete appointment" : "ລຶບການນັດໝາຍ",
     "This appointment is part of a series of {count} appointments. How would you like to apply this change?" : "ການນັດໝາຍນີ້ແມ່ນສ່ວນໜຶ່ງຂອງລາຍການຕໍ່ເນື່ອງ {count} ນັດໝາຍ. ທ່ານຕ້ອງການນຳໃຊ້ການປ່ຽນແປງນີ້ແນວໃດ?",
     "This appointment only" : "ສະເພາະການນັດໝາຍນີ້ເທົັ້ນ",
@@ -461,6 +465,9 @@ OC.L10N.register(
     "Subscription URL regenerated" : "ສ້າງ URL ສຳລັບສະໝັກຕິດຕາມໃໝ່ແລ້ວ",
     "Failed to regenerate subscription URL" : "ສ້າງ URL ສຳລັບສະໝັກຕິດຕາມໃໝ່ລົ້ມເຫຼວ",
     "URL copied to clipboard" : "ສຳເນົາ URL ໃສ່ຄລິບບອດແລ້ວ",
-    "Failed to copy URL" : "ສຳເນົາ URL ລົ້ມເຫຼວ"
+    "Failed to copy URL" : "ສຳເນົາ URL ລົ້ມເຫຼວ",
+    "Historic" : "ປະຫວັດສາດ",
+    "Automatic" : "Automatic",
+    "name" : "ຊື່"
 },
 "nplurals=1; plural=0;");

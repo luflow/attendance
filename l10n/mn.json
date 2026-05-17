@@ -2,6 +2,7 @@
     "Yes" : "Тийм",
     "No" : "Үгүй",
     "Maybe" : "Магадгүй",
+    "Someone" : "Хэн нэгэн",
     "Group" : "Бүлэг",
     "Attachments" : "Хавсралт",
     "Connect" : "—Ö–æ–ª–±–æ—Ö",
@@ -45,6 +46,8 @@
     "Share link" : "Холбоос хуваалцах",
     "Edit" : "Өөрчлөх",
     "Delete" : "Устгах",
+    "Loading …" : "Ачаалж байна …",
+    "No activity yet" : "–û–¥–æ–æ—Ö–æ–Ω–¥–æ–æ —è–º–∞—Ä —á “Ø–π–ª–¥—ç–ª –∞–ª–≥–∞ ",
     "Daily" : "Өдөр бүр",
     "Weekly" : "Долоо хоног бүр",
     "Monthly" : "Сар бүр",
@@ -102,6 +105,9 @@
     "2 hours before" : "2 цагийн өмнө",
     "No reminders" : "Сануулга байхгүй",
     "Thank you for your response!" : "Хариултад баярлалаа!",
-    "Try again" : "Дахин оролдох"
+    "Try again" : "Дахин оролдох",
+    "Automatic" : "Автомат",
+    "name" : "нэр",
+    "time" : "удаа"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "Taip",
     "No" : "Ne",
     "Maybe" : "Galbūt",
+    "Someone" : "Kažkas",
     "Others" : "Kiti",
     "Group" : "Grupė",
     "Attachments" : "Priedai",
@@ -46,6 +47,7 @@ OC.L10N.register(
     "Custom range" : "Pasirinktinis diapazonas",
     "Start date" : "Pradžios data",
     "Copy" : "Kopijuoti",
+    "Last accessed" : "Paskutinį kartą prisijungta",
     "Cancel" : "Atsisakyti",
     "Link copied to clipboard" : "Nuoroda nukopijuota į iškarpinę",
     "No response" : "Nėra atsakymo",
@@ -53,6 +55,9 @@ OC.L10N.register(
     "Share link" : "Viešinio nuoroda",
     "Edit" : "Taisyti",
     "Delete" : "Ištrinti",
+    "Loading …" : "Įkeliama…",
+    "Please try again later." : "Bandykite dar kartą.",
+    "No activity yet" : "Kol kas jokių veiksmų",
     "Send reminder" : "Siųsti priminimą",
     "Daily" : "Kas dieną",
     "Weekly" : "Kas savaitę",
@@ -124,6 +129,9 @@ OC.L10N.register(
     "2 hours before" : "Prieš 2 valandas",
     "No reminders" : "Nėra priminimų",
     "Thank you for your response!" : "Ačiū už jūsų atsakymą!",
-    "Try again" : "Bandyti dar kartą"
+    "Try again" : "Bandyti dar kartą",
+    "Automatic" : "Automatinė",
+    "name" : "pavadinimas",
+    "time" : "karto"
 },
 "nplurals=4; plural=(n % 10 == 1 && (n % 100 > 19 || n % 100 < 11) ? 0 : (n % 10 >= 2 && n % 10 <=9) && (n % 100 > 19 || n % 100 < 11) ? 1 : n % 1 != 0 ? 2: 3);");

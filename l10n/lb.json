@@ -13,6 +13,7 @@
     "Cancel" : "Cancel",
     "Edit" : "Änneren",
     "Delete" : "Läschen",
+    "No activity yet" : "Bis elo keng Aktivitéit",
     "Daily" : "All Dag",
     "Weekly" : "All Woch",
     "Monday" : "Méindeg",
@@ -36,6 +37,7 @@
     "15 minutes before" : "15 Minutte virdrun",
     "30 minutes before" : "30 Minutte virdrun",
     "1 hour before" : "1 Stonn virdrun",
-    "2 hours before" : "2 Stonne virdrun"
+    "2 hours before" : "2 Stonne virdrun",
+    "Automatic" : "Automatesch"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

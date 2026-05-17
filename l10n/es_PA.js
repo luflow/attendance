@@ -25,6 +25,7 @@ OC.L10N.register(
     "Cancel" : "Cancel",
     "Edit" : "Editar",
     "Delete" : "Borrar",
+    "No activity yet" : "Aún no hay actividades",
     "Daily" : "Diariamente",
     "Weekly" : "Semanalmente",
     "Monday" : "Lunes",

@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "Tak",
     "No" : "Nie",
     "Maybe" : "Może",
+    "Someone" : "Ktoś",
     "Others" : "Inne",
     "Group" : "Grupa",
     "Attachments" : "Załączniki",
@@ -55,6 +56,8 @@ OC.L10N.register(
     "Share link" : "Udostępnij link",
     "Edit" : "Edycja",
     "Delete" : "Usuń",
+    "Loading …" : "Wczytywanie…",
+    "No activity yet" : "Brak aktywności",
     "Send reminder" : "Wyślij przypomnienie",
     "Daily" : "Codziennie",
     "Weekly" : "Co tydzień",
@@ -133,6 +136,11 @@ OC.L10N.register(
     "2 hours before" : "2 godziny przed",
     "No reminders" : "Brak przypomnień",
     "Thank you for your response!" : "Dziękujemy za Twoją odpowiedź!",
-    "Try again" : "Spróbuj ponownie"
+    "Try again" : "Spróbuj ponownie",
+    "Historic" : "Zabytkowe",
+    "Automatic" : "Automatycznie",
+    "name" : "nazwa",
+    "description" : "opis",
+    "time" : "raz"
 },
 "nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);");

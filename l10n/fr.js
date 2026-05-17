@@ -17,6 +17,7 @@ OC.L10N.register(
     "New appointment: %1$s on %2$s" : "Nouveau rendez-vous : %1$ssur%2$s",
     "A new appointment has been created. Please respond soon." : "Un nouveau rendez-vous a été créé. Répondez-y au plus vite !",
     "Please check the new appointments and respond." : "De nouveaux rendez-vous ont été ajoutés, merci d'y répondre.",
+    "Someone" : "Quelqu'un",
     "Others" : "Autres",
     "Group" : "Groupe",
     "Me" : "Moi",
@@ -114,6 +115,8 @@ OC.L10N.register(
     "Edit" : "Modifier",
     "Delete" : "Supprimer",
     "Check-in summary" : "Résumé de l'enregistrement",
+    "Loading …" : "Chargement...",
+    "No activity yet" : "Pas encore d’activité",
     "Send reminder" : "Envoyer un rappel",
     "Daily" : "Quotidien",
     "Weekly" : "Hebdomadaire",
@@ -312,6 +315,10 @@ OC.L10N.register(
     "Subscription URL regenerated" : "URL d'abonnement régénérée",
     "Failed to regenerate subscription URL" : "Impossible de régénérer l'URL d'abonnement",
     "URL copied to clipboard" : "URL copiée dans le presse-papiers",
-    "Failed to copy URL" : "Impossible de copier l'URL"
+    "Failed to copy URL" : "Impossible de copier l'URL",
+    "Historic" : "Historique",
+    "name" : "nom",
+    "description" : "description",
+    "time" : "fois"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");
