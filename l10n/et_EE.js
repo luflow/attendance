@@ -161,6 +161,7 @@ OC.L10N.register(
     "Edit" : "Muuda",
     "Delete" : "Kustuta",
     "Loading …" : "Laadin...",
+    "Please try again later." : "Palun proovi hiljem uuesti",
     "No activity yet" : "Tegevusi veel pole",
     "Delete appointment" : "Kustuta kohtumine",
     "This appointment only" : "Vaid see kohtumine",
@@ -300,6 +301,8 @@ OC.L10N.register(
     "No reminders" : "Meeldetuletusi pole",
     "Thank you for your response!" : "Suur tänu vastamise eest!",
     "Try again" : "Proovi uuesti",
+    "Automatic" : "Automaatne",
+    "name" : "nimi",
     "time" : "kord"
 },
 "nplurals=2; plural=(n != 1);");

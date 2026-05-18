@@ -18,6 +18,7 @@
     "A new appointment has been created. Please respond soon." : "A new appointment has been created. Please respond soon.",
     "_%1$s new appointment added (e.g. \"%2$s\")_::_%1$s new appointments added (e.g. \"%2$s\")_" : ["%1$s new appointment added (e.g. \"%2$s\")","%1$s new appointments added (e.g. \"%2$s\")"],
     "Please check the new appointments and respond." : "Please check the new appointments and respond.",
+    "Someone" : "Someone",
     "Others" : "Others",
     "Group" : "Group",
     "Me" : "Me",
@@ -211,6 +212,9 @@
     "Edit" : "Edit",
     "Delete" : "Delete",
     "Check-in summary" : "Check-in summary",
+    "Loading …" : "Loading …",
+    "Please try again later." : "Please try again later.",
+    "No activity yet" : "No activity yet",
     "Delete appointment" : "Delete appointment",
     "This appointment is part of a series of {count} appointments. How would you like to apply this change?" : "This appointment is part of a series of {count} appointments. How would you like to apply this change?",
     "This appointment only" : "This appointment only",
@@ -520,6 +524,9 @@
     "Failed to regenerate subscription URL" : "Failed to regenerate subscription URL",
     "URL copied to clipboard" : "URL copied to clipboard",
     "Failed to copy URL" : "Failed to copy URL",
+    "Historic" : "Historic",
+    "Automatic" : "Automatic",
+    "name" : "name",
     "description" : "description",
     "time" : "time"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

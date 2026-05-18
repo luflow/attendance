@@ -41,6 +41,7 @@ OC.L10N.register(
     "weeks" : "həftələr",
     "User" : "User",
     "Description" : "Açıqlanma",
-    "Confirm" : "Təsdiq edin"
+    "Confirm" : "Təsdiq edin",
+    "Automatic" : "Avtomatik"
 },
 "nplurals=2; plural=(n != 1);");

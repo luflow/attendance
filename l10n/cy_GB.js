@@ -21,6 +21,7 @@ OC.L10N.register(
     "Cancel" : "Cancel",
     "Edit" : "Golygu",
     "Delete" : "Dileu",
+    "No activity yet" : "Dim gweithred eto",
     "Daily" : "Dyddiol",
     "Weekly" : "Wythnosol",
     "Monthly" : "Misol",
@@ -58,6 +59,8 @@ OC.L10N.register(
     "15 minutes before" : "15 munud cynt",
     "30 minutes before" : "30 munud cynt",
     "1 hour before" : "1 awr cynt",
-    "2 hours before" : "2 awr cynt"
+    "2 hours before" : "2 awr cynt",
+    "Automatic" : "Awtomatig",
+    "time" : "amser"
 },
 "nplurals=4; plural=(n==1) ? 0 : (n==2) ? 1 : (n != 8 && n != 11) ? 2 : 3;");

@@ -237,6 +237,7 @@ OC.L10N.register(
     "Subscription URL regenerated" : "Tilausosoite luotu uudelleen",
     "URL copied to clipboard" : "Osoite kopioitu leikepöydälle",
     "Failed to copy URL" : "Osoitteen kopioiminen epäonnistui",
+    "Automatic" : "Automaattinen",
     "name" : "nimi",
     "time" : "kerran"
 },

@@ -15,6 +15,7 @@ OC.L10N.register(
     "Cancel" : "Cancel",
     "Edit" : "সম্পাদনা",
     "Delete" : "মুছে",
+    "No activity yet" : "এখনও কোন কার্যকলাপ নেই",
     "Daily" : "দৈনিক",
     "Weekly" : "সাপ্তাহিক",
     "Monday" : "সোমবার",
@@ -32,6 +33,7 @@ OC.L10N.register(
     "weeks" : "সপ্তাহসমূহ",
     "User" : "User",
     "Description" : "বিবরণ",
-    "Notification" : "নোটিফিকেশন "
+    "Notification" : "নোটিফিকেশন ",
+    "Automatic" : "স্বয়ংক্রিয়"
 },
 "nplurals=2; plural=(n != 1);");

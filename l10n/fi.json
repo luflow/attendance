@@ -235,6 +235,7 @@
     "Subscription URL regenerated" : "Tilausosoite luotu uudelleen",
     "URL copied to clipboard" : "Osoite kopioitu leikepöydälle",
     "Failed to copy URL" : "Osoitteen kopioiminen epäonnistui",
+    "Automatic" : "Automaattinen",
     "name" : "nimi",
     "time" : "kerran"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

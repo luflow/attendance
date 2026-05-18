@@ -4,6 +4,7 @@
     "Yes" : "Sí",
     "No" : "No",
     "Maybe" : "Quizás",
+    "Someone" : "Alguien",
     "Others" : "Otros",
     "Group" : "Grupo",
     "Attachments" : "Adjuntos",
@@ -60,6 +61,9 @@
     "Share link" : "Enlace del recurso compartido",
     "Edit" : "Editar",
     "Delete" : "Eliminar",
+    "Loading …" : "Cargando …",
+    "Please try again later." : "Por favor, inténtalo de nuevo más tarde.",
+    "No activity yet" : "Aun no hay actividad",
     "Send reminder" : "Enviar recordatorio",
     "Daily" : "Cada día",
     "Weekly" : "Semanalmente",
@@ -134,6 +138,9 @@
     "No reminders" : "Sin recordatorio",
     "Thank you for your response!" : "¡Gracias por su respuesta!",
     "Try again" : "Vuelva a intentarlo",
+    "Historic" : "Histórico",
+    "Automatic" : "Automático",
+    "name" : "nombre",
     "description" : "descripción",
     "time" : "vez"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"

@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Yes" : "Sí",
     "No" : "Non",
+    "Someone" : "Daquień",
     "Group" : "Grupu",
     "Connect" : "Coneutar",
     "Add account" : "Amestar una cuenta",
@@ -39,6 +40,8 @@ OC.L10N.register(
     "Share link" : "Compartir l'enllaz",
     "Edit" : "Editar",
     "Delete" : "Desaniciar",
+    "Loading …" : "Cargando…",
+    "No activity yet" : " Entá nun hai actividá",
     "Daily" : "Caldía",
     "Weekly" : "Selmanalmente",
     "Monday" : "Llunes",
@@ -90,6 +93,7 @@ OC.L10N.register(
     "30 minutes before" : "30 minutos enantes",
     "1 hour before" : "1 hora enantes",
     "2 hours before" : "2 hores enantes",
-    "Try again" : "Retentar"
+    "Try again" : "Retentar",
+    "Automatic" : "Automáticu"
 },
 "nplurals=2; plural=(n != 1);");

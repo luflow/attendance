@@ -30,6 +30,8 @@ OC.L10N.register(
     "Share link" : "Konhavigi ligilon",
     "Edit" : "Modifi",
     "Delete" : "Forigi",
+    "Loading …" : "Ŝargado...",
+    "No activity yet" : "Ankoraŭ neniu aktivaĵo",
     "Daily" : "Ĉiutage",
     "Weekly" : "Ĉiusemajne",
     "Monday" : "Lundo",
@@ -71,6 +73,7 @@ OC.L10N.register(
     "15 minutes before" : "15 minutojn antaŭe",
     "30 minutes before" : "30 minutojn antaŭe",
     "1 hour before" : "1 horon antaŭe",
-    "2 hours before" : "2 horojn antaŭe"
+    "2 hours before" : "2 horojn antaŭe",
+    "Automatic" : "Aŭtomata"
 },
 "nplurals=2; plural=(n != 1);");

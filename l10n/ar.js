@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "نعم",
     "No" : "لا",
     "Maybe" : "ربما",
+    "Someone" : "شخصٌ ما",
     "Others" : "آخرون",
     "Group" : "المجموعة",
     "Attachments" : "المُرفَقات",
@@ -56,6 +57,9 @@ OC.L10N.register(
     "Share link" : "رابط مشاركة",
     "Edit" : "تحرير",
     "Delete" : "حذف",
+    "Loading …" : "التحميل جارٍ ...",
+    "Please try again later." : "رجاءً، حاول مرة أخرى لاحقاً.",
+    "No activity yet" : "لا توجد أنشطة حتى الآن",
     "Send reminder" : "إرسال تذكير",
     "Daily" : "يومياً",
     "Weekly" : "أسبوعياً",
@@ -126,6 +130,11 @@ OC.L10N.register(
     "1 hour before" : "قبل الحدث بـ  1 ساعة",
     "2 hours before" : "قبل الحدث بـ  2 ساعتين",
     "No reminders" : "لا توجد أي تذكيرات",
-    "Try again" : "عاود المحاولة"
+    "Try again" : "عاود المحاولة",
+    "Historic" : "تاريخي",
+    "Automatic" : "تلقائي",
+    "name" : "الاسم",
+    "description" : "الوصف",
+    "time" : "مرة"
 },
 "nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;");

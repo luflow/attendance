@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "Sí",
     "No" : "No",
     "Maybe" : "Potser",
+    "Someone" : "Algú",
     "Others" : "Altres",
     "Group" : "Grup",
     "Attachments" : "Adjunts",
@@ -56,6 +57,8 @@ OC.L10N.register(
     "Share link" : "Comparteix un enllaç",
     "Edit" : "Edició",
     "Delete" : "Suprimir",
+    "Loading …" : "S'està carregant…",
+    "No activity yet" : "Encara no hi ha activitat",
     "Send reminder" : "Envia un recordatori",
     "Daily" : "Diàriament",
     "Weekly" : "Setmanalment",
@@ -124,6 +127,11 @@ OC.L10N.register(
     "1 hour before" : "1 hora abans",
     "2 hours before" : "2 hores abans",
     "No reminders" : "Sense recordatoris",
-    "Try again" : "Torneu-ho a provar"
+    "Try again" : "Torneu-ho a provar",
+    "Historic" : "Històric",
+    "Automatic" : "Automàtic",
+    "name" : "nom",
+    "description" : "descripció",
+    "time" : "vegada"
 },
 "nplurals=2; plural=(n != 1);");

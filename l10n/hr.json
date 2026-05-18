@@ -119,6 +119,7 @@
     "No reminders" : "Nema podsjetnika",
     "Thank you for your response!" : "Hvala na odgovoru!",
     "Try again" : "Pokušajte ponovno",
+    "Automatic" : "Automatsko",
     "name" : "naziv",
     "time" : "put"
 },"pluralForm" :"nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;"

@@ -127,6 +127,7 @@ OC.L10N.register(
     "Thank you for your response!" : "Köszönjük a válaszát!",
     "Try again" : "Próbálja újra",
     "Historic" : "Történelmi",
+    "Automatic" : "Automatikus",
     "name" : "név",
     "time" : "alkalom"
 },

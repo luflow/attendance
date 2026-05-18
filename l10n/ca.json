@@ -2,6 +2,7 @@
     "Yes" : "Sí",
     "No" : "No",
     "Maybe" : "Potser",
+    "Someone" : "Algú",
     "Others" : "Altres",
     "Group" : "Grup",
     "Attachments" : "Adjunts",
@@ -54,6 +55,8 @@
     "Share link" : "Comparteix un enllaç",
     "Edit" : "Edició",
     "Delete" : "Suprimir",
+    "Loading …" : "S'està carregant…",
+    "No activity yet" : "Encara no hi ha activitat",
     "Send reminder" : "Envia un recordatori",
     "Daily" : "Diàriament",
     "Weekly" : "Setmanalment",
@@ -122,6 +125,11 @@
     "1 hour before" : "1 hora abans",
     "2 hours before" : "2 hores abans",
     "No reminders" : "Sense recordatoris",
-    "Try again" : "Torneu-ho a provar"
+    "Try again" : "Torneu-ho a provar",
+    "Historic" : "Històric",
+    "Automatic" : "Automàtic",
+    "name" : "nom",
+    "description" : "descripció",
+    "time" : "vegada"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

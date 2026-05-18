@@ -39,6 +39,7 @@
     "weeks" : "həftələr",
     "User" : "User",
     "Description" : "Açıqlanma",
-    "Confirm" : "Təsdiq edin"
+    "Confirm" : "Təsdiq edin",
+    "Automatic" : "Avtomatik"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

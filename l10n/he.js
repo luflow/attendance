@@ -99,6 +99,7 @@ OC.L10N.register(
     "1 hour before" : "1 שעה לפני",
     "2 hours before" : "2 שעות לפני",
     "Try again" : "ניסיון חוזר",
+    "Automatic" : "אוטומטי",
     "name" : "שם",
     "time" : "בשעה"
 },

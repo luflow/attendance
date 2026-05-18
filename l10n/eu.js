@@ -58,6 +58,7 @@ OC.L10N.register(
     "Edit" : "Editatu",
     "Delete" : "Ezabatu",
     "Loading …" : "Kargatzen ...",
+    "Please try again later." : "Saiatu berriro geroago, mesedez.",
     "No activity yet" : "Jarduerarik ez oraindik",
     "Send reminder" : "Bidali gogorarazpena",
     "Daily" : "Egunero",
@@ -130,6 +131,8 @@ OC.L10N.register(
     "2 hours before" : "2 ordu lehenago",
     "Try again" : "Saiatu berriz",
     "Historic" : "Historikoa",
+    "Automatic" : "Automatikoa",
+    "name" : "izena",
     "description" : "deskribapena",
     "time" : "aldiz"
 },

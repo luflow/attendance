@@ -18,6 +18,7 @@ OC.L10N.register(
     "A new appointment has been created. Please respond soon." : "Ένα νέο ραντεβού δημιουργήθηκε. Παρακαλούμε απαντήστε σύντομα.",
     "_%1$s new appointment added (e.g. \"%2$s\")_::_%1$s new appointments added (e.g. \"%2$s\")_" : ["Προστέθηκε %1$s νέο ραντεβού (π.χ. \"%2$s\")","Προστέθηκαν %1$s νέα ραντεβού (π.χ. \"%2$s\")"],
     "Please check the new appointments and respond." : "Παρακαλούμε ελέγξτε τα νέα ραντεβού και απαντήστε.",
+    "Someone" : "Κάποιος",
     "Others" : "Άλλοι",
     "Group" : "Ομάδα",
     "Me" : "Εγώ",
@@ -117,6 +118,9 @@ OC.L10N.register(
     "Edit" : "Επεξεργασία",
     "Delete" : "Διαγραφή",
     "Check-in summary" : "Σύνοψη παρουσιών",
+    "Loading …" : "Γίνεται φόρτωση…",
+    "Please try again later." : "Παρακαλούμε δοκιμάστε ξανά αργότερα.",
+    "No activity yet" : "Καμία δραστηριότητα ακόμα",
     "Send reminder" : "Αποστολή υπενθύμισης",
     "Daily" : "Ημερησίως",
     "Weekly" : "Εβδομαδιαίως",
@@ -345,6 +349,11 @@ OC.L10N.register(
     "Subscription URL regenerated" : "Το URL συνδρομής επαναδημιουργήθηκε",
     "Failed to regenerate subscription URL" : "Αποτυχία επαναδημιουργίας URL συνδρομής",
     "URL copied to clipboard" : "Το URL αντιγράφηκε στο πρόχειρο",
-    "Failed to copy URL" : "Αποτυχία αντιγραφής URL"
+    "Failed to copy URL" : "Αποτυχία αντιγραφής URL",
+    "Historic" : "Ιστορικό",
+    "Automatic" : "Αυτόματο",
+    "name" : "όνομα",
+    "description" : "περιγραφή",
+    "time" : "φορά"
 },
 "nplurals=2; plural=(n != 1);");

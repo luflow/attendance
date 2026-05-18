@@ -116,6 +116,7 @@ OC.L10N.register(
     "Delete" : "Supprimer",
     "Check-in summary" : "Résumé de l'enregistrement",
     "Loading …" : "Chargement...",
+    "Please try again later." : "Veuillez réessayer plus tard",
     "No activity yet" : "Pas encore d’activité",
     "Send reminder" : "Envoyer un rappel",
     "Daily" : "Quotidien",
@@ -317,6 +318,7 @@ OC.L10N.register(
     "URL copied to clipboard" : "URL copiée dans le presse-papiers",
     "Failed to copy URL" : "Impossible de copier l'URL",
     "Historic" : "Historique",
+    "Automatic" : "Automatique",
     "name" : "nom",
     "description" : "description",
     "time" : "fois"

@@ -121,6 +121,7 @@ OC.L10N.register(
     "Delete" : "Eliminar",
     "Check-in summary" : "Resumo do rexistro de entrada",
     "Loading …" : "Cargando…",
+    "Please try again later." : "Ténteo máis adiante.",
     "No activity yet" : "Aínda non houbo actividade",
     "Send reminder" : "Enviar lembrete",
     "Daily" : "A diario",
@@ -354,6 +355,7 @@ OC.L10N.register(
     "URL copied to clipboard" : "O URL foi copiado no portapapeis",
     "Failed to copy URL" : "Produciuse un fallo ao copiar o URL",
     "Historic" : "Histórico",
+    "Automatic" : "Automatico",
     "name" : "nome",
     "description" : "descrición",
     "time" : "vez"

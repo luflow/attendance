@@ -2,6 +2,7 @@ OC.L10N.register(
     "attendance",
     {
     "Maybe" : "Tal vez",
+    "Someone" : "Alguien",
     "Others" : "Otros",
     "Group" : "Grupo",
     "Attachments" : "Adjuntos",
@@ -49,6 +50,7 @@ OC.L10N.register(
     "Edit" : "Editar",
     "Delete" : "Eliminar",
     "Loading …" : "Cargando …",
+    "No activity yet" : "Aún no tiene actividad",
     "Send reminder" : "Enviar recordatorio",
     "Daily" : "Diariamente",
     "Weekly" : "Semanalmente",
@@ -114,6 +116,9 @@ OC.L10N.register(
     "1 hour before" : "1 hora antes",
     "2 hours before" : "2 horas antes",
     "Try again" : "Reintentar",
+    "Historic" : "Histórico",
+    "Automatic" : "Automático",
+    "name" : "nombre",
     "time" : "hora"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

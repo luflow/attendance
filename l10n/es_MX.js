@@ -2,6 +2,7 @@ OC.L10N.register(
     "attendance",
     {
     "Maybe" : "Tal vez",
+    "Someone" : "Alguien",
     "Others" : "Otros",
     "Group" : "Grupo",
     "Attachments" : "Archivos adjuntos",
@@ -101,6 +102,8 @@ OC.L10N.register(
     "1 hour before" : "1 hora antes",
     "2 hours before" : "2 horas antes",
     "Try again" : "Reintentar",
+    "Automatic" : "Automático",
+    "name" : "nombre",
     "time" : "vez"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

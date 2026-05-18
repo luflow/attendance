@@ -18,6 +18,7 @@ OC.L10N.register(
     "A new appointment has been created. Please respond soon." : "Byla vytvořena nová schůzka. Prosím odpovězte brzy.",
     "_%1$s new appointment added (e.g. \"%2$s\")_::_%1$s new appointments added (e.g. \"%2$s\")_" : ["%1$s nová schůzka přidána (např. „%2$s“)","%1$s nové schůzky přidány (např. „%2$s“)","%1$s nových schůzek přidáno (např. „%2$s“)","%1$s nové schůzky přidány (např. „%2$s“)"],
     "Please check the new appointments and respond." : "Vyberte nové schůzky a odpovězte.",
+    "Someone" : "Někdo",
     "Others" : "Ostatní",
     "Group" : "Skupina",
     "Me" : "Já",
@@ -144,6 +145,9 @@ OC.L10N.register(
     "Edit" : "Upravit",
     "Delete" : "Smazat",
     "Check-in summary" : "Souhrn zapsání se",
+    "Loading …" : "Načítání …",
+    "Please try again later." : "Zkuste to znovu později",
+    "No activity yet" : "Zatím žádná aktivita",
     "Delete appointment" : "Smazat schůzku",
     "This appointment is part of a series of {count} appointments. How would you like to apply this change?" : "Toto je {count} schůzka z opakující se série. Jak budete chtít aplikovat tuto změnu?",
     "This appointment only" : "Pouze pro tuto schůzku",
@@ -418,6 +422,11 @@ OC.L10N.register(
     "Subscription URL regenerated" : "URL odběru znovu vytvořena",
     "Failed to regenerate subscription URL" : "Nepodařilo se znovuvytvořit URL odběru",
     "URL copied to clipboard" : "URL zkopírováno do schránky",
-    "Failed to copy URL" : "Nepodařilo se zkopírovat URL"
+    "Failed to copy URL" : "Nepodařilo se zkopírovat URL",
+    "Historic" : "Historické",
+    "Automatic" : "Automaticky",
+    "name" : "název",
+    "description" : "popis",
+    "time" : "krát"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");

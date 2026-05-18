@@ -30,6 +30,7 @@ OC.L10N.register(
     "Share link" : "Compartir link",
     "Edit" : "Editar",
     "Delete" : "Eliminar",
+    "No activity yet" : "Aún no hay actividades",
     "Daily" : "Diariamente",
     "Weekly" : "Semanalmente",
     "Monday" : "Lunes",
@@ -64,6 +65,8 @@ OC.L10N.register(
     "30 minutes before" : "30 minutos antes",
     "1 hour before" : "1 hora antes",
     "2 hours before" : "2 horas antes",
-    "Try again" : "Inténtalo de nuevo"
+    "Try again" : "Inténtalo de nuevo",
+    "Automatic" : "Automático",
+    "name" : "nombre"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

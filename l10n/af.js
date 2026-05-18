@@ -1,6 +1,7 @@
 OC.L10N.register(
     "attendance",
     {
+    "Someone" : "Iemand",
     "Others" : "Ander",
     "Connect" : "Verbind",
     "Settings" : "Instellings",
@@ -19,6 +20,7 @@ OC.L10N.register(
     "Copy URL" : "Kopieer URL",
     "Cancel" : "Cancel",
     "Delete" : "Skrap",
+    "No activity yet" : "Nog geen aktiwiteit",
     "Daily" : "Daagliks",
     "Weekly" : "Weekliks",
     "Monday" : "Maandag",
@@ -50,6 +52,7 @@ OC.L10N.register(
     "15 minutes before" : "15 minute vooraf",
     "30 minutes before" : "30 minute vooraf",
     "1 hour before" : "1 uur vooraf",
-    "2 hours before" : "2 ure vooraf"
+    "2 hours before" : "2 ure vooraf",
+    "Automatic" : "Outomaties"
 },
 "nplurals=2; plural=(n != 1);");

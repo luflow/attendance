@@ -52,6 +52,7 @@ OC.L10N.register(
     "Edit" : "ویرایش",
     "Delete" : "حذف",
     "Loading …" : "در حال بارگذاری...",
+    "Please try again later." : "لطفا بعدا دوباره امتحان کنید.",
     "No activity yet" : "هنوز فعّالیت ندارد",
     "Send reminder" : "Send reminder",
     "Daily" : "روزانه",
@@ -117,6 +118,8 @@ OC.L10N.register(
     "Confirm" : "تأیید",
     "Try again" : "تلاش دوباره",
     "Historic" : "Historic",
+    "Automatic" : "خودکار",
+    "name" : "نام",
     "time" : "بار"
 },
 "nplurals=2; plural=(n > 1);");

@@ -215,6 +215,7 @@ OC.L10N.register(
     "Delete" : "Scrios",
     "Check-in summary" : "Achoimre ar an tseiceáil isteach",
     "Loading …" : "Á lódáil…",
+    "Please try again later." : "Bain triail eile as ar ball.",
     "No activity yet" : "Níl aon ghníomhaíocht fós",
     "Delete appointment" : "Scrios an ceapachán",
     "This appointment is part of a series of {count} appointments. How would you like to apply this change?" : "Tá an coinne seo mar chuid de shraith de {count} coinne. Cén chaoi ar mhaith leat an t-athrú seo a chur i bhfeidhm?",
@@ -545,6 +546,7 @@ OC.L10N.register(
     "URL copied to clipboard" : "URL cóipeáilte chuig an ghearrthaisce",
     "Failed to copy URL" : "Theip ar an URL a chóipeáil",
     "Historic" : "Stairiúil",
+    "Automatic" : "Uathoibríoch",
     "name" : "ainm",
     "description" : "tuairisc",
     "time" : "am"

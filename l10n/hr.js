@@ -121,6 +121,7 @@ OC.L10N.register(
     "No reminders" : "Nema podsjetnika",
     "Thank you for your response!" : "Hvala na odgovoru!",
     "Try again" : "Pokušajte ponovno",
+    "Automatic" : "Automatsko",
     "name" : "naziv",
     "time" : "put"
 },
