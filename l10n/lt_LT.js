@@ -76,6 +76,7 @@ OC.L10N.register(
     "After" : "Po",
     "On date" : "data",
     "Show all" : "Rodyti visus",
+    "Failed to send reminder" : "Nepavyko išsiųsti priminimo",
     "Save" : "Įrašyti",
     "Import" : "Importuoti",
     "Select calendar" : "Pasirinkti kalendorių",

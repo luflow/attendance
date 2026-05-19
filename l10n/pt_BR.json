@@ -19,6 +19,9 @@
     "_%1$s new appointment added (e.g. \"%2$s\")_::_%1$s new appointments added (e.g. \"%2$s\")_" : ["%1$s novo compromisso adicionado (p. ex., \"%2$s\")","%1$s de novos compromissos adicionados (p. ex., \"%2$s\")","%1$s novos compromissos adicionados (p. ex., \"%2$s\")"],
     "Please check the new appointments and respond." : "Verifique os novos compromissos e responda.",
     "Someone" : "Alguém",
+    "%1$s changed their response from %2$s to %3$s on \"%4$s\"" : "%1$s mudou sua resposta de %2$s para %3$s em \"%4$s\"",
+    "%1$s took back their response on \"%2$s\"" : "%1$s retirou sua resposta em \"%2$s\"",
+    "%1$s answered %2$s on \"%3$s\"" : "%1$s respondeu com %2$s em \"%3$s\"",
     "Others" : "Outros",
     "Group" : "Grupo",
     "Me" : "Eu",
@@ -216,9 +219,10 @@
     "Check-in summary" : "Resumo das entradas registradas",
     "Activity history" : "Histórico de atividades",
     "Loading …" : "Carregando …",
-    "Failed to load activity" : "Falha ao carregar a atividade",
+    "Failed to load activity" : "Falha ao carregar as atividades",
     "Please try again later." : "Por favor, tente novamente mais tarde.",
     "No activity yet" : "Ainda sem atividades",
+    "Responses and check-ins will appear here." : "Respostas e entradas registradas aparecerão aqui.",
     "Load older entries" : "Carregar entradas mais antigas",
     "Delete appointment" : "Excluir compromisso",
     "This appointment is part of a series of {count} appointments. How would you like to apply this change?" : "Esta consulta faz parte de uma série de {count} compromissos. Como você gostaria de aplicar essa alteração?",
@@ -559,6 +563,13 @@
     "time" : "horário",
     "visibility" : "visibilidade",
     "response deadline" : "prazo para respostas",
-    "Inquiry closed automatically" : "Consulta encerrada automaticamente"
+    "{actor} took back their response" : "{actor} retirou sua resposta",
+    "{actor} updated their comment" : "{actor} atualizou seu comentário",
+    "{actor} created this inquiry" : "{actor} criou esta consulta",
+    "{actor} edited this inquiry: {fields}" : "{actor} editou esta consulta: {fields}",
+    "{actor} edited this inquiry" : "{actor} editou esta consulta",
+    "{actor} closed the inquiry" : "{actor} encerrou esta consulta",
+    "Inquiry closed automatically" : "Consulta encerrada automaticamente",
+    "{actor} re-opened the inquiry" : "{actor} reabriu a consulta"
 },"pluralForm" :"nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }
