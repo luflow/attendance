@@ -87,6 +87,7 @@ OC.L10N.register(
     "30 minutes before" : "30 minūtes pirms",
     "1 hour before" : "1 stundu pirms",
     "2 hours before" : "2 stundas pirms",
+    "No reminders" : "Nav atgādinājumu",
     "Automatic" : "Automātisks",
     "description" : "apraksts"
 },

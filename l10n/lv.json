@@ -85,6 +85,7 @@
     "30 minutes before" : "30 minūtes pirms",
     "1 hour before" : "1 stundu pirms",
     "2 hours before" : "2 stundas pirms",
+    "No reminders" : "Nav atgādinājumu",
     "Automatic" : "Automātisks",
     "description" : "apraksts"
 },"pluralForm" :"nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"

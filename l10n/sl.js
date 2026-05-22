@@ -40,6 +40,7 @@ OC.L10N.register(
     "Export" : "Izvozi",
     "Select all" : "Izberi vse",
     "Deselect all" : "Odstrani celoten izbor",
+    "Custom range" : "Obseg po meri",
     "Start date" : "Datum začetka",
     "Copy URL" : "Kopiraj naslov URL",
     "Copy" : "Kopiraj",

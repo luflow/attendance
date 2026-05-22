@@ -88,7 +88,7 @@ OC.L10N.register(
     "Unanswered" : "Yanıtlanmamış",
     "Upcoming appointments" : "Yaklaşan randevular",
     "Past appointments" : "Geçmiş randevular",
-    "Create appointment" : "Randevu ekle",
+    "Create appointment" : "Randevu oluştur",
     "Export" : "Dışa aktar",
     "Calendar subscription" : "Takvim aboneliği",
     "Export created: {filename}" : "Dışa aktarma oluşturuldu: {filename}",
@@ -282,6 +282,7 @@ OC.L10N.register(
     "Show appointment name prominently, with date below" : "Randevu adının altında tarihi görüntülenir",
     "Date first" : "Önce tarih",
     "Show date and time prominently, with name below" : "Randevu tarihinin altında adı görüntülenir",
+    "Want to invite guests? Install the Nextcloud Guests app — once enabled, organizers can create guest accounts directly from the appointment editor." : "Konukları davet etmek ister misiniz? Nextcloud Konuklar uygulamasını kurun. Etkinleştirildikten sonra, düzenleyiciler, doğrudan randevu düzenleyicisinden konuk hesapları oluşturabilir.",
     "or" : "ya da",
     "_%n group selected_::_%n groups selected_" : ["%n grup seçildi","%n grup seçildi"],
     "_%n team selected_::_%n teams selected_" : ["%n takım seçildi","%n takım seçildi"],
@@ -305,6 +306,9 @@ OC.L10N.register(
     "Copy appointment" : "Randevuyu kopyala",
     "User" : "Kullanıcı",
     "Team" : "Takım",
+    "Create guest account for {email}" : "{email} için konuk hesabı oluştur",
+    "Guest account created for {email}" : "{email} için konuk hesabı oluşturuldu",
+    "Failed to create guest account" : "Konuk hesabı oluşturulamadı",
     "Choose files or folders" : "Dosyaları veya klasörleri seçin",
     "Attach" : "Dosya ekle",
     "_{count} appointment created_::_{count} appointments created_" : ["{count} randevu oluşturuldu","{count} randevu oluşturuldu"],
@@ -406,6 +410,7 @@ OC.L10N.register(
     "Automatic" : "Otomatik",
     "name" : "ad",
     "description" : "açıklama",
-    "time" : "kez"
+    "time" : "kez",
+    "{actor} created this inquiry" : "{actor}, bu araştırmayı oluşturdu"
 },
 "nplurals=2; plural=(n > 1);");
