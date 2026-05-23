@@ -69,7 +69,7 @@ OC.L10N.register(
     "Subscription" : "Abonelik",
     "Active" : "Etkin",
     "yr" : "yıl",
-    "mo" : "mo",
+    "mo" : "ay",
     "Privacy Policy" : "Gizlilik ilkesi",
     "Expired" : "Geçerlilik süresi dolmuş",
     "OK" : "Tamam",
