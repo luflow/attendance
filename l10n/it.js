@@ -97,7 +97,7 @@ OC.L10N.register(
     "Add comment" : "Aggiungi commento",
     "Bold" : "Grassetto",
     "Italic" : "Corsivo",
-    "Strikethrough" : "Sbarrato",
+    "Strikethrough" : "Barrato",
     "Bullet list" : "Elenco puntato",
     "Numbered list" : "Elenco numerato",
     "Quote" : "Preventivo",
