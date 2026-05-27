@@ -84,6 +84,7 @@ OC.L10N.register(
     "After" : "Después",
     "On date" : "en fecha",
     "Show all" : "Ver todo",
+    "Failed to send reminder" : "Fallou ao enviar o recordatorio",
     "Save" : "Guardar",
     "Import" : "Importar",
     "Select calendar" : "Seleccione el calendario",
