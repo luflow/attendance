@@ -163,6 +163,7 @@ OC.L10N.register(
     "occurrences" : "ocorrencias",
     "On date" : "Na data",
     "Show all" : "Amosar todo",
+    "Failed to send reminder" : "Produciuse un fallo ao enviar o recordatorio",
     "No response yet:" : "Aínda non hai respostas",
     "Response summary" : "Resumo de respostas",
     "Checked in?" : "Xa se rexistrou?",
