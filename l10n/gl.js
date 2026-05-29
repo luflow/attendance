@@ -27,6 +27,7 @@ OC.L10N.register(
     "Attachments" : "Anexos",
     "View or change your response" : "Ver ou cambiar a resposta",
     "Connect" : "Conectar",
+    "Start over" : "Comezar de novo",
     "Add account" : "Engadir unha conta",
     "Let's go!" : "Imos!",
     "Settings" : "Axustes",
