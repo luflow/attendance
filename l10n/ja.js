@@ -29,6 +29,7 @@ OC.L10N.register(
     "Subscribe" : "購読",
     "Subscription" : "サブスクリプション",
     "Active" : "有効",
+    "Terms of Service" : "サービス利用規約",
     "Privacy Policy" : "個人情報保護方針",
     "Expired" : "有効期限切れ",
     "OK" : "OK",
