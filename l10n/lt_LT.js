@@ -387,7 +387,7 @@ OC.L10N.register(
     "Enable automatic calendar sync" : "Įgalinti automatinį kalendoriaus sinchronizavimą",
     "When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time)." : "Kai ši funkcija įjungta, kalendoriaus įvykių pakeitimai automatiškai atnaujins susietus lankomumo paskyrimus (pavadinimą, aprašymą, datą / laiką).",
     "Audit log" : "Audito žurnalas",
-    "Records who responded what and when, and surfaces a timeline on every appointment. Also drives the response-change push notifications that managers can opt into in their personal settings." : "Fiksuoja, kas, ką ir kada atsakė, bei kiekvienam susitikimui pateikia chronologinę seką. Taip pat siunčia pranešimus apie atsakymų pasikeitimus, kuriuos vadovai gali įjungti savo asmeniniuose nustatymuose.",
+    "Records who responded what and when, and surfaces a timeline on every appointment. Also drives the response-change push notifications that managers can opt into in their personal settings." : "Įrašo, kas, ką ir kada atsakė, ir kiekvieno susitikimo laiko skalę. Taip pat valdomi atsakymų keitimo tiesioginiai pranešimai, kuriuos vadovai gali pasirinkti savo asmeniniuose nustatymuose.",
     "Enable audit log" : "Įgalinti audito žurnalą",
     "Disabling stops new events from being recorded and silences response notifications. Existing entries are kept and reappear once you re-enable." : "Išjungus nauji įvykiai nebeįrašomi ir nutildomi atsakymų pranešimai. Esami įrašai išsaugomi ir vėl atsiranda, kai iš naujo įjungiate.",
     "Who can see the audit log?" : "Kas gali matyti audito žurnalą?",
