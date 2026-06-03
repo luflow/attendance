@@ -41,6 +41,7 @@ OC.L10N.register(
     "15 minutes before" : "15 minutas antea",
     "30 minutes before" : "30 minutas antea",
     "1 hour before" : "1 hora antea",
-    "2 hours before" : "2 horas antea"
+    "2 hours before" : "2 horas antea",
+    "Automatic" : "Automatic"
 },
 "nplurals=2; plural=(n != 1);");

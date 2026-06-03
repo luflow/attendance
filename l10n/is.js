@@ -110,6 +110,7 @@ OC.L10N.register(
     "2 hours before" : "2 klukkustundum fyrir",
     "No reminders" : "Engar áminningar",
     "Try again" : "Reyndu aftur",
+    "Automatic" : "Sjálfvirkt",
     "name" : "heiti",
     "time" : "sinni"
 },

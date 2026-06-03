@@ -260,6 +260,7 @@ OC.L10N.register(
     "Failed to regenerate subscription URL" : "Gagal membuat ulang URL langganan",
     "URL copied to clipboard" : "URL disalin ke papan klip",
     "Failed to copy URL" : "Gagal menyalin URL",
+    "Automatic" : "Otomatis",
     "name" : "nama"
 },
 "nplurals=1; plural=0;");

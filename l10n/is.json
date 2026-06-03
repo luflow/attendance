@@ -108,6 +108,7 @@
     "2 hours before" : "2 klukkustundum fyrir",
     "No reminders" : "Engar áminningar",
     "Try again" : "Reyndu aftur",
+    "Automatic" : "Sjálfvirkt",
     "name" : "heiti",
     "time" : "sinni"
 },"pluralForm" :"nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);"
