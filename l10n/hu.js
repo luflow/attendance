@@ -30,6 +30,7 @@ OC.L10N.register(
     "Subscribe" : "Feliratkozás",
     "Subscription" : "Előfizetés",
     "Active" : "Aktív",
+    "yr" : "év",
     "mo" : "hó",
     "Privacy Policy" : "Adatvédelmi irányelvek",
     "Expired" : "Elévült",
