@@ -132,6 +132,7 @@ OC.L10N.register(
     "Add from Files" : "Додати з файлів",
     "Continue anyway" : "Продовжити все одно",
     "All users" : "Всі користувачі",
+    "No users found" : "Не знайдено користувачів",
     "Confirm" : "Підтвердити",
     "15 minutes before" : "за 15 хвилин",
     "30 minutes before" : "за 30 хвилин",
