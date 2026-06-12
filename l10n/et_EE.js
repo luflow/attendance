@@ -125,6 +125,7 @@ OC.L10N.register(
     "Close inquiry" : "Sulge järelpärimine",
     "Reopen inquiry" : "Ava järelpärimine uuesti",
     "Reopen" : "Ava uuesti",
+    "No deadline" : "Tähtaega pole",
     "Response no longer possible" : "Vastamine pole enam võimalik",
     "Guests" : "Külalised",
     "Upcoming appointments" : "Tulevased kohtumised",
