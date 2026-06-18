@@ -42,6 +42,7 @@ OC.L10N.register(
     "Untitled event" : "Digwyddiad di-deitl",
     "Bold" : "Trwm",
     "Italic" : "Italig",
+    "Dismiss" : "Dismiss",
     "Link copied" : "Dolen wedi'i gopïo",
     "Preview" : "Rhagolwg",
     "Open" : "Ar Agor",

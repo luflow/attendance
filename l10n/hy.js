@@ -28,6 +28,7 @@ OC.L10N.register(
     "Sunday" : "Կիրակի",
     "Save" : "Պահպանել",
     "Import" : "Ներմուծում",
+    "Dismiss" : "Dismiss",
     "minutes" : "րոպե",
     "hours" : "ժամ",
     "days" : "օր",
