@@ -50,6 +50,7 @@ OC.L10N.register(
     "Active" : "Actif",
     "yr" : "an",
     "mo" : "mois",
+    "Terms of Service" : "Conditions générales d'utilisation",
     "Privacy Policy" : "Politique de confidentialité",
     "Expired" : "Expirés",
     "OK" : "OK",
