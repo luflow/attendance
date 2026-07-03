@@ -45,6 +45,7 @@ OC.L10N.register(
     "Date range" : "Data tartea",
     "Select all" : "Hautatu dena",
     "Deselect all" : "Deshautatu dena",
+    "Custom range" : "Pertsonalizatu tartea",
     "Start date" : "Hasiera-data",
     "Copy URL" : "Kopiatu URLa",
     "Copy" : "Kopiatu",
