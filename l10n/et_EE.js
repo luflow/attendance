@@ -335,6 +335,7 @@ OC.L10N.register(
     "Open" : "Ava",
     "Push notifications" : "Tõuketeavitused",
     "Send test notification" : "Saada testteavitus",
+    "Display options" : "Kuvamise valikud",
     "Guest invitation" : "Külaliskutse",
     "or" : "või",
     "_{count} device registered for push notifications_::_{count} devices registered for push notifications_" : ["{count} seade on registreeritud tõuketeavituste jaoks","{count} seadet on registreeritud tõuketeavituste jaoks"],
