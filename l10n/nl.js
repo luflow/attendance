@@ -66,6 +66,7 @@ OC.L10N.register(
     "Deselect all" : "Deselecteer alles",
     "Custom range" : "Aangepast bereik",
     "Start date" : "Startdatum",
+    "End date" : "Eind datum",
     "Copy URL" : "URL kopiëren",
     "Copy" : "Kopiëren",
     "Last accessed" : "Laatst benaderd",
