@@ -34,6 +34,7 @@ OC.L10N.register(
     "OK" : "OK",
     "Something went wrong" : "Något gick fel",
     "About" : "Om",
+    "Past" : "Historiskt",
     "Relevance" : "Relevans",
     "Closed" : "Stängd",
     "Reset filter" : "Återställ filter",
