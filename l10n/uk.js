@@ -47,7 +47,7 @@ OC.L10N.register(
     "Reopen inquiry" : "Поновити розслідування",
     "Guests" : "Гості",
     "Create appointment" : "Створити зустріч",
-    "Export" : "Експортувати",
+    "Export" : "Експорт",
     "Date range" : "Проміжок часу",
     "Select all" : "Вибрати все",
     "Deselect all" : "Зняти всі мітки",
