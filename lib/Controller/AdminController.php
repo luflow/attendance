@@ -145,6 +145,7 @@ class AdminController extends Controller {
 					'displayOrder' => $this->configService->getDisplayOrder(),
 					'pushEnabled' => $this->configService->isPushEnabled(),
 					'mobileAppBannerEnabled' => $this->configService->isMobileAppBannerEnabled(),
+					'bookingEnabled' => $this->configService->isBookingEnabled(),
 					'guestsApp' => [
 						'enabled' => $this->guestService->isGuestsAppEnabled(),
 						'whitelistEnabled' => $this->guestService->isGuestsWhitelistEnabled(),
@@ -175,6 +176,7 @@ class AdminController extends Controller {
 	 * @param ?string $displayOrder Display order for appointments: chronological, name, or group
 	 * @param ?bool $pushEnabled Whether push notifications are enabled
 	 * @param ?bool $mobileAppBannerEnabled Whether the mobile app promotion banner is enabled
+	 * @param ?bool $bookingEnabled Whether the booking / planning feature is enabled
 	 * @return DataResponse<Http::STATUS_OK, array<string, mixed>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
 	 */
 	#[NoCSRFRequired]
@@ -189,6 +191,7 @@ class AdminController extends Controller {
 		?string $displayOrder = null,
 		?bool $pushEnabled = null,
 		?bool $mobileAppBannerEnabled = null,
+		?bool $bookingEnabled = null,
 	): DataResponse {
 		// Get current user
 		$user = $this->userSession->getUser();
@@ -251,6 +254,10 @@ class AdminController extends Controller {
 
 			if ($mobileAppBannerEnabled !== null) {
 				$this->configService->setMobileAppBannerEnabled($mobileAppBannerEnabled);
+			}
+
+			if ($bookingEnabled !== null) {
+				$this->configService->setBookingEnabled($bookingEnabled);
 			}
 
 			return new DataResponse([]);

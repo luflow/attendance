@@ -126,6 +126,18 @@
 										</NcButton>
 									</div>
 								</NcPopover>
+								<NcButton
+									v-if="canManageBooking && response.response === 'yes'"
+									class="booking-toggle"
+									:variant="response.bookingStatus === 'booked' ? 'success' : 'tertiary'"
+									:disabled="togglingBooking.has(response.userId)"
+									:data-test="`booking-toggle-${response.userId}`"
+									@click="toggleBooking(response)">
+									<template #icon>
+										<CalendarCheckIcon :size="20" />
+									</template>
+									{{ response.bookingStatus === 'booked' ? t('attendance', 'Scheduled') : t('attendance', 'Schedule') }}
+								</NcButton>
 								</div>
 								<div
 									v-if="response.isCheckedIn"
@@ -270,6 +282,18 @@
 										</NcButton>
 									</div>
 								</NcPopover>
+								<NcButton
+									v-if="canManageBooking && response.response === 'yes'"
+									class="booking-toggle"
+									:variant="response.bookingStatus === 'booked' ? 'success' : 'tertiary'"
+									:disabled="togglingBooking.has(response.userId)"
+									:data-test="`booking-toggle-${response.userId}`"
+									@click="toggleBooking(response)">
+									<template #icon>
+										<CalendarCheckIcon :size="20" />
+									</template>
+									{{ response.bookingStatus === 'booked' ? t('attendance', 'Scheduled') : t('attendance', 'Schedule') }}
+								</NcButton>
 								</div>
 								<div
 									v-if="response.isCheckedIn"
@@ -403,6 +427,18 @@
 										</NcButton>
 									</div>
 								</NcPopover>
+								<NcButton
+									v-if="canManageBooking && response.response === 'yes'"
+									class="booking-toggle"
+									:variant="response.bookingStatus === 'booked' ? 'success' : 'tertiary'"
+									:disabled="togglingBooking.has(response.userId)"
+									:data-test="`booking-toggle-${response.userId}`"
+									@click="toggleBooking(response)">
+									<template #icon>
+										<CalendarCheckIcon :size="20" />
+									</template>
+									{{ response.bookingStatus === 'booked' ? t('attendance', 'Scheduled') : t('attendance', 'Schedule') }}
+								</NcButton>
 								</div>
 								<div
 									v-if="response.isCheckedIn"
@@ -463,6 +499,7 @@ import axios from '@nextcloud/axios'
 import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
 import AccountStar from 'vue-material-design-icons/AccountStar.vue'
 import BellRingOutlineIcon from 'vue-material-design-icons/BellRingOutline.vue'
+import CalendarCheckIcon from 'vue-material-design-icons/CalendarCheck.vue'
 import NonRespondingUserList from './NonRespondingUserList.vue'
 import { getResponseText, getResponseVariant } from '../../utils/response.js'
 import { formatGroupLabel } from '../../utils/groups.js'
@@ -488,15 +525,48 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
+	// Instance-wide booking capability. Off = no booking UI anywhere.
+	bookingEnabled: {
+		type: Boolean,
+		default: false,
+	},
 })
 
 const canSendReminders = computed(
 	() => props.canManageAppointments && !props.isClosed,
 )
 
+// The per-person booking toggle only shows when the feature is on and the
+// viewer may manage the appointment; individual rows additionally require a
+// "yes" response (handled inline).
+const canManageBooking = computed(
+	() => props.canManageAppointments && props.bookingEnabled,
+)
+
 const expandedGroups = ref({})
 const remindingUsers = reactive(new Set())
+const togglingBooking = reactive(new Set())
 const openRemindPopover = ref(null)
+
+const toggleBooking = async (response) => {
+	if (!props.appointmentId || togglingBooking.has(response.userId)) return
+	const wantBook = response.bookingStatus !== 'booked'
+	togglingBooking.add(response.userId)
+	try {
+		const action = wantBook ? 'book' : 'unbook'
+		const { data } = await axios.post(
+			generateUrl(`/apps/attendance/api/appointments/${props.appointmentId}/${action}/${encodeURIComponent(response.userId)}`),
+		)
+		// Reflect the new state on the row in place (the summary object is shared
+		// with the parent, so the toggle updates without a refetch).
+		response.bookingStatus = data.bookingStatus ?? null
+	} catch (error) {
+		console.error('Failed to update booking:', error)
+		showError(t('attendance', 'Failed to update scheduling'))
+	} finally {
+		togglingBooking.delete(response.userId)
+	}
+}
 
 const remindUser = async (userId) => {
 	if (!props.appointmentId) return
