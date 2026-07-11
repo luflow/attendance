@@ -265,6 +265,66 @@ class AppointmentService {
 	}
 
 	/**
+	 * Cancel an appointment: mark cancelledAt with the current UTC time. This is
+	 * a separate state next to closedAt — the event does NOT take place, but all
+	 * data/notes are kept. Cancelled appointments drop out of the active lists,
+	 * get no reminders and are not auto-closed. Addressed attendees are notified.
+	 * Idempotent: returns the existing appointment unchanged if already cancelled.
+	 *
+	 * @param int $id The appointment ID
+	 * @param string|null $actorId The user performing the cancellation; excluded
+	 *        from the notification wave (they already know they cancelled).
+	 */
+	public function cancelAppointment(int $id, ?string $actorId = null): Appointment {
+		$appointment = $this->appointmentMapper->find($id);
+		if ($appointment->isCancelled()) {
+			return $appointment;
+		}
+		$appointment->setCancelledAt(gmdate('Y-m-d H:i:s'));
+		$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
+		$updated = $this->appointmentMapper->update($appointment);
+
+		$this->auditEventService->recordAppointmentLifecycle(
+			\OCA\Attendance\Audit\Verb::APPOINTMENT_CANCELLED,
+			$id,
+			\OCA\Attendance\Audit\Verb::SOURCE_APP,
+		);
+
+		// Notify addressed attendees that the appointment will not take place.
+		$affectedUsers = $this->getAffectedUsers($updated);
+		if ($actorId !== null) {
+			$affectedUsers = array_filter($affectedUsers, fn ($userId) => $userId !== $actorId);
+		}
+		$this->notificationService->sendCancellationNotifications($updated, array_values($affectedUsers));
+
+		return $updated;
+	}
+
+	/**
+	 * Reactivate a previously cancelled appointment: clears cancelledAt. The
+	 * appointment returns to whatever state it had before (e.g. still closed if
+	 * it was closed). No notification is sent (mirrors reopen).
+	 * Idempotent: returns the existing appointment unchanged if not cancelled.
+	 */
+	public function uncancelAppointment(int $id): Appointment {
+		$appointment = $this->appointmentMapper->find($id);
+		if (!$appointment->isCancelled()) {
+			return $appointment;
+		}
+		$appointment->setCancelledAt(null);
+		$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
+		$updated = $this->appointmentMapper->update($appointment);
+
+		$this->auditEventService->recordAppointmentLifecycle(
+			\OCA\Attendance\Audit\Verb::APPOINTMENT_UNCANCELLED,
+			$id,
+			\OCA\Attendance\Audit\Verb::SOURCE_APP,
+		);
+
+		return $updated;
+	}
+
+	/**
 	 * Delete an appointment (soft delete).
 	 */
 	public function deleteAppointment(int $id, string $userId): void {
@@ -678,6 +738,7 @@ class AppointmentService {
 					? ['response' => $userResponse->getResponse()]
 					: null,
 				'closedAt' => $this->formatDatetimeToUtc($appointment->getClosedAt()),
+				'cancelledAt' => $this->formatDatetimeToUtc($appointment->getCancelledAt()),
 				'inAudience' => $withAudience
 					&& $this->visibilityService->isUserTargetAttendee($appointment, $userId),
 			];
@@ -726,7 +787,7 @@ class AppointmentService {
 			if ($onlyForMe && !$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
 				continue;
 			}
-			if ($unansweredOnly && $appointment->isClosed()) {
+			if ($unansweredOnly && ($appointment->isClosed() || $appointment->isCancelled())) {
 				continue;
 			}
 
@@ -762,6 +823,9 @@ class AppointmentService {
 		foreach ($appointments as $appointment) {
 			if ($count >= $limit) {
 				break;
+			}
+			if ($appointment->isCancelled()) {
+				continue;
 			}
 			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
 				continue;

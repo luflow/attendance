@@ -125,6 +125,26 @@ class Notifier implements INotifier {
 
 				return $notification;
 
+			case 'appointment_cancelled':
+				$parameters = $notification->getSubjectParameters();
+				$appointmentName = $parameters['name'] ?? 'Unknown';
+				$appointmentDate = $this->formatDateForUser(
+					$parameters['startDatetime'] ?? $parameters['date'] ?? '',
+					$notification->getUser()
+				);
+
+				$notification->setParsedSubject(
+					$l->t('Appointment cancelled: %1$s on %2$s', [$appointmentName, $appointmentDate])
+				);
+				$notification->setParsedMessage(
+					$l->t('This appointment will not take place.')
+				);
+				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
+					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
+				));
+
+				return $notification;
+
 			case 'response_submitted':
 			case 'response_changed':
 			case 'response_rescinded':

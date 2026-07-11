@@ -44,6 +44,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setSendNotification(bool $sendNotification)
  * @method string|null getClosedAt()
  * @method void setClosedAt(?string $closedAt)
+ * @method string|null getCancelledAt()
+ * @method void setCancelledAt(?string $cancelledAt)
  * @method string|null getResponseDeadline()
  * @method void setResponseDeadline(?string $responseDeadline)
  */
@@ -66,6 +68,7 @@ class Appointment extends Entity implements JsonSerializable {
 	protected $seriesPosition = null;
 	protected $sendNotification = false;
 	protected $closedAt = null;
+	protected $cancelledAt = null;
 	protected $responseDeadline = null;
 
 	public function __construct() {
@@ -87,6 +90,7 @@ class Appointment extends Entity implements JsonSerializable {
 		$this->addType('seriesPosition', 'integer');
 		$this->addType('sendNotification', 'boolean');
 		$this->addType('closedAt', 'string');
+		$this->addType('cancelledAt', 'string');
 		$this->addType('responseDeadline', 'string');
 	}
 
@@ -110,12 +114,17 @@ class Appointment extends Entity implements JsonSerializable {
 			'seriesPosition' => $this->getSeriesPosition(),
 			'sendNotification' => (bool) $this->getSendNotification(),
 			'closedAt' => $this->formatDatetimeToUtc($this->getClosedAt()),
+			'cancelledAt' => $this->formatDatetimeToUtc($this->getCancelledAt()),
 			'responseDeadline' => $this->formatDatetimeToUtc($this->getResponseDeadline()),
 		];
 	}
 
 	public function isClosed(): bool {
 		return $this->getClosedAt() !== null;
+	}
+
+	public function isCancelled(): bool {
+		return $this->getCancelledAt() !== null;
 	}
 
 	/**

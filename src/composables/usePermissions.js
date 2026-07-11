@@ -18,6 +18,7 @@ const state = reactive({
 		notificationsAppEnabled: false,
 		guestInvitation: false,
 		auditLog: false,
+		cancelling: false,
 	},
 	config: {
 		displayOrder: 'name_first',
@@ -71,6 +72,7 @@ export function usePermissions() {
 			state.capabilities.notificationsAppEnabled = capabilitiesRes.data.notificationsAppEnabled !== false
 			state.capabilities.guestInvitation = capabilitiesRes.data.guestInvitation === true
 			state.capabilities.auditLog = capabilitiesRes.data.auditLog === true
+			state.capabilities.cancelling = capabilitiesRes.data.cancelling === true
 
 			state.config.displayOrder = configRes.data.displayOrder || 'name_first'
 			state.config.mobileAppBannerEnabled = configRes.data.mobileAppBannerEnabled !== false
@@ -92,6 +94,7 @@ export function usePermissions() {
 			state.capabilities.calendarSyncAvailable = false
 			state.capabilities.notificationsAppEnabled = false
 			state.capabilities.auditLog = false
+			state.capabilities.cancelling = false
 			state.config.displayOrder = 'name_first'
 			state.config.mobileAppBannerEnabled = true
 			state.config.hasPushDevice = false

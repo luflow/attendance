@@ -58,6 +58,13 @@
 						</a>
 					</span>
 				</template>
+				<NcChip
+					v-if="isCancelled"
+					class="cancelled-badge"
+					:text="t('attendance', 'Cancelled')"
+					variant="error"
+					no-close
+					data-test="cancelled-badge" />
 			</div>
 			<div class="appointment-actions">
 				<NcActions
@@ -107,6 +114,22 @@
 							isClosed
 								? t("attendance", "Reopen inquiry")
 								: t("attendance", "Close inquiry")
+						}}
+					</NcActionButton>
+					<NcActionButton
+						v-if="canCancel"
+						:close-after-click="true"
+						:disabled="togglingCancelled"
+						:data-test="isCancelled ? 'action-reactivate-appointment' : 'action-cancel-appointment'"
+						@click="handleToggleCancelled">
+						<template #icon>
+							<CalendarRefreshIcon v-if="isCancelled" :size="20" />
+							<CalendarRemoveIcon v-else :size="20" />
+						</template>
+						{{
+							isCancelled
+								? t("attendance", "Reactivate appointment")
+								: t("attendance", "Cancel appointment")
 						}}
 					</NcActionButton>
 					<NcActionButton
@@ -432,12 +455,17 @@ import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
 import RepeatIcon from 'vue-material-design-icons/Repeat.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
 import LockOpenIcon from 'vue-material-design-icons/LockOpen.vue'
+import CalendarRemoveIcon from 'vue-material-design-icons/CalendarRemove.vue'
+import CalendarRefreshIcon from 'vue-material-design-icons/CalendarRefresh.vue'
 import ClockIcon from 'vue-material-design-icons/Clock.vue'
 import HistoryIcon from 'vue-material-design-icons/History.vue'
 import { formatDateRange, formatDateTime } from '../../utils/datetime.js'
 import { getResponseText, getResponseVariant } from '../../utils/response.js'
 import { formatClosedLabel } from '../../utils/appointment.js'
 import { useAppointmentResponse, useResponseCooldown } from '../../composables/useAppointmentResponse.js'
+import { usePermissions } from '../../composables/usePermissions.js'
+
+const { capabilities } = usePermissions()
 
 const currentUserUid = window.OC?.getCurrentUser?.()?.uid || window.OC?.currentUser || null
 
@@ -511,6 +539,12 @@ const canToggleClosed = computed(() => {
 	if (props.canManageAppointments) return true
 	return Boolean(currentUserUid) && props.appointment.createdBy === currentUserUid
 })
+
+const isCancelled = computed(() => Boolean(props.appointment.cancelledAt))
+
+// Cancelling is a manager/creator action gated behind the server capability, so
+// instances (and older servers) that don't offer it never show the UI.
+const canCancel = computed(() => capabilities.cancelling && canToggleClosed.value)
 
 const formattedClosedAt = computed(() =>
 	props.appointment.closedAt ? formatDateTime(props.appointment.closedAt) : '',
@@ -663,6 +697,37 @@ const handleToggleClosed = async () => {
 		)
 	} finally {
 		togglingClosed.value = false
+	}
+}
+
+const togglingCancelled = ref(false)
+
+const handleToggleCancelled = async () => {
+	if (togglingCancelled.value) return
+	togglingCancelled.value = true
+	const wantsCancel = !isCancelled.value
+	const url = generateUrl(
+		`/apps/attendance/api/appointments/${props.appointment.id}/${wantsCancel ? 'cancel' : 'uncancel'}`,
+	)
+	try {
+		const response = await axios.post(url)
+		showSuccess(
+			wantsCancel
+				? t('attendance', 'Appointment cancelled')
+				: t('attendance', 'Appointment reactivated'),
+		)
+		// Reuse the closedToggled channel: the parent merges the full updated
+		// appointment (incl. cancelledAt) reactively, so no extra wiring needed.
+		emit('closedToggled', response.data)
+	} catch (error) {
+		console.error('Failed to toggle cancelled state:', error)
+		showError(
+			wantsCancel
+				? t('attendance', 'Failed to cancel appointment')
+				: t('attendance', 'Failed to reactivate appointment'),
+		)
+	} finally {
+		togglingCancelled.value = false
 	}
 }
 
