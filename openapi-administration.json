@@ -167,6 +167,7 @@
                     "calendarSyncAvailable",
                     "notificationsAppEnabled",
                     "closing",
+                    "cancelling",
                     "remindMaybe",
                     "responseToggle",
                     "guestInvitation",
@@ -189,6 +190,9 @@
                         "type": "boolean"
                     },
                     "closing": {
+                        "type": "boolean"
+                    },
+                    "cancelling": {
                         "type": "boolean"
                     },
                     "remindMaybe": {

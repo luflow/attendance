@@ -182,6 +182,18 @@ export function formatAuditEvent(event) {
 			iconVariant: 'default',
 			segments: textOnly(t('attendance', '{actor} re-opened the inquiry', { actor })),
 		}
+	case 'appointment.cancelled':
+		return {
+			icon: 'CalendarRemoveOutline',
+			iconVariant: 'default',
+			segments: textOnly(t('attendance', '{actor} cancelled the appointment', { actor })),
+		}
+	case 'appointment.uncancelled':
+		return {
+			icon: 'CalendarRefreshOutline',
+			iconVariant: 'default',
+			segments: textOnly(t('attendance', '{actor} reactivated the appointment', { actor })),
+		}
 	default:
 		return {
 			icon: 'Information',

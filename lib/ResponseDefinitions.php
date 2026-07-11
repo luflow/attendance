@@ -24,6 +24,7 @@ namespace OCA\Attendance;
  *   seriesPosition: ?int,
  *   sendNotification: bool,
  *   closedAt: ?string,
+ *   cancelledAt: ?string,
  *   responseDeadline: ?string,
  * }
  * @psalm-type AttendanceResponseData = array{
@@ -90,6 +91,7 @@ namespace OCA\Attendance;
  *   seriesPosition: ?int,
  *   sendNotification: bool,
  *   closedAt: ?string,
+ *   cancelledAt: ?string,
  *   responseDeadline: ?string,
  *   userResponse: AttendanceResponseData|null,
  *   responseSummary: array<string, int>,
@@ -103,6 +105,7 @@ namespace OCA\Attendance;
  *   seriesPosition: ?int,
  *   userResponse: ?array{response: string},
  *   closedAt: ?string,
+ *   cancelledAt: ?string,
  *   inAudience: bool,
  * }
  * @psalm-type AttendanceCheckinData = array{
@@ -139,6 +142,7 @@ namespace OCA\Attendance;
  *   calendarSyncAvailable: bool,
  *   notificationsAppEnabled: bool,
  *   closing: bool,
+ *   cancelling: bool,
  *   remindMaybe: bool,
  *   responseToggle: bool,
  *   guestInvitation: bool,
@@ -219,6 +223,7 @@ namespace OCA\Attendance;
  *   seriesPosition: ?int,
  *   sendNotification: bool,
  *   closedAt: ?string,
+ *   cancelledAt: ?string,
  *   responseDeadline: ?string,
  *   alreadyCheckedIn: bool,
  *   checkinState: ?string,
