@@ -207,9 +207,8 @@ class IcalService {
 			'yes' => $l->t('Yes'),
 			'no' => $l->t('No'),
 			'maybe' => $l->t('Maybe'),
-			null => '?',
 		];
-		$responseLabel = $responseLabels[$responseState] ?? '?';
+		$responseLabel = $responseState !== null ? ($responseLabels[$responseState] ?? '?') : '?';
 
 		// Determine iCal STATUS and TRANSP based on response
 		// STATUS: CONFIRMED for all (the appointment itself is confirmed, only attendance varies)
@@ -219,12 +218,29 @@ class IcalService {
 			'yes' => 'OPAQUE',
 			'no' => 'TRANSPARENT',
 			'maybe' => 'TRANSPARENT',
-			null => 'TRANSPARENT',
 		];
-		$transp = $transpMap[$responseState] ?? 'TRANSPARENT';
+		$transp = $responseState !== null ? ($transpMap[$responseState] ?? 'TRANSPARENT') : 'TRANSPARENT';
 
 		// Build summary with response suffix
 		$summary = $appointment->getName() . ' (' . $l->t('Me') . ': ' . $responseLabel . ')';
+
+		// Booking status (only when the feature is on and the user said yes):
+		// reflect whether the user is planned in via a title marker and TRANSP.
+		// planned in → busy (OPAQUE); not planned in → free (TRANSPARENT). No
+		// COLOR — Google ignores it in subscribed feeds. Flows through on the
+		// next poll since the feed is regenerated per request.
+		$bookingStatus = $response ? $response->getBookingStatus() : null;
+		if ($responseState === 'yes' && $this->configService->isBookingEnabled()) {
+			if ($bookingStatus === 'booked') {
+				$transp = 'OPAQUE';
+				$summary = $appointment->getName()
+					. ' (' . $l->t('Me') . ': ' . $l->t('Planned in') . ')';
+			} else {
+				$transp = 'TRANSPARENT';
+				$summary = $appointment->getName()
+					. ' (' . $l->t('Me') . ': ' . $l->t('Not planned in') . ')';
+			}
+		}
 
 		// Cancelled appointments: the event will not take place. This is the one
 		// case where iCal STATUS:CANCELLED is semantically correct. Mark the title
