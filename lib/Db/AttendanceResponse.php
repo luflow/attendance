@@ -32,6 +32,12 @@ use OCP\AppFramework\Db\Entity;
  * @method void setResponseSource(?string $responseSource)
  * @method string|null getCheckinSource()
  * @method void setCheckinSource(?string $checkinSource)
+ * @method string|null getBookingStatus()
+ * @method void setBookingStatus(?string $bookingStatus)
+ * @method string|null getBookingNotifiedStatus()
+ * @method void setBookingNotifiedStatus(?string $bookingNotifiedStatus)
+ * @method string|null getBookingNotifiedAt()
+ * @method void setBookingNotifiedAt(?string $bookingNotifiedAt)
  */
 class AttendanceResponse extends Entity implements JsonSerializable {
 	use DatetimeFormatTrait;
@@ -46,6 +52,9 @@ class AttendanceResponse extends Entity implements JsonSerializable {
 	protected $checkinAt = '';
 	protected $responseSource = null;
 	protected $checkinSource = null;
+	protected $bookingStatus = null;
+	protected $bookingNotifiedStatus = null;
+	protected $bookingNotifiedAt = null;
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -60,6 +69,9 @@ class AttendanceResponse extends Entity implements JsonSerializable {
 		$this->addType('checkinAt', 'string');
 		$this->addType('responseSource', 'string');
 		$this->addType('checkinSource', 'string');
+		$this->addType('bookingStatus', 'string');
+		$this->addType('bookingNotifiedStatus', 'string');
+		$this->addType('bookingNotifiedAt', 'string');
 	}
 
 	public function jsonSerialize(): array {
@@ -77,6 +89,7 @@ class AttendanceResponse extends Entity implements JsonSerializable {
 			'isCheckedIn' => $this->isCheckedIn(),
 			'responseSource' => $this->getResponseSource(),
 			'checkinSource' => $this->getCheckinSource(),
+			'bookingStatus' => $this->getBookingStatus(),
 		];
 	}
 

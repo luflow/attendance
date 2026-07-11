@@ -321,6 +321,16 @@
 				</NcSettingsSection>
 			</div>
 
+			<NcSettingsSection :name="t('attendance', 'Planning')"
+				:description="t('attendance', 'Let managers mark yes-responders as planned in for an appointment. When off, no planning controls are shown anywhere.')">
+				<NcCheckboxRadioSwitch v-model="bookingEnabled"
+					type="switch"
+					:disabled="loading"
+					data-test="switch-booking-enabled">
+					{{ t('attendance', 'Enable planning') }}
+				</NcCheckboxRadioSwitch>
+			</NcSettingsSection>
+
 			<NcSettingsSection :name="t('attendance', 'Mobile apps')"
 				:description="t('attendance', 'Share these links with your colleagues to install the Attendance mobile app.')">
 				<div class="mobile-app-links">
@@ -572,6 +582,7 @@ const auditLogEnabled = ref(true)
 const auditLogVisibility = ref('managers')
 const pushEnabled = ref(true)
 const mobileAppBannerEnabled = ref(true)
+const bookingEnabled = ref(false)
 const displayOrder = ref('name_first')
 const pushDeviceCount = ref(0)
 const loading = ref(false)
@@ -719,6 +730,9 @@ const loadSettings = async () => {
 		// Load mobile app banner setting
 		mobileAppBannerEnabled.value = config.mobileAppBannerEnabled !== false
 
+		// Load planning / booking setting (opt-in, defaults off)
+		bookingEnabled.value = config.bookingEnabled === true
+
 		// Load guests app status (for whitelist warning)
 		if (config.guestsApp) {
 			guestsApp.value = config.guestsApp
@@ -792,6 +806,7 @@ const saveSettings = async () => {
 				displayOrder: displayOrder.value,
 				pushEnabled: pushEnabled.value,
 				mobileAppBannerEnabled: mobileAppBannerEnabled.value,
+				bookingEnabled: bookingEnabled.value,
 			},
 		)
 

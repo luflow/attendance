@@ -6,6 +6,7 @@ namespace OCA\Attendance\Controller;
 
 use OCA\Attendance\Service\AppointmentService;
 use OCA\Attendance\Service\AttachmentService;
+use OCA\Attendance\Service\BookingService;
 use OCA\Attendance\Service\CalendarService;
 use OCA\Attendance\Service\CheckinService;
 use OCA\Attendance\Service\ConfigService;
@@ -40,6 +41,7 @@ class AppointmentController extends Controller {
 	private IUserSession $userSession;
 	private ISecureRandom $secureRandom;
 	private GuestService $guestService;
+	private BookingService $bookingService;
 
 	public function __construct(
 		string $appName,
@@ -57,6 +59,7 @@ class AppointmentController extends Controller {
 		IUserSession $userSession,
 		ISecureRandom $secureRandom,
 		GuestService $guestService,
+		BookingService $bookingService,
 	) {
 		parent::__construct($appName, $request);
 		$this->appointmentService = $appointmentService;
@@ -72,6 +75,7 @@ class AppointmentController extends Controller {
 		$this->userSession = $userSession;
 		$this->secureRandom = $secureRandom;
 		$this->guestService = $guestService;
+		$this->bookingService = $bookingService;
 	}
 
 	/**
@@ -496,6 +500,74 @@ class AppointmentController extends Controller {
 	}
 
 	/**
+	 * Mark a yes-responder as booked (planned in) for an appointment
+	 *
+	 * Requires the booking feature to be enabled instance-wide and the caller to
+	 * be a manager or the appointment's creator.
+	 *
+	 * @param int $id Appointment ID
+	 * @param string $userId The responder to book
+	 * @return DataResponse<Http::STATUS_OK, AttendanceResponseData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function book(int $id, string $userId): DataResponse {
+		return $this->setBooking($id, $userId, true);
+	}
+
+	/**
+	 * Clear a responder's booking for an appointment (back to open)
+	 *
+	 * @param int $id Appointment ID
+	 * @param string $userId The responder to unbook
+	 * @return DataResponse<Http::STATUS_OK, AttendanceResponseData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function unbook(int $id, string $userId): DataResponse {
+		return $this->setBooking($id, $userId, false);
+	}
+
+	/**
+	 * Shared book/unbook implementation: permission + feature gating, then
+	 * delegate to BookingService.
+	 */
+	private function setBooking(int $id, string $userId, bool $book): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		if (!$this->bookingService->isEnabled()) {
+			return new DataResponse(['error' => 'Booking is not enabled'], 400);
+		}
+
+		try {
+			$appointment = $this->appointmentService->getAppointment($id);
+			if (!$this->permissionService->canManageAppointments($user->getUID())
+				&& $appointment->getCreatedBy() !== $user->getUID()) {
+				return new DataResponse(['error' => 'Insufficient permissions to change bookings'], 403);
+			}
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => 'Appointment not found'], 404);
+		}
+
+		try {
+			$updated = $book
+				? $this->bookingService->book($id, $userId)
+				: $this->bookingService->unbook($id, $userId);
+		} catch (\OCP\AppFramework\Db\DoesNotExistException $e) {
+			return new DataResponse(['error' => 'Response not found'], 404);
+		} catch (\InvalidArgumentException $e) {
+			return new DataResponse(['error' => $e->getMessage()], 400);
+		}
+
+		return new DataResponse($updated);
+	}
+
+	/**
 	 * Get a single appointment with user response
 	 *
 	 * @param int $id Appointment ID
@@ -771,6 +843,7 @@ class AppointmentController extends Controller {
 			// Older servers omit this flag → mobile clients hide close-inquiry UI.
 			'closing' => true,
 			'cancelling' => true,
+			'bookingEnabled' => $this->configService->isBookingEnabled(),
 			'remindMaybe' => true,
 			// Older servers reject response=null. Mobile clients gate the
 			// withdraw-response affordance on this flag.
