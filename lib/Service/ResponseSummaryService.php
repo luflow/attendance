@@ -46,9 +46,14 @@ class ResponseSummaryService {
 	 * Get response summary for an appointment.
 	 *
 	 * @param int $appointmentId The appointment ID
+	 * @param bool $includeComments Whether to include the free-text comment /
+	 *                              checkinComment fields in the serialized
+	 *                              responses. Gated by the caller's
+	 *                              PERMISSION_SEE_COMMENTS — never expose these
+	 *                              to users who may not read comments.
 	 * @return array The response summary
 	 */
-	public function getResponseSummary(int $appointmentId): array {
+	public function getResponseSummary(int $appointmentId, bool $includeComments = false): array {
 		$appointment = $this->appointmentMapper->find($appointmentId);
 		$responses = $this->responseMapper->findByAppointment($appointmentId);
 
@@ -60,7 +65,7 @@ class ResponseSummaryService {
 
 		// Process each response
 		foreach ($responses as $response) {
-			$this->processResponse($appointment, $response, $summary, $respondedUserIds, $cache);
+			$this->processResponse($appointment, $response, $summary, $respondedUserIds, $cache, $includeComments);
 		}
 
 		// Add non-responding users to groups and teams
@@ -269,6 +274,7 @@ class ResponseSummaryService {
 		array &$summary,
 		array &$respondedUserIds,
 		array $cache,
+		bool $includeComments,
 	): void {
 		$userId = $response->getUserId();
 
@@ -302,7 +308,7 @@ class ResponseSummaryService {
 				// Check if group is allowed (using cache)
 				if ($this->isGroupVisibleAsSection($groupId, $cache)) {
 					$userInWhitelistedGroup = true;
-					$this->addResponseToGroup($summary, $groupId, $responseValue, $response, $user);
+					$this->addResponseToGroup($summary, $groupId, $responseValue, $response, $user, $includeComments);
 				}
 			}
 
@@ -316,19 +322,31 @@ class ResponseSummaryService {
 				$teamMemberIds = $cache['teamMembers'][$teamId] ?? [];
 				if (in_array($userId, $teamMemberIds)) {
 					$userInWhitelistedTeam = true;
-					$this->addResponseToTeam($summary, $teamId, $responseValue, $response, $user, $cache);
+					$this->addResponseToTeam($summary, $teamId, $responseValue, $response, $user, $cache, $includeComments);
 				}
 			}
 
 			// If user is not in any whitelisted group or team, add to "others"
 			if (!$userInWhitelistedGroup && !$userInWhitelistedTeam) {
 				$summary['others'][$responseValue]++;
-				$responseData = $response->jsonSerialize();
-				$responseData['userName'] = $user->getDisplayName();
-				$responseData['isGuest'] = $this->guestService->isGuestUser($userId);
-				$summary['others']['responses'][] = $responseData;
+				$summary['others']['responses'][] = $this->serializeResponse($response, $user, $includeComments);
 			}
 		}
+	}
+
+	/**
+	 * Serialize a response for inclusion in the summary, enriched with the
+	 * responder's display name and guest flag. Strips the free-text comment /
+	 * checkinComment fields unless the caller is permitted to read comments.
+	 */
+	private function serializeResponse($response, $user, bool $includeComments): array {
+		$responseData = $response->jsonSerialize();
+		if (!$includeComments) {
+			unset($responseData['comment'], $responseData['checkinComment']);
+		}
+		$responseData['userName'] = $user->getDisplayName();
+		$responseData['isGuest'] = $this->guestService->isGuestUser($user->getUID());
+		return $responseData;
 	}
 
 	/**
@@ -340,6 +358,7 @@ class ResponseSummaryService {
 		string $responseValue,
 		$response,
 		$user,
+		bool $includeComments,
 	): void {
 		if (!isset($summary['by_group'][$groupId])) {
 			$summary['by_group'][$groupId] = [
@@ -354,10 +373,7 @@ class ResponseSummaryService {
 		$summary['by_group'][$groupId][$responseValue]++;
 
 		// Add the detailed response to this group
-		$responseData = $response->jsonSerialize();
-		$responseData['userName'] = $user->getDisplayName();
-		$responseData['isGuest'] = $this->guestService->isGuestUser($user->getUID());
-		$summary['by_group'][$groupId]['responses'][] = $responseData;
+		$summary['by_group'][$groupId]['responses'][] = $this->serializeResponse($response, $user, $includeComments);
 	}
 
 	/**
@@ -370,6 +386,7 @@ class ResponseSummaryService {
 		$response,
 		$user,
 		array $cache,
+		bool $includeComments,
 	): void {
 		if (!isset($summary['by_team'][$teamId])) {
 			$teamInfo = $cache['teamInfo'][$teamId] ?? null;
@@ -386,10 +403,7 @@ class ResponseSummaryService {
 		$summary['by_team'][$teamId][$responseValue]++;
 
 		// Add the detailed response to this team
-		$responseData = $response->jsonSerialize();
-		$responseData['userName'] = $user->getDisplayName();
-		$responseData['isGuest'] = $this->guestService->isGuestUser($user->getUID());
-		$summary['by_team'][$teamId]['responses'][] = $responseData;
+		$summary['by_team'][$teamId]['responses'][] = $this->serializeResponse($response, $user, $includeComments);
 	}
 
 	/**

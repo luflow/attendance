@@ -530,8 +530,14 @@ class AppointmentService {
 
 	/**
 	 * Get a single appointment with user response and summary.
+	 *
+	 * @param bool $includeResponseSummary Attach the full response overview
+	 *        (other attendees' answers and roster). Gate on the caller's
+	 *        PERMISSION_SEE_RESPONSE_OVERVIEW — it leaks every attendee's answer.
+	 * @param bool $includeComments Include free-text comments in that overview.
+	 *        Gate on the caller's PERMISSION_SEE_COMMENTS.
 	 */
-	public function getAppointmentWithUserResponse(int $id, string $userId): ?array {
+	public function getAppointmentWithUserResponse(int $id, string $userId, bool $includeResponseSummary = false, bool $includeComments = false): ?array {
 		$appointment = $this->appointmentMapper->find($id);
 
 		if (!$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
@@ -546,7 +552,9 @@ class AppointmentService {
 		// before they ever responded; treat that as "no response" (matches list endpoint).
 		$userResponse = $this->getUserResponse($appointment->getId(), $userId);
 		$appointmentData['userResponse'] = ($userResponse && $userResponse->getResponse() !== null) ? $userResponse : null;
-		$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId());
+		if ($includeResponseSummary) {
+			$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId(), $includeComments);
+		}
 		$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
 
 		return $appointmentData;
@@ -767,12 +775,19 @@ class AppointmentService {
 	 *                        VisibilityService::isUserTargetAttendee, so it
 	 *                        bypasses the manage-permission "see everything"
 	 *                        bypass.
+	 * @param bool $includeResponseSummary Attach the full response overview
+	 *        (other attendees' answers and roster) to each appointment. Gate on
+	 *        the caller's PERMISSION_SEE_RESPONSE_OVERVIEW.
+	 * @param bool $includeComments Include free-text comments in that overview.
+	 *        Gate on the caller's PERMISSION_SEE_COMMENTS.
 	 */
 	public function getAppointmentsWithUserResponses(
 		string $userId,
 		bool $showPastAppointments = false,
 		bool $unansweredOnly = false,
 		bool $onlyForMe = false,
+		bool $includeResponseSummary = false,
+		bool $includeComments = false,
 	): array {
 		$appointments = $showPastAppointments
 			? $this->getPastAppointments()
@@ -809,7 +824,9 @@ class AppointmentService {
 			$appointmentData = $this->enrichVisibilityData($appointmentData);
 			$appointmentData = $this->enrichSeriesCount($appointmentData, $appointment);
 			$appointmentData['userResponse'] = $hasResponse ? $userResponse : null;
-			$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId());
+			if ($includeResponseSummary) {
+				$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId(), $includeComments);
+			}
 			$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
 			$result[] = $appointmentData;
 		}

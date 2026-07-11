@@ -292,7 +292,6 @@
                     "cancelledAt",
                     "responseDeadline",
                     "userResponse",
-                    "responseSummary",
                     "attachments"
                 ],
                 "properties": {
@@ -386,8 +385,7 @@
                     "responseSummary": {
                         "type": "object",
                         "additionalProperties": {
-                            "type": "integer",
-                            "format": "int64"
+                            "type": "object"
                         }
                     },
                     "attachments": {
