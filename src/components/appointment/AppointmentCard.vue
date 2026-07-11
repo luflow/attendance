@@ -420,6 +420,54 @@
 				</NcButton>
 			</div>
 		</NcDialog>
+
+		<!-- Close confirmation with planned-in / not-planned-in groups -->
+		<NcDialog
+			v-if="showCloseBookingDialog"
+			:name="t('attendance', 'Close and notify?')"
+			data-test="close-booking-dialog"
+			@closing="showCloseBookingDialog = false">
+			<div class="booking-confirm">
+				<p class="booking-confirm__hint">
+					{{ t('attendance', 'Closing notifies these people about their scheduling status.') }}
+				</p>
+				<div
+					v-for="group in bookingDialogGroups"
+					:key="group.key"
+					class="booking-confirm__group">
+					<h4>{{ group.label }}</h4>
+					<p v-if="group.names.length === 0" class="booking-confirm__empty">
+						{{ t('attendance', 'Nobody') }}
+					</p>
+					<p v-else class="booking-confirm__names">
+						{{ visibleBookingNames(group).join(', ') }}
+						<NcButton
+							v-if="group.names.length > BOOKING_PREVIEW_LIMIT"
+							variant="tertiary"
+							@click="toggleBookingGroup(group.key)">
+							{{ expandedBookingGroups[group.key]
+								? t('attendance', 'Show less')
+								: t('attendance', '+{count} more', { count: group.names.length - BOOKING_PREVIEW_LIMIT }) }}
+						</NcButton>
+					</p>
+				</div>
+			</div>
+			<template #actions>
+				<NcButton
+					variant="tertiary"
+					data-test="close-booking-cancel"
+					@click="showCloseBookingDialog = false">
+					{{ t('attendance', 'Cancel') }}
+				</NcButton>
+				<NcButton
+					variant="primary"
+					:disabled="togglingClosed"
+					data-test="close-booking-confirm"
+					@click="confirmCloseWithBookings">
+					{{ t('attendance', 'Close inquiry') }}
+				</NcButton>
+			</template>
+		</NcDialog>
 	</div>
 </template>
 
@@ -673,11 +721,74 @@ const handleResponse = (response) => {
 }
 
 const togglingClosed = ref(false)
+const showCloseBookingDialog = ref(false)
+
+// Yes-responders split into planned-in / not-planned-in, deduped by user. Drives
+// the close-confirmation dialog and mirrors the server's close-time wave.
+const bookingGroups = computed(() => {
+	const summary = props.appointment.responseSummary
+	const booked = new Map()
+	const declined = new Map()
+	if (!summary) return { booked: [], declined: [] }
+	const sections = []
+	if (summary.by_group) sections.push(...Object.values(summary.by_group))
+	if (summary.by_team) sections.push(...Object.values(summary.by_team))
+	if (summary.others) sections.push(summary.others)
+	for (const section of sections) {
+		for (const r of section.responses || []) {
+			if (r.response !== 'yes') continue
+			const target = r.bookingStatus === 'booked' ? booked : declined
+			target.set(r.userId, r.userName || r.userId)
+		}
+	}
+	for (const uid of booked.keys()) declined.delete(uid)
+	return { booked: [...booked.values()], declined: [...declined.values()] }
+})
 
 const handleToggleClosed = async () => {
 	if (togglingClosed.value) return
-	togglingClosed.value = true
 	const wantsClose = !isClosed.value
+	// Closing with planned-in people triggers a notification wave — confirm the
+	// two named groups first. Without booking / without anyone booked, close is
+	// a direct click as before.
+	if (wantsClose && capabilities.bookingEnabled && bookingGroups.value.booked.length >= 1) {
+		showCloseBookingDialog.value = true
+		return
+	}
+	await performToggleClosed(wantsClose)
+}
+
+const confirmCloseWithBookings = async () => {
+	showCloseBookingDialog.value = false
+	await performToggleClosed(true)
+}
+
+const BOOKING_PREVIEW_LIMIT = 10
+const expandedBookingGroups = ref({})
+const bookingDialogGroups = computed(() => [
+	{
+		key: 'booked',
+		label: t('attendance', 'Scheduled ({count})', { count: bookingGroups.value.booked.length }),
+		names: bookingGroups.value.booked,
+	},
+	{
+		key: 'declined',
+		label: t('attendance', 'Not scheduled ({count})', { count: bookingGroups.value.declined.length }),
+		names: bookingGroups.value.declined,
+	},
+])
+const toggleBookingGroup = (key) => {
+	expandedBookingGroups.value[key] = !expandedBookingGroups.value[key]
+}
+const visibleBookingNames = (group) => (
+	expandedBookingGroups.value[group.key]
+		? group.names
+		: group.names.slice(0, BOOKING_PREVIEW_LIMIT)
+)
+
+const performToggleClosed = async (wantsClose) => {
+	if (togglingClosed.value) return
+	togglingClosed.value = true
 	const url = generateUrl(
 		`/apps/attendance/api/appointments/${props.appointment.id}/${wantsClose ? 'close' : 'reopen'}`,
 	)
@@ -755,6 +866,29 @@ const handleCommentInputEvent = () => {
 
 <style scoped lang="scss">
 @use "../../styles/shared.scss";
+
+.booking-confirm {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    &__hint {
+        color: var(--color-text-maxcontrast);
+    }
+
+    &__group h4 {
+        margin: 0 0 4px;
+    }
+
+    &__names {
+        line-height: 1.5;
+    }
+
+    &__empty {
+        color: var(--color-text-maxcontrast);
+        font-style: italic;
+    }
+}
 
 .remind-target-choices {
     display: flex;

@@ -130,7 +130,8 @@
 									v-if="canManageBooking && response.response === 'yes'"
 									class="booking-toggle"
 									:variant="response.bookingStatus === 'booked' ? 'success' : 'tertiary'"
-									:disabled="togglingBooking.has(response.userId)"
+									:disabled="togglingBooking.has(response.userId) || isClosed"
+									:title="isClosed ? t('attendance', 'Reopen the inquiry to change scheduling') : null"
 									:data-test="`booking-toggle-${response.userId}`"
 									@click="toggleBooking(response)">
 									<template #icon>
@@ -286,7 +287,8 @@
 									v-if="canManageBooking && response.response === 'yes'"
 									class="booking-toggle"
 									:variant="response.bookingStatus === 'booked' ? 'success' : 'tertiary'"
-									:disabled="togglingBooking.has(response.userId)"
+									:disabled="togglingBooking.has(response.userId) || isClosed"
+									:title="isClosed ? t('attendance', 'Reopen the inquiry to change scheduling') : null"
 									:data-test="`booking-toggle-${response.userId}`"
 									@click="toggleBooking(response)">
 									<template #icon>
@@ -431,7 +433,8 @@
 									v-if="canManageBooking && response.response === 'yes'"
 									class="booking-toggle"
 									:variant="response.bookingStatus === 'booked' ? 'success' : 'tertiary'"
-									:disabled="togglingBooking.has(response.userId)"
+									:disabled="togglingBooking.has(response.userId) || isClosed"
+									:title="isClosed ? t('attendance', 'Reopen the inquiry to change scheduling') : null"
 									:data-test="`booking-toggle-${response.userId}`"
 									@click="toggleBooking(response)">
 									<template #icon>

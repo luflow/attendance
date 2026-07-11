@@ -36,6 +36,7 @@ class AppointmentService {
 	private IAppManager $appManager;
 	private GuestService $guestService;
 	private AuditEventService $auditEventService;
+	private BookingService $bookingService;
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -51,6 +52,7 @@ class AppointmentService {
 		IAppManager $appManager,
 		GuestService $guestService,
 		AuditEventService $auditEventService,
+		BookingService $bookingService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -65,6 +67,7 @@ class AppointmentService {
 		$this->appManager = $appManager;
 		$this->guestService = $guestService;
 		$this->auditEventService = $auditEventService;
+		$this->bookingService = $bookingService;
 	}
 
 	/**
@@ -233,6 +236,11 @@ class AppointmentService {
 			$id,
 			\OCA\Attendance\Audit\Verb::SOURCE_APP,
 		);
+
+		// Booking wave: notify planned-in / not-planned-in yes-responders. No-op
+		// unless the feature is on AND at least one person is booked; reopen-safe
+		// (only diffs against the last communicated state).
+		$this->bookingService->notifyOnClose($updated);
 
 		return $updated;
 	}

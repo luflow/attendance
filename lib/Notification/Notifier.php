@@ -145,6 +145,34 @@ class Notifier implements INotifier {
 
 				return $notification;
 
+			case 'booking_confirmed':
+			case 'booking_declined':
+				$parameters = $notification->getSubjectParameters();
+				$appointmentName = $parameters['name'] ?? 'Unknown';
+				$appointmentDate = $this->formatDateForUser(
+					$parameters['startDatetime'] ?? $parameters['date'] ?? '',
+					$notification->getUser()
+				);
+				if ($notification->getSubject() === 'booking_confirmed') {
+					$notification->setParsedSubject(
+						$l->t('You are scheduled: %1$s on %2$s', [$appointmentName, $appointmentDate])
+					);
+					$notification->setParsedMessage(
+						$l->t('You have been scheduled for this appointment.')
+					);
+				} else {
+					$notification->setParsedSubject(
+						$l->t('Not scheduled: %1$s on %2$s', [$appointmentName, $appointmentDate])
+					);
+					$notification->setParsedMessage(
+						$l->t('You are not scheduled for this appointment this time.')
+					);
+				}
+				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
+					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
+				));
+				return $notification;
+
 			case 'response_submitted':
 			case 'response_changed':
 			case 'response_rescinded':

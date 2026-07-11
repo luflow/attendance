@@ -226,6 +226,49 @@ class NotificationService {
 	}
 
 	/**
+	 * Notify a single attendee about their booking outcome when an appointment
+	 * is closed: booked ("you are planned in") or not ("someone else this time").
+	 *
+	 * @param Appointment $appointment The closed appointment
+	 * @param string $userId The attendee to notify
+	 * @param string $status 'booked' or 'declined'
+	 */
+	public function sendBookingNotification(Appointment $appointment, string $userId, string $status): void {
+		if (!$this->isNotificationsAppEnabled()) {
+			return;
+		}
+
+		$subject = $status === 'booked' ? 'booking_confirmed' : 'booking_declined';
+		$appointmentUrl = $this->urlGenerator->linkToRouteAbsolute(
+			'attendance.page.appointment',
+			['id' => $appointment->getId()]
+		);
+
+		try {
+			$notification = $this->notificationManager->createNotification();
+			$notification->setApp('attendance')
+				->setUser($userId)
+				->setDateTime(new \DateTime())
+				->setObject('appointment', (string)$appointment->getId())
+				->setSubject($subject, [
+					'appointmentId' => $appointment->getId(),
+					'name' => $appointment->getName(),
+					'startDatetime' => $appointment->getStartDatetime(),
+				])
+				->setLink($appointmentUrl);
+
+			$this->notificationManager->notify($notification);
+		} catch (\Exception $e) {
+			$this->logger->error('Failed to send booking notification', [
+				'userId' => $userId,
+				'appointmentId' => $appointment->getId(),
+				'status' => $status,
+				'error' => $e->getMessage(),
+			]);
+		}
+	}
+
+	/**
 	 * Send an appointment reminder notification to a single user.
 	 * Uses the same notification format as ReminderJob but does NOT write to ReminderLogMapper.
 	 *
