@@ -133,6 +133,7 @@
 						id="start-datetime"
 						:model-value="startDateObject"
 						type="datetime-local"
+						step="900"
 						:label="t('attendance', 'Start date & time')"
 						data-test="input-start-datetime"
 						@update:model-value="onStartDatetimeChange"
@@ -142,6 +143,7 @@
 						id="end-datetime"
 						:model-value="endDateObject"
 						type="datetime-local"
+						step="900"
 						:label="t('attendance', 'End date & time')"
 						data-test="input-end-datetime"
 						@update:model-value="onEndDatetimeChange" />
@@ -228,6 +230,7 @@
 						id="response-deadline"
 						:model-value="deadlineAbsoluteDateObject"
 						type="datetime-local"
+						step="900"
 						:label="t('attendance', 'Response deadline')"
 						data-test="input-response-deadline"
 						@update:model-value="onDeadlineAbsoluteChange" />
@@ -923,6 +926,18 @@ const loadTrackingGroups = async () => {
 	}
 }
 
+// Preset the start (create mode only) to the next full hour instead of leaving
+// the field empty / on the current odd minute. End defaults to start + 2.5 h so
+// the form opens with a sensible, 15-min-grid-aligned range.
+const presetCreateDatetimes = () => {
+	const start = new Date()
+	start.setMinutes(0, 0, 0)
+	start.setHours(start.getHours() + 1)
+	formData.startDatetime = formatDateTimeForInput(start.toISOString())
+	const end = new Date(start.getTime() + 2.5 * 60 * 60 * 1000)
+	formData.endDatetime = formatDateTimeForInput(end.toISOString())
+}
+
 const onStartDatetimeChange = (newValue) => {
 	// newValue is a Date object from NcDateTimePickerNative
 	formData.startDatetime = newValue
@@ -1440,6 +1455,8 @@ onMounted(async () => {
 	await Promise.all([loadTrackingGroups(), loadPermissions()])
 	if (props.mode === 'edit' || props.mode === 'copy') {
 		await loadAppointment()
+	} else {
+		presetCreateDatetimes()
 	}
 })
 
