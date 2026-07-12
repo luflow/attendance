@@ -184,6 +184,10 @@ const onClosedToggled = (updated) => {
 	if (appointment.value && updated?.id === appointment.value.id) {
 		appointment.value = { ...appointment.value, ...updated }
 	}
+	// Closing/reopening re-buckets the appointment in the nav menu (a
+	// closed-but-unanswered inquiry moves out of "Unanswered" into "Upcoming").
+	// Trigger the same parent refresh that answering does.
+	emit('responseUpdated')
 }
 
 const loadAppointmentSilently = async () => {

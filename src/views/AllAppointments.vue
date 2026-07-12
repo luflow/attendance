@@ -359,6 +359,11 @@ const handleClosedToggled = (updated) => {
 	if (index !== -1) {
 		appointments.value[index] = { ...appointments.value[index], ...updated }
 	}
+	// Closing/reopening changes how the appointment is bucketed in the nav menu
+	// (a closed-but-unanswered inquiry is no longer "Unanswered" — it belongs
+	// under "Upcoming"). The parent recomputes those sections from freshly
+	// loaded data, so trigger the same refresh answering does.
+	emit('responseUpdated')
 }
 const loading = ref(true)
 const responseComments = reactive({})
