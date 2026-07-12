@@ -45,6 +45,8 @@ return [
 		['name' => 'appointment#reopen', 'url' => '/api/appointments/{id}/reopen', 'verb' => 'POST'],
 		['name' => 'appointment#cancel', 'url' => '/api/appointments/{id}/cancel', 'verb' => 'POST'],
 		['name' => 'appointment#uncancel', 'url' => '/api/appointments/{id}/uncancel', 'verb' => 'POST'],
+		['name' => 'appointment#book', 'url' => '/api/appointments/{id}/book/{userId}', 'verb' => 'POST'],
+		['name' => 'appointment#unbook', 'url' => '/api/appointments/{id}/unbook/{userId}', 'verb' => 'POST'],
 
 		// Admin settings
 		['name' => 'admin#getSettings', 'url' => '/api/admin/settings', 'verb' => 'GET'],

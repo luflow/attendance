@@ -385,6 +385,7 @@
 			:can-see-comments="canSeeComments"
 			:can-manage-appointments="canManageAppointments"
 			:appointment-id="appointment.id"
+			:booking-enabled="capabilities.bookingEnabled"
 			:is-closed="isClosed" />
 
 		<!-- Remind target dialog -->

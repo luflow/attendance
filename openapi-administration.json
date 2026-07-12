@@ -58,6 +58,7 @@
                     "displayOrder",
                     "pushEnabled",
                     "mobileAppBannerEnabled",
+                    "bookingEnabled",
                     "guestsApp"
                 ],
                 "properties": {
@@ -92,6 +93,9 @@
                         "type": "boolean"
                     },
                     "mobileAppBannerEnabled": {
+                        "type": "boolean"
+                    },
+                    "bookingEnabled": {
                         "type": "boolean"
                     },
                     "guestsApp": {
@@ -168,6 +172,7 @@
                     "notificationsAppEnabled",
                     "closing",
                     "cancelling",
+                    "bookingEnabled",
                     "remindMaybe",
                     "responseToggle",
                     "guestInvitation",
@@ -193,6 +198,9 @@
                         "type": "boolean"
                     },
                     "cancelling": {
+                        "type": "boolean"
+                    },
+                    "bookingEnabled": {
                         "type": "boolean"
                     },
                     "remindMaybe": {
@@ -528,6 +536,12 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Whether the mobile app promotion banner is enabled"
+                                    },
+                                    "bookingEnabled": {
+                                        "type": "boolean",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Whether the booking / planning feature is enabled"
                                     }
                                 }
                             }

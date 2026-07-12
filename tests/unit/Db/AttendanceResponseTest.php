@@ -116,6 +116,15 @@ class AttendanceResponseTest extends TestCase {
 		$this->assertEquals('admin', $json['checkinBy']);
 		$this->assertEquals('2024-01-15T10:05:00Z', $json['checkinAt']);
 		$this->assertTrue($json['isCheckedIn']);
+		// bookingStatus is null (open) by default and surfaces in the payload.
+		$this->assertArrayHasKey('bookingStatus', $json);
+		$this->assertNull($json['bookingStatus']);
+	}
+
+	public function testBookingStatusSetGetAndSerialize(): void {
+		$this->response->setBookingStatus('booked');
+		$this->assertSame('booked', $this->response->getBookingStatus());
+		$this->assertSame('booked', $this->response->jsonSerialize()['bookingStatus']);
 	}
 
 	public function testDefaultValues(): void {
@@ -130,5 +139,6 @@ class AttendanceResponseTest extends TestCase {
 		$this->assertEquals('', $response->getCheckinComment());
 		$this->assertEquals('', $response->getCheckinBy());
 		$this->assertEquals('', $response->getCheckinAt());
+		$this->assertNull($response->getBookingStatus());
 	}
 }

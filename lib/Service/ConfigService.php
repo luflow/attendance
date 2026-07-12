@@ -258,6 +258,26 @@ class ConfigService {
 	}
 
 	/**
+	 * Check if the booking / planning feature is enabled instance-wide. When
+	 * off, no booking UI is shown anywhere (the bookingEnabled capability is
+	 * false). Defaults to off so plain yes/no users never see it.
+	 *
+	 * @return bool True if booking is enabled
+	 */
+	public function isBookingEnabled(): bool {
+		return $this->config->getAppValue(self::APP_ID, 'booking_enabled', 'no') === 'yes';
+	}
+
+	/**
+	 * Set the booking / planning feature enabled status.
+	 *
+	 * @param bool $enabled Whether booking should be enabled
+	 */
+	public function setBookingEnabled(bool $enabled): void {
+		$this->config->setAppValue(self::APP_ID, 'booking_enabled', $enabled ? 'yes' : 'no');
+	}
+
+	/**
 	 * Get the push proxy server URL.
 	 * Configurable via occ: occ config:app:set attendance push_proxy_server --value="https://your-proxy.example.com"
 	 *

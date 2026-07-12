@@ -41,6 +41,7 @@ namespace OCA\Attendance;
  *   isCheckedIn: bool,
  *   responseSource: ?string,
  *   checkinSource: ?string,
+ *   bookingStatus: ?string,
  * }
  * @psalm-type AttendanceResponseWithUser = array{
  *   id: int,
@@ -56,6 +57,7 @@ namespace OCA\Attendance;
  *   isCheckedIn: bool,
  *   responseSource: ?string,
  *   checkinSource: ?string,
+ *   bookingStatus: ?string,
  *   userName: string,
  *   userGroups: list<string>,
  *   isGuest: bool,
@@ -143,6 +145,7 @@ namespace OCA\Attendance;
  *   notificationsAppEnabled: bool,
  *   closing: bool,
  *   cancelling: bool,
+ *   bookingEnabled: bool,
  *   remindMaybe: bool,
  *   responseToggle: bool,
  *   guestInvitation: bool,
@@ -197,6 +200,7 @@ namespace OCA\Attendance;
  *   displayOrder: string,
  *   pushEnabled: bool,
  *   mobileAppBannerEnabled: bool,
+ *   bookingEnabled: bool,
  *   guestsApp: AttendanceGuestsAppStatus,
  * }
  * @psalm-type AttendanceAdminStatus = array{
