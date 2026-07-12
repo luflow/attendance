@@ -133,6 +133,7 @@
 						id="start-datetime"
 						:model-value="startDateObject"
 						type="datetime-local"
+						step="900"
 						:label="t('attendance', 'Start date & time')"
 						data-test="input-start-datetime"
 						@update:model-value="onStartDatetimeChange"
@@ -142,6 +143,7 @@
 						id="end-datetime"
 						:model-value="endDateObject"
 						type="datetime-local"
+						step="900"
 						:label="t('attendance', 'End date & time')"
 						data-test="input-end-datetime"
 						@update:model-value="onEndDatetimeChange" />
@@ -228,6 +230,7 @@
 						id="response-deadline"
 						:model-value="deadlineAbsoluteDateObject"
 						type="datetime-local"
+						step="900"
 						:label="t('attendance', 'Response deadline')"
 						data-test="input-response-deadline"
 						@update:model-value="onDeadlineAbsoluteChange" />
