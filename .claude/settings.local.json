@@ -27,7 +27,11 @@
       "Bash(npm outdated:*)",
       "Bash(composer outdated:*)",
       "WebFetch(domain:devblogs.microsoft.com)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(composer test:unit)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "playwright-test"
+  ]
 }

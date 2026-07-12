@@ -6,6 +6,7 @@ namespace OCA\Attendance\Tests\Unit\Service;
 
 use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
+use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\GuestService;
@@ -200,5 +201,64 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->assertSame(1, $summary['others']['no_response']);
 		$othersIds = array_map(static fn (array $u): string => $u['userId'], $summary['others']['non_responding_users']);
 		$this->assertContains('new_hire', $othersIds);
+	}
+
+	/**
+	 * Security regression: the free-text comment / checkinComment fields carry
+	 * potentially sensitive content and must only be exposed to callers who
+	 * hold PERMISSION_SEE_COMMENTS. With $includeComments = false the serialized
+	 * responses must omit them entirely, while the rest of the summary is intact.
+	 */
+	public function testGetResponseSummaryStripsCommentsWhenNotPermitted(): void {
+		$appointmentId = 4;
+		$appointment = new Appointment();
+		$appointment->setId($appointmentId);
+		$appointment->setVisibleUsers('[]');
+		$appointment->setVisibleGroups('[]');
+		$appointment->setVisibleTeams('[]');
+
+		$response = new AttendanceResponse();
+		$response->setId(1);
+		$response->setAppointmentId($appointmentId);
+		$response->setUserId('alice');
+		$response->setResponse('yes');
+		$response->setComment('Secret personal reason');
+		$response->setCheckinComment('Secret checkin note');
+
+		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
+		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
+
+		// No whitelist → alice lands in the "others" bucket.
+		$this->configService->method('getWhitelistedGroups')->willReturn([]);
+		$this->configService->method('getWhitelistedTeams')->willReturn([]);
+
+		$this->visibilityService->method('getVisibilitySettings')
+			->willReturn(['users' => [], 'groups' => [], 'teams' => []]);
+		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(false);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+		$this->visibilityService->method('getRelevantUsersForAppointment')->willReturn([]);
+
+		$alice = $this->createMock(IUser::class);
+		$alice->method('getUID')->willReturn('alice');
+		$alice->method('getDisplayName')->willReturn('Alice');
+
+		$this->userManager->method('get')->with('alice')->willReturn($alice);
+		$this->groupManager->method('getUserGroups')->willReturn([]);
+		$this->groupManager->method('search')->with('')->willReturn([]);
+
+		// Without permission: comment fields stripped.
+		$stripped = $this->service->getResponseSummary($appointmentId, false);
+		$this->assertCount(1, $stripped['others']['responses']);
+		$strippedResponse = $stripped['others']['responses'][0];
+		$this->assertArrayNotHasKey('comment', $strippedResponse);
+		$this->assertArrayNotHasKey('checkinComment', $strippedResponse);
+		$this->assertSame('yes', $strippedResponse['response']);
+		$this->assertSame('Alice', $strippedResponse['userName']);
+
+		// With permission: comment fields retained.
+		$full = $this->service->getResponseSummary($appointmentId, true);
+		$fullResponse = $full['others']['responses'][0];
+		$this->assertSame('Secret personal reason', $fullResponse['comment']);
+		$this->assertSame('Secret checkin note', $fullResponse['checkinComment']);
 	}
 }

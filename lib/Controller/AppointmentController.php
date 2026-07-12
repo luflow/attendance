@@ -95,15 +95,25 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
+		// Gate the response overview and free-text comments server-side. The
+		// frontend flags alone are advisory — without this an audience member
+		// would receive every attendee's answers and comments over the wire.
+		// Comments only surface inside the overview, so skip resolving that
+		// permission when the overview itself is withheld.
+		$canSeeResponseOverview = $this->permissionService->canSeeResponseOverview($user->getUID());
+		$canSeeComments = $canSeeResponseOverview && $this->permissionService->canSeeComments($user->getUID());
+
 		$appointments = $this->appointmentService->getAppointmentsWithUserResponses(
 			$user->getUID(),
 			$showPastAppointments,
 			$unansweredOnly,
 			$onlyForMe,
+			$canSeeResponseOverview,
+			$canSeeComments,
 		);
 
 		// Add checkin summary to each appointment if user can see response overview
-		if ($this->permissionService->canSeeResponseOverview($user->getUID())) {
+		if ($canSeeResponseOverview) {
 			foreach ($appointments as &$appointment) {
 				$appointment['checkinSummary'] = $this->checkinService->getCheckinSummary($appointment['id']);
 			}
@@ -583,13 +593,23 @@ class AppointmentController extends Controller {
 		}
 
 		try {
-			$appointment = $this->appointmentService->getAppointmentWithUserResponse($id, $user->getUID());
+			// Gate the response overview and free-text comments server-side
+			// (see index()). The frontend permission flags are advisory only.
+			$canSeeResponseOverview = $this->permissionService->canSeeResponseOverview($user->getUID());
+			$canSeeComments = $canSeeResponseOverview && $this->permissionService->canSeeComments($user->getUID());
+
+			$appointment = $this->appointmentService->getAppointmentWithUserResponse(
+				$id,
+				$user->getUID(),
+				$canSeeResponseOverview,
+				$canSeeComments,
+			);
 			if ($appointment === null) {
 				return new DataResponse(['error' => 'Appointment not found or not visible'], 404);
 			}
 
 			// Add checkin summary if user can see response overview
-			if ($this->permissionService->canSeeResponseOverview($user->getUID())) {
+			if ($canSeeResponseOverview) {
 				$appointment['checkinSummary'] = $this->checkinService->getCheckinSummary($id);
 			}
 

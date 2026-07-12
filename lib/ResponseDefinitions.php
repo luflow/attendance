@@ -96,7 +96,7 @@ namespace OCA\Attendance;
  *   cancelledAt: ?string,
  *   responseDeadline: ?string,
  *   userResponse: AttendanceResponseData|null,
- *   responseSummary: array<string, int>,
+ *   responseSummary?: array<string, mixed>,
  *   attachments: list<array<string, mixed>>,
  * }
  * @psalm-type AttendanceNavigationAppointment = array{
