@@ -150,6 +150,7 @@ namespace OCA\Attendance;
  *   responseToggle: bool,
  *   guestInvitation: bool,
  *   auditLog: bool,
+ *   selfCheckin: bool,
  * }
  * @psalm-type AttendanceAuditUserRef = array{
  *   userId: string,
@@ -201,6 +202,7 @@ namespace OCA\Attendance;
  *   pushEnabled: bool,
  *   mobileAppBannerEnabled: bool,
  *   bookingEnabled: bool,
+ *   selfCheckinWindowMinutes: int,
  *   guestsApp: AttendanceGuestsAppStatus,
  * }
  * @psalm-type AttendanceAdminStatus = array{
@@ -232,6 +234,16 @@ namespace OCA\Attendance;
  *   alreadyCheckedIn: bool,
  *   checkinState: ?string,
  *   checkinAt: ?string,
+ * }
+ * @psalm-type AttendanceSelfCheckinNextUpcoming = array{
+ *   id: int,
+ *   name: string,
+ *   startDatetime: string,
+ *   checkinWindowStartsAt: string,
+ * }
+ * @psalm-type AttendanceSelfCheckinOverview = array{
+ *   appointments: list<AttendanceSelfCheckinAppointment>,
+ *   nextUpcoming: ?AttendanceSelfCheckinNextUpcoming,
  * }
  * @psalm-type AttendanceSelfCheckinResult = array{
  *   appointment: AttendanceAppointmentData,

@@ -13,6 +13,7 @@ use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\OpenAPI;
+use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IRequest;
@@ -48,11 +49,12 @@ class SelfCheckinController extends Controller {
 	}
 
 	/**
-	 * Get active appointments for self-check-in
+	 * Get the self-check-in overview
 	 *
-	 * Returns active appointments the current user can self-check into right now.
+	 * Returns active appointments the current user can self-check into right now,
+	 * plus the next upcoming appointment whose check-in window has not opened yet.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, list<AttendanceSelfCheckinAppointment>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, AttendanceSelfCheckinOverview, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -69,8 +71,8 @@ class SelfCheckinController extends Controller {
 		}
 
 		try {
-			$appointments = $this->selfCheckinService->getActiveAppointments($user->getUID());
-			return new DataResponse($appointments);
+			$overview = $this->selfCheckinService->getOverview($user->getUID());
+			return new DataResponse($overview);
 		} catch (\Exception $e) {
 			$this->logger->error('Self-checkin: failed to get active appointments: ' . $e->getMessage());
 			return new DataResponse(
@@ -84,12 +86,13 @@ class SelfCheckinController extends Controller {
 	 * Self-check-in to a specific appointment
 	 *
 	 * @param int $appointmentId ID of the appointment to check into
+	 * @param string $method How the check-in was triggered: qr or nfc
 	 * @return DataResponse<Http::STATUS_OK, AttendanceSelfCheckinResult, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI(OpenAPI::SCOPE_DEFAULT)]
-	public function checkin(int $appointmentId): DataResponse {
+	public function checkin(int $appointmentId, string $method = 'qr'): DataResponse {
 		$user = $this->requireUser();
 		if ($user instanceof DataResponse) {
 			return $user;
@@ -101,7 +104,7 @@ class SelfCheckinController extends Controller {
 		}
 
 		try {
-			$result = $this->selfCheckinService->selfCheckin($appointmentId, $user->getUID());
+			$result = $this->selfCheckinService->selfCheckin($appointmentId, $user->getUID(), $method);
 			return new DataResponse($result);
 		} catch (\InvalidArgumentException $e) {
 			return new DataResponse(
@@ -119,13 +122,12 @@ class SelfCheckinController extends Controller {
 
 	/**
 	 * GET /self-checkin
-	 * Web fallback page — shows active appointments with check-in buttons.
-	 * For users who scanned the NFC sticker but don't have the app.
-	 *
-	 * @NoAdminRequired
-	 * @NoCSRFRequired
+	 * Landing page for scanned QR codes / NFC tags. Self-check-in itself is
+	 * app-only — this page tells visitors to get the mobile app and offers a
+	 * deep link that opens it directly. Public so a scan without an active
+	 * browser session still lands on the funnel instead of a login wall.
 	 */
-	#[NoAdminRequired]
+	#[PublicPage]
 	#[NoCSRFRequired]
 	#[OpenAPI(OpenAPI::SCOPE_IGNORE)]
 	public function showPage(): TemplateResponse {
@@ -136,7 +138,7 @@ class SelfCheckinController extends Controller {
 			Application::APP_ID,
 			'selfcheckin',
 			[],
-			'user'
+			'guest'
 		);
 	}
 }

@@ -875,6 +875,9 @@ class AppointmentController extends Controller {
 			// True when the audit log + response-change notifications feature
 			// is enabled. Clients hide the timeline tab when this is false.
 			'auditLog' => $this->configService->isAuditLogEnabled(),
+			// Server supports QR/NFC self-check-in (method param + overview
+			// endpoint). Mobile clients hide the scan UI when this is false.
+			'selfCheckin' => true,
 		]);
 	}
 

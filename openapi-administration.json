@@ -59,6 +59,7 @@
                     "pushEnabled",
                     "mobileAppBannerEnabled",
                     "bookingEnabled",
+                    "selfCheckinWindowMinutes",
                     "guestsApp"
                 ],
                 "properties": {
@@ -97,6 +98,10 @@
                     },
                     "bookingEnabled": {
                         "type": "boolean"
+                    },
+                    "selfCheckinWindowMinutes": {
+                        "type": "integer",
+                        "format": "int64"
                     },
                     "guestsApp": {
                         "$ref": "#/components/schemas/GuestsAppStatus"
@@ -176,7 +181,8 @@
                     "remindMaybe",
                     "responseToggle",
                     "guestInvitation",
-                    "auditLog"
+                    "auditLog",
+                    "selfCheckin"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -213,6 +219,9 @@
                         "type": "boolean"
                     },
                     "auditLog": {
+                        "type": "boolean"
+                    },
+                    "selfCheckin": {
                         "type": "boolean"
                     }
                 }
@@ -542,6 +551,13 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Whether the booking / planning feature is enabled"
+                                    },
+                                    "selfCheckinWindowMinutes": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Minutes before appointment start that self-check-in opens"
                                     }
                                 }
                             }

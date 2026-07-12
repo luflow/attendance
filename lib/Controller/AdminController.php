@@ -146,6 +146,7 @@ class AdminController extends Controller {
 					'pushEnabled' => $this->configService->isPushEnabled(),
 					'mobileAppBannerEnabled' => $this->configService->isMobileAppBannerEnabled(),
 					'bookingEnabled' => $this->configService->isBookingEnabled(),
+					'selfCheckinWindowMinutes' => $this->configService->getSelfCheckinWindowMinutes(),
 					'guestsApp' => [
 						'enabled' => $this->guestService->isGuestsAppEnabled(),
 						'whitelistEnabled' => $this->guestService->isGuestsWhitelistEnabled(),
@@ -177,6 +178,7 @@ class AdminController extends Controller {
 	 * @param ?bool $pushEnabled Whether push notifications are enabled
 	 * @param ?bool $mobileAppBannerEnabled Whether the mobile app promotion banner is enabled
 	 * @param ?bool $bookingEnabled Whether the booking / planning feature is enabled
+	 * @param ?int $selfCheckinWindowMinutes Minutes before appointment start that self-check-in opens
 	 * @return DataResponse<Http::STATUS_OK, array<string, mixed>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
 	 */
 	#[NoCSRFRequired]
@@ -192,6 +194,7 @@ class AdminController extends Controller {
 		?bool $pushEnabled = null,
 		?bool $mobileAppBannerEnabled = null,
 		?bool $bookingEnabled = null,
+		?int $selfCheckinWindowMinutes = null,
 	): DataResponse {
 		// Get current user
 		$user = $this->userSession->getUser();
@@ -258,6 +261,10 @@ class AdminController extends Controller {
 
 			if ($bookingEnabled !== null) {
 				$this->configService->setBookingEnabled($bookingEnabled);
+			}
+
+			if ($selfCheckinWindowMinutes !== null) {
+				$this->configService->setSelfCheckinWindowMinutes($selfCheckinWindowMinutes);
 			}
 
 			return new DataResponse([]);

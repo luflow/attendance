@@ -139,6 +139,44 @@
 					<p class="hint-text">
 						{{ n('attendance', '%n group selected', '%n groups selected', selectedSelfCheckinRoles.length, { n: selectedSelfCheckinRoles.length }) }}
 					</p>
+
+					<NcInputField
+						v-model.number="selfCheckinWindowMinutes"
+						type="number"
+						class="self-checkin-window-field"
+						:label="t('attendance', 'Check-in window (minutes before start)')"
+						:helper-text="t('attendance', 'How many minutes before an appointment starts attendees can check in. The window always closes when the appointment ends.')"
+						data-test="input-self-checkin-window"
+						:input-props="{ min: 0, max: 1440 }" />
+
+					<div class="self-checkin-qr">
+						<h5>{{ t('attendance', 'Check-in code') }}</h5>
+						<p class="subsection-hint">
+							{{ t('attendance', 'Print this QR code and put it up at the entrance, or write the URL to NFC tags. One code works for all appointments — the app matches by time.') }}
+						</p>
+						<img v-if="qrDataUrl"
+							:src="qrDataUrl"
+							:alt="t('attendance', 'Self-check-in QR code')"
+							class="self-checkin-qr__image"
+							data-test="self-checkin-qr">
+						<div class="self-checkin-qr__actions">
+							<NcButton variant="secondary" @click="downloadQrCode">
+								<template #icon>
+									<Download :size="20" />
+								</template>
+								{{ t('attendance', 'Download QR code') }}
+							</NcButton>
+							<NcButton variant="secondary" @click="copySelfCheckinUrl">
+								<template #icon>
+									<ContentCopy :size="20" />
+								</template>
+								{{ t('attendance', 'Copy URL for NFC tags') }}
+							</NcButton>
+						</div>
+						<p class="hint-text">
+							{{ t('attendance', 'NFC tag shopping advice: use NXP NTAG213 tags (or newer) of at least 25 mm, and on-metal tags for metal surfaces. Avoid MIFARE Classic tags — they do not work with iPhones.') }}
+						</p>
+					</div>
 				</div>
 			</NcSettingsSection>
 
@@ -546,7 +584,9 @@ import CellphoneCheck from 'vue-material-design-icons/CellphoneCheck.vue'
 import AppleIcon from 'vue-material-design-icons/Apple.vue'
 import GoogleIcon from 'vue-material-design-icons/Google.vue'
 import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
+import Download from 'vue-material-design-icons/Download.vue'
 import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
+import QRCode from 'qrcode'
 import GroupSelect from '../components/common/GroupSelect.vue'
 import { formatDate, formatDateTimeMedium } from '../utils/datetime.js'
 import { APPLE_STORE_URL, GOOGLE_STORE_URL } from '../utils/mobileApp.js'
@@ -569,6 +609,9 @@ const selectedCheckinRoles = ref([])
 const selectedSeeResponseOverviewRoles = ref([])
 const selectedSeeCommentsRoles = ref([])
 const selectedSelfCheckinRoles = ref([])
+const selfCheckinWindowMinutes = ref(30)
+const qrDataUrl = ref(null)
+const selfCheckinUrl = window.location.origin + generateUrl('/apps/attendance/self-checkin')
 const remindersEnabled = ref(false)
 const reminderDays = ref(7)
 const reminderFrequency = ref(0)
@@ -701,6 +744,8 @@ const loadSettings = async () => {
 				.filter(group => group !== undefined)
 		}
 
+		selfCheckinWindowMinutes.value = config.selfCheckinWindowMinutes ?? 30
+
 		// Load reminder settings
 		remindersEnabled.value = config.reminders.enabled || false
 		reminderDays.value = config.reminders.reminderDays || 7
@@ -807,6 +852,7 @@ const saveSettings = async () => {
 				pushEnabled: pushEnabled.value,
 				mobileAppBannerEnabled: mobileAppBannerEnabled.value,
 				bookingEnabled: bookingEnabled.value,
+				selfCheckinWindowMinutes: selfCheckinWindowMinutes.value,
 			},
 		)
 
@@ -818,6 +864,27 @@ const saveSettings = async () => {
 		loading.value = false
 	}
 }
+
+const generateQrCode = async () => {
+	try {
+		qrDataUrl.value = await QRCode.toDataURL(selfCheckinUrl, { width: 512, margin: 2 })
+	} catch (error) {
+		console.error('Error generating QR code:', error)
+	}
+}
+
+const downloadQrCode = () => {
+	if (!qrDataUrl.value) return
+	const link = document.createElement('a')
+	link.href = qrDataUrl.value
+	link.download = 'attendance-self-checkin-qr.png'
+	link.click()
+}
+
+const copySelfCheckinUrl = () => copyToClipboard(selfCheckinUrl, {
+	successMessage: window.t('attendance', 'Link copied'),
+	errorMessage: window.t('attendance', 'Failed to copy link'),
+})
 
 const copyStoreUrl = (url) => copyToClipboard(url, {
 	successMessage: window.t('attendance', 'Link copied'),
@@ -854,6 +921,7 @@ const sendTestReminder = async () => {
 
 // Lifecycle
 onMounted(async () => {
+	generateQrCode()
 	await loadSettings()
 
 	// Handle hash navigation after content is loaded
@@ -953,6 +1021,36 @@ onMounted(async () => {
 	margin: 0 0 4px 0;
 	font-size: 15px;
 	font-weight: 600;
+}
+
+.self-checkin-window-field {
+	max-width: 400px;
+	margin-top: 12px;
+}
+
+.self-checkin-qr {
+	margin-top: 20px;
+
+	h5 {
+		font-weight: 600;
+		margin-bottom: 4px;
+	}
+
+	.self-checkin-qr__image {
+		width: 180px;
+		height: 180px;
+		border-radius: var(--border-radius-large);
+		background: #fff;
+		padding: 8px;
+		box-sizing: content-box;
+	}
+
+	.self-checkin-qr__actions {
+		display: flex;
+		gap: 8px;
+		flex-wrap: wrap;
+		margin: 8px 0;
+	}
 }
 
 .subsection-hint {

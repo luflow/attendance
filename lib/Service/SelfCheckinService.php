@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Service;
 
+use OCA\Attendance\Audit\Verb;
+use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
@@ -18,43 +20,57 @@ class SelfCheckinService {
 	private AppointmentMapper $appointmentMapper;
 	private AttendanceResponseMapper $responseMapper;
 	private VisibilityService $visibilityService;
+	private ConfigService $configService;
+	private AuditEventService $auditEventService;
 	private LoggerInterface $logger;
 
-	/** Default time window in minutes before appointment start to allow check-in */
-	private const DEFAULT_WINDOW_MINUTES = 30;
+	/** Valid trigger methods for a self-check-in, mirrored in checkin_source as "self_<method>" */
+	public const VALID_METHODS = ['qr', 'nfc'];
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
 		AttendanceResponseMapper $responseMapper,
 		VisibilityService $visibilityService,
+		ConfigService $configService,
+		AuditEventService $auditEventService,
 		LoggerInterface $logger,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
 		$this->visibilityService = $visibilityService;
+		$this->configService = $configService;
+		$this->auditEventService = $auditEventService;
 		$this->logger = $logger;
 	}
 
 	/**
-	 * Get active appointments that a user can self-check into right now.
+	 * Get the self-check-in overview for a user: appointments that can be
+	 * checked into right now, plus the next upcoming appointment whose
+	 * check-in window has not opened yet (for the "nothing right now" screen).
 	 *
-	 * Returns appointments where:
-	 * - is_active = 1
-	 * - start_datetime - 30min <= NOW <= end_datetime
-	 * - User is a target attendee (via visibility settings)
+	 * An appointment is checkin-able when:
+	 * - is_active = 1 and not cancelled
+	 * - start_datetime - window <= NOW <= end_datetime
+	 * - the user is a target attendee (via visibility settings)
 	 *
 	 * @param string $userId The user ID
-	 * @return array List of appointment data with check-in status
+	 * @return array{appointments: list<array<string, mixed>>, nextUpcoming: ?array{id: int, name: string, startDatetime: string, checkinWindowStartsAt: string}}
 	 */
-	public function getActiveAppointments(string $userId): array {
-		$appointments = $this->appointmentMapper->findActiveInWindow(self::DEFAULT_WINDOW_MINUTES);
+	public function getOverview(string $userId): array {
+		$windowMinutes = $this->configService->getSelfCheckinWindowMinutes();
+		$appointments = $this->appointmentMapper->findActiveInWindow($windowMinutes);
 
 		$result = [];
+		$inWindowIds = [];
 		foreach ($appointments as $appointment) {
+			if ($appointment->isCancelled()) {
+				continue;
+			}
 			// Only include appointments where the user is a target attendee
 			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
 				continue;
 			}
+			$inWindowIds[] = $appointment->getId();
 
 			$appointmentData = $appointment->jsonSerialize();
 
@@ -74,7 +90,45 @@ class SelfCheckinService {
 			$result[] = $appointmentData;
 		}
 
-		return $result;
+		return [
+			'appointments' => $result,
+			'nextUpcoming' => $this->findNextUpcoming($userId, $windowMinutes, $inWindowIds),
+		];
+	}
+
+	/**
+	 * Find the next visible appointment whose check-in window has not opened
+	 * yet, so clients can show "check-in opens at …" when nothing matches now.
+	 *
+	 * @param list<int> $excludeIds appointments already offered for check-in
+	 * @return ?array{id: int, name: string, startDatetime: string, checkinWindowStartsAt: string}
+	 */
+	private function findNextUpcoming(string $userId, int $windowMinutes, array $excludeIds): ?array {
+		$now = new \DateTime('now', new \DateTimeZone('UTC'));
+		foreach ($this->appointmentMapper->findUpcoming() as $appointment) {
+			if ($appointment->isCancelled() || in_array($appointment->getId(), $excludeIds, true)) {
+				continue;
+			}
+			$windowStart = $this->getWindowStart($appointment, $windowMinutes);
+			if ($windowStart <= $now) {
+				continue;
+			}
+			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
+				continue;
+			}
+			return [
+				'id' => $appointment->getId(),
+				'name' => $appointment->getName(),
+				'startDatetime' => $appointment->getStartDatetime(),
+				'checkinWindowStartsAt' => $windowStart->format('Y-m-d H:i:s'),
+			];
+		}
+		return null;
+	}
+
+	private function getWindowStart(Appointment $appointment, int $windowMinutes): \DateTime {
+		$start = new \DateTime($appointment->getStartDatetime(), new \DateTimeZone('UTC'));
+		return $start->modify('-' . $windowMinutes . ' minutes');
 	}
 
 	/**
@@ -82,10 +136,15 @@ class SelfCheckinService {
 	 *
 	 * @param int $appointmentId The appointment ID
 	 * @param string $userId The user checking themselves in
+	 * @param string $method How the check-in was triggered ('qr' or 'nfc')
 	 * @return array Result with appointment details and check-in status
 	 * @throws \InvalidArgumentException If validation fails
 	 */
-	public function selfCheckin(int $appointmentId, string $userId): array {
+	public function selfCheckin(int $appointmentId, string $userId, string $method): array {
+		if (!in_array($method, self::VALID_METHODS, true)) {
+			throw new \InvalidArgumentException('Invalid check-in method.');
+		}
+
 		// Verify appointment exists and is active
 		try {
 			$appointment = $this->appointmentMapper->find($appointmentId);
@@ -93,15 +152,14 @@ class SelfCheckinService {
 			throw new \InvalidArgumentException('Appointment not found.');
 		}
 
-		if (!$appointment->getIsActive()) {
+		if (!$appointment->getIsActive() || $appointment->isCancelled()) {
 			throw new \InvalidArgumentException('Appointment is not active.');
 		}
 
 		// Verify appointment is within the check-in time window
 		$now = new \DateTime('now', new \DateTimeZone('UTC'));
-		$start = new \DateTime($appointment->getStartDatetime(), new \DateTimeZone('UTC'));
 		$end = new \DateTime($appointment->getEndDatetime(), new \DateTimeZone('UTC'));
-		$windowStart = (clone $start)->modify('-' . self::DEFAULT_WINDOW_MINUTES . ' minutes');
+		$windowStart = $this->getWindowStart($appointment, $this->configService->getSelfCheckinWindowMinutes());
 
 		if ($now < $windowStart || $now > $end) {
 			throw new \InvalidArgumentException('Appointment is not within the check-in time window.');
@@ -138,7 +196,7 @@ class SelfCheckinService {
 		$response->setCheckinState('yes');
 		$response->setCheckinBy($userId); // Self-check-in: checkinBy == userId
 		$response->setCheckinAt(gmdate('Y-m-d H:i:s'));
-		$response->setCheckinSource('nfc');
+		$response->setCheckinSource('self_' . $method);
 
 		if ($response->getId()) {
 			$this->responseMapper->update($response);
@@ -146,7 +204,16 @@ class SelfCheckinService {
 			$this->responseMapper->insert($response);
 		}
 
-		$this->logger->info("User {$userId} self-checked in to appointment {$appointmentId}");
+		$this->auditEventService->record(
+			Verb::CHECKIN_RECORDED,
+			$appointmentId,
+			$userId,
+			$userId,
+			['checkinState' => 'yes', 'method' => $method],
+			Verb::SOURCE_SELF_CHECKIN,
+		);
+
+		$this->logger->info("User {$userId} self-checked in to appointment {$appointmentId} via {$method}");
 
 		$responseData = $response->jsonSerialize();
 		return [
