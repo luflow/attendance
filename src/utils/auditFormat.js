@@ -57,11 +57,25 @@ function textOnly(value) {
 	return [{ type: 'text', value }]
 }
 
+// Human labels for the appointment fields that can change. They are joined into
+// a comma-separated list inside the audit-log line "{actor} changed {fields}",
+// so each label is lower-case and reads as a noun (e.g. "changed name, time").
 const FIELD_LABELS = {
+	// TRANSLATORS: Appointment field in the audit-log change list — the
+	// appointment's title/name.
 	name: () => t('attendance', 'name'),
+	// TRANSLATORS: Appointment field in the audit-log change list — the
+	// appointment's description text.
 	description: () => t('attendance', 'description'),
+	// TRANSLATORS: Appointment field in the audit-log change list — the
+	// appointment's scheduled date & time (start/end). Clock time, NOT a count
+	// like "one time".
 	time: () => t('attendance', 'time'),
+	// TRANSLATORS: Appointment field in the audit-log change list — who the
+	// appointment is visible to (users/groups/teams).
 	visibility: () => t('attendance', 'visibility'),
+	// TRANSLATORS: Appointment field in the audit-log change list — the deadline
+	// after which responses are no longer accepted.
 	deadline: () => t('attendance', 'response deadline'),
 }
 
@@ -152,6 +166,9 @@ export function formatAuditEvent(event) {
 		return {
 			icon: 'CalendarPlus',
 			iconVariant: 'default',
+			// TRANSLATORS: Audit-log entry. {actor} is a person's name. "inquiry"
+			// is the appointment's response collection (the request for people to
+			// answer yes/no/maybe), not the event itself.
 			segments: textOnly(t('attendance', '{actor} created this inquiry', { actor })),
 		}
 	case 'appointment.updated': {
@@ -161,8 +178,13 @@ export function formatAuditEvent(event) {
 			iconVariant: 'default',
 			segments: textOnly(
 				fields.length > 0
-					? t('attendance', '{actor} edited this inquiry: {fields}', { actor, fields: fields.join(', ') })
-					: t('attendance', '{actor} edited this inquiry', { actor }),
+					// TRANSLATORS: Audit-log entry. {actor} is a person's name,
+					// {fields} is a comma-separated list of the appointment
+					// fields that changed (e.g. "name, time").
+					? t('attendance', '{actor} changed {fields}', { actor, fields: fields.join(', ') })
+					// TRANSLATORS: Audit-log entry when the appointment was edited
+					// but no specific field could be attributed. {actor} is a name.
+					: t('attendance', '{actor} edited this appointment', { actor }),
 			),
 		}
 	}
@@ -171,8 +193,13 @@ export function formatAuditEvent(event) {
 			icon: 'LockOutline',
 			iconVariant: 'default',
 			segments: textOnly(
+				// TRANSLATORS: Audit-log entry. {actor} is a person's name.
+				// Closing an "inquiry" stops new responses; the appointment
+				// itself still takes place (this is not a cancellation).
 				event.actor
 					? t('attendance', '{actor} closed the inquiry', { actor })
+					// TRANSLATORS: Audit-log entry when the inquiry was closed by
+					// the system (e.g. its deadline passed), not by a person.
 					: t('attendance', 'Inquiry closed automatically'),
 			),
 		}
@@ -180,6 +207,9 @@ export function formatAuditEvent(event) {
 		return {
 			icon: 'LockOpenVariantOutline',
 			iconVariant: 'default',
+			// TRANSLATORS: Audit-log entry. {actor} is a person's name.
+			// Re-opening an "inquiry" resumes accepting responses after it was
+			// closed.
 			segments: textOnly(t('attendance', '{actor} re-opened the inquiry', { actor })),
 		}
 	case 'appointment.cancelled':
