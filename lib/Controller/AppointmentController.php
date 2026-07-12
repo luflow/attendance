@@ -433,6 +433,69 @@ class AppointmentController extends Controller {
 	}
 
 	/**
+	 * Cancel an appointment
+	 *
+	 * Marks the appointment as cancelled (the event will not take place). All
+	 * data/notes are kept, but the appointment drops out of the active lists,
+	 * gets no reminders and is not auto-closed. Addressed attendees are notified
+	 * and the calendar feed reflects the cancellation.
+	 *
+	 * @param int $id Appointment ID
+	 * @return DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function cancel(int $id): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		try {
+			$appointment = $this->appointmentService->getAppointment($id);
+			if (!$this->permissionService->canManageAppointments($user->getUID())
+				&& $appointment->getCreatedBy() !== $user->getUID()) {
+				return new DataResponse(['error' => 'Insufficient permissions to cancel this appointment'], 403);
+			}
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => 'Appointment not found'], 404);
+		}
+
+		$updated = $this->appointmentService->cancelAppointment($id, $user->getUID());
+		return new DataResponse($updated);
+	}
+
+	/**
+	 * Reactivate a cancelled appointment
+	 *
+	 * @param int $id Appointment ID
+	 * @return DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function uncancel(int $id): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		try {
+			$appointment = $this->appointmentService->getAppointment($id);
+			if (!$this->permissionService->canManageAppointments($user->getUID())
+				&& $appointment->getCreatedBy() !== $user->getUID()) {
+				return new DataResponse(['error' => 'Insufficient permissions to reactivate this appointment'], 403);
+			}
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => 'Appointment not found'], 404);
+		}
+
+		$updated = $this->appointmentService->uncancelAppointment($id);
+		return new DataResponse($updated);
+	}
+
+	/**
 	 * Get a single appointment with user response
 	 *
 	 * @param int $id Appointment ID
@@ -707,6 +770,7 @@ class AppointmentController extends Controller {
 			'notificationsAppEnabled' => $this->appManager->isEnabledForUser('notifications'),
 			// Older servers omit this flag → mobile clients hide close-inquiry UI.
 			'closing' => true,
+			'cancelling' => true,
 			'remindMaybe' => true,
 			// Older servers reject response=null. Mobile clients gate the
 			// withdraw-response affordance on this flag.

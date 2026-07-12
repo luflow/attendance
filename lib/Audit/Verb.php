@@ -21,6 +21,8 @@ final class Verb {
 	public const APPOINTMENT_UPDATED = 'appointment.updated';
 	public const APPOINTMENT_CLOSED = 'appointment.closed';
 	public const APPOINTMENT_REOPENED = 'appointment.reopened';
+	public const APPOINTMENT_CANCELLED = 'appointment.cancelled';
+	public const APPOINTMENT_UNCANCELLED = 'appointment.uncancelled';
 
 	public const ALL_RESPONSE = [
 		self::RESPONSE_SUBMITTED,
@@ -39,6 +41,8 @@ final class Verb {
 		self::APPOINTMENT_UPDATED,
 		self::APPOINTMENT_CLOSED,
 		self::APPOINTMENT_REOPENED,
+		self::APPOINTMENT_CANCELLED,
+		self::APPOINTMENT_UNCANCELLED,
 	];
 
 	public const ALL = [
@@ -52,6 +56,8 @@ final class Verb {
 		self::APPOINTMENT_UPDATED,
 		self::APPOINTMENT_CLOSED,
 		self::APPOINTMENT_REOPENED,
+		self::APPOINTMENT_CANCELLED,
+		self::APPOINTMENT_UNCANCELLED,
 	];
 
 	public const SOURCE_APP = 'app';

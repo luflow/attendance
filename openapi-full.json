@@ -179,6 +179,7 @@
                     "seriesPosition",
                     "sendNotification",
                     "closedAt",
+                    "cancelledAt",
                     "responseDeadline"
                 ],
                 "properties": {
@@ -253,6 +254,10 @@
                         "type": "string",
                         "nullable": true
                     },
+                    "cancelledAt": {
+                        "type": "string",
+                        "nullable": true
+                    },
                     "responseDeadline": {
                         "type": "string",
                         "nullable": true
@@ -280,6 +285,7 @@
                     "seriesPosition",
                     "sendNotification",
                     "closedAt",
+                    "cancelledAt",
                     "responseDeadline",
                     "userResponse",
                     "responseSummary",
@@ -354,6 +360,10 @@
                         "type": "boolean"
                     },
                     "closedAt": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "cancelledAt": {
                         "type": "string",
                         "nullable": true
                     },
@@ -550,6 +560,7 @@
                     "calendarSyncAvailable",
                     "notificationsAppEnabled",
                     "closing",
+                    "cancelling",
                     "remindMaybe",
                     "responseToggle",
                     "guestInvitation",
@@ -572,6 +583,9 @@
                         "type": "boolean"
                     },
                     "closing": {
+                        "type": "boolean"
+                    },
+                    "cancelling": {
                         "type": "boolean"
                     },
                     "remindMaybe": {
@@ -714,6 +728,7 @@
                     "seriesPosition",
                     "userResponse",
                     "closedAt",
+                    "cancelledAt",
                     "inAudience"
                 ],
                 "properties": {
@@ -749,6 +764,10 @@
                         }
                     },
                     "closedAt": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "cancelledAt": {
                         "type": "string",
                         "nullable": true
                     },
@@ -959,6 +978,7 @@
                     "seriesPosition",
                     "sendNotification",
                     "closedAt",
+                    "cancelledAt",
                     "responseDeadline",
                     "alreadyCheckedIn",
                     "checkinState",
@@ -1033,6 +1053,10 @@
                         "type": "boolean"
                     },
                     "closedAt": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "cancelledAt": {
                         "type": "string",
                         "nullable": true
                     },
@@ -3314,6 +3338,227 @@
             "post": {
                 "operationId": "appointment-reopen",
                 "summary": "Re-open a closed appointment inquiry",
+                "tags": [
+                    "appointment"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Appointment ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AppointmentData"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/attendance/api/appointments/{id}/cancel": {
+            "post": {
+                "operationId": "appointment-cancel",
+                "summary": "Cancel an appointment",
+                "description": "Marks the appointment as cancelled (the event will not take place). All data/notes are kept, but the appointment drops out of the active lists, gets no reminders and is not auto-closed. Addressed attendees are notified and the calendar feed reflects the cancellation.",
+                "tags": [
+                    "appointment"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Appointment ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AppointmentData"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/attendance/api/appointments/{id}/uncancel": {
+            "post": {
+                "operationId": "appointment-uncancel",
+                "summary": "Reactivate a cancelled appointment",
                 "tags": [
                     "appointment"
                 ],

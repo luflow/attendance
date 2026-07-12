@@ -173,6 +173,59 @@ class NotificationService {
 	}
 
 	/**
+	 * Notify addressed attendees that an appointment has been cancelled (the
+	 * event will not take place). Mirrors sendNewAppointmentNotifications.
+	 *
+	 * @param Appointment $appointment The cancelled appointment
+	 * @param list<string> $userIds Addressed attendees to notify
+	 */
+	public function sendCancellationNotifications(Appointment $appointment, array $userIds): void {
+		if (!$this->isNotificationsAppEnabled()) {
+			$this->logger->warning('Cannot send notifications - notifications app is not enabled');
+			return;
+		}
+
+		if (empty($userIds)) {
+			return;
+		}
+
+		$appointmentUrl = $this->urlGenerator->linkToRouteAbsolute(
+			'attendance.page.appointment',
+			['id' => $appointment->getId()]
+		);
+
+		$shouldFlush = $this->notificationManager->defer();
+
+		foreach ($userIds as $userId) {
+			try {
+				$notification = $this->notificationManager->createNotification();
+				$notification->setApp('attendance')
+					->setUser($userId)
+					->setDateTime(new \DateTime())
+					->setObject('appointment', (string)$appointment->getId())
+					->setSubject('appointment_cancelled', [
+						'appointmentId' => $appointment->getId(),
+						'name' => $appointment->getName(),
+						'startDatetime' => $appointment->getStartDatetime(),
+					])
+					->setLink($appointmentUrl);
+
+				$this->notificationManager->notify($notification);
+			} catch (\Exception $e) {
+				$this->logger->error('Failed to send cancellation notification', [
+					'userId' => $userId,
+					'appointmentId' => $appointment->getId(),
+					'error' => $e->getMessage(),
+				]);
+			}
+		}
+
+		if ($shouldFlush) {
+			$this->notificationManager->flush();
+		}
+	}
+
+	/**
 	 * Send an appointment reminder notification to a single user.
 	 * Uses the same notification format as ReminderJob but does NOT write to ReminderLogMapper.
 	 *

@@ -254,6 +254,7 @@ class AppointmentMapper extends QBMapper {
 				$qb->expr()->andX(
 					$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
 					$qb->expr()->isNull('closed_at'),
+					$qb->expr()->isNull('cancelled_at'),
 					$qb->expr()->orX(
 						$qb->expr()->andX(
 							$qb->expr()->isNotNull('response_deadline'),
@@ -290,6 +291,7 @@ class AppointmentMapper extends QBMapper {
 				$select->expr()->andX(
 					$select->expr()->eq('is_active', $select->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
 					$select->expr()->isNull('closed_at'),
+					$select->expr()->isNull('cancelled_at'),
 					$select->expr()->orX(
 						$select->expr()->andX(
 							$select->expr()->isNotNull('response_deadline'),

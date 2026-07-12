@@ -75,6 +75,8 @@ import CalendarPlus from 'vue-material-design-icons/CalendarPlus.vue'
 import CalendarEditOutline from 'vue-material-design-icons/CalendarEditOutline.vue'
 import LockOutline from 'vue-material-design-icons/LockOutline.vue'
 import LockOpenVariantOutline from 'vue-material-design-icons/LockOpenVariantOutline.vue'
+import CalendarRemoveOutline from 'vue-material-design-icons/CalendarRemoveOutline.vue'
+import CalendarRefreshOutline from 'vue-material-design-icons/CalendarRefreshOutline.vue'
 import Information from 'vue-material-design-icons/Information.vue'
 import History from 'vue-material-design-icons/History.vue'
 import AlertCircle from 'vue-material-design-icons/AlertCircle.vue'
@@ -109,6 +111,8 @@ const iconMap = {
 	CalendarEditOutline,
 	LockOutline,
 	LockOpenVariantOutline,
+	CalendarRemoveOutline,
+	CalendarRefreshOutline,
 	Information,
 }
 

@@ -227,7 +227,7 @@ const F = Object.freeze({
 	AUDIENCE: 'audience',
 })
 const RESPONSE = Object.freeze({ YES: 'yes', MAYBE: 'maybe', NO: 'no', NONE: 'none' })
-const STATUS = Object.freeze({ OPEN: 'open', CLOSED: 'closed' })
+const STATUS = Object.freeze({ OPEN: 'open', CLOSED: 'closed', CANCELLED: 'cancelled' })
 const AUDIENCE = Object.freeze({ ME: 'me' })
 
 const filterDefs = computed(() => [
@@ -249,6 +249,7 @@ const filterDefs = computed(() => [
 		options: [
 			{ id: STATUS.OPEN, label: t('attendance', 'Opened') },
 			{ id: STATUS.CLOSED, label: t('attendance', 'Closed') },
+			{ id: STATUS.CANCELLED, label: t('attendance', 'Cancelled') },
 		],
 	},
 	{
@@ -321,16 +322,17 @@ const visibleAppointments = computed(() => {
 	const query = props.searchQuery.trim().toLowerCase()
 	const status = filterValues.value[F.STATUS]
 	const response = filterValues.value[F.RESPONSE]
-	if (!query && !status && !response) {
-		return appointments.value
-	}
 	return appointments.value.filter((appointment) => {
+		// Cancelled appointments drop out of the active lists — they are only
+		// reachable on the "All" view (own section + cancelled status filter).
+		if (!props.showAll && appointment.cancelledAt) return false
 		if (query) {
 			const haystack = `${appointment.name} ${appointment.description ?? ''}`.toLowerCase()
 			if (!haystack.includes(query)) return false
 		}
-		if (status === STATUS.OPEN && appointment.closedAt) return false
-		if (status === STATUS.CLOSED && !appointment.closedAt) return false
+		if (status === STATUS.OPEN && (appointment.closedAt || appointment.cancelledAt)) return false
+		if (status === STATUS.CLOSED && (!appointment.closedAt || appointment.cancelledAt)) return false
+		if (status === STATUS.CANCELLED && !appointment.cancelledAt) return false
 		if (response) {
 			const userResponse = appointment.userResponse?.response ?? null
 			if (response === RESPONSE.NONE && userResponse !== null) return false
@@ -346,11 +348,16 @@ const visibleSections = computed(() => {
 	if (!props.showAll) {
 		return [{ key: 'all', label: '', items: visibleAppointments.value }]
 	}
-	const upcoming = visibleAppointments.value.filter(a => !a._isPast)
-	const past = visibleAppointments.value.filter(a => a._isPast)
+	// Cancelled appointments get their own section at the bottom, regardless of
+	// past/upcoming, so they stay visible but clearly set apart.
+	const active = visibleAppointments.value.filter(a => !a.cancelledAt)
+	const cancelled = visibleAppointments.value.filter(a => a.cancelledAt)
+	const upcoming = active.filter(a => !a._isPast)
+	const past = active.filter(a => a._isPast)
 	return [
 		upcoming.length && { key: 'upcoming', label: t('attendance', 'Upcoming'), items: upcoming },
 		past.length && { key: 'past', label: t('attendance', 'Past'), items: past },
+		cancelled.length && { key: 'cancelled', label: t('attendance', 'Cancelled'), items: cancelled },
 	].filter(Boolean)
 })
 

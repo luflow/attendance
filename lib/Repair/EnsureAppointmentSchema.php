@@ -66,9 +66,19 @@ class EnsureAppointmentSchema implements IRepairStep {
 			$applied[] = 'column response_deadline';
 		}
 
+		if (!$table->hasColumn('cancelled_at')) {
+			$table->addColumn('cancelled_at', Types::DATETIME, ['notnull' => false]);
+			$applied[] = 'column cancelled_at';
+		}
+
 		if ($table->hasColumn('closed_at') && !$table->hasIndex('att_appt_closed')) {
 			$table->addIndex(['closed_at'], 'att_appt_closed');
 			$applied[] = 'index att_appt_closed';
+		}
+
+		if ($table->hasColumn('cancelled_at') && !$table->hasIndex('att_appt_cancelled')) {
+			$table->addIndex(['cancelled_at'], 'att_appt_cancelled');
+			$applied[] = 'index att_appt_cancelled';
 		}
 
 		if ($table->hasColumn('response_deadline') && !$table->hasIndex('att_appt_deadline')) {

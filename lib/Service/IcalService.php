@@ -226,6 +226,16 @@ class IcalService {
 		// Build summary with response suffix
 		$summary = $appointment->getName() . ' (' . $l->t('Me') . ': ' . $responseLabel . ')';
 
+		// Cancelled appointments: the event will not take place. This is the one
+		// case where iCal STATUS:CANCELLED is semantically correct. Mark the title
+		// and free up the slot (TRANSPARENT). The feed is regenerated on every
+		// poll, so this flows through to subscribers automatically.
+		if ($appointment->isCancelled()) {
+			$status = 'CANCELLED';
+			$transp = 'TRANSPARENT';
+			$summary = $l->t('Cancelled') . ': ' . $summary;
+		}
+
 		// Build description (use double quotes for actual newlines)
 		$descriptionParts = [];
 

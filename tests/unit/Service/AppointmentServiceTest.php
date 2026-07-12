@@ -243,6 +243,97 @@ class AppointmentServiceTest extends TestCase {
 		$this->assertNull($result->getClosedAt());
 	}
 
+	public function testCancelAppointmentRecordsAuditEventAndNotifies(): void {
+		$appointment = new Appointment();
+		$appointment->setId(8);
+		$appointment->setVisibleUsers(json_encode(['alice']));
+
+		$this->appointmentMapper->expects($this->once())
+			->method('find')
+			->with(8)
+			->willReturn($appointment);
+		$this->appointmentMapper->expects($this->once())
+			->method('update')
+			->willReturnArgument(0);
+
+		$this->auditEventService->expects($this->once())
+			->method('recordAppointmentLifecycle')
+			->with(Verb::APPOINTMENT_CANCELLED, 8, Verb::SOURCE_APP);
+
+		$this->notificationService->expects($this->once())
+			->method('sendCancellationNotifications')
+			->with($appointment, ['alice']);
+
+		$result = $this->service->cancelAppointment(8, 'admin');
+		$this->assertNotNull($result->getCancelledAt());
+	}
+
+	public function testCancelAppointmentExcludesActorFromNotification(): void {
+		$appointment = new Appointment();
+		$appointment->setId(8);
+		$appointment->setVisibleUsers(json_encode(['admin', 'alice']));
+
+		$this->appointmentMapper->method('find')->with(8)->willReturn($appointment);
+		$this->appointmentMapper->method('update')->willReturnArgument(0);
+
+		$this->notificationService->expects($this->once())
+			->method('sendCancellationNotifications')
+			->with($appointment, ['alice']);
+
+		$this->service->cancelAppointment(8, 'admin');
+	}
+
+	public function testCancelAppointmentIsIdempotentForAlreadyCancelled(): void {
+		$appointment = new Appointment();
+		$appointment->setId(8);
+		$appointment->setCancelledAt('2026-01-01 12:00:00');
+
+		$this->appointmentMapper->expects($this->once())
+			->method('find')
+			->with(8)
+			->willReturn($appointment);
+		$this->appointmentMapper->expects($this->never())->method('update');
+		$this->auditEventService->expects($this->never())->method('recordAppointmentLifecycle');
+		$this->notificationService->expects($this->never())->method('sendCancellationNotifications');
+
+		$this->service->cancelAppointment(8, 'admin');
+	}
+
+	public function testUncancelAppointmentRecordsAuditEvent(): void {
+		$appointment = new Appointment();
+		$appointment->setId(9);
+		$appointment->setCancelledAt('2026-01-01 12:00:00');
+
+		$this->appointmentMapper->expects($this->once())
+			->method('find')
+			->with(9)
+			->willReturn($appointment);
+		$this->appointmentMapper->expects($this->once())
+			->method('update')
+			->willReturnArgument(0);
+
+		$this->auditEventService->expects($this->once())
+			->method('recordAppointmentLifecycle')
+			->with(Verb::APPOINTMENT_UNCANCELLED, 9, Verb::SOURCE_APP);
+
+		$result = $this->service->uncancelAppointment(9);
+		$this->assertNull($result->getCancelledAt());
+	}
+
+	public function testUncancelAppointmentIsIdempotentForNotCancelled(): void {
+		$appointment = new Appointment();
+		$appointment->setId(9);
+
+		$this->appointmentMapper->expects($this->once())
+			->method('find')
+			->with(9)
+			->willReturn($appointment);
+		$this->appointmentMapper->expects($this->never())->method('update');
+		$this->auditEventService->expects($this->never())->method('recordAppointmentLifecycle');
+
+		$this->service->uncancelAppointment(9);
+	}
+
 	public function testGetAppointment(): void {
 		$appointmentId = 1;
 		$appointment = new Appointment();
