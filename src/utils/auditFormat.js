@@ -166,6 +166,9 @@ export function formatAuditEvent(event) {
 		return {
 			icon: 'CalendarPlus',
 			iconVariant: 'default',
+			// TRANSLATORS: Audit-log entry. {actor} is a person's name. "inquiry"
+			// is the appointment's response collection (the request for people to
+			// answer yes/no/maybe), not the event itself.
 			segments: textOnly(t('attendance', '{actor} created this inquiry', { actor })),
 		}
 	case 'appointment.updated': {
@@ -190,8 +193,13 @@ export function formatAuditEvent(event) {
 			icon: 'LockOutline',
 			iconVariant: 'default',
 			segments: textOnly(
+				// TRANSLATORS: Audit-log entry. {actor} is a person's name.
+				// Closing an "inquiry" stops new responses; the appointment
+				// itself still takes place (this is not a cancellation).
 				event.actor
 					? t('attendance', '{actor} closed the inquiry', { actor })
+					// TRANSLATORS: Audit-log entry when the inquiry was closed by
+					// the system (e.g. its deadline passed), not by a person.
 					: t('attendance', 'Inquiry closed automatically'),
 			),
 		}
@@ -199,6 +207,9 @@ export function formatAuditEvent(event) {
 		return {
 			icon: 'LockOpenVariantOutline',
 			iconVariant: 'default',
+			// TRANSLATORS: Audit-log entry. {actor} is a person's name.
+			// Re-opening an "inquiry" resumes accepting responses after it was
+			// closed.
 			segments: textOnly(t('attendance', '{actor} re-opened the inquiry', { actor })),
 		}
 	case 'appointment.cancelled':
