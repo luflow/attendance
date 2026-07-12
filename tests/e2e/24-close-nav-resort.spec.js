@@ -47,11 +47,11 @@ test.describe('Close inquiry re-buckets it in the nav sidebar (#76)', () => {
 		await page.getByRole('menuitem', { name: 'Close inquiry' }).click()
 		await expect(card.locator('[data-test="closed-banner"]')).toBeVisible()
 
-		// The fix: without a reload it must leave "Unanswered" (the only
-		// unanswered item → the whole section disappears) and show up under
-		// "Upcoming".
+		// The fix: without a reload this inquiry must leave "Unanswered" and show
+		// up under "Upcoming". Assert the item moved — not that the whole section
+		// vanished: the e2e tests share one Nextcloud DB, so other specs may leave
+		// their own unanswered appointments that keep the section open.
 		await expect(unansweredNav).toHaveCount(0)
-		await expect(page.locator('[data-test="nav-unanswered"]')).toHaveCount(0)
 		await expect(upcomingNav).toHaveCount(1)
 	})
 })
