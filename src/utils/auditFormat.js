@@ -60,6 +60,10 @@ function textOnly(value) {
 const FIELD_LABELS = {
 	name: () => t('attendance', 'name'),
 	description: () => t('attendance', 'description'),
+	// TRANSLATORS: One of the appointment fields that can change, listed in the
+	// audit log like "edited this inquiry: name, time". "time" here is the
+	// appointment's scheduled date & time (start/end) — clock time, NOT a count
+	// like "one time".
 	time: () => t('attendance', 'time'),
 	visibility: () => t('attendance', 'visibility'),
 	deadline: () => t('attendance', 'response deadline'),
