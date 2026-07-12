@@ -39,7 +39,6 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
 import { NcButton } from '@nextcloud/vue'
 import { getRootUrl } from '@nextcloud/router'
 import AppleIcon from 'vue-material-design-icons/Apple.vue'
@@ -48,10 +47,8 @@ import CellphoneIcon from 'vue-material-design-icons/Cellphone.vue'
 import OpenInAppIcon from 'vue-material-design-icons/OpenInApp.vue'
 import { APPLE_STORE_URL, GOOGLE_STORE_URL } from '../utils/mobileApp.js'
 
-const deepLink = computed(() => {
-	const server = window.location.origin + getRootUrl()
-	return 'krautnerds://attendance/self-checkin?server=' + encodeURIComponent(server)
-})
+const server = window.location.origin + getRootUrl()
+const deepLink = 'krautnerds://attendance/self-checkin?server=' + encodeURIComponent(server)
 </script>
 
 <style scoped>

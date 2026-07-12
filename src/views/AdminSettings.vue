@@ -881,10 +881,7 @@ const downloadQrCode = () => {
 	link.click()
 }
 
-const copySelfCheckinUrl = () => copyToClipboard(selfCheckinUrl, {
-	successMessage: window.t('attendance', 'Link copied'),
-	errorMessage: window.t('attendance', 'Failed to copy link'),
-})
+const copySelfCheckinUrl = () => copyStoreUrl(selfCheckinUrl)
 
 const copyStoreUrl = (url) => copyToClipboard(url, {
 	successMessage: window.t('attendance', 'Link copied'),

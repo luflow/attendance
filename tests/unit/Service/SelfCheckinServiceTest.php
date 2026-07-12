@@ -212,16 +212,12 @@ class SelfCheckinServiceTest extends TestCase {
 		$this->service->selfCheckin(1, 'alice', 'qr');
 	}
 
-	public function testGetOverviewListsInWindowAppointmentsAndNextUpcoming(): void {
+	public function testGetOverviewListsInWindowAppointmentsWithoutNextUpcoming(): void {
 		$current = $this->makeCurrentAppointment(1);
-		$next = $this->makeAppointment(
-			2,
-			gmdate('Y-m-d H:i:s', time() + 7200),
-			gmdate('Y-m-d H:i:s', time() + 10800),
-		);
 
 		$this->appointmentMapper->method('findActiveInWindow')->with(30)->willReturn([$current]);
-		$this->appointmentMapper->method('findUpcoming')->willReturn([$current, $next]);
+		// nextUpcoming is only computed when nothing is in the window.
+		$this->appointmentMapper->expects($this->never())->method('findUpcomingOutsideWindow');
 		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
 		$this->responseMapper->method('findByAppointmentAndUser')
 			->willThrowException(new DoesNotExistException('no row'));
@@ -231,7 +227,23 @@ class SelfCheckinServiceTest extends TestCase {
 		$this->assertCount(1, $overview['appointments']);
 		$this->assertSame(1, $overview['appointments'][0]['id']);
 		$this->assertFalse($overview['appointments'][0]['alreadyCheckedIn']);
+		$this->assertNull($overview['nextUpcoming']);
+	}
 
+	public function testGetOverviewReturnsNextUpcomingWhenNothingInWindow(): void {
+		$next = $this->makeAppointment(
+			2,
+			gmdate('Y-m-d H:i:s', time() + 7200),
+			gmdate('Y-m-d H:i:s', time() + 10800),
+		);
+
+		$this->appointmentMapper->method('findActiveInWindow')->willReturn([]);
+		$this->appointmentMapper->method('findUpcomingOutsideWindow')->with(30)->willReturn([$next]);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+
+		$overview = $this->service->getOverview('alice');
+
+		$this->assertSame([], $overview['appointments']);
 		$this->assertNotNull($overview['nextUpcoming']);
 		$this->assertSame(2, $overview['nextUpcoming']['id']);
 		$expectedWindowStart = (new \DateTime($next->getStartDatetime(), new \DateTimeZone('UTC')))
@@ -239,18 +251,11 @@ class SelfCheckinServiceTest extends TestCase {
 		$this->assertSame($expectedWindowStart, $overview['nextUpcoming']['checkinWindowStartsAt']);
 	}
 
-	public function testGetOverviewSkipsInvisibleAndCancelledAppointments(): void {
-		$cancelled = $this->makeAppointment(
-			1,
-			gmdate('Y-m-d H:i:s', time() - 600),
-			gmdate('Y-m-d H:i:s', time() + 3600),
-			true,
-			gmdate('Y-m-d H:i:s'),
-		);
+	public function testGetOverviewSkipsInvisibleAppointments(): void {
 		$invisible = $this->makeCurrentAppointment(2);
 
-		$this->appointmentMapper->method('findActiveInWindow')->willReturn([$cancelled, $invisible]);
-		$this->appointmentMapper->method('findUpcoming')->willReturn([]);
+		$this->appointmentMapper->method('findActiveInWindow')->willReturn([$invisible]);
+		$this->appointmentMapper->method('findUpcomingOutsideWindow')->willReturn([]);
 		$this->visibilityService->method('isUserTargetAttendee')->willReturn(false);
 
 		$overview = $this->service->getOverview('alice');

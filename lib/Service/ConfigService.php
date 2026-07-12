@@ -287,7 +287,7 @@ class ConfigService {
 	}
 
 	public function setSelfCheckinWindowMinutes(int $minutes): void {
-		$minutes = max(0, min(1440, $minutes));
+		// No clamp here — the getter clamps, which also covers values set via occ.
 		$this->config->setAppValue(self::APP_ID, 'self_checkin_window_minutes', (string)$minutes);
 	}
 

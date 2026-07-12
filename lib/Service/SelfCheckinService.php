@@ -25,7 +25,7 @@ class SelfCheckinService {
 	private LoggerInterface $logger;
 
 	/** Valid trigger methods for a self-check-in, mirrored in checkin_source as "self_<method>" */
-	public const VALID_METHODS = ['qr', 'nfc'];
+	private const VALID_METHODS = ['qr', 'nfc'];
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -61,16 +61,11 @@ class SelfCheckinService {
 		$appointments = $this->appointmentMapper->findActiveInWindow($windowMinutes);
 
 		$result = [];
-		$inWindowIds = [];
 		foreach ($appointments as $appointment) {
-			if ($appointment->isCancelled()) {
-				continue;
-			}
 			// Only include appointments where the user is a target attendee
 			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
 				continue;
 			}
-			$inWindowIds[] = $appointment->getId();
 
 			$appointmentData = $appointment->jsonSerialize();
 
@@ -92,7 +87,11 @@ class SelfCheckinService {
 
 		return [
 			'appointments' => $result,
-			'nextUpcoming' => $this->findNextUpcoming($userId, $windowMinutes, $inWindowIds),
+			// Only needed for the "nothing right now" screen — skip the extra
+			// query when there is something to check into.
+			'nextUpcoming' => $result === []
+				? $this->findNextUpcoming($userId, $windowMinutes)
+				: null,
 		];
 	}
 
@@ -100,19 +99,10 @@ class SelfCheckinService {
 	 * Find the next visible appointment whose check-in window has not opened
 	 * yet, so clients can show "check-in opens at …" when nothing matches now.
 	 *
-	 * @param list<int> $excludeIds appointments already offered for check-in
 	 * @return ?array{id: int, name: string, startDatetime: string, checkinWindowStartsAt: string}
 	 */
-	private function findNextUpcoming(string $userId, int $windowMinutes, array $excludeIds): ?array {
-		$now = new \DateTime('now', new \DateTimeZone('UTC'));
-		foreach ($this->appointmentMapper->findUpcoming() as $appointment) {
-			if ($appointment->isCancelled() || in_array($appointment->getId(), $excludeIds, true)) {
-				continue;
-			}
-			$windowStart = $this->getWindowStart($appointment, $windowMinutes);
-			if ($windowStart <= $now) {
-				continue;
-			}
+	private function findNextUpcoming(string $userId, int $windowMinutes): ?array {
+		foreach ($this->appointmentMapper->findUpcomingOutsideWindow($windowMinutes) as $appointment) {
 			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
 				continue;
 			}
@@ -120,7 +110,7 @@ class SelfCheckinService {
 				'id' => $appointment->getId(),
 				'name' => $appointment->getName(),
 				'startDatetime' => $appointment->getStartDatetime(),
-				'checkinWindowStartsAt' => $windowStart->format('Y-m-d H:i:s'),
+				'checkinWindowStartsAt' => $this->getWindowStart($appointment, $windowMinutes)->format('Y-m-d H:i:s'),
 			];
 		}
 		return null;

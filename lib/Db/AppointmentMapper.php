@@ -176,6 +176,7 @@ class AppointmentMapper extends QBMapper {
 			->where(
 				$qb->expr()->andX(
 					$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
+					$qb->expr()->isNull('cancelled_at'),
 					// start_datetime <= NOW + windowMinutes (appointment has started or starts soon)
 					$qb->expr()->lte('start_datetime', $qb->createNamedParameter($now->modify("+{$windowMinutes} minutes")->format('Y-m-d H:i:s'))),
 					// end_datetime >= NOW (appointment hasn't ended yet)
@@ -183,6 +184,34 @@ class AppointmentMapper extends QBMapper {
 				)
 			)
 			->orderBy('start_datetime', 'ASC');
+
+		return $this->findEntities($qb);
+	}
+
+	/**
+	 * Find the next active, non-cancelled appointments whose self-check-in
+	 * window has not opened yet (start_datetime > now + window). Limited,
+	 * because the caller only needs the first one visible to a user.
+	 *
+	 * @return array<Appointment>
+	 */
+	public function findUpcomingOutsideWindow(int $windowMinutes, int $limit = 25): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$windowEdge = (new \DateTime('now', new \DateTimeZone('UTC')))
+			->modify("+{$windowMinutes} minutes");
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->andX(
+					$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
+					$qb->expr()->isNull('cancelled_at'),
+					$qb->expr()->gt('start_datetime', $qb->createNamedParameter($windowEdge->format('Y-m-d H:i:s')))
+				)
+			)
+			->orderBy('start_datetime', 'ASC')
+			->setMaxResults($limit);
 
 		return $this->findEntities($qb);
 	}
