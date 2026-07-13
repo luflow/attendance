@@ -176,6 +176,11 @@
 						<p class="hint-text">
 							{{ t('attendance', 'NFC tag shopping advice: use NXP NTAG213 tags (or newer) of at least 25 mm, and on-metal tags for metal surfaces. Avoid MIFARE Classic tags — they do not work with iPhones.') }}
 						</p>
+						<p class="hint-text">
+							<a class="self-checkin-qr__app-link" href="#mobile-apps">
+								{{ t('attendance', 'You can also write NFC tags directly with the Attendance mobile app.') }}
+							</a>
+						</p>
 					</div>
 				</div>
 			</NcSettingsSection>
@@ -369,8 +374,9 @@
 				</NcCheckboxRadioSwitch>
 			</NcSettingsSection>
 
-			<NcSettingsSection :name="t('attendance', 'Mobile apps')"
-				:description="t('attendance', 'Share these links with your colleagues to install the Attendance mobile app.')">
+			<div id="mobile-apps">
+				<NcSettingsSection :name="t('attendance', 'Mobile apps')"
+					:description="t('attendance', 'Share these links with your colleagues to install the Attendance mobile app.')">
 				<div class="mobile-app-links">
 					<div v-for="store in mobileAppStores" :key="store.id" class="mobile-app-link">
 						<label class="mobile-app-link__label">
@@ -455,6 +461,7 @@
 					</template>
 				</div>
 			</NcSettingsSection>
+			</div>
 
 			<NcSettingsSection :name="t('attendance', 'Display options')"
 				:description="t('attendance', 'Choose how appointments are displayed across the app.')">
@@ -1049,6 +1056,11 @@ onMounted(async () => {
 		gap: 8px;
 		flex-wrap: wrap;
 		margin: 8px 0;
+	}
+
+	.self-checkin-qr__app-link {
+		color: var(--color-primary-element);
+		text-decoration: underline;
 	}
 }
 
