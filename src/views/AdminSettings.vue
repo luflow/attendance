@@ -140,14 +140,17 @@
 						{{ n('attendance', '%n group selected', '%n groups selected', selectedSelfCheckinRoles.length, { n: selectedSelfCheckinRoles.length }) }}
 					</p>
 
-					<NcInputField
-						v-model.number="selfCheckinWindowMinutes"
-						type="number"
-						class="self-checkin-window-field"
-						:label="t('attendance', 'Check-in window (minutes before start)')"
-						:helper-text="t('attendance', 'How many minutes before an appointment starts attendees can check in. The window always closes when the appointment ends.')"
-						data-test="input-self-checkin-window"
-						:input-props="{ min: 0, max: 1440 }" />
+					<!-- Wrapper div: scoped attrs don't reach the NcInputField root,
+					     so the spacing lives on an own template element. -->
+					<div class="self-checkin-window-field">
+						<NcInputField
+							v-model.number="selfCheckinWindowMinutes"
+							type="number"
+							:label="t('attendance', 'Check-in window (minutes before start)')"
+							:helper-text="t('attendance', 'How many minutes before an appointment starts attendees can check in. The window always closes when the appointment ends.')"
+							data-test="input-self-checkin-window"
+							:input-props="{ min: 0, max: 1440 }" />
+					</div>
 
 					<div class="self-checkin-qr">
 						<h5>{{ t('attendance', 'Check-in code') }}</h5>
