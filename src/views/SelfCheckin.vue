@@ -48,19 +48,22 @@ import OpenInAppIcon from 'vue-material-design-icons/OpenInApp.vue'
 import { APPLE_STORE_URL, GOOGLE_STORE_URL } from '../utils/mobileApp.js'
 
 const server = window.location.origin + getRootUrl()
-const deepLink = 'krautnerds://attendance/self-checkin?server=' + encodeURIComponent(server)
+const deepLink = 'nc-attendance://self-checkin?server=' + encodeURIComponent(server)
 </script>
 
 <style scoped>
 .self-checkin-landing {
 	max-width: 420px;
 	margin: 40px auto;
-	padding: 20px;
+	padding: 32px 24px;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	gap: 12px;
 	text-align: center;
+	background-color: var(--color-main-background);
+	border-radius: var(--border-radius-large);
+	box-shadow: 0 0 10px var(--color-box-shadow);
 }
 
 .self-checkin-landing__icon {
