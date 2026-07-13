@@ -26,10 +26,14 @@
     "OK" : "დიახ",
     "Something went wrong" : "Something went wrong",
     "About" : "About",
-    "Relevance" : "Relevance",
-    "Closed" : "Closed",
-    "Reset filter" : "Reset filter",
-    "Guests" : "Guests",
+    "All languages" : "All languages",
+    "Default" : "Default",
+    "Email" : "Email",
+    "Groups (required)" : "Groups (required)",
+    "Invite guest" : "Invite guest",
+    "Language" : "Language",
+    "Send" : "Send",
+    "Skip" : "გამოტოვება",
     "Create appointment" : "Create appointment",
     "Export" : "Export",
     "Select all" : "Select all",
@@ -74,6 +78,9 @@
     "Open" : "Open",
     "Push notifications" : "Push notifications",
     "or" : "or",
+    "Closed" : "Closed",
+    "Relevance" : "Relevance",
+    "Reset filter" : "Reset filter",
     "Appointment not found" : "Appointment not found",
     "minutes" : "minutes",
     "hours" : "hours",
@@ -89,6 +96,7 @@
     "No users found" : "No users found",
     "Confirm" : "Confirm",
     "Automatic" : "Automatic",
-    "time" : "time"
+    "time" : "time",
+    "Guests" : "Guests"
 },"pluralForm" :"nplurals=2; plural=(n!=1);"
 }

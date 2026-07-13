@@ -30,9 +30,12 @@ OC.L10N.register(
     "OK" : "OK",
     "Something went wrong" : "Ddoe at àpidu un'errore",
     "About" : "In contu de",
-    "Relevance" : "Importàntzia",
-    "Closed" : "Serradu",
-    "Guests" : "Persones invitadas",
+    "All languages" : "Totu is limbas",
+    "Create" : "Crea",
+    "Default" : "Predefinidu",
+    "Email" : "Posta eletrònica",
+    "Invite guest" : "Invita una persone",
+    "Language" : "Limba",
     "Export" : "Esporta",
     "Deselect all" : "Deseletziona totu",
     "Start date" : "Data de cumintzu",
@@ -83,6 +86,8 @@ OC.L10N.register(
     "Open" : "Aberi",
     "Push notifications" : "Notìficas push",
     "or" : "o",
+    "Closed" : "Serradu",
+    "Relevance" : "Importàntzia",
     "minutes" : "minutos",
     "hours" : "oras",
     "days" : "dies",
@@ -96,6 +101,7 @@ OC.L10N.register(
     "Confirm" : "Cunfirma",
     "Automatic" : "Automàticu",
     "name" : "nùmene",
-    "time" : "borta"
+    "time" : "borta",
+    "Guests" : "Persones invitadas"
 },
 "nplurals=2; plural=(n != 1);");

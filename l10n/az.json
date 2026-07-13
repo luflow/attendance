@@ -11,7 +11,6 @@
     "Dark" : "Qaranlıq",
     "Subscribe" : "Abunə",
     "OK" : "OK",
-    "Guests" : "Qonaqlar",
     "Export" : "Çıxarış",
     "Select all" : "Hamısıı seç",
     "Copy" : "Kopyala",
@@ -40,6 +39,7 @@
     "User" : "User",
     "Description" : "Açıqlanma",
     "Confirm" : "Təsdiq edin",
-    "Automatic" : "Avtomatik"
+    "Automatic" : "Avtomatik",
+    "Guests" : "Qonaqlar"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

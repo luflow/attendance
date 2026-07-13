@@ -13,7 +13,6 @@ OC.L10N.register(
     "Dark" : "Qaranlıq",
     "Subscribe" : "Abunə",
     "OK" : "OK",
-    "Guests" : "Qonaqlar",
     "Export" : "Çıxarış",
     "Select all" : "Hamısıı seç",
     "Copy" : "Kopyala",
@@ -42,6 +41,7 @@ OC.L10N.register(
     "User" : "User",
     "Description" : "Açıqlanma",
     "Confirm" : "Təsdiq edin",
-    "Automatic" : "Avtomatik"
+    "Automatic" : "Avtomatik",
+    "Guests" : "Qonaqlar"
 },
 "nplurals=2; plural=(n != 1);");

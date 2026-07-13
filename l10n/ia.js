@@ -10,6 +10,7 @@ OC.L10N.register(
     "Connected" : "Connectite",
     "Subscribe" : "Subscribe",
     "OK" : "OK",
+    "Language" : "Lingua",
     "Export" : "Exportar",
     "Select all" : "Selectionar toto",
     "Cancel" : "Cancel",

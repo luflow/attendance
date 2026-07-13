@@ -37,10 +37,6 @@ OC.L10N.register(
     "OK" : "OK",
     "Something went wrong" : "حدث خطأ ما",
     "About" : "حول",
-    "Relevance" : "الصلة بالموضوع",
-    "Closed" : "مغلق",
-    "Reset filter" : "إعادة تعيين الفِلتر",
-    "Guests" : "الضيوف",
     "Create appointment" : "إنشاء موعد",
     "Export" : "تصدير",
     "Select all" : "تحديد الكل",
@@ -105,7 +101,10 @@ OC.L10N.register(
     "Open" : "فتح",
     "Push notifications" : "دفع الإخطارات",
     "or" : "او",
+    "Closed" : "مغلق",
+    "Relevance" : "الصلة بالموضوع",
     "View all" : "عرض الكل",
+    "Reset filter" : "إعادة تعيين الفِلتر",
     "Appointment not found" : "الموعد غير موجود",
     "minutes" : "دقائق",
     "hours" : "ساعات",
@@ -135,6 +134,7 @@ OC.L10N.register(
     "Automatic" : "تلقائي",
     "name" : "الاسم",
     "description" : "الوصف",
-    "time" : "مرة"
+    "time" : "مرة",
+    "Guests" : "الضيوف"
 },
 "nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;");

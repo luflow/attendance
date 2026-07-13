@@ -10,6 +10,8 @@ OC.L10N.register(
     "Connected" : "միացված է",
     "OK" : "OK",
     "About" : "Մասին",
+    "Email" : "Էլ․փոստ",
+    "Language" : "Լեզու",
     "Export" : "Արտահանում",
     "Select all" : "Նշել բոլորը",
     "Copy" : "Պատճենել",

@@ -37,12 +37,6 @@
     "Expired" : "Caducada",
     "OK" : "OK",
     "About" : "Acerca de",
-    "Upcoming" : "Próximo",
-    "Past" : "Pasado",
-    "Relevance" : "Relevancia",
-    "Closed" : "Cerrado",
-    "Reset filter" : "Restablecer filtro",
-    "Guests" : "Invitados",
     "Create appointment" : "Crear cita",
     "Export" : "Exportar",
     "Date range" : "Rango de fechas",
@@ -114,7 +108,12 @@
     "Push notifications" : "Notificaciones de tipo push",
     "Display options" : "Opciones de visualización",
     "or" : "o",
+    "Closed" : "Cerrado",
+    "Relevance" : "Relevancia",
+    "Upcoming" : "Próximo",
+    "Past" : "Pasado",
     "View all" : "Ver todo",
+    "Reset filter" : "Restablecer filtro",
     "Loading …" : "Cargando …",
     "Appointment not found" : "Cita no encontrada",
     "minutes" : "minutos",
@@ -147,6 +146,7 @@
     "Automatic" : "Automático",
     "name" : "nombre",
     "description" : "descripción",
-    "time" : "vez"
+    "time" : "vez",
+    "Guests" : "Invitados"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }
