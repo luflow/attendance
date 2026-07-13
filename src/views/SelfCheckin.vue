@@ -39,6 +39,7 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import { NcButton } from '@nextcloud/vue'
 import { getRootUrl } from '@nextcloud/router'
 import AppleIcon from 'vue-material-design-icons/Apple.vue'
@@ -47,8 +48,33 @@ import CellphoneIcon from 'vue-material-design-icons/Cellphone.vue'
 import OpenInAppIcon from 'vue-material-design-icons/OpenInApp.vue'
 import { APPLE_STORE_URL, GOOGLE_STORE_URL } from '../utils/mobileApp.js'
 
+const ANDROID_PACKAGE = 'de.krautnerds.attendance'
+
+const isAndroid = /android/i.test(navigator.userAgent)
+const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent)
+
 const server = window.location.origin + getRootUrl()
-const deepLink = 'nc-attendance://self-checkin?server=' + encodeURIComponent(server)
+const encodedServer = encodeURIComponent(server)
+const schemeLink = 'nc-attendance://self-checkin?server=' + encodedServer
+
+// On Android an intent:// URL opens the app when installed and falls back
+// to the Play Store otherwise — better than the bare scheme, which errors
+// silently without the app.
+const deepLink = isAndroid
+	? 'intent://self-checkin?server=' + encodedServer
+		+ '#Intent;scheme=nc-attendance;package=' + ANDROID_PACKAGE
+		+ ';S.browser_fallback_url=' + encodeURIComponent(GOOGLE_STORE_URL) + ';end'
+	: schemeLink
+
+onMounted(() => {
+	// Best-effort auto-open on phones so the scan goes straight into the
+	// app without tapping the button. Universal links are not an option
+	// here (every Nextcloud instance has its own domain), so this may be
+	// blocked without a user gesture — the button stays as fallback.
+	if (isAndroid || isIos) {
+		window.location.href = deepLink
+	}
+})
 </script>
 
 <style scoped>
