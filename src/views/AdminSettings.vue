@@ -1022,7 +1022,9 @@ onMounted(async () => {
 
 .self-checkin-window-field {
 	max-width: 400px;
-	margin-top: 12px;
+	/* The floating label sits above the input border, so it needs extra
+	   room to not collide with the group hint text above. */
+	margin-top: 24px;
 }
 
 .self-checkin-qr {
