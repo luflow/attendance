@@ -1,296 +1,114 @@
 <template>
-	<div class="self-checkin-container">
-		<!-- Loading State -->
-		<template v-if="loading">
-			<div class="loading-state">
-				<NcLoadingIcon :size="44" />
-				<p>{{ t('attendance', 'Finding active appointments…') }}</p>
-			</div>
-		</template>
+	<div class="self-checkin-landing">
+		<CellphoneIcon class="self-checkin-landing__icon" :size="56" />
+		<h2>{{ t('attendance', 'Check in with the Attendance app') }}</h2>
+		<p class="self-checkin-landing__text">
+			{{ t('attendance', 'Self-check-in works in the Attendance mobile app. Open the app and scan this code again, or get the app below.') }}
+		</p>
 
-		<!-- Error State -->
-		<template v-else-if="error">
-			<NcNoteCard type="error">
-				<p>{{ errorMessage }}</p>
-			</NcNoteCard>
-			<div class="button-row">
-				<NcButton variant="primary" @click="loadAppointments">
-					{{ t('attendance', 'Try again') }}
-				</NcButton>
-			</div>
-		</template>
+		<div class="self-checkin-landing__open">
+			<NcButton variant="primary" :href="deepLink">
+				<template #icon>
+					<OpenInAppIcon :size="20" />
+				</template>
+				{{ t('attendance', 'Open in the app') }}
+			</NcButton>
+		</div>
 
-		<!-- Success State -->
-		<template v-else-if="checkedIn">
-			<div class="success-state">
-				<NcNoteCard type="success">
-					<h2>{{ checkedInAlready ? t('attendance', 'Already checked in') : t('attendance', 'Checked in!') }}</h2>
-				</NcNoteCard>
-
-				<div class="appointment-details">
-					<h3>{{ checkedInAppointment.name }}</h3>
-					<p class="date-time">
-						<CalendarIcon :size="18" />
-						{{ formatDateRange(checkedInAppointment.startDatetime, checkedInAppointment.endDatetime) }}
-					</p>
-					<p v-if="checkedInAt" class="checkin-time">
-						{{ t('attendance', 'Checked in at {time}', { time: formatTime(checkedInAt) }) }}
-					</p>
-				</div>
-			</div>
-		</template>
-
-		<!-- No Appointments -->
-		<template v-else-if="appointments.length === 0">
-			<NcNoteCard type="info">
-				<h2>{{ t('attendance', 'No active appointments') }}</h2>
-				<p>{{ t('attendance', 'There are no appointments happening right now.') }}</p>
-			</NcNoteCard>
-			<div class="button-row">
-				<NcButton variant="primary" :href="appUrl">
-					{{ t('attendance', 'Open Attendance app') }}
-				</NcButton>
-			</div>
-		</template>
-
-		<!-- Single Appointment: Auto check-in -->
-		<template v-else-if="appointments.length === 1">
-			<h2>{{ t('attendance', 'Check in') }}</h2>
-			<div class="appointment-details">
-				<h3>{{ appointments[0].name }}</h3>
-				<p class="date-time">
-					<CalendarIcon :size="18" />
-					{{ formatDateRange(appointments[0].startDatetime, appointments[0].endDatetime) }}
-				</p>
-			</div>
-			<div class="button-row">
-				<NcButton
-					variant="primary"
-					:disabled="submitting"
-					@click="doCheckin(appointments[0].id)">
-					<template #icon>
-						<NcLoadingIcon v-if="submitting" :size="20" />
-						<CheckIcon v-else :size="20" />
-					</template>
-					{{ t('attendance', 'Check in now') }}
-				</NcButton>
-			</div>
-		</template>
-
-		<!-- Multiple Appointments: Let user choose -->
-		<template v-else>
-			<h2>{{ t('attendance', 'Which appointment?') }}</h2>
-			<p class="subtitle">
-				{{ t('attendance', 'Select the appointment you want to check into:') }}
-			</p>
-			<div class="appointment-list">
-				<div
-					v-for="appointment in appointments"
-					:key="appointment.id"
-					class="appointment-card"
-					@click="doCheckin(appointment.id)">
-					<div class="appointment-info">
-						<h3>{{ appointment.name }}</h3>
-						<p class="date-time">
-							<CalendarIcon :size="16" />
-							{{ formatDateRange(appointment.startDatetime, appointment.endDatetime) }}
-						</p>
-					</div>
-					<NcLoadingIcon v-if="submitting && submittingId === appointment.id" :size="20" />
-					<CheckIcon v-else :size="20" />
-				</div>
-			</div>
-		</template>
+		<div class="self-checkin-landing__stores">
+			<NcButton variant="secondary"
+				:href="APPLE_STORE_URL"
+				target="_blank"
+				rel="noopener">
+				<template #icon>
+					<AppleIcon :size="20" />
+				</template>
+				{{ t('attendance', 'App Store') }}
+			</NcButton>
+			<NcButton variant="secondary"
+				:href="GOOGLE_STORE_URL"
+				target="_blank"
+				rel="noopener">
+				<template #icon>
+					<GoogleIcon :size="20" />
+				</template>
+				{{ t('attendance', 'Google Play') }}
+			</NcButton>
+		</div>
 	</div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { NcButton, NcNoteCard, NcLoadingIcon } from '@nextcloud/vue'
-import { generateUrl } from '@nextcloud/router'
-import axios from '@nextcloud/axios'
-import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
-import CheckIcon from 'vue-material-design-icons/Check.vue'
-import { formatDateRange } from '../utils/datetime.js'
+import { onMounted } from 'vue'
+import { NcButton } from '@nextcloud/vue'
+import { getRootUrl } from '@nextcloud/router'
+import AppleIcon from 'vue-material-design-icons/Apple.vue'
+import GoogleIcon from 'vue-material-design-icons/Google.vue'
+import CellphoneIcon from 'vue-material-design-icons/Cellphone.vue'
+import OpenInAppIcon from 'vue-material-design-icons/OpenInApp.vue'
+import { APPLE_STORE_URL, GOOGLE_STORE_URL } from '../utils/mobileApp.js'
 
-// State
-const loading = ref(true)
-const error = ref(false)
-const errorMessage = ref('')
-const appointments = ref([])
-const submitting = ref(false)
-const submittingId = ref(null)
-const checkedIn = ref(false)
-const checkedInAlready = ref(false)
-const checkedInAppointment = ref(null)
-const checkedInAt = ref(null)
+const ANDROID_PACKAGE = 'de.krautnerds.attendance'
 
-// Computed
-const appUrl = computed(() => generateUrl('/apps/attendance/'))
+const isAndroid = /android/i.test(navigator.userAgent)
+const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent)
 
-// Format time for display
-const formatTime = (datetime) => {
-	if (!datetime) return ''
-	try {
-		const date = new Date(datetime)
-		return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
-	} catch {
-		return datetime
-	}
-}
+const server = window.location.origin + getRootUrl()
+const encodedServer = encodeURIComponent(server)
+const schemeLink = 'nc-attendance://self-checkin?server=' + encodedServer
 
-// Load active appointments
-const loadAppointments = async () => {
-	loading.value = true
-	error.value = false
-
-	try {
-		const url = generateUrl('/apps/attendance/api/self-checkin/appointments')
-		const response = await axios.get(url)
-		appointments.value = response.data
-
-		// If there's exactly one appointment and the user is already checked in, show that
-		if (response.data.length === 1 && response.data[0].alreadyCheckedIn) {
-			checkedIn.value = true
-			checkedInAlready.value = true
-			checkedInAppointment.value = response.data[0]
-			checkedInAt.value = response.data[0].checkinAt
-		}
-	} catch (err) {
-		error.value = true
-		errorMessage.value = err.response?.data?.error || t('attendance', 'Failed to load appointments.')
-	} finally {
-		loading.value = false
-	}
-}
-
-// Perform check-in
-const doCheckin = async (appointmentId) => {
-	if (submitting.value) return
-
-	submitting.value = true
-	submittingId.value = appointmentId
-
-	try {
-		const url = generateUrl('/apps/attendance/api/self-checkin')
-		const response = await axios.post(url, { appointmentId })
-
-		checkedIn.value = true
-		checkedInAlready.value = response.data.alreadyCheckedIn || false
-		checkedInAppointment.value = response.data.appointment
-		checkedInAt.value = response.data.checkinAt
-	} catch (err) {
-		error.value = true
-		errorMessage.value = err.response?.data?.error || t('attendance', 'Failed to check in.')
-	} finally {
-		submitting.value = false
-		submittingId.value = null
-	}
-}
+// On Android an intent:// URL opens the app when installed and falls back
+// to the Play Store otherwise — better than the bare scheme, which errors
+// silently without the app.
+const deepLink = isAndroid
+	? 'intent://self-checkin?server=' + encodedServer
+		+ '#Intent;scheme=nc-attendance;package=' + ANDROID_PACKAGE
+		+ ';S.browser_fallback_url=' + encodeURIComponent(GOOGLE_STORE_URL) + ';end'
+	: schemeLink
 
 onMounted(() => {
-	loadAppointments()
+	// Best-effort auto-open on phones so the scan goes straight into the
+	// app without tapping the button. Universal links are not an option
+	// here (every Nextcloud instance has its own domain), so this may be
+	// blocked without a user gesture — the button stays as fallback.
+	if (isAndroid || isIos) {
+		window.location.href = deepLink
+	}
 })
 </script>
 
-<style scoped lang="scss">
-.self-checkin-container {
-	max-width: 500px;
+<style scoped>
+.self-checkin-landing {
+	max-width: 420px;
 	margin: 40px auto;
-	padding: 20px;
-
-	h2 {
-		text-align: center;
-		margin-bottom: 8px;
-	}
-
-	.subtitle {
-		text-align: center;
-		color: var(--color-text-maxcontrast);
-		margin-bottom: 20px;
-	}
-}
-
-.loading-state {
+	padding: 32px 24px;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 16px;
-	padding: 40px 0;
-
-	p {
-		color: var(--color-text-maxcontrast);
-	}
-}
-
-.success-state {
+	gap: 12px;
 	text-align: center;
-}
-
-.appointment-details {
-	background: var(--color-background-hover);
+	background-color: var(--color-main-background);
 	border-radius: var(--border-radius-large);
-	padding: 16px;
-	margin: 20px 0;
-
-	h3 {
-		margin: 0 0 12px 0;
-	}
-
-	.date-time {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		margin: 8px 0;
-		color: var(--color-text-maxcontrast);
-	}
-
-	.checkin-time {
-		color: var(--color-text-maxcontrast);
-		font-size: 14px;
-		margin-top: 8px;
-	}
+	box-shadow: 0 0 10px var(--color-box-shadow);
 }
 
-.appointment-list {
-	display: flex;
-	flex-direction: column;
-	gap: 8px;
+.self-checkin-landing__icon {
+	color: var(--color-primary-element);
 }
 
-.appointment-card {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 16px;
-	background: var(--color-background-hover);
-	border-radius: var(--border-radius-large);
-	cursor: pointer;
-	transition: background 0.2s;
-
-	&:hover {
-		background: var(--color-background-dark);
-	}
-
-	.appointment-info {
-		h3 {
-			margin: 0 0 4px 0;
-		}
-
-		.date-time {
-			display: flex;
-			align-items: center;
-			gap: 6px;
-			color: var(--color-text-maxcontrast);
-			font-size: 14px;
-		}
-	}
+.self-checkin-landing__text {
+	color: var(--color-text-maxcontrast);
 }
 
-.button-row {
+.self-checkin-landing__open {
+	margin-top: 8px;
+}
+
+.self-checkin-landing__stores {
 	display: flex;
 	gap: 12px;
+	flex-wrap: wrap;
 	justify-content: center;
-	margin-top: 20px;
+	margin-top: 4px;
 }
 </style>

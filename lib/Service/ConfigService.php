@@ -278,6 +278,20 @@ class ConfigService {
 	}
 
 	/**
+	 * Minutes before an appointment starts that self-check-in opens.
+	 * The window always closes at the appointment end.
+	 */
+	public function getSelfCheckinWindowMinutes(): int {
+		$value = (int)$this->config->getAppValue(self::APP_ID, 'self_checkin_window_minutes', '30');
+		return max(0, min(1440, $value));
+	}
+
+	public function setSelfCheckinWindowMinutes(int $minutes): void {
+		// No clamp here — the getter clamps, which also covers values set via occ.
+		$this->config->setAppValue(self::APP_ID, 'self_checkin_window_minutes', (string)$minutes);
+	}
+
+	/**
 	 * Get the push proxy server URL.
 	 * Configurable via occ: occ config:app:set attendance push_proxy_server --value="https://your-proxy.example.com"
 	 *

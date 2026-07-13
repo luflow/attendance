@@ -63,6 +63,7 @@ final class Verb {
 	public const SOURCE_APP = 'app';
 	public const SOURCE_QUICK_LINK = 'quick_link';
 	public const SOURCE_ADMIN_CHECKIN = 'admin_checkin';
+	public const SOURCE_SELF_CHECKIN = 'self_checkin';
 	public const SOURCE_LEGACY_BACKFILL = 'legacy_backfill';
 	public const SOURCE_AUTO_CLOSE = 'auto_close';
 

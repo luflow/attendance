@@ -37,6 +37,7 @@
     "dompurify": "^3.3.1",
     "easymde": "^2.20.0",
     "marked": "^18.0.0",
+    "qrcode": "^1.5.4",
     "rrule": "^2.8.1",
     "vue": "^3.5.25",
     "vue-material-design-icons": "^5.3.1"

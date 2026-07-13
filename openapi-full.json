@@ -59,6 +59,7 @@
                     "pushEnabled",
                     "mobileAppBannerEnabled",
                     "bookingEnabled",
+                    "selfCheckinWindowMinutes",
                     "guestsApp"
                 ],
                 "properties": {
@@ -97,6 +98,10 @@
                     },
                     "bookingEnabled": {
                         "type": "boolean"
+                    },
+                    "selfCheckinWindowMinutes": {
+                        "type": "integer",
+                        "format": "int64"
                     },
                     "guestsApp": {
                         "$ref": "#/components/schemas/GuestsAppStatus"
@@ -567,7 +572,8 @@
                     "remindMaybe",
                     "responseToggle",
                     "guestInvitation",
-                    "auditLog"
+                    "auditLog",
+                    "selfCheckin"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -604,6 +610,9 @@
                         "type": "boolean"
                     },
                     "auditLog": {
+                        "type": "boolean"
+                    },
+                    "selfCheckin": {
                         "type": "boolean"
                     }
                 }
@@ -1090,6 +1099,53 @@
                     "checkinAt": {
                         "type": "string",
                         "nullable": true
+                    }
+                }
+            },
+            "SelfCheckinNextUpcoming": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "name",
+                    "startDatetime",
+                    "checkinWindowStartsAt"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "startDatetime": {
+                        "type": "string"
+                    },
+                    "checkinWindowStartsAt": {
+                        "type": "string"
+                    }
+                }
+            },
+            "SelfCheckinOverview": {
+                "type": "object",
+                "required": [
+                    "appointments",
+                    "nextUpcoming"
+                ],
+                "properties": {
+                    "appointments": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SelfCheckinAppointment"
+                        }
+                    },
+                    "nextUpcoming": {
+                        "nullable": true,
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/SelfCheckinNextUpcoming"
+                            }
+                        ]
                     }
                 }
             },
@@ -5295,8 +5351,8 @@
         "/index.php/apps/attendance/api/self-checkin/appointments": {
             "get": {
                 "operationId": "self_checkin-get-active-appointments",
-                "summary": "Get active appointments for self-check-in",
-                "description": "Returns active appointments the current user can self-check into right now.",
+                "summary": "Get the self-check-in overview",
+                "description": "Returns active appointments the current user can self-check into right now, plus the next upcoming appointment whose check-in window has not opened yet.",
                 "tags": [
                     "self_checkin"
                 ],
@@ -5314,10 +5370,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/SelfCheckinAppointment"
-                                    }
+                                    "$ref": "#/components/schemas/SelfCheckinOverview"
                                 }
                             }
                         }
@@ -5423,6 +5476,11 @@
                                         "type": "integer",
                                         "format": "int64",
                                         "description": "ID of the appointment to check into"
+                                    },
+                                    "method": {
+                                        "type": "string",
+                                        "default": "qr",
+                                        "description": "How the check-in was triggered: qr or nfc"
                                     }
                                 }
                             }
@@ -5778,6 +5836,13 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Whether the booking / planning feature is enabled"
+                                    },
+                                    "selfCheckinWindowMinutes": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Minutes before appointment start that self-check-in opens"
                                     }
                                 }
                             }
