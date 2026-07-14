@@ -2,6 +2,7 @@ OC.L10N.register(
     "attendance",
     {
     "Yes" : "Si",
+    "Cancelled" : "Cancelado",
     "Connect" : "Conectar",
     "Settings" : "Ajustes",
     "Account" : "Cuenta",
@@ -17,6 +18,11 @@ OC.L10N.register(
     "Subscribe" : "Suscribir",
     "OK" : "OK",
     "About" : "Acerca",
+    "All languages" : "Todos los idiomas",
+    "App developer" : "Desarrollador de la aplicación",
+    "Language" : "Idioma",
+    "Send" : "Enviar",
+    "Skip" : "Saltar",
     "Export" : "Exportar",
     "Select all" : "Seleccionar todo",
     "Deselect all" : "Deseleccionar todo",
@@ -54,7 +60,6 @@ OC.L10N.register(
     "30 minutes before" : "30 minutos antes",
     "1 hour before" : "1 hora antes",
     "2 hours before" : "2 horas antes",
-    "Try again" : "Reintentar",
     "Automatic" : "Automático"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

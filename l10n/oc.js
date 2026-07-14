@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "Òc",
     "No" : "Non",
     "Group" : "Grop",
+    "Cancelled" : "Anullat",
     "Connect" : "Connectar",
     "Add account" : "Apondre compte",
     "Settings" : "Paramètres",

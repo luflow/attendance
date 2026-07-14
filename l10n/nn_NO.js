@@ -2,6 +2,7 @@ OC.L10N.register(
     "attendance",
     {
     "Group" : "Gruppe",
+    "Cancelled" : "Avlyst",
     "Connect" : "Kople til",
     "Add account" : "Legg til konto",
     "Settings" : "Innstillingar",

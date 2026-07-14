@@ -3,6 +3,8 @@ OC.L10N.register(
     {
     "Yes" : "Da",
     "No" : "Ne",
+    "Scheduled" : "Zakazano",
+    "Cancelled" : "Otkazano",
     "Attachments" : "Prilozi",
     "Connect" : "Poveži se",
     "Settings" : "Поставке",

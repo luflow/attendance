@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Yes" : "Po",
     "Group" : "Grup",
+    "Cancelled" : "U anulua",
     "Attachments" : "Bashkangjitjet",
     "Connect" : "Lidhu",
     "Add account" : "Shtoni llogari",
@@ -22,6 +23,7 @@ OC.L10N.register(
     "OK" : "OK",
     "About" : "Rreth",
     "All languages" : "Të gjitha gjuhët",
+    "App developer" : "Zhvillues aplikacionesh",
     "Common" : "E përbashkët",
     "Create" : "Krijo",
     "Default" : "Paraprake",
@@ -76,7 +78,6 @@ OC.L10N.register(
     "30 minutes before" : "30 minuta para",
     "1 hour before" : "1 orë para",
     "2 hours before" : "2 orë para",
-    "Try again" : "Provo përsëri",
     "Automatic" : "Automatike"
 },
 "nplurals=2; plural=(n != 1);");

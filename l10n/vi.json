@@ -2,6 +2,7 @@
     "Yes" : "Có",
     "No" : "Không",
     "Group" : "Nhóm",
+    "Scheduled" : "Lên kế hoạch",
     "Cancelled" : "Đã hủy",
     "Attachments" : "Tệp đính kèm",
     "Connect" : "Kết nối",
@@ -98,7 +99,6 @@
     "30 minutes before" : "Trước 30 phút",
     "1 hour before" : "Trước 1 tiếng",
     "2 hours before" : "Trước 2 tiếng",
-    "Try again" : "Thử lại",
     "Automatic" : "Tự động"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

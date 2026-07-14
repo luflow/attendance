@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "Có",
     "No" : "Không",
     "Group" : "Nhóm",
+    "Scheduled" : "Lên kế hoạch",
     "Cancelled" : "Đã hủy",
     "Attachments" : "Tệp đính kèm",
     "Connect" : "Kết nối",
@@ -100,7 +101,6 @@ OC.L10N.register(
     "30 minutes before" : "Trước 30 phút",
     "1 hour before" : "Trước 1 tiếng",
     "2 hours before" : "Trước 2 tiếng",
-    "Try again" : "Thử lại",
     "Automatic" : "Tự động"
 },
 "nplurals=1; plural=0;");

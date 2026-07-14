@@ -1,5 +1,6 @@
 { "translations": {
     "Group" : "Gruppo",
+    "Cancelled" : "Cancellate",
     "Attachments" : "Attachamentos",
     "Connect" : "Connecter se",
     "Settings" : "Configurationes",
@@ -9,6 +10,7 @@
     "Subscribe" : "Subscribe",
     "OK" : "OK",
     "Language" : "Lingua",
+    "Send" : "Inviar",
     "Export" : "Exportar",
     "Select all" : "Selectionar toto",
     "Cancel" : "Cancel",

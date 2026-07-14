@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Yes" : "დიახ",
     "Maybe" : "შესაძლოა",
+    "Cancelled" : "უარყოფილია",
     "Connect" : "დაკავშირება",
     "Add account" : "ანგარიშის დამატება.",
     "Settings" : "პარამეტრები",
@@ -19,6 +20,7 @@ OC.L10N.register(
     "OK" : "OK",
     "About" : "ჩვენს შესახებ",
     "All languages" : "ყველა ენა",
+    "App developer" : "აპლიკაციის დეველოპერი",
     "Common" : "ჩვეული",
     "Default" : "საწყისი პარამეტრები",
     "Language" : "ენა",
@@ -61,7 +63,6 @@ OC.L10N.register(
     "30 minutes before" : "30 წუთით ადრე",
     "1 hour before" : "1 საათით ადრე",
     "2 hours before" : "2 საათით ადრე",
-    "Try again" : "სცადეთ ახლიდან",
     "Automatic" : "ავტომატური"
 },
 "nplurals=2; plural=(n!=1);");

@@ -4,6 +4,7 @@ OC.L10N.register(
     "No" : "නැහැ",
     "Someone" : "යමෙක්",
     "Others" : "වෙනත්",
+    "Cancelled" : "අවලංගු කළා",
     "Attachments" : "ඇමිණුම්",
     "Connect" : "සම්බන්ධ කරන්න",
     "Settings" : "සැකසුම්",

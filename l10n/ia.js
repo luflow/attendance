@@ -2,6 +2,7 @@ OC.L10N.register(
     "attendance",
     {
     "Group" : "Gruppo",
+    "Cancelled" : "Cancellate",
     "Attachments" : "Attachamentos",
     "Connect" : "Connecter se",
     "Settings" : "Configurationes",
@@ -11,6 +12,7 @@ OC.L10N.register(
     "Subscribe" : "Subscribe",
     "OK" : "OK",
     "Language" : "Lingua",
+    "Send" : "Inviar",
     "Export" : "Exportar",
     "Select all" : "Selectionar toto",
     "Cancel" : "Cancel",

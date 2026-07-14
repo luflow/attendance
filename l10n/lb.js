@@ -4,6 +4,8 @@ OC.L10N.register(
     "Yes" : "Jo",
     "No" : "Nee",
     "Group" : "Grupp",
+    "Scheduled" : "Geplangt",
+    "Cancelled" : "Ofgebrach",
     "Connect" : "Verbannen",
     "Settings" : "Astellungen",
     "None" : "Keng",

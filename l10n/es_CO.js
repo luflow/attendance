@@ -1,6 +1,7 @@
 OC.L10N.register(
     "attendance",
     {
+    "Cancelled" : "Cancelado",
     "Connect" : "Conectar",
     "Settings" : "Configuraciones ",
     "Account" : "Cuenta",
@@ -16,8 +17,12 @@ OC.L10N.register(
     "Expired" : "Expirado",
     "OK" : "OK",
     "About" : "Acerca",
+    "All languages" : "Todos los idiomas",
+    "App developer" : "Desarrollador de la aplicación",
+    "Common" : "Común",
     "Email" : "Correo electrónico",
     "Language" : "Idioma",
+    "Send" : "Enviar",
     "Export" : "Exportar",
     "Select all" : "Seleccionar todo",
     "Deselect all" : "Deseleccionar todo",
@@ -58,7 +63,6 @@ OC.L10N.register(
     "30 minutes before" : "30 minutos antes",
     "1 hour before" : "1 hora antes",
     "2 hours before" : "2 horas antes",
-    "Try again" : "Reintentar",
     "Automatic" : "Automático",
     "name" : "nombre"
 },

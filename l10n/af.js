@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Someone" : "Iemand",
     "Others" : "Ander",
+    "Cancelled" : "Gekanselleer",
     "Connect" : "Verbind",
     "Settings" : "Instellings",
     "Account" : "Rekening",
@@ -14,6 +15,10 @@ OC.L10N.register(
     "Active" : "Aktief",
     "OK" : "OK",
     "About" : "Aangaande",
+    "All languages" : "Alle tale",
+    "App developer" : "Toepontwikkelaar",
+    "Language" : "Taal",
+    "Send" : "Stuur",
     "Export" : "Voer uit",
     "Select all" : "Kies alle",
     "Start date" : "Begindatum",
