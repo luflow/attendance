@@ -640,6 +640,19 @@
     "{actor} cancelled the appointment" : "{actor} hat diesen Termin abgesagt",
     "{actor} reactivated the appointment" : "{actor} hat diesen Termin reaktiviert",
     "{actor} performed {verb}" : "{actor} hat {verb} durchgeführt",
+    "Check in with the Attendance app" : "Mit der Attendance-App einchecken",
+    "Check-in code" : "Check-in-Code",
+    "Check-in window (minutes before start)" : "Check-in-Fenster (Minuten vor Beginn)",
+    "Copy URL for NFC tags" : "URL für NFC-Tags kopieren",
+    "Download QR code" : "QR-Code herunterladen",
+    "How many minutes before an appointment starts attendees can check in. The window always closes when the appointment ends." : "Wie viele Minuten vor Terminbeginn Teilnehmende einchecken können. Das Fenster schließt immer zum Ende des Termins.",
+    "NFC tag shopping advice: use NXP NTAG213 tags (or newer) of at least 25 mm, and on-metal tags for metal surfaces. Avoid MIFARE Classic tags — they do not work with iPhones." : "Kaufberatung für NFC-Tags: NXP-NTAG213-Tags (oder neuer) mit mindestens 25 mm verwenden, auf Metalloberflächen On-Metal-Tags. MIFARE-Classic-Tags vermeiden — sie funktionieren nicht mit iPhones.",
+    "Open in the app" : "In der App öffnen",
+    "Print this QR code and put it up at the entrance, or write the URL to NFC tags. One code works for all appointments — the app matches by time." : "Diesen QR-Code ausdrucken und am Eingang aufhängen oder die URL auf NFC-Tags schreiben. Ein Code gilt für alle Termine — die App ordnet anhand der Uhrzeit zu.",
+    "Self-check-in QR code" : "QR-Code für den Selbst-Check-in",
+    "Some users may appear in the section \"Others\" in the response summary because they are not configured for tracking." : "Einige Personen erscheinen möglicherweise unter \"Andere\" in der Antwortübersicht, weil sie nicht für die Erfassung konfiguriert sind.",
+    "Self-check-in works in the Attendance mobile app. Open the app and scan this code again, or get the app below." : "Der Selbst-Check-in funktioniert über die Attendance-App. Öffne die App und scanne diesen Code erneut oder lade dir die App unten herunter.",
+    "You can also write NFC tags directly with the Attendance mobile app." : "NFC-Tags kannst du auch direkt mit der Attendance-App beschreiben.",
     "Guests" : "Gäste"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

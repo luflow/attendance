@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+## 1.40.0 – 2026-07-14
+
+### Added
+
+- **Self-check-in via QR code or NFC**: attendees check themselves in by scanning an instance QR code or tapping an NFC tag. This feature is only available in the mobile app, which will be released beginning of August. The check-in window is admin-configurable (default: 30 minutes before start, always closes at appointment end) and every self-check-in is recorded in the activity history with its source (QR / NFC). Admin settings show the instance QR code (with download), the NFC URL to copy, and NFC tag shopping advice. The `/self-checkin` web page is now a get-the-app landing page with store links and a deep link that auto-opens the app
+- **Scheduling**: plan yes-responders into an appointment — each yes-response can be marked as "Scheduled". Closing an inquiry sends a notification wave to scheduled attendees (with confirmation dialog), and the calendar feed reflects the scheduling status in title and busy/free transparency. Instance-wide opt-in via admin settings, off by default
+- **Cancel appointments**: cancel an appointment as a distinct state next to closing, including the option to reactivate it later
+- 15-minute step grid for the time fields in the create form
+
+### Improved
+
+- Closed inquiries move out of the "Unanswered" sidebar section immediately
+- Nextcloud 34 support
+
+### Fixed
+
+- Response overview and comments are now gated server-side, not only hidden in the UI
+- App icon themes correctly in dark mode
+
+### Maintenance
+
+- Translations updated from Transifex
+
 ## 1.39.1 – 2026-05-16
 
 ### Added
