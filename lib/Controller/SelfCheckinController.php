@@ -145,7 +145,7 @@ class SelfCheckinController extends Controller {
 		// launches the installed app without the custom-scheme confirmation
 		// dialog (and offers the App Store when it is missing). The
 		// app-argument mirrors the deep link the page fires itself.
-		$server = rtrim($this->urlGenerator->getAbsoluteURL('/'), '/');
+		$server = $this->urlGenerator->getBaseUrl();
 		Util::addHeader('meta', [
 			'name' => 'apple-itunes-app',
 			'content' => 'app-id=' . self::APPLE_APP_ID

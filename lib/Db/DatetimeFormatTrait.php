@@ -22,9 +22,17 @@ trait DatetimeFormatTrait {
 		try {
 			$utcTimezone = new \DateTimeZone('UTC');
 			$date = new \DateTime($datetime, $utcTimezone);
-			return $date->format('Y-m-d\TH:i:s\Z');
+			return $this->formatUtcDatetime($date);
 		} catch (\Exception $e) {
 			return $datetime;
 		}
+	}
+
+	/**
+	 * Format a DateTime (already representing a UTC instant) to the API wire
+	 * format ('Y-m-d\TH:i:s\Z').
+	 */
+	protected function formatUtcDatetime(\DateTimeInterface $date): string {
+		return $date->format('Y-m-d\TH:i:s\Z');
 	}
 }

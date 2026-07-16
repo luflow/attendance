@@ -115,7 +115,7 @@ class SelfCheckinService {
 				'id' => $appointment->getId(),
 				'name' => $appointment->getName(),
 				'startDatetime' => $this->formatDatetimeToUtc($appointment->getStartDatetime()) ?? '',
-				'checkinWindowStartsAt' => $this->getWindowStart($appointment, $windowMinutes)->format('Y-m-d\TH:i:s\Z'),
+				'checkinWindowStartsAt' => $this->formatUtcDatetime($this->getWindowStart($appointment, $windowMinutes)),
 			];
 		}
 		return null;
