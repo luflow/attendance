@@ -246,8 +246,13 @@ class SelfCheckinServiceTest extends TestCase {
 		$this->assertSame([], $overview['appointments']);
 		$this->assertNotNull($overview['nextUpcoming']);
 		$this->assertSame(2, $overview['nextUpcoming']['id']);
+		// Datetimes must carry the UTC marker like the rest of the API —
+		// naive strings get misread as local time by the mobile client.
+		$expectedStart = (new \DateTime($next->getStartDatetime(), new \DateTimeZone('UTC')))
+			->format('Y-m-d\TH:i:s\Z');
+		$this->assertSame($expectedStart, $overview['nextUpcoming']['startDatetime']);
 		$expectedWindowStart = (new \DateTime($next->getStartDatetime(), new \DateTimeZone('UTC')))
-			->modify('-30 minutes')->format('Y-m-d H:i:s');
+			->modify('-30 minutes')->format('Y-m-d\TH:i:s\Z');
 		$this->assertSame($expectedWindowStart, $overview['nextUpcoming']['checkinWindowStartsAt']);
 	}
 
