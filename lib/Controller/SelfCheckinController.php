@@ -17,6 +17,7 @@ use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\IRequest;
+use OCP\IURLGenerator;
 use OCP\IUserSession;
 use OCP\Util;
 use Psr\Log\LoggerInterface;
@@ -28,9 +29,13 @@ use Psr\Log\LoggerInterface;
 class SelfCheckinController extends Controller {
 	use RequiresAuthTrait;
 
+	/** App Store ID of the companion app, same app as src/utils/mobileApp.js. */
+	private const APPLE_APP_ID = '6759988681';
+
 	private SelfCheckinService $selfCheckinService;
 	private PermissionService $permissionService;
 	private IUserSession $userSession;
+	private IURLGenerator $urlGenerator;
 	private LoggerInterface $logger;
 
 	public function __construct(
@@ -39,12 +44,14 @@ class SelfCheckinController extends Controller {
 		SelfCheckinService $selfCheckinService,
 		PermissionService $permissionService,
 		IUserSession $userSession,
+		IURLGenerator $urlGenerator,
 		LoggerInterface $logger,
 	) {
 		parent::__construct($appName, $request);
 		$this->selfCheckinService = $selfCheckinService;
 		$this->permissionService = $permissionService;
 		$this->userSession = $userSession;
+		$this->urlGenerator = $urlGenerator;
 		$this->logger = $logger;
 	}
 
@@ -133,6 +140,17 @@ class SelfCheckinController extends Controller {
 	public function showPage(): TemplateResponse {
 		Util::addScript(Application::APP_ID, Application::APP_ID . '-selfcheckin');
 		Util::addStyle(Application::APP_ID, Application::APP_ID . '-selfcheckin');
+
+		// iOS Smart App Banner: Safari shows a native "Open" banner that
+		// launches the installed app without the custom-scheme confirmation
+		// dialog (and offers the App Store when it is missing). The
+		// app-argument mirrors the deep link the page fires itself.
+		$server = $this->urlGenerator->getBaseUrl();
+		Util::addHeader('meta', [
+			'name' => 'apple-itunes-app',
+			'content' => 'app-id=' . self::APPLE_APP_ID
+				. ', app-argument=nc-attendance://self-checkin?server=' . rawurlencode($server),
+		]);
 
 		return new TemplateResponse(
 			Application::APP_ID,

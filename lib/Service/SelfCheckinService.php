@@ -9,6 +9,7 @@ use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
+use OCA\Attendance\Db\DatetimeFormatTrait;
 use OCP\AppFramework\Db\DoesNotExistException;
 use Psr\Log\LoggerInterface;
 
@@ -17,6 +18,8 @@ use Psr\Log\LoggerInterface;
  * Handles finding active appointments and performing self-check-in for users.
  */
 class SelfCheckinService {
+	use DatetimeFormatTrait;
+
 	private AppointmentMapper $appointmentMapper;
 	private AttendanceResponseMapper $responseMapper;
 	private VisibilityService $visibilityService;
@@ -106,11 +109,13 @@ class SelfCheckinService {
 			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
 				continue;
 			}
+			// UTC-marked ISO strings like every other datetime in the API —
+			// naive strings would be interpreted as local time by clients.
 			return [
 				'id' => $appointment->getId(),
 				'name' => $appointment->getName(),
-				'startDatetime' => $appointment->getStartDatetime(),
-				'checkinWindowStartsAt' => $this->getWindowStart($appointment, $windowMinutes)->format('Y-m-d H:i:s'),
+				'startDatetime' => $this->formatDatetimeToUtc($appointment->getStartDatetime()) ?? '',
+				'checkinWindowStartsAt' => $this->formatUtcDatetime($this->getWindowStart($appointment, $windowMinutes)),
 			];
 		}
 		return null;
