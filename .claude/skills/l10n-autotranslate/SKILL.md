@@ -1,6 +1,6 @@
 ---
 name: l10n-autotranslate
-description: Find every source string in the code that has no German translation yet and fill it in — write the missing German into l10n/de.json, de.js, de_DE.json and de_DE.js so the app is fully German without waiting for the next Transifex sync. Use when the user wants to auto-translate missing strings to German, mentions "l10n-autotranslate", "alles auf Deutsch übersetzen", "fehlende Übersetzungen ergänzen", "translate missing strings", or after adding new t()/n() strings that should show up in German immediately.
+description: Keep the German l10n files in step with the code — fill every source string that has no German yet and drop entries whose source string is gone, writing into l10n/de.json, de.js, de_DE.json and de_DE.js so the app is fully German without waiting for the next Transifex sync. Use when the user wants to auto-translate missing strings to German, remove stale/orphaned translation keys, mentions "l10n-autotranslate", "alles auf Deutsch übersetzen", "fehlende Übersetzungen ergänzen", "stale strings entfernen", "translate missing strings", or after adding/renaming/removing t()/n() strings that should show up in German immediately.
 ---
 
 # German auto-translate (stopgap for missing translations)
@@ -104,3 +104,43 @@ writing.
    reordering of existing entries.
 4. Commit on the working branch as `fix(l10n): add German for untranslated
    strings` (this repo's convention: no Claude co-author).
+
+## Step 5 — Remove stale strings (optional)
+
+When source strings get renamed or removed, their old German entries linger in
+the l10n files. Find them:
+
+```bash
+python3 .claude/skills/l10n-autotranslate/scripts/find_stale.py
+```
+
+It reports two buckets:
+
+- **orphaned** — the exact English literal appears in **no** source file, so no
+  code can reach the key (Transifex could not have extracted it either). These
+  are safe to remove.
+- **review** — the key is not extracted, but its literal still shows up in
+  source. Each carries a `reason`:
+  - `whitespace/ellipsis-drift` — the live string uses a non-breaking space
+    before `…` and this entry a plain one (or vice versa). The right fix is on
+    the **source** side (make the `t()` string match), not deleting German.
+  - `plural-bare-form` — a `%n …` half of a live `_%n …_::_%n …_` plural key;
+    usually harmless, leave it.
+  - `literal-present-in-source` — the string (or a superstring of it) is still
+    in the code; likely a real use the extractor missed. **Do not remove** —
+    grep the code, and widen `find_untranslated.py` if it is a genuine miss.
+
+Only ever remove keys you have confirmed are dead. Pass a JSON list of keys, or
+`find_stale.py`'s output directly (its `orphaned` list is used, `review` is
+ignored):
+
+```bash
+python3 .claude/skills/l10n-autotranslate/scripts/find_stale.py > /tmp/stale.json
+python3 .claude/skills/l10n-autotranslate/scripts/remove_stale.py /tmp/stale.json --dry-run
+python3 .claude/skills/l10n-autotranslate/scripts/remove_stale.py /tmp/stale.json
+```
+
+`remove_stale.py` drops the keys from all four files, re-commas so the last
+entry never keeps a trailing comma, and is idempotent. Re-run `find_stale.py`
+(orphaned should be empty), then `npm run build` and verify `.js` and `.json`
+still agree per locale, exactly as in Step 4.
