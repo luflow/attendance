@@ -1,0 +1,47 @@
+{
+  "note": "Translation keys that reach .tr() in attendance-flutter through data structures (lists/maps/params) instead of an adjacent string literal. check_drift.py cannot see these statically — it merges this list into the Flutter key set. When check_drift.py reports an UNRESOLVED call site, check whether the data it reads gained/lost keys and update the matching group here. Dynamic values (e.g. Nextcloud group names in checkin_screen.dart) are untranslatable and intentionally NOT listed.",
+  "keys": {
+    "lib/widgets/audit_format.dart — _buildSegments/_formatCheckin templates": [
+      "{actor} answered {response}",
+      "{actor} changed response from {from} to {to}",
+      "{actor} recorded check-in for {subject}: {state}",
+      "{actor} checked themselves in: {state}",
+      "Check-in recorded: {state}",
+      "{actor} updated check-in for {subject}: {state}",
+      "{actor} updated their own check-in: {state}",
+      "Check-in updated: {state}"
+    ],
+    "lib/widgets/audit_format.dart — _fieldLabels values": [
+      "name",
+      "description",
+      "time",
+      "visibility",
+      "response deadline"
+    ],
+    "lib/widgets/trial_feedback_sheet.dart — _reasons labels and prompts": [
+      "Too expensive",
+      "I'd buy it just for myself, not for my organization",
+      "I need an invoice",
+      "I'm missing a feature",
+      "I'm still evaluating",
+      "It's not my decision alone",
+      "Another reason",
+      "What would you be willing to pay?",
+      "Your fair price"
+    ],
+    "lib/screens/appointments_screen.dart — filter option values": [
+      "Yes",
+      "Maybe",
+      "No",
+      "No response",
+      "Opened",
+      "Closed"
+    ],
+    "lib/screens/create_appointment_screen.dart — duration units": [
+      "minutes",
+      "hours",
+      "days",
+      "weeks"
+    ]
+  }
+}
