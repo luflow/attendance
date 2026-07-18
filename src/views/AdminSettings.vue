@@ -153,9 +153,14 @@
 					</div>
 
 					<div class="self-checkin-qr">
-						<h5>{{ t('attendance', 'Check-in code') }}</h5>
+						<h5>{{ t('attendance', 'Self-check-in possibilities') }}</h5>
 						<p class="subsection-hint">
-							{{ t('attendance', 'Print this QR code and put it up at the entrance, or write the URL to NFC tags. One code works for all appointments — the app matches by time.') }}
+							{{ t('attendance', 'One code works for all appointments — the app matches by time.') }}
+						</p>
+
+						<h6>{{ t('attendance', 'QR code') }}</h6>
+						<p class="subsection-hint">
+							{{ t('attendance', 'Print this QR code and put it up at the entrance.') }}
 						</p>
 						<img v-if="qrDataUrl"
 							:src="qrDataUrl"
@@ -169,6 +174,13 @@
 								</template>
 								{{ t('attendance', 'Download QR code') }}
 							</NcButton>
+						</div>
+
+						<h6>{{ t('attendance', 'NFC tag') }}</h6>
+						<p class="subsection-hint">
+							{{ t('attendance', 'Write the check-in URL to NFC tags and stick them at the entrance.') }}
+						</p>
+						<div class="self-checkin-qr__actions">
 							<NcButton variant="secondary" @click="copySelfCheckinUrl">
 								<template #icon>
 									<ContentCopy :size="20" />
@@ -1047,6 +1059,11 @@ onMounted(async () => {
 	h5 {
 		font-weight: 600;
 		margin-bottom: 4px;
+	}
+
+	h6 {
+		font-weight: 600;
+		margin: 16px 0 4px;
 	}
 
 	.self-checkin-qr__image {
