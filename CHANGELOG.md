@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## 1.41.1 – 2026-07-19
+
+### Fixed
+
+- Completed the German translations for the self-check-in, subscription and activity-log strings that were still showing in English
+- Renamed the admin self-check-in setup heading from "Self-check-in possibilities" to the clearer "Set up self-check-in"
+
 ## 1.41.0 – 2026-07-18
 
 ### Added
