@@ -699,8 +699,6 @@ OC.L10N.register(
     "Search calendars …" : "Kalender durchsuchen …",
     "Search events …" : "Termine durchsuchen …",
     "Select the appointment you want to check into:" : "Wähle den Termin, in den du dich einchecken möchtest:",
-    "Self-check-in possibilities" : "Selbst-Check-in-Möglichkeiten",
-    "Self-check-in scanning" : "Scannen beim Selbst-Check-in",
     "Set up self-check-in" : "Selbst-Check-in einrichten",
     "Setting up …" : "Einrichtung läuft …",
     "Share QR code" : "QR-Code teilen",
