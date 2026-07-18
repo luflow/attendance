@@ -47,10 +47,9 @@ def existing_keys(root, relpath):
     return set(json.load(open(path, encoding='utf-8'))['translations'].keys())
 
 
-def apply_file(root, relpath, marker, trans, dry_run):
+def apply_file(root, relpath, marker, trans, have, dry_run):
     path = os.path.join(root, relpath)
     text = open(path, encoding='utf-8').read()
-    have = existing_keys(root, relpath)
     new = {k: v for k, v in trans.items() if k not in have}
     if not new:
         return 0, ''
@@ -88,8 +87,14 @@ def main():
         elif not isinstance(v, str):
             sys.exit(f'value for {k!r} must be a string or [singular, plural]')
 
+    # Snapshot existing keys for every file BEFORE writing anything — de.js and
+    # de.json share content, so writing de.json first must not make de.js think
+    # the keys already exist.
+    snapshots = {rel: existing_keys(root, rel) for rel in TARGETS}
+
     for relpath, marker in TARGETS.items():
-        n, preview = apply_file(root, relpath, marker, trans, args.dry_run)
+        n, preview = apply_file(root, relpath, marker, trans,
+                                snapshots[relpath], args.dry_run)
         tag = 'would add' if args.dry_run else 'added'
         print(f'{relpath}: {tag} {n}')
         if args.dry_run and preview:
