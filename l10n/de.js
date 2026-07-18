@@ -63,7 +63,7 @@ OC.L10N.register(
     "Reset to server color" : "Auf Serverfarbe zurücksetzen",
     "Appearance" : "Erscheinungsbild",
     "Background style" : "Hintergrundstil",
-    "Gradient" : "Gradient",
+    "Gradient" : "Farbverlauf",
     "Color" : "Farbe",
     "Tiled" : "Gekachelt",
     "None" : "Keine",
