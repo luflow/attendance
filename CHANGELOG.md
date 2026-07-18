@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+## 1.41.0 – 2026-07-18
+
+### Added
+
+- Admin self-check-in settings split the code section into separate **QR code** and **NFC tag** blocks for clearer setup
+
+### Fixed
+
+- Self-check-in `nextUpcoming` payload now sends UTC-marked datetimes, so the mobile app shows the correct check-in window across time zones
+
+### Maintenance
+
+- Updated npm and composer dependencies
+- Translations updated from Transifex
+
 ## 1.40.0 – 2026-07-14
 
 ### Added
