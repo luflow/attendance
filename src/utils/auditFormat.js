@@ -26,6 +26,17 @@ export function formatSource(source) {
 	return fn ? fn() : source
 }
 
+// The templates below reach t() only indirectly through buildSegments(), so
+// the string extractor would miss them — register them here explicitly.
+// TRANSLATORS: Audit-log entries. {actor}/{subject} are names, {response},
+// {from}, {to} and {state} render as response chips (yes/no/maybe/…).
+t('attendance', '{actor} answered {response}')
+t('attendance', '{actor} changed response from {from} to {to}')
+t('attendance', '{actor} recorded check-in for {subject}: {state}')
+t('attendance', 'Check-in recorded: {state}')
+t('attendance', '{actor} updated check-in for {subject}: {state}')
+t('attendance', 'Check-in updated: {state}')
+
 const CHIP_SENTINEL = /CHIP(\d+)/g
 
 /**
