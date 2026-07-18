@@ -93,7 +93,7 @@ async function createAppointmentWithGroupVisibility(page, { name, description, d
 	if (visibleGroups.length > 0) {
 		for (const groupName of visibleGroups) {
 			// Scope to the visibility selector to avoid matching the sidebar search
-			const visibilitySearch = page.locator('[data-test="select-visibility"]').getByRole('searchbox')
+			const visibilitySearch = page.locator('[data-test="select-visibility"]').getByRole('combobox')
 			await visibilitySearch.click()
 			await visibilitySearch.fill(groupName)
 
@@ -278,7 +278,7 @@ test.describe('Attendance App - Group Visibility Filtering', () => {
 			await page.getByRole('textbox', { name: 'End Date & Time' }).fill(endDate.toISOString().slice(0, 16))
 
 			// Add developers group
-			const visibilitySearch = page.locator('[data-test="select-visibility"]').getByRole('searchbox')
+			const visibilitySearch = page.locator('[data-test="select-visibility"]').getByRole('combobox')
 			await visibilitySearch.click()
 			await visibilitySearch.fill('developers')
 			const developersOption = page.getByRole('option', { name: 'developers' })
