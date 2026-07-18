@@ -100,7 +100,7 @@ const showDeleteDialog = ref(false)
 const { permissions, capabilities, config, loadPermissions } = usePermissions()
 
 const canSeeAuditTimeline = computed(() => {
-	if (!capabilities.auditLog) { return false }
+	if (!capabilities.auditLog) return false
 	return permissions.canManageAppointments || permissions.canSeeResponseOverview
 })
 
@@ -227,7 +227,7 @@ async function scrollToAuditLog() {
 }
 
 async function honourScrollTarget() {
-	if (props.scrollTarget !== 'audit' || !canSeeAuditTimeline.value) { return }
+	if (props.scrollTarget !== 'audit' || !canSeeAuditTimeline.value) return
 	await scrollToAuditLog()
 	emit('scrollTargetConsumed')
 }

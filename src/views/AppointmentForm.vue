@@ -563,10 +563,10 @@ const seriesCount = ref(0)
 const showSeriesDialog = ref(false)
 
 const appointmentDuration = computed(() => {
-	if (!formData.startDatetime || !formData.endDatetime) { return 0 }
+	if (!formData.startDatetime || !formData.endDatetime) return 0
 	const start = new Date(formData.startDatetime)
 	const end = new Date(formData.endDatetime)
-	if (isNaN(start.getTime()) || isNaN(end.getTime())) { return 0 }
+	if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0
 	return end.getTime() - start.getTime()
 })
 
@@ -666,19 +666,19 @@ function getTypeLabel(type, isGuest = false) {
 
 // Convert string datetime to Date object for NcDateTimePickerNative
 const startDateObject = computed(() => {
-	if (!formData.startDatetime) { return null }
+	if (!formData.startDatetime) return null
 	const date = new Date(formData.startDatetime)
 	return isNaN(date.getTime()) ? null : date
 })
 
 const endDateObject = computed(() => {
-	if (!formData.endDatetime) { return null }
+	if (!formData.endDatetime) return null
 	const date = new Date(formData.endDatetime)
 	return isNaN(date.getTime()) ? null : date
 })
 
 const deadlineAbsoluteDateObject = computed(() => {
-	if (!deadlineAbsolute.value) { return null }
+	if (!deadlineAbsolute.value) return null
 	const date = new Date(deadlineAbsolute.value)
 	return isNaN(date.getTime()) ? null : date
 })
@@ -691,31 +691,31 @@ const deadlineAbsoluteDateObject = computed(() => {
  * @return {Date|null}
  */
 function resolveDeadlineFor(occurrenceStartLocal) {
-	if (deadlineMode.value === 'none') { return null }
+	if (deadlineMode.value === 'none') return null
 	if (deadlineMode.value === 'relative') {
-		if (!occurrenceStartLocal) { return null }
+		if (!occurrenceStartLocal) return null
 		const start = new Date(occurrenceStartLocal)
-		if (isNaN(start.getTime())) { return null }
+		if (isNaN(start.getTime())) return null
 		return new Date(start.getTime() - deadlineRelativeOffsetMs.value)
 	}
 	// absolute
-	if (!deadlineAbsolute.value) { return null }
+	if (!deadlineAbsolute.value) return null
 	const abs = new Date(deadlineAbsolute.value)
-	if (isNaN(abs.getTime())) { return null }
+	if (isNaN(abs.getTime())) return null
 	if (!isRecurring.value || deadlineAbsoluteLiteral.value) {
 		return abs
 	}
 	// Recurring + non-literal: shift by the delta between this occurrence and
 	// the reference start. Same offset semantics as the legacy implementation.
-	if (!formData.startDatetime || !occurrenceStartLocal) { return abs }
+	if (!formData.startDatetime || !occurrenceStartLocal) return abs
 	const refStart = new Date(formData.startDatetime).getTime()
 	const occStart = new Date(occurrenceStartLocal).getTime()
-	if (isNaN(refStart) || isNaN(occStart)) { return abs }
+	if (isNaN(refStart) || isNaN(occStart)) return abs
 	return new Date(abs.getTime() + (occStart - refStart))
 }
 
 const deadlineWarning = computed(() => {
-	if (deadlineMode.value === 'none') { return null }
+	if (deadlineMode.value === 'none') return null
 	if (deadlineMode.value === 'relative' && deadlineRelativeValue.value < 1) {
 		return t('attendance', 'Time before start must be at least 1 minute')
 	}
@@ -723,7 +723,7 @@ const deadlineWarning = computed(() => {
 		return null
 	}
 	const deadline = resolveDeadlineFor(formData.startDatetime)
-	if (!deadline) { return null }
+	if (!deadline) return null
 	const start = formData.startDatetime ? new Date(formData.startDatetime) : null
 	if (deadline.getTime() <= Date.now()) {
 		return t('attendance', 'Response deadline must be in the future')
@@ -740,7 +740,7 @@ function onDeadlineAbsoluteChange(value) {
 		return
 	}
 	const date = value instanceof Date ? value : new Date(value)
-	if (isNaN(date.getTime())) { return }
+	if (isNaN(date.getTime())) return
 	deadlineAbsolute.value = formatDateTimeForInput(date.toISOString())
 }
 
@@ -763,9 +763,9 @@ watch(visibilityItems, (selected) => {
 })
 
 function formatDateTimeForInput(dateTime) {
-	if (!dateTime) { return '' }
+	if (!dateTime) return ''
 	const date = new Date(dateTime)
-	if (isNaN(date.getTime())) { return '' }
+	if (isNaN(date.getTime())) return ''
 
 	const year = date.getFullYear()
 	const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -777,7 +777,7 @@ function formatDateTimeForInput(dateTime) {
 }
 
 async function loadAppointment() {
-	if (!props.appointmentId) { return }
+	if (!props.appointmentId) return
 
 	loading.value = true
 	try {
@@ -1117,7 +1117,7 @@ function removeAttachment(fileId) {
 const attachmentFileIds = computed(() => attachments.value.map((a) => a.fileId))
 
 function toServerTimezone(datetime) {
-	if (!datetime) { return datetime }
+	if (!datetime) return datetime
 	const date = new Date(datetime)
 	return date.toISOString()
 }
@@ -1258,7 +1258,7 @@ async function handleRecurringCreate() {
 }
 
 async function handleSubmit() {
-	if (saving.value) { return }
+	if (saving.value) return
 
 	// Manual validation for datetime fields
 	if (!formData.name?.trim()) {

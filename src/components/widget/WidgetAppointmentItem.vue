@@ -142,7 +142,7 @@ const emit = defineEmits(['respond', 'openCheckin', 'openDetail'])
 const { responseCooldown, resolveNext, startCooldown } = useResponseCooldown(() => props.item.userResponse?.response ?? null)
 
 function handleResponse(response) {
-	if (responseCooldown.value) { return }
+	if (responseCooldown.value) return
 	startCooldown()
 	emit('respond', props.item.id, resolveNext(response))
 }

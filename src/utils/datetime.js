@@ -31,11 +31,11 @@ export function getUserTimezone() {
  * @return {string} Formatted datetime string
  */
 export function formatDateTime(datetime, options = {}) {
-	if (!datetime) { return '' }
+	if (!datetime) return ''
 
 	try {
 		const date = datetime instanceof Date ? datetime : new Date(datetime)
-		if (isNaN(date.getTime())) { return '' }
+		if (isNaN(date.getTime())) return ''
 
 		const locales = options.locale ? [options.locale] : [getCanonicalLocale()]
 		const formatOptions = {
@@ -67,11 +67,11 @@ export function formatDateTimeMedium(datetime) {
  * @return {string} Formatted string for datetime-local input
  */
 export function formatDateTimeForInput(datetime) {
-	if (!datetime) { return '' }
+	if (!datetime) return ''
 
 	try {
 		const date = datetime instanceof Date ? datetime : new Date(datetime)
-		if (isNaN(date.getTime())) { return '' }
+		if (isNaN(date.getTime())) return ''
 
 		const year = date.getFullYear()
 		const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -92,7 +92,7 @@ export function formatDateTimeForInput(datetime) {
  * @return {Date|null} Parsed Date or null if invalid
  */
 export function parseDateTimeInput(inputValue) {
-	if (!inputValue) { return null }
+	if (!inputValue) return null
 
 	try {
 		const date = new Date(inputValue)
@@ -110,11 +110,11 @@ export function parseDateTimeInput(inputValue) {
  * @return {Date} Date object adjusted for server timezone
  */
 export function toServerTimezone(datetime, timezone = 'Europe/Berlin') {
-	if (!datetime) { return null }
+	if (!datetime) return null
 
 	try {
 		const localDate = datetime instanceof Date ? datetime : new Date(datetime)
-		if (isNaN(localDate.getTime())) { return null }
+		if (isNaN(localDate.getTime())) return null
 
 		return fromZonedTime(localDate, timezone)
 	} catch {
@@ -130,11 +130,11 @@ export function toServerTimezone(datetime, timezone = 'Europe/Berlin') {
  * @return {string} Formatted date string
  */
 export function formatDate(datetime, style = 'medium') {
-	if (!datetime) { return '' }
+	if (!datetime) return ''
 
 	try {
 		const date = datetime instanceof Date ? datetime : new Date(datetime)
-		if (isNaN(date.getTime())) { return '' }
+		if (isNaN(date.getTime())) return ''
 
 		return date.toLocaleDateString(getCanonicalLocale(), { dateStyle: style })
 	} catch {
@@ -150,11 +150,11 @@ export function formatDate(datetime, style = 'medium') {
  * @return {string} Formatted time string
  */
 export function formatTime(datetime, style = 'short') {
-	if (!datetime) { return '' }
+	if (!datetime) return ''
 
 	try {
 		const date = datetime instanceof Date ? datetime : new Date(datetime)
-		if (isNaN(date.getTime())) { return '' }
+		if (isNaN(date.getTime())) return ''
 
 		return date.toLocaleTimeString(getCanonicalLocale(), { timeStyle: style })
 	} catch {
@@ -169,7 +169,7 @@ export function formatTime(datetime, style = 'short') {
  * @return {boolean} True if datetime is in the past
  */
 export function isPast(datetime) {
-	if (!datetime) { return false }
+	if (!datetime) return false
 
 	try {
 		const date = datetime instanceof Date ? datetime : new Date(datetime)
@@ -186,7 +186,7 @@ export function isPast(datetime) {
  * @return {boolean} True if datetime is in the future
  */
 export function isFuture(datetime) {
-	if (!datetime) { return false }
+	if (!datetime) return false
 
 	try {
 		const date = datetime instanceof Date ? datetime : new Date(datetime)
@@ -204,7 +204,7 @@ export function isFuture(datetime) {
  * @return {boolean} True if check-in is allowed
  */
 export function canCheckinNow(startDatetime, minutesBefore = 30) {
-	if (!startDatetime) { return false }
+	if (!startDatetime) return false
 
 	try {
 		const startTime = startDatetime instanceof Date ? startDatetime : new Date(startDatetime)
@@ -223,11 +223,11 @@ export function canCheckinNow(startDatetime, minutesBefore = 30) {
  * @return {Date|null} New Date with hours added
  */
 export function addHours(datetime, hours) {
-	if (!datetime) { return null }
+	if (!datetime) return null
 
 	try {
 		const date = datetime instanceof Date ? datetime : new Date(datetime)
-		if (isNaN(date.getTime())) { return null }
+		if (isNaN(date.getTime())) return null
 
 		return new Date(date.getTime() + hours * 60 * 60 * 1000)
 	} catch {
@@ -262,8 +262,8 @@ export function formatDateWithWeekday(date) {
  * @return {string} Formatted date range string
  */
 export function formatDateRange(startDatetime, endDatetime) {
-	if (!startDatetime) { return '' }
-	if (!endDatetime) { return formatDateTime(startDatetime) }
+	if (!startDatetime) return ''
+	if (!endDatetime) return formatDateTime(startDatetime)
 
 	try {
 		const start = startDatetime instanceof Date ? startDatetime : new Date(startDatetime)

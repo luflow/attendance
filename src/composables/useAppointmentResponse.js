@@ -29,7 +29,7 @@ export function useResponseCooldown(currentResponse, cooldownMs = 800) {
 
 	const startCooldown = () => {
 		responseCooldown.value = true
-		if (timer) { clearTimeout(timer) }
+		if (timer) clearTimeout(timer)
 		timer = setTimeout(() => {
 			responseCooldown.value = false
 			timer = null
@@ -37,7 +37,7 @@ export function useResponseCooldown(currentResponse, cooldownMs = 800) {
 	}
 
 	onBeforeUnmount(() => {
-		if (timer) { clearTimeout(timer) }
+		if (timer) clearTimeout(timer)
 	})
 
 	return { responseCooldown, resolveNext, startCooldown }
@@ -136,7 +136,7 @@ export function useAppointmentResponse(options = {}) {
 	 * @return {Promise<void>}
 	 */
 	const autoSaveComment = async (appointmentId, currentResponse, commentText, silent = true) => {
-		if (!currentResponse) { return }
+		if (!currentResponse) return
 
 		const t = window.t || ((app, text) => text)
 
@@ -313,7 +313,7 @@ export function useMultiAppointmentResponse(options = {}) {
 	 * @param {string} commentText - The comment text to save
 	 */
 	const autoSaveComment = async (appointmentId, currentResponse, commentText) => {
-		if (!currentResponse) { return }
+		if (!currentResponse) return
 
 		savingComments[appointmentId] = true
 		savedComments[appointmentId] = false

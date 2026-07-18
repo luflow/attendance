@@ -5,15 +5,18 @@ export default [
 	{
 		rules: {
 			'jsdoc/require-jsdoc': 'off',
-			'vue/first-attribute-linebreak': 'off',
-			// Single-line guard clauses (`if (x) { return }`) are the
+			// Single-line guard clauses (`if (x) return`) are the
 			// established idiom in this codebase.
-			'@stylistic/max-statements-per-line': 'off',
-			// Loose equality against null intentionally covers undefined.
-			eqeqeq: ['error', 'always', { null: 'ignore' }],
+			curly: ['error', 'multi-line'],
 			'no-console': ['error', { allow: ['error', 'warn', 'debug'] }],
-			// Single-word view names (Widget, Checkin) are established routes.
-			'vue/multi-word-component-names': 'off',
+		},
+	},
+	{
+		files: ['**/*.vue'],
+		rules: {
+			'vue/first-attribute-linebreak': 'off',
+			// Single-word view names that predate the rule.
+			'vue/multi-word-component-names': ['error', { ignores: ['Widget', 'Checkin'] }],
 		},
 	},
 ]

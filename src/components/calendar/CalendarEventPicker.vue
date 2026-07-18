@@ -203,7 +203,7 @@ async function onToDateChange(newValue) {
 }
 
 function translateCalendarName(name) {
-	if (!name) { return name }
+	if (!name) return name
 	const translated = t('calendar', name)
 	return translated !== name ? translated : name
 }

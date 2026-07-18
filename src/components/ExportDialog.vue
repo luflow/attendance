@@ -229,8 +229,8 @@ watch(filterType, (newType) => {
 
 // Computed properties
 const canExport = computed(() => {
-	if (filterType.value === 'all') { return true }
-	if (filterType.value === 'selected') { return selectedAppointments.value.length > 0 }
+	if (filterType.value === 'all') return true
+	if (filterType.value === 'selected') return selectedAppointments.value.length > 0
 	if (
 		filterType.value === 'dateRange'
 		&& dateRangePreset.value === 'custom'
@@ -287,7 +287,7 @@ function deselectAllAppointments() {
 }
 
 async function handleExport() {
-	if (!canExport.value) { return }
+	if (!canExport.value) return
 
 	exporting.value = true
 

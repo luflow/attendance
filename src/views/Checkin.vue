@@ -206,7 +206,7 @@ const { permissions, config, loadPermissions } = usePermissions()
 const TIME_THRESHOLD_MS = 8 * 60 * 60 * 1000
 
 const timeWarning = computed(() => {
-	if (!appointment.value) { return null }
+	if (!appointment.value) return null
 	const now = Date.now()
 	const start = new Date(appointment.value.startDatetime).getTime()
 	const end = new Date(appointment.value.endDatetime).getTime()
@@ -318,7 +318,7 @@ function confirmBulkCheckin(response) {
 }
 
 async function executeBulkAction() {
-	if (bulkProcessing.value) { return }
+	if (bulkProcessing.value) return
 
 	bulkProcessing.value = true
 	showConfirmDialog.value = false

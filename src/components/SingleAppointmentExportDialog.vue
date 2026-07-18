@@ -67,7 +67,7 @@ const includeComments = ref(false)
 const exporting = ref(false)
 
 async function handleExport() {
-	if (!props.appointment) { return }
+	if (!props.appointment) return
 
 	exporting.value = true
 

@@ -24,4 +24,5 @@ return RectorConfig::configure()
 		doctrineCodeQuality: true,
 		symfonyCodeQuality: true,
 		symfonyConfigs: true,
-	);
+	)
+	->withComposerBased(phpunit: true);

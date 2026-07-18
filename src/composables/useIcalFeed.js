@@ -66,12 +66,12 @@ export function useIcalFeed() {
 	}
 
 	const webcalUrl = computed(() => {
-		if (!feedUrl.value) { return '' }
+		if (!feedUrl.value) return ''
 		return feedUrl.value.replace(/^https?:\/\//, 'webcal://')
 	})
 
 	const googleCalendarUrl = computed(() => {
-		if (!webcalUrl.value) { return '' }
+		if (!webcalUrl.value) return ''
 		return `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcalUrl.value)}`
 	})
 

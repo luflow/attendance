@@ -276,7 +276,7 @@ const monthlyWeekdayPositionLabel = computed(() => {
 })
 
 const untilDateObject = computed(() => {
-	if (!config.until) { return null }
+	if (!config.until) return null
 	const date
 		= config.until instanceof Date ? config.until : new Date(config.until)
 	return isNaN(date.getTime()) ? null : date
@@ -312,7 +312,7 @@ watch(
 )
 
 const validationWarning = computed(() => {
-	if (!enabled.value || !props.startDate) { return null }
+	if (!enabled.value || !props.startDate) return null
 	if (config.frequency === 'WEEKLY' && config.byWeekday.length === 0) {
 		return t('attendance', 'Select at least one day of the week.')
 	}
@@ -345,7 +345,7 @@ const occurrences = computed(() => {
 })
 
 const visibleOccurrences = computed(() => {
-	if (showAllPreview.value) { return occurrences.value }
+	if (showAllPreview.value) return occurrences.value
 	return occurrences.value.slice(0, previewLimit)
 })
 

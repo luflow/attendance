@@ -34,7 +34,7 @@ const props = defineProps({
 })
 
 const renderedDescription = computed(() => {
-	if (!props.appointment?.description) { return '' }
+	if (!props.appointment?.description) return ''
 	return sanitizeHtml(renderMarkdown(props.appointment.description, true))
 })
 </script>

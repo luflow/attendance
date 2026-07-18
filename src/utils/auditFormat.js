@@ -21,7 +21,7 @@ export const SOURCE_LABELS = {
 }
 
 export function formatSource(source) {
-	if (!source) { return '' }
+	if (!source) return ''
 	const fn = SOURCE_LABELS[source]
 	return fn ? fn() : source
 }
@@ -41,7 +41,9 @@ const CHIP_SENTINEL = /CHIP(\d+)/g
  */
 function buildSegments(template, params, chips) {
 	const tParams = { ...params }
-	chips.forEach((c, i) => { tParams[c.key] = `CHIP${i}` })
+	chips.forEach((c, i) => {
+		tParams[c.key] = `CHIP${i}`
+	})
 	const localized = t('attendance', template, tParams)
 
 	return localized.split(CHIP_SENTINEL).map((piece, idx) => {
@@ -186,21 +188,19 @@ export function formatAuditEvent(event) {
 					: t('attendance', '{actor} edited this appointment', { actor })),
 			}
 		}
-		case 'appointment.closed': {
-			const closedText = event.actor
-				// TRANSLATORS: Audit-log entry. {actor} is a person's name.
-				// Closing an "inquiry" stops new responses; the appointment
-				// itself still takes place (this is not a cancellation).
-				? t('attendance', '{actor} closed the inquiry', { actor })
-				// TRANSLATORS: Audit-log entry when the inquiry was closed by
-				// the system (e.g. its deadline passed), not by a person.
-				: t('attendance', 'Inquiry closed automatically')
+		case 'appointment.closed':
 			return {
 				icon: 'LockOutline',
 				iconVariant: 'default',
-				segments: textOnly(closedText),
+				segments: textOnly(event.actor
+					// TRANSLATORS: Audit-log entry. {actor} is a person's name.
+					// Closing an "inquiry" stops new responses; the appointment
+					// itself still takes place (this is not a cancellation).
+					? t('attendance', '{actor} closed the inquiry', { actor })
+					// TRANSLATORS: Audit-log entry when the inquiry was closed by
+					// the system (e.g. its deadline passed), not by a person.
+					: t('attendance', 'Inquiry closed automatically')),
 			}
-		}
 		case 'appointment.reopened':
 			return {
 				icon: 'LockOpenVariantOutline',

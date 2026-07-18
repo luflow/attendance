@@ -458,11 +458,11 @@ const pastAppointmentsExpanded = ref(false)
 // more confusing than helpful. Filters in AllAppointments.vue are persisted.
 const searchQuery = ref('')
 function onSearchInput() {
-	if (!searchQuery.value) { return }
+	if (!searchQuery.value) return
 	// Admin's default landing leaves currentView='all' but the URL bare —
 	// re-run setView so the URL also reflects the searchable All view.
 	const urlMatches = window.location.pathname.endsWith('/all')
-	if (currentView.value === 'all' && urlMatches) { return }
+	if (currentView.value === 'all' && urlMatches) return
 	setView('all')
 }
 

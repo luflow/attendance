@@ -548,7 +548,7 @@ const togglingBooking = reactive(new Set())
 const openRemindPopover = ref(null)
 
 async function toggleBooking(response) {
-	if (!props.appointmentId || togglingBooking.has(response.userId)) { return }
+	if (!props.appointmentId || togglingBooking.has(response.userId)) return
 	const wantBook = response.bookingStatus !== 'booked'
 	togglingBooking.add(response.userId)
 	try {
@@ -566,7 +566,7 @@ async function toggleBooking(response) {
 }
 
 async function remindUser(userId) {
-	if (!props.appointmentId) { return }
+	if (!props.appointmentId) return
 	remindingUsers.add(userId)
 	try {
 		await axios.post(generateUrl(`/apps/attendance/api/appointments/${props.appointmentId}/remind/${userId}`))
@@ -585,7 +585,7 @@ function handleRemindFromPopover(userId) {
 }
 
 const hasGroupsOrTeams = computed(() => {
-	if (!props.responseSummary) { return false }
+	if (!props.responseSummary) return false
 	const hasGroups
 		= props.responseSummary.by_group
 			&& Object.keys(props.responseSummary.by_group).length > 0
@@ -601,12 +601,12 @@ function toggleGroup(groupId) {
 }
 
 function getSortedResponses(responses) {
-	if (!responses || responses.length === 0) { return [] }
+	if (!responses || responses.length === 0) return []
 	return [...responses].sort((a, b) => a.userName.localeCompare(b.userName))
 }
 
 function hasOthersResponses() {
-	if (!props.responseSummary?.others) { return false }
+	if (!props.responseSummary?.others) return false
 	return (
 		props.responseSummary.others.yes > 0
 		|| props.responseSummary.others.maybe > 0
@@ -616,7 +616,7 @@ function hasOthersResponses() {
 
 function hasOthersNonResponders() {
 	const others = props.responseSummary?.others
-	if (!others) { return false }
+	if (!others) return false
 	return (others.non_responding_users?.length ?? 0) > 0
 }
 </script>

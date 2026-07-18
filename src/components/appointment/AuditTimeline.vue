@@ -36,9 +36,11 @@
 					:class="iconVariantClass(row.iconVariant)" />
 				<div class="audit-timeline__body">
 					<div class="audit-timeline__message">
-						<template v-for="(seg, idx) in row.segments">
-							<strong v-if="seg.type === 'response'" :key="`r-${idx}`">{{ getResponseText(seg.value) }}</strong>
-							<span v-else :key="`t-${idx}`">{{ seg.value }}</span>
+						<template v-for="(seg, idx) in row.segments" :key="idx">
+							<strong v-if="seg.type === 'response'">{{ getResponseText(seg.value) }}</strong>
+							<template v-else>
+								{{ seg.value }}
+							</template>
 						</template>
 					</div>
 					<div class="audit-timeline__meta">

@@ -196,9 +196,9 @@ const emit = defineEmits([
 const activeSearch = computed(() => props.searchQuery.trim())
 
 const viewKey = computed(() => {
-	if (props.showUnanswered) { return 'unanswered' }
-	if (props.showAll) { return 'all' }
-	if (props.showPast) { return 'past' }
+	if (props.showUnanswered) return 'unanswered'
+	if (props.showAll) return 'all'
+	if (props.showPast) return 'past'
 	return 'current'
 })
 const pageHeading = computed(() => ({
@@ -302,7 +302,7 @@ let persistTimer = null
 let lastPersistedJson = JSON.stringify(filterValues.value)
 watch(filterValues, (next) => {
 	const json = JSON.stringify(next)
-	if (json === lastPersistedJson) { return }
+	if (json === lastPersistedJson) return
 	clearTimeout(persistTimer)
 	persistTimer = setTimeout(() => {
 		try {
@@ -323,18 +323,18 @@ const visibleAppointments = computed(() => {
 	return appointments.value.filter((appointment) => {
 		// Cancelled appointments drop out of the active lists — they are only
 		// reachable on the "All" view (own section + cancelled status filter).
-		if (!props.showAll && appointment.cancelledAt) { return false }
+		if (!props.showAll && appointment.cancelledAt) return false
 		if (query) {
 			const haystack = `${appointment.name} ${appointment.description ?? ''}`.toLowerCase()
-			if (!haystack.includes(query)) { return false }
+			if (!haystack.includes(query)) return false
 		}
-		if (status === STATUS.OPEN && (appointment.closedAt || appointment.cancelledAt)) { return false }
-		if (status === STATUS.CLOSED && (!appointment.closedAt || appointment.cancelledAt)) { return false }
-		if (status === STATUS.CANCELLED && !appointment.cancelledAt) { return false }
+		if (status === STATUS.OPEN && (appointment.closedAt || appointment.cancelledAt)) return false
+		if (status === STATUS.CLOSED && (!appointment.closedAt || appointment.cancelledAt)) return false
+		if (status === STATUS.CANCELLED && !appointment.cancelledAt) return false
 		if (response) {
 			const userResponse = appointment.userResponse?.response ?? null
-			if (response === RESPONSE.NONE && userResponse !== null) { return false }
-			if (response !== RESPONSE.NONE && userResponse !== response) { return false }
+			if (response === RESPONSE.NONE && userResponse !== null) return false
+			if (response !== RESPONSE.NONE && userResponse !== response) return false
 		}
 		return true
 	})
@@ -378,7 +378,7 @@ const responseComments = reactive({})
 const hideHeading = computed(() => props.showUnanswered && !loading.value && appointments.value.length === 0)
 
 const canSeeAuditLog = computed(() => {
-	if (!capabilities.auditLog) { return false }
+	if (!capabilities.auditLog) return false
 	return permissions.canManageAppointments || permissions.canSeeResponseOverview
 })
 
@@ -411,9 +411,9 @@ async function loadAppointments(skipLoadingSpinner = false) {
 			]
 		} else {
 			const params = {}
-			if (props.showPast) { params.showPastAppointments = true }
-			if (props.showUnanswered) { params.unansweredOnly = true }
-			if (onlyForMe) { params.onlyForMe = true }
+			if (props.showPast) params.showPastAppointments = true
+			if (props.showUnanswered) params.unansweredOnly = true
+			if (onlyForMe) params.onlyForMe = true
 			const response = await axios.get(url, { params })
 			appointments.value = response.data
 		}
@@ -472,7 +472,7 @@ function deleteAppointment(appointmentId) {
 
 async function handleDeleteConfirm(scope) {
 	showDeleteDialog.value = false
-	if (!pendingDeleteAppointment.value) { return }
+	if (!pendingDeleteAppointment.value) return
 
 	try {
 		await axios.delete(generateUrl(`/apps/attendance/api/appointments/${pendingDeleteAppointment.value.id}`), {

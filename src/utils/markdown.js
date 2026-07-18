@@ -16,7 +16,7 @@ marked.setOptions({
  * @return {string} - The rendered HTML
  */
 export function renderMarkdown(text, inline = false) {
-	if (!text) { return '' }
+	if (!text) return ''
 
 	// Use inline parsing for compact display, full parsing for detailed view
 	if (inline) {
@@ -44,7 +44,7 @@ export function sanitizeHtml(html) {
  * @return {string} - Plain text without any markdown formatting
  */
 export function stripMarkdown(text) {
-	if (!text) { return '' }
+	if (!text) return ''
 
 	return text
 		// Remove code blocks (must be done first to avoid processing their contents)

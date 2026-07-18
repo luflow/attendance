@@ -87,7 +87,7 @@ function handleRemind(userId) {
 }
 
 const sortedUsers = computed(() => {
-	if (!props.users || props.users.length === 0) { return [] }
+	if (!props.users || props.users.length === 0) return []
 	return [...props.users].sort((a, b) => a.displayName.localeCompare(b.displayName))
 })
 </script>

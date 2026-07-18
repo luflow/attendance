@@ -668,7 +668,7 @@ const reminderSectionDescription = computed(() => {
 })
 
 const reminderPreviewDates = computed(() => {
-	if (!nextAppointment.value) { return [] }
+	if (!nextAppointment.value) return []
 
 	const appointmentDate = new Date(nextAppointment.value.startDatetime)
 	const today = new Date()
@@ -687,7 +687,7 @@ const reminderPreviewDates = computed(() => {
 	// If the window has already passed entirely
 	const appointmentDay = new Date(appointmentDate)
 	appointmentDay.setHours(0, 0, 0, 0)
-	if (effectiveStart > appointmentDay) { return [] }
+	if (effectiveStart > appointmentDay) return []
 
 	const dates = []
 	if (frequency === 0) {
@@ -886,7 +886,7 @@ async function generateQrCode() {
 }
 
 function downloadQrCode() {
-	if (!qrDataUrl.value) { return }
+	if (!qrDataUrl.value) return
 	const link = document.createElement('a')
 	link.href = qrDataUrl.value
 	link.download = 'attendance-self-checkin-qr.png'

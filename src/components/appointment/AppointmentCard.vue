@@ -585,7 +585,7 @@ const userResponse = computed(() => {
 const isClosed = computed(() => Boolean(props.appointment.closedAt))
 
 const canToggleClosed = computed(() => {
-	if (props.canManageAppointments) { return true }
+	if (props.canManageAppointments) return true
 	return Boolean(currentUserUid) && props.appointment.createdBy === currentUserUid
 })
 
@@ -604,7 +604,7 @@ const formattedDeadline = computed(() => props.appointment.responseDeadline
 const closedLabel = computed(() => formatClosedLabel(props.appointment.closedAt, props.appointment.responseDeadline))
 
 const renderedDescription = computed(() => {
-	if (!props.appointment.description) { return '' }
+	if (!props.appointment.description) return ''
 	const html = renderMarkdown(props.appointment.description, false)
 	return sanitizeHtml(html)
 })
@@ -707,7 +707,7 @@ async function handleRemindAll(target = 'non_responders') {
 const { responseCooldown, resolveNext, startCooldown } = useResponseCooldown(userResponse)
 
 function handleResponse(response) {
-	if (responseCooldown.value) { return }
+	if (responseCooldown.value) return
 	startCooldown()
 	emit('submitResponse', props.appointment.id, resolveNext(response))
 }
@@ -721,24 +721,24 @@ const bookingGroups = computed(() => {
 	const summary = props.appointment.responseSummary
 	const booked = new Map()
 	const declined = new Map()
-	if (!summary) { return { booked: [], declined: [] } }
+	if (!summary) return { booked: [], declined: [] }
 	const sections = []
-	if (summary.by_group) { sections.push(...Object.values(summary.by_group)) }
-	if (summary.by_team) { sections.push(...Object.values(summary.by_team)) }
-	if (summary.others) { sections.push(summary.others) }
+	if (summary.by_group) sections.push(...Object.values(summary.by_group))
+	if (summary.by_team) sections.push(...Object.values(summary.by_team))
+	if (summary.others) sections.push(summary.others)
 	for (const section of sections) {
 		for (const r of section.responses || []) {
-			if (r.response !== 'yes') { continue }
+			if (r.response !== 'yes') continue
 			const target = r.bookingStatus === 'booked' ? booked : declined
 			target.set(r.userId, r.userName || r.userId)
 		}
 	}
-	for (const uid of booked.keys()) { declined.delete(uid) }
+	for (const uid of booked.keys()) declined.delete(uid)
 	return { booked: [...booked.values()], declined: [...declined.values()] }
 })
 
 async function handleToggleClosed() {
-	if (togglingClosed.value) { return }
+	if (togglingClosed.value) return
 	const wantsClose = !isClosed.value
 	// Closing with planned-in people triggers a notification wave — confirm the
 	// two named groups first. Without booking / without anyone booked, close is
@@ -779,7 +779,7 @@ function visibleBookingNames(group) {
 }
 
 async function performToggleClosed(wantsClose) {
-	if (togglingClosed.value) { return }
+	if (togglingClosed.value) return
 	togglingClosed.value = true
 	const url = generateUrl(`/apps/attendance/api/appointments/${props.appointment.id}/${wantsClose ? 'close' : 'reopen'}`)
 	try {
@@ -801,7 +801,7 @@ async function performToggleClosed(wantsClose) {
 const togglingCancelled = ref(false)
 
 async function handleToggleCancelled() {
-	if (togglingCancelled.value) { return }
+	if (togglingCancelled.value) return
 	togglingCancelled.value = true
 	const wantsCancel = !isCancelled.value
 	const url = generateUrl(`/apps/attendance/api/appointments/${props.appointment.id}/${wantsCancel ? 'cancel' : 'uncancel'}`)
