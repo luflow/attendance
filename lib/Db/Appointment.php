@@ -112,7 +112,7 @@ class Appointment extends Entity implements JsonSerializable {
 			'calendarEventUid' => $this->getCalendarEventUid(),
 			'seriesId' => $this->getSeriesId(),
 			'seriesPosition' => $this->getSeriesPosition(),
-			'sendNotification' => (bool) $this->getSendNotification(),
+			'sendNotification' => (bool)$this->getSendNotification(),
 			'closedAt' => $this->formatDatetimeToUtc($this->getClosedAt()),
 			'cancelledAt' => $this->formatDatetimeToUtc($this->getCancelledAt()),
 			'responseDeadline' => $this->formatDatetimeToUtc($this->getResponseDeadline()),

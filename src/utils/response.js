@@ -133,7 +133,7 @@ export function sortResponsesByType(responses, responseKey = 'response') {
  * @return {Array} Filtered array
  */
 export function filterResponsesByType(responses, type, responseKey = 'response') {
-	return responses.filter(r => r[responseKey] === type)
+	return responses.filter((r) => r[responseKey] === type)
 }
 
 /**

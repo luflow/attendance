@@ -1,5 +1,5 @@
-import { createApp } from 'vue'
 import { translate, translatePlural } from '@nextcloud/l10n'
+import { createApp } from 'vue'
 import App from './App.vue'
 
 const app = createApp(App)

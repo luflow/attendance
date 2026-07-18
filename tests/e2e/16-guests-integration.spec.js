@@ -41,7 +41,7 @@ async function deleteUserViaOcc(uid) {
 test.describe('Attendance App - Guests integration', () => {
 	test.beforeAll(async ({ request }) => {
 		const container = getContainer()
-		const list = await runOcc(['app:list', '--output', 'json'], { container })
+		const { stdout: list } = await runOcc(['app:list', '--output', 'json'], { container })
 		const apps = JSON.parse(list.substring(list.indexOf('{')))
 		if (!('guests' in apps.enabled)) {
 			if ('guests' in apps.disabled) {

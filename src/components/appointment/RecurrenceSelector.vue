@@ -33,7 +33,7 @@
 					type="number"
 					class="interval-input"
 					data-test="input-interval"
-					:input-props="{ min: 1, max: 12 }" />
+					:inputProps="{ min: 1, max: 12 }" />
 
 				<span class="interval-unit">{{ intervalUnitLabel }}</span>
 			</div>
@@ -46,10 +46,10 @@
 				<NcCheckboxRadioSwitch
 					v-for="day in weekdays"
 					:key="day.value"
-					:model-value="config.byWeekday.includes(day.value)"
-					:button-variant="true"
+					:modelValue="config.byWeekday.includes(day.value)"
+					:buttonVariant="true"
 					data-test="checkbox-weekday"
-					@update:model-value="toggleWeekday(day.value)">
+					@update:modelValue="toggleWeekday(day.value)">
 					{{ day.label }}
 				</NcCheckboxRadioSwitch>
 			</div>
@@ -96,7 +96,7 @@
 							:disabled="config.endType !== 'count'"
 							class="count-input"
 							data-test="input-count"
-							:input-props="{ min: 1, max: 52 }" />
+							:inputProps="{ min: 1, max: 52 }" />
 						<span class="end-label">{{
 							t("attendance", "occurrences")
 						}}</span>
@@ -112,13 +112,13 @@
 						</NcCheckboxRadioSwitch>
 						<NcDateTimePickerNative
 							id="recurrence-until"
-							:model-value="untilDateObject"
+							:modelValue="untilDateObject"
 							type="date"
-							:hide-label="true"
+							:hideLabel="true"
 							:disabled="config.endType !== 'until'"
 							class="until-input"
 							data-test="input-until"
-							@update:model-value="onUntilDateChange" />
+							@update:modelValue="onUntilDateChange" />
 					</div>
 				</div>
 			</div>
@@ -160,20 +160,20 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch } from 'vue'
 import {
-	NcCheckboxRadioSwitch,
-	NcSelect,
-	NcInputField,
-	NcDateTimePickerNative,
 	NcButton,
+	NcCheckboxRadioSwitch,
+	NcDateTimePickerNative,
+	NcInputField,
 	NcNoteCard,
+	NcSelect,
 } from '@nextcloud/vue'
+import { computed, reactive, ref, watch } from 'vue'
+import { formatDateRange } from '../../utils/datetime.js'
 import {
 	generateOccurrences,
 	getMonthlyPosition,
 } from '../../utils/recurrence.js'
-import { formatDateRange } from '../../utils/datetime.js'
 
 const props = defineProps({
 	startDate: {
@@ -249,14 +249,14 @@ const weekdayLabels = {
 
 const intervalUnitLabel = computed(() => {
 	switch (config.frequency) {
-	case 'DAILY':
-		return n('attendance', 'day', 'days', config.interval)
-	case 'WEEKLY':
-		return n('attendance', 'week', 'weeks', config.interval)
-	case 'MONTHLY':
-		return n('attendance', 'month', 'months', config.interval)
-	default:
-		return ''
+		case 'DAILY':
+			return n('attendance', 'day', 'days', config.interval)
+		case 'WEEKLY':
+			return n('attendance', 'week', 'weeks', config.interval)
+		case 'MONTHLY':
+			return n('attendance', 'month', 'months', config.interval)
+		default:
+			return ''
 	}
 })
 
@@ -276,17 +276,17 @@ const monthlyWeekdayPositionLabel = computed(() => {
 })
 
 const untilDateObject = computed(() => {
-	if (!config.until) return null
+	if (!config.until) { return null }
 	const date
-        = config.until instanceof Date ? config.until : new Date(config.until)
+		= config.until instanceof Date ? config.until : new Date(config.until)
 	return isNaN(date.getTime()) ? null : date
 })
 
-const onUntilDateChange = (newValue) => {
+function onUntilDateChange(newValue) {
 	config.until = newValue || null
 }
 
-const toggleWeekday = (day) => {
+function toggleWeekday(day) {
 	const idx = config.byWeekday.indexOf(day)
 	if (idx >= 0) {
 		config.byWeekday.splice(idx, 1)
@@ -301,8 +301,8 @@ watch(
 	(freq) => {
 		if (
 			freq === 'WEEKLY'
-            && config.byWeekday.length === 0
-            && props.startDate
+			&& config.byWeekday.length === 0
+			&& props.startDate
 		) {
 			const dayKeys = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA']
 			const startDayKey = dayKeys[props.startDate.getDay()]
@@ -312,7 +312,7 @@ watch(
 )
 
 const validationWarning = computed(() => {
-	if (!enabled.value || !props.startDate) return null
+	if (!enabled.value || !props.startDate) { return null }
 	if (config.frequency === 'WEEKLY' && config.byWeekday.length === 0) {
 		return t('attendance', 'Select at least one day of the week.')
 	}
@@ -345,11 +345,11 @@ const occurrences = computed(() => {
 })
 
 const visibleOccurrences = computed(() => {
-	if (showAllPreview.value) return occurrences.value
+	if (showAllPreview.value) { return occurrences.value }
 	return occurrences.value.slice(0, previewLimit)
 })
 
-const formatOccurrence = (date) => {
+function formatOccurrence(date) {
 	if (props.duration > 0) {
 		const endDate = new Date(date.getTime() + props.duration)
 		return formatDateRange(date, endDate)
@@ -404,8 +404,8 @@ watch(
 	(newDate) => {
 		if (
 			newDate
-            && config.frequency === 'WEEKLY'
-            && config.byWeekday.length === 0
+			&& config.frequency === 'WEEKLY'
+			&& config.byWeekday.length === 0
 		) {
 			const dayKeys = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA']
 			config.byWeekday = [dayKeys[newDate.getDay()]]

@@ -79,7 +79,9 @@ export function generateOccurrences(config, startDate) {
 			untilDate.getFullYear(),
 			untilDate.getMonth(),
 			untilDate.getDate(),
-			23, 59, 59,
+			23,
+			59,
+			59,
 		))
 	} else {
 		options.count = Math.min(Math.max(config.count || 10, 1), 52)
@@ -88,7 +90,7 @@ export function generateOccurrences(config, startDate) {
 	// Frequency-specific options
 	if (config.frequency === 'WEEKLY' && config.byWeekday?.length > 0) {
 		options.byweekday = config.byWeekday
-			.map(day => WEEKDAY_MAP[day])
+			.map((day) => WEEKDAY_MAP[day])
 			.filter(Boolean)
 	}
 
@@ -103,7 +105,7 @@ export function generateOccurrences(config, startDate) {
 	try {
 		const rule = new RRule(options)
 		// Convert UTC dates back to local dates
-		return rule.all().map(utcDate => new Date(
+		return rule.all().map((utcDate) => new Date(
 			utcDate.getUTCFullYear(),
 			utcDate.getUTCMonth(),
 			utcDate.getUTCDate(),

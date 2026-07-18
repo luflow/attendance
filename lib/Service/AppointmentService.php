@@ -281,7 +281,7 @@ class AppointmentService {
 	 *
 	 * @param int $id The appointment ID
 	 * @param string|null $actorId The user performing the cancellation; excluded
-	 *        from the notification wave (they already know they cancelled).
+	 *                             from the notification wave (they already know they cancelled).
 	 */
 	public function cancelAppointment(int $id, ?string $actorId = null): Appointment {
 		$appointment = $this->appointmentMapper->find($id);
@@ -532,10 +532,10 @@ class AppointmentService {
 	 * Get a single appointment with user response and summary.
 	 *
 	 * @param bool $includeResponseSummary Attach the full response overview
-	 *        (other attendees' answers and roster). Gate on the caller's
-	 *        PERMISSION_SEE_RESPONSE_OVERVIEW — it leaks every attendee's answer.
+	 *                                     (other attendees' answers and roster). Gate on the caller's
+	 *                                     PERMISSION_SEE_RESPONSE_OVERVIEW — it leaks every attendee's answer.
 	 * @param bool $includeComments Include free-text comments in that overview.
-	 *        Gate on the caller's PERMISSION_SEE_COMMENTS.
+	 *                              Gate on the caller's PERMISSION_SEE_COMMENTS.
 	 */
 	public function getAppointmentWithUserResponse(int $id, string $userId, bool $includeResponseSummary = false, bool $includeComments = false): ?array {
 		$appointment = $this->appointmentMapper->find($id);
@@ -776,10 +776,10 @@ class AppointmentService {
 	 *                        bypasses the manage-permission "see everything"
 	 *                        bypass.
 	 * @param bool $includeResponseSummary Attach the full response overview
-	 *        (other attendees' answers and roster) to each appointment. Gate on
-	 *        the caller's PERMISSION_SEE_RESPONSE_OVERVIEW.
+	 *                                     (other attendees' answers and roster) to each appointment. Gate on
+	 *                                     the caller's PERMISSION_SEE_RESPONSE_OVERVIEW.
 	 * @param bool $includeComments Include free-text comments in that overview.
-	 *        Gate on the caller's PERMISSION_SEE_COMMENTS.
+	 *                              Gate on the caller's PERMISSION_SEE_COMMENTS.
 	 */
 	public function getAppointmentsWithUserResponses(
 		string $userId,

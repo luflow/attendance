@@ -3,8 +3,8 @@
  * Used for the web fallback page when users scan NFC sticker without the app
  */
 
-import { createApp } from 'vue'
 import { translate, translatePlural } from '@nextcloud/l10n'
+import { createApp } from 'vue'
 import SelfCheckin from './views/SelfCheckin.vue'
 
 const app = createApp(SelfCheckin)

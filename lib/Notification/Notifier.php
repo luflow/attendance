@@ -97,7 +97,6 @@ class Notifier implements INotifier {
 				}
 
 				return $notification;
-
 			case 'appointment_created':
 				$parameters = $notification->getSubjectParameters();
 				$appointmentName = $parameters['name'] ?? 'Unknown';
@@ -124,7 +123,6 @@ class Notifier implements INotifier {
 				}
 
 				return $notification;
-
 			case 'appointment_cancelled':
 				$parameters = $notification->getSubjectParameters();
 				$appointmentName = $parameters['name'] ?? 'Unknown';
@@ -144,7 +142,6 @@ class Notifier implements INotifier {
 				));
 
 				return $notification;
-
 			case 'booking_confirmed':
 			case 'booking_declined':
 				$parameters = $notification->getSubjectParameters();
@@ -172,12 +169,10 @@ class Notifier implements INotifier {
 					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
 				));
 				return $notification;
-
 			case 'response_submitted':
 			case 'response_changed':
 			case 'response_rescinded':
 				return $this->prepareResponseChangeNotification($notification, $l);
-
 			case 'appointments_bulk_created':
 				$parameters = $notification->getSubjectParameters();
 				$count = $parameters['count'] ?? 0;
@@ -194,7 +189,6 @@ class Notifier implements INotifier {
 				));
 
 				return $notification;
-
 			default:
 				throw new UnknownNotificationException();
 		}

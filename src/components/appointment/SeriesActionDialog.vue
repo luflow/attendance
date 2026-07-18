@@ -70,13 +70,13 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
 import {
-	NcDialog,
 	NcButton,
 	NcCheckboxRadioSwitch,
+	NcDialog,
 	NcNoteCard,
 } from '@nextcloud/vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps({
 	show: {

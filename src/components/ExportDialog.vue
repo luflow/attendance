@@ -48,8 +48,8 @@
 						<NcButton
 							variant="tertiary"
 							:disabled="
-								selectedAppointments.length ===
-									availableAppointments.length
+								selectedAppointments.length
+									=== availableAppointments.length
 							"
 							@click="selectAllAppointments">
 							{{ t("attendance", "Select all") }}
@@ -70,7 +70,7 @@
 						class="event-item"
 						@click="toggleAppointment(appointment.id)">
 						<NcCheckboxRadioSwitch
-							:model-value="
+							:modelValue="
 								selectedAppointments.includes(appointment.id)
 							"
 							class="event-checkbox">
@@ -174,7 +174,7 @@
 					</template>
 					{{
 						exporting
-							? t("attendance", "Exporting …")
+							? t("attendance", "Exporting …")
 							: t("attendance", "Export")
 					}}
 				</NcButton>
@@ -184,21 +184,18 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { generateUrl } from '@nextcloud/router'
-import { showSuccess, showError } from '@nextcloud/dialogs'
-import { translate as t } from '@nextcloud/l10n'
 import axios from '@nextcloud/axios'
-
+import { showError, showSuccess } from '@nextcloud/dialogs'
+import { translate as t } from '@nextcloud/l10n'
+import { generateUrl } from '@nextcloud/router'
 import {
-	NcModal,
 	NcButton,
 	NcCheckboxRadioSwitch,
 	NcLoadingIcon,
+	NcModal,
 } from '@nextcloud/vue'
-
+import { computed, ref, watch } from 'vue'
 import DownloadIcon from 'vue-material-design-icons/Download.vue'
-
 import { formatDateTime } from '../utils/datetime.js'
 
 const props = defineProps({
@@ -232,69 +229,65 @@ watch(filterType, (newType) => {
 
 // Computed properties
 const canExport = computed(() => {
-	if (filterType.value === 'all') return true
+	if (filterType.value === 'all') { return true }
 	if (filterType.value === 'selected') { return selectedAppointments.value.length > 0 }
 	if (
 		filterType.value === 'dateRange'
-        && dateRangePreset.value === 'custom'
+		&& dateRangePreset.value === 'custom'
 	) {
 		return customStartDate.value !== '' && customEndDate.value !== ''
 	}
 	return filterType.value === 'dateRange'
 })
 
-const getDateRangePreview = () => {
+function getDateRangePreview() {
 	const now = new Date()
 
 	switch (dateRangePreset.value) {
-	case 'month': {
-		const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-		const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-		return `${formatDate(monthStart)} - ${formatDate(monthEnd)}`
-	}
-	case 'quarter': {
-		const quarter = Math.floor(now.getMonth() / 3)
-		const quarterStart = new Date(now.getFullYear(), quarter * 3, 1)
-		const quarterEnd = new Date(now.getFullYear(), quarter * 3 + 3, 0)
-		return `${formatDate(quarterStart)} - ${formatDate(quarterEnd)}`
-	}
-	case 'year': {
-		const yearStart = new Date(now.getFullYear(), 0, 1)
-		const yearEnd = new Date(now.getFullYear(), 11, 31)
-		return `${formatDate(yearStart)} - ${formatDate(yearEnd)}`
-	}
-	default:
-		return ''
+		case 'month': {
+			const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+			const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+			return `${formatDate(monthStart)} - ${formatDate(monthEnd)}`
+		}
+		case 'quarter': {
+			const quarter = Math.floor(now.getMonth() / 3)
+			const quarterStart = new Date(now.getFullYear(), quarter * 3, 1)
+			const quarterEnd = new Date(now.getFullYear(), quarter * 3 + 3, 0)
+			return `${formatDate(quarterStart)} - ${formatDate(quarterEnd)}`
+		}
+		case 'year': {
+			const yearStart = new Date(now.getFullYear(), 0, 1)
+			const yearEnd = new Date(now.getFullYear(), 11, 31)
+			return `${formatDate(yearStart)} - ${formatDate(yearEnd)}`
+		}
+		default:
+			return ''
 	}
 }
 
-const formatDate = (date) => {
+function formatDate(date) {
 	return date.toLocaleDateString()
 }
 
-const toggleAppointment = (id) => {
+function toggleAppointment(id) {
 	const index = selectedAppointments.value.indexOf(id)
 	if (index === -1) {
 		selectedAppointments.value = [...selectedAppointments.value, id]
 	} else {
-		selectedAppointments.value = selectedAppointments.value.filter(
-			(a) => a !== id,
-		)
+		selectedAppointments.value = selectedAppointments.value.filter((a) => a !== id)
 	}
 }
 
-const selectAllAppointments = () => {
-	selectedAppointments.value = props.availableAppointments.map(
-		(appointment) => appointment.id,
-	)
+function selectAllAppointments() {
+	selectedAppointments.value = props.availableAppointments.map((appointment) => appointment.id)
 }
 
-const deselectAllAppointments = () => {
+function deselectAllAppointments() {
 	selectedAppointments.value = []
 }
 
-const handleExport = async () => {
-	if (!canExport.value) return
+async function handleExport() {
+	if (!canExport.value) { return }
 
 	exporting.value = true
 
@@ -305,11 +298,9 @@ const handleExport = async () => {
 			exportData,
 		)
 
-		showSuccess(
-			t('attendance', 'Export created: {filename}', {
-				filename: response.data.filename,
-			}),
-		)
+		showSuccess(t('attendance', 'Export created: {filename}', {
+			filename: response.data.filename,
+		}))
 
 		// Redirect to Files app to show the exported file
 		const filesUrl = generateUrl('/apps/files/?dir=/Attendance')
@@ -319,61 +310,61 @@ const handleExport = async () => {
 	} catch (error) {
 		console.error('Failed to export appointments:', error)
 		const errorMessage
-            = error.response?.data?.error
-            || t('attendance', 'Failed to export appointments')
+			= error.response?.data?.error
+				|| t('attendance', 'Failed to export appointments')
 		showError(errorMessage)
 	} finally {
 		exporting.value = false
 	}
 }
 
-const getCalculatedDateRange = () => {
+function getCalculatedDateRange() {
 	const now = new Date()
 
 	switch (dateRangePreset.value) {
-	case 'month': {
-		const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-		const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-		return {
-			startDate: formatIsoDate(monthStart),
-			endDate: formatIsoDate(monthEnd),
+		case 'month': {
+			const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+			const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+			return {
+				startDate: formatIsoDate(monthStart),
+				endDate: formatIsoDate(monthEnd),
+			}
 		}
-	}
-	case 'quarter': {
-		const quarter = Math.floor(now.getMonth() / 3)
-		const quarterStart = new Date(now.getFullYear(), quarter * 3, 1)
-		const quarterEnd = new Date(now.getFullYear(), quarter * 3 + 3, 0)
-		return {
-			startDate: formatIsoDate(quarterStart),
-			endDate: formatIsoDate(quarterEnd),
+		case 'quarter': {
+			const quarter = Math.floor(now.getMonth() / 3)
+			const quarterStart = new Date(now.getFullYear(), quarter * 3, 1)
+			const quarterEnd = new Date(now.getFullYear(), quarter * 3 + 3, 0)
+			return {
+				startDate: formatIsoDate(quarterStart),
+				endDate: formatIsoDate(quarterEnd),
+			}
 		}
-	}
-	case 'year': {
-		const yearStart = new Date(now.getFullYear(), 0, 1)
-		const yearEnd = new Date(now.getFullYear(), 11, 31)
-		return {
-			startDate: formatIsoDate(yearStart),
-			endDate: formatIsoDate(yearEnd),
+		case 'year': {
+			const yearStart = new Date(now.getFullYear(), 0, 1)
+			const yearEnd = new Date(now.getFullYear(), 11, 31)
+			return {
+				startDate: formatIsoDate(yearStart),
+				endDate: formatIsoDate(yearEnd),
+			}
 		}
-	}
-	case 'custom':
-		return {
-			startDate: customStartDate.value,
-			endDate: customEndDate.value,
-		}
-	default:
-		return {}
+		case 'custom':
+			return {
+				startDate: customStartDate.value,
+				endDate: customEndDate.value,
+			}
+		default:
+			return {}
 	}
 }
 
-const formatIsoDate = (date) => {
+function formatIsoDate(date) {
 	const year = date.getFullYear()
 	const month = String(date.getMonth() + 1).padStart(2, '0')
 	const day = String(date.getDate()).padStart(2, '0')
 	return `${year}-${month}-${day}`
 }
 
-const buildExportData = () => {
+function buildExportData() {
 	const data = {
 		includeComments: includeComments.value,
 	}

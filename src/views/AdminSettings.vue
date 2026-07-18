@@ -38,7 +38,7 @@
 					:loading="isSearchingTeams"
 					:filterable="false"
 					label="label"
-					track-by="id"
+					trackBy="id"
 					data-test="select-whitelisted-teams"
 					@search="searchTeams">
 					<template #option="{ label }">
@@ -133,7 +133,7 @@
 					<GroupSelect
 						v-model="selectedSelfCheckinRoles"
 						:options="availableGroups"
-						:placeholder="t('attendance', 'Select groups …')"
+						:placeholder="t('attendance', 'Select groups …')"
 						:disabled="loading"
 						data-test="select-self-checkin-roles" />
 					<p class="hint-text">
@@ -147,9 +147,9 @@
 							v-model.number="selfCheckinWindowMinutes"
 							type="number"
 							:label="t('attendance', 'Check-in window (minutes before start)')"
-							:helper-text="t('attendance', 'How many minutes before an appointment starts attendees can check in. The window always closes when the appointment ends.')"
+							:helperText="t('attendance', 'How many minutes before an appointment starts attendees can check in. The window always closes when the appointment ends.')"
 							data-test="input-self-checkin-window"
-							:input-props="{ min: 0, max: 1440 }" />
+							:inputProps="{ min: 0, max: 1440 }" />
 					</div>
 
 					<div class="self-checkin-qr">
@@ -210,18 +210,18 @@
 							v-model.number="reminderDays"
 							type="number"
 							:label="t('attendance', 'Days before appointment')"
-							:helper-text="t('attendance', 'Send reminders this many days before the appointment (1-30 days)')"
+							:helperText="t('attendance', 'Send reminders this many days before the appointment (1-30 days)')"
 							data-test="input-reminder-days"
-							:input-props="{ min: 1, max: 30 }" />
+							:inputProps="{ min: 1, max: 30 }" />
 
 						<NcInputField
 							v-model.number="reminderFrequency"
 							type="number"
 							class="reminder-frequency-field"
 							:label="t('attendance', 'Reminder frequency (days)')"
-							:helper-text="t('attendance', 'How often to remind users who haven\'t responded. Set to 0 to only remind once, or 1-30 to repeat reminders every N days.')"
+							:helperText="t('attendance', 'How often to remind users who haven\'t responded. Set to 0 to only remind once, or 1-30 to repeat reminders every N days.')"
 							data-test="input-reminder-frequency"
-							:input-props="{ min: 0, max: 30 }" />
+							:inputProps="{ min: 0, max: 30 }" />
 
 						<div class="reminder-target-section">
 							<label class="reminder-target-label">
@@ -380,90 +380,90 @@
 			<div id="mobile-apps">
 				<NcSettingsSection :name="t('attendance', 'Mobile apps')"
 					:description="t('attendance', 'Share these links with your colleagues to install the Attendance mobile app.')">
-				<div class="mobile-app-links">
-					<div v-for="store in mobileAppStores" :key="store.id" class="mobile-app-link">
-						<label class="mobile-app-link__label">
-							<component :is="store.icon" :size="20" />
-							{{ store.label }}
-						</label>
-						<div class="mobile-app-link__row">
-							<code class="mobile-app-link__url" :data-test="`input-${store.id}-store-url`">{{ store.url }}</code>
-							<NcButton variant="secondary"
-								:aria-label="t('attendance', 'Copy URL')"
-								:data-test="`button-copy-${store.id}-url`"
-								@click="copyStoreUrl(store.url)">
-								<template #icon>
-									<ContentCopy :size="20" />
-								</template>
-								{{ t('attendance', 'Copy') }}
-							</NcButton>
-							<NcButton variant="tertiary"
-								:href="store.url"
-								target="_blank"
-								rel="noopener"
-								:data-test="`button-open-${store.id}-url`">
-								<template #icon>
-									<OpenInNew :size="20" />
-								</template>
-								{{ t('attendance', 'Open') }}
-							</NcButton>
+					<div class="mobile-app-links">
+						<div v-for="store in mobileAppStores" :key="store.id" class="mobile-app-link">
+							<label class="mobile-app-link__label">
+								<component :is="store.icon" :size="20" />
+								{{ store.label }}
+							</label>
+							<div class="mobile-app-link__row">
+								<code class="mobile-app-link__url" :data-test="`input-${store.id}-store-url`">{{ store.url }}</code>
+								<NcButton variant="secondary"
+									:aria-label="t('attendance', 'Copy URL')"
+									:data-test="`button-copy-${store.id}-url`"
+									@click="copyStoreUrl(store.url)">
+									<template #icon>
+										<ContentCopy :size="20" />
+									</template>
+									{{ t('attendance', 'Copy') }}
+								</NcButton>
+								<NcButton variant="tertiary"
+									:href="store.url"
+									target="_blank"
+									rel="noopener"
+									:data-test="`button-open-${store.id}-url`">
+									<template #icon>
+										<OpenInNew :size="20" />
+									</template>
+									{{ t('attendance', 'Open') }}
+								</NcButton>
+							</div>
 						</div>
 					</div>
-				</div>
 
-				<div class="subsection">
-					<h4>{{ t('attendance', 'Mobile App promotion banner') }}</h4>
-					<p class="subsection-hint">
-						{{ t('attendance', 'Show a banner at the top of the web app advertising the mobile apps. Users can dismiss the banner, and users who already have a push device connected will not see it.') }}
-					</p>
-					<NcCheckboxRadioSwitch
-						v-model="mobileAppBannerEnabled"
-						type="switch"
-						:disabled="loading"
-						data-test="switch-mobile-app-banner-enabled">
-						{{ t('attendance', 'Show promotion banner') }}
-					</NcCheckboxRadioSwitch>
-				</div>
+					<div class="subsection">
+						<h4>{{ t('attendance', 'Mobile App promotion banner') }}</h4>
+						<p class="subsection-hint">
+							{{ t('attendance', 'Show a banner at the top of the web app advertising the mobile apps. Users can dismiss the banner, and users who already have a push device connected will not see it.') }}
+						</p>
+						<NcCheckboxRadioSwitch
+							v-model="mobileAppBannerEnabled"
+							type="switch"
+							:disabled="loading"
+							data-test="switch-mobile-app-banner-enabled">
+							{{ t('attendance', 'Show promotion banner') }}
+						</NcCheckboxRadioSwitch>
+					</div>
 
-				<div class="subsection">
-					<h4>{{ t('attendance', 'Push notifications') }}</h4>
-					<p class="subsection-hint">
-						{{ t('attendance', 'Enable push notifications for the mobile app.') }}
-					</p>
-					<NcCheckboxRadioSwitch
-						v-model="pushEnabled"
-						type="switch"
-						:disabled="loading"
-						data-test="switch-push-enabled">
-						{{ t('attendance', 'Enable push notifications') }}
-					</NcCheckboxRadioSwitch>
+					<div class="subsection">
+						<h4>{{ t('attendance', 'Push notifications') }}</h4>
+						<p class="subsection-hint">
+							{{ t('attendance', 'Enable push notifications for the mobile app.') }}
+						</p>
+						<NcCheckboxRadioSwitch
+							v-model="pushEnabled"
+							type="switch"
+							:disabled="loading"
+							data-test="switch-push-enabled">
+							{{ t('attendance', 'Enable push notifications') }}
+						</NcCheckboxRadioSwitch>
 
-					<template v-if="pushEnabled">
-						<div class="push-device-status">
-							<NcNoteCard v-if="pushDeviceCount === 0" type="warning">
-								<p>{{ t('attendance', 'No push device registered for your account. Connect the Attendance mobile app to receive push notifications.') }}</p>
-							</NcNoteCard>
-							<template v-else>
-								<p class="push-device-info">
-									<CellphoneCheck :size="20" />
-									{{ n('attendance', '{count} device registered for push notifications', '{count} devices registered for push notifications', pushDeviceCount, { count: pushDeviceCount }) }}
-								</p>
-								<NcButton
-									variant="tertiary"
-									:disabled="sendingTestReminder"
-									class="test-reminder-button"
-									data-test="button-test-push"
-									@click="sendTestReminder">
-									<template #icon>
-										<BellRingIcon :size="20" />
-									</template>
-									{{ t('attendance', 'Send test notification') }}
-								</NcButton>
-							</template>
-						</div>
-					</template>
-				</div>
-			</NcSettingsSection>
+						<template v-if="pushEnabled">
+							<div class="push-device-status">
+								<NcNoteCard v-if="pushDeviceCount === 0" type="warning">
+									<p>{{ t('attendance', 'No push device registered for your account. Connect the Attendance mobile app to receive push notifications.') }}</p>
+								</NcNoteCard>
+								<template v-else>
+									<p class="push-device-info">
+										<CellphoneCheck :size="20" />
+										{{ n('attendance', '{count} device registered for push notifications', '{count} devices registered for push notifications', pushDeviceCount, { count: pushDeviceCount }) }}
+									</p>
+									<NcButton
+										variant="tertiary"
+										:disabled="sendingTestReminder"
+										class="test-reminder-button"
+										data-test="button-test-push"
+										@click="sendTestReminder">
+										<template #icon>
+											<BellRingIcon :size="20" />
+										</template>
+										{{ t('attendance', 'Send test notification') }}
+									</NcButton>
+								</template>
+							</div>
+						</template>
+					</div>
+				</NcSettingsSection>
 			</div>
 
 			<NcSettingsSection :name="t('attendance', 'Display options')"
@@ -528,7 +528,9 @@
 							{{ t('attendance', 'Copy') }}
 						</NcButton>
 					</div>
-					<p class="guests-warning-or">{{ t('attendance', 'or') }}</p>
+					<p class="guests-warning-or">
+						{{ t('attendance', 'or') }}
+					</p>
 					<p class="guests-warning-actions">
 						<NcButton variant="primary"
 							:href="guestsAdminUrl"
@@ -575,32 +577,32 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
-import { generateUrl } from '@nextcloud/router'
-import { showSuccess, showError } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
+import { showError, showSuccess } from '@nextcloud/dialogs'
+import { generateUrl } from '@nextcloud/router'
 import {
-	NcSelect,
 	NcButton,
-	NcLoadingIcon,
-	NcSettingsSection,
 	NcCheckboxRadioSwitch,
 	NcInputField,
+	NcLoadingIcon,
 	NcNoteCard,
+	NcSelect,
+	NcSettingsSection,
 } from '@nextcloud/vue'
+import QRCode from 'qrcode'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import AccountStar from 'vue-material-design-icons/AccountStar.vue'
+import AppleIcon from 'vue-material-design-icons/Apple.vue'
 import BellRingIcon from 'vue-material-design-icons/BellRing.vue'
 import CellphoneCheck from 'vue-material-design-icons/CellphoneCheck.vue'
-import AppleIcon from 'vue-material-design-icons/Apple.vue'
-import GoogleIcon from 'vue-material-design-icons/Google.vue'
 import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
 import Download from 'vue-material-design-icons/Download.vue'
+import GoogleIcon from 'vue-material-design-icons/Google.vue'
 import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
-import QRCode from 'qrcode'
 import GroupSelect from '../components/common/GroupSelect.vue'
+import { copyToClipboard } from '../utils/clipboard.js'
 import { formatDate, formatDateTimeMedium } from '../utils/datetime.js'
 import { APPLE_STORE_URL, GOOGLE_STORE_URL } from '../utils/mobileApp.js'
-import { copyToClipboard } from '../utils/clipboard.js'
 
 const mobileAppStores = [
 	{ id: 'apple', icon: AppleIcon, url: APPLE_STORE_URL, label: t('attendance', 'App Store (iOS)') },
@@ -666,7 +668,7 @@ const reminderSectionDescription = computed(() => {
 })
 
 const reminderPreviewDates = computed(() => {
-	if (!nextAppointment.value) return []
+	if (!nextAppointment.value) { return [] }
 
 	const appointmentDate = new Date(nextAppointment.value.startDatetime)
 	const today = new Date()
@@ -685,7 +687,7 @@ const reminderPreviewDates = computed(() => {
 	// If the window has already passed entirely
 	const appointmentDay = new Date(appointmentDate)
 	appointmentDay.setHours(0, 0, 0, 0)
-	if (effectiveStart > appointmentDay) return []
+	if (effectiveStart > appointmentDay) { return [] }
 
 	const dates = []
 	if (frequency === 0) {
@@ -696,7 +698,7 @@ const reminderPreviewDates = computed(() => {
 		// Repeated reminders every N days
 		const current = new Date(effectiveStart)
 		let isFirst = true
-		// eslint-disable-next-line no-unmodified-loop-condition -- current is mutated via setDate()
+
 		while (current <= appointmentDay) {
 			const daysBefore = Math.round((appointmentDay - current) / (1000 * 60 * 60 * 24))
 			dates.push({ date: new Date(current), daysBefore, isFirst, isSingle: false })
@@ -709,7 +711,7 @@ const reminderPreviewDates = computed(() => {
 })
 
 // Methods
-const loadSettings = async () => {
+async function loadSettings() {
 	loadingData.value = true
 
 	try {
@@ -724,8 +726,8 @@ const loadSettings = async () => {
 		availableGroups.value = groups
 		// Convert selected IDs to selected group objects for NcSelect, preserving database order
 		selectedGroups.value = config.whitelistedGroups
-			.map(id => groups.find(group => group.id === id))
-			.filter(group => group !== undefined)
+			.map((id) => groups.find((group) => group.id === id))
+			.filter((group) => group !== undefined)
 
 		// Load teams settings
 		teamsAvailable.value = caps.teamsAvailable || false
@@ -738,20 +740,20 @@ const loadSettings = async () => {
 		// Load permission settings, preserving database order
 		if (config.permissions) {
 			selectedManageAppointmentsRoles.value = config.permissions.manage_appointments
-				.map(id => groups.find(group => group.id === id))
-				.filter(group => group !== undefined)
+				.map((id) => groups.find((group) => group.id === id))
+				.filter((group) => group !== undefined)
 			selectedCheckinRoles.value = config.permissions.checkin
-				.map(id => groups.find(group => group.id === id))
-				.filter(group => group !== undefined)
+				.map((id) => groups.find((group) => group.id === id))
+				.filter((group) => group !== undefined)
 			selectedSeeResponseOverviewRoles.value = (config.permissions.see_response_overview || [])
-				.map(id => groups.find(group => group.id === id))
-				.filter(group => group !== undefined)
+				.map((id) => groups.find((group) => group.id === id))
+				.filter((group) => group !== undefined)
 			selectedSeeCommentsRoles.value = (config.permissions.see_comments || [])
-				.map(id => groups.find(group => group.id === id))
-				.filter(group => group !== undefined)
+				.map((id) => groups.find((group) => group.id === id))
+				.filter((group) => group !== undefined)
 			selectedSelfCheckinRoles.value = (config.permissions.self_checkin || [])
-				.map(id => groups.find(group => group.id === id))
-				.filter(group => group !== undefined)
+				.map((id) => groups.find((group) => group.id === id))
+				.filter((group) => group !== undefined)
 		}
 
 		selfCheckinWindowMinutes.value = config.selfCheckinWindowMinutes ?? 30
@@ -800,7 +802,7 @@ const loadSettings = async () => {
 	}
 }
 
-const searchTeams = async (query) => {
+async function searchTeams(query) {
 	if (!query || query.length < 1) {
 		// Keep selected teams visible in results
 		teamSearchResults.value = [...selectedTeams.value]
@@ -815,12 +817,12 @@ const searchTeams = async (query) => {
 		)
 		// Filter to only show teams
 		const teams = response.data
-			.filter(item => item.type === 'team')
-			.map(item => ({ id: item.id, label: item.label, type: 'team' }))
+			.filter((item) => item.type === 'team')
+			.map((item) => ({ id: item.id, label: item.label, type: 'team' }))
 
 		// Merge with selected teams to keep them visible
-		const selectedIds = selectedTeams.value.map(t => t.id)
-		const newTeams = teams.filter(t => !selectedIds.includes(t.id))
+		const selectedIds = selectedTeams.value.map((t) => t.id)
+		const newTeams = teams.filter((t) => !selectedIds.includes(t.id))
 		teamSearchResults.value = [...selectedTeams.value, ...newTeams]
 	} catch (error) {
 		console.error('Error searching teams:', error)
@@ -829,21 +831,21 @@ const searchTeams = async (query) => {
 	}
 }
 
-const saveSettings = async () => {
+async function saveSettings() {
 	loading.value = true
 
 	try {
 		await axios.post(
 			generateUrl('/apps/attendance/api/admin/settings'),
 			{
-				whitelistedGroups: selectedGroups.value.map(g => g.id),
-				whitelistedTeams: selectedTeams.value.map(t => t.id),
+				whitelistedGroups: selectedGroups.value.map((g) => g.id),
+				whitelistedTeams: selectedTeams.value.map((t) => t.id),
 				permissions: {
-					PERMISSION_MANAGE_APPOINTMENTS: selectedManageAppointmentsRoles.value.map(g => g.id),
-					PERMISSION_CHECKIN: selectedCheckinRoles.value.map(g => g.id),
-					PERMISSION_SEE_RESPONSE_OVERVIEW: selectedSeeResponseOverviewRoles.value.map(g => g.id),
-					PERMISSION_SEE_COMMENTS: selectedSeeCommentsRoles.value.map(g => g.id),
-					PERMISSION_SELF_CHECKIN: selectedSelfCheckinRoles.value.map(g => g.id),
+					PERMISSION_MANAGE_APPOINTMENTS: selectedManageAppointmentsRoles.value.map((g) => g.id),
+					PERMISSION_CHECKIN: selectedCheckinRoles.value.map((g) => g.id),
+					PERMISSION_SEE_RESPONSE_OVERVIEW: selectedSeeResponseOverviewRoles.value.map((g) => g.id),
+					PERMISSION_SEE_COMMENTS: selectedSeeCommentsRoles.value.map((g) => g.id),
+					PERMISSION_SELF_CHECKIN: selectedSelfCheckinRoles.value.map((g) => g.id),
 				},
 				reminders: {
 					enabled: remindersEnabled.value,
@@ -875,7 +877,7 @@ const saveSettings = async () => {
 	}
 }
 
-const generateQrCode = async () => {
+async function generateQrCode() {
 	try {
 		qrDataUrl.value = await QRCode.toDataURL(selfCheckinUrl, { width: 512, margin: 2 })
 	} catch (error) {
@@ -883,8 +885,8 @@ const generateQrCode = async () => {
 	}
 }
 
-const downloadQrCode = () => {
-	if (!qrDataUrl.value) return
+function downloadQrCode() {
+	if (!qrDataUrl.value) { return }
 	const link = document.createElement('a')
 	link.href = qrDataUrl.value
 	link.download = 'attendance-self-checkin-qr.png'
@@ -893,25 +895,27 @@ const downloadQrCode = () => {
 
 const copySelfCheckinUrl = () => copyStoreUrl(selfCheckinUrl)
 
-const copyStoreUrl = (url) => copyToClipboard(url, {
-	successMessage: window.t('attendance', 'Link copied'),
-	errorMessage: window.t('attendance', 'Failed to copy link'),
-})
+function copyStoreUrl(url) {
+	return copyToClipboard(url, {
+		successMessage: window.t('attendance', 'Link copied'),
+		errorMessage: window.t('attendance', 'Failed to copy link'),
+	})
+}
 
-const copyGuestsOccCommand = () => copyToClipboard(
-	guestsWhitelistOccCommand,
-	{
-		successMessage: window.t('attendance', 'Command copied'),
-		errorMessage: window.t('attendance', 'Failed to copy command'),
-	},
-)
+function copyGuestsOccCommand() {
+	return copyToClipboard(
+		guestsWhitelistOccCommand,
+		{
+			successMessage: window.t('attendance', 'Command copied'),
+			errorMessage: window.t('attendance', 'Failed to copy command'),
+		},
+	)
+}
 
-const sendTestReminder = async () => {
+async function sendTestReminder() {
 	sendingTestReminder.value = true
 	try {
-		const response = await axios.post(
-			generateUrl('/apps/attendance/api/admin/test-reminder'),
-		)
+		const response = await axios.post(generateUrl('/apps/attendance/api/admin/test-reminder'))
 		const name = response.data.appointmentName || ''
 		showSuccess(window.t('attendance', 'Test reminder sent for {name}', { name }))
 	} catch (error) {

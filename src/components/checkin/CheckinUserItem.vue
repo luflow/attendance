@@ -3,7 +3,7 @@
 		<!-- Normal view when not in comment mode -->
 		<template v-if="!showCommentInput">
 			<div class="user-info">
-				<NcAvatar :user="user.userId" :size="80" :show-user-status="false" />
+				<NcAvatar :user="user.userId" :size="80" hideStatus />
 				<div class="user-details">
 					<div class="user-name">
 						{{ user.displayName }}
@@ -13,12 +13,12 @@
 							v-if="user.response"
 							:text="getResponseText(user.response)"
 							:variant="getResponseVariant(user.response)"
-							no-close />
+							noClose />
 						<NcChip
 							v-else
 							:text="t('attendance', 'No response')"
 							variant="tertiary"
-							no-close />
+							noClose />
 					</div>
 					<div v-if="canSeeComments && user.comment && user.comment.trim()" class="user-comment">
 						<CommentIcon :size="14" class="comment-icon" />
@@ -62,7 +62,7 @@
 		<template v-if="showCommentInput">
 			<div class="comment-overlay">
 				<div class="comment-overlay-header">
-					<NcAvatar :user="user.userId" :size="32" :show-user-status="false" />
+					<NcAvatar :user="user.userId" :size="32" hideStatus />
 					<div class="comment-overlay-info">
 						<div class="user-name">
 							{{ user.displayName }}
@@ -72,23 +72,23 @@
 								v-if="user.response"
 								:text="getResponseText(user.response)"
 								:variant="getResponseVariant(user.response)"
-								no-close />
+								noClose />
 							<NcChip
 								v-else
 								:text="t('attendance', 'No response')"
 								variant="tertiary"
-								no-close />
+								noClose />
 						</div>
 					</div>
 				</div>
 				<div class="comment-overlay-input">
 					<NcTextArea
-						:model-value="commentValue"
+						:modelValue="commentValue"
 						:label="t('attendance', 'Check-in comment')"
 						:placeholder="t('attendance', 'Add a comment for this check-in\u00A0…')"
 						data-test="textarea-checkin-comment"
 						rows="2"
-						@update:model-value="$emit('update:commentValue', $event)" />
+						@update:modelValue="$emit('update:commentValue', $event)" />
 					<div class="comment-actions">
 						<NcButton variant="primary" data-test="button-save-comment" @click="$emit('saveComment', user.userId)">
 							{{ t('attendance', 'Save') }}
@@ -104,7 +104,7 @@
 </template>
 
 <script setup>
-import { NcButton, NcAvatar, NcChip, NcTextArea } from '@nextcloud/vue'
+import { NcAvatar, NcButton, NcChip, NcTextArea } from '@nextcloud/vue'
 import CommentIcon from 'vue-material-design-icons/Comment.vue'
 import { getResponseText, getResponseVariant } from '../../utils/response.js'
 

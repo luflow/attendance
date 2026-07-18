@@ -18,13 +18,10 @@ return RectorConfig::configure()
 		privatization: true,
 		instanceOf: true,
 		earlyReturn: true,
-		strictBooleans: true,
 		carbon: true,
 		rectorPreset: true,
 		phpunitCodeQuality: true,
 		doctrineCodeQuality: true,
 		symfonyCodeQuality: true,
 		symfonyConfigs: true,
-		twig: true,
-		phpunit: true,
 	);

@@ -12,8 +12,8 @@
 </template>
 
 <script setup>
-import CheckIcon from 'vue-material-design-icons/Check.vue'
 import AlertIcon from 'vue-material-design-icons/Alert.vue'
+import CheckIcon from 'vue-material-design-icons/Check.vue'
 
 defineProps({
 	allCheckedIn: {

@@ -89,15 +89,15 @@
 				<div class="setting-row">
 					<label for="ical-reminder-triggers">{{ t('attendance', 'Reminders before appointment') }}</label>
 					<NcSelect v-model="selectedReminders"
-						input-id="ical-reminder-triggers"
+						inputId="ical-reminder-triggers"
 						:options="reminderOptions"
 						:multiple="true"
-						:close-on-select="false"
+						keepOpen
 						:disabled="saving"
 						:placeholder="t('attendance', 'No reminders')"
 						label="label"
-						track-by="value"
-						@update:model-value="save" />
+						trackBy="value"
+						@update:modelValue="save" />
 				</div>
 			</div>
 		</NcSettingsSection>
@@ -109,7 +109,7 @@
 				type="switch"
 				data-test="switch-notify-response-changes"
 				:disabled="saving"
-				@update:model-value="save">
+				@update:modelValue="save">
 				{{ t('attendance', 'Receive notifications for response changes') }}
 			</NcCheckboxRadioSwitch>
 		</NcSettingsSection>
@@ -117,24 +117,24 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import axios from '@nextcloud/axios'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
-import { showSuccess, showError } from '@nextcloud/dialogs'
-import axios from '@nextcloud/axios'
 import {
-	NcSettingsSection,
-	NcSelect,
 	NcButton,
 	NcCheckboxRadioSwitch,
+	NcDialog,
 	NcLoadingIcon,
 	NcNoteCard,
-	NcDialog,
+	NcSelect,
+	NcSettingsSection,
 } from '@nextcloud/vue'
-import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
-import Refresh from 'vue-material-design-icons/Refresh.vue'
-import GoogleIcon from 'vue-material-design-icons/Google.vue'
+import { computed, onMounted, ref } from 'vue'
 import AppleIcon from 'vue-material-design-icons/Apple.vue'
+import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
+import GoogleIcon from 'vue-material-design-icons/Google.vue'
+import Refresh from 'vue-material-design-icons/Refresh.vue'
 import { useIcalFeed } from '../composables/useIcalFeed.js'
 import { formatDateTime } from '../utils/datetime.js'
 
@@ -144,7 +144,7 @@ const showRegenerateConfirm = ref(false)
 
 const handleCopy = () => copyToClipboard()
 
-const handleRegenerate = async () => {
+async function handleRegenerate() {
 	showRegenerateConfirm.value = false
 	await regenerateToken()
 }
@@ -168,11 +168,11 @@ const reminderOptions = [
 const selectedReminders = computed({
 	get() {
 		return icalReminderTriggers.value
-			.map(v => reminderOptions.find(o => o.value === v))
+			.map((v) => reminderOptions.find((o) => o.value === v))
 			.filter(Boolean)
 	},
 	set(options) {
-		icalReminderTriggers.value = options.map(o => o.value)
+		icalReminderTriggers.value = options.map((o) => o.value)
 	},
 })
 
@@ -180,10 +180,10 @@ async function loadSettings() {
 	try {
 		const response = await axios.get(generateUrl('/apps/attendance/api/user/settings'))
 		icalReminderTriggers.value = response.data.icalReminderTriggers ?? []
-		notifyResponseChanges.value = Object.prototype.hasOwnProperty.call(response.data, 'notifyResponseChanges')
+		notifyResponseChanges.value = Object.hasOwn(response.data, 'notifyResponseChanges')
 			? response.data.notifyResponseChanges === true
 			: null
-	} catch (e) {
+	} catch {
 		showError(t('attendance', 'Failed to load settings'))
 	} finally {
 		settingsLoading.value = false
@@ -201,7 +201,7 @@ async function save() {
 		}
 		await axios.post(generateUrl('/apps/attendance/api/user/settings'), payload)
 		showSuccess(t('attendance', 'Settings saved'))
-	} catch (e) {
+	} catch {
 		showError(t('attendance', 'Failed to save settings'))
 	} finally {
 		saving.value = false

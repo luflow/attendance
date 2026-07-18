@@ -3,8 +3,8 @@
  * Used for the public quick response confirmation page
  */
 
-import { createApp } from 'vue'
 import { translate, translatePlural } from '@nextcloud/l10n'
+import { createApp } from 'vue'
 import QuickResponse from './views/QuickResponse.vue'
 
 const app = createApp(QuickResponse)

@@ -15,11 +15,11 @@
 			<template #default="{ item }">
 				<WidgetAppointmentItem
 					:item="item"
-					:show-checkin-button="showCheckinButton(item)"
-					:display-order="displayOrder"
+					:showCheckinButton="showCheckinButton(item)"
+					:displayOrder="displayOrder"
 					@respond="respond"
-					@open-checkin="openCheckinView"
-					@open-detail="openAppointmentDetail" />
+					@openCheckin="openCheckinView"
+					@openDetail="openAppointmentDetail" />
 			</template>
 		</NcDashboardWidget>
 
@@ -37,15 +37,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
-import { NcDashboardWidget, NcEmptyContent, NcButton } from '@nextcloud/vue'
-import { generateUrl } from '@nextcloud/router'
 import { loadState } from '@nextcloud/initial-state'
-import { usePermissions } from '../composables/usePermissions.js'
-import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
-import { canCheckinNow } from '../utils/datetime.js'
+import { generateUrl } from '@nextcloud/router'
+import { NcButton, NcDashboardWidget, NcEmptyContent } from '@nextcloud/vue'
+import { computed, onMounted, ref } from 'vue'
+import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import WidgetAppointmentItem from '../components/widget/WidgetAppointmentItem.vue'
+import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
+import { usePermissions } from '../composables/usePermissions.js'
+import { canCheckinNow } from '../utils/datetime.js'
 
 defineProps({
 	title: {
@@ -69,13 +69,13 @@ try {
 
 try {
 	ncVersionState = loadState('attendance', 'nc-version')
-} catch (error) {
+} catch {
 	console.debug('nc-version not available, defaulting to 31')
 }
 
 try {
 	displayOrderState = loadState('attendance', 'display-order')
-} catch (error) {
+} catch {
 	console.debug('display-order not available, defaulting to name_first')
 }
 
@@ -102,36 +102,36 @@ const items = computed(() => {
 })
 
 // Methods
-const respond = async (appointmentId, response) => {
+async function respond(appointmentId, response) {
 	try {
 		await submitResponseApi(appointmentId, response, '')
-		const appointmentIndex = appointments.value.findIndex(a => a.id === appointmentId)
+		const appointmentIndex = appointments.value.findIndex((a) => a.id === appointmentId)
 		if (appointmentIndex !== -1) {
 			appointments.value[appointmentIndex].userResponse = response === null
 				? null
 				: { response, comment: '' }
 		}
-	} catch (error) {
+	} catch {
 		// Error already handled by composable
 	}
 }
 
-const goToAttendanceApp = () => {
+function goToAttendanceApp() {
 	window.location.href = generateUrl('/apps/attendance/')
 }
 
-const openAppointmentDetail = (appointmentId) => {
+function openAppointmentDetail(appointmentId) {
 	window.location.href = generateUrl(`/apps/attendance/appointment/${appointmentId}`)
 }
 
-const showCheckinButton = (item) => {
+function showCheckinButton(item) {
 	if (!permissions.canCheckin) {
 		return false
 	}
 	return canCheckinNow(item.subText, 30)
 }
 
-const openCheckinView = (appointmentId) => {
+function openCheckinView(appointmentId) {
 	const checkinUrl = generateUrl('/apps/attendance/checkin/{id}', { id: appointmentId })
 	window.location.href = checkinUrl
 }

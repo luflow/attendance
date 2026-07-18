@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace OCA\Attendance\Tests\Unit\Service;
 
 use OCA\Attendance\Db\Appointment;
-use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AppointmentAttachmentMapper;
+use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Db\IcalTokenMapper;

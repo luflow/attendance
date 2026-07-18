@@ -63,15 +63,15 @@
 					class="cancelled-badge"
 					:text="t('attendance', 'Cancelled')"
 					variant="error"
-					no-close
+					noClose
 					data-test="cancelled-badge" />
 			</div>
 			<div class="appointment-actions">
 				<NcActions
-					:force-menu="true"
+					:forceMenu="true"
 					data-test="appointment-actions-menu">
 					<NcActionButton
-						:close-after-click="true"
+						:closeAfterClick="true"
 						data-test="action-share-link"
 						@click="copyShareLink">
 						<template #icon>
@@ -81,7 +81,7 @@
 					</NcActionButton>
 					<NcActionButton
 						v-if="canCheckin"
-						:close-after-click="true"
+						:closeAfterClick="true"
 						data-test="action-start-checkin"
 						@click="handleStartCheckin">
 						<template #icon>
@@ -91,7 +91,7 @@
 					</NcActionButton>
 					<NcActionButton
 						v-if="canManageAppointments && !isClosed"
-						:close-after-click="true"
+						:closeAfterClick="true"
 						:disabled="sendingReminders"
 						data-test="action-remind-all"
 						@click="showRemindDialog = true">
@@ -102,7 +102,7 @@
 					</NcActionButton>
 					<NcActionButton
 						v-if="canToggleClosed"
-						:close-after-click="true"
+						:closeAfterClick="true"
 						:disabled="togglingClosed"
 						:data-test="isClosed ? 'action-reopen-inquiry' : 'action-close-inquiry'"
 						@click="handleToggleClosed">
@@ -118,7 +118,7 @@
 					</NcActionButton>
 					<NcActionButton
 						v-if="canCancel"
-						:close-after-click="true"
+						:closeAfterClick="true"
 						:disabled="togglingCancelled"
 						:data-test="isCancelled ? 'action-reactivate-appointment' : 'action-cancel-appointment'"
 						@click="handleToggleCancelled">
@@ -134,7 +134,7 @@
 					</NcActionButton>
 					<NcActionButton
 						v-if="canManageAppointments"
-						:close-after-click="true"
+						:closeAfterClick="true"
 						data-test="action-edit"
 						@click="handleEdit">
 						<template #icon>
@@ -144,7 +144,7 @@
 					</NcActionButton>
 					<NcActionButton
 						v-if="canManageAppointments"
-						:close-after-click="true"
+						:closeAfterClick="true"
 						data-test="action-export"
 						@click="handleExport">
 						<template #icon>
@@ -154,7 +154,7 @@
 					</NcActionButton>
 					<NcActionButton
 						v-if="canManageAppointments"
-						:close-after-click="true"
+						:closeAfterClick="true"
 						data-test="action-copy"
 						@click="handleCopy">
 						<template #icon>
@@ -164,7 +164,7 @@
 					</NcActionButton>
 					<NcActionButton
 						v-if="canSeeAuditLog"
-						:close-after-click="true"
+						:closeAfterClick="true"
 						data-test="action-show-audit-log"
 						@click="emit('showAuditLog', appointment.id)">
 						<template #icon>
@@ -174,7 +174,7 @@
 					</NcActionButton>
 					<NcActionButton
 						v-if="canManageAppointments"
-						:close-after-click="true"
+						:closeAfterClick="true"
 						data-test="action-delete"
 						@click="handleDelete">
 						<template #icon>
@@ -205,7 +205,7 @@
 				rel="noopener noreferrer"
 				class="attachment-link"
 				:data-test="`attachment-link-${attachment.fileId}`">
-				<NcChip :text="attachment.fileName" no-close>
+				<NcChip :text="attachment.fileName" noClose>
 					<template #icon>
 						<Paperclip :size="16" />
 					</template>
@@ -223,7 +223,7 @@
 				<NcChip
 					:text="userResponse ? getResponseText(userResponse) : t('attendance', 'No response')"
 					:variant="userResponse ? getResponseVariant(userResponse) : 'tertiary'"
-					no-close />
+					noClose />
 			</div>
 			<div v-if="canToggleClosed" class="closed-banner" data-test="closed-banner">
 				<LockIcon :size="20" />
@@ -278,9 +278,9 @@
 				<!-- Comment Toggle Button (only show when user has responded) -->
 				<NcButton
 					v-if="userResponse"
+					class="comment-toggle"
 					:class="{
 						'comment-active': commentExpanded,
-						'comment-toggle': true,
 					}"
 					variant="tertiary"
 					data-test="button-toggle-comment"
@@ -313,7 +313,7 @@
 						:label="t('attendance', 'Comment (optional)')"
 						:placeholder="t('attendance', 'Add your comment\u00A0…')"
 						data-test="response-comment"
-						@update:model-value="handleCommentInputEvent" />
+						@update:modelValue="handleCommentInputEvent" />
 
 					<div v-if="savingComment" class="saving-spinner">
 						<div class="spinner" />
@@ -331,8 +331,8 @@
 		<!-- Checkin Summary (only shown when checkins exist and user can see response overview) -->
 		<div
 			v-if="
-				canSeeResponseOverview &&
-					appointment.checkinSummary?.hasCheckins
+				canSeeResponseOverview
+					&& appointment.checkinSummary?.hasCheckins
 			"
 			class="checkin-summary"
 			data-test="checkin-summary">
@@ -345,7 +345,7 @@
 						})
 					"
 					variant="success"
-					no-close>
+					noClose>
 					<template #icon>
 						<CheckIcon :size="16" />
 					</template>
@@ -357,7 +357,7 @@
 						})
 					"
 					variant="error"
-					no-close>
+					noClose>
 					<template #icon>
 						<CloseIcon :size="16" />
 					</template>
@@ -370,7 +370,7 @@
 						})
 					"
 					variant="tertiary"
-					no-close>
+					noClose>
 					<template #icon>
 						<HelpCircleOutlineIcon :size="16" />
 					</template>
@@ -381,12 +381,12 @@
 		<!-- Detailed Response Summary -->
 		<ResponseSummary
 			v-if="canSeeResponseOverview && appointment.responseSummary"
-			:response-summary="appointment.responseSummary"
-			:can-see-comments="canSeeComments"
-			:can-manage-appointments="canManageAppointments"
-			:appointment-id="appointment.id"
-			:booking-enabled="capabilities.bookingEnabled"
-			:is-closed="isClosed" />
+			:responseSummary="appointment.responseSummary"
+			:canSeeComments="canSeeComments"
+			:canManageAppointments="canManageAppointments"
+			:appointmentId="appointment.id"
+			:bookingEnabled="capabilities.bookingEnabled"
+			:isClosed="isClosed" />
 
 		<!-- Remind target dialog -->
 		<NcDialog
@@ -472,51 +472,47 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue'
+import axios from '@nextcloud/axios'
+import { showError, showSuccess } from '@nextcloud/dialogs'
+import { generateUrl } from '@nextcloud/router'
 import {
-	NcButton,
-	NcActions,
 	NcActionButton,
+	NcActions,
+	NcButton,
+	NcChip,
 	NcDialog,
 	NcInputField,
-	NcChip,
 } from '@nextcloud/vue'
-import ResponseSummary from './ResponseSummary.vue'
-import { renderMarkdown, sanitizeHtml } from '../../utils/markdown.js'
-import { copyToClipboard } from '../../utils/clipboard.js'
-import { generateUrl } from '@nextcloud/router'
-import { showSuccess, showError } from '@nextcloud/dialogs'
-import axios from '@nextcloud/axios'
+import { computed, nextTick, ref, watch } from 'vue'
 import BellRingIcon from 'vue-material-design-icons/BellRing.vue'
-import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
-import ShareVariantIcon from 'vue-material-design-icons/ShareVariant.vue'
-import Pencil from 'vue-material-design-icons/Pencil.vue'
-import Delete from 'vue-material-design-icons/Delete.vue'
-import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
-import DownloadIcon from 'vue-material-design-icons/Download.vue'
+import CalendarRefreshIcon from 'vue-material-design-icons/CalendarRefresh.vue'
+import CalendarRemoveIcon from 'vue-material-design-icons/CalendarRemove.vue'
+import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
+import ClockIcon from 'vue-material-design-icons/Clock.vue'
 import CloseIcon from 'vue-material-design-icons/Close.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
-import HelpCircleOutlineIcon from 'vue-material-design-icons/HelpCircleOutline.vue'
-import Paperclip from 'vue-material-design-icons/Paperclip.vue'
 import CommentIcon from 'vue-material-design-icons/Comment.vue'
-import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
-import RepeatIcon from 'vue-material-design-icons/Repeat.vue'
+import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
+import Delete from 'vue-material-design-icons/Delete.vue'
+import DownloadIcon from 'vue-material-design-icons/Download.vue'
+import HelpCircleOutlineIcon from 'vue-material-design-icons/HelpCircleOutline.vue'
+import HistoryIcon from 'vue-material-design-icons/History.vue'
+import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
 import LockOpenIcon from 'vue-material-design-icons/LockOpen.vue'
-import CalendarRemoveIcon from 'vue-material-design-icons/CalendarRemove.vue'
-import CalendarRefreshIcon from 'vue-material-design-icons/CalendarRefresh.vue'
-import ClockIcon from 'vue-material-design-icons/Clock.vue'
-import HistoryIcon from 'vue-material-design-icons/History.vue'
-import { formatDateRange, formatDateTime } from '../../utils/datetime.js'
-import { getResponseText, getResponseVariant } from '../../utils/response.js'
-import { formatClosedLabel } from '../../utils/appointment.js'
+import Paperclip from 'vue-material-design-icons/Paperclip.vue'
+import Pencil from 'vue-material-design-icons/Pencil.vue'
+import RepeatIcon from 'vue-material-design-icons/Repeat.vue'
+import ShareVariantIcon from 'vue-material-design-icons/ShareVariant.vue'
+import ResponseSummary from './ResponseSummary.vue'
 import { useAppointmentResponse, useResponseCooldown } from '../../composables/useAppointmentResponse.js'
 import { usePermissions } from '../../composables/usePermissions.js'
-
-const { capabilities } = usePermissions()
-
-const currentUserUid = window.OC?.getCurrentUser?.()?.uid || window.OC?.currentUser || null
+import { formatClosedLabel } from '../../utils/appointment.js'
+import { copyToClipboard } from '../../utils/clipboard.js'
+import { formatDateRange, formatDateTime } from '../../utils/datetime.js'
+import { renderMarkdown, sanitizeHtml } from '../../utils/markdown.js'
+import { getResponseText, getResponseVariant } from '../../utils/response.js'
 
 const props = defineProps({
 	appointment: {
@@ -561,6 +557,10 @@ const emit = defineEmits([
 	'showAuditLog',
 ])
 
+const { capabilities } = usePermissions()
+
+const currentUserUid = window.OC?.getCurrentUser?.()?.uid || window.OC?.currentUser || null
+
 const localComment = ref(props.appointment.userResponse?.comment || '')
 const commentExpanded = ref(false)
 const commentInput = ref(null)
@@ -568,9 +568,9 @@ let commentTimeout = null
 
 // Use the shared response composable for comment auto-save
 const { savingComment, commentSaved, errorComment, autoSaveComment }
-    = useAppointmentResponse()
+	= useAppointmentResponse()
 
-const toggleComment = async () => {
+async function toggleComment() {
 	commentExpanded.value = !commentExpanded.value
 	if (commentExpanded.value) {
 		await nextTick()
@@ -585,7 +585,7 @@ const userResponse = computed(() => {
 const isClosed = computed(() => Boolean(props.appointment.closedAt))
 
 const canToggleClosed = computed(() => {
-	if (props.canManageAppointments) return true
+	if (props.canManageAppointments) { return true }
 	return Boolean(currentUserUid) && props.appointment.createdBy === currentUserUid
 })
 
@@ -595,22 +595,16 @@ const isCancelled = computed(() => Boolean(props.appointment.cancelledAt))
 // instances (and older servers) that don't offer it never show the UI.
 const canCancel = computed(() => capabilities.cancelling && canToggleClosed.value)
 
-const formattedClosedAt = computed(() =>
-	props.appointment.closedAt ? formatDateTime(props.appointment.closedAt) : '',
-)
+const formattedClosedAt = computed(() => props.appointment.closedAt ? formatDateTime(props.appointment.closedAt) : '')
 
-const formattedDeadline = computed(() =>
-	props.appointment.responseDeadline
-		? formatDateTime(props.appointment.responseDeadline)
-		: '',
-)
+const formattedDeadline = computed(() => props.appointment.responseDeadline
+	? formatDateTime(props.appointment.responseDeadline)
+	: '')
 
-const closedLabel = computed(() =>
-	formatClosedLabel(props.appointment.closedAt, props.appointment.responseDeadline),
-)
+const closedLabel = computed(() => formatClosedLabel(props.appointment.closedAt, props.appointment.responseDeadline))
 
 const renderedDescription = computed(() => {
-	if (!props.appointment.description) return ''
+	if (!props.appointment.description) { return '' }
 	const html = renderMarkdown(props.appointment.description, false)
 	return sanitizeHtml(html)
 })
@@ -618,8 +612,8 @@ const renderedDescription = computed(() => {
 const calendarLink = computed(() => {
 	if (
 		!props.appointment.calendarUri
-        || !props.appointment.calendarEventUid
-        || !props.appointment.startDatetime
+		|| !props.appointment.calendarEventUid
+		|| !props.appointment.startDatetime
 	) {
 		return null
 	}
@@ -647,9 +641,7 @@ const calendarLink = computed(() => {
 	// For non-recurring events, use "next" as recurrenceId
 	const recurrenceId = 'next'
 
-	return generateUrl(
-		`/apps/calendar/dayGridMonth/${dateStr}/edit/popover/${base64Path}/${recurrenceId}`,
-	)
+	return generateUrl(`/apps/calendar/dayGridMonth/${dateStr}/edit/popover/${base64Path}/${recurrenceId}`)
 })
 
 watch(
@@ -662,39 +654,39 @@ watch(
 	{ immediate: true, deep: true },
 )
 
-const copyShareLink = () => {
+function copyShareLink() {
 	const appointmentUrl
-        = window.location.origin
-        + generateUrl(`/apps/attendance/appointment/${props.appointment.id}`)
+		= window.location.origin
+			+ generateUrl(`/apps/attendance/appointment/${props.appointment.id}`)
 	return copyToClipboard(appointmentUrl, {
 		successMessage: t('attendance', 'Link copied to clipboard'),
 	})
 }
 
-const handleStartCheckin = () => {
+function handleStartCheckin() {
 	emit('startCheckin', props.appointment.id)
 }
 
-const handleEdit = () => {
+function handleEdit() {
 	emit('edit', props.appointment)
 }
 
-const handleCopy = () => {
+function handleCopy() {
 	emit('copy', props.appointment)
 }
 
-const handleDelete = () => {
+function handleDelete() {
 	emit('delete', props.appointment.id)
 }
 
-const handleExport = () => {
+function handleExport() {
 	emit('export', props.appointment.id)
 }
 
 const sendingReminders = ref(false)
 const showRemindDialog = ref(false)
 
-const handleRemindAll = async (target = 'non_responders') => {
+async function handleRemindAll(target = 'non_responders') {
 	showRemindDialog.value = false
 	sendingReminders.value = true
 	try {
@@ -714,8 +706,8 @@ const handleRemindAll = async (target = 'non_responders') => {
 
 const { responseCooldown, resolveNext, startCooldown } = useResponseCooldown(userResponse)
 
-const handleResponse = (response) => {
-	if (responseCooldown.value) return
+function handleResponse(response) {
+	if (responseCooldown.value) { return }
 	startCooldown()
 	emit('submitResponse', props.appointment.id, resolveNext(response))
 }
@@ -729,24 +721,24 @@ const bookingGroups = computed(() => {
 	const summary = props.appointment.responseSummary
 	const booked = new Map()
 	const declined = new Map()
-	if (!summary) return { booked: [], declined: [] }
+	if (!summary) { return { booked: [], declined: [] } }
 	const sections = []
-	if (summary.by_group) sections.push(...Object.values(summary.by_group))
-	if (summary.by_team) sections.push(...Object.values(summary.by_team))
-	if (summary.others) sections.push(summary.others)
+	if (summary.by_group) { sections.push(...Object.values(summary.by_group)) }
+	if (summary.by_team) { sections.push(...Object.values(summary.by_team)) }
+	if (summary.others) { sections.push(summary.others) }
 	for (const section of sections) {
 		for (const r of section.responses || []) {
-			if (r.response !== 'yes') continue
+			if (r.response !== 'yes') { continue }
 			const target = r.bookingStatus === 'booked' ? booked : declined
 			target.set(r.userId, r.userName || r.userId)
 		}
 	}
-	for (const uid of booked.keys()) declined.delete(uid)
+	for (const uid of booked.keys()) { declined.delete(uid) }
 	return { booked: [...booked.values()], declined: [...declined.values()] }
 })
 
-const handleToggleClosed = async () => {
-	if (togglingClosed.value) return
+async function handleToggleClosed() {
+	if (togglingClosed.value) { return }
 	const wantsClose = !isClosed.value
 	// Closing with planned-in people triggers a notification wave — confirm the
 	// two named groups first. Without booking / without anyone booked, close is
@@ -758,7 +750,7 @@ const handleToggleClosed = async () => {
 	await performToggleClosed(wantsClose)
 }
 
-const confirmCloseWithBookings = async () => {
+async function confirmCloseWithBookings() {
 	showCloseBookingDialog.value = false
 	await performToggleClosed(true)
 }
@@ -777,36 +769,30 @@ const bookingDialogGroups = computed(() => [
 		names: bookingGroups.value.declined,
 	},
 ])
-const toggleBookingGroup = (key) => {
+function toggleBookingGroup(key) {
 	expandedBookingGroups.value[key] = !expandedBookingGroups.value[key]
 }
-const visibleBookingNames = (group) => (
-	expandedBookingGroups.value[group.key]
+function visibleBookingNames(group) {
+	return expandedBookingGroups.value[group.key]
 		? group.names
 		: group.names.slice(0, BOOKING_PREVIEW_LIMIT)
-)
+}
 
-const performToggleClosed = async (wantsClose) => {
-	if (togglingClosed.value) return
+async function performToggleClosed(wantsClose) {
+	if (togglingClosed.value) { return }
 	togglingClosed.value = true
-	const url = generateUrl(
-		`/apps/attendance/api/appointments/${props.appointment.id}/${wantsClose ? 'close' : 'reopen'}`,
-	)
+	const url = generateUrl(`/apps/attendance/api/appointments/${props.appointment.id}/${wantsClose ? 'close' : 'reopen'}`)
 	try {
 		const response = await axios.post(url)
-		showSuccess(
-			wantsClose
-				? t('attendance', 'Inquiry closed')
-				: t('attendance', 'Inquiry re-opened'),
-		)
+		showSuccess(wantsClose
+			? t('attendance', 'Inquiry closed')
+			: t('attendance', 'Inquiry re-opened'))
 		emit('closedToggled', response.data)
 	} catch (error) {
 		console.error('Failed to toggle closed state:', error)
-		showError(
-			wantsClose
-				? t('attendance', 'Failed to close inquiry')
-				: t('attendance', 'Failed to re-open inquiry'),
-		)
+		showError(wantsClose
+			? t('attendance', 'Failed to close inquiry')
+			: t('attendance', 'Failed to re-open inquiry'))
 	} finally {
 		togglingClosed.value = false
 	}
@@ -814,40 +800,34 @@ const performToggleClosed = async (wantsClose) => {
 
 const togglingCancelled = ref(false)
 
-const handleToggleCancelled = async () => {
-	if (togglingCancelled.value) return
+async function handleToggleCancelled() {
+	if (togglingCancelled.value) { return }
 	togglingCancelled.value = true
 	const wantsCancel = !isCancelled.value
-	const url = generateUrl(
-		`/apps/attendance/api/appointments/${props.appointment.id}/${wantsCancel ? 'cancel' : 'uncancel'}`,
-	)
+	const url = generateUrl(`/apps/attendance/api/appointments/${props.appointment.id}/${wantsCancel ? 'cancel' : 'uncancel'}`)
 	try {
 		const response = await axios.post(url)
-		showSuccess(
-			wantsCancel
-				? t('attendance', 'Appointment cancelled')
-				: t('attendance', 'Appointment reactivated'),
-		)
+		showSuccess(wantsCancel
+			? t('attendance', 'Appointment cancelled')
+			: t('attendance', 'Appointment reactivated'))
 		// Reuse the closedToggled channel: the parent merges the full updated
 		// appointment (incl. cancelledAt) reactively, so no extra wiring needed.
 		emit('closedToggled', response.data)
 	} catch (error) {
 		console.error('Failed to toggle cancelled state:', error)
-		showError(
-			wantsCancel
-				? t('attendance', 'Failed to cancel appointment')
-				: t('attendance', 'Failed to reactivate appointment'),
-		)
+		showError(wantsCancel
+			? t('attendance', 'Failed to cancel appointment')
+			: t('attendance', 'Failed to reactivate appointment'))
 	} finally {
 		togglingCancelled.value = false
 	}
 }
 
-const getAttachmentUrl = (attachment) => {
+function getAttachmentUrl(attachment) {
 	return attachment.downloadUrl || generateUrl(`/f/${attachment.fileId}`)
 }
 
-const handleCommentInputEvent = () => {
+function handleCommentInputEvent() {
 	if (commentTimeout) {
 		clearTimeout(commentTimeout)
 	}

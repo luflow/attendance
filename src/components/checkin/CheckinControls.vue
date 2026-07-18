@@ -2,28 +2,28 @@
 	<div class="controls-section">
 		<div class="search-container">
 			<NcTextField
-				:model-value="searchQuery"
-				:label="t('attendance', 'Search by name …')"
+				:modelValue="searchQuery"
+				:label="t('attendance', 'Search by name …')"
 				data-test="input-search"
-				@update:model-value="onSearchInput">
+				@update:modelValue="onSearchInput">
 				<MagnifyIcon :size="16" />
 			</NcTextField>
 		</div>
 		<div class="group-filter">
 			<NcSelect
-				:model-value="selectedGroup"
+				:modelValue="selectedGroup"
 				:options="groupOptions"
 				:placeholder="t('attendance', 'Filter by group')"
 				:clearable="true"
 				label="label"
 				data-test="select-group-filter"
-				@update:model-value="onGroupChange" />
+				@update:modelValue="onGroupChange" />
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { NcTextField, NcSelect } from '@nextcloud/vue'
+import { NcSelect, NcTextField } from '@nextcloud/vue'
 import MagnifyIcon from 'vue-material-design-icons/Magnify.vue'
 
 defineProps({
@@ -43,11 +43,11 @@ defineProps({
 
 const emit = defineEmits(['update:searchQuery', 'update:selectedGroup'])
 
-const onSearchInput = (value) => {
+function onSearchInput(value) {
 	emit('update:searchQuery', value)
 }
 
-const onGroupChange = (value) => {
+function onGroupChange(value) {
 	emit('update:selectedGroup', value)
 }
 </script>

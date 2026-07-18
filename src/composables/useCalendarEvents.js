@@ -1,8 +1,8 @@
-import { ref } from 'vue'
 import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
 import { showError } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
+import { generateUrl } from '@nextcloud/router'
+import { ref } from 'vue'
 
 /**
  * Composable for fetching calendars and events from Nextcloud Calendar
@@ -38,6 +38,7 @@ export function useCalendarEvents() {
 
 	/**
 	 * Load events from a specific calendar within a date range
+	 *
 	 * @param {string} calendarUri - The URI of the calendar to load events from
 	 * @param {string} from - Start date in Y-m-d format
 	 * @param {string} to - End date in Y-m-d format

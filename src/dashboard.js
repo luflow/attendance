@@ -1,7 +1,8 @@
-import './dashboard.css'
-import { createApp } from 'vue'
 import { translate, translatePlural } from '@nextcloud/l10n'
+import { createApp } from 'vue'
 import AppointmentWidget from './views/Widget.vue'
+
+import './dashboard.css'
 
 document.addEventListener('DOMContentLoaded', () => {
 	OCA.Dashboard.register('attendance-vue-widget', (el, { widget }) => {

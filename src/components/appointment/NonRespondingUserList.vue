@@ -10,7 +10,7 @@
 				<NcPopover
 					v-if="canManageAppointments && appointmentId"
 					:shown="openPopover === u.userId"
-					popup-role="dialog"
+					popupRole="dialog"
 					class="remind-popover-wrapper"
 					@update:shown="(val) => openPopover = val ? u.userId : null">
 					<template #trigger>
@@ -36,15 +36,17 @@
 					</div>
 				</NcPopover><span
 					v-else
-					class="reminder-user">{{ u.displayName }}</span><template v-if="idx < sortedUsers.length - 1">, </template>
+					class="reminder-user">{{ u.displayName }}</span><template v-if="idx < sortedUsers.length - 1">
+						,
+					</template>
 			</template>
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
 import { NcButton, NcPopover } from '@nextcloud/vue'
+import { computed, ref } from 'vue'
 import BellRingOutlineIcon from 'vue-material-design-icons/BellRingOutline.vue'
 
 const props = defineProps({
@@ -79,16 +81,14 @@ const emit = defineEmits(['remind'])
 
 const openPopover = ref(null)
 
-const handleRemind = (userId) => {
+function handleRemind(userId) {
 	openPopover.value = null
 	emit('remind', userId)
 }
 
 const sortedUsers = computed(() => {
-	if (!props.users || props.users.length === 0) return []
-	return [...props.users].sort((a, b) =>
-		a.displayName.localeCompare(b.displayName),
-	)
+	if (!props.users || props.users.length === 0) { return [] }
+	return [...props.users].sort((a, b) => a.displayName.localeCompare(b.displayName))
 })
 </script>
 

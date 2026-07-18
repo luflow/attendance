@@ -21,23 +21,23 @@
 			<!-- Use reusable AppointmentCard component -->
 			<AppointmentCard
 				:appointment="appointment"
-				:can-manage-appointments="permissions.canManageAppointments"
-				:can-checkin="permissions.canCheckin"
-				:can-see-response-overview="permissions.canSeeResponseOverview"
-				:can-see-comments="permissions.canSeeComments"
-				:can-see-audit-log="canSeeAuditTimeline"
-				:display-order="config.displayOrder"
-				@start-checkin="startCheckin"
+				:canManageAppointments="permissions.canManageAppointments"
+				:canCheckin="permissions.canCheckin"
+				:canSeeResponseOverview="permissions.canSeeResponseOverview"
+				:canSeeComments="permissions.canSeeComments"
+				:canSeeAuditLog="canSeeAuditTimeline"
+				:displayOrder="config.displayOrder"
+				@startCheckin="startCheckin"
 				@edit="editAppointment"
 				@copy="copyAppointment"
 				@delete="deleteAppointment"
 				@export="showExportDialog"
-				@submit-response="submitResponse"
-				@update-comment="updateComment"
-				@closed-toggled="onClosedToggled"
-				@show-audit-log="scrollToAuditLog" />
+				@submitResponse="submitResponse"
+				@updateComment="updateComment"
+				@closedToggled="onClosedToggled"
+				@showAuditLog="scrollToAuditLog" />
 
-			<AuditTimeline v-if="canSeeAuditTimeline" ref="auditTimeline" :appointment-id="appointment.id" />
+			<AuditTimeline v-if="canSeeAuditTimeline" ref="auditTimeline" :appointmentId="appointment.id" />
 		</div>
 
 		<!-- Single Appointment Export Dialog -->
@@ -56,18 +56,18 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted, watch } from 'vue'
-import { NcButton } from '@nextcloud/vue'
-import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
 import axios from '@nextcloud/axios'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
-import { showSuccess, showError } from '@nextcloud/dialogs'
+import { NcButton } from '@nextcloud/vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
 import AppointmentCard from '../components/appointment/AppointmentCard.vue'
 import AuditTimeline from '../components/appointment/AuditTimeline.vue'
-import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
 import DeleteAppointmentDialog from '../components/appointment/DeleteAppointmentDialog.vue'
-import { usePermissions } from '../composables/usePermissions.js'
+import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
 import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
+import { usePermissions } from '../composables/usePermissions.js'
 
 const props = defineProps({
 	appointmentId: {
@@ -100,7 +100,7 @@ const showDeleteDialog = ref(false)
 const { permissions, capabilities, config, loadPermissions } = usePermissions()
 
 const canSeeAuditTimeline = computed(() => {
-	if (!capabilities.auditLog) return false
+	if (!capabilities.auditLog) { return false }
 	return permissions.canManageAppointments || permissions.canSeeResponseOverview
 })
 
@@ -115,27 +115,27 @@ const { submitResponse: submitResponseApi } = useAppointmentResponse({
 	},
 })
 
-const goBack = () => {
+function goBack() {
 	window.history.back()
 }
 
-const startCheckin = (appointmentId) => {
+function startCheckin(appointmentId) {
 	window.location.href = generateUrl(`/apps/attendance/checkin/${appointmentId}`)
 }
 
-const editAppointment = (apt) => {
+function editAppointment(apt) {
 	emit('editAppointment', apt)
 }
 
-const copyAppointment = (apt) => {
+function copyAppointment(apt) {
 	emit('copyAppointment', apt)
 }
 
-const deleteAppointment = () => {
+function deleteAppointment() {
 	showDeleteDialog.value = true
 }
 
-const handleDeleteConfirm = async (scope) => {
+async function handleDeleteConfirm(scope) {
 	showDeleteDialog.value = false
 	try {
 		await axios.delete(generateUrl(`/apps/attendance/api/appointments/${appointment.value.id}`), {
@@ -149,11 +149,11 @@ const handleDeleteConfirm = async (scope) => {
 	}
 }
 
-const showExportDialog = () => {
+function showExportDialog() {
 	exportDialogVisible.value = true
 }
 
-const submitResponse = async (appointmentId, response) => {
+async function submitResponse(appointmentId, response) {
 	const comment = appointment.value.userResponse?.comment || ''
 
 	if (response === null) {
@@ -168,7 +168,7 @@ const submitResponse = async (appointmentId, response) => {
 	await submitResponseApi(appointmentId, response, comment)
 }
 
-const updateComment = async (appointmentId, comment) => {
+async function updateComment(appointmentId, comment) {
 	const response = appointment.value.userResponse?.response || 'yes'
 
 	// Optimistic update
@@ -180,7 +180,7 @@ const updateComment = async (appointmentId, comment) => {
 	await submitResponseApi(appointmentId, response, comment)
 }
 
-const onClosedToggled = (updated) => {
+function onClosedToggled(updated) {
 	if (appointment.value && updated?.id === appointment.value.id) {
 		appointment.value = { ...appointment.value, ...updated }
 	}
@@ -190,7 +190,7 @@ const onClosedToggled = (updated) => {
 	emit('responseUpdated')
 }
 
-const loadAppointmentSilently = async () => {
+async function loadAppointmentSilently() {
 	try {
 		const response = await axios.get(generateUrl(`/apps/attendance/api/appointments/${props.appointmentId}`))
 		appointment.value = response.data
@@ -199,7 +199,7 @@ const loadAppointmentSilently = async () => {
 	}
 }
 
-const loadAppointment = async () => {
+async function loadAppointment() {
 	loading.value = true
 	error.value = null
 
@@ -218,7 +218,7 @@ const loadAppointment = async () => {
 	}
 }
 
-const scrollToAuditLog = async () => {
+async function scrollToAuditLog() {
 	// Wait two ticks: one for the audit ref to bind after appointment loads,
 	// one for the timeline's own onMounted fetch to render its first frame.
 	await nextTick()
@@ -226,8 +226,8 @@ const scrollToAuditLog = async () => {
 	el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
-const honourScrollTarget = async () => {
-	if (props.scrollTarget !== 'audit' || !canSeeAuditTimeline.value) return
+async function honourScrollTarget() {
+	if (props.scrollTarget !== 'audit' || !canSeeAuditTimeline.value) { return }
 	await scrollToAuditLog()
 	emit('scrollTargetConsumed')
 }
