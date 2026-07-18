@@ -153,7 +153,7 @@
 					</div>
 
 					<div class="self-checkin-qr">
-						<h5>{{ t('attendance', 'Self-check-in possibilities') }}</h5>
+						<h5>{{ t('attendance', 'Set up self-check-in') }}</h5>
 						<p class="subsection-hint">
 							{{ t('attendance', 'One code works for all appointments — the app matches by time.') }}
 						</p>
