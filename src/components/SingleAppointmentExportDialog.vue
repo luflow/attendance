@@ -33,7 +33,7 @@
 						<NcLoadingIcon v-if="exporting" :size="20" />
 						<DownloadIcon v-else :size="20" />
 					</template>
-					{{ exporting ? t('attendance', 'Exporting …') : t('attendance', 'Export') }}
+					{{ exporting ? t('attendance', 'Exporting …') : t('attendance', 'Export') }}
 				</NcButton>
 			</div>
 		</div>
@@ -41,15 +41,13 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { generateUrl } from '@nextcloud/router'
-import { showSuccess, showError } from '@nextcloud/dialogs'
-import { translate as t } from '@nextcloud/l10n'
 import axios from '@nextcloud/axios'
-
-import { NcModal, NcButton, NcCheckboxRadioSwitch, NcLoadingIcon } from '@nextcloud/vue'
+import { showError, showSuccess } from '@nextcloud/dialogs'
+import { translate as t } from '@nextcloud/l10n'
+import { generateUrl } from '@nextcloud/router'
+import { NcButton, NcCheckboxRadioSwitch, NcLoadingIcon, NcModal } from '@nextcloud/vue'
+import { ref } from 'vue'
 import DownloadIcon from 'vue-material-design-icons/Download.vue'
-
 import { formatDateTime } from '../utils/datetime.js'
 
 const props = defineProps({
@@ -68,7 +66,7 @@ const emit = defineEmits(['close'])
 const includeComments = ref(false)
 const exporting = ref(false)
 
-const handleExport = async () => {
+async function handleExport() {
 	if (!props.appointment) return
 
 	exporting.value = true

@@ -6,8 +6,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import EasyMDE from 'easymde'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+
 import 'easymde/dist/easymde.min.css'
 
 const props = defineProps({
@@ -36,11 +37,11 @@ const isFocused = ref(false)
 let editor = null
 let isUpdatingFromProp = false
 
-const onFocusIn = () => {
+function onFocusIn() {
 	isFocused.value = true
 }
 
-const onFocusOut = (e) => {
+function onFocusOut(e) {
 	const container = editorContainer.value
 	if (!container) {
 		isFocused.value = false

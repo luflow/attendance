@@ -104,7 +104,7 @@ class AuditEventService {
 	 * Classify a response mutation and record the matching verb.
 	 *
 	 * @param ?string $beforeResponse the response value before the mutation, or null if no row existed
-	 * @param ?string $afterResponse  the response value after the mutation, or null if the row was withdrawn
+	 * @param ?string $afterResponse the response value after the mutation, or null if the row was withdrawn
 	 */
 	public function recordResponseChange(
 		int $appointmentId,
@@ -126,7 +126,7 @@ class AuditEventService {
 	}
 
 	/**
-	 * @return array{0: string, 1: array<string, mixed>}|null  [verb, meta], or null when nothing changed
+	 * @return array{0: string, 1: array<string, mixed>}|null [verb, meta], or null when nothing changed
 	 */
 	private function classifyResponseChange(
 		?string $beforeResponse,
@@ -179,8 +179,8 @@ class AuditEventService {
 	 * invoking — passing an empty $fields list would write a meaningless row.
 	 *
 	 * @param list<string> $fields changed field keys ('name', 'description',
-	 *   'time', 'visibility', 'deadline'). Before/after values are not stored —
-	 *   the field list is enough for the timeline and keeps the audit row lean.
+	 *                             'time', 'visibility', 'deadline'). Before/after values are not stored —
+	 *                             the field list is enough for the timeline and keeps the audit row lean.
 	 */
 	public function recordAppointmentUpdate(
 		int $appointmentId,

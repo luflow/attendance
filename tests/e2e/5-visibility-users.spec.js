@@ -37,7 +37,7 @@ async function createAppointmentWithVisibility(page, { name, description, daysFr
 	if (visibleUsers.length > 0) {
 		for (const username of visibleUsers) {
 			// Scope to the visibility selector to avoid matching the sidebar search
-			const visibilitySearch = page.locator('[data-test="select-visibility"]').getByRole('searchbox')
+			const visibilitySearch = page.locator('[data-test="select-visibility"]').getByRole('combobox')
 			await visibilitySearch.click()
 			await visibilitySearch.fill(username)
 
@@ -81,7 +81,7 @@ test.describe('Attendance App - User Visibility Filtering', () => {
 
 		// Configure manage_appointments permission to admin only
 		const managePermissionSelect = page.locator('[data-test="select-manage-appointments-roles"]')
-		await managePermissionSelect.getByRole('searchbox').click()
+		await managePermissionSelect.getByRole('combobox').click()
 		const adminOption = page.getByRole('option', { name: 'admin' })
 		await adminOption.waitFor({ state: 'visible' })
 		await adminOption.click()
@@ -223,7 +223,7 @@ test.describe('Attendance App - User Visibility Filtering', () => {
 		await expect(visibilitySelector.locator('.vs__selected').filter({ hasText: 'test1' })).toBeVisible()
 
 		// Add another user to visibility
-		const editVisibilitySearch = page.locator('[data-test="select-visibility"]').getByRole('searchbox')
+		const editVisibilitySearch = page.locator('[data-test="select-visibility"]').getByRole('combobox')
 		await editVisibilitySearch.click()
 		await editVisibilitySearch.fill('test2')
 

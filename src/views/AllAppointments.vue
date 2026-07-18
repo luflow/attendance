@@ -107,21 +107,21 @@
 						v-for="appointment in section.items"
 						:key="appointment.id"
 						:appointment="appointment"
-						:can-manage-appointments="permissions.canManageAppointments"
-						:can-checkin="permissions.canCheckin"
-						:can-see-response-overview="permissions.canSeeResponseOverview"
-						:can-see-comments="permissions.canSeeComments"
-						:can-see-audit-log="canSeeAuditLog"
-						:display-order="config.displayOrder"
-						@start-checkin="startCheckin"
+						:canManageAppointments="permissions.canManageAppointments"
+						:canCheckin="permissions.canCheckin"
+						:canSeeResponseOverview="permissions.canSeeResponseOverview"
+						:canSeeComments="permissions.canSeeComments"
+						:canSeeAuditLog="canSeeAuditLog"
+						:displayOrder="config.displayOrder"
+						@startCheckin="startCheckin"
 						@edit="editAppointment"
 						@copy="copyAppointment"
 						@delete="deleteAppointment"
 						@export="showExportDialog"
-						@submit-response="submitResponse"
-						@update-comment="updateComment"
-						@closed-toggled="handleClosedToggled"
-						@show-audit-log="(id) => emit('showAuditLog', id)" />
+						@submitResponse="submitResponse"
+						@updateComment="updateComment"
+						@closedToggled="handleClosedToggled"
+						@showAuditLog="(id) => emit('showAuditLog', id)" />
 				</template>
 			</div>
 		</div>
@@ -142,21 +142,21 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from 'vue'
-import { NcButton, NcChip, NcPopover } from '@nextcloud/vue'
-import AppointmentCard from '../components/appointment/AppointmentCard.vue'
-import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
-import DeleteAppointmentDialog from '../components/appointment/DeleteAppointmentDialog.vue'
-import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
-import LockIcon from 'vue-material-design-icons/Lock.vue'
-import CheckCircleIcon from 'vue-material-design-icons/CheckCircle.vue'
-import CheckIcon from 'vue-material-design-icons/Check.vue'
-import AccountIcon from 'vue-material-design-icons/Account.vue'
-import { create as createConfetti } from 'canvas-confetti'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { usePermissions } from '../composables/usePermissions.js'
+import { NcButton, NcChip, NcPopover } from '@nextcloud/vue'
+import { create as createConfetti } from 'canvas-confetti'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import AccountIcon from 'vue-material-design-icons/Account.vue'
+import CheckIcon from 'vue-material-design-icons/Check.vue'
+import CheckCircleIcon from 'vue-material-design-icons/CheckCircle.vue'
+import LockIcon from 'vue-material-design-icons/Lock.vue'
+import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
+import AppointmentCard from '../components/appointment/AppointmentCard.vue'
+import DeleteAppointmentDialog from '../components/appointment/DeleteAppointmentDialog.vue'
+import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
 import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
+import { usePermissions } from '../composables/usePermissions.js'
 
 const props = defineProps({
 	showPast: {
@@ -214,7 +214,7 @@ const selectedAppointmentForExport = ref(null)
 const showDeleteDialog = ref(false)
 const pendingDeleteAppointment = ref(null)
 
-const goToUpcoming = () => {
+function goToUpcoming() {
 	emit('navigateToUpcoming')
 }
 
@@ -229,6 +229,8 @@ const F = Object.freeze({
 const RESPONSE = Object.freeze({ YES: 'yes', MAYBE: 'maybe', NO: 'no', NONE: 'none' })
 const STATUS = Object.freeze({ OPEN: 'open', CLOSED: 'closed', CANCELLED: 'cancelled' })
 const AUDIENCE = Object.freeze({ ME: 'me' })
+
+const { permissions, capabilities, config, loadPermissions } = usePermissions()
 
 const filterDefs = computed(() => [
 	{
@@ -271,24 +273,22 @@ function loadStoredFilterValues() {
 	try {
 		const parsed = JSON.parse(window.localStorage.getItem(FILTER_STORAGE_KEY) || '{}')
 		// Only keep string values; drop anything else (legacy keys, garbage).
-		return Object.fromEntries(
-			Object.entries(parsed).filter(([, v]) => typeof v === 'string'),
-		)
-	} catch (e) {
+		return Object.fromEntries(Object.entries(parsed).filter(([, v]) => typeof v === 'string'))
+	} catch {
 		return {}
 	}
 }
 
 const filters = computed(() => filterDefs.value
-	.filter(def => def.visible !== false)
-	.map(def => ({
+	.filter((def) => def.visible !== false)
+	.map((def) => ({
 		...def,
-		value: def.options.find(opt => opt.id === filterValues.value[def.id]) ?? null,
+		value: def.options.find((opt) => opt.id === filterValues.value[def.id]) ?? null,
 	})))
 
-const activeFilters = computed(() => filters.value.filter(f => f.value))
+const activeFilters = computed(() => filters.value.filter((f) => f.value))
 
-const setFilter = (id, opt) => {
+function setFilter(id, opt) {
 	const next = { ...filterValues.value }
 	if (opt) {
 		next[id] = opt.id
@@ -308,15 +308,13 @@ watch(filterValues, (next) => {
 		try {
 			window.localStorage.setItem(FILTER_STORAGE_KEY, json)
 			lastPersistedJson = json
-		} catch (e) {
+		} catch {
 			// Storage may be unavailable (private mode, quota).
 		}
 	}, 300)
 }, { deep: true })
 
-const hasActiveFilters = computed(() =>
-	Boolean(props.searchQuery.trim() || activeFilters.value.length),
-)
+const hasActiveFilters = computed(() => Boolean(props.searchQuery.trim() || activeFilters.value.length))
 
 const visibleAppointments = computed(() => {
 	const query = props.searchQuery.trim().toLowerCase()
@@ -350,10 +348,10 @@ const visibleSections = computed(() => {
 	}
 	// Cancelled appointments get their own section at the bottom, regardless of
 	// past/upcoming, so they stay visible but clearly set apart.
-	const active = visibleAppointments.value.filter(a => !a.cancelledAt)
-	const cancelled = visibleAppointments.value.filter(a => a.cancelledAt)
-	const upcoming = active.filter(a => !a._isPast)
-	const past = active.filter(a => a._isPast)
+	const active = visibleAppointments.value.filter((a) => !a.cancelledAt)
+	const cancelled = visibleAppointments.value.filter((a) => a.cancelledAt)
+	const upcoming = active.filter((a) => !a._isPast)
+	const past = active.filter((a) => a._isPast)
 	return [
 		upcoming.length && { key: 'upcoming', label: t('attendance', 'Upcoming'), items: upcoming },
 		past.length && { key: 'past', label: t('attendance', 'Past'), items: past },
@@ -361,8 +359,8 @@ const visibleSections = computed(() => {
 	].filter(Boolean)
 })
 
-const handleClosedToggled = (updated) => {
-	const index = appointments.value.findIndex(a => a.id === updated.id)
+function handleClosedToggled(updated) {
+	const index = appointments.value.findIndex((a) => a.id === updated.id)
 	if (index !== -1) {
 		appointments.value[index] = { ...appointments.value[index], ...updated }
 	}
@@ -377,11 +375,7 @@ const responseComments = reactive({})
 
 // On the Unanswered view the empty state is the celebratory "Hurray!" banner;
 // repeating "Unanswered" above it just adds noise.
-const hideHeading = computed(() =>
-	props.showUnanswered && !loading.value && appointments.value.length === 0,
-)
-
-const { permissions, capabilities, config, loadPermissions } = usePermissions()
+const hideHeading = computed(() => props.showUnanswered && !loading.value && appointments.value.length === 0)
 
 const canSeeAuditLog = computed(() => {
 	if (!capabilities.auditLog) return false
@@ -396,7 +390,7 @@ const { submitResponse: submitResponseApi } = useAppointmentResponse({
 	},
 })
 
-const loadAppointments = async (skipLoadingSpinner = false) => {
+async function loadAppointments(skipLoadingSpinner = false) {
 	try {
 		if (!skipLoadingSpinner) {
 			loading.value = true
@@ -412,8 +406,8 @@ const loadAppointments = async (skipLoadingSpinner = false) => {
 			// Tag for the All-view section split — the server already partitions,
 			// don't re-derive from end_datetime in the browser.
 			appointments.value = [
-				...upcoming.data.map(a => ({ ...a, _isPast: false })),
-				...past.data.map(a => ({ ...a, _isPast: true })),
+				...upcoming.data.map((a) => ({ ...a, _isPast: false })),
+				...past.data.map((a) => ({ ...a, _isPast: true })),
 			]
 		} else {
 			const params = {}
@@ -424,7 +418,7 @@ const loadAppointments = async (skipLoadingSpinner = false) => {
 			appointments.value = response.data
 		}
 
-		appointments.value.forEach(appointment => {
+		appointments.value.forEach((appointment) => {
 			if (appointment.userResponse) {
 				responseComments[appointment.id] = appointment.userResponse.comment || ''
 			}
@@ -445,7 +439,7 @@ watch(() => filterValues.value[F.AUDIENCE], () => {
 	loadAppointments(true)
 })
 
-const loadDetailedResponses = async () => {
+async function loadDetailedResponses() {
 	// Hundreds of serial XHRs in the All view used to take seconds. The
 	// requests are independent — fan them out and let the browser pipeline.
 	await Promise.all(appointments.value.map(async (appointment) => {
@@ -458,25 +452,25 @@ const loadDetailedResponses = async () => {
 	}))
 }
 
-const submitResponse = async (appointmentId, response) => {
-	const appointment = appointments.value.find(a => a.id === appointmentId)
+async function submitResponse(appointmentId, response) {
+	const appointment = appointments.value.find((a) => a.id === appointmentId)
 	const comment = appointment?.userResponse?.comment || ''
 	await submitResponseApi(appointmentId, response, comment)
 }
 
-const updateComment = async (appointmentId, comment) => {
-	const appointment = appointments.value.find(a => a.id === appointmentId)
+async function updateComment(appointmentId, comment) {
+	const appointment = appointments.value.find((a) => a.id === appointmentId)
 	const response = appointment?.userResponse?.response || 'yes'
 	await submitResponseApi(appointmentId, response, comment)
 }
 
-const deleteAppointment = (appointmentId) => {
-	const appointment = appointments.value.find(a => a.id === appointmentId)
+function deleteAppointment(appointmentId) {
+	const appointment = appointments.value.find((a) => a.id === appointmentId)
 	pendingDeleteAppointment.value = appointment
 	showDeleteDialog.value = true
 }
 
-const handleDeleteConfirm = async (scope) => {
+async function handleDeleteConfirm(scope) {
 	showDeleteDialog.value = false
 	if (!pendingDeleteAppointment.value) return
 
@@ -491,20 +485,20 @@ const handleDeleteConfirm = async (scope) => {
 	}
 }
 
-const editAppointment = (appointment) => {
+function editAppointment(appointment) {
 	emit('editAppointment', appointment)
 }
 
-const copyAppointment = (appointment) => {
+function copyAppointment(appointment) {
 	emit('copyAppointment', appointment)
 }
 
-const startCheckin = (appointmentId) => {
+function startCheckin(appointmentId) {
 	window.location.href = generateUrl(`/apps/attendance/checkin/${appointmentId}`)
 }
 
-const showExportDialog = (appointmentId) => {
-	const appointment = appointments.value.find(apt => apt.id === appointmentId)
+function showExportDialog(appointmentId) {
+	const appointment = appointments.value.find((apt) => apt.id === appointmentId)
 	selectedAppointmentForExport.value = appointment
 	exportDialogVisible.value = true
 }
@@ -512,7 +506,7 @@ const showExportDialog = (appointmentId) => {
 // Create confetti instance without worker to comply with NC 32+ CSP
 let confettiInstance = null
 let confettiCanvas = null
-const getConfetti = () => {
+function getConfetti() {
 	if (!confettiInstance) {
 		confettiCanvas = document.createElement('canvas')
 		confettiCanvas.style.position = 'fixed'
@@ -540,7 +534,7 @@ onBeforeUnmount(() => {
 	clearTimeout(persistTimer)
 })
 
-const triggerConfetti = () => {
+function triggerConfetti() {
 	getConfetti()({
 		particleCount: 200,
 		spread: 100,

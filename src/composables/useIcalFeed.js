@@ -1,8 +1,8 @@
-import { ref, computed } from 'vue'
 import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
-import { showSuccess, showError } from '@nextcloud/dialogs'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
+import { generateUrl } from '@nextcloud/router'
+import { computed, ref } from 'vue'
 import { copyToClipboard as copyTextToClipboard } from '../utils/clipboard.js'
 
 /**

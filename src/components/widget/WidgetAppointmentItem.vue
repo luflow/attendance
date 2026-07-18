@@ -71,9 +71,9 @@
 				<!-- Comment Toggle Button (only show when user has responded) -->
 				<NcButton
 					v-if="item.userResponse"
+					class="comment-toggle"
 					:class="{
 						'comment-active': commentExpanded,
-						'comment-toggle': true,
 					}"
 					variant="tertiary"
 					data-test="button-widget-toggle-comment"
@@ -94,7 +94,7 @@
 						:label="t('attendance', 'Comment (optional)')"
 						:placeholder="t('attendance', 'Add your comment\u00A0…')"
 						data-test="widget-response-comment"
-						@update:model-value="handleCommentInput" />
+						@update:modelValue="handleCommentInput" />
 
 					<div v-if="saving" class="saving-spinner">
 						<div class="spinner" />
@@ -112,15 +112,15 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue'
 import { NcButton, NcInputField } from '@nextcloud/vue'
-import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
-import CommentIcon from 'vue-material-design-icons/Comment.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
+import CommentIcon from 'vue-material-design-icons/Comment.vue'
+import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
+import { useAppointmentResponse, useResponseCooldown } from '../../composables/useAppointmentResponse.js'
 import { formatDateTime } from '../../utils/datetime.js'
 import { stripMarkdown } from '../../utils/markdown.js'
-import { useAppointmentResponse, useResponseCooldown } from '../../composables/useAppointmentResponse.js'
 
 const props = defineProps({
 	item: {
@@ -139,11 +139,9 @@ const props = defineProps({
 
 const emit = defineEmits(['respond', 'openCheckin', 'openDetail'])
 
-const { responseCooldown, resolveNext, startCooldown } = useResponseCooldown(
-	() => props.item.userResponse?.response ?? null,
-)
+const { responseCooldown, resolveNext, startCooldown } = useResponseCooldown(() => props.item.userResponse?.response ?? null)
 
-const handleResponse = (response) => {
+function handleResponse(response) {
 	if (responseCooldown.value) return
 	startCooldown()
 	emit('respond', props.item.id, resolveNext(response))
@@ -174,7 +172,7 @@ watch(
 	{ deep: true },
 )
 
-const toggleComment = async () => {
+async function toggleComment() {
 	commentExpanded.value = !commentExpanded.value
 	if (commentExpanded.value) {
 		await nextTick()
@@ -182,7 +180,7 @@ const toggleComment = async () => {
 	}
 }
 
-const handleCommentInput = () => {
+function handleCommentInput() {
 	if (commentTimeout) {
 		clearTimeout(commentTimeout)
 	}

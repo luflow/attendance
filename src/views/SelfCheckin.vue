@@ -39,12 +39,12 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
-import { NcButton } from '@nextcloud/vue'
 import { getRootUrl } from '@nextcloud/router'
+import { NcButton } from '@nextcloud/vue'
+import { onMounted } from 'vue'
 import AppleIcon from 'vue-material-design-icons/Apple.vue'
-import GoogleIcon from 'vue-material-design-icons/Google.vue'
 import CellphoneIcon from 'vue-material-design-icons/Cellphone.vue'
+import GoogleIcon from 'vue-material-design-icons/Google.vue'
 import OpenInAppIcon from 'vue-material-design-icons/OpenInApp.vue'
 import { APPLE_STORE_URL, GOOGLE_STORE_URL } from '../utils/mobileApp.js'
 
@@ -62,8 +62,8 @@ const schemeLink = 'nc-attendance://self-checkin?server=' + encodedServer
 // silently without the app.
 const deepLink = isAndroid
 	? 'intent://self-checkin?server=' + encodedServer
-		+ '#Intent;scheme=nc-attendance;package=' + ANDROID_PACKAGE
-		+ ';S.browser_fallback_url=' + encodeURIComponent(GOOGLE_STORE_URL) + ';end'
+	+ '#Intent;scheme=nc-attendance;package=' + ANDROID_PACKAGE
+	+ ';S.browser_fallback_url=' + encodeURIComponent(GOOGLE_STORE_URL) + ';end'
 	: schemeLink
 
 onMounted(() => {

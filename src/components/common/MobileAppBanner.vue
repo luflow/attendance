@@ -41,23 +41,23 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
 import { NcButton } from '@nextcloud/vue'
+import { onMounted, ref } from 'vue'
 import AppleIcon from 'vue-material-design-icons/Apple.vue'
-import GoogleIcon from 'vue-material-design-icons/Google.vue'
-import CloseIcon from 'vue-material-design-icons/Close.vue'
 import CellphoneIcon from 'vue-material-design-icons/Cellphone.vue'
+import CloseIcon from 'vue-material-design-icons/Close.vue'
+import GoogleIcon from 'vue-material-design-icons/Google.vue'
 import { APPLE_STORE_URL, GOOGLE_STORE_URL } from '../../utils/mobileApp.js'
 
 const DISMISS_KEY = 'attendance:mobile-app-banner-dismissed'
 
 const visible = ref(false)
 
-const dismiss = () => {
+function dismiss() {
 	visible.value = false
 	try {
 		window.localStorage.setItem(DISMISS_KEY, '1')
-	} catch (e) {
+	} catch {
 		// localStorage may be unavailable (private mode, quota); dismissal is transient in that case
 	}
 }
@@ -65,7 +65,7 @@ const dismiss = () => {
 onMounted(() => {
 	try {
 		visible.value = window.localStorage.getItem(DISMISS_KEY) !== '1'
-	} catch (e) {
+	} catch {
 		visible.value = true
 	}
 })

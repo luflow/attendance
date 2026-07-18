@@ -1,4 +1,4 @@
-import { showSuccess, showError } from '@nextcloud/dialogs'
+import { showError, showSuccess } from '@nextcloud/dialogs'
 
 /**
  * Copy text to the clipboard and show a toast.

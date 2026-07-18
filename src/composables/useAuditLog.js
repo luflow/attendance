@@ -1,6 +1,6 @@
-import { ref } from 'vue'
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
+import { ref } from 'vue'
 
 /**
  * Fetches paginated audit events for a single appointment. Pagination state

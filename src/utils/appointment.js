@@ -9,7 +9,7 @@ import { formatDateTime } from './datetime.js'
  * @param {string|null|undefined} closedAt UTC timestamp the inquiry closed.
  * @param {string|null|undefined} responseDeadline The configured deadline,
  *        if any — presence implies the close was the auto-close cron firing.
- * @returns {string} Translated label, e.g. "Closed on Tue, May 15 09:00".
+ * @return {string} Translated label, e.g. "Closed on Tue, May 15 09:00".
  */
 export function formatClosedLabel(closedAt, responseDeadline) {
 	if (!closedAt) {

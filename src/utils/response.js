@@ -133,7 +133,7 @@ export function sortResponsesByType(responses, responseKey = 'response') {
  * @return {Array} Filtered array
  */
 export function filterResponsesByType(responses, type, responseKey = 'response') {
-	return responses.filter(r => r[responseKey] === type)
+	return responses.filter((r) => r[responseKey] === type)
 }
 
 /**
@@ -143,7 +143,8 @@ export function filterResponsesByType(responses, type, responseKey = 'response')
  * @return {boolean} True if user has responded
  */
 export function hasUserResponse(appointment) {
-	return appointment?.userResponse?.response != null
+	const response = appointment?.userResponse?.response
+	return response !== null && response !== undefined
 }
 
 /**

@@ -3,11 +3,12 @@
  * Consolidates all date/time formatting and conversion functions.
  */
 
-import { fromZonedTime } from 'date-fns-tz'
 import { getCanonicalLocale } from '@nextcloud/l10n'
+import { fromZonedTime } from 'date-fns-tz'
 
 /**
  * Get the user's timezone from browser or default to Europe/Berlin.
+ *
  * @return {string} The timezone string
  */
 export function getUserTimezone() {

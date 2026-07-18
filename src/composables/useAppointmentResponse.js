@@ -3,10 +3,10 @@
  * Centralizes response submission and comment auto-save logic.
  */
 
-import { ref, nextTick, onBeforeUnmount } from 'vue'
-import { generateUrl } from '@nextcloud/router'
-import { showSuccess, showError } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
+import { showError, showSuccess } from '@nextcloud/dialogs'
+import { generateUrl } from '@nextcloud/router'
+import { nextTick, onBeforeUnmount, ref } from 'vue'
 
 /**
  * Short cooldown for the yes/maybe/no buttons that prevents button-smashing
@@ -106,6 +106,26 @@ export function useAppointmentResponse(options = {}) {
 	}
 
 	/**
+	 * Clear saved indicator timeout.
+	 */
+	const clearSavedIndicator = () => {
+		if (savedIndicatorTimeout) {
+			clearTimeout(savedIndicatorTimeout)
+			savedIndicatorTimeout = null
+		}
+	}
+
+	/**
+	 * Clear error indicator timeout.
+	 */
+	const clearErrorIndicator = () => {
+		if (errorIndicatorTimeout) {
+			clearTimeout(errorIndicatorTimeout)
+			errorIndicatorTimeout = null
+		}
+	}
+
+	/**
 	 * Auto-save a comment with debouncing.
 	 * Shows visual feedback (spinner, checkmark, error icon).
 	 *
@@ -199,26 +219,6 @@ export function useAppointmentResponse(options = {}) {
 	}
 
 	/**
-	 * Clear saved indicator timeout.
-	 */
-	const clearSavedIndicator = () => {
-		if (savedIndicatorTimeout) {
-			clearTimeout(savedIndicatorTimeout)
-			savedIndicatorTimeout = null
-		}
-	}
-
-	/**
-	 * Clear error indicator timeout.
-	 */
-	const clearErrorIndicator = () => {
-		if (errorIndicatorTimeout) {
-			clearTimeout(errorIndicatorTimeout)
-			errorIndicatorTimeout = null
-		}
-	}
-
-	/**
 	 * Reset all state.
 	 */
 	const reset = () => {
@@ -267,6 +267,7 @@ export function useMultiAppointmentResponse(options = {}) {
 
 	/**
 	 * Submit a response to an appointment.
+	 *
 	 * @param {number} appointmentId - The appointment ID
 	 * @param {string|null} response - The response value (yes/no/maybe) or null to withdraw
 	 * @param {string} comment - Optional comment text
@@ -306,6 +307,7 @@ export function useMultiAppointmentResponse(options = {}) {
 
 	/**
 	 * Auto-save comment for a specific appointment.
+	 *
 	 * @param {number} appointmentId - The appointment ID
 	 * @param {string} currentResponse - The current response value
 	 * @param {string} commentText - The comment text to save
@@ -346,6 +348,7 @@ export function useMultiAppointmentResponse(options = {}) {
 
 	/**
 	 * Handle comment input with debouncing.
+	 *
 	 * @param {number} appointmentId - The appointment ID
 	 * @param {Function} getCommentText - Getter function for comment text
 	 * @param {Function} getCurrentResponse - Getter function for current response
@@ -366,18 +369,21 @@ export function useMultiAppointmentResponse(options = {}) {
 
 	/**
 	 * Check if comment is being saved for an appointment.
+	 *
 	 * @param {number} appointmentId - The appointment ID
 	 */
 	const isSaving = (appointmentId) => !!savingComments[appointmentId]
 
 	/**
 	 * Check if comment was saved for an appointment.
+	 *
 	 * @param {number} appointmentId - The appointment ID
 	 */
 	const isSaved = (appointmentId) => !!savedComments[appointmentId]
 
 	/**
 	 * Check if comment save failed for an appointment.
+	 *
 	 * @param {number} appointmentId - The appointment ID
 	 */
 	const hasError = (appointmentId) => !!errorComments[appointmentId]

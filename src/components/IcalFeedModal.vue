@@ -90,12 +90,12 @@
 </template>
 
 <script setup>
+import { NcButton, NcDialog, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
 import { ref, watch } from 'vue'
-import { NcDialog, NcButton, NcNoteCard, NcLoadingIcon } from '@nextcloud/vue'
-import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
-import Refresh from 'vue-material-design-icons/Refresh.vue'
-import GoogleIcon from 'vue-material-design-icons/Google.vue'
 import AppleIcon from 'vue-material-design-icons/Apple.vue'
+import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
+import GoogleIcon from 'vue-material-design-icons/Google.vue'
+import Refresh from 'vue-material-design-icons/Refresh.vue'
 import { useIcalFeed } from '../composables/useIcalFeed.js'
 import { formatDateTime } from '../utils/datetime.js'
 
@@ -119,15 +119,15 @@ watch(() => props.show, async (newValue) => {
 	}
 })
 
-const handleClose = () => {
+function handleClose() {
 	emit('close')
 }
 
-const handleCopy = () => {
+function handleCopy() {
 	copyToClipboard()
 }
 
-const handleRegenerate = async () => {
+async function handleRegenerate() {
 	showRegenerateConfirm.value = false
 	await regenerateToken()
 }

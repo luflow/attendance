@@ -6,6 +6,9 @@ export const GUESTS_SYSTEM_GROUP = 'guest_app'
 
 /**
  * Map a group id to a UI label, translating known system groups.
+ *
+ * @param groupId
+ * @param fallback
  */
 export function formatGroupLabel(groupId, fallback = null) {
 	if (groupId === GUESTS_SYSTEM_GROUP) {

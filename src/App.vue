@@ -1,12 +1,12 @@
 <template>
-	<NcContent app-name="attendance">
+	<NcContent appName="attendance">
 		<!-- Navigation sidebar (hidden during checkin) -->
 		<NcAppNavigation v-if="currentView !== 'checkin'">
 			<template #search>
 				<NcAppNavigationSearch
 					v-model="searchQuery"
 					:label="t('attendance', 'Search appointments')"
-					@update:model-value="onSearchInput" />
+					@update:modelValue="onSearchInput" />
 			</template>
 			<template #list>
 				<NcAppNavigationItem
@@ -36,8 +36,8 @@
 							:key="appointment.id"
 							:name="formatAppointmentDisplay(appointment)"
 							:active="
-								currentView === 'appointment' &&
-									appointmentDetailId === appointment.id
+								currentView === 'appointment'
+									&& appointmentDetailId === appointment.id
 							"
 							data-test="nav-unanswered-appointment"
 							@click.prevent="
@@ -65,8 +65,8 @@
 							:key="appointment.id"
 							:name="formatAppointmentDisplay(appointment)"
 							:active="
-								currentView === 'appointment' &&
-									appointmentDetailId === appointment.id
+								currentView === 'appointment'
+									&& appointmentDetailId === appointment.id
 							"
 							data-test="nav-upcoming-appointment"
 							@click.prevent="
@@ -75,20 +75,20 @@
 							<template #icon>
 								<CheckCircle
 									v-if="
-										appointment.userResponse?.response ===
-											'yes'
+										appointment.userResponse?.response
+											=== 'yes'
 									"
 									:size="20" />
 								<HelpCircle
 									v-else-if="
-										appointment.userResponse?.response ===
-											'maybe'
+										appointment.userResponse?.response
+											=== 'maybe'
 									"
 									:size="20" />
 								<CloseCircle
 									v-else-if="
-										appointment.userResponse?.response ===
-											'no'
+										appointment.userResponse?.response
+											=== 'no'
 									"
 									:size="20" />
 								<LockIcon
@@ -115,16 +115,16 @@
 					<!-- Nested past appointments -->
 					<template
 						v-if="
-							pastAppointmentsExpanded &&
-								pastAppointments.length > 0
+							pastAppointmentsExpanded
+								&& pastAppointments.length > 0
 						">
 						<NcAppNavigationItem
 							v-for="appointment in pastAppointments"
 							:key="appointment.id"
 							:name="formatAppointmentDisplay(appointment)"
 							:active="
-								currentView === 'appointment' &&
-									appointmentDetailId === appointment.id
+								currentView === 'appointment'
+									&& appointmentDetailId === appointment.id
 							"
 							:data-test="`nav-past-appointment-${appointment.id}`"
 							@click.prevent="
@@ -179,58 +179,58 @@
 			<!-- Check-in View -->
 			<CheckinView
 				v-if="currentView === 'checkin'"
-				:appointment-id="checkinAppointmentId" />
+				:appointmentId="checkinAppointmentId" />
 
 			<!-- Appointment Form View (Create/Edit/Copy) -->
 			<AppointmentForm
 				v-else-if="
-					currentView === 'create' ||
-						currentView === 'edit' ||
-						currentView === 'copy'
+					currentView === 'create'
+						|| currentView === 'edit'
+						|| currentView === 'copy'
 				"
 				:mode="currentView"
-				:appointment-id="formAppointmentId"
-				:notifications-app-enabled="capabilities.notificationsAppEnabled"
-				:calendar-available="capabilities.calendarAvailable"
-				:calendar-sync-enabled="capabilities.calendarSyncEnabled"
+				:appointmentId="formAppointmentId"
+				:notificationsAppEnabled="capabilities.notificationsAppEnabled"
+				:calendarAvailable="capabilities.calendarAvailable"
+				:calendarSyncEnabled="capabilities.calendarSyncEnabled"
 				@saved="handleFormSaved"
 				@cancelled="handleFormCancelled" />
 
 			<!-- Appointment Detail View -->
 			<AppointmentDetail
 				v-else-if="currentView === 'appointment'"
-				:appointment-id="appointmentDetailId"
-				:unanswered-count="unansweredAppointments.length"
-				:scroll-target="appointmentDetailScrollTarget"
-				@response-updated="loadAppointments"
-				@appointment-deleted="handleAppointmentDeleted"
-				@edit-appointment="editAppointment"
-				@copy-appointment="copyAppointment"
-				@navigate-to-unanswered="setView('unanswered')"
-				@scroll-target-consumed="appointmentDetailScrollTarget = null" />
+				:appointmentId="appointmentDetailId"
+				:unansweredCount="unansweredAppointments.length"
+				:scrollTarget="appointmentDetailScrollTarget"
+				@responseUpdated="loadAppointments"
+				@appointmentDeleted="handleAppointmentDeleted"
+				@editAppointment="editAppointment"
+				@copyAppointment="copyAppointment"
+				@navigateToUnanswered="setView('unanswered')"
+				@scrollTargetConsumed="appointmentDetailScrollTarget = null" />
 
 			<!-- All Appointments View -->
 			<AllAppointments
 				v-else-if="
-					currentView === 'current' ||
-						currentView === 'past' ||
-						currentView === 'unanswered' ||
-						currentView === 'all'
+					currentView === 'current'
+						|| currentView === 'past'
+						|| currentView === 'unanswered'
+						|| currentView === 'all'
 				"
 				:key="currentView"
-				:show-past="currentView === 'past'"
-				:show-unanswered="currentView === 'unanswered'"
-				:show-all="currentView === 'all'"
-				:search-query="searchQuery"
-				:unanswered-count="unansweredAppointments.length"
-				@response-updated="loadAppointments"
-				@appointment-deleted="loadAppointments"
-				@edit-appointment="editAppointment"
-				@copy-appointment="copyAppointment"
-				@navigate-to-upcoming="setView('current')"
-				@navigate-to-unanswered="setView('unanswered')"
-				@show-audit-log="openAuditLog"
-				@clear-search="searchQuery = ''" />
+				:showPast="currentView === 'past'"
+				:showUnanswered="currentView === 'unanswered'"
+				:showAll="currentView === 'all'"
+				:searchQuery="searchQuery"
+				:unansweredCount="unansweredAppointments.length"
+				@responseUpdated="loadAppointments"
+				@appointmentDeleted="loadAppointments"
+				@editAppointment="editAppointment"
+				@copyAppointment="copyAppointment"
+				@navigateToUpcoming="setView('current')"
+				@navigateToUnanswered="setView('unanswered')"
+				@showAuditLog="openAuditLog"
+				@clearSearch="searchQuery = ''" />
 
 			<!-- Loading state while routing is determined -->
 			<div v-else class="loading-state">
@@ -246,42 +246,42 @@
 		<!-- Export Dialog -->
 		<ExportDialog
 			:show="showExportDialog"
-			:available-appointments="allAppointments"
+			:availableAppointments="allAppointments"
 			@close="showExportDialog = false" />
 	</NcContent>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import CheckinView from './views/Checkin.vue'
-import AllAppointments from './views/AllAppointments.vue'
-import AppointmentDetail from './views/AppointmentDetail.vue'
-import AppointmentForm from './views/AppointmentForm.vue'
-import IcalFeedModal from './components/IcalFeedModal.vue'
-import ExportDialog from './components/ExportDialog.vue'
-import MobileAppBanner from './components/common/MobileAppBanner.vue'
+import axios from '@nextcloud/axios'
+import { generateUrl } from '@nextcloud/router'
 import {
-	NcContent,
+	NcAppContent,
 	NcAppNavigation,
 	NcAppNavigationItem,
 	NcAppNavigationSearch,
-	NcAppContent,
+	NcContent,
 } from '@nextcloud/vue'
-import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
+import { computed, onMounted, ref, watch } from 'vue'
+import BellAlertIcon from 'vue-material-design-icons/BellAlert.vue'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import CalendarClockIcon from 'vue-material-design-icons/CalendarClock.vue'
-import FormatListBulletedIcon from 'vue-material-design-icons/FormatListBulleted.vue'
-import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
-import HelpCircle from 'vue-material-design-icons/HelpCircle.vue'
-import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
-import CheckCircle from 'vue-material-design-icons/CheckCircle.vue'
-import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
-import PlusIcon from 'vue-material-design-icons/Plus.vue'
-import DownloadIcon from 'vue-material-design-icons/Download.vue'
-import BellAlertIcon from 'vue-material-design-icons/BellAlert.vue'
 import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
+import CheckCircle from 'vue-material-design-icons/CheckCircle.vue'
+import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
+import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
+import DownloadIcon from 'vue-material-design-icons/Download.vue'
+import FormatListBulletedIcon from 'vue-material-design-icons/FormatListBulleted.vue'
+import HelpCircle from 'vue-material-design-icons/HelpCircle.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
+import PlusIcon from 'vue-material-design-icons/Plus.vue'
+import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
+import MobileAppBanner from './components/common/MobileAppBanner.vue'
+import ExportDialog from './components/ExportDialog.vue'
+import IcalFeedModal from './components/IcalFeedModal.vue'
+import AllAppointments from './views/AllAppointments.vue'
+import AppointmentDetail from './views/AppointmentDetail.vue'
+import AppointmentForm from './views/AppointmentForm.vue'
+import CheckinView from './views/Checkin.vue'
 import { usePermissions } from './composables/usePermissions.js'
 import { formatDateTime } from './utils/datetime.js'
 
@@ -298,7 +298,7 @@ t('attendance', 'Complete the login in your browser')
 t('attendance', 'After granting access, return to this app')
 t('attendance', 'Enter the domain of your Nextcloud server to get started.')
 t('attendance', 'Nextcloud is not fully installed on this server')
-t('attendance', 'Setting up …')
+t('attendance', 'Setting up …')
 t('attendance', "Let's go!")
 
 t('attendance', 'Settings')
@@ -321,7 +321,7 @@ t('attendance', 'Dark')
 t('attendance', 'Notifications')
 t('attendance', 'Push Notifications')
 t('attendance', 'Receive notifications for new appointments and reminders')
-t('attendance', 'Connecting…')
+t('attendance', 'Connecting …')
 t('attendance', 'Connected')
 t('attendance', 'Connection failed — tap to retry')
 t('attendance', 'Notifications blocked — tap to open settings')
@@ -368,7 +368,7 @@ t('attendance', 'More than 100 active app users?')
 t('attendance', 'Restore Purchases')
 t('attendance', 'Terms of Service')
 t('attendance', 'Privacy Policy')
-t('attendance', 'By connecting, you agree to our {terms} and acknowledge our {privacy}.')
+t('attendance', 'By connecting, you agree to our [Terms of Service](terms) and acknowledge our [Privacy Policy](privacy).')
 t('attendance', 'Current plan')
 t('attendance', 'Expired')
 t('attendance', 'Trial ended — mobile app paused for this server')
@@ -380,8 +380,7 @@ t('attendance', 'Purchase failed. Please try again.')
 t('attendance', 'Need more time? Extend trial by 14 days')
 t('attendance', 'Trial extended by 14 days')
 t('attendance', 'Trial extension is not available.')
-t('attendance', '%n day left for your team')
-t('attendance', '%n days left for your team')
+n('attendance', '%n day left for your team', '%n days left for your team', 1)
 t('attendance', 'Get in touch')
 t('attendance', 'Questions? Get in touch:')
 
@@ -406,6 +405,7 @@ t('attendance', 'All languages')
 t('attendance', 'App developer')
 t('attendance', 'Bring it to your team')
 t('attendance', 'Cancelled on {when}')
+t('attendance', 'Check-in code')
 t('attendance', 'Common')
 t('attendance', 'Could not load language and group options: {error}')
 t('attendance', 'Create')
@@ -418,7 +418,7 @@ t('attendance', 'Groups (optional)')
 t('attendance', 'Groups (required)')
 t('attendance', "I built this app on my own — no team, no corporation, and it's not part of Nextcloud GmbH. The push notifications run through servers I pay for every month. Your subscription covers those costs and gives me time to keep improving the app. Thank you for making that possible. 🙏")
 t('attendance', 'Invite guest')
-t('attendance', 'Invoice / Association')
+t('attendance', 'Invoice/association')
 t('attendance', 'Language')
 t('attendance', 'Name (optional)')
 t('attendance', 'Not ready to decide? Add 14 days, free')
@@ -438,7 +438,7 @@ t('attendance', "You can book directly through me — no App Store purchase need
 t('attendance', 'You can only assign guests to groups you administer. Ask a server admin to grant you sub-admin rights if you need this.')
 t('attendance', 'Your free trial has ended')
 t('attendance', 'Your subscription keeps the server running and the app moving forward. Thanks. 🙏')
-t('attendance', 'make the app worth keeping.')
+t('attendance', 'Your 14 extra days are yours either way — this just helps me make the app worth keeping.')
 
 const currentView = ref(null) // 'current', 'past', 'unanswered', 'appointment', 'checkin', 'create', 'edit', 'copy', or null
 const checkinAppointmentId = ref(null)
@@ -457,7 +457,7 @@ const pastAppointmentsExpanded = ref(false)
 // Intentionally not persisted — a search term carrying across reloads is
 // more confusing than helpful. Filters in AllAppointments.vue are persisted.
 const searchQuery = ref('')
-const onSearchInput = () => {
+function onSearchInput() {
 	if (!searchQuery.value) return
 	// Admin's default landing leaves currentView='all' but the URL bare —
 	// re-run setView so the URL also reflects the searchable All view.
@@ -493,7 +493,7 @@ const allAppointments = computed(() => {
 	return [...currentAppointments.value, ...pastAppointments.value]
 })
 
-const setView = (view) => {
+function setView(view) {
 	// Scoped views (Upcoming/Past/Unanswered) reset the search; the "All"
 	// view is the search target, so navigating there preserves the term.
 	if (['current', 'past', 'unanswered'].includes(view) && view !== currentView.value) {
@@ -520,7 +520,7 @@ const setView = (view) => {
 	window.history.pushState({ view }, '', newUrl)
 }
 
-const navigateToAppointment = (appointmentId) => {
+function navigateToAppointment(appointmentId) {
 	currentView.value = 'appointment'
 	appointmentDetailId.value = appointmentId
 
@@ -537,17 +537,15 @@ const navigateToAppointment = (appointmentId) => {
 	)
 }
 
-const openAuditLog = (appointmentId) => {
+function openAuditLog(appointmentId) {
 	appointmentDetailScrollTarget.value = 'audit'
 	navigateToAppointment(appointmentId)
 }
 
-const loadAppointments = async () => {
+async function loadAppointments() {
 	try {
 		// Use lightweight navigation endpoint (single call, minimal data)
-		const response = await axios.get(
-			generateUrl('/apps/attendance/api/appointments/navigation'),
-		)
+		const response = await axios.get(generateUrl('/apps/attendance/api/appointments/navigation'))
 		currentAppointments.value = response.data.current
 		pastAppointments.value = response.data.past
 	} catch (error) {
@@ -555,7 +553,7 @@ const loadAppointments = async () => {
 	}
 }
 
-const createNewAppointment = () => {
+function createNewAppointment() {
 	currentView.value = 'create'
 	formAppointmentId.value = null
 
@@ -568,7 +566,7 @@ const createNewAppointment = () => {
 	window.history.pushState({ view: 'create' }, '', newUrl)
 }
 
-const editAppointment = (appointment) => {
+function editAppointment(appointment) {
 	currentView.value = 'edit'
 	formAppointmentId.value = appointment.id
 
@@ -585,7 +583,7 @@ const editAppointment = (appointment) => {
 	)
 }
 
-const copyAppointment = (appointment) => {
+function copyAppointment(appointment) {
 	currentView.value = 'copy'
 	formAppointmentId.value = appointment.id
 
@@ -602,12 +600,12 @@ const copyAppointment = (appointment) => {
 	)
 }
 
-const handleAppointmentDeleted = async () => {
+async function handleAppointmentDeleted() {
 	await loadAppointments()
 	setView('current')
 }
 
-const handleFormSaved = async (appointmentId) => {
+async function handleFormSaved(appointmentId) {
 	await loadAppointments()
 
 	// Navigate to the saved appointment's detail view
@@ -618,7 +616,7 @@ const handleFormSaved = async (appointmentId) => {
 	}
 }
 
-const handleFormCancelled = () => {
+function handleFormCancelled() {
 	// Go back to the previous view or default to current
 	if (window.history.length > 1) {
 		window.history.back()
@@ -627,7 +625,7 @@ const handleFormCancelled = () => {
 	}
 }
 
-const formatAppointmentDisplay = (appointment) => {
+function formatAppointmentDisplay(appointment) {
 	if (!appointment.startDatetime) {
 		return appointment.name
 	}
@@ -638,7 +636,7 @@ const formatAppointmentDisplay = (appointment) => {
 	return `${appointment.name}\n${dateTimeStr}`
 }
 
-const checkRouting = () => {
+function checkRouting() {
 	const path = window.location.pathname
 	const checkinMatch = path.match(/\/checkin\/(\d+)/)
 	const appointmentMatch = path.match(/\/appointment\/(\d+)/)
@@ -686,7 +684,7 @@ const checkRouting = () => {
 const appointmentsLoaded = ref(false)
 
 // Load appointments for navigation if not already loaded
-const ensureAppointmentsLoaded = async () => {
+async function ensureAppointmentsLoaded() {
 	if (!appointmentsLoaded.value) {
 		await loadAppointments()
 		appointmentsLoaded.value = true

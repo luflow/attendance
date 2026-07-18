@@ -2,8 +2,8 @@
  * Personal settings Vue app entry point
  */
 
-import { createApp } from 'vue'
 import { translate, translatePlural } from '@nextcloud/l10n'
+import { createApp } from 'vue'
 import PersonalSettings from './views/PersonalSettings.vue'
 
 const app = createApp(PersonalSettings)

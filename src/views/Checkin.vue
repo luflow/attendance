@@ -19,8 +19,8 @@
 		</div>
 
 		<div v-if="!loading && !error && timeWarning && !timeWarningAccepted" class="time-warning-gate">
-			<CheckinAppointmentInfo :appointment="appointment" :display-order="config.displayOrder" />
-			<NcNoteCard type="error" :heading="t('attendance', 'Caution')" :show-alert="true">
+			<CheckinAppointmentInfo :appointment="appointment" :displayOrder="config.displayOrder" />
+			<NcNoteCard type="error" :heading="t('attendance', 'Caution')" :showAlert="true">
 				<p>{{ timeWarning }}</p>
 				<div class="time-warning-action">
 					<NcButton variant="error" @click="timeWarningAccepted = true">
@@ -31,17 +31,17 @@
 		</div>
 
 		<div v-if="!loading && !error && (!timeWarning || timeWarningAccepted)" class="checkin-content">
-			<CheckinAppointmentInfo :appointment="appointment" :display-order="config.displayOrder" />
+			<CheckinAppointmentInfo :appointment="appointment" :displayOrder="config.displayOrder" />
 
 			<CheckinStatus
-				:all-checked-in="checkinStatus.allCheckedIn"
-				:not-checked-in-count="checkinStatus.notCheckedIn" />
+				:allCheckedIn="checkinStatus.allCheckedIn"
+				:notCheckedInCount="checkinStatus.notCheckedIn" />
 
 			<div class="filter-section">
 				<NcRadioGroup
 					v-model="showFilter"
 					:label="t('attendance', 'Filter users')"
-					hide-label>
+					hideLabel>
 					<NcRadioGroupButton
 						:label="t('attendance', 'All users')"
 						value="all"
@@ -54,30 +54,30 @@
 			</div>
 
 			<CheckinControls
-				v-model:search-query="searchQuery"
-				v-model:selected-group="selectedGroup"
-				:group-options="groupOptions" />
+				v-model:searchQuery="searchQuery"
+				v-model:selectedGroup="selectedGroup"
+				:groupOptions="groupOptions" />
 
 			<div class="user-lists">
 				<div class="user-section">
 					<CheckinBulkActions
 						v-if="filteredAllUsers.length > 0"
 						:disabled="bulkProcessing"
-						@bulk-checkin="confirmBulkCheckin" />
+						@bulkCheckin="confirmBulkCheckin" />
 
 					<div v-if="filteredAllUsers.length > 0" class="user-list">
 						<CheckinUserItem
 							v-for="user in filteredAllUsers"
 							:key="user.userId"
 							:user="user"
-							:show-comment-input="showCommentInput[user.userId]"
-							:comment-value="checkinComments[user.userId] || ''"
-							:can-see-comments="permissions.canSeeComments"
+							:showCommentInput="showCommentInput[user.userId]"
+							:commentValue="checkinComments[user.userId] || ''"
+							:canSeeComments="permissions.canSeeComments"
 							@checkin="checkinUser"
-							@toggle-comment="toggleCommentInput"
-							@save-comment="saveCheckinComment"
-							@cancel-comment="cancelCommentInput"
-							@update:comment-value="updateCommentValue(user.userId, $event)" />
+							@toggleComment="toggleCommentInput"
+							@saveComment="saveCheckinComment"
+							@cancelComment="cancelCommentInput"
+							@update:commentValue="updateCommentValue(user.userId, $event)" />
 					</div>
 
 					<NcEmptyContent
@@ -158,23 +158,22 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { NcButton, NcLoadingIcon, NcEmptyContent, NcDialog, NcNoteCard, NcRadioGroup, NcRadioGroupButton } from '@nextcloud/vue'
+import axios from '@nextcloud/axios'
+import { generateUrl } from '@nextcloud/router'
+import { NcButton, NcDialog, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcRadioGroup, NcRadioGroupButton } from '@nextcloud/vue'
+import { computed, onMounted, reactive, ref } from 'vue'
+import AccountSearchIcon from 'vue-material-design-icons/AccountSearch.vue'
 import AlertIcon from 'vue-material-design-icons/Alert.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
-import AccountSearchIcon from 'vue-material-design-icons/AccountSearch.vue'
-import { generateUrl } from '@nextcloud/router'
-import axios from '@nextcloud/axios'
-import { usePermissions } from '../composables/usePermissions.js'
-import { formatDateRange } from '../utils/datetime.js'
-
+import CheckinAppointmentInfo from '../components/checkin/CheckinAppointmentInfo.vue'
+import CheckinBulkActions from '../components/checkin/CheckinBulkActions.vue'
+import CheckinControls from '../components/checkin/CheckinControls.vue'
 // Split components
 import CheckinHeader from '../components/checkin/CheckinHeader.vue'
-import CheckinAppointmentInfo from '../components/checkin/CheckinAppointmentInfo.vue'
 import CheckinStatus from '../components/checkin/CheckinStatus.vue'
-import CheckinControls from '../components/checkin/CheckinControls.vue'
-import CheckinBulkActions from '../components/checkin/CheckinBulkActions.vue'
 import CheckinUserItem from '../components/checkin/CheckinUserItem.vue'
+import { usePermissions } from '../composables/usePermissions.js'
+import { formatDateRange } from '../utils/datetime.js'
 
 const props = defineProps({
 	appointmentId: {
@@ -220,45 +219,13 @@ const timeWarning = computed(() => {
 	}
 	return null
 })
-const groupOptions = computed(() => userGroups.value.map(group => ({
+const groupOptions = computed(() => userGroups.value.map((group) => ({
 	id: group,
 	label: t('attendance', group),
 })))
 
-const showPendingLabel = computed(() => {
-	return t('attendance', 'Only pending ({count})', { count: checkinStatus.value.notCheckedIn })
-})
-
-const filteredAllUsers = computed(() => {
-	let filtered = users.value
-
-	// Filter by checkin status (all vs not checked in)
-	if (showFilter.value === 'not-checked-in') {
-		filtered = filtered.filter(user => !user.checkinState)
-	}
-
-	// Filter by search query
-	if (searchQuery.value) {
-		const query = searchQuery.value.toLowerCase()
-		filtered = filtered.filter(user =>
-			user.displayName.toLowerCase().includes(query)
-			|| user.userId.toLowerCase().includes(query),
-		)
-	}
-
-	// Filter by selected group
-	if (selectedGroup.value) {
-		filtered = filtered.filter(user =>
-			user.groups && user.groups.includes(selectedGroup.value.id),
-		)
-	}
-
-	// Sort by display name alphabetically
-	return filtered.sort((a, b) => a.displayName.localeCompare(b.displayName))
-})
-
 const checkinStatus = computed(() => {
-	const checkedInUsers = users.value.filter(user => user.checkinState)
+	const checkedInUsers = users.value.filter((user) => user.checkinState)
 	const notCheckedInCount = users.value.length - checkedInUsers.length
 
 	return {
@@ -269,12 +236,40 @@ const checkinStatus = computed(() => {
 	}
 })
 
+const showPendingLabel = computed(() => {
+	return t('attendance', 'Only pending ({count})', { count: checkinStatus.value.notCheckedIn })
+})
+
+const filteredAllUsers = computed(() => {
+	let filtered = users.value
+
+	// Filter by checkin status (all vs not checked in)
+	if (showFilter.value === 'not-checked-in') {
+		filtered = filtered.filter((user) => !user.checkinState)
+	}
+
+	// Filter by search query
+	if (searchQuery.value) {
+		const query = searchQuery.value.toLowerCase()
+		filtered = filtered.filter((user) => user.displayName.toLowerCase().includes(query)
+			|| user.userId.toLowerCase().includes(query))
+	}
+
+	// Filter by selected group
+	if (selectedGroup.value) {
+		filtered = filtered.filter((user) => user.groups && user.groups.includes(selectedGroup.value.id))
+	}
+
+	// Sort by display name alphabetically
+	return filtered.sort((a, b) => a.displayName.localeCompare(b.displayName))
+})
+
 // Methods
-const goBack = () => {
+function goBack() {
 	window.history.back()
 }
 
-const loadAppointmentData = async (skipLoadingSpinner = false) => {
+async function loadAppointmentData(skipLoadingSpinner = false) {
 	try {
 		if (!skipLoadingSpinner) {
 			loading.value = true
@@ -295,7 +290,7 @@ const loadAppointmentData = async (skipLoadingSpinner = false) => {
 	}
 }
 
-const checkinUser = async (userId, response, reloadData = true) => {
+async function checkinUser(userId, response, reloadData = true) {
 	try {
 		const url = generateUrl('/apps/attendance/api/appointments/{id}/checkin/{userId}', {
 			id: props.appointmentId,
@@ -312,7 +307,7 @@ const checkinUser = async (userId, response, reloadData = true) => {
 	}
 }
 
-const confirmBulkCheckin = (response) => {
+function confirmBulkCheckin(response) {
 	const userCount = filteredAllUsers.value.length
 	const actionText = response === 'yes' ? t('attendance', 'attending') : t('attendance', 'not attending')
 
@@ -322,7 +317,7 @@ const confirmBulkCheckin = (response) => {
 	showConfirmDialog.value = true
 }
 
-const executeBulkAction = async () => {
+async function executeBulkAction() {
 	if (bulkProcessing.value) return
 
 	bulkProcessing.value = true
@@ -341,13 +336,13 @@ const executeBulkAction = async () => {
 	}
 }
 
-const cancelBulkAction = () => {
+function cancelBulkAction() {
 	showConfirmDialog.value = false
 	pendingBulkAction.value = null
 	confirmMessage.value = ''
 }
 
-const executeResetCheckin = async () => {
+async function executeResetCheckin() {
 	showResetDialog.value = false
 	try {
 		const url = generateUrl('/apps/attendance/api/appointments/{id}/checkin-reset', { id: props.appointmentId })
@@ -358,19 +353,19 @@ const executeResetCheckin = async () => {
 	}
 }
 
-const toggleCommentInput = (userId) => {
+function toggleCommentInput(userId) {
 	showCommentInput[userId] = !showCommentInput[userId]
 	if (showCommentInput[userId] && !checkinComments[userId]) {
-		const user = filteredAllUsers.value.find(u => u.userId === userId)
+		const user = filteredAllUsers.value.find((u) => u.userId === userId)
 		checkinComments[userId] = user?.checkinComment || ''
 	}
 }
 
-const updateCommentValue = (userId, value) => {
+function updateCommentValue(userId, value) {
 	checkinComments[userId] = value
 }
 
-const saveCheckinComment = async (userId) => {
+async function saveCheckinComment(userId) {
 	try {
 		const url = generateUrl('/apps/attendance/api/appointments/{id}/checkin/{userId}', {
 			id: props.appointmentId,
@@ -388,8 +383,8 @@ const saveCheckinComment = async (userId) => {
 	}
 }
 
-const cancelCommentInput = (userId) => {
-	const user = filteredAllUsers.value.find(u => u.userId === userId)
+function cancelCommentInput(userId) {
+	const user = filteredAllUsers.value.find((u) => u.userId === userId)
 	checkinComments[userId] = user?.checkinComment || ''
 	showCommentInput[userId] = false
 }

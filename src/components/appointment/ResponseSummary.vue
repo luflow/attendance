@@ -10,19 +10,19 @@
 			<NcChip
 				:text="`${t('attendance', 'Yes')}: ${responseSummary.yes}`"
 				variant="success"
-				no-close />
+				noClose />
 			<NcChip
 				:text="`${t('attendance', 'Maybe')}: ${responseSummary.maybe}`"
 				variant="warning"
-				no-close />
+				noClose />
 			<NcChip
 				:text="`${t('attendance', 'No')}: ${responseSummary.no}`"
 				variant="error"
-				no-close />
+				noClose />
 			<NcChip
 				:text="`${t('attendance', 'No response')}: ${responseSummary.no_response}`"
 				variant="tertiary"
-				no-close />
+				noClose />
 		</div>
 
 		<!-- Unified Group/Team Summary -->
@@ -53,19 +53,19 @@
 						<NcChip
 							:text="String(groupStats.yes)"
 							variant="success"
-							no-close />
+							noClose />
 						<NcChip
 							:text="String(groupStats.maybe)"
 							variant="warning"
-							no-close />
+							noClose />
 						<NcChip
 							:text="String(groupStats.no)"
 							variant="error"
-							no-close />
+							noClose />
 						<NcChip
 							:text="String(groupStats.no_response)"
 							variant="tertiary"
-							no-close />
+							noClose />
 					</div>
 				</div>
 
@@ -76,8 +76,8 @@
 					<!-- Show responses if any exist -->
 					<div
 						v-if="
-							groupStats.responses &&
-								groupStats.responses.length > 0
+							groupStats.responses
+								&& groupStats.responses.length > 0
 						"
 						class="group-responses">
 						<div
@@ -98,47 +98,47 @@
 												response.response,
 											)
 										"
-										no-close />
-								<NcPopover
-									v-if="response.response === 'maybe' && canSendReminders && appointmentId"
-									:shown="openRemindPopover === response.userId"
-									popup-role="dialog"
-									class="remind-maybe-popover-wrapper"
-									@update:shown="(val) => openRemindPopover = val ? response.userId : null">
-									<template #trigger>
-										<span
-											class="remind-maybe-btn"
-											:class="{ 'remind-maybe-btn--pending': remindingUsers.has(response.userId) }"
-											role="button"
-											tabindex="0"
-											@click.stop><BellRingOutlineIcon :size="14" class="remind-icon" /></span>
-									</template>
-									<div class="remind-popover" role="dialog" aria-modal="true">
-										<p>{{ t('attendance', 'Send a reminder to {name}?', { name: response.userName }) }}</p>
-										<NcButton
-											variant="primary"
-											:disabled="remindingUsers.has(response.userId)"
-											@click="handleRemindFromPopover(response.userId)">
-											<template #icon>
-												<BellRingOutlineIcon :size="20" />
-											</template>
-											{{ t('attendance', 'Send reminder') }}
-										</NcButton>
-									</div>
-								</NcPopover>
-								<NcButton
-									v-if="canManageBooking && response.response === 'yes'"
-									class="booking-toggle"
-									:variant="response.bookingStatus === 'booked' ? 'success' : 'tertiary'"
-									:disabled="togglingBooking.has(response.userId) || isClosed"
-									:title="isClosed ? t('attendance', 'Reopen the inquiry to change scheduling') : null"
-									:data-test="`booking-toggle-${response.userId}`"
-									@click="toggleBooking(response)">
-									<template #icon>
-										<CalendarCheckIcon :size="20" />
-									</template>
-									{{ response.bookingStatus === 'booked' ? t('attendance', 'Scheduled') : t('attendance', 'Schedule') }}
-								</NcButton>
+										noClose />
+									<NcPopover
+										v-if="response.response === 'maybe' && canSendReminders && appointmentId"
+										:shown="openRemindPopover === response.userId"
+										popupRole="dialog"
+										class="remind-maybe-popover-wrapper"
+										@update:shown="(val) => openRemindPopover = val ? response.userId : null">
+										<template #trigger>
+											<span
+												class="remind-maybe-btn"
+												:class="{ 'remind-maybe-btn--pending': remindingUsers.has(response.userId) }"
+												role="button"
+												tabindex="0"
+												@click.stop><BellRingOutlineIcon :size="14" class="remind-icon" /></span>
+										</template>
+										<div class="remind-popover" role="dialog" aria-modal="true">
+											<p>{{ t('attendance', 'Send a reminder to {name}?', { name: response.userName }) }}</p>
+											<NcButton
+												variant="primary"
+												:disabled="remindingUsers.has(response.userId)"
+												@click="handleRemindFromPopover(response.userId)">
+												<template #icon>
+													<BellRingOutlineIcon :size="20" />
+												</template>
+												{{ t('attendance', 'Send reminder') }}
+											</NcButton>
+										</div>
+									</NcPopover>
+									<NcButton
+										v-if="canManageBooking && response.response === 'yes'"
+										class="booking-toggle"
+										:variant="response.bookingStatus === 'booked' ? 'success' : 'tertiary'"
+										:disabled="togglingBooking.has(response.userId) || isClosed"
+										:title="isClosed ? t('attendance', 'Reopen the inquiry to change scheduling') : null"
+										:data-test="`booking-toggle-${response.userId}`"
+										@click="toggleBooking(response)">
+										<template #icon>
+											<CalendarCheckIcon :size="20" />
+										</template>
+										{{ response.bookingStatus === 'booked' ? t('attendance', 'Scheduled') : t('attendance', 'Schedule') }}
+									</NcButton>
 								</div>
 								<div
 									v-if="response.isCheckedIn"
@@ -157,14 +157,14 @@
 												response.checkinState,
 											)
 										"
-										no-close />
+										noClose />
 								</div>
 							</div>
 							<div
 								v-if="
-									canSeeComments &&
-										response.comment &&
-										response.comment.trim()
+									canSeeComments
+										&& response.comment
+										&& response.comment.trim()
 								"
 								class="response-comment">
 								{{ response.comment }}
@@ -175,14 +175,14 @@
 					<!-- Non-responding users -->
 					<NonRespondingUserList
 						v-if="
-							groupStats.non_responding_users &&
-								groupStats.non_responding_users.length > 0
+							groupStats.non_responding_users
+								&& groupStats.non_responding_users.length > 0
 						"
 						:users="groupStats.non_responding_users"
-						:header-text="t('attendance', 'No response yet:')"
-						:can-manage-appointments="canSendReminders"
-						:appointment-id="appointmentId"
-						:reminding-users="remindingUsers"
+						:headerText="t('attendance', 'No response yet:')"
+						:canManageAppointments="canSendReminders"
+						:appointmentId="appointmentId"
+						:remindingUsers="remindingUsers"
 						@remind="remindUser" />
 				</div>
 			</div>
@@ -210,19 +210,19 @@
 						<NcChip
 							:text="String(teamStats.yes)"
 							variant="success"
-							no-close />
+							noClose />
 						<NcChip
 							:text="String(teamStats.maybe)"
 							variant="warning"
-							no-close />
+							noClose />
 						<NcChip
 							:text="String(teamStats.no)"
 							variant="error"
-							no-close />
+							noClose />
 						<NcChip
 							:text="String(teamStats.no_response)"
 							variant="tertiary"
-							no-close />
+							noClose />
 					</div>
 				</div>
 
@@ -233,8 +233,8 @@
 					<!-- Show responses if any exist -->
 					<div
 						v-if="
-							teamStats.responses &&
-								teamStats.responses.length > 0
+							teamStats.responses
+								&& teamStats.responses.length > 0
 						"
 						class="group-responses">
 						<div
@@ -255,47 +255,47 @@
 												response.response,
 											)
 										"
-										no-close />
-								<NcPopover
-									v-if="response.response === 'maybe' && canSendReminders && appointmentId"
-									:shown="openRemindPopover === response.userId"
-									popup-role="dialog"
-									class="remind-maybe-popover-wrapper"
-									@update:shown="(val) => openRemindPopover = val ? response.userId : null">
-									<template #trigger>
-										<span
-											class="remind-maybe-btn"
-											:class="{ 'remind-maybe-btn--pending': remindingUsers.has(response.userId) }"
-											role="button"
-											tabindex="0"
-											@click.stop><BellRingOutlineIcon :size="14" class="remind-icon" /></span>
-									</template>
-									<div class="remind-popover" role="dialog" aria-modal="true">
-										<p>{{ t('attendance', 'Send a reminder to {name}?', { name: response.userName }) }}</p>
-										<NcButton
-											variant="primary"
-											:disabled="remindingUsers.has(response.userId)"
-											@click="handleRemindFromPopover(response.userId)">
-											<template #icon>
-												<BellRingOutlineIcon :size="20" />
-											</template>
-											{{ t('attendance', 'Send reminder') }}
-										</NcButton>
-									</div>
-								</NcPopover>
-								<NcButton
-									v-if="canManageBooking && response.response === 'yes'"
-									class="booking-toggle"
-									:variant="response.bookingStatus === 'booked' ? 'success' : 'tertiary'"
-									:disabled="togglingBooking.has(response.userId) || isClosed"
-									:title="isClosed ? t('attendance', 'Reopen the inquiry to change scheduling') : null"
-									:data-test="`booking-toggle-${response.userId}`"
-									@click="toggleBooking(response)">
-									<template #icon>
-										<CalendarCheckIcon :size="20" />
-									</template>
-									{{ response.bookingStatus === 'booked' ? t('attendance', 'Scheduled') : t('attendance', 'Schedule') }}
-								</NcButton>
+										noClose />
+									<NcPopover
+										v-if="response.response === 'maybe' && canSendReminders && appointmentId"
+										:shown="openRemindPopover === response.userId"
+										popupRole="dialog"
+										class="remind-maybe-popover-wrapper"
+										@update:shown="(val) => openRemindPopover = val ? response.userId : null">
+										<template #trigger>
+											<span
+												class="remind-maybe-btn"
+												:class="{ 'remind-maybe-btn--pending': remindingUsers.has(response.userId) }"
+												role="button"
+												tabindex="0"
+												@click.stop><BellRingOutlineIcon :size="14" class="remind-icon" /></span>
+										</template>
+										<div class="remind-popover" role="dialog" aria-modal="true">
+											<p>{{ t('attendance', 'Send a reminder to {name}?', { name: response.userName }) }}</p>
+											<NcButton
+												variant="primary"
+												:disabled="remindingUsers.has(response.userId)"
+												@click="handleRemindFromPopover(response.userId)">
+												<template #icon>
+													<BellRingOutlineIcon :size="20" />
+												</template>
+												{{ t('attendance', 'Send reminder') }}
+											</NcButton>
+										</div>
+									</NcPopover>
+									<NcButton
+										v-if="canManageBooking && response.response === 'yes'"
+										class="booking-toggle"
+										:variant="response.bookingStatus === 'booked' ? 'success' : 'tertiary'"
+										:disabled="togglingBooking.has(response.userId) || isClosed"
+										:title="isClosed ? t('attendance', 'Reopen the inquiry to change scheduling') : null"
+										:data-test="`booking-toggle-${response.userId}`"
+										@click="toggleBooking(response)">
+										<template #icon>
+											<CalendarCheckIcon :size="20" />
+										</template>
+										{{ response.bookingStatus === 'booked' ? t('attendance', 'Scheduled') : t('attendance', 'Schedule') }}
+									</NcButton>
 								</div>
 								<div
 									v-if="response.isCheckedIn"
@@ -314,14 +314,14 @@
 												response.checkinState,
 											)
 										"
-										no-close />
+										noClose />
 								</div>
 							</div>
 							<div
 								v-if="
-									canSeeComments &&
-										response.comment &&
-										response.comment.trim()
+									canSeeComments
+										&& response.comment
+										&& response.comment.trim()
 								"
 								class="response-comment">
 								{{ response.comment }}
@@ -332,14 +332,14 @@
 					<!-- Non-responding users -->
 					<NonRespondingUserList
 						v-if="
-							teamStats.non_responding_users &&
-								teamStats.non_responding_users.length > 0
+							teamStats.non_responding_users
+								&& teamStats.non_responding_users.length > 0
 						"
 						:users="teamStats.non_responding_users"
-						:header-text="t('attendance', 'No response yet:')"
-						:can-manage-appointments="canSendReminders"
-						:appointment-id="appointmentId"
-						:reminding-users="remindingUsers"
+						:headerText="t('attendance', 'No response yet:')"
+						:canManageAppointments="canSendReminders"
+						:appointmentId="appointmentId"
+						:remindingUsers="remindingUsers"
 						@remind="remindUser" />
 				</div>
 			</div>
@@ -361,20 +361,20 @@
 						<NcChip
 							:text="String(responseSummary.others.yes)"
 							variant="success"
-							no-close />
+							noClose />
 						<NcChip
 							:text="String(responseSummary.others.maybe)"
 							variant="warning"
-							no-close />
+							noClose />
 						<NcChip
 							:text="String(responseSummary.others.no)"
 							variant="error"
-							no-close />
+							noClose />
 						<NcChip
 							v-if="responseSummary.others.no_response > 0"
 							:text="String(responseSummary.others.no_response)"
 							variant="tertiary"
-							no-close />
+							noClose />
 					</div>
 				</div>
 
@@ -401,47 +401,47 @@
 												response.response,
 											)
 										"
-										no-close />
-								<NcPopover
-									v-if="response.response === 'maybe' && canSendReminders && appointmentId"
-									:shown="openRemindPopover === response.userId"
-									popup-role="dialog"
-									class="remind-maybe-popover-wrapper"
-									@update:shown="(val) => openRemindPopover = val ? response.userId : null">
-									<template #trigger>
-										<span
-											class="remind-maybe-btn"
-											:class="{ 'remind-maybe-btn--pending': remindingUsers.has(response.userId) }"
-											role="button"
-											tabindex="0"
-											@click.stop><BellRingOutlineIcon :size="14" class="remind-icon" /></span>
-									</template>
-									<div class="remind-popover" role="dialog" aria-modal="true">
-										<p>{{ t('attendance', 'Send a reminder to {name}?', { name: response.userName }) }}</p>
-										<NcButton
-											variant="primary"
-											:disabled="remindingUsers.has(response.userId)"
-											@click="handleRemindFromPopover(response.userId)">
-											<template #icon>
-												<BellRingOutlineIcon :size="20" />
-											</template>
-											{{ t('attendance', 'Send reminder') }}
-										</NcButton>
-									</div>
-								</NcPopover>
-								<NcButton
-									v-if="canManageBooking && response.response === 'yes'"
-									class="booking-toggle"
-									:variant="response.bookingStatus === 'booked' ? 'success' : 'tertiary'"
-									:disabled="togglingBooking.has(response.userId) || isClosed"
-									:title="isClosed ? t('attendance', 'Reopen the inquiry to change scheduling') : null"
-									:data-test="`booking-toggle-${response.userId}`"
-									@click="toggleBooking(response)">
-									<template #icon>
-										<CalendarCheckIcon :size="20" />
-									</template>
-									{{ response.bookingStatus === 'booked' ? t('attendance', 'Scheduled') : t('attendance', 'Schedule') }}
-								</NcButton>
+										noClose />
+									<NcPopover
+										v-if="response.response === 'maybe' && canSendReminders && appointmentId"
+										:shown="openRemindPopover === response.userId"
+										popupRole="dialog"
+										class="remind-maybe-popover-wrapper"
+										@update:shown="(val) => openRemindPopover = val ? response.userId : null">
+										<template #trigger>
+											<span
+												class="remind-maybe-btn"
+												:class="{ 'remind-maybe-btn--pending': remindingUsers.has(response.userId) }"
+												role="button"
+												tabindex="0"
+												@click.stop><BellRingOutlineIcon :size="14" class="remind-icon" /></span>
+										</template>
+										<div class="remind-popover" role="dialog" aria-modal="true">
+											<p>{{ t('attendance', 'Send a reminder to {name}?', { name: response.userName }) }}</p>
+											<NcButton
+												variant="primary"
+												:disabled="remindingUsers.has(response.userId)"
+												@click="handleRemindFromPopover(response.userId)">
+												<template #icon>
+													<BellRingOutlineIcon :size="20" />
+												</template>
+												{{ t('attendance', 'Send reminder') }}
+											</NcButton>
+										</div>
+									</NcPopover>
+									<NcButton
+										v-if="canManageBooking && response.response === 'yes'"
+										class="booking-toggle"
+										:variant="response.bookingStatus === 'booked' ? 'success' : 'tertiary'"
+										:disabled="togglingBooking.has(response.userId) || isClosed"
+										:title="isClosed ? t('attendance', 'Reopen the inquiry to change scheduling') : null"
+										:data-test="`booking-toggle-${response.userId}`"
+										@click="toggleBooking(response)">
+										<template #icon>
+											<CalendarCheckIcon :size="20" />
+										</template>
+										{{ response.bookingStatus === 'booked' ? t('attendance', 'Scheduled') : t('attendance', 'Schedule') }}
+									</NcButton>
 								</div>
 								<div
 									v-if="response.isCheckedIn"
@@ -460,14 +460,14 @@
 												response.checkinState,
 											)
 										"
-										no-close />
+										noClose />
 								</div>
 							</div>
 							<div
 								v-if="
-									canSeeComments &&
-										response.comment &&
-										response.comment.trim()
+									canSeeComments
+										&& response.comment
+										&& response.comment.trim()
 								"
 								class="response-comment">
 								{{ response.comment }}
@@ -482,10 +482,10 @@
 								&& responseSummary.others.non_responding_users.length > 0
 						"
 						:users="responseSummary.others.non_responding_users"
-						:header-text="t('attendance', 'No response yet:')"
-						:can-manage-appointments="canSendReminders"
-						:appointment-id="appointmentId"
-						:reminding-users="remindingUsers"
+						:headerText="t('attendance', 'No response yet:')"
+						:canManageAppointments="canSendReminders"
+						:appointmentId="appointmentId"
+						:remindingUsers="remindingUsers"
 						@remind="remindUser" />
 				</div>
 			</div>
@@ -494,18 +494,18 @@
 </template>
 
 <script setup>
-import { reactive, ref, computed } from 'vue'
-import { NcButton, NcChip, NcPopover } from '@nextcloud/vue'
-import { generateUrl } from '@nextcloud/router'
-import { showSuccess, showError } from '@nextcloud/dialogs'
 import axios from '@nextcloud/axios'
+import { showError, showSuccess } from '@nextcloud/dialogs'
+import { generateUrl } from '@nextcloud/router'
+import { NcButton, NcChip, NcPopover } from '@nextcloud/vue'
+import { computed, reactive, ref } from 'vue'
 import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
 import AccountStar from 'vue-material-design-icons/AccountStar.vue'
 import BellRingOutlineIcon from 'vue-material-design-icons/BellRingOutline.vue'
 import CalendarCheckIcon from 'vue-material-design-icons/CalendarCheck.vue'
 import NonRespondingUserList from './NonRespondingUserList.vue'
-import { getResponseText, getResponseVariant } from '../../utils/response.js'
 import { formatGroupLabel } from '../../utils/groups.js'
+import { getResponseText, getResponseVariant } from '../../utils/response.js'
 
 const props = defineProps({
 	responseSummary: {
@@ -535,31 +535,25 @@ const props = defineProps({
 	},
 })
 
-const canSendReminders = computed(
-	() => props.canManageAppointments && !props.isClosed,
-)
+const canSendReminders = computed(() => props.canManageAppointments && !props.isClosed)
 
 // The per-person booking toggle only shows when the feature is on and the
 // viewer may manage the appointment; individual rows additionally require a
 // "yes" response (handled inline).
-const canManageBooking = computed(
-	() => props.canManageAppointments && props.bookingEnabled,
-)
+const canManageBooking = computed(() => props.canManageAppointments && props.bookingEnabled)
 
 const expandedGroups = ref({})
 const remindingUsers = reactive(new Set())
 const togglingBooking = reactive(new Set())
 const openRemindPopover = ref(null)
 
-const toggleBooking = async (response) => {
+async function toggleBooking(response) {
 	if (!props.appointmentId || togglingBooking.has(response.userId)) return
 	const wantBook = response.bookingStatus !== 'booked'
 	togglingBooking.add(response.userId)
 	try {
 		const action = wantBook ? 'book' : 'unbook'
-		const { data } = await axios.post(
-			generateUrl(`/apps/attendance/api/appointments/${props.appointmentId}/${action}/${encodeURIComponent(response.userId)}`),
-		)
+		const { data } = await axios.post(generateUrl(`/apps/attendance/api/appointments/${props.appointmentId}/${action}/${encodeURIComponent(response.userId)}`))
 		// Reflect the new state on the row in place (the summary object is shared
 		// with the parent, so the toggle updates without a refetch).
 		response.bookingStatus = data.bookingStatus ?? null
@@ -571,13 +565,11 @@ const toggleBooking = async (response) => {
 	}
 }
 
-const remindUser = async (userId) => {
+async function remindUser(userId) {
 	if (!props.appointmentId) return
 	remindingUsers.add(userId)
 	try {
-		await axios.post(
-			generateUrl(`/apps/attendance/api/appointments/${props.appointmentId}/remind/${userId}`),
-		)
+		await axios.post(generateUrl(`/apps/attendance/api/appointments/${props.appointmentId}/remind/${userId}`))
 		showSuccess(t('attendance', 'Reminder sent'))
 	} catch (error) {
 		console.error('Failed to send reminder:', error)
@@ -587,7 +579,7 @@ const remindUser = async (userId) => {
 	}
 }
 
-const handleRemindFromPopover = (userId) => {
+function handleRemindFromPopover(userId) {
 	openRemindPopover.value = null
 	remindUser(userId)
 }
@@ -595,34 +587,34 @@ const handleRemindFromPopover = (userId) => {
 const hasGroupsOrTeams = computed(() => {
 	if (!props.responseSummary) return false
 	const hasGroups
-        = props.responseSummary.by_group
-        && Object.keys(props.responseSummary.by_group).length > 0
+		= props.responseSummary.by_group
+			&& Object.keys(props.responseSummary.by_group).length > 0
 	const hasTeams
-        = props.responseSummary.by_team
-        && Object.keys(props.responseSummary.by_team).length > 0
+		= props.responseSummary.by_team
+			&& Object.keys(props.responseSummary.by_team).length > 0
 	const hasOthers = hasOthersResponses() || hasOthersNonResponders()
 	return hasGroups || hasTeams || hasOthers
 })
 
-const toggleGroup = (groupId) => {
+function toggleGroup(groupId) {
 	expandedGroups.value[groupId] = !expandedGroups.value[groupId]
 }
 
-const getSortedResponses = (responses) => {
+function getSortedResponses(responses) {
 	if (!responses || responses.length === 0) return []
 	return [...responses].sort((a, b) => a.userName.localeCompare(b.userName))
 }
 
-const hasOthersResponses = () => {
+function hasOthersResponses() {
 	if (!props.responseSummary?.others) return false
 	return (
 		props.responseSummary.others.yes > 0
-        || props.responseSummary.others.maybe > 0
-        || props.responseSummary.others.no > 0
+		|| props.responseSummary.others.maybe > 0
+		|| props.responseSummary.others.no > 0
 	)
 }
 
-const hasOthersNonResponders = () => {
+function hasOthersNonResponders() {
 	const others = props.responseSummary?.others
 	if (!others) return false
 	return (others.non_responding_users?.length ?? 0) > 0

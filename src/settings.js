@@ -2,8 +2,8 @@
  * Admin settings Vue app entry point
  */
 
-import { createApp } from 'vue'
 import { translate, translatePlural } from '@nextcloud/l10n'
+import { createApp } from 'vue'
 import AdminSettings from './views/AdminSettings.vue'
 
 const app = createApp(AdminSettings)

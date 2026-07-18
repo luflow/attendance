@@ -1,6 +1,6 @@
-import { reactive, readonly } from 'vue'
-import { generateUrl } from '@nextcloud/router'
 import axios from '@nextcloud/axios'
+import { generateUrl } from '@nextcloud/router'
+import { reactive, readonly } from 'vue'
 
 const state = reactive({
 	permissions: {
@@ -39,6 +39,7 @@ export function usePermissions() {
 	/**
 	 * Load permissions, capabilities, and config from the server
 	 * Will only make the API calls once unless force=true
+	 *
 	 * @param {boolean} force - Force reload even if already loaded
 	 */
 	const loadPermissions = async (force = false) => {

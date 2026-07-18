@@ -11,14 +11,14 @@
 			<template v-if="!selectedCalendar">
 				<div v-if="loadingCalendars" class="loading-container">
 					<NcLoadingIcon :size="32" />
-					<span class="loading-text">{{ t('attendance', 'Loading calendars …') }}</span>
+					<span class="loading-text">{{ t('attendance', 'Loading calendars …') }}</span>
 				</div>
 
 				<template v-else-if="calendars.length > 0">
 					<label class="section-label">{{ t('attendance', 'Select calendar') }}</label>
 					<NcTextField v-if="showSearch"
 						v-model="searchQuery"
-						:placeholder="t('attendance', 'Search calendars …')"
+						:placeholder="t('attendance', 'Search calendars …')"
 						class="calendar-search" />
 					<ul class="calendar-list">
 						<li v-for="calendar in filteredCalendars"
@@ -59,22 +59,22 @@
 				<div class="date-range-picker">
 					<NcDateTimePickerNative
 						id="calendar-from-date"
-						:model-value="fromDate"
+						:modelValue="fromDate"
 						type="date"
 						:label="t('attendance', 'From')"
-						@update:model-value="onFromDateChange" />
+						@update:modelValue="onFromDateChange" />
 
 					<NcDateTimePickerNative
 						id="calendar-to-date"
-						:model-value="toDate"
+						:modelValue="toDate"
 						type="date"
 						:label="t('attendance', 'To')"
-						@update:model-value="onToDateChange" />
+						@update:modelValue="onToDateChange" />
 				</div>
 
 				<div v-if="loadingEvents" class="loading-container">
 					<NcLoadingIcon :size="32" />
-					<span class="loading-text">{{ t('attendance', 'Loading events …') }}</span>
+					<span class="loading-text">{{ t('attendance', 'Loading events …') }}</span>
 				</div>
 
 				<template v-else-if="events.length > 0">
@@ -90,7 +90,7 @@
 					</div>
 					<NcTextField v-if="showEventSearch"
 						v-model="eventSearchQuery"
-						:placeholder="t('attendance', 'Search events …')"
+						:placeholder="t('attendance', 'Search events …')"
 						class="calendar-search" />
 					<ul class="event-list">
 						<li v-for="event in filteredEvents"
@@ -98,7 +98,7 @@
 							class="event-item"
 							@click="toggleEvent(event)">
 							<NcCheckboxRadioSwitch
-								:model-value="selectedEvents.has(event.id)"
+								:modelValue="selectedEvents.has(event.id)"
 								class="event-checkbox">
 								<div class="event-info">
 									<span class="event-name">{{ event.summary || t('attendance', 'Untitled event') }}</span>
@@ -134,12 +134,12 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
-import { NcDialog, NcButton, NcLoadingIcon, NcTextField, NcCheckboxRadioSwitch, NcDateTimePickerNative } from '@nextcloud/vue'
-import { translate as t, translatePlural as n } from '@nextcloud/l10n'
-import ChevronRight from 'vue-material-design-icons/ChevronRight.vue'
+import { translatePlural as n, translate as t } from '@nextcloud/l10n'
+import { NcButton, NcCheckboxRadioSwitch, NcDateTimePickerNative, NcDialog, NcLoadingIcon, NcTextField } from '@nextcloud/vue'
+import { computed, ref, watch } from 'vue'
 import ArrowLeft from 'vue-material-design-icons/ArrowLeft.vue'
 import CalendarBlankOutline from 'vue-material-design-icons/CalendarBlankOutline.vue'
+import ChevronRight from 'vue-material-design-icons/ChevronRight.vue'
 import { useCalendarEvents } from '../../composables/useCalendarEvents.js'
 import { formatDateRange } from '../../utils/datetime.js'
 
@@ -160,12 +160,12 @@ const selectedEvents = ref(new Set())
 const { calendars, events, importedIds, loadingCalendars, loadingEvents, loadCalendars, loadEvents, clearEvents, reset } = useCalendarEvents()
 
 // Date range for calendar event fetching
-const defaultFromDate = () => {
+function defaultFromDate() {
 	const d = new Date()
 	d.setHours(0, 0, 0, 0)
 	return d
 }
-const defaultToDate = () => {
+function defaultToDate() {
 	const d = new Date()
 	d.setDate(d.getDate() + 60)
 	d.setHours(0, 0, 0, 0)
@@ -174,35 +174,35 @@ const defaultToDate = () => {
 const fromDate = ref(defaultFromDate())
 const toDate = ref(defaultToDate())
 
-const formatDateParam = (date) => {
+function formatDateParam(date) {
 	const y = date.getFullYear()
 	const m = String(date.getMonth() + 1).padStart(2, '0')
 	const d = String(date.getDate()).padStart(2, '0')
 	return `${y}-${m}-${d}`
 }
 
-const reloadEvents = async () => {
+async function reloadEvents() {
 	if (selectedCalendar.value) {
 		selectedEvents.value = new Set()
 		await loadEvents(selectedCalendar.value.uri, formatDateParam(fromDate.value), formatDateParam(toDate.value))
 	}
 }
 
-const onFromDateChange = async (newValue) => {
+async function onFromDateChange(newValue) {
 	if (newValue) {
 		fromDate.value = newValue
 		await reloadEvents()
 	}
 }
 
-const onToDateChange = async (newValue) => {
+async function onToDateChange(newValue) {
 	if (newValue) {
 		toDate.value = newValue
 		await reloadEvents()
 	}
 }
 
-const translateCalendarName = (name) => {
+function translateCalendarName(name) {
 	if (!name) return name
 	const translated = t('calendar', name)
 	return translated !== name ? translated : name
@@ -215,7 +215,7 @@ const filteredCalendars = computed(() => {
 		return calendars.value
 	}
 	const query = searchQuery.value.toLowerCase().trim()
-	return calendars.value.filter(calendar => {
+	return calendars.value.filter((calendar) => {
 		const translatedName = translateCalendarName(calendar.displayName)
 		return translatedName?.toLowerCase().includes(query)
 	})
@@ -228,13 +228,11 @@ const filteredEvents = computed(() => {
 		return events.value
 	}
 	const query = eventSearchQuery.value.toLowerCase().trim()
-	return events.value.filter(event =>
-		event.summary?.toLowerCase().includes(query),
-	)
+	return events.value.filter((event) => event.summary?.toLowerCase().includes(query))
 })
 
 const allSelected = computed(() => {
-	return events.value.length > 0 && events.value.every(e => selectedEvents.value.has(e.id))
+	return events.value.length > 0 && events.value.every((e) => selectedEvents.value.has(e.id))
 })
 
 const noneSelected = computed(() => {
@@ -269,24 +267,24 @@ watch(() => props.show, async (newValue) => {
 	}
 })
 
-const handleClose = () => {
+function handleClose() {
 	emit('close')
 }
 
-const selectCalendar = async (calendar) => {
+async function selectCalendar(calendar) {
 	selectedCalendar.value = calendar
 	eventSearchQuery.value = ''
 	selectedEvents.value = new Set()
 	await loadEvents(calendar.uri, formatDateParam(fromDate.value), formatDateParam(toDate.value))
 }
 
-const goBack = () => {
+function goBack() {
 	selectedCalendar.value = null
 	selectedEvents.value = new Set()
 	clearEvents()
 }
 
-const toggleEvent = (event) => {
+function toggleEvent(event) {
 	const newSet = new Set(selectedEvents.value)
 	if (newSet.has(event.id)) {
 		newSet.delete(event.id)
@@ -296,7 +294,7 @@ const toggleEvent = (event) => {
 	selectedEvents.value = newSet
 }
 
-const selectAll = () => {
+function selectAll() {
 	const newSet = new Set()
 	for (const event of events.value) {
 		newSet.add(event.id)
@@ -304,13 +302,13 @@ const selectAll = () => {
 	selectedEvents.value = newSet
 }
 
-const deselectAll = () => {
+function deselectAll() {
 	selectedEvents.value = new Set()
 }
 
-const importSelected = () => {
-	const selected = events.value.filter(e => selectedEvents.value.has(e.id))
-	const eventDataList = selected.map(event => ({
+function importSelected() {
+	const selected = events.value.filter((e) => selectedEvents.value.has(e.id))
+	const eventDataList = selected.map((event) => ({
 		name: event.summary || '',
 		description: event.description || '',
 		startDatetime: event.dtstart,

@@ -54,9 +54,9 @@
 						class="auto-sync-chip-link">
 						<NcChip
 							v-if="props.calendarSyncEnabled"
-							type="success"
+							variant="success"
 							:text="t('attendance', 'Auto-sync enabled')"
-							no-close>
+							noClose>
 							<template #icon>
 								<CalendarSync :size="16" />
 							</template>
@@ -123,7 +123,7 @@
 						t('attendance', 'Write your description here\u00A0…')
 					"
 					data-test="input-appointment-description"
-					min-height="150px" />
+					minHeight="150px" />
 			</div>
 
 			<div class="form-section">
@@ -131,32 +131,32 @@
 				<div class="datetime-fields">
 					<NcDateTimePickerNative
 						id="start-datetime"
-						:model-value="startDateObject"
+						:modelValue="startDateObject"
 						type="datetime-local"
 						step="900"
 						:label="t('attendance', 'Start date & time')"
 						data-test="input-start-datetime"
-						@update:model-value="onStartDatetimeChange"
+						@update:modelValue="onStartDatetimeChange"
 						@blur="onStartDatetimeBlur" />
 
 					<NcDateTimePickerNative
 						id="end-datetime"
-						:model-value="endDateObject"
+						:modelValue="endDateObject"
 						type="datetime-local"
 						step="900"
 						:label="t('attendance', 'End date & time')"
 						data-test="input-end-datetime"
-						@update:model-value="onEndDatetimeChange" />
+						@update:modelValue="onEndDatetimeChange" />
 				</div>
 
 				<RecurrenceSelector
 					v-if="mode === 'create'"
-					:start-date="startDateObject"
+					:startDate="startDateObject"
 					:duration="appointmentDuration"
 					:disabled="saving"
 					data-test="recurrence-selector"
 					@update:occurrences="onRecurrenceUpdate"
-					@update:validation-warning="onRecurrenceWarningUpdate" />
+					@update:validationWarning="onRecurrenceWarningUpdate" />
 			</div>
 
 			<div class="form-section">
@@ -228,12 +228,12 @@
 					data-test="deadline-absolute-row">
 					<NcDateTimePickerNative
 						id="response-deadline"
-						:model-value="deadlineAbsoluteDateObject"
+						:modelValue="deadlineAbsoluteDateObject"
 						type="datetime-local"
 						step="900"
 						:label="t('attendance', 'Response deadline')"
 						data-test="input-response-deadline"
-						@update:model-value="onDeadlineAbsoluteChange" />
+						@update:modelValue="onDeadlineAbsoluteChange" />
 				</div>
 				<NcCheckboxRadioSwitch
 					v-if="deadlineMode === 'absolute' && isRecurring"
@@ -301,7 +301,7 @@
 				</div>
 				<NcButton
 					variant="secondary"
-					native-type="button"
+					type="button"
 					data-test="button-add-attachment"
 					@click.stop.prevent="openFilePicker">
 					<template #icon>
@@ -326,7 +326,7 @@
 					:options="searchResults"
 					:loading="isSearching"
 					:multiple="true"
-					:close-on-select="false"
+					keepOpen
 					:filterable="false"
 					label="label"
 					:placeholder="
@@ -413,56 +413,57 @@
 			:show="showCalendarPicker"
 			@close="showCalendarPicker = false"
 			@select="handleCalendarEventSelect"
-			@bulk-select="handleBulkImport" />
+			@bulkSelect="handleBulkImport" />
 
 		<!-- Series Action Dialog (for edit mode) -->
 		<SeriesActionDialog
 			:show="showSeriesDialog"
 			action="edit"
-			:series-count="seriesCount"
+			:seriesCount="seriesCount"
 			@confirm="handleSeriesEditConfirm"
 			@cancel="showSeriesDialog = false" />
 	</div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
-import {
-	NcButton,
-	NcTextField,
-	NcSelect,
-	NcNoteCard,
-	NcCheckboxRadioSwitch,
-	NcChip,
-	NcLoadingIcon,
-	NcDateTimePickerNative,
-} from '@nextcloud/vue'
+import axios from '@nextcloud/axios'
 import {
 	getFilePickerBuilder,
-	showSuccess,
 	showError,
+	showSuccess,
 } from '@nextcloud/dialogs'
-import MarkdownEditor from '../components/common/MarkdownEditor.vue'
-import CalendarEventPicker from '../components/calendar/CalendarEventPicker.vue'
-import RecurrenceSelector from '../components/appointment/RecurrenceSelector.vue'
-import { generateUrl } from '@nextcloud/router'
 import { subscribe as subscribeToEvent, unsubscribe as unsubscribeFromEvent } from '@nextcloud/event-bus'
-import axios from '@nextcloud/axios'
-import { usePermissions } from '../composables/usePermissions.js'
-import { formatGroupLabel } from '../utils/groups.js'
-import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
+import { generateUrl } from '@nextcloud/router'
+import {
+	NcButton,
+	NcCheckboxRadioSwitch,
+	NcChip,
+	NcDateTimePickerNative,
+	NcLoadingIcon,
+	NcNoteCard,
+	NcSelect,
+	NcTextField,
+} from '@nextcloud/vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import Account from 'vue-material-design-icons/Account.vue'
+import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
 import AccountPlus from 'vue-material-design-icons/AccountPlus.vue'
 import AccountQuestion from 'vue-material-design-icons/AccountQuestion.vue'
 import AccountStar from 'vue-material-design-icons/AccountStar.vue'
-import Paperclip from 'vue-material-design-icons/Paperclip.vue'
-import Plus from 'vue-material-design-icons/Plus.vue'
 import ArrowLeft from 'vue-material-design-icons/ArrowLeft.vue'
 import CalendarImport from 'vue-material-design-icons/CalendarImport.vue'
 import CalendarSync from 'vue-material-design-icons/CalendarSync.vue'
 import LinkVariant from 'vue-material-design-icons/LinkVariant.vue'
+import Paperclip from 'vue-material-design-icons/Paperclip.vue'
+import Plus from 'vue-material-design-icons/Plus.vue'
 import RepeatIcon from 'vue-material-design-icons/Repeat.vue'
+import RecurrenceSelector from '../components/appointment/RecurrenceSelector.vue'
 import SeriesActionDialog from '../components/appointment/SeriesActionDialog.vue'
+import CalendarEventPicker from '../components/calendar/CalendarEventPicker.vue'
+import MarkdownEditor from '../components/common/MarkdownEditor.vue'
+import { usePermissions } from '../composables/usePermissions.js'
+import { formatGroupLabel } from '../utils/groups.js'
+
 import '@nextcloud/dialogs/style.css'
 
 const props = defineProps({
@@ -537,9 +538,7 @@ const deadlineRelativeValue = computed(() => {
 	return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 0
 })
 
-const deadlineRelativeOffsetMs = computed(
-	() => deadlineRelativeValue.value * UNIT_MS[deadlineRelativeUnit.value],
-)
+const deadlineRelativeOffsetMs = computed(() => deadlineRelativeValue.value * UNIT_MS[deadlineRelativeUnit.value])
 
 const { capabilities, loadPermissions } = usePermissions()
 
@@ -571,11 +570,11 @@ const appointmentDuration = computed(() => {
 	return end.getTime() - start.getTime()
 })
 
-const onRecurrenceUpdate = (occurrences) => {
+function onRecurrenceUpdate(occurrences) {
 	recurrenceOccurrences.value = occurrences
 }
 
-const onRecurrenceWarningUpdate = (warning) => {
+function onRecurrenceWarningUpdate(warning) {
 	recurrenceWarning.value = warning
 }
 
@@ -594,12 +593,12 @@ const saveButtonLabel = computed(() => {
 
 const pageTitle = computed(() => {
 	switch (props.mode) {
-	case 'edit':
-		return t('attendance', 'Edit appointment')
-	case 'copy':
-		return t('attendance', 'Copy appointment')
-	default:
-		return t('attendance', 'Create appointment')
+		case 'edit':
+			return t('attendance', 'Edit appointment')
+		case 'copy':
+			return t('attendance', 'Copy appointment')
+		default:
+			return t('attendance', 'Create appointment')
 	}
 })
 
@@ -607,8 +606,8 @@ const hasTrackingMismatch = computed(() => {
 	// No selections at all - no warning needed
 	if (
 		formData.visibleGroups.length === 0
-        && formData.visibleUsers.length === 0
-        && formData.visibleTeams.length === 0
+		&& formData.visibleUsers.length === 0
+		&& formData.visibleTeams.length === 0
 	) {
 		return false
 	}
@@ -622,18 +621,14 @@ const hasTrackingMismatch = computed(() => {
 	}
 	// Check if any selected team is NOT in tracking teams
 	if (formData.visibleTeams.length > 0) {
-		const hasNonTrackingTeam = formData.visibleTeams.some(
-			(teamId) => !trackingTeams.value.includes(teamId),
-		)
+		const hasNonTrackingTeam = formData.visibleTeams.some((teamId) => !trackingTeams.value.includes(teamId))
 		if (hasNonTrackingTeam) {
 			return true
 		}
 	}
 	// Check if any selected group is NOT in tracking groups
 	if (formData.visibleGroups.length > 0) {
-		const hasNonTrackingGroup = formData.visibleGroups.some(
-			(groupId) => !trackingGroups.value.includes(groupId),
-		)
+		const hasNonTrackingGroup = formData.visibleGroups.some((groupId) => !trackingGroups.value.includes(groupId))
 		if (hasNonTrackingGroup) {
 			return true
 		}
@@ -652,20 +647,20 @@ const calendarSyncSettingsUrl = computed(() => {
 const hasCalendarReference = computed(() => {
 	return (
 		calendarReference.value.calendarUri
-        && calendarReference.value.calendarEventUid
+		&& calendarReference.value.calendarEventUid
 	)
 })
 
-const getTypeLabel = (type, isGuest = false) => {
+function getTypeLabel(type, isGuest = false) {
 	switch (type) {
-	case 'user':
-		return isGuest ? t('attendance', 'Guest account') : t('attendance', 'User')
-	case 'group':
-		return t('attendance', 'Group')
-	case 'team':
-		return t('attendance', 'Team')
-	default:
-		return ''
+		case 'user':
+			return isGuest ? t('attendance', 'Guest account') : t('attendance', 'User')
+		case 'group':
+			return t('attendance', 'Group')
+		case 'team':
+			return t('attendance', 'Team')
+		default:
+			return ''
 	}
 }
 
@@ -695,7 +690,7 @@ const deadlineAbsoluteDateObject = computed(() => {
  * @param {string} occurrenceStartLocal Local-input datetime ("YYYY-MM-DDTHH:mm").
  * @return {Date|null}
  */
-const resolveDeadlineFor = (occurrenceStartLocal) => {
+function resolveDeadlineFor(occurrenceStartLocal) {
 	if (deadlineMode.value === 'none') return null
 	if (deadlineMode.value === 'relative') {
 		if (!occurrenceStartLocal) return null
@@ -739,7 +734,7 @@ const deadlineWarning = computed(() => {
 	return null
 })
 
-const onDeadlineAbsoluteChange = (value) => {
+function onDeadlineAbsoluteChange(value) {
 	if (!value) {
 		deadlineAbsolute.value = ''
 		return
@@ -767,7 +762,7 @@ watch(visibilityItems, (selected) => {
 		.map((item) => item.value)
 })
 
-const formatDateTimeForInput = (dateTime) => {
+function formatDateTimeForInput(dateTime) {
 	if (!dateTime) return ''
 	const date = new Date(dateTime)
 	if (isNaN(date.getTime())) return ''
@@ -781,16 +776,12 @@ const formatDateTimeForInput = (dateTime) => {
 	return `${year}-${month}-${day}T${hours}:${minutes}`
 }
 
-const loadAppointment = async () => {
+async function loadAppointment() {
 	if (!props.appointmentId) return
 
 	loading.value = true
 	try {
-		const response = await axios.get(
-			generateUrl(
-				`/apps/attendance/api/appointments/${props.appointmentId}`,
-			),
-		)
+		const response = await axios.get(generateUrl(`/apps/attendance/api/appointments/${props.appointmentId}`))
 		const appointment = response.data
 
 		formData.name = props.mode === 'copy'
@@ -803,12 +794,8 @@ const loadAppointment = async () => {
 			formData.startDatetime = ''
 			formData.endDatetime = ''
 		} else {
-			formData.startDatetime = formatDateTimeForInput(
-				appointment.startDatetime,
-			)
-			formData.endDatetime = formatDateTimeForInput(
-				appointment.endDatetime,
-			)
+			formData.startDatetime = formatDateTimeForInput(appointment.startDatetime)
+			formData.endDatetime = formatDateTimeForInput(appointment.endDatetime)
 		}
 
 		// In edit mode we always default to the absolute picker — the stored
@@ -817,14 +804,10 @@ const loadAppointment = async () => {
 		// minutes"). The user can switch to relative mode explicitly if they
 		// want to re-anchor it to the start. Copy mode drops the deadline
 		// entirely; the new dates may be far away from the source deadline.
-		hadDeadlineInitially.value = Boolean(
-			props.mode === 'edit' && appointment.responseDeadline,
-		)
+		hadDeadlineInitially.value = Boolean(props.mode === 'edit' && appointment.responseDeadline)
 		if (hadDeadlineInitially.value) {
 			deadlineMode.value = 'absolute'
-			deadlineAbsolute.value = formatDateTimeForInput(
-				appointment.responseDeadline,
-			)
+			deadlineAbsolute.value = formatDateTimeForInput(appointment.responseDeadline)
 		} else {
 			deadlineMode.value = 'none'
 			deadlineAbsolute.value = ''
@@ -885,8 +868,8 @@ const loadAppointment = async () => {
 		// Load calendar reference (for edit mode, not copy)
 		if (
 			props.mode === 'edit'
-            && appointment.calendarUri
-            && appointment.calendarEventUid
+			&& appointment.calendarUri
+			&& appointment.calendarEventUid
 		) {
 			calendarReference.value = {
 				calendarUri: appointment.calendarUri,
@@ -907,59 +890,51 @@ const loadAppointment = async () => {
 	}
 }
 
-const loadTrackingGroups = async () => {
+async function loadTrackingGroups() {
 	try {
-		const response = await axios.get(
-			generateUrl('/apps/attendance/api/admin/settings'),
-		)
+		const response = await axios.get(generateUrl('/apps/attendance/api/admin/settings'))
 		if (response.data.whitelistedGroups) {
 			trackingGroups.value = response.data.whitelistedGroups
 		}
 		if (response.data.whitelistedTeams) {
 			// Extract team IDs from team objects
-			trackingTeams.value = response.data.whitelistedTeams.map(
-				(t) => t.id,
-			)
+			trackingTeams.value = response.data.whitelistedTeams.map((t) => t.id)
 		}
 	} catch (error) {
 		console.debug('Could not load tracking groups:', error)
 	}
 }
 
-const onStartDatetimeChange = (newValue) => {
+function onStartDatetimeChange(newValue) {
 	// newValue is a Date object from NcDateTimePickerNative
 	formData.startDatetime = newValue
 		? formatDateTimeForInput(newValue.toISOString())
 		: ''
 }
 
-const onStartDatetimeBlur = () => {
+function onStartDatetimeBlur() {
 	// Auto-fill end datetime if not set (only on blur)
 	if (formData.startDatetime && !formData.endDatetime) {
 		const startDate = new Date(formData.startDatetime)
 		if (!isNaN(startDate.getTime())) {
-			const endDate = new Date(
-				startDate.getTime() + 2.5 * 60 * 60 * 1000,
-			)
-			formData.endDatetime = formatDateTimeForInput(
-				endDate.toISOString(),
-			)
+			const endDate = new Date(startDate.getTime() + 2.5 * 60 * 60 * 1000)
+			formData.endDatetime = formatDateTimeForInput(endDate.toISOString())
 		}
 	}
 }
 
-const onEndDatetimeChange = (newValue) => {
+function onEndDatetimeChange(newValue) {
 	// newValue is a Date object from NcDateTimePickerNative
 	formData.endDatetime = newValue
 		? formatDateTimeForInput(newValue.toISOString())
 		: ''
 }
 
-const goBack = () => {
+function goBack() {
 	emit('cancelled')
 }
 
-const onSearch = async (query) => {
+async function onSearch(query) {
 	if (!query || query.length < 1) {
 		searchResults.value = [...visibilityItems.value]
 		return
@@ -982,9 +957,7 @@ const onSearch = async (query) => {
 
 		const mergedResults = [...visibilityItems.value]
 		for (const result of newResults) {
-			const isAlreadySelected = visibilityItems.value.some(
-				(item) => item.id === result.id,
-			)
+			const isAlreadySelected = visibilityItems.value.some((item) => item.id === result.id)
 			if (!isAlreadySelected) {
 				mergedResults.push(result)
 			}
@@ -994,9 +967,7 @@ const onSearch = async (query) => {
 		// no existing user matches it. Gated on `guestInvitation` capability.
 		const trimmedQuery = query.trim()
 		if (guestInvitationAvailable.value && isEmailAddress(trimmedQuery)) {
-			const exactUserMatch = newResults.some(
-				(r) => r.type === 'user' && (r.value === trimmedQuery || r.label === trimmedQuery),
-			)
+			const exactUserMatch = newResults.some((r) => r.type === 'user' && (r.value === trimmedQuery || r.label === trimmedQuery))
 			if (!exactUserMatch) {
 				mergedResults.push({
 					id: `create-guest:${trimmedQuery.toLowerCase()}`,
@@ -1018,11 +989,11 @@ const onSearch = async (query) => {
 	}
 }
 
-const removePlaceholder = (placeholder) => {
+function removePlaceholder(placeholder) {
 	visibilityItems.value = visibilityItems.value.filter((i) => i.id !== placeholder.id)
 }
 
-const addUserItem = (userItem) => {
+function addUserItem(userItem) {
 	const alreadySelected = visibilityItems.value.some((i) => i.id === userItem.id)
 	if (!alreadySelected) {
 		// Reassign instead of .push() — the visibilityItems watcher fires only
@@ -1033,7 +1004,7 @@ const addUserItem = (userItem) => {
 
 const guestCreatedHandlers = new Set()
 
-const provisionGuestViaDialog = (email) => {
+function provisionGuestViaDialog(email) {
 	// The Guests app exposes `OCA.Guests.openGuestDialog(app, shareWith)`. The
 	// promise it returns never resolves for non-files/talk integrations, so we
 	// listen for the `guests:user:created` bus event instead.
@@ -1066,7 +1037,7 @@ const provisionGuestViaDialog = (email) => {
 	return true
 }
 
-const provisionGuestAccount = async (placeholder) => {
+async function provisionGuestAccount(placeholder) {
 	const email = (placeholder.email || '').trim()
 	if (!email) {
 		return
@@ -1087,11 +1058,9 @@ const provisionGuestAccount = async (placeholder) => {
 			type: 'user',
 			isGuest: !!response.data.isGuest,
 		})
-		showSuccess(
-			response.data.alreadyExisted
-				? t('attendance', 'Added existing guest {email}', { email })
-				: t('attendance', 'Guest account created for {email}', { email }),
-		)
+		showSuccess(response.data.alreadyExisted
+			? t('attendance', 'Added existing guest {email}', { email })
+			: t('attendance', 'Guest account created for {email}', { email }))
 	} catch (error) {
 		console.error('Failed to create guest account:', error)
 		const serverMessage = error?.response?.data?.error
@@ -1110,11 +1079,9 @@ watch(
 	{ deep: true },
 )
 
-const openFilePicker = async () => {
+async function openFilePicker() {
 	try {
-		const picker = getFilePickerBuilder(
-			t('attendance', 'Choose files or folders'),
-		)
+		const picker = getFilePickerBuilder(t('attendance', 'Choose files or folders'))
 			.setMultiSelect(true)
 			.allowDirectories(true)
 			.addButton({
@@ -1132,7 +1099,7 @@ const openFilePicker = async () => {
 	}
 }
 
-const addAttachment = (node) => {
+function addAttachment(node) {
 	if (attachments.value.some((a) => a.fileId === node.fileid)) {
 		return
 	}
@@ -1143,21 +1110,19 @@ const addAttachment = (node) => {
 	})
 }
 
-const removeAttachment = (fileId) => {
+function removeAttachment(fileId) {
 	attachments.value = attachments.value.filter((a) => a.fileId !== fileId)
 }
 
-const attachmentFileIds = computed(() =>
-	attachments.value.map((a) => a.fileId),
-)
+const attachmentFileIds = computed(() => attachments.value.map((a) => a.fileId))
 
-const toServerTimezone = (datetime) => {
+function toServerTimezone(datetime) {
 	if (!datetime) return datetime
 	const date = new Date(datetime)
 	return date.toISOString()
 }
 
-const handleCalendarEventSelect = (eventData) => {
+function handleCalendarEventSelect(eventData) {
 	formData.name = eventData.name
 	formData.description = eventData.description
 	formData.startDatetime = formatDateTimeForInput(eventData.startDatetime)
@@ -1170,7 +1135,7 @@ const handleCalendarEventSelect = (eventData) => {
 
 const bulkImporting = ref(false)
 
-const handleBulkImport = async (eventDataList) => {
+async function handleBulkImport(eventDataList) {
 	bulkImporting.value = true
 	saving.value = true
 
@@ -1184,9 +1149,7 @@ const handleBulkImport = async (eventDataList) => {
 				calendarUri: eventData.calendarUri,
 				calendarEventUid: eventData.calendarEventUid,
 			}
-			const deadline = resolveDeadlineFor(
-				formatDateTimeForInput(eventData.startDatetime),
-			)
+			const deadline = resolveDeadlineFor(formatDateTimeForInput(eventData.startDatetime))
 			if (deadline) {
 				item.responseDeadline = deadline.toISOString()
 			}
@@ -1202,26 +1165,22 @@ const handleBulkImport = async (eventDataList) => {
 		const errors = response.data?.errors || []
 
 		if (created.length > 0) {
-			showSuccess(
-				n(
-					'attendance',
-					'{count} appointment created',
-					'{count} appointments created',
-					created.length,
-					{ count: created.length },
-				),
-			)
+			showSuccess(n(
+				'attendance',
+				'{count} appointment created',
+				'{count} appointments created',
+				created.length,
+				{ count: created.length },
+			))
 		}
 		if (errors.length > 0) {
-			showError(
-				n(
-					'attendance',
-					'{count} appointment failed to import',
-					'{count} appointments failed to import',
-					errors.length,
-					{ count: errors.length },
-				),
-			)
+			showError(n(
+				'attendance',
+				'{count} appointment failed to import',
+				'{count} appointments failed to import',
+				errors.length,
+				{ count: errors.length },
+			))
 		}
 
 		emit('saved')
@@ -1234,35 +1193,29 @@ const handleBulkImport = async (eventDataList) => {
 	}
 }
 
-const handleRecurringCreate = async () => {
+async function handleRecurringCreate() {
 	saving.value = true
 
 	try {
 		const duration = appointmentDuration.value
-		const appointments = recurrenceOccurrences.value.map(
-			(occurrenceDate) => {
-				const startDt = occurrenceDate.toISOString()
-				const endDt = new Date(
-					occurrenceDate.getTime() + duration,
-				).toISOString()
-				const item = {
-					name: formData.name,
-					description: formData.description,
-					startDatetime: startDt,
-					endDatetime: endDt,
-					visibleUsers: formData.visibleUsers || [],
-					visibleGroups: formData.visibleGroups || [],
-					visibleTeams: formData.visibleTeams || [],
-				}
-				const occurrenceDeadline = resolveDeadlineFor(
-					formatDateTimeForInput(startDt),
-				)
-				if (occurrenceDeadline) {
-					item.responseDeadline = occurrenceDeadline.toISOString()
-				}
-				return item
-			},
-		)
+		const appointments = recurrenceOccurrences.value.map((occurrenceDate) => {
+			const startDt = occurrenceDate.toISOString()
+			const endDt = new Date(occurrenceDate.getTime() + duration).toISOString()
+			const item = {
+				name: formData.name,
+				description: formData.description,
+				startDatetime: startDt,
+				endDatetime: endDt,
+				visibleUsers: formData.visibleUsers || [],
+				visibleGroups: formData.visibleGroups || [],
+				visibleTeams: formData.visibleTeams || [],
+			}
+			const occurrenceDeadline = resolveDeadlineFor(formatDateTimeForInput(startDt))
+			if (occurrenceDeadline) {
+				item.responseDeadline = occurrenceDeadline.toISOString()
+			}
+			return item
+		})
 
 		const response = await axios.post(
 			generateUrl('/apps/attendance/api/appointments/bulk'),
@@ -1277,26 +1230,22 @@ const handleRecurringCreate = async () => {
 		const errors = response.data?.errors || []
 
 		if (created.length > 0) {
-			showSuccess(
-				n(
-					'attendance',
-					'{count} appointment created',
-					'{count} appointments created',
-					created.length,
-					{ count: created.length },
-				),
-			)
+			showSuccess(n(
+				'attendance',
+				'{count} appointment created',
+				'{count} appointments created',
+				created.length,
+				{ count: created.length },
+			))
 		}
 		if (errors.length > 0) {
-			showError(
-				n(
-					'attendance',
-					'{count} appointment failed to create',
-					'{count} appointments failed to create',
-					errors.length,
-					{ count: errors.length },
-				),
-			)
+			showError(n(
+				'attendance',
+				'{count} appointment failed to create',
+				'{count} appointments failed to create',
+				errors.length,
+				{ count: errors.length },
+			))
 		}
 
 		emit('saved')
@@ -1308,7 +1257,7 @@ const handleRecurringCreate = async () => {
 	}
 }
 
-const handleSubmit = async () => {
+async function handleSubmit() {
 	if (saving.value) return
 
 	// Manual validation for datetime fields
@@ -1351,12 +1300,12 @@ const handleSubmit = async () => {
 	await saveAppointment()
 }
 
-const handleSeriesEditConfirm = async (scope) => {
+async function handleSeriesEditConfirm(scope) {
 	showSeriesDialog.value = false
 	await saveAppointment(scope)
 }
 
-const saveAppointment = async (scope = 'single') => {
+async function saveAppointment(scope = 'single') {
 	saving.value = true
 
 	try {
@@ -1394,9 +1343,7 @@ const saveAppointment = async (scope = 'single') => {
 				updatePayload.responseDeadline = ''
 			}
 			await axios.put(
-				generateUrl(
-					`/apps/attendance/api/appointments/${props.appointmentId}`,
-				),
+				generateUrl(`/apps/attendance/api/appointments/${props.appointmentId}`),
 				updatePayload,
 			)
 			showSuccess(t('attendance', 'Appointment updated'))
@@ -1429,11 +1376,9 @@ const saveAppointment = async (scope = 'single') => {
 		emit('saved', appointmentId)
 	} catch (error) {
 		console.error('Failed to save appointment:', error)
-		showError(
-			props.mode === 'edit'
-				? t('attendance', 'Error updating appointment')
-				: t('attendance', 'Error creating appointment'),
-		)
+		showError(props.mode === 'edit'
+			? t('attendance', 'Error updating appointment')
+			: t('attendance', 'Error creating appointment'))
 	} finally {
 		saving.value = false
 	}

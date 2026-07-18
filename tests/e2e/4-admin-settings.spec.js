@@ -35,7 +35,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			await expect(managePermissionSelect).toBeVisible()
 
 			// Click on the combobox to open dropdown
-			await managePermissionSelect.getByRole('searchbox').click()
+			await managePermissionSelect.getByRole('combobox').click()
 			const adminOption = page.getByRole('option', { name: 'admin' })
 			await adminOption.waitFor({ state: 'visible' })
 
@@ -101,7 +101,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			const checkinPermissionSelect = page.locator('[data-test="select-checkin-roles"]')
 			await expect(checkinPermissionSelect).toBeVisible()
 
-			await checkinPermissionSelect.getByRole('searchbox').click()
+			await checkinPermissionSelect.getByRole('combobox').click()
 			const adminOption = page.getByRole('option', { name: 'admin' })
 			await adminOption.waitFor({ state: 'visible' })
 
@@ -151,7 +151,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			const responseOverviewSelect = page.locator('[data-test="select-see-response-overview-roles"]')
 			await expect(responseOverviewSelect).toBeVisible()
 
-			await responseOverviewSelect.getByRole('searchbox').click()
+			await responseOverviewSelect.getByRole('combobox').click()
 			const adminOption = page.getByRole('option', { name: 'admin' })
 			await adminOption.waitFor({ state: 'visible' })
 
@@ -213,7 +213,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			const seeCommentsSelect = page.locator('[data-test="select-see-comments-roles"]')
 			await expect(seeCommentsSelect).toBeVisible()
 
-			await seeCommentsSelect.getByRole('searchbox').click()
+			await seeCommentsSelect.getByRole('combobox').click()
 			const adminOption = page.getByRole('option', { name: 'admin' })
 			await adminOption.waitFor({ state: 'visible' })
 
@@ -243,7 +243,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			const groupsSelect = page.locator('[data-test="select-whitelisted-groups"]')
 			await expect(groupsSelect).toBeVisible()
 
-			await groupsSelect.getByRole('searchbox').click()
+			await groupsSelect.getByRole('combobox').click()
 			const adminOption = page.getByRole('option', { name: 'admin' })
 			await adminOption.waitFor({ state: 'visible' })
 
@@ -316,7 +316,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			await expect(groupsSelect).toBeVisible()
 
 			// Click to open and select admin group
-			await groupsSelect.getByRole('searchbox').click()
+			await groupsSelect.getByRole('combobox').click()
 			const adminOption = page.getByRole('option', { name: 'admin' })
 			await adminOption.waitFor({ state: 'visible' })
 			await adminOption.click()
@@ -326,8 +326,8 @@ test.describe('Attendance App - Admin Settings', () => {
 			await expect(adminTag).toBeVisible()
 
 			// Now type in the search field to filter
-			await groupsSelect.getByRole('searchbox').click()
-			await groupsSelect.getByRole('searchbox').fill('test')
+			await groupsSelect.getByRole('combobox').click()
+			await groupsSelect.getByRole('combobox').fill('test')
 
 			// Wait for filtering
 			await page.waitForTimeout(300)
@@ -337,7 +337,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			await expect(adminTag).not.toHaveText('undefined')
 
 			// Clear search and verify selection still intact
-			await groupsSelect.getByRole('searchbox').fill('')
+			await groupsSelect.getByRole('combobox').fill('')
 			await expect(adminTag).toBeVisible()
 		})
 
@@ -361,10 +361,10 @@ test.describe('Attendance App - Admin Settings', () => {
 				await expect(selectField).toBeVisible()
 
 				// Open the select
-				await selectField.getByRole('searchbox').click()
+				await selectField.getByRole('combobox').click()
 
 				// Type something to filter
-				await selectField.getByRole('searchbox').fill('a')
+				await selectField.getByRole('combobox').fill('a')
 				await page.waitForTimeout(200)
 
 				// Verify no undefined tags appear
@@ -372,7 +372,7 @@ test.describe('Attendance App - Admin Settings', () => {
 				await expect(undefinedTag).toHaveCount(0)
 
 				// Clear and close
-				await selectField.getByRole('searchbox').fill('')
+				await selectField.getByRole('combobox').fill('')
 				await page.keyboard.press('Escape')
 			}
 		})
@@ -388,7 +388,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			await expect(manageSelect).toBeVisible()
 
 			// Select admin group
-			await manageSelect.getByRole('searchbox').click()
+			await manageSelect.getByRole('combobox').click()
 			const adminOption = page.getByRole('option', { name: 'admin' })
 			await adminOption.waitFor({ state: 'visible' })
 			await adminOption.click()
@@ -398,7 +398,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			await expect(adminTag).toBeVisible()
 
 			// Try to select another group if available
-			await manageSelect.getByRole('searchbox').click()
+			await manageSelect.getByRole('combobox').click()
 			const testOption = page.getByRole('option', { name: 'test' })
 			const hasTestGroup = await testOption.isVisible().catch(() => false)
 
@@ -438,7 +438,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			await expect(checkinSelect).toBeVisible()
 
 			// Select admin group first
-			await checkinSelect.getByRole('searchbox').click()
+			await checkinSelect.getByRole('combobox').click()
 			const adminOption = page.getByRole('option', { name: 'admin' })
 			await adminOption.waitFor({ state: 'visible' })
 			await adminOption.click()
@@ -448,8 +448,8 @@ test.describe('Attendance App - Admin Settings', () => {
 			await expect(adminTag).toBeVisible()
 
 			// Now search for a non-matching term
-			await checkinSelect.getByRole('searchbox').click()
-			await checkinSelect.getByRole('searchbox').fill('xyz')
+			await checkinSelect.getByRole('combobox').click()
+			await checkinSelect.getByRole('combobox').fill('xyz')
 			await page.waitForTimeout(300)
 
 			// Verify admin selection is still visible
@@ -461,7 +461,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			await expect(adminInOptions).not.toBeVisible()
 
 			// Clear search
-			await checkinSelect.getByRole('searchbox').fill('')
+			await checkinSelect.getByRole('combobox').fill('')
 
 			// Verify admin selection is still there
 			await expect(adminTag).toBeVisible()

@@ -1,5 +1,5 @@
-import { marked } from 'marked'
 import DOMPurify from 'dompurify'
+import { marked } from 'marked'
 
 // Configure marked for full markdown rendering
 marked.setOptions({
@@ -10,6 +10,7 @@ marked.setOptions({
 /**
  * Render markdown text to HTML (full block-level support)
  * Supports: headers, lists, blockquotes, code blocks, tables, etc.
+ *
  * @param {string} text - The markdown text to render
  * @param {boolean} inline - Whether to use inline-only rendering (no block elements)
  * @return {string} - The rendered HTML
@@ -28,6 +29,7 @@ export function renderMarkdown(text, inline = false) {
 
 /**
  * Sanitize HTML output using DOMPurify
+ *
  * @param {string} html - The HTML string to sanitize
  * @return {string} - Sanitized HTML safe for v-html rendering
  */
@@ -37,6 +39,7 @@ export function sanitizeHtml(html) {
 
 /**
  * Strip all markdown formatting from text, returning plain text only
+ *
  * @param {string} text - The markdown text to strip
  * @return {string} - Plain text without any markdown formatting
  */

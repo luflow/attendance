@@ -6,7 +6,7 @@
 
 		<div v-if="loading" class="audit-timeline__state">
 			<NcLoadingIcon :size="20" />
-			<span>{{ t('attendance', 'Loading …') }}</span>
+			<span>{{ t('attendance', 'Loading …') }}</span>
 		</div>
 
 		<NcEmptyContent v-else-if="error"
@@ -36,9 +36,11 @@
 					:class="iconVariantClass(row.iconVariant)" />
 				<div class="audit-timeline__body">
 					<div class="audit-timeline__message">
-						<template v-for="(seg, idx) in row.segments">
-							<strong v-if="seg.type === 'response'" :key="`r-${idx}`">{{ getResponseText(seg.value) }}</strong>
-							<template v-else :key="`t-${idx}`">{{ seg.value }}</template>
+						<template v-for="(seg, idx) in row.segments" :key="idx">
+							<strong v-if="seg.type === 'response'">{{ getResponseText(seg.value) }}</strong>
+							<template v-else>
+								{{ seg.value }}
+							</template>
 						</template>
 					</div>
 					<div class="audit-timeline__meta">
@@ -60,31 +62,31 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import { NcButton, NcEmptyContent, NcLoadingIcon } from '@nextcloud/vue'
-import CheckCircleOutline from 'vue-material-design-icons/CheckCircleOutline.vue'
-import CloseCircleOutline from 'vue-material-design-icons/CloseCircleOutline.vue'
-import HelpCircleOutline from 'vue-material-design-icons/HelpCircleOutline.vue'
-import SwapHorizontal from 'vue-material-design-icons/SwapHorizontal.vue'
-import UndoVariant from 'vue-material-design-icons/UndoVariant.vue'
-import CommentEdit from 'vue-material-design-icons/CommentEdit.vue'
+import { computed, onMounted } from 'vue'
 import AccountCheck from 'vue-material-design-icons/AccountCheck.vue'
 import AccountSync from 'vue-material-design-icons/AccountSync.vue'
-import CalendarPlus from 'vue-material-design-icons/CalendarPlus.vue'
-import CalendarEditOutline from 'vue-material-design-icons/CalendarEditOutline.vue'
-import LockOutline from 'vue-material-design-icons/LockOutline.vue'
-import LockOpenVariantOutline from 'vue-material-design-icons/LockOpenVariantOutline.vue'
-import CalendarRemoveOutline from 'vue-material-design-icons/CalendarRemoveOutline.vue'
-import CalendarRefreshOutline from 'vue-material-design-icons/CalendarRefreshOutline.vue'
-import Information from 'vue-material-design-icons/Information.vue'
-import History from 'vue-material-design-icons/History.vue'
 import AlertCircle from 'vue-material-design-icons/AlertCircle.vue'
-import { usePermissions } from '../../composables/usePermissions.js'
+import CalendarEditOutline from 'vue-material-design-icons/CalendarEditOutline.vue'
+import CalendarPlus from 'vue-material-design-icons/CalendarPlus.vue'
+import CalendarRefreshOutline from 'vue-material-design-icons/CalendarRefreshOutline.vue'
+import CalendarRemoveOutline from 'vue-material-design-icons/CalendarRemoveOutline.vue'
+import CheckCircleOutline from 'vue-material-design-icons/CheckCircleOutline.vue'
+import CloseCircleOutline from 'vue-material-design-icons/CloseCircleOutline.vue'
+import CommentEdit from 'vue-material-design-icons/CommentEdit.vue'
+import HelpCircleOutline from 'vue-material-design-icons/HelpCircleOutline.vue'
+import History from 'vue-material-design-icons/History.vue'
+import Information from 'vue-material-design-icons/Information.vue'
+import LockOpenVariantOutline from 'vue-material-design-icons/LockOpenVariantOutline.vue'
+import LockOutline from 'vue-material-design-icons/LockOutline.vue'
+import SwapHorizontal from 'vue-material-design-icons/SwapHorizontal.vue'
+import UndoVariant from 'vue-material-design-icons/UndoVariant.vue'
 import { useAuditLog } from '../../composables/useAuditLog.js'
+import { usePermissions } from '../../composables/usePermissions.js'
 import { formatAuditEvent, formatSource } from '../../utils/auditFormat.js'
-import { getResponseText } from '../../utils/response.js'
 import { formatDateTime } from '../../utils/datetime.js'
+import { getResponseText } from '../../utils/response.js'
 
 const props = defineProps({
 	appointmentId: {
@@ -116,7 +118,7 @@ const iconMap = {
 	Information,
 }
 
-const formattedItems = computed(() => items.value.map(event => ({
+const formattedItems = computed(() => items.value.map((event) => ({
 	id: event.id,
 	verb: event.verb,
 	createdAt: event.createdAt,

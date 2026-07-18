@@ -57,7 +57,7 @@
 				</p>
 				<p class="response-display">
 					{{ t('attendance', 'Your response:') }}
-					<NcChip :text="responseLabel" :variant="responseVariant" no-close />
+					<NcChip :text="responseLabel" :variant="responseVariant" noClose />
 				</p>
 			</div>
 
@@ -112,24 +112,24 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { NcButton, NcNoteCard, NcLoadingIcon, NcChip } from '@nextcloud/vue'
+import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
 import { generateUrl } from '@nextcloud/router'
-import axios from '@nextcloud/axios'
+import { NcButton, NcChip, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
+import { computed, ref } from 'vue'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
+import { formatClosedLabel } from '../utils/appointment.js'
 import { formatDateRange } from '../utils/datetime.js'
 import { getResponseVariant } from '../utils/response.js'
-import { formatClosedLabel } from '../utils/appointment.js'
 
 const initialState = loadState('attendance', 'quick-response-data', {})
 
 let ncVersionState = 31
 try {
 	ncVersionState = loadState('attendance', 'nc-version')
-} catch (error) {
+} catch {
 	console.debug('nc-version not available, defaulting to 31')
 }
 const ncVersion = ref(ncVersionState)
@@ -163,7 +163,7 @@ const appointmentUrl = computed(() => generateUrl('/apps/attendance/appointment/
 const responseVariant = computed(() => getResponseVariant(response))
 
 // Methods
-const confirmResponse = async () => {
+async function confirmResponse() {
 	submitting.value = true
 	try {
 		const url = generateUrl('/apps/attendance/respond/{appointmentId}/confirm', { appointmentId })

@@ -76,12 +76,12 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
 import {
-	NcDialog,
 	NcButton,
 	NcCheckboxRadioSwitch,
+	NcDialog,
 } from '@nextcloud/vue'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps({
 	show: {

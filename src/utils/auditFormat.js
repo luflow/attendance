@@ -41,7 +41,9 @@ const CHIP_SENTINEL = /CHIP(\d+)/g
  */
 function buildSegments(template, params, chips) {
 	const tParams = { ...params }
-	chips.forEach((c, i) => { tParams[c.key] = `CHIP${i}` })
+	chips.forEach((c, i) => {
+		tParams[c.key] = `CHIP${i}`
+	})
 	const localized = t('attendance', template, tParams)
 
 	return localized.split(CHIP_SENTINEL).map((piece, idx) => {
@@ -50,7 +52,7 @@ function buildSegments(template, params, chips) {
 			return { type: 'response', value: chips[Number(piece)].value }
 		}
 		return { type: 'text', value: piece }
-	}).filter(seg => seg.type !== 'text' || seg.value !== '')
+	}).filter((seg) => seg.type !== 'text' || seg.value !== '')
 }
 
 function textOnly(value) {
@@ -109,126 +111,122 @@ export function formatAuditEvent(event) {
 	const meta = event.meta ?? {}
 
 	switch (event.verb) {
-	case 'response.submitted':
-		return {
-			icon: getResponseIcon(meta.response, 'outline'),
-			iconVariant: getResponseVariant(meta.response),
-			segments: buildSegments(
-				'{actor} answered {response}',
-				{ actor },
-				[{ key: 'response', value: meta.response }],
-			),
-		}
-	case 'response.changed':
-		return {
-			icon: getResponseIcon(meta.to, 'outline'),
-			iconVariant: getResponseVariant(meta.to),
-			segments: buildSegments(
-				'{actor} changed response from {from} to {to}',
-				{ actor },
-				[
-					{ key: 'from', value: meta.from },
-					{ key: 'to', value: meta.to },
-				],
-			),
-		}
-	case 'response.rescinded':
-		return {
-			icon: 'UndoVariant',
-			iconVariant: 'default',
-			segments: textOnly(t('attendance', '{actor} took back their response', { actor })),
-		}
-	case 'response.comment_updated':
-		return {
-			icon: 'CommentEdit',
-			iconVariant: 'default',
-			segments: textOnly(t('attendance', '{actor} updated their comment', { actor })),
-		}
-	case 'checkin.recorded':
-		return formatCheckin(
-			'AccountCheck',
-			subject,
-			meta.checkinState,
-			'{actor} recorded check-in for {subject}: {state}',
-			'Check-in recorded: {state}',
-			actor,
-		)
-	case 'checkin.changed':
-		return formatCheckin(
-			'AccountSync',
-			subject,
-			meta.checkinState,
-			'{actor} updated check-in for {subject}: {state}',
-			'Check-in updated: {state}',
-			actor,
-		)
-	case 'appointment.created':
-		return {
-			icon: 'CalendarPlus',
-			iconVariant: 'default',
-			// TRANSLATORS: Audit-log entry. {actor} is a person's name. "inquiry"
-			// is the appointment's response collection (the request for people to
-			// answer yes/no/maybe), not the event itself.
-			segments: textOnly(t('attendance', '{actor} created this inquiry', { actor })),
-		}
-	case 'appointment.updated': {
-		const fields = (meta.fields ?? []).map(fieldLabel).filter(Boolean)
-		return {
-			icon: 'CalendarEditOutline',
-			iconVariant: 'default',
-			segments: textOnly(
-				fields.length > 0
+		case 'response.submitted':
+			return {
+				icon: getResponseIcon(meta.response, 'outline'),
+				iconVariant: getResponseVariant(meta.response),
+				segments: buildSegments(
+					'{actor} answered {response}',
+					{ actor },
+					[{ key: 'response', value: meta.response }],
+				),
+			}
+		case 'response.changed':
+			return {
+				icon: getResponseIcon(meta.to, 'outline'),
+				iconVariant: getResponseVariant(meta.to),
+				segments: buildSegments(
+					'{actor} changed response from {from} to {to}',
+					{ actor },
+					[
+						{ key: 'from', value: meta.from },
+						{ key: 'to', value: meta.to },
+					],
+				),
+			}
+		case 'response.rescinded':
+			return {
+				icon: 'UndoVariant',
+				iconVariant: 'default',
+				segments: textOnly(t('attendance', '{actor} took back their response', { actor })),
+			}
+		case 'response.comment_updated':
+			return {
+				icon: 'CommentEdit',
+				iconVariant: 'default',
+				segments: textOnly(t('attendance', '{actor} updated their comment', { actor })),
+			}
+		case 'checkin.recorded':
+			return formatCheckin(
+				'AccountCheck',
+				subject,
+				meta.checkinState,
+				'{actor} recorded check-in for {subject}: {state}',
+				'Check-in recorded: {state}',
+				actor,
+			)
+		case 'checkin.changed':
+			return formatCheckin(
+				'AccountSync',
+				subject,
+				meta.checkinState,
+				'{actor} updated check-in for {subject}: {state}',
+				'Check-in updated: {state}',
+				actor,
+			)
+		case 'appointment.created':
+			return {
+				icon: 'CalendarPlus',
+				iconVariant: 'default',
+				// TRANSLATORS: Audit-log entry. {actor} is a person's name. "inquiry"
+				// is the appointment's response collection (the request for people to
+				// answer yes/no/maybe), not the event itself.
+				segments: textOnly(t('attendance', '{actor} created this inquiry', { actor })),
+			}
+		case 'appointment.updated': {
+			const fields = (meta.fields ?? []).map(fieldLabel).filter(Boolean)
+			return {
+				icon: 'CalendarEditOutline',
+				iconVariant: 'default',
+				segments: textOnly(fields.length > 0
 					// TRANSLATORS: Audit-log entry. {actor} is a person's name,
 					// {fields} is a comma-separated list of the appointment
 					// fields that changed (e.g. "name, time").
 					? t('attendance', '{actor} changed {fields}', { actor, fields: fields.join(', ') })
 					// TRANSLATORS: Audit-log entry when the appointment was edited
 					// but no specific field could be attributed. {actor} is a name.
-					: t('attendance', '{actor} edited this appointment', { actor }),
-			),
+					: t('attendance', '{actor} edited this appointment', { actor })),
+			}
 		}
-	}
-	case 'appointment.closed':
-		return {
-			icon: 'LockOutline',
-			iconVariant: 'default',
-			segments: textOnly(
-				// TRANSLATORS: Audit-log entry. {actor} is a person's name.
-				// Closing an "inquiry" stops new responses; the appointment
-				// itself still takes place (this is not a cancellation).
-				event.actor
+		case 'appointment.closed':
+			return {
+				icon: 'LockOutline',
+				iconVariant: 'default',
+				segments: textOnly(event.actor
+					// TRANSLATORS: Audit-log entry. {actor} is a person's name.
+					// Closing an "inquiry" stops new responses; the appointment
+					// itself still takes place (this is not a cancellation).
 					? t('attendance', '{actor} closed the inquiry', { actor })
 					// TRANSLATORS: Audit-log entry when the inquiry was closed by
 					// the system (e.g. its deadline passed), not by a person.
-					: t('attendance', 'Inquiry closed automatically'),
-			),
-		}
-	case 'appointment.reopened':
-		return {
-			icon: 'LockOpenVariantOutline',
-			iconVariant: 'default',
-			// TRANSLATORS: Audit-log entry. {actor} is a person's name.
-			// Re-opening an "inquiry" resumes accepting responses after it was
-			// closed.
-			segments: textOnly(t('attendance', '{actor} re-opened the inquiry', { actor })),
-		}
-	case 'appointment.cancelled':
-		return {
-			icon: 'CalendarRemoveOutline',
-			iconVariant: 'default',
-			segments: textOnly(t('attendance', '{actor} cancelled the appointment', { actor })),
-		}
-	case 'appointment.uncancelled':
-		return {
-			icon: 'CalendarRefreshOutline',
-			iconVariant: 'default',
-			segments: textOnly(t('attendance', '{actor} reactivated the appointment', { actor })),
-		}
-	default:
-		return {
-			icon: 'Information',
-			iconVariant: 'default',
-			segments: textOnly(t('attendance', '{actor} performed {verb}', { actor, verb: event.verb })),
-		}
+					: t('attendance', 'Inquiry closed automatically')),
+			}
+		case 'appointment.reopened':
+			return {
+				icon: 'LockOpenVariantOutline',
+				iconVariant: 'default',
+				// TRANSLATORS: Audit-log entry. {actor} is a person's name.
+				// Re-opening an "inquiry" resumes accepting responses after it was
+				// closed.
+				segments: textOnly(t('attendance', '{actor} re-opened the inquiry', { actor })),
+			}
+		case 'appointment.cancelled':
+			return {
+				icon: 'CalendarRemoveOutline',
+				iconVariant: 'default',
+				segments: textOnly(t('attendance', '{actor} cancelled the appointment', { actor })),
+			}
+		case 'appointment.uncancelled':
+			return {
+				icon: 'CalendarRefreshOutline',
+				iconVariant: 'default',
+				segments: textOnly(t('attendance', '{actor} reactivated the appointment', { actor })),
+			}
+		default:
+			return {
+				icon: 'Information',
+				iconVariant: 'default',
+				segments: textOnly(t('attendance', '{actor} performed {verb}', { actor, verb: event.verb })),
+			}
 	}
 }
