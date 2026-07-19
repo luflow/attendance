@@ -275,7 +275,7 @@ class NotificationService {
 	 * @param \OCA\Attendance\Db\Appointment $appointment The appointment to remind about
 	 * @param string $userId The user to send the reminder to
 	 */
-	public function sendReminderToUser(Appointment $appointment, string $userId): void {
+	public function sendReminderToUser(Appointment $appointment, string $userId, bool $isTest = false): void {
 		if (!$this->isNotificationsAppEnabled()) {
 			$this->logger->warning('Cannot send reminder - notifications app is not enabled');
 			return;
@@ -289,7 +289,7 @@ class NotificationService {
 			return;
 		}
 
-		$this->sendReminderNotification($appointment, $userId);
+		$this->sendReminderNotification($appointment, $userId, $isTest);
 	}
 
 	/**
@@ -350,22 +350,29 @@ class NotificationService {
 	 * Internal: create and send a single reminder notification.
 	 * Does not check isNotificationsAppEnabled — callers must check first.
 	 */
-	private function sendReminderNotification(Appointment $appointment, string $userId): void {
+	private function sendReminderNotification(Appointment $appointment, string $userId, bool $isTest = false): void {
 		$appointmentUrl = $this->urlGenerator->linkToRouteAbsolute(
 			'attendance.page.appointment',
 			['id' => $appointment->getId()]
 		);
+
+		$subjectParameters = [
+			'appointmentId' => $appointment->getId(),
+			'name' => $appointment->getName(),
+			'startDatetime' => $appointment->getStartDatetime(),
+		];
+		// Test reminders bypass the already-responded dismissal in the Notifier,
+		// so admins can verify the delivery chain regardless of their own response.
+		if ($isTest) {
+			$subjectParameters['test'] = true;
+		}
 
 		$notification = $this->notificationManager->createNotification();
 		$notification->setApp('attendance')
 			->setUser($userId)
 			->setDateTime(new \DateTime())
 			->setObject('appointment', (string)$appointment->getId())
-			->setSubject('appointment_reminder', [
-				'appointmentId' => $appointment->getId(),
-				'name' => $appointment->getName(),
-				'startDatetime' => $appointment->getStartDatetime(),
-			])
+			->setSubject('appointment_reminder', $subjectParameters)
 			->setLink($appointmentUrl);
 
 		$this->notificationManager->notify($notification);

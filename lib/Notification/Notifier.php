@@ -52,8 +52,10 @@ class Notifier implements INotifier {
 
 		$l = $this->l10nFactory->get('attendance', $languageCode);
 
-		// For single-appointment notifications, check if the user already responded
-		if (in_array($notification->getSubject(), ['appointment_reminder', 'appointment_created'])) {
+		// For single-appointment notifications, check if the user already responded.
+		// Test reminders skip this so the delivery chain can be verified end-to-end.
+		if (in_array($notification->getSubject(), ['appointment_reminder', 'appointment_created'])
+			&& !($notification->getSubjectParameters()['test'] ?? false)) {
 			$parameters = $notification->getSubjectParameters();
 			$appointmentId = $parameters['appointmentId'] ?? 0;
 			if ($appointmentId > 0) {

@@ -298,7 +298,7 @@ class AdminController extends Controller {
 		}
 
 		try {
-			$this->notificationService->sendReminderToUser($appointment, $user->getUID());
+			$this->notificationService->sendReminderToUser($appointment, $user->getUID(), true);
 			return new DataResponse([
 				'sent' => 1,
 				'appointmentName' => $appointment->getName(),
