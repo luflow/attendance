@@ -461,7 +461,7 @@
 										{{ n('attendance', '{count} device registered for push notifications', '{count} devices registered for push notifications', pushDeviceCount, { count: pushDeviceCount }) }}
 									</p>
 									<NcButton
-										variant="tertiary"
+										variant="secondary"
 										:disabled="sendingTestReminder"
 										class="test-reminder-button"
 										data-test="button-test-push"
@@ -1166,8 +1166,6 @@ onMounted(async () => {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	color: var(--color-success);
-	font-weight: 500;
 }
 
 .mobile-app-links {
