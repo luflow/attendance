@@ -7,7 +7,6 @@ OC.L10N.register(
     "Cancelled" : "Diddymwyd",
     "Connect" : "Cysylltu",
     "Settings" : "Gosodiadau",
-    "Account" : "Cyfrif",
     "None" : "Dim",
     "System" : "System",
     "Light" : "Golau",

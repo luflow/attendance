@@ -6,7 +6,6 @@ OC.L10N.register(
     "Group" : "Qrup",
     "Connect" : "Qoşul",
     "Settings" : "Quraşdırmalar",
-    "Account" : "Hesab",
     "None" : "Heç bir",
     "System" : "Sistem",
     "Light" : "İşıqlı",

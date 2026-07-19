@@ -11,6 +11,7 @@ OC.L10N.register(
     "Connected" : "Connectite",
     "Subscribe" : "Subscribe",
     "OK" : "OK",
+    "Done" : "Preste",
     "Language" : "Lingua",
     "Send" : "Inviar",
     "Export" : "Exportar",

@@ -7,7 +7,6 @@ OC.L10N.register(
     "Cancelled" : "Չեղարկված",
     "Connect" : "միացնել",
     "Settings" : "Կարգավորումներ",
-    "Notifications" : "Ծանուցում",
     "Connected" : "միացված է",
     "OK" : "OK",
     "About" : "Մասին",

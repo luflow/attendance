@@ -6,7 +6,6 @@ OC.L10N.register(
     "Cancelled" : "Gekanselleer",
     "Connect" : "Verbind",
     "Settings" : "Instellings",
-    "Account" : "Rekening",
     "Log out" : "Teken af",
     "Color" : "Kleur",
     "None" : "Geen",
