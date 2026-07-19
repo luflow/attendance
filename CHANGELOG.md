@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## 1.41.2 – 2026-07-19
+
+### Fixed
+
+- Admin test notifications now arrive even when the admin has already responded to the next appointment (the already-responded dismissal swallowed them silently)
+
+### Maintenance
+
+- Updated or simplified translations
+
 ## 1.41.1 – 2026-07-19
 
 ### Fixed
