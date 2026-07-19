@@ -146,18 +146,31 @@ def cmd_reply(args):
         sys.exit(f'No existing thread found for {sid} — replies attach to a '
                  'language, which is taken from the thread. For a brand-new '
                  'comment, pass --language (e.g. l:de_DE).')
-    language = args.language or thread[0]['language']
-    payload = {'data': {
-        'type': 'resource_string_comments',
-        'attributes': {'message': args.message, 'type': 'comment'},
-        'relationships': {
-            'resource_string': {
-                'data': {'type': 'resource_strings', 'id': sid}},
-            'language': {'data': {'type': 'languages', 'id': language}},
-        },
-    }}
-    status, data = request(
-        'POST', f'{API}/resource_string_comments', payload)
+    # The API masks missing language-team membership as a 404 on the
+    # resource string. Try every language seen in the thread (newest comment
+    # first) until one is accepted.
+    if args.language:
+        candidates = [args.language]
+    else:
+        candidates = []
+        for c in reversed(thread):
+            if c['language'] and c['language'] not in candidates:
+                candidates.append(c['language'])
+    status, data = None, None
+    for language in candidates:
+        payload = {'data': {
+            'type': 'resource_string_comments',
+            'attributes': {'message': args.message, 'type': 'comment'},
+            'relationships': {
+                'resource_string': {
+                    'data': {'type': 'resource_strings', 'id': sid}},
+                'language': {'data': {'type': 'languages', 'id': language}},
+            },
+        }}
+        status, data = request(
+            'POST', f'{API}/resource_string_comments', payload)
+        if status != 404:
+            break
     print(json.dumps({'http': status, 'ok': status < 300,
                       'response': data if status >= 300 else data.get(
                           'data', {}).get('id')}))

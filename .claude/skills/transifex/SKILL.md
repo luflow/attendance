@@ -102,6 +102,13 @@ python3 .claude/skills/transifex/scripts/tx_feedback.py reply <string_id> "<mess
 The script copies the mandatory `language` relationship from the
 existing thread — a raw POST without it fails with 400.
 
+Beware: the API masks missing language-team membership as a `404 Object
+not found` on the resource string. The translator token can only post
+comments attached to languages whose team it belongs to (de/de_DE); the
+script therefore tries every language seen in the thread until one is
+accepted. A persistent 404 despite the string existing means none of the
+thread's languages are postable — fall back to `--language l:de_DE`.
+
 ## Step 5 — Resolving issues (usually not possible)
 
 ```bash
