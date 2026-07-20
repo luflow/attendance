@@ -50,6 +50,7 @@ OC.L10N.register(
     "Invite guest" : "Invita ospite",
     "Language" : "Lingua",
     "Send" : "Invia",
+    "Show QR code" : "Mostra codice QR",
     "Sign in" : "Accedi",
     "Skip" : "Salta",
     "Try again" : "Riprova",

@@ -40,6 +40,7 @@ OC.L10N.register(
     "Invite guest" : "Pozovi gosta",
     "Language" : "Jezik",
     "Send" : "Pošaljite",
+    "Show QR code" : "Prikaži QR kod",
     "Sign in" : "Prijava",
     "Skip" : "Preskoči",
     "Try again" : "Pokušajte ponovno",

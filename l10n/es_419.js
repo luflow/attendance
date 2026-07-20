@@ -21,6 +21,7 @@ OC.L10N.register(
     "App developer" : "Desarrollador de la aplicación",
     "Language" : "Idioma",
     "Send" : "Enviar",
+    "Sign in" : "Autenticar",
     "Skip" : "Saltar",
     "Try again" : "Reintentar",
     "Export" : "Exportar",

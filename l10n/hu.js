@@ -49,6 +49,7 @@ OC.L10N.register(
     "Invite guest" : "Vendég meghívása",
     "Language" : "Nyelv",
     "Send" : "Küldés",
+    "Show QR code" : "QR-kód megjelenítése",
     "Sign in" : "Bejelentkezés",
     "Skip" : "Kihagyás",
     "Try again" : "Próbálja újra",

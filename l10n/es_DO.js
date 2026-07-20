@@ -22,6 +22,7 @@ OC.L10N.register(
     "Common" : "Común",
     "Language" : "Idioma",
     "Send" : "Enviar",
+    "Sign in" : "Iniciar sesión",
     "Try again" : "Reintentar",
     "Export" : "Exportar",
     "Select all" : "Seleccionar todo",

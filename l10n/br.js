@@ -19,6 +19,7 @@ OC.L10N.register(
     "OK" : "OK",
     "All languages" : "Pep yezh",
     "Display name" : "Anv ardivink",
+    "Done" : "Graet",
     "Email" : "Postel",
     "Invite guest" : "Pedañ kouvidi",
     "Language" : "Yezh",

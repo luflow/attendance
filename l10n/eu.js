@@ -50,6 +50,8 @@ OC.L10N.register(
     "Invite guest" : "Gonbidapen berria bidali",
     "Language" : "Hizkuntza",
     "Send" : "Bidali",
+    "Show QR code" : "Erakutsi QR kodea",
+    "Sign in" : "Eman izena",
     "Skip" : "Saltatu",
     "Try again" : "Saiatu berriz",
     "Create appointment" : "Sortu hitzordua",

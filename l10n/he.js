@@ -36,6 +36,7 @@ OC.L10N.register(
     "Invite guest" : "הזמנת אורח",
     "Language" : "שפה",
     "Send" : "שליחה",
+    "Sign in" : "כניסה",
     "Skip" : "דלג",
     "Try again" : "ניסיון חוזר",
     "Export" : "ייצוא",

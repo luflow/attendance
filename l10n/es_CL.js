@@ -25,6 +25,7 @@ OC.L10N.register(
     "Default" : "Por defecto",
     "Language" : "Idioma",
     "Send" : "Enviar",
+    "Sign in" : "Iniciar sesión",
     "Try again" : "Reintentar",
     "Export" : "Exportar",
     "Select all" : "Seleccionar todo",
