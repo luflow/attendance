@@ -11,6 +11,7 @@ OC.L10N.register(
     "Attachments" : "Прилози",
     "Connect" : "Поврзи се",
     "Settings" : "Параметри",
+    "Log out" : "Одјава",
     "Appearance" : "Изглед",
     "Color" : "Боја",
     "None" : "Ништо",
