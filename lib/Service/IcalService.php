@@ -233,13 +233,15 @@ class IcalService {
 		if ($responseState === 'yes' && $this->configService->isBookingEnabled()) {
 			if ($bookingStatus === 'booked') {
 				$transp = 'OPAQUE';
-				$summary = $appointment->getName()
-					. ' (' . $l->t('Me') . ': ' . $l->t('Scheduled') . ')';
+				// TRANSLATORS Status marker appended to the calendar event title — the person got a place in the appointment (German "Eingeplant", not "Geplant"; the appointment itself is not being planned).
+				$statusLabel = $l->t('Scheduled');
 			} else {
 				$transp = 'TRANSPARENT';
-				$summary = $appointment->getName()
-					. ' (' . $l->t('Me') . ': ' . $l->t('Not scheduled') . ')';
+				// TRANSLATORS Status marker appended to the calendar event title — the person did not get a place in the appointment (German "Nicht eingeplant").
+				$statusLabel = $l->t('Not scheduled');
 			}
+			$summary = $appointment->getName()
+				. ' (' . $l->t('Me') . ': ' . $statusLabel . ')';
 		}
 
 		// Cancelled appointments: the event will not take place. This is the one

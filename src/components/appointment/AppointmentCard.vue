@@ -435,6 +435,7 @@
 			@closing="showCloseBookingDialog = false">
 			<div class="booking-confirm">
 				<p class="booking-confirm__hint">
+					<!-- TRANSLATORS: Hint in the close-inquiry dialog — people get notified whether they got a place in the appointment or not (German "Einplanung", not "Planung"). -->
 					{{ t('attendance', 'Closing notifies these people about their scheduling status.') }}
 				</p>
 				<div
@@ -766,11 +767,13 @@ const expandedBookingGroups = ref({})
 const bookingDialogGroups = computed(() => [
 	{
 		key: 'booked',
+		// TRANSLATORS: Group heading in the close-inquiry dialog — the {count} people who got a place in the appointment (German "Eingeplant", not "Geplant").
 		label: t('attendance', 'Scheduled ({count})', { count: bookingGroups.value.booked.length }),
 		names: bookingGroups.value.booked,
 	},
 	{
 		key: 'declined',
+		// TRANSLATORS: Group heading in the close-inquiry dialog — the {count} people who did not get a place in the appointment (German "Nicht eingeplant").
 		label: t('attendance', 'Not scheduled ({count})', { count: bookingGroups.value.declined.length }),
 		names: bookingGroups.value.declined,
 	},

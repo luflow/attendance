@@ -154,17 +154,21 @@ class Notifier implements INotifier {
 				);
 				if ($notification->getSubject() === 'booking_confirmed') {
 					$notification->setParsedSubject(
+						// TRANSLATORS Push notification subject: the person got a place in the appointment ("scheduled in", German "eingeplant" — not "geplant": the appointment itself is not being planned). %1$s is the appointment name, %2$s the date.
 						$l->t('You are scheduled: %1$s on %2$s', [$appointmentName, $appointmentDate])
 					);
 					$notification->setParsedMessage(
-						$l->t('You have been scheduled for this appointment.')
+						// TRANSLATORS Push notification body, personal and friendly — thanks the person for responding and confirms they got a place in the appointment (German "eingeplant", not "geplant").
+						$l->t('Thank you! You are scheduled for this appointment.')
 					);
 				} else {
 					$notification->setParsedSubject(
+						// TRANSLATORS Push notification subject: the person did not get a place in the appointment this time (German "nicht eingeplant", not "nicht geplant"). %1$s is the appointment name, %2$s the date.
 						$l->t('Not scheduled: %1$s on %2$s', [$appointmentName, $appointmentDate])
 					);
 					$notification->setParsedMessage(
-						$l->t('You are not scheduled for this appointment this time.')
+						// TRANSLATORS Push notification body, personal and friendly — thanks the person for responding and gently tells them they are not part of this appointment this time.
+						$l->t('Thank you! Unfortunately, you are not part of this appointment this time.')
 					);
 				}
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(

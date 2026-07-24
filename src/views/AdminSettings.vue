@@ -382,12 +382,14 @@
 				</NcSettingsSection>
 			</div>
 
+			<!-- TRANSLATORS: Admin settings section title for the scheduling feature: managers give people who answered "yes" a place in the appointment ("schedule someone in", German "Einplanung"/"einplanen" — not "Planung": appointments themselves are not being planned here). The description and the "Enable scheduling" switch below use the same meaning. -->
 			<NcSettingsSection :name="t('attendance', 'Scheduling')"
 				:description="t('attendance', 'Let managers mark yes-responders as scheduled for an appointment. When off, no scheduling controls are shown anywhere.')">
 				<NcCheckboxRadioSwitch v-model="bookingEnabled"
 					type="switch"
 					:disabled="loading"
 					data-test="switch-booking-enabled">
+					<!-- TRANSLATORS: Switch label — turns the scheduling feature on (German "Einplanung aktivieren", not "Planung"). -->
 					{{ t('attendance', 'Enable scheduling') }}
 				</NcCheckboxRadioSwitch>
 			</NcSettingsSection>
