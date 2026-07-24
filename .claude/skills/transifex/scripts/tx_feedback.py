@@ -11,11 +11,23 @@ Commands:
                              string, with source text and issue status.
   list --open                Only threads with an open issue or whose last
                              message is not from --me (default: magdeflow).
+  list --new                 Only threads with activity newer than the
+                             answered_up_to watermark in state.json (kept
+                             next to the skill). Combine with --open.
+  find TEXT                  Search the resource's source strings by key or
+                             source text (case-insensitive substring) and
+                             print their string ids.
   reply STRING_ID MESSAGE    Post a reply comment on a string's thread.
                              STRING_ID may be the full id or just the s:<hash>
                              suffix. The language relationship (required by
                              the API) is copied from the thread's existing
-                             comments.
+                             comments. With --issue, an open issue is created
+                             instead of a plain comment. For strings without
+                             an existing thread, pass --language (l:de_DE).
+  mark-answered              Record the newest comment date seen on the
+                             resource as the answered_up_to watermark in
+                             state.json (or pass --date ISO explicitly).
+                             Run after all replies for a session are posted.
   resolve COMMENT_ID         Mark an issue comment as resolved. NOTE: needs
                              project-maintainer rights; translator-level
                              tokens get 403 (see SKILL.md).
@@ -34,6 +46,22 @@ API = 'https://rest.api.transifex.com'
 ORGANIZATION = 'o:nextcloud'
 PROJECT = 'o:nextcloud:p:nextcloud'
 RESOURCE = 'o:nextcloud:p:nextcloud:r:attendance'
+STATE_FILE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), '..', 'state.json')
+
+
+def read_state():
+    try:
+        with open(STATE_FILE) as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def write_state(state):
+    with open(STATE_FILE, 'w') as f:
+        json.dump(state, f, indent=1, ensure_ascii=False)
+        f.write('\n')
 
 
 def token():
@@ -47,7 +75,9 @@ def token():
 def request(method, url, payload=None):
     # curl instead of urllib: it picks up the egress proxy and its CA
     # bundle from the environment without extra configuration.
-    cmd = ['curl', '-sS', '-X', method,
+    # -g: pagination links from the API contain literal [] which curl would
+    # otherwise treat as glob ranges.
+    cmd = ['curl', '-sSg', '-X', method,
            '-H', f'Authorization: Bearer {token()}',
            '-w', '\n%{http_code}']
     if payload is not None:
@@ -118,6 +148,11 @@ def full_string_id(string_id):
 
 def cmd_list(args):
     threads = fetch_threads()
+    watermark = read_state().get('answered_up_to', '') if args.new else ''
+    if args.new and not watermark:
+        print('state.json has no answered_up_to watermark yet — listing '
+              'everything. Run mark-answered after replying.',
+              file=sys.stderr)
     out = []
     for sid, comments in threads.items():
         has_open_issue = any(
@@ -125,6 +160,10 @@ def cmd_list(args):
         needs_attention = has_open_issue or (
             comments and comments[-1]['author'] != f'u:{args.me}')
         if args.open and not needs_attention:
+            continue
+        # Watermark dates come from the same API field as the comment
+        # dates, so plain string comparison of the ISO timestamps works.
+        if watermark and comments[-1]['date'] <= watermark:
             continue
         out.append({
             'string_id': sid,
@@ -138,11 +177,29 @@ def cmd_list(args):
     print()
 
 
+def cmd_find(args):
+    params = urllib.parse.urlencode({'filter[resource]': RESOURCE})
+    needle = args.text.lower()
+    out = []
+    for s in paginate(f'{API}/resource_strings?{params}'):
+        attributes = s['attributes']
+        haystack = (attributes.get('key') or '') + ' ' + json.dumps(
+            attributes.get('strings') or {}, ensure_ascii=False)
+        if needle in haystack.lower():
+            out.append({
+                'string_id': s['id'],
+                'key': attributes.get('key'),
+                'source': attributes.get('strings'),
+            })
+    json.dump(out, sys.stdout, indent=1, ensure_ascii=False)
+    print()
+
+
 def cmd_reply(args):
     sid = full_string_id(args.string_id)
     threads = fetch_threads()
-    thread = threads.get(sid)
-    if not thread:
+    thread = threads.get(sid, [])
+    if not thread and not args.language:
         sys.exit(f'No existing thread found for {sid} — replies attach to a '
                  'language, which is taken from the thread. For a brand-new '
                  'comment, pass --language (e.g. l:de_DE).')
@@ -156,11 +213,15 @@ def cmd_reply(args):
         for c in reversed(thread):
             if c['language'] and c['language'] not in candidates:
                 candidates.append(c['language'])
+    # New issues are created open; the API rejects an explicit 'status'
+    # attribute on creation.
+    attributes = {'message': args.message,
+                  'type': 'issue' if args.issue else 'comment'}
     status, data = None, None
     for language in candidates:
         payload = {'data': {
             'type': 'resource_string_comments',
-            'attributes': {'message': args.message, 'type': 'comment'},
+            'attributes': attributes,
             'relationships': {
                 'resource_string': {
                     'data': {'type': 'resource_strings', 'id': sid}},
@@ -175,6 +236,30 @@ def cmd_reply(args):
                       'response': data if status >= 300 else data.get(
                           'data', {}).get('id')}))
     sys.exit(0 if status < 300 else 1)
+
+
+def cmd_mark_answered(args):
+    if args.date:
+        newest = args.date
+    else:
+        # Take the newest comment date from the API itself instead of the
+        # local clock — clocks may drift, the API is the source of truth.
+        newest = max(
+            (c['date'] for comments in fetch_threads().values()
+             for c in comments), default='')
+        if not newest:
+            sys.exit('No comments found on the resource; pass --date '
+                     'to set the watermark explicitly.')
+    state = read_state()
+    previous = state.get('answered_up_to', '')
+    if previous and newest < previous and not args.date:
+        sys.exit(f'Refusing to move the watermark backwards '
+                 f'({previous} -> {newest}); pass an explicit --date '
+                 f'if that is really intended.')
+    state['answered_up_to'] = newest
+    write_state(state)
+    print(json.dumps({'ok': True, 'answered_up_to': newest,
+                      'previous': previous or None}))
 
 
 def cmd_resolve(args):
@@ -202,14 +287,31 @@ def main():
     p_list = sub.add_parser('list', help='list comment threads')
     p_list.add_argument('--open', action='store_true',
                         help='only threads needing attention')
+    p_list.add_argument('--new', action='store_true',
+                        help='only threads with activity newer than the '
+                             'answered_up_to watermark in state.json')
     p_list.add_argument('--me', default='magdeflow',
                         help='username treated as "us" for needs_attention')
     p_list.set_defaults(func=cmd_list)
+
+    p_mark = sub.add_parser(
+        'mark-answered',
+        help='record the newest comment date as the answered watermark')
+    p_mark.add_argument('--date',
+                        help='explicit ISO timestamp instead of the newest '
+                             'comment date from the API')
+    p_mark.set_defaults(func=cmd_mark_answered)
+
+    p_find = sub.add_parser('find', help='search source strings by text/key')
+    p_find.add_argument('text')
+    p_find.set_defaults(func=cmd_find)
 
     p_reply = sub.add_parser('reply', help='post a reply on a thread')
     p_reply.add_argument('string_id')
     p_reply.add_argument('message')
     p_reply.add_argument('--language', help='override, e.g. l:de_DE')
+    p_reply.add_argument('--issue', action='store_true',
+                         help='open an issue instead of a plain comment')
     p_reply.set_defaults(func=cmd_reply)
 
     p_resolve = sub.add_parser('resolve', help='resolve an issue comment')

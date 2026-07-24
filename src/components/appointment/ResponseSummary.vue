@@ -126,6 +126,7 @@
 											</NcButton>
 										</div>
 									</NcPopover>
+									<!-- TRANSLATORS: Tooltip on the disabled scheduling toggle. "scheduling" = the feature of giving people a place in the appointment (German: the noun is "Planung", the per-person action is "einplanen"). -->
 									<NcButton
 										v-if="canManageBooking && response.response === 'yes'"
 										class="booking-toggle"
@@ -137,6 +138,7 @@
 										<template #icon>
 											<CalendarCheckIcon :size="20" />
 										</template>
+										<!-- TRANSLATORS: Toggle button per person. "Scheduled" = status label, the person got a place in the appointment (German "Eingeplant"). "Schedule" = verb/action, the manager gives the person a place ("schedule someone in", German "Einplanen" — not "Planen": the appointment itself is not being planned). -->
 										{{ response.bookingStatus === 'booked' ? t('attendance', 'Scheduled') : t('attendance', 'Schedule') }}
 									</NcButton>
 								</div>
@@ -283,6 +285,7 @@
 											</NcButton>
 										</div>
 									</NcPopover>
+									<!-- TRANSLATORS: Tooltip on the disabled scheduling toggle. "scheduling" = the feature of giving people a place in the appointment (German: the noun is "Planung", the per-person action is "einplanen"). -->
 									<NcButton
 										v-if="canManageBooking && response.response === 'yes'"
 										class="booking-toggle"
@@ -294,6 +297,7 @@
 										<template #icon>
 											<CalendarCheckIcon :size="20" />
 										</template>
+										<!-- TRANSLATORS: Toggle button per person. "Scheduled" = status label, the person got a place in the appointment (German "Eingeplant"). "Schedule" = verb/action, the manager gives the person a place ("schedule someone in", German "Einplanen" — not "Planen": the appointment itself is not being planned). -->
 										{{ response.bookingStatus === 'booked' ? t('attendance', 'Scheduled') : t('attendance', 'Schedule') }}
 									</NcButton>
 								</div>
@@ -355,6 +359,7 @@
 						<span
 							class="expand-icon"
 							:class="{ expanded: expandedGroups['others'] }">▶</span>
+						<!-- TRANSLATORS: Section heading in the response summary for users who are not in any of the tracked groups ("other people"). -->
 						{{ t("attendance", "Others") }}
 					</div>
 					<div class="group-counts">
@@ -429,6 +434,7 @@
 											</NcButton>
 										</div>
 									</NcPopover>
+									<!-- TRANSLATORS: Tooltip on the disabled scheduling toggle. "scheduling" = the feature of giving people a place in the appointment (German: the noun is "Planung", the per-person action is "einplanen"). -->
 									<NcButton
 										v-if="canManageBooking && response.response === 'yes'"
 										class="booking-toggle"
@@ -440,6 +446,7 @@
 										<template #icon>
 											<CalendarCheckIcon :size="20" />
 										</template>
+										<!-- TRANSLATORS: Toggle button per person. "Scheduled" = status label, the person got a place in the appointment (German "Eingeplant"). "Schedule" = verb/action, the manager gives the person a place ("schedule someone in", German "Einplanen" — not "Planen": the appointment itself is not being planned). -->
 										{{ response.bookingStatus === 'booked' ? t('attendance', 'Scheduled') : t('attendance', 'Schedule') }}
 									</NcButton>
 								</div>
@@ -559,6 +566,7 @@ async function toggleBooking(response) {
 		response.bookingStatus = data.bookingStatus ?? null
 	} catch (error) {
 		console.error('Failed to update booking:', error)
+		// TRANSLATORS: Error toast when toggling whether a person is scheduled in for the appointment fails (German: "Planung").
 		showError(t('attendance', 'Failed to update scheduling'))
 	} finally {
 		togglingBooking.delete(response.userId)

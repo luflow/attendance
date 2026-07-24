@@ -330,6 +330,7 @@ t('attendance', 'Not now')
 t('attendance', 'Server Update Available')
 t('attendance', "Your server's Attendance app may be outdated. Please update to version 1.34.0 or later for the best experience.")
 
+// TRANSLATORS: "Attendance" is the app name here, not the act of attending — error screen title in the mobile app when the Attendance app cannot be reached on the server.
 t('attendance', 'Attendance is not available')
 t('attendance', 'The Attendance app could not be reached on your Nextcloud server. This usually has one of two reasons:')
 t('attendance', 'The app is not installed on the server.')
@@ -356,7 +357,9 @@ t('attendance', 'days remaining')
 t('attendance', 'One license for your whole Nextcloud server. No per-user fees.')
 t('attendance', 'More than 100 active app users?')
 t('attendance', 'Restore Purchases')
+// TRANSLATORS: Standalone button label (nominative) opening the Terms of Service document — not part of a sentence; the consent sentence uses inline links instead.
 t('attendance', 'Terms of Service')
+// TRANSLATORS: Standalone button label (nominative) opening the privacy policy document — not part of a sentence; the consent sentence uses inline links instead.
 t('attendance', 'Privacy Policy')
 // TRANSLATORS: Keep the link syntax intact: translate only the label inside the square brackets, e.g. [your translation](terms) and [your translation](privacy). The identifiers (terms) and (privacy) are internal link targets and must stay unchanged.
 t('attendance', 'By connecting, you agree to our [Terms of Service](terms) and acknowledge our [Privacy Policy](privacy).')

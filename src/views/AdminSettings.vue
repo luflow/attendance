@@ -245,6 +245,7 @@
 								value="non_responders"
 								name="reminder-target"
 								data-test="radio-reminder-target-non-responders">
+								<!-- TRANSLATORS: Radio option for automatic reminders — remind only people who have not responded yet. People who answered "no" are deliberately not reminded. -->
 								{{ t('attendance', 'Non-responders only') }}
 							</NcCheckboxRadioSwitch>
 							<NcCheckboxRadioSwitch
@@ -253,6 +254,7 @@
 								value="maybe"
 								name="reminder-target"
 								data-test="radio-reminder-target-maybe">
+								<!-- TRANSLATORS: Radio option for automatic reminders — remind only people who answered "maybe". -->
 								{{ t('attendance', 'Maybe responders only') }}
 							</NcCheckboxRadioSwitch>
 							<NcCheckboxRadioSwitch
@@ -261,6 +263,7 @@
 								value="both"
 								name="reminder-target"
 								data-test="radio-reminder-target-both">
+								<!-- TRANSLATORS: Radio option for automatic reminders — remind both groups: people without a response and people who answered "maybe". -->
 								{{ t('attendance', 'Both non-responders and maybe responders') }}
 							</NcCheckboxRadioSwitch>
 						</div>
@@ -379,12 +382,14 @@
 				</NcSettingsSection>
 			</div>
 
+			<!-- TRANSLATORS: Admin settings section title for the scheduling feature: managers give people who answered "yes" a place in the appointment ("schedule someone in"). German: the feature/noun is "Planung", the per-person action is "einplanen" and a scheduled person is "eingeplant" — not "planen"/"geplant". The description and the "Enable scheduling" switch below use the same meaning. -->
 			<NcSettingsSection :name="t('attendance', 'Scheduling')"
 				:description="t('attendance', 'Let managers mark yes-responders as scheduled for an appointment. When off, no scheduling controls are shown anywhere.')">
 				<NcCheckboxRadioSwitch v-model="bookingEnabled"
 					type="switch"
 					:disabled="loading"
 					data-test="switch-booking-enabled">
+					<!-- TRANSLATORS: Switch label — turns the scheduling feature on (German: "Planung aktivieren"). -->
 					{{ t('attendance', 'Enable scheduling') }}
 				</NcCheckboxRadioSwitch>
 			</NcSettingsSection>
@@ -417,6 +422,7 @@
 									<template #icon>
 										<OpenInNew :size="20" />
 									</template>
+									<!-- TRANSLATORS: Verb (imperative) — button that opens the app-store link in a new browser tab. -->
 									{{ t('attendance', 'Open') }}
 								</NcButton>
 							</div>

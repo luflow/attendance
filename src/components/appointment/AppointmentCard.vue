@@ -338,6 +338,7 @@
 			data-test="checkin-summary">
 			<h4>{{ t("attendance", "Check-in summary") }}</h4>
 			<div class="summary-stats">
+				<!-- TRANSLATORS: Check-in status chip on the appointment card — the person has checked in. Sibling chips: "{count} absent", "{count} pending". All three describe the current check-in state of the same event, so translate as status labels rather than strict past/present tense. -->
 				<NcChip
 					:text="
 						t('attendance', '{count} attended', {
@@ -350,6 +351,7 @@
 						<CheckIcon :size="16" />
 					</template>
 				</NcChip>
+				<!-- TRANSLATORS: Check-in status chip — the person was explicitly marked absent. See "{count} attended". -->
 				<NcChip
 					:text="
 						t('attendance', '{count} absent', {
@@ -362,6 +364,7 @@
 						<CloseIcon :size="16" />
 					</template>
 				</NcChip>
+				<!-- TRANSLATORS: Check-in status chip — no check-in recorded for the person yet. See "{count} attended". -->
 				<NcChip
 					v-if="appointment.checkinSummary.notCheckedIn > 0"
 					:text="
@@ -400,6 +403,7 @@
 					:disabled="sendingReminders"
 					data-test="remind-non-responders"
 					@click="handleRemindAll('non_responders')">
+					<!-- TRANSLATORS: Button in the "Send reminders" dialog — reminds everyone who has not responded yet. People who answered "no" are deliberately not reminded. -->
 					{{ t('attendance', 'Non-responders') }}
 				</NcButton>
 				<NcButton
@@ -408,6 +412,7 @@
 					:disabled="sendingReminders"
 					data-test="remind-maybe"
 					@click="handleRemindAll('maybe')">
+					<!-- TRANSLATORS: Button in the "Send reminders" dialog — reminds everyone who answered "maybe". -->
 					{{ t('attendance', 'Maybe responders') }}
 				</NcButton>
 				<NcButton
@@ -416,6 +421,7 @@
 					:disabled="sendingReminders"
 					data-test="remind-both"
 					@click="handleRemindAll('both')">
+					<!-- TRANSLATORS: Button in the "Send reminders" dialog — reminds both groups: non-responders and maybe responders. -->
 					{{ t('attendance', 'Both') }}
 				</NcButton>
 			</div>
@@ -429,6 +435,7 @@
 			@closing="showCloseBookingDialog = false">
 			<div class="booking-confirm">
 				<p class="booking-confirm__hint">
+					<!-- TRANSLATORS: Hint in the close-inquiry dialog — people get notified whether they got a place in the appointment or not (German: "Planungsstatus"). -->
 					{{ t('attendance', 'Closing notifies these people about their scheduling status.') }}
 				</p>
 				<div
@@ -760,11 +767,13 @@ const expandedBookingGroups = ref({})
 const bookingDialogGroups = computed(() => [
 	{
 		key: 'booked',
+		// TRANSLATORS: Group heading in the close-inquiry dialog — the {count} people who got a place in the appointment (German "Eingeplant", not "Geplant").
 		label: t('attendance', 'Scheduled ({count})', { count: bookingGroups.value.booked.length }),
 		names: bookingGroups.value.booked,
 	},
 	{
 		key: 'declined',
+		// TRANSLATORS: Group heading in the close-inquiry dialog — the {count} people who did not get a place in the appointment (German "Nicht eingeplant").
 		label: t('attendance', 'Not scheduled ({count})', { count: bookingGroups.value.declined.length }),
 		names: bookingGroups.value.declined,
 	},
