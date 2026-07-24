@@ -66,6 +66,9 @@ onMounted(() => {
 
 	// Icon paths from vue-material-design-icons (same as Nextcloud uses)
 	const iconPaths = {
+		header1: 'M3,4H5V10H9V4H11V18H9V12H5V18H3V4M14,18V16H16V6.31L13.5,7.75V5.44L16,4H18V16H20V18H14Z',
+		header2: 'M3,4H5V10H9V4H11V18H9V12H5V18H3V4M21,18H15A2,2 0 0,1 13,16C13,15.47 13.2,15 13.54,14.64L18.41,9.41C18.78,9.05 19,8.55 19,8A2,2 0 0,0 17,6A2,2 0 0,0 15,8H13A4,4 0 0,1 17,4A4,4 0 0,1 21,8C21,9.1 20.55,10.1 19.83,10.83L15,16H21V18Z',
+		header3: 'M3,4H5V10H9V4H11V18H9V12H5V18H3V4M15,4H19A2,2 0 0,1 21,6V16A2,2 0 0,1 19,18H15A2,2 0 0,1 13,16V15H15V16H19V12H15V10H19V6H15V7H13V6A2,2 0 0,1 15,4Z',
 		bold: 'M13.5,15.5H10V12.5H13.5A1.5,1.5 0 0,1 15,14A1.5,1.5 0 0,1 13.5,15.5M10,6.5H13A1.5,1.5 0 0,1 14.5,8A1.5,1.5 0 0,1 13,9.5H10M15.6,10.79C16.57,10.11 17.25,9 17.25,8C17.25,5.74 15.5,4 13.25,4H7V18H14.04C16.14,18 17.75,16.3 17.75,14.21C17.75,12.69 16.89,11.39 15.6,10.79Z',
 		italic: 'M10,4V7H12.21L8.79,15H6V18H14V15H11.79L15.21,7H18V4H10Z',
 		strikethrough: 'M3,14H21V12H3M5,4V7H10V10H14V7H19V4M10,19H14V16H10V19Z',
@@ -88,6 +91,10 @@ onMounted(() => {
 			{ name: 'italic', action: EasyMDE.toggleItalic, className: 'mde-btn-italic', title: t('attendance', 'Italic') },
 			{ name: 'strikethrough', action: EasyMDE.toggleStrikethrough, className: 'mde-btn-strikethrough', title: t('attendance', 'Strikethrough') },
 			'|',
+			{ name: 'heading-1', action: EasyMDE.toggleHeading1, className: 'mde-btn-header1', title: t('attendance', 'Heading 1') },
+			{ name: 'heading-2', action: EasyMDE.toggleHeading2, className: 'mde-btn-header2', title: t('attendance', 'Heading 2') },
+			{ name: 'heading-3', action: EasyMDE.toggleHeading3, className: 'mde-btn-header3', title: t('attendance', 'Heading 3') },
+			'|',
 			{ name: 'unordered-list', action: EasyMDE.toggleUnorderedList, className: 'mde-btn-bullet', title: t('attendance', 'Bullet list') },
 			{ name: 'ordered-list', action: EasyMDE.toggleOrderedList, className: 'mde-btn-numbered', title: t('attendance', 'Numbered list') },
 			{ name: 'quote', action: EasyMDE.toggleBlockquote, className: 'mde-btn-quote', title: t('attendance', 'Quote') },
@@ -108,6 +115,9 @@ onMounted(() => {
 	injectIcon('mde-btn-bold', iconPaths.bold)
 	injectIcon('mde-btn-italic', iconPaths.italic)
 	injectIcon('mde-btn-strikethrough', iconPaths.strikethrough)
+	injectIcon('mde-btn-header1', iconPaths.header1)
+	injectIcon('mde-btn-header2', iconPaths.header2)
+	injectIcon('mde-btn-header3', iconPaths.header3)
 	injectIcon('mde-btn-bullet', iconPaths.bulletList)
 	injectIcon('mde-btn-numbered', iconPaths.numberedList)
 	injectIcon('mde-btn-quote', iconPaths.quote)

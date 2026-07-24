@@ -4,12 +4,28 @@
 			<div class="appointment-title-block">
 				<template v-if="displayOrder === 'date_first'">
 					<h3 data-test="appointment-title" class="appointment-date-title">
-						{{
-							formatDateRange(
-								appointment.startDatetime,
-								appointment.endDatetime,
-							)
-						}}
+						<a
+							v-if="showDetailsLink"
+							:href="detailUrl"
+							class="title-link"
+							data-test="appointment-title-link"
+							@click.prevent="emit('openDetail', appointment.id)">
+							{{
+								formatDateRange(
+									appointment.startDatetime,
+									appointment.endDatetime,
+								)
+							}}
+							<ChevronRightIcon :size="18" class="title-chevron" />
+						</a>
+						<template v-else>
+							{{
+								formatDateRange(
+									appointment.startDatetime,
+									appointment.endDatetime,
+								)
+							}}
+						</template>
 						<a
 							v-if="calendarLink"
 							:href="calendarLink"
@@ -32,7 +48,18 @@
 				</template>
 				<template v-else>
 					<h3 data-test="appointment-title">
-						{{ appointment.name }}
+						<a
+							v-if="showDetailsLink"
+							:href="detailUrl"
+							class="title-link"
+							data-test="appointment-title-link"
+							@click.prevent="emit('openDetail', appointment.id)">
+							{{ appointment.name }}
+							<ChevronRightIcon :size="18" class="title-chevron" />
+						</a>
+						<template v-else>
+							{{ appointment.name }}
+						</template>
 						<span
 							v-if="appointment.seriesId"
 							class="series-indicator"
@@ -188,7 +215,7 @@
 
 		<!-- eslint-disable vue/no-v-html -- sanitized with DOMPurify -->
 		<div
-			v-if="appointment.description"
+			v-if="showDescription && appointment.description"
 			class="appointment-description"
 			v-html="renderedDescription" />
 		<!-- eslint-enable vue/no-v-html -->
@@ -211,6 +238,18 @@
 					</template>
 				</NcChip>
 			</a>
+		</div>
+
+		<div v-if="showDetailsLink" class="details-link-row">
+			<NcButton
+				variant="tertiary"
+				data-test="button-show-details"
+				@click="emit('openDetail', appointment.id)">
+				<template #icon>
+					<ChevronRightIcon :size="20" />
+				</template>
+				{{ t("attendance", "Show details") }}
+			</NcButton>
 		</div>
 
 		<!-- Read-only response chip while the inquiry is closed -->
@@ -489,6 +528,7 @@ import CalendarRefreshIcon from 'vue-material-design-icons/CalendarRefresh.vue'
 import CalendarRemoveIcon from 'vue-material-design-icons/CalendarRemove.vue'
 import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
+import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
 import ClockIcon from 'vue-material-design-icons/Clock.vue'
 import CloseIcon from 'vue-material-design-icons/Close.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
@@ -543,6 +583,14 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
+	showDescription: {
+		type: Boolean,
+		default: true,
+	},
+	showDetailsLink: {
+		type: Boolean,
+		default: false,
+	},
 })
 
 const emit = defineEmits([
@@ -555,6 +603,7 @@ const emit = defineEmits([
 	'updateComment',
 	'closedToggled',
 	'showAuditLog',
+	'openDetail',
 ])
 
 const { capabilities } = usePermissions()
@@ -608,6 +657,8 @@ const renderedDescription = computed(() => {
 	const html = renderMarkdown(props.appointment.description, false)
 	return sanitizeHtml(html)
 })
+
+const detailUrl = computed(() => generateUrl(`/apps/attendance/appointment/${props.appointment.id}`))
 
 const calendarLink = computed(() => {
 	if (
@@ -905,6 +956,30 @@ function handleCommentInputEvent() {
             color: var(--color-main-text);
         }
 
+        .title-link {
+            display: inline-flex;
+            align-items: center;
+            color: inherit;
+            text-decoration: none;
+
+            &:hover,
+            &:focus-visible {
+                text-decoration: underline;
+
+                .title-chevron {
+                    transform: translateX(2px);
+                }
+            }
+        }
+
+        .title-chevron {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 2px;
+            color: var(--color-text-maxcontrast);
+            transition: transform 0.15s ease;
+        }
+
         .appointment-date-subtitle {
             display: block;
             font-size: 15px;
@@ -933,6 +1008,10 @@ function handleCommentInputEvent() {
     .appointment-actions {
         margin-left: 10px;
     }
+}
+
+.details-link-row {
+    margin-bottom: 15px;
 }
 
 .appointment-description {
@@ -1108,7 +1187,8 @@ function handleCommentInputEvent() {
 }
 
 .appointment-description + .response-section,
-.attachment-chips + .response-section {
+.attachment-chips + .response-section,
+.details-link-row + .response-section {
     border-top: 1px solid var(--color-border);
     padding-top: 15px;
 }
