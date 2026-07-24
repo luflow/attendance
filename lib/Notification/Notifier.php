@@ -158,8 +158,8 @@ class Notifier implements INotifier {
 						$l->t('You are scheduled: %1$s on %2$s', [$appointmentName, $appointmentDate])
 					);
 					$notification->setParsedMessage(
-						// TRANSLATORS Push notification body, personal and friendly — thanks the person for responding and confirms they got a place in the appointment (German "eingeplant", not "geplant").
-						$l->t('Thank you! You are scheduled for this appointment.')
+						// TRANSLATORS Push notification body, personal and friendly — confirms the person got a place in the appointment (German "eingeplant", not "geplant") and thanks them for responding.
+						$l->t('You are scheduled for this appointment. Thank you for your response!')
 					);
 				} else {
 					$notification->setParsedSubject(
@@ -167,8 +167,8 @@ class Notifier implements INotifier {
 						$l->t('Not scheduled: %1$s on %2$s', [$appointmentName, $appointmentDate])
 					);
 					$notification->setParsedMessage(
-						// TRANSLATORS Push notification body, personal and friendly — thanks the person for responding and gently tells them they are not part of this appointment this time.
-						$l->t('Thank you! Unfortunately, you are not part of this appointment this time.')
+						// TRANSLATORS Push notification body, personal and friendly — gently tells the person they are not part of this appointment this time and thanks them for responding.
+						$l->t('Unfortunately, you are not part of this appointment this time. Thank you for your response!')
 					);
 				}
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
