@@ -94,12 +94,29 @@ const label = t('attendance', 'copy')
 <span>{{ t('attendance', 'Required') }}</span>
 ```
 
-Rules:
+Rules (empirically verified against the extractor, not just the docs):
 
-- The comment binds only to the **first** translation call on the
-  following line — one call per line, each with its own comment.
+- The comment binds **only to the first `t()` call on the immediately
+  following line**. A `t()` two lines down — multi-line ternary,
+  multi-line attribute binding, element tag line without the
+  translated attribute — silently gets nothing. Restructure instead:
+  ternaries become if/else or a computed/function with one comment per
+  `return t(…)` line; template attribute bindings either go on the tag
+  line directly after the comment or move into a computed.
+- The second `t()` of a one-line ternary also gets nothing — one call
+  per line, each with its own comment.
 - In Vue `<template>` blocks use the HTML comment form, in `<script>`
   the `//` form.
+- **Verify before committing** — generate the .pot locally and grep for
+  the hint text:
+
+  ```bash
+  docker run --rm --platform linux/amd64 --entrypoint php -v "$PWD:/app" -w /app ghcr.io/nextcloud/continuous-integration-translations:latest /translationtool.phar create-pot-files
+  grep -c "<distinctive hint words>" translationfiles/templates/attendance.pot
+  ```
+
+  `translationfiles/` is generated — delete it afterwards, never commit
+  it.
 - Word the hint as what a translator needs (where the string appears,
   noun vs. verb, what placeholders contain) — essentially a condensed
   version of the reply you are about to post.

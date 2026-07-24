@@ -254,6 +254,7 @@ const filterDefs = computed(() => [
 		options: [
 			{ id: STATUS.OPEN, label: t('attendance', 'Opened') },
 			{ id: STATUS.CLOSED, label: t('attendance', 'Closed') },
+			// TRANSLATORS: Filter option — appointments that were called off (German "Abgesagt", not "Abgebrochen").
 			{ id: STATUS.CANCELLED, label: t('attendance', 'Cancelled') },
 		],
 	},
@@ -358,6 +359,7 @@ const visibleSections = computed(() => {
 	return [
 		upcoming.length && { key: 'upcoming', label: t('attendance', 'Upcoming'), items: upcoming },
 		past.length && { key: 'past', label: t('attendance', 'Past'), items: past },
+		// TRANSLATORS: Group heading for appointments that were called off (German "Abgesagt", not "Abgebrochen").
 		cancelled.length && { key: 'cancelled', label: t('attendance', 'Cancelled'), items: cancelled },
 	].filter(Boolean)
 })

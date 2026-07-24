@@ -126,20 +126,18 @@
 											</NcButton>
 										</div>
 									</NcPopover>
-									<!-- TRANSLATORS: Tooltip on the disabled scheduling toggle. "scheduling" = the feature of giving people a place in the appointment (German: the noun is "Planung", the per-person action is "einplanen"). -->
 									<NcButton
 										v-if="canManageBooking && response.response === 'yes'"
 										class="booking-toggle"
 										:variant="response.bookingStatus === 'booked' ? 'success' : 'tertiary'"
 										:disabled="togglingBooking.has(response.userId) || isClosed"
-										:title="isClosed ? t('attendance', 'Reopen the inquiry to change scheduling') : null"
+										:title="bookingToggleTitle"
 										:data-test="`booking-toggle-${response.userId}`"
 										@click="toggleBooking(response)">
 										<template #icon>
 											<CalendarCheckIcon :size="20" />
 										</template>
-										<!-- TRANSLATORS: Toggle button per person. "Scheduled" = status label, the person got a place in the appointment (German "Eingeplant"). "Schedule" = verb/action, the manager gives the person a place ("schedule someone in", German "Einplanen" — not "Planen": the appointment itself is not being planned). -->
-										{{ response.bookingStatus === 'booked' ? t('attendance', 'Scheduled') : t('attendance', 'Schedule') }}
+										{{ bookingToggleLabel(response) }}
 									</NcButton>
 								</div>
 								<div
@@ -285,20 +283,18 @@
 											</NcButton>
 										</div>
 									</NcPopover>
-									<!-- TRANSLATORS: Tooltip on the disabled scheduling toggle. "scheduling" = the feature of giving people a place in the appointment (German: the noun is "Planung", the per-person action is "einplanen"). -->
 									<NcButton
 										v-if="canManageBooking && response.response === 'yes'"
 										class="booking-toggle"
 										:variant="response.bookingStatus === 'booked' ? 'success' : 'tertiary'"
 										:disabled="togglingBooking.has(response.userId) || isClosed"
-										:title="isClosed ? t('attendance', 'Reopen the inquiry to change scheduling') : null"
+										:title="bookingToggleTitle"
 										:data-test="`booking-toggle-${response.userId}`"
 										@click="toggleBooking(response)">
 										<template #icon>
 											<CalendarCheckIcon :size="20" />
 										</template>
-										<!-- TRANSLATORS: Toggle button per person. "Scheduled" = status label, the person got a place in the appointment (German "Eingeplant"). "Schedule" = verb/action, the manager gives the person a place ("schedule someone in", German "Einplanen" — not "Planen": the appointment itself is not being planned). -->
-										{{ response.bookingStatus === 'booked' ? t('attendance', 'Scheduled') : t('attendance', 'Schedule') }}
+										{{ bookingToggleLabel(response) }}
 									</NcButton>
 								</div>
 								<div
@@ -434,20 +430,18 @@
 											</NcButton>
 										</div>
 									</NcPopover>
-									<!-- TRANSLATORS: Tooltip on the disabled scheduling toggle. "scheduling" = the feature of giving people a place in the appointment (German: the noun is "Planung", the per-person action is "einplanen"). -->
 									<NcButton
 										v-if="canManageBooking && response.response === 'yes'"
 										class="booking-toggle"
 										:variant="response.bookingStatus === 'booked' ? 'success' : 'tertiary'"
 										:disabled="togglingBooking.has(response.userId) || isClosed"
-										:title="isClosed ? t('attendance', 'Reopen the inquiry to change scheduling') : null"
+										:title="bookingToggleTitle"
 										:data-test="`booking-toggle-${response.userId}`"
 										@click="toggleBooking(response)">
 										<template #icon>
 											<CalendarCheckIcon :size="20" />
 										</template>
-										<!-- TRANSLATORS: Toggle button per person. "Scheduled" = status label, the person got a place in the appointment (German "Eingeplant"). "Schedule" = verb/action, the manager gives the person a place ("schedule someone in", German "Einplanen" — not "Planen": the appointment itself is not being planned). -->
-										{{ response.bookingStatus === 'booked' ? t('attendance', 'Scheduled') : t('attendance', 'Schedule') }}
+										{{ bookingToggleLabel(response) }}
 									</NcButton>
 								</div>
 								<div
@@ -552,6 +546,27 @@ const canManageBooking = computed(() => props.canManageAppointments && props.boo
 const expandedGroups = ref({})
 const remindingUsers = reactive(new Set())
 const togglingBooking = reactive(new Set())
+
+// Booking-toggle texts live here instead of inline in the template: the
+// string extractor only associates a TRANSLATORS comment with the first
+// t() call on the very next line, which multi-line template expressions
+// cannot provide.
+const bookingToggleTitle = computed(() => {
+	if (!props.isClosed) {
+		return null
+	}
+	// TRANSLATORS: Tooltip on the disabled scheduling toggle. "scheduling" = the feature of giving people a place in the appointment (German: the noun is "Planung", the per-person action is "einplanen").
+	return t('attendance', 'Reopen the inquiry to change scheduling')
+})
+
+function bookingToggleLabel(response) {
+	if (response.bookingStatus === 'booked') {
+		// TRANSLATORS: Status label on the per-person scheduling toggle — the person got a place in the appointment (German "Eingeplant", not "Geplant").
+		return t('attendance', 'Scheduled')
+	}
+	// TRANSLATORS: Action label on the per-person scheduling toggle — the manager gives the person a place in the appointment ("schedule someone in", German "Einplanen" — not "Planen": the appointment itself is not being planned).
+	return t('attendance', 'Schedule')
+}
 const openRemindPopover = ref(null)
 
 async function toggleBooking(response) {

@@ -45,13 +45,8 @@
 						<CalendarSyncIcon :size="14" />
 					</a>
 				</span>
-				<NcChip
-					v-if="isCancelled"
-					class="cancelled-badge"
-					:text="t('attendance', 'Cancelled')"
-					variant="error"
-					noClose
-					data-test="cancelled-badge" />
+				<!-- TRANSLATORS: Status badge on an appointment that was called off (German "Abgesagt", not "Abgebrochen"). The generic dialog button "Cancel" (German "Abbrechen") is a different string. -->
+				<NcChip v-if="isCancelled" class="cancelled-badge" :text="t('attendance', 'Cancelled')" variant="error" noClose data-test="cancelled-badge" />
 			</div>
 			<div class="appointment-actions">
 				<NcActions
@@ -113,11 +108,7 @@
 							<CalendarRefreshIcon v-if="isCancelled" :size="20" />
 							<CalendarRemoveIcon v-else :size="20" />
 						</template>
-						{{
-							isCancelled
-								? t("attendance", "Reactivate appointment")
-								: t("attendance", "Cancel appointment")
-						}}
+						{{ cancelToggleLabel }}
 					</NcActionButton>
 					<NcActionButton
 						v-if="canManageAppointments"
@@ -337,40 +328,25 @@
 			data-test="checkin-summary">
 			<h4>{{ t("attendance", "Check-in summary") }}</h4>
 			<div class="summary-stats">
-				<!-- TRANSLATORS: Check-in status chip on the appointment card — the person has checked in. Sibling chips: "{count} absent", "{count} pending". All three describe the current check-in state of the same event, so translate as status labels rather than strict past/present tense. -->
 				<NcChip
-					:text="
-						t('attendance', '{count} attended', {
-							count: appointment.checkinSummary.attended,
-						})
-					"
+					:text="attendedChipText"
 					variant="success"
 					noClose>
 					<template #icon>
 						<CheckIcon :size="16" />
 					</template>
 				</NcChip>
-				<!-- TRANSLATORS: Check-in status chip — the person was explicitly marked absent. See "{count} attended". -->
 				<NcChip
-					:text="
-						t('attendance', '{count} absent', {
-							count: appointment.checkinSummary.absent,
-						})
-					"
+					:text="absentChipText"
 					variant="error"
 					noClose>
 					<template #icon>
 						<CloseIcon :size="16" />
 					</template>
 				</NcChip>
-				<!-- TRANSLATORS: Check-in status chip — no check-in recorded for the person yet. See "{count} attended". -->
 				<NcChip
 					v-if="appointment.checkinSummary.notCheckedIn > 0"
-					:text="
-						t('attendance', '{count} pending', {
-							count: appointment.checkinSummary.notCheckedIn,
-						})
-					"
+					:text="pendingChipText"
 					variant="tertiary"
 					noClose>
 					<template #icon>
@@ -606,6 +582,30 @@ const canToggleClosed = computed(() => {
 
 const isCancelled = computed(() => Boolean(props.appointment.cancelledAt))
 
+// Lives here instead of inline in the template: the string extractor only
+// associates a TRANSLATORS comment with the first t() call on the very
+// next line, which a multi-line ternary cannot provide.
+const cancelToggleLabel = computed(() => {
+	if (isCancelled.value) {
+		// TRANSLATORS: Menu action that takes a cancellation back — the appointment will take place again.
+		return t('attendance', 'Reactivate appointment')
+	}
+	// TRANSLATORS: Menu action that calls off the appointment — it will not take place (German "Termin absagen", not "abbrechen").
+	return t('attendance', 'Cancel appointment')
+})
+
+// Check-in status chips of the same event — like above, each t() sits
+// directly below its TRANSLATORS comment for the string extractor.
+const attendedChipText = computed(() =>
+	// TRANSLATORS: Check-in status chip on the appointment card — the person has checked in. Sibling chips: "{count} absent", "{count} pending". All three describe the current check-in state of the same event, so translate as status labels rather than strict past/present tense.
+	t('attendance', '{count} attended', { count: props.appointment.checkinSummary?.attended ?? 0 }))
+const absentChipText = computed(() =>
+	// TRANSLATORS: Check-in status chip — the person was explicitly marked absent. See "{count} attended".
+	t('attendance', '{count} absent', { count: props.appointment.checkinSummary?.absent ?? 0 }))
+const pendingChipText = computed(() =>
+	// TRANSLATORS: Check-in status chip — no check-in recorded for the person yet. See "{count} attended".
+	t('attendance', '{count} pending', { count: props.appointment.checkinSummary?.notCheckedIn ?? 0 }))
+
 // Cancelling is a manager/creator action gated behind the server capability, so
 // instances (and older servers) that don't offer it never show the UI.
 const canCancel = computed(() => capabilities.cancelling && canToggleClosed.value)
@@ -832,9 +832,13 @@ async function handleToggleCancelled() {
 	const url = generateUrl(`/apps/attendance/api/appointments/${props.appointment.id}/${wantsCancel ? 'cancel' : 'uncancel'}`)
 	try {
 		const response = await axios.post(url)
-		showSuccess(wantsCancel
-			? t('attendance', 'Appointment cancelled')
-			: t('attendance', 'Appointment reactivated'))
+		if (wantsCancel) {
+			// TRANSLATORS: Success toast — the appointment was called off (German "abgesagt", not "abgebrochen").
+			showSuccess(t('attendance', 'Appointment cancelled'))
+		} else {
+			// TRANSLATORS: Success toast — the cancellation was taken back, the appointment takes place again.
+			showSuccess(t('attendance', 'Appointment reactivated'))
+		}
 		// Reuse the closedToggled channel: the parent merges the full updated
 		// appointment (incl. cancelledAt) reactively, so no extra wiring needed.
 		emit('closedToggled', response.data)
