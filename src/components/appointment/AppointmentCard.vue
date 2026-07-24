@@ -1092,13 +1092,14 @@ function handleCommentInputEvent() {
     }
 
     :deep(h1) {
-        font-size: 1.5em;
+        font-size: 1.75em;
+        font-weight: 700;
     }
     :deep(h2) {
-        font-size: 1.3em;
+        font-size: 1.45em;
     }
     :deep(h3) {
-        font-size: 1.15em;
+        font-size: 1.2em;
     }
     :deep(h4) {
         font-size: 1.05em;

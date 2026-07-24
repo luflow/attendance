@@ -207,6 +207,18 @@ onBeforeUnmount(() => {
 			pre, span {
 				cursor: text;
 			}
+
+			// Tame EasyMDE's viewport-based heading sizes (calc(1.375rem + 1.5vw)
+			// and friends) — match the scale used when rendering descriptions.
+			.cm-header-1 {
+				font-size: 1.75em;
+			}
+			.cm-header-2 {
+				font-size: 1.45em;
+			}
+			.cm-header-3 {
+				font-size: 1.2em;
+			}
 		}
 
 		.CodeMirror-placeholder {
@@ -235,6 +247,12 @@ onBeforeUnmount(() => {
 				background: transparent !important;
 				cursor: pointer;
 				color: var(--color-main-text);
+
+				// EasyMDE appends "1"/"2"/"3" to the heading buttons for its
+				// FontAwesome icons — our SVG icons already carry the digit.
+				&::after {
+					content: none;
+				}
 
 				svg {
 					width: 20px;
