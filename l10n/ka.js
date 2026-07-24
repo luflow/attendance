@@ -39,6 +39,7 @@ OC.L10N.register(
     "Send" : "Send",
     "Sign in" : "Sign in",
     "Skip" : "გამოტოვება",
+    "year" : "year",
     "Create appointment" : "Create appointment",
     "Export" : "Export",
     "Select all" : "Select all",

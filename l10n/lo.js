@@ -90,7 +90,6 @@ OC.L10N.register(
     "Manage Subscription" : "ຈັດການການສະໝັກສະມາຊິກ",
     "Trial" : "ທົດລອງໃຊ້",
     "days remaining" : "ມື້ທີ່ເຫຼືອ",
-    "yr" : "ປີ",
     "More than 100 active app users?" : "ມີຜູ້ໃຊ້ແອັບຫຼາຍກວ່າ 100 ຄົນບໍ?",
     "Restore Purchases" : "ກູ້ຄືນລາຍການທີ່ຊື້",
     "Terms of Service" : "ເງື່ອນໄຂການໃຫ້ບໍລິການ",

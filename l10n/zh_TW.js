@@ -90,8 +90,6 @@ OC.L10N.register(
     "Manage Subscription" : "管理訂閱",
     "Trial" : "試用",
     "days remaining" : "天的剩餘時間",
-    "yr" : "年",
-    "mo" : "月",
     "More than 100 active app users?" : "超過 100 個活躍的應用程式使用者？",
     "Restore Purchases" : "還原購買",
     "Terms of Service" : "服務條款",

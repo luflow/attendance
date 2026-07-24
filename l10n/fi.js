@@ -63,6 +63,7 @@ OC.L10N.register(
     "Sign in" : "Kirjaudu",
     "Skip" : "Ohita",
     "Try again" : "Yritä uudelleen",
+    "year" : "vuosi",
     "Unanswered" : "Vastaamatta",
     "Upcoming appointments" : "Tulevat tapaamiset",
     "Past appointments" : "Menneet tapaamiset",

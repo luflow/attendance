@@ -27,6 +27,7 @@ OC.L10N.register(
     "Send" : "Sendi",
     "Sign in" : "Ensaluti",
     "Skip" : "Preterpasi",
+    "year" : "Jaro",
     "Export" : "Eksporti",
     "Select all" : "Elekti ĉion",
     "Deselect all" : "Malelekti ĉion",

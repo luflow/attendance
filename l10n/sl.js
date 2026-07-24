@@ -48,6 +48,7 @@ OC.L10N.register(
     "Show QR code" : "Pokaži kodo QR",
     "Sign in" : "Prijava",
     "Skip" : "Preskoči",
+    "year" : "leto",
     "Create appointment" : "Ustvari sestanek",
     "Export" : "Izvozi",
     "Select all" : "Izberi vse",

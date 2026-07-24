@@ -30,8 +30,6 @@ OC.L10N.register(
     "Subscribe" : "إشترك",
     "Subscription" : "الاشتراك",
     "Active" : "نَشِط",
-    "yr" : "سنه",
-    "mo" : "أنقُل",
     "Privacy Policy" : "سياسة الخصوصية",
     "Expired" : "منتهي",
     "OK" : "OK",

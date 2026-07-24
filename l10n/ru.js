@@ -51,6 +51,7 @@ OC.L10N.register(
     "Sign in" : "Войти",
     "Skip" : "Пропустить",
     "Try again" : "Попытаться снова",
+    "year" : "год",
     "Create appointment" : "Создать мероприятие",
     "Export" : "Экспорт",
     "Date range" : "Диапазон дат",

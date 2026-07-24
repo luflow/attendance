@@ -68,6 +68,7 @@ OC.L10N.register(
     "Skip" : "Overslaan",
     "Try again" : "Probeer opnieuw",
     "Which appointment?" : "Welke afspraak?",
+    "year" : "jaar",
     "Create appointment" : "Creëer afspraak",
     "Export" : "Exporteren",
     "Date range" : "Datumbereik",

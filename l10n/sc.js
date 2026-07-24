@@ -37,6 +37,7 @@ OC.L10N.register(
     "Invite guest" : "Invita una persone",
     "Language" : "Limba",
     "Sign in" : "Iscrie·ti",
+    "year" : "Annos",
     "Export" : "Esporta",
     "Deselect all" : "Deseletziona totu",
     "Start date" : "Data de cumintzu",

@@ -38,6 +38,7 @@ OC.L10N.register(
     "Sign in" : "Skrá inn",
     "Skip" : "Sleppa",
     "Try again" : "Reyndu aftur",
+    "year" : "ár",
     "Create appointment" : "Búa til stefnumót",
     "Export" : "Flytja út",
     "Date range" : "Tímabil",

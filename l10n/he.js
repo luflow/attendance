@@ -39,6 +39,7 @@ OC.L10N.register(
     "Sign in" : "כניסה",
     "Skip" : "דלג",
     "Try again" : "ניסיון חוזר",
+    "year" : "שנה",
     "Export" : "ייצוא",
     "Select all" : "בחר הכל",
     "Deselect all" : "ביטול בחירה",

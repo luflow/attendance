@@ -19,6 +19,7 @@ OC.L10N.register(
     "Email" : "E-bost",
     "Language" : "Iaith",
     "Send" : "Anfon",
+    "year" : "blwyddyn",
     "Create appointment" : "Creu apwyntiad",
     "Export" : "Allforio",
     "Deselect all" : "Dad ddewis popeth",

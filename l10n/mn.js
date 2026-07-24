@@ -43,6 +43,7 @@ OC.L10N.register(
     "Sign in" : "Нэвтрэх",
     "Skip" : "–ê–ª–≥–∞—Å–∞—Ö",
     "Try again" : "Дахин оролдох",
+    "year" : "жил",
     "Export" : "Экспорт",
     "Date range" : "Огнооны хүрээ",
     "Select all" : "бүгдийг сонгох",

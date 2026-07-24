@@ -44,6 +44,7 @@ OC.L10N.register(
     "Sign in" : "Prijava",
     "Skip" : "Preskoči",
     "Try again" : "Pokušajte ponovno",
+    "year" : "godinu",
     "Export" : "Izvoz",
     "Date range" : "Raspon datuma",
     "Select all" : "Odaberi sve",

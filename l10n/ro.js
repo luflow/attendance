@@ -35,6 +35,7 @@ OC.L10N.register(
     "Show QR code" : "Afișează codul QR",
     "Sign in" : "Conectare",
     "Skip" : "Sari peste",
+    "year" : "an",
     "Create appointment" : "Creează programare",
     "Export" : "Exportă",
     "Select all" : "Selectează tot",

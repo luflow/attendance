@@ -27,6 +27,7 @@ OC.L10N.register(
     "Send" : "Enviar",
     "Sign in" : "S'identificar",
     "Skip" : "Sautar",
+    "year" : "annada",
     "Export" : "Exportar",
     "Cancel" : "Cancel",
     "Share link" : "Partejar via ligam",
