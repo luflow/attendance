@@ -155,7 +155,7 @@ class Notifier implements INotifier {
 				if ($notification->getSubject() === 'booking_confirmed') {
 					$notification->setParsedSubject(
 						// TRANSLATORS Push notification subject: the person got a place in the appointment ("scheduled in", German "eingeplant" — not "geplant": the appointment itself is not being planned). %1$s is the appointment name, %2$s the date.
-						$l->t('You are scheduled: %1$s on %2$s', [$appointmentName, $appointmentDate])
+						$l->t('You are scheduled for %1$s on %2$s', [$appointmentName, $appointmentDate])
 					);
 					$notification->setParsedMessage(
 						// TRANSLATORS Push notification body, personal and friendly — confirms the person got a place in the appointment (German "eingeplant", not "geplant") and thanks them for responding.
@@ -164,7 +164,7 @@ class Notifier implements INotifier {
 				} else {
 					$notification->setParsedSubject(
 						// TRANSLATORS Push notification subject: the person did not get a place in the appointment this time (German "nicht eingeplant", not "nicht geplant"). %1$s is the appointment name, %2$s the date.
-						$l->t('Not scheduled: %1$s on %2$s', [$appointmentName, $appointmentDate])
+						$l->t('You are not scheduled for %1$s on %2$s', [$appointmentName, $appointmentDate])
 					);
 					$notification->setParsedMessage(
 						// TRANSLATORS Push notification body, personal and friendly — gently tells the person they are not part of this appointment this time and thanks them for responding.
