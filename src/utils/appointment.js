@@ -1,5 +1,16 @@
 import { translate as t } from '@nextcloud/l10n'
+import { generateUrl } from '@nextcloud/router'
 import { formatDateTime } from './datetime.js'
+
+/**
+ * Relative URL of an appointment's detail page.
+ *
+ * @param {number} appointmentId The appointment id.
+ * @return {string} Relative URL, e.g. "/apps/attendance/appointment/42".
+ */
+export function appointmentDetailUrl(appointmentId) {
+	return generateUrl('/apps/attendance/appointment/{id}', { id: appointmentId })
+}
 
 /**
  * Human label for a closed inquiry. Distinguishes auto-close-by-deadline
