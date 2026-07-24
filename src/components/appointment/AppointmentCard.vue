@@ -2,89 +2,49 @@
 	<div class="appointment-card" data-test="appointment-card">
 		<div class="appointment-header">
 			<div class="appointment-title-block">
-				<template v-if="displayOrder === 'date_first'">
-					<h3 data-test="appointment-title" class="appointment-date-title">
-						<a
-							v-if="showDetailsLink"
-							:href="detailUrl"
-							class="title-link"
-							data-test="appointment-title-link"
-							@click.prevent="emit('openDetail', appointment.id)">
-							{{
-								formatDateRange(
-									appointment.startDatetime,
-									appointment.endDatetime,
-								)
-							}}
-							<ChevronRightIcon :size="18" class="title-chevron" />
-						</a>
-						<template v-else>
-							{{
-								formatDateRange(
-									appointment.startDatetime,
-									appointment.endDatetime,
-								)
-							}}
-						</template>
-						<a
-							v-if="calendarLink"
-							:href="calendarLink"
-							target="_blank"
-							rel="noopener noreferrer"
-							class="calendar-link"
-							:title="t('attendance', 'Imported from calendar')">
-							<CalendarSyncIcon :size="14" />
-						</a>
-						<span
-							v-if="appointment.seriesId"
-							class="series-indicator"
-							:title="t('attendance', 'Part of a recurring series')">
-							<RepeatIcon :size="14" />
-						</span>
-					</h3>
-					<span class="appointment-date-subtitle">
-						{{ appointment.name }}
+				<h3
+					data-test="appointment-title"
+					:class="{ 'appointment-date-title': displayOrder === 'date_first' }">
+					<a
+						v-if="isListVariant"
+						:href="detailUrl"
+						class="title-link"
+						data-test="appointment-title-link"
+						@click.prevent="emit('openDetail', appointment.id)">
+						{{ titleText }}
+						<ChevronRightIcon :size="18" class="title-chevron" />
+					</a>
+					<template v-else>
+						{{ titleText }}
+					</template>
+					<a
+						v-if="displayOrder === 'date_first' && calendarLink"
+						:href="calendarLink"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="calendar-link"
+						:title="t('attendance', 'Imported from calendar')">
+						<CalendarSyncIcon :size="14" />
+					</a>
+					<span
+						v-if="appointment.seriesId"
+						class="series-indicator"
+						:title="t('attendance', 'Part of a recurring series')">
+						<RepeatIcon :size="14" />
 					</span>
-				</template>
-				<template v-else>
-					<h3 data-test="appointment-title">
-						<a
-							v-if="showDetailsLink"
-							:href="detailUrl"
-							class="title-link"
-							data-test="appointment-title-link"
-							@click.prevent="emit('openDetail', appointment.id)">
-							{{ appointment.name }}
-							<ChevronRightIcon :size="18" class="title-chevron" />
-						</a>
-						<template v-else>
-							{{ appointment.name }}
-						</template>
-						<span
-							v-if="appointment.seriesId"
-							class="series-indicator"
-							:title="t('attendance', 'Part of a recurring series')">
-							<RepeatIcon :size="14" />
-						</span>
-					</h3>
-					<span class="appointment-date-subtitle">
-						{{
-							formatDateRange(
-								appointment.startDatetime,
-								appointment.endDatetime,
-							)
-						}}
-						<a
-							v-if="calendarLink"
-							:href="calendarLink"
-							target="_blank"
-							rel="noopener noreferrer"
-							class="calendar-link"
-							:title="t('attendance', 'Imported from calendar')">
-							<CalendarSyncIcon :size="14" />
-						</a>
-					</span>
-				</template>
+				</h3>
+				<span class="appointment-date-subtitle">
+					{{ subtitleText }}
+					<a
+						v-if="displayOrder !== 'date_first' && calendarLink"
+						:href="calendarLink"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="calendar-link"
+						:title="t('attendance', 'Imported from calendar')">
+						<CalendarSyncIcon :size="14" />
+					</a>
+				</span>
 				<NcChip
 					v-if="isCancelled"
 					class="cancelled-badge"
@@ -215,7 +175,7 @@
 
 		<!-- eslint-disable vue/no-v-html -- sanitized with DOMPurify -->
 		<div
-			v-if="showDescription && appointment.description"
+			v-if="!isListVariant && appointment.description"
 			class="appointment-description"
 			v-html="renderedDescription" />
 		<!-- eslint-enable vue/no-v-html -->
@@ -240,7 +200,7 @@
 			</a>
 		</div>
 
-		<div v-if="showDetailsLink" class="details-link-row">
+		<div v-if="isListVariant" class="details-link-row">
 			<NcButton
 				variant="tertiary"
 				data-test="button-show-details"
@@ -548,7 +508,7 @@ import ShareVariantIcon from 'vue-material-design-icons/ShareVariant.vue'
 import ResponseSummary from './ResponseSummary.vue'
 import { useAppointmentResponse, useResponseCooldown } from '../../composables/useAppointmentResponse.js'
 import { usePermissions } from '../../composables/usePermissions.js'
-import { formatClosedLabel } from '../../utils/appointment.js'
+import { appointmentDetailUrl, formatClosedLabel } from '../../utils/appointment.js'
 import { copyToClipboard } from '../../utils/clipboard.js'
 import { formatDateRange, formatDateTime } from '../../utils/datetime.js'
 import { renderMarkdown, sanitizeHtml } from '../../utils/markdown.js'
@@ -583,13 +543,12 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
-	showDescription: {
-		type: Boolean,
-		default: true,
-	},
-	showDetailsLink: {
-		type: Boolean,
-		default: false,
+	// 'detail' renders the full card (description, no navigation);
+	// 'list' hides the description and links to the detail page instead.
+	variant: {
+		type: String,
+		default: 'detail',
+		validator: (value) => ['detail', 'list'].includes(value),
 	},
 })
 
@@ -658,7 +617,15 @@ const renderedDescription = computed(() => {
 	return sanitizeHtml(html)
 })
 
-const detailUrl = computed(() => generateUrl(`/apps/attendance/appointment/${props.appointment.id}`))
+const isListVariant = computed(() => props.variant === 'list')
+
+const dateRangeText = computed(() => formatDateRange(props.appointment.startDatetime, props.appointment.endDatetime))
+
+const titleText = computed(() => (props.displayOrder === 'date_first' ? dateRangeText.value : props.appointment.name))
+
+const subtitleText = computed(() => (props.displayOrder === 'date_first' ? props.appointment.name : dateRangeText.value))
+
+const detailUrl = computed(() => appointmentDetailUrl(props.appointment.id))
 
 const calendarLink = computed(() => {
 	if (
@@ -706,9 +673,7 @@ watch(
 )
 
 function copyShareLink() {
-	const appointmentUrl
-		= window.location.origin
-			+ generateUrl(`/apps/attendance/appointment/${props.appointment.id}`)
+	const appointmentUrl = window.location.origin + detailUrl.value
 	return copyToClipboard(appointmentUrl, {
 		successMessage: t('attendance', 'Link copied to clipboard'),
 	})
@@ -1186,9 +1151,8 @@ function handleCommentInputEvent() {
     }
 }
 
-.appointment-description + .response-section,
-.attachment-chips + .response-section,
-.details-link-row + .response-section {
+// Any content block between the header and the response section gets a divider
+:not(.appointment-header) + .response-section {
     border-top: 1px solid var(--color-border);
     padding-top: 15px;
 }
