@@ -213,10 +213,10 @@ def cmd_reply(args):
         for c in reversed(thread):
             if c['language'] and c['language'] not in candidates:
                 candidates.append(c['language'])
-    attributes = {'message': args.message, 'type': 'comment'}
-    if args.issue:
-        attributes = {'message': args.message, 'type': 'issue',
-                      'status': 'open'}
+    # New issues are created open; the API rejects an explicit 'status'
+    # attribute on creation.
+    attributes = {'message': args.message,
+                  'type': 'issue' if args.issue else 'comment'}
     status, data = None, None
     for language in candidates:
         payload = {'data': {
