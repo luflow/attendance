@@ -435,7 +435,7 @@
 			@closing="showCloseBookingDialog = false">
 			<div class="booking-confirm">
 				<p class="booking-confirm__hint">
-					<!-- TRANSLATORS: Hint in the close-inquiry dialog — people get notified whether they got a place in the appointment or not (German "Einplanung", not "Planung"). -->
+					<!-- TRANSLATORS: Hint in the close-inquiry dialog — people get notified whether they got a place in the appointment or not (German: "Planungsstatus"). -->
 					{{ t('attendance', 'Closing notifies these people about their scheduling status.') }}
 				</p>
 				<div

@@ -126,7 +126,7 @@
 											</NcButton>
 										</div>
 									</NcPopover>
-									<!-- TRANSLATORS: Tooltip on the disabled scheduling toggle — "scheduling" means giving people a place in the appointment (German "Einplanung"/"einplanen", not "planen"). -->
+									<!-- TRANSLATORS: Tooltip on the disabled scheduling toggle. "scheduling" = the feature of giving people a place in the appointment (German: the noun is "Planung", the per-person action is "einplanen"). -->
 									<NcButton
 										v-if="canManageBooking && response.response === 'yes'"
 										class="booking-toggle"
@@ -285,7 +285,7 @@
 											</NcButton>
 										</div>
 									</NcPopover>
-									<!-- TRANSLATORS: Tooltip on the disabled scheduling toggle — "scheduling" means giving people a place in the appointment (German "Einplanung"/"einplanen", not "planen"). -->
+									<!-- TRANSLATORS: Tooltip on the disabled scheduling toggle. "scheduling" = the feature of giving people a place in the appointment (German: the noun is "Planung", the per-person action is "einplanen"). -->
 									<NcButton
 										v-if="canManageBooking && response.response === 'yes'"
 										class="booking-toggle"
@@ -434,7 +434,7 @@
 											</NcButton>
 										</div>
 									</NcPopover>
-									<!-- TRANSLATORS: Tooltip on the disabled scheduling toggle — "scheduling" means giving people a place in the appointment (German "Einplanung"/"einplanen", not "planen"). -->
+									<!-- TRANSLATORS: Tooltip on the disabled scheduling toggle. "scheduling" = the feature of giving people a place in the appointment (German: the noun is "Planung", the per-person action is "einplanen"). -->
 									<NcButton
 										v-if="canManageBooking && response.response === 'yes'"
 										class="booking-toggle"
@@ -566,7 +566,7 @@ async function toggleBooking(response) {
 		response.bookingStatus = data.bookingStatus ?? null
 	} catch (error) {
 		console.error('Failed to update booking:', error)
-		// TRANSLATORS: Error toast when toggling whether a person is scheduled in for the appointment fails (German "Einplanung", not "Planung").
+		// TRANSLATORS: Error toast when toggling whether a person is scheduled in for the appointment fails (German: "Planung").
 		showError(t('attendance', 'Failed to update scheduling'))
 	} finally {
 		togglingBooking.delete(response.userId)
