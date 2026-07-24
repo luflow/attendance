@@ -100,6 +100,11 @@ const showDeleteDialog = ref(false)
 const { permissions, capabilities, config, loadPermissions } = usePermissions()
 
 const canSeeAuditTimeline = computed(() => {
+	// Per-appointment verdict from the server (knows the audit visibility
+	// mode); the global flags remain as fallback for the initial render.
+	if (appointment.value?.myPermissions) {
+		return appointment.value.myPermissions.canSeeAuditLog === true
+	}
 	if (!capabilities.auditLog) return false
 	return permissions.canManageAppointments || permissions.canSeeResponseOverview
 })

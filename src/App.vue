@@ -141,7 +141,7 @@
 			<!-- Bottom button for creating new appointment -->
 			<template #footer>
 				<NcAppNavigationItem
-					v-if="permissions.canManageAppointments"
+					v-if="permissions.canCreateAppointments"
 					:name="t('attendance', 'Create appointment')"
 					data-test="button-create-appointment"
 					@click.prevent="createNewAppointment">

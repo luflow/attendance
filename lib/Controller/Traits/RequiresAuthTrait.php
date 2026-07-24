@@ -60,6 +60,7 @@ trait RequiresAuthTrait {
 
 		return match ($permission) {
 			'manage_appointments' => $this->permissionService->canManageAppointments($userId),
+			'create_appointments' => $this->permissionService->canCreateAppointments($userId),
 			'checkin' => $this->permissionService->canCheckin($userId),
 			'see_response_overview' => $this->permissionService->canSeeResponseOverview($userId),
 			'see_comments' => $this->permissionService->canSeeComments($userId),

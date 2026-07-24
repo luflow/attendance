@@ -182,7 +182,8 @@
                     "responseToggle",
                     "guestInvitation",
                     "auditLog",
-                    "selfCheckin"
+                    "selfCheckin",
+                    "organizers"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -222,6 +223,9 @@
                         "type": "boolean"
                     },
                     "selfCheckin": {
+                        "type": "boolean"
+                    },
+                    "organizers": {
                         "type": "boolean"
                     }
                 }

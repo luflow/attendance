@@ -182,6 +182,7 @@
                     "visibleUsers",
                     "visibleGroups",
                     "visibleTeams",
+                    "organizers",
                     "calendarUri",
                     "calendarEventUid",
                     "seriesId",
@@ -239,6 +240,12 @@
                             "type": "string"
                         }
                     },
+                    "organizers": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
                     "calendarUri": {
                         "type": "string",
                         "nullable": true
@@ -288,6 +295,7 @@
                     "visibleUsers",
                     "visibleGroups",
                     "visibleTeams",
+                    "organizers",
                     "calendarUri",
                     "calendarEventUid",
                     "seriesId",
@@ -297,7 +305,8 @@
                     "cancelledAt",
                     "responseDeadline",
                     "userResponse",
-                    "attachments"
+                    "attachments",
+                    "myPermissions"
                 ],
                 "properties": {
                     "id": {
@@ -345,6 +354,28 @@
                         "type": "array",
                         "items": {
                             "type": "string"
+                        }
+                    },
+                    "organizers": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "required": [
+                                "id",
+                                "label",
+                                "type"
+                            ],
+                            "properties": {
+                                "id": {
+                                    "type": "string"
+                                },
+                                "label": {
+                                    "type": "string"
+                                },
+                                "type": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "calendarUri": {
@@ -401,6 +432,9 @@
                                 "type": "object"
                             }
                         }
+                    },
+                    "myPermissions": {
+                        "$ref": "#/components/schemas/MyPermissions"
                     }
                 }
             },
@@ -573,7 +607,8 @@
                     "responseToggle",
                     "guestInvitation",
                     "auditLog",
-                    "selfCheckin"
+                    "selfCheckin",
+                    "organizers"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -613,6 +648,9 @@
                         "type": "boolean"
                     },
                     "selfCheckin": {
+                        "type": "boolean"
+                    },
+                    "organizers": {
                         "type": "boolean"
                     }
                 }
@@ -729,6 +767,33 @@
                         "type": "boolean"
                     },
                     "attendanceInWhitelist": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "MyPermissions": {
+                "type": "object",
+                "required": [
+                    "isOrganizer",
+                    "canEdit",
+                    "canSeeResponses",
+                    "canSeeComments",
+                    "canSeeAuditLog"
+                ],
+                "properties": {
+                    "isOrganizer": {
+                        "type": "boolean"
+                    },
+                    "canEdit": {
+                        "type": "boolean"
+                    },
+                    "canSeeResponses": {
+                        "type": "boolean"
+                    },
+                    "canSeeComments": {
+                        "type": "boolean"
+                    },
+                    "canSeeAuditLog": {
                         "type": "boolean"
                     }
                 }
@@ -1227,6 +1292,7 @@
                 "type": "object",
                 "required": [
                     "canManageAppointments",
+                    "canCreateAppointments",
                     "canCheckin",
                     "canSeeResponseOverview",
                     "canSeeComments",
@@ -1234,6 +1300,9 @@
                 ],
                 "properties": {
                     "canManageAppointments": {
+                        "type": "boolean"
+                    },
+                    "canCreateAppointments": {
                         "type": "boolean"
                     },
                     "canCheckin": {
@@ -1444,6 +1513,14 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Optional response deadline (ISO 8601). Cron auto-closes the inquiry once passed."
+                                    },
+                                    "organizers": {
+                                        "type": "array",
+                                        "default": [],
+                                        "description": "User IDs to set as organizers; empty defaults to the creator",
+                                        "items": {
+                                            "type": "string"
+                                        }
                                     }
                                 }
                             }
@@ -1577,6 +1654,14 @@
                                         "items": {
                                             "type": "integer",
                                             "format": "int64"
+                                        }
+                                    },
+                                    "organizers": {
+                                        "type": "array",
+                                        "default": [],
+                                        "description": "User IDs to set as organizers on all created appointments; empty defaults to the creator",
+                                        "items": {
+                                            "type": "string"
                                         }
                                     }
                                 }
@@ -2025,6 +2110,15 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Optional response deadline (ISO 8601). Empty string clears it; null leaves unchanged."
+                                    },
+                                    "organizers": {
+                                        "type": "array",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "New organizer list, or null to leave unchanged. Organizers may add anyone but remove only themselves; managers may change freely.",
+                                        "items": {
+                                            "type": "string"
+                                        }
                                     }
                                 }
                             }
@@ -2406,7 +2500,7 @@
         "/index.php/apps/attendance/api/appointments/{id}/responses": {
             "get": {
                 "operationId": "appointment-get-responses",
-                "summary": "Get detailed responses for an appointment (requires manage appointments permission)",
+                "summary": "Get detailed responses for an appointment (requires manage appointments permission or being an organizer of it)",
                 "tags": [
                     "appointment"
                 ],
@@ -2478,6 +2572,24 @@
                         }
                     },
                     "403": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
                         "description": "",
                         "content": {
                             "application/json": {
@@ -4125,7 +4237,7 @@
             "get": {
                 "operationId": "appointment-get-user-settings",
                 "summary": "Get personal user settings",
-                "description": "Response-change notification toggle is only included for users who can actually receive these notifications (manage_appointments + audit log enabled). Frontend uses the key's presence to decide whether to render the toggle at all.",
+                "description": "Response-change notification toggle is only included for users who can actually receive these notifications (managers, users allowed to create appointments, or organizers of at least one appointment — with audit log enabled). Frontend uses the key's presence to decide whether to render the toggle at all.",
                 "tags": [
                     "appointment"
                 ],

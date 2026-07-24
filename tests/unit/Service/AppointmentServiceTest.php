@@ -16,6 +16,7 @@ use OCA\Attendance\Service\BookingService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\NotificationService;
+use OCA\Attendance\Service\PermissionService;
 use OCA\Attendance\Service\ResponseSummaryService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\App\IAppManager;
@@ -69,6 +70,9 @@ class AppointmentServiceTest extends TestCase {
 	/** @var BookingService|MockObject */
 	private $bookingService;
 
+	/** @var PermissionService|MockObject */
+	private $permissionService;
+
 	private AppointmentService $service;
 
 	protected function setUp(): void {
@@ -86,6 +90,7 @@ class AppointmentServiceTest extends TestCase {
 		$this->guestService = $this->createMock(GuestService::class);
 		$this->auditEventService = $this->createMock(AuditEventService::class);
 		$this->bookingService = $this->createMock(BookingService::class);
+		$this->permissionService = $this->createMock(PermissionService::class);
 
 		$this->service = new AppointmentService(
 			$this->appointmentMapper,
@@ -102,6 +107,7 @@ class AppointmentServiceTest extends TestCase {
 			$this->guestService,
 			$this->auditEventService,
 			$this->bookingService,
+			$this->permissionService,
 		);
 	}
 
@@ -654,5 +660,132 @@ class AppointmentServiceTest extends TestCase {
 		$attendanceResponse->setUserId($userId);
 		$attendanceResponse->setResponse($response);
 		return $attendanceResponse;
+	}
+
+	// --- organizer handling ---
+
+	/**
+	 * Make every user in $knownUsers resolvable and non-guest, so organizer
+	 * normalization keeps them.
+	 */
+	private function expectKnownUsers(array $knownUsers): void {
+		$this->userManager->method('get')
+			->willReturnCallback(function (string $uid) use ($knownUsers) {
+				return in_array($uid, $knownUsers, true)
+					? $this->createMock(\OCP\IUser::class)
+					: null;
+			});
+		$this->guestService->method('isGuestUser')->willReturn(false);
+	}
+
+	public function testCreateAppointmentDefaultsOrganizersToCreator(): void {
+		$this->expectKnownUsers(['admin']);
+		$this->appointmentMapper->method('insert')->willReturnCallback(function (Appointment $a) {
+			$a->setId(1);
+			return $a;
+		});
+
+		$result = $this->service->createAppointment(
+			'Meeting', '', '2024-01-15T10:00:00Z', '2024-01-15T11:00:00Z', 'admin'
+		);
+
+		$this->assertEquals(['admin'], $result->getOrganizersList());
+	}
+
+	public function testCreateAppointmentFiltersUnknownUsersAndGuestsFromOrganizers(): void {
+		$this->userManager->method('get')
+			->willReturnCallback(function (string $uid) {
+				return $uid === 'ghost' ? null : $this->createMock(\OCP\IUser::class);
+			});
+		$this->guestService->method('isGuestUser')
+			->willReturnCallback(fn (string $uid) => $uid === 'guestuser');
+		$this->appointmentMapper->method('insert')->willReturnCallback(function (Appointment $a) {
+			$a->setId(1);
+			return $a;
+		});
+
+		$result = $this->service->createAppointment(
+			'Meeting', '', '2024-01-15T10:00:00Z', '2024-01-15T11:00:00Z', 'admin',
+			[], [], [], false, null, null, null, null, null,
+			['alice', 'ghost', 'guestuser', 'alice', 'bob'],
+		);
+
+		$this->assertEquals(['alice', 'bob'], $result->getOrganizersList());
+	}
+
+	private function setUpOrganizerUpdate(array $currentOrganizers, bool $actorIsManager): Appointment {
+		$appointment = new Appointment();
+		$appointment->setId(3);
+		$appointment->setName('Meeting');
+		$appointment->setStartDatetime('2026-01-01 10:00:00');
+		$appointment->setEndDatetime('2026-01-01 11:00:00');
+		$appointment->setOrganizers(json_encode($currentOrganizers));
+
+		$this->appointmentMapper->method('find')->with(3)->willReturn($appointment);
+		$this->appointmentMapper->method('update')->willReturnArgument(0);
+		$this->permissionService->method('canManageAppointments')->willReturn($actorIsManager);
+
+		return $appointment;
+	}
+
+	public function testOrganizerCanAddOrganizers(): void {
+		$this->expectKnownUsers(['alice', 'bob']);
+		$this->setUpOrganizerUpdate(['alice'], false);
+
+		$result = $this->service->updateAppointment(
+			3, 'Meeting', '', '2026-01-01T10:00:00Z', '2026-01-01T11:00:00Z',
+			'alice', [], [], [], null, ['alice', 'bob'],
+		);
+
+		$this->assertEquals(['alice', 'bob'], $result->getOrganizersList());
+	}
+
+	public function testOrganizerCanRemoveOnlyThemselves(): void {
+		$this->expectKnownUsers(['alice', 'bob']);
+		$this->setUpOrganizerUpdate(['alice', 'bob'], false);
+
+		$result = $this->service->updateAppointment(
+			3, 'Meeting', '', '2026-01-01T10:00:00Z', '2026-01-01T11:00:00Z',
+			'alice', [], [], [], null, ['bob'],
+		);
+
+		$this->assertEquals(['bob'], $result->getOrganizersList());
+	}
+
+	public function testOrganizerCannotRemoveOtherOrganizers(): void {
+		$this->expectKnownUsers(['alice', 'bob']);
+		$this->setUpOrganizerUpdate(['alice', 'bob'], false);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Organizers can only remove themselves');
+
+		$this->service->updateAppointment(
+			3, 'Meeting', '', '2026-01-01T10:00:00Z', '2026-01-01T11:00:00Z',
+			'alice', [], [], [], null, ['alice'],
+		);
+	}
+
+	public function testManagerCanRemoveAnyOrganizer(): void {
+		$this->expectKnownUsers(['alice', 'bob', 'admin']);
+		$this->setUpOrganizerUpdate(['alice', 'bob'], true);
+
+		$result = $this->service->updateAppointment(
+			3, 'Meeting', '', '2026-01-01T10:00:00Z', '2026-01-01T11:00:00Z',
+			'admin', [], [], [], null, [],
+		);
+
+		$this->assertEquals([], $result->getOrganizersList());
+	}
+
+	public function testUpdateAppointmentLeavesOrganizersUntouchedWhenNull(): void {
+		$this->expectKnownUsers(['alice']);
+		$this->setUpOrganizerUpdate(['alice'], false);
+
+		$result = $this->service->updateAppointment(
+			3, 'Meeting', '', '2026-01-01T10:00:00Z', '2026-01-01T11:00:00Z',
+			'alice', [], [], [], null, null,
+		);
+
+		$this->assertEquals(['alice'], $result->getOrganizersList());
 	}
 }

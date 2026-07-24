@@ -59,6 +59,12 @@ class VisibilityService {
 			return true;
 		}
 
+		// Organizers always see their own appointment, even when they are not
+		// part of the visibility target audience.
+		if ($this->permissionService->isOrganizer($appointment, $userId)) {
+			return true;
+		}
+
 		return $this->isUserTargetAttendee($appointment, $userId);
 	}
 

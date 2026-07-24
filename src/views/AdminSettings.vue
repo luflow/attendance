@@ -77,6 +77,22 @@
 				</div>
 
 				<div class="subsection">
+					<h4>{{ t('attendance', 'Create own appointments') }}</h4>
+					<p class="subsection-hint">
+						{{ t('attendance', 'Groups that can create appointments and manage them as organizers, in addition to the groups above. If no group is selected, only the groups above can create appointments.') }}
+					</p>
+					<GroupSelect
+						v-model="selectedCreateAppointmentsRoles"
+						:options="availableGroups"
+						:placeholder="t('attendance', 'Select groups …')"
+						:disabled="loading"
+						data-test="select-create-appointments-roles" />
+					<p class="hint-text">
+						{{ n('attendance', '%n group selected', '%n groups selected', selectedCreateAppointmentsRoles.length, { n: selectedCreateAppointmentsRoles.length }) }}
+					</p>
+				</div>
+
+				<div class="subsection">
 					<h4>{{ t('attendance', 'Check-in access') }}</h4>
 					<p class="subsection-hint">
 						{{ t('attendance', 'Groups that can access the check-in interface and execute check-ins') }}
@@ -634,6 +650,7 @@ const teamSearchResults = ref([])
 const isSearchingTeams = ref(false)
 const teamsAvailable = ref(false)
 const selectedManageAppointmentsRoles = ref([])
+const selectedCreateAppointmentsRoles = ref([])
 const selectedCheckinRoles = ref([])
 const selectedSeeResponseOverviewRoles = ref([])
 const selectedSeeCommentsRoles = ref([])
@@ -771,6 +788,9 @@ async function loadSettings() {
 			selectedSelfCheckinRoles.value = (config.permissions.self_checkin || [])
 				.map((id) => groups.find((group) => group.id === id))
 				.filter((group) => group !== undefined)
+			selectedCreateAppointmentsRoles.value = (config.permissions.create_appointments || [])
+				.map((id) => groups.find((group) => group.id === id))
+				.filter((group) => group !== undefined)
 		}
 
 		selfCheckinWindowMinutes.value = config.selfCheckinWindowMinutes ?? 30
@@ -863,6 +883,7 @@ async function saveSettings() {
 					PERMISSION_SEE_RESPONSE_OVERVIEW: selectedSeeResponseOverviewRoles.value.map((g) => g.id),
 					PERMISSION_SEE_COMMENTS: selectedSeeCommentsRoles.value.map((g) => g.id),
 					PERMISSION_SELF_CHECKIN: selectedSelfCheckinRoles.value.map((g) => g.id),
+					PERMISSION_CREATE_APPOINTMENTS: selectedCreateAppointmentsRoles.value.map((g) => g.id),
 				},
 				reminders: {
 					enabled: remindersEnabled.value,

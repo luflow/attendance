@@ -32,6 +32,7 @@ use OCP\AppFramework\Db\Entity;
  * @method void setVisibleGroups(string $visibleGroups)
  * @method string getVisibleTeams()
  * @method void setVisibleTeams(string $visibleTeams)
+ * @method string|null getOrganizers()
  * @method string|null getCalendarUri()
  * @method void setCalendarUri(?string $calendarUri)
  * @method string|null getCalendarEventUid()
@@ -62,6 +63,7 @@ class Appointment extends Entity implements JsonSerializable {
 	protected $visibleUsers = null;
 	protected $visibleGroups = null;
 	protected $visibleTeams = null;
+	protected $organizers = null;
 	protected $calendarUri = null;
 	protected $calendarEventUid = null;
 	protected $seriesId = null;
@@ -84,6 +86,7 @@ class Appointment extends Entity implements JsonSerializable {
 		$this->addType('visibleUsers', 'string');
 		$this->addType('visibleGroups', 'string');
 		$this->addType('visibleTeams', 'string');
+		$this->addType('organizers', 'string');
 		$this->addType('calendarUri', 'string');
 		$this->addType('calendarEventUid', 'string');
 		$this->addType('seriesId', 'string');
@@ -108,6 +111,7 @@ class Appointment extends Entity implements JsonSerializable {
 			'visibleUsers' => $this->parseJsonField($this->getVisibleUsers()),
 			'visibleGroups' => $this->parseJsonField($this->getVisibleGroups()),
 			'visibleTeams' => $this->parseJsonField($this->getVisibleTeams()),
+			'organizers' => $this->getOrganizersList(),
 			'calendarUri' => $this->getCalendarUri(),
 			'calendarEventUid' => $this->getCalendarEventUid(),
 			'seriesId' => $this->getSeriesId(),
@@ -117,6 +121,26 @@ class Appointment extends Entity implements JsonSerializable {
 			'cancelledAt' => $this->formatDatetimeToUtc($this->getCancelledAt()),
 			'responseDeadline' => $this->formatDatetimeToUtc($this->getResponseDeadline()),
 		];
+	}
+
+	/** @var list<string>|null memoized decoded organizers — the list endpoints
+	 * call getOrganizersList() several times per appointment (visibility,
+	 * myPermissions, serialization); decode once per entity. */
+	private ?array $organizersListCache = null;
+
+	public function setOrganizers(?string $organizers): void {
+		$this->organizersListCache = null;
+		$this->setter('organizers', [$organizers]);
+	}
+
+	/**
+	 * Organizer user IDs of this appointment.
+	 *
+	 * @return list<string>
+	 */
+	public function getOrganizersList(): array {
+		return $this->organizersListCache
+			??= array_values(array_map('strval', $this->parseJsonField($this->getOrganizers())));
 	}
 
 	public function isClosed(): bool {

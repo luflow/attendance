@@ -51,6 +51,30 @@ class AppointmentMapper extends QBMapper {
 	}
 
 	/**
+	 * Whether the user is listed as organizer on at least one active
+	 * appointment. LIKE on the JSON column is good enough here: user IDs are
+	 * stored JSON-encoded in double quotes, so matching `"uid"` cannot hit a
+	 * partial ID, and the query only runs on low-frequency paths (personal
+	 * settings, search gate).
+	 */
+	public function existsWithOrganizer(string $userId): bool {
+		$qb = $this->db->getQueryBuilder();
+
+		$needle = '%' . $this->db->escapeLikeParameter(json_encode($userId)) . '%';
+		$qb->select('id')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->like('organizers', $qb->createNamedParameter($needle)))
+			->setMaxResults(1);
+
+		$result = $qb->executeQuery();
+		$row = $result->fetch();
+		$result->closeCursor();
+
+		return $row !== false;
+	}
+
+	/**
 	 * @param string $createdBy
 	 * @return array
 	 */

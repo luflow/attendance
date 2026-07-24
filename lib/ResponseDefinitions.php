@@ -18,6 +18,7 @@ namespace OCA\Attendance;
  *   visibleUsers: list<string>,
  *   visibleGroups: list<string>,
  *   visibleTeams: list<string>,
+ *   organizers: list<string>,
  *   calendarUri: ?string,
  *   calendarEventUid: ?string,
  *   seriesId: ?string,
@@ -26,6 +27,13 @@ namespace OCA\Attendance;
  *   closedAt: ?string,
  *   cancelledAt: ?string,
  *   responseDeadline: ?string,
+ * }
+ * @psalm-type AttendanceMyPermissions = array{
+ *   isOrganizer: bool,
+ *   canEdit: bool,
+ *   canSeeResponses: bool,
+ *   canSeeComments: bool,
+ *   canSeeAuditLog: bool,
  * }
  * @psalm-type AttendanceResponseData = array{
  *   id: int,
@@ -87,6 +95,7 @@ namespace OCA\Attendance;
  *   visibleUsers: list<string>,
  *   visibleGroups: list<string>,
  *   visibleTeams: list<string>,
+ *   organizers: list<array{id: string, label: string, type: string}>,
  *   calendarUri: ?string,
  *   calendarEventUid: ?string,
  *   seriesId: ?string,
@@ -98,6 +107,7 @@ namespace OCA\Attendance;
  *   userResponse: AttendanceResponseData|null,
  *   responseSummary?: array<string, mixed>,
  *   attachments: list<array<string, mixed>>,
+ *   myPermissions: AttendanceMyPermissions,
  * }
  * @psalm-type AttendanceNavigationAppointment = array{
  *   id: int,
@@ -132,6 +142,7 @@ namespace OCA\Attendance;
  * @psalm-type AttendancePermissionSettings = array<string, list<string>>
  * @psalm-type AttendanceUserPermissions = array{
  *   canManageAppointments: bool,
+ *   canCreateAppointments: bool,
  *   canCheckin: bool,
  *   canSeeResponseOverview: bool,
  *   canSeeComments: bool,
@@ -151,6 +162,7 @@ namespace OCA\Attendance;
  *   guestInvitation: bool,
  *   auditLog: bool,
  *   selfCheckin: bool,
+ *   organizers: bool,
  * }
  * @psalm-type AttendanceAuditUserRef = array{
  *   userId: string,

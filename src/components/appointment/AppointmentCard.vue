@@ -72,7 +72,7 @@
 						{{ t("attendance", "Start check-in") }}
 					</NcActionButton>
 					<NcActionButton
-						v-if="canManageAppointments && !isClosed"
+						v-if="canManageThis && !isClosed"
 						:closeAfterClick="true"
 						:disabled="sendingReminders"
 						data-test="action-remind-all"
@@ -83,7 +83,7 @@
 						{{ t("attendance", "Remind") }}
 					</NcActionButton>
 					<NcActionButton
-						v-if="canToggleClosed"
+						v-if="canManageThis"
 						:closeAfterClick="true"
 						:disabled="togglingClosed"
 						:data-test="isClosed ? 'action-reopen-inquiry' : 'action-close-inquiry'"
@@ -111,7 +111,7 @@
 						{{ cancelToggleLabel }}
 					</NcActionButton>
 					<NcActionButton
-						v-if="canManageAppointments"
+						v-if="canManageThis"
 						:closeAfterClick="true"
 						data-test="action-edit"
 						@click="handleEdit">
@@ -131,7 +131,7 @@
 						{{ t("attendance", "Export") }}
 					</NcActionButton>
 					<NcActionButton
-						v-if="canManageAppointments"
+						v-if="permissions.canCreateAppointments"
 						:closeAfterClick="true"
 						data-test="action-copy"
 						@click="handleCopy">
@@ -141,7 +141,7 @@
 						{{ t("attendance", "Copy") }}
 					</NcActionButton>
 					<NcActionButton
-						v-if="canSeeAuditLog"
+						v-if="canSeeAuditLogThis"
 						:closeAfterClick="true"
 						data-test="action-show-audit-log"
 						@click="emit('showAuditLog', appointment.id)">
@@ -151,7 +151,7 @@
 						{{ t("attendance", "Show activity history") }}
 					</NcActionButton>
 					<NcActionButton
-						v-if="canManageAppointments"
+						v-if="canManageThis"
 						:closeAfterClick="true"
 						data-test="action-delete"
 						@click="handleDelete">
@@ -191,6 +191,14 @@
 			</a>
 		</div>
 
+		<div
+			v-if="organizerNames"
+			class="organizer-info"
+			data-test="organizer-info">
+			<AccountStarIcon :size="16" />
+			<span>{{ t("attendance", "Organized by {names}", { names: organizerNames }) }}</span>
+		</div>
+
 		<div v-if="isListVariant" class="details-link-row">
 			<NcButton
 				variant="tertiary"
@@ -215,7 +223,7 @@
 					:variant="userResponse ? getResponseVariant(userResponse) : 'tertiary'"
 					noClose />
 			</div>
-			<div v-if="canToggleClosed" class="closed-banner" data-test="closed-banner">
+			<div v-if="canManageThis" class="closed-banner" data-test="closed-banner">
 				<LockIcon :size="20" />
 				<div class="closed-banner-text">
 					<strong>{{ t("attendance", "Inquiry closed") }}</strong>
@@ -321,7 +329,7 @@
 		<!-- Checkin Summary (only shown when checkins exist and user can see response overview) -->
 		<div
 			v-if="
-				canSeeResponseOverview
+				canSeeResponsesThis
 					&& appointment.checkinSummary?.hasCheckins
 			"
 			class="checkin-summary"
@@ -358,10 +366,10 @@
 
 		<!-- Detailed Response Summary -->
 		<ResponseSummary
-			v-if="canSeeResponseOverview && appointment.responseSummary"
+			v-if="canSeeResponsesThis && appointment.responseSummary"
 			:responseSummary="appointment.responseSummary"
-			:canSeeComments="canSeeComments"
-			:canManageAppointments="canManageAppointments"
+			:canSeeComments="canSeeCommentsThis"
+			:canManageAppointments="canManageThis"
 			:appointmentId="appointment.id"
 			:bookingEnabled="capabilities.bookingEnabled"
 			:isClosed="isClosed" />
@@ -467,6 +475,7 @@ import {
 } from '@nextcloud/vue'
 import { computed, nextTick, ref, watch } from 'vue'
 import BellRingIcon from 'vue-material-design-icons/BellRing.vue'
+import AccountStarIcon from 'vue-material-design-icons/AccountStar.vue'
 import CalendarRefreshIcon from 'vue-material-design-icons/CalendarRefresh.vue'
 import CalendarRemoveIcon from 'vue-material-design-icons/CalendarRemove.vue'
 import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
@@ -548,9 +557,7 @@ const emit = defineEmits([
 	'openDetail',
 ])
 
-const { capabilities } = usePermissions()
-
-const currentUserUid = window.OC?.getCurrentUser?.()?.uid || window.OC?.currentUser || null
+const { capabilities, permissions } = usePermissions()
 
 const localComment = ref(props.appointment.userResponse?.comment || '')
 const commentExpanded = ref(false)
@@ -575,10 +582,14 @@ const userResponse = computed(() => {
 
 const isClosed = computed(() => Boolean(props.appointment.closedAt))
 
-const canToggleClosed = computed(() => {
-	if (props.canManageAppointments) return true
-	return Boolean(currentUserUid) && props.appointment.createdBy === currentUserUid
-})
+// Per-appointment permissions from the server; global props act as fallback
+// so older payloads (without myPermissions) keep working.
+const myPermissions = computed(() => props.appointment.myPermissions || {})
+const canManageThis = computed(() => props.canManageAppointments || myPermissions.value.canEdit === true)
+const canSeeResponsesThis = computed(() => props.canSeeResponseOverview || myPermissions.value.canSeeResponses === true)
+const canSeeCommentsThis = computed(() => props.canSeeComments || myPermissions.value.canSeeComments === true)
+const canSeeAuditLogThis = computed(() => props.canSeeAuditLog
+	|| myPermissions.value.canSeeAuditLog === true)
 
 const isCancelled = computed(() => Boolean(props.appointment.cancelledAt))
 
@@ -606,9 +617,14 @@ const pendingChipText = computed(() =>
 	// TRANSLATORS: Check-in status chip — no check-in recorded for the person yet. See "{count} attended".
 	t('attendance', '{count} pending', { count: props.appointment.checkinSummary?.notCheckedIn ?? 0 }))
 
+const organizerNames = computed(() => (props.appointment.organizers || [])
+	.map((organizer) => organizer.label || organizer.id)
+	.filter(Boolean)
+	.join(', '))
+
 // Cancelling is a manager/creator action gated behind the server capability, so
 // instances (and older servers) that don't offer it never show the UI.
-const canCancel = computed(() => capabilities.cancelling && canToggleClosed.value)
+const canCancel = computed(() => capabilities.cancelling && canManageThis.value)
 
 const formattedClosedAt = computed(() => props.appointment.closedAt ? formatDateTime(props.appointment.closedAt) : '')
 
@@ -1247,6 +1263,15 @@ function handleCommentInputEvent() {
 
 .deadline-info,
 .closed-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+    color: var(--color-text-maxcontrast);
+    font-size: 0.9em;
+}
+
+.organizer-info {
     display: flex;
     align-items: center;
     gap: 6px;
