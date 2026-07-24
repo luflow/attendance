@@ -113,6 +113,8 @@
 						:canSeeComments="permissions.canSeeComments"
 						:canSeeAuditLog="canSeeAuditLog"
 						:displayOrder="config.displayOrder"
+						variant="list"
+						@openDetail="(id) => emit('openDetail', id)"
 						@startCheckin="startCheckin"
 						@edit="editAppointment"
 						@copy="copyAppointment"
@@ -191,6 +193,7 @@ const emit = defineEmits([
 	'appointmentDeleted',
 	'clearSearch',
 	'showAuditLog',
+	'openDetail',
 ])
 
 const activeSearch = computed(() => props.searchQuery.trim())

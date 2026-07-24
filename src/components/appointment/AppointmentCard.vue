@@ -2,62 +2,49 @@
 	<div class="appointment-card" data-test="appointment-card">
 		<div class="appointment-header">
 			<div class="appointment-title-block">
-				<template v-if="displayOrder === 'date_first'">
-					<h3 data-test="appointment-title" class="appointment-date-title">
-						{{
-							formatDateRange(
-								appointment.startDatetime,
-								appointment.endDatetime,
-							)
-						}}
-						<a
-							v-if="calendarLink"
-							:href="calendarLink"
-							target="_blank"
-							rel="noopener noreferrer"
-							class="calendar-link"
-							:title="t('attendance', 'Imported from calendar')">
-							<CalendarSyncIcon :size="14" />
-						</a>
-						<span
-							v-if="appointment.seriesId"
-							class="series-indicator"
-							:title="t('attendance', 'Part of a recurring series')">
-							<RepeatIcon :size="14" />
-						</span>
-					</h3>
-					<span class="appointment-date-subtitle">
-						{{ appointment.name }}
+				<h3
+					data-test="appointment-title"
+					:class="{ 'appointment-date-title': displayOrder === 'date_first' }">
+					<a
+						v-if="isListVariant"
+						:href="detailUrl"
+						class="title-link"
+						data-test="appointment-title-link"
+						@click.prevent="emit('openDetail', appointment.id)">
+						{{ titleText }}
+						<ChevronRightIcon :size="18" class="title-chevron" />
+					</a>
+					<template v-else>
+						{{ titleText }}
+					</template>
+					<a
+						v-if="displayOrder === 'date_first' && calendarLink"
+						:href="calendarLink"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="calendar-link"
+						:title="t('attendance', 'Imported from calendar')">
+						<CalendarSyncIcon :size="14" />
+					</a>
+					<span
+						v-if="appointment.seriesId"
+						class="series-indicator"
+						:title="t('attendance', 'Part of a recurring series')">
+						<RepeatIcon :size="14" />
 					</span>
-				</template>
-				<template v-else>
-					<h3 data-test="appointment-title">
-						{{ appointment.name }}
-						<span
-							v-if="appointment.seriesId"
-							class="series-indicator"
-							:title="t('attendance', 'Part of a recurring series')">
-							<RepeatIcon :size="14" />
-						</span>
-					</h3>
-					<span class="appointment-date-subtitle">
-						{{
-							formatDateRange(
-								appointment.startDatetime,
-								appointment.endDatetime,
-							)
-						}}
-						<a
-							v-if="calendarLink"
-							:href="calendarLink"
-							target="_blank"
-							rel="noopener noreferrer"
-							class="calendar-link"
-							:title="t('attendance', 'Imported from calendar')">
-							<CalendarSyncIcon :size="14" />
-						</a>
-					</span>
-				</template>
+				</h3>
+				<span class="appointment-date-subtitle">
+					{{ subtitleText }}
+					<a
+						v-if="displayOrder !== 'date_first' && calendarLink"
+						:href="calendarLink"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="calendar-link"
+						:title="t('attendance', 'Imported from calendar')">
+						<CalendarSyncIcon :size="14" />
+					</a>
+				</span>
 				<NcChip
 					v-if="isCancelled"
 					class="cancelled-badge"
@@ -188,7 +175,7 @@
 
 		<!-- eslint-disable vue/no-v-html -- sanitized with DOMPurify -->
 		<div
-			v-if="appointment.description"
+			v-if="!isListVariant && appointment.description"
 			class="appointment-description"
 			v-html="renderedDescription" />
 		<!-- eslint-enable vue/no-v-html -->
@@ -211,6 +198,18 @@
 					</template>
 				</NcChip>
 			</a>
+		</div>
+
+		<div v-if="isListVariant" class="details-link-row">
+			<NcButton
+				variant="tertiary"
+				data-test="button-show-details"
+				@click="emit('openDetail', appointment.id)">
+				<template #icon>
+					<ChevronRightIcon :size="20" />
+				</template>
+				{{ t("attendance", "Show details") }}
+			</NcButton>
 		</div>
 
 		<!-- Read-only response chip while the inquiry is closed -->
@@ -496,6 +495,7 @@ import CalendarRefreshIcon from 'vue-material-design-icons/CalendarRefresh.vue'
 import CalendarRemoveIcon from 'vue-material-design-icons/CalendarRemove.vue'
 import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
+import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
 import ClockIcon from 'vue-material-design-icons/Clock.vue'
 import CloseIcon from 'vue-material-design-icons/Close.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
@@ -515,7 +515,7 @@ import ShareVariantIcon from 'vue-material-design-icons/ShareVariant.vue'
 import ResponseSummary from './ResponseSummary.vue'
 import { useAppointmentResponse, useResponseCooldown } from '../../composables/useAppointmentResponse.js'
 import { usePermissions } from '../../composables/usePermissions.js'
-import { formatClosedLabel } from '../../utils/appointment.js'
+import { appointmentDetailUrl, formatClosedLabel } from '../../utils/appointment.js'
 import { copyToClipboard } from '../../utils/clipboard.js'
 import { formatDateRange, formatDateTime } from '../../utils/datetime.js'
 import { renderMarkdown, sanitizeHtml } from '../../utils/markdown.js'
@@ -550,6 +550,13 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
+	// 'detail' renders the full card (description, no navigation);
+	// 'list' hides the description and links to the detail page instead.
+	variant: {
+		type: String,
+		default: 'detail',
+		validator: (value) => ['detail', 'list'].includes(value),
+	},
 })
 
 const emit = defineEmits([
@@ -562,6 +569,7 @@ const emit = defineEmits([
 	'updateComment',
 	'closedToggled',
 	'showAuditLog',
+	'openDetail',
 ])
 
 const { capabilities } = usePermissions()
@@ -616,6 +624,16 @@ const renderedDescription = computed(() => {
 	return sanitizeHtml(html)
 })
 
+const isListVariant = computed(() => props.variant === 'list')
+
+const dateRangeText = computed(() => formatDateRange(props.appointment.startDatetime, props.appointment.endDatetime))
+
+const titleText = computed(() => (props.displayOrder === 'date_first' ? dateRangeText.value : props.appointment.name))
+
+const subtitleText = computed(() => (props.displayOrder === 'date_first' ? props.appointment.name : dateRangeText.value))
+
+const detailUrl = computed(() => appointmentDetailUrl(props.appointment.id))
+
 const calendarLink = computed(() => {
 	if (
 		!props.appointment.calendarUri
@@ -662,9 +680,7 @@ watch(
 )
 
 function copyShareLink() {
-	const appointmentUrl
-		= window.location.origin
-			+ generateUrl(`/apps/attendance/appointment/${props.appointment.id}`)
+	const appointmentUrl = window.location.origin + detailUrl.value
 	return copyToClipboard(appointmentUrl, {
 		successMessage: t('attendance', 'Link copied to clipboard'),
 	})
@@ -914,6 +930,30 @@ function handleCommentInputEvent() {
             color: var(--color-main-text);
         }
 
+        .title-link {
+            display: inline-flex;
+            align-items: center;
+            color: inherit;
+            text-decoration: none;
+
+            &:hover,
+            &:focus-visible {
+                text-decoration: underline;
+
+                .title-chevron {
+                    transform: translateX(2px);
+                }
+            }
+        }
+
+        .title-chevron {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 2px;
+            color: var(--color-text-maxcontrast);
+            transition: transform 0.15s ease;
+        }
+
         .appointment-date-subtitle {
             display: block;
             font-size: 15px;
@@ -942,6 +982,10 @@ function handleCommentInputEvent() {
     .appointment-actions {
         margin-left: 10px;
     }
+}
+
+.details-link-row {
+    margin-bottom: 15px;
 }
 
 .appointment-description {
@@ -1116,8 +1160,8 @@ function handleCommentInputEvent() {
     }
 }
 
-.appointment-description + .response-section,
-.attachment-chips + .response-section {
+// Any content block between the header and the response section gets a divider
+:not(.appointment-header) + .response-section {
     border-top: 1px solid var(--color-border);
     padding-top: 15px;
 }

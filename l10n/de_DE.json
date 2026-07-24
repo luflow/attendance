@@ -694,6 +694,11 @@
     "{actor} cancelled the appointment" : "{actor} hat diesen Termin abgesagt",
     "{actor} reactivated the appointment" : "{actor} hat diesen Termin reaktiviert",
     "{actor} performed {verb}" : "{actor} hat {verb} durchgeführt",
-    "Guests" : "Gäste"
+    "Guests" : "Gäste",
+    "Heading 1" : "Überschrift 1",
+    "Heading 2" : "Überschrift 2",
+    "Heading 3" : "Überschrift 3",
+    "Show details" : "Details anzeigen",
+    "Some users may appear in the section \"Others\" in the response summary because they are not configured for tracking." : "Einige Personen erscheinen möglicherweise im Abschnitt \"Andere\" in der Antwortübersicht, weil sie nicht für die Erfassung konfiguriert sind."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

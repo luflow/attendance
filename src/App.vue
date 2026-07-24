@@ -230,6 +230,7 @@
 				@navigateToUpcoming="setView('current')"
 				@navigateToUnanswered="setView('unanswered')"
 				@showAuditLog="openAuditLog"
+				@openDetail="navigateToAppointment"
 				@clearSearch="searchQuery = ''" />
 
 			<!-- Loading state while routing is determined -->

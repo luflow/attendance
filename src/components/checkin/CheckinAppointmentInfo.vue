@@ -14,17 +14,13 @@
 				{{ formatDateRange(appointment.startDatetime, appointment.endDatetime) }}
 			</p>
 		</template>
-		<!-- eslint-disable-next-line vue/no-v-html -- sanitized with DOMPurify -->
-		<div v-if="appointment.description" class="appointment-description" v-html="renderedDescription" />
 	</div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
 import { formatDateRange } from '../../utils/datetime.js'
-import { renderMarkdown, sanitizeHtml } from '../../utils/markdown.js'
 
-const props = defineProps({
+defineProps({
 	appointment: {
 		type: Object,
 		required: true,
@@ -33,11 +29,6 @@ const props = defineProps({
 		type: String,
 		default: 'name_first',
 	},
-})
-
-const renderedDescription = computed(() => {
-	if (!props.appointment?.description) return ''
-	return sanitizeHtml(renderMarkdown(props.appointment.description, true))
 })
 </script>
 
@@ -57,41 +48,6 @@ const renderedDescription = computed(() => {
 		margin: 2px 0 10px 0;
 		color: var(--color-text-maxcontrast);
 		font-size: 14px;
-	}
-
-	.appointment-description {
-		margin: 15px 0 0 0;
-		color: var(--color-main-text);
-
-		:deep(strong) {
-			font-weight: bold;
-			color: var(--color-main-text);
-		}
-
-		:deep(em) {
-			font-style: italic;
-		}
-
-		:deep(del) {
-			text-decoration: line-through;
-		}
-
-		:deep(a) {
-			color: var(--color-primary-element);
-			text-decoration: none;
-
-			&:hover {
-				text-decoration: underline;
-			}
-		}
-
-		:deep(code) {
-			background-color: var(--color-background-dark);
-			padding: 2px 6px;
-			border-radius: var(--border-radius-small);
-			font-family: monospace;
-			font-size: 0.9em;
-		}
 	}
 }
 </style>
