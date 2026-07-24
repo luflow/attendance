@@ -1,12 +1,14 @@
 <template>
 	<div class="appointment-info">
 		<template v-if="displayOrder === 'date_first'">
+			<!-- TRANSLATORS: Noun — page heading on the check-in screen, followed by the appointment date or name. -->
 			<h2>{{ t('attendance', 'Check-in') }}: {{ formatDateRange(appointment.startDatetime, appointment.endDatetime) }}</h2>
 			<p class="appointment-date-range">
 				{{ appointment.name }}
 			</p>
 		</template>
 		<template v-else>
+			<!-- TRANSLATORS: Noun — page heading on the check-in screen, followed by the appointment date or name. -->
 			<h2>{{ t('attendance', 'Check-in') }}: {{ appointment.name }}</h2>
 			<p class="appointment-date-range">
 				{{ formatDateRange(appointment.startDatetime, appointment.endDatetime) }}

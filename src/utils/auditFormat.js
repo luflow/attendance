@@ -15,6 +15,8 @@ function subjectLabel(event) {
 export const SOURCE_LABELS = {
 	app: () => t('attendance', 'Web'),
 	quick_link: () => t('attendance', 'Email link'),
+	// TRANSLATORS: Noun — audit-log source label: the response was recorded
+	// via the check-in screen.
 	admin_checkin: () => t('attendance', 'Check-in'),
 	legacy_backfill: () => t('attendance', 'Historic'),
 	auto_close: () => t('attendance', 'Automatic'),

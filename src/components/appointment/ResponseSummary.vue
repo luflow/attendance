@@ -355,6 +355,7 @@
 						<span
 							class="expand-icon"
 							:class="{ expanded: expandedGroups['others'] }">▶</span>
+						<!-- TRANSLATORS: Section heading in the response summary for users who are not in any of the tracked groups ("other people"). -->
 						{{ t("attendance", "Others") }}
 					</div>
 					<div class="group-counts">

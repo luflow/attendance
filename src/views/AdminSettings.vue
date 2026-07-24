@@ -245,6 +245,7 @@
 								value="non_responders"
 								name="reminder-target"
 								data-test="radio-reminder-target-non-responders">
+								<!-- TRANSLATORS: Radio option for automatic reminders — remind only people who have not responded yet. People who answered "no" are deliberately not reminded. -->
 								{{ t('attendance', 'Non-responders only') }}
 							</NcCheckboxRadioSwitch>
 							<NcCheckboxRadioSwitch
@@ -253,6 +254,7 @@
 								value="maybe"
 								name="reminder-target"
 								data-test="radio-reminder-target-maybe">
+								<!-- TRANSLATORS: Radio option for automatic reminders — remind only people who answered "maybe". -->
 								{{ t('attendance', 'Maybe responders only') }}
 							</NcCheckboxRadioSwitch>
 							<NcCheckboxRadioSwitch
@@ -261,6 +263,7 @@
 								value="both"
 								name="reminder-target"
 								data-test="radio-reminder-target-both">
+								<!-- TRANSLATORS: Radio option for automatic reminders — remind both groups: people without a response and people who answered "maybe". -->
 								{{ t('attendance', 'Both non-responders and maybe responders') }}
 							</NcCheckboxRadioSwitch>
 						</div>
@@ -417,6 +420,7 @@
 									<template #icon>
 										<OpenInNew :size="20" />
 									</template>
+									<!-- TRANSLATORS: Verb (imperative) — button that opens the app-store link in a new browser tab. -->
 									{{ t('attendance', 'Open') }}
 								</NcButton>
 							</div>
