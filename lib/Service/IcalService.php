@@ -251,6 +251,7 @@ class IcalService {
 		if ($appointment->isCancelled()) {
 			$status = 'CANCELLED';
 			$transp = 'TRANSPARENT';
+			// TRANSLATORS Prefix on the calendar event title of an appointment that was called off (German "Abgesagt", not "Abgebrochen").
 			$summary = $l->t('Cancelled') . ': ' . $summary;
 		}
 

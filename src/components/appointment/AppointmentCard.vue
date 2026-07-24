@@ -45,6 +45,7 @@
 						<CalendarSyncIcon :size="14" />
 					</a>
 				</span>
+				<!-- TRANSLATORS: Status badge on an appointment that was called off (German "Abgesagt", not "Abgebrochen"). The generic dialog button "Cancel" (German "Abbrechen") is a different string. -->
 				<NcChip
 					v-if="isCancelled"
 					class="cancelled-badge"
@@ -113,6 +114,7 @@
 							<CalendarRefreshIcon v-if="isCancelled" :size="20" />
 							<CalendarRemoveIcon v-else :size="20" />
 						</template>
+						<!-- TRANSLATORS: Menu action that calls off the appointment — it will not take place (German "Termin absagen", not "abbrechen"). "Reactivate appointment" is the counterpart that takes the cancellation back. -->
 						{{
 							isCancelled
 								? t("attendance", "Reactivate appointment")
@@ -832,6 +834,7 @@ async function handleToggleCancelled() {
 	const url = generateUrl(`/apps/attendance/api/appointments/${props.appointment.id}/${wantsCancel ? 'cancel' : 'uncancel'}`)
 	try {
 		const response = await axios.post(url)
+		// TRANSLATORS: Success toast — the appointment was called off (German "abgesagt", not "abgebrochen").
 		showSuccess(wantsCancel
 			? t('attendance', 'Appointment cancelled')
 			: t('attendance', 'Appointment reactivated'))
