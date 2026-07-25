@@ -23,6 +23,7 @@ OC.L10N.register(
     "Cancel" : "Cancel",
     "Edit" : "Rediger",
     "Delete" : "Slett",
+    "Show details" : "Vis detaljar",
     "No activity yet" : "Ingen aktivitetar enno",
     "Daily" : "Kvar dag",
     "Weekly" : "Kvar veke",

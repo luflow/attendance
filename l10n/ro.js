@@ -47,6 +47,7 @@ OC.L10N.register(
     "Share link" : "Partajază legătură",
     "Edit" : "Editează",
     "Delete" : "Șterge",
+    "Show details" : "Arată detaliile",
     "No activity yet" : "Momentan fără activitate",
     "Daily" : "Zilnic",
     "Weekly" : "Săptămânal",

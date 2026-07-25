@@ -42,6 +42,7 @@ OC.L10N.register(
     "Share link" : "Compartir link",
     "Edit" : "Editar",
     "Delete" : "Eliminar",
+    "Show details" : "Mostrar detalles",
     "No activity yet" : "Aún no hay actividades",
     "Daily" : "Diariamente",
     "Weekly" : "Semanalmente",

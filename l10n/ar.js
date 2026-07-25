@@ -51,6 +51,7 @@ OC.L10N.register(
     "Sign in" : "تسجيل الدخول",
     "Skip" : "تخطي",
     "Try again" : "عاود المحاولة",
+    "year" : "سنه",
     "Create appointment" : "إنشاء موعد",
     "Export" : "تصدير",
     "Select all" : "تحديد الكل",

@@ -52,6 +52,7 @@ OC.L10N.register(
     "Share link" : "გაზიარების ლინკი",
     "Edit" : "Edit",
     "Delete" : "წაშლა",
+    "Show details" : "დეტალების ჩვენება",
     "No activity yet" : "აქტივობა ჯერ არ არის",
     "Daily" : "დღიურად",
     "Weekly" : "კვირეულად",

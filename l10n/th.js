@@ -37,6 +37,7 @@ OC.L10N.register(
     "Share link" : "แชร์ลิงก์",
     "Edit" : "แก้ไข",
     "Delete" : "ลบ",
+    "Show details" : "แสดงข้อมูล",
     "No activity yet" : "ยังไม่มีกิจกรรม",
     "Daily" : "รายวัน",
     "Weekly" : "รายสัปดาห์",

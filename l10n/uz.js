@@ -37,6 +37,7 @@ OC.L10N.register(
     "Share link" : "Havolani ulashish",
     "Edit" : "Tahrirlash",
     "Delete" : "Oʻchirish",
+    "Show details" : "Tafsilotlarni ko'rsatish",
     "Loading …" : "Yuklanmoqda...",
     "No activity yet" : "Afsuski, faollik mavjud emas",
     "Daily" : "Kunlik",

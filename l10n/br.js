@@ -31,6 +31,7 @@ OC.L10N.register(
     "Share link" : "Lodañ al liamm",
     "Edit" : "Embann",
     "Delete" : "Dilemel",
+    "Show details" : "Diskouel ar munudoù",
     "No activity yet" : "Tamm obererezh ebet",
     "Daily" : "Pemdeziek",
     "Weekly" : "Sizhuniek",

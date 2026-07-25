@@ -40,6 +40,7 @@ OC.L10N.register(
     "Sign in" : "Aniciar la sesión",
     "Skip" : "Saltar",
     "Try again" : "Retentar",
+    "year" : "añu",
     "Export" : "Esportar",
     "Select all" : "Seleicionar too",
     "Start date" : "Data de comienzu",

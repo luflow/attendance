@@ -43,6 +43,7 @@ OC.L10N.register(
     "Share link" : "Dalīt saiti",
     "Edit" : "Labot",
     "Delete" : "Izdzēst",
+    "Show details" : "Rādīt informāciju",
     "No activity yet" : "Vēl nav darbību",
     "Daily" : "Katru dienu",
     "Weekly" : "Katru nedēļu",
