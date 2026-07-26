@@ -11,8 +11,15 @@ async function main() {
 		console.log('Starting Nextcloud test server...')
 		
 		// Start Nextcloud container (uses Docker)
-		// stable34 branch, mount current app
-		const ip = await startNextcloud('stable34', true, {
+		// stable33 branch, mount current app
+		//
+		// Still on stable33: since stable34 the shipped notifications app no longer
+		// bundles its composer dependencies, so the `git clone` install used by
+		// @nextcloud/e2e-test-server leaves a broken app and every occ call fatals on
+		// the missing vendor/autoload.php. Bump to stable34 once that is resolved:
+		// https://github.com/nextcloud/notifications/issues/3206
+		// https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/issues/1059
+		const ip = await startNextcloud('stable33', true, {
 			exposePort: 8080,
 			forceRecreate: true
 		})
