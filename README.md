@@ -1,31 +1,62 @@
 # Attendance
 
-A Nextcloud app for managing event attendance with advance RSVP functionality. Administrators can create appointments and track responses, while users can easily indicate their attendance status and optional comment on their attendance.
+A Nextcloud app for knowing who is coming. Collect replies up front, check people in on the day, and see every response broken down by your Nextcloud groups. Free, open source, and running entirely on your own server.
+
+[Website](https://anwesenheit.app) · [Nextcloud App Store](https://apps.nextcloud.com/apps/attendance) · [Documentation](https://anwesenheit.app/docs)
+
+## Mobile companion app
+
+There is a companion app for iOS and Android. It talks to your own Nextcloud and adds the two things the web app cannot do:
+
+- **Self-check-in by QR code or NFC** — print one QR code for the whole instance or stick an NFC tag next to the door. People scan or tap as they arrive and the attendance list fills itself. Every self-check-in is recorded in the activity history with its source.
+- **Push notifications** — new appointments and reminders reach the phone straight away, without anyone opening Nextcloud first.
+
+It also puts appointments, replies and comments on the phone, and holds several Nextcloud accounts in one app.
+
+[App Store](https://apps.apple.com/app/id6759988681) · [Google Play](https://play.google.com/store/apps/details?id=de.krautnerds.attendance) · [What the app does](https://anwesenheit.app/mobile)
+
+The mobile app is free for the first 30 days per Nextcloud instance, then one yearly subscription covers the whole instance. **This Nextcloud app stays free and open source** — everything below works without the mobile app.
 
 ## Features
 
-### For Administrators
-- **Create & Manage Appointments:** Set up events with name, description, and date/time
-- **Track Responses:** View detailed attendance summaries organized by user groups
-- **See Non-Responders:** Identify who hasn't responded yet to follow up
-- **Flexible Views:** Toggle between upcoming and past appointments
-- **Check-in Management:** Track actual attendance during events with dedicated check-in interface
-- **Bulk Operations:** Mark multiple users as present/absent with bulk check-in actions
-- **Admin Comments:** Add check-in specific comments for attendance tracking
-- **Group Whitelisting:** Configure which user groups are included in attendance statistics and check-in lists
+### Collecting replies
+- **One-click RSVP:** Yes, No or Maybe, with an optional comment
+- **Changed plans:** update or withdraw a reply any time before the appointment
+- **Quick-reply links:** answer straight from the notification email via a signed token, no login needed
+- **Dashboard widget:** reply from the Nextcloud dashboard without opening the app
+- **Guests without an account:** invite people by email address through the Nextcloud Guests app (see below)
+- **Reminders:** automatic nudges for everyone who has not replied yet, plus manual reminders
 
-### For All Users  
-- **Easy RSVP:** Respond with Yes/No/Maybe to any appointment
-- **Add Comments:** Include optional notes with your response (especially for Maybe/No responses)
-- **Update Anytime:** Change your response until the event date
-- **Dashboard Widget:** Quick access to upcoming appointments directly from your dashboard
-- **Check-in View:** Dedicated interface for administrators to track actual attendance during events
+### Organising appointments
+- **Recurring appointments:** daily, weekly or monthly series created in one go; edit or delete this one, this and following, or all of them
+- **Calendar import:** pull events out of Nextcloud Calendar, with optional automatic sync (Nextcloud 32+)
+- **Closing and deadlines:** close an inquiry by hand, on a deadline, or automatically once it starts
+- **Cancel and reactivate:** cancelling is a state of its own, separate from closing
+- **Scheduling:** mark the yes-repliers you actually need and notify exactly those people on closing (instance-wide opt-in, off by default)
+- **Attachments:** attach files from Nextcloud Files, also exposed as links in the calendar feed
+- **Visibility:** restrict an appointment to individual users, groups or Nextcloud Teams (Circles)
+- **Copy:** duplicate an appointment with all of its settings
 
-### Group-Based Organization
-- **Group Summaries:** Responses are automatically organized by nextcloud user groups
-- **Missing Responses:** See which user group members haven't responded yet
-- **Admin Overview:** Complete visibility into attendance across all groups
-- **Filtered Check-in:** Search and filter users by name or group during check-in process
+### Overview and reporting
+- **Response summary by group:** Nextcloud groups and Teams as separate sections, each with its own counts
+- **Check-in:** record actual attendance, with bulk actions, search, filters and a note per person
+- **Unanswered:** a dedicated section showing only what still waits for a reply
+- **Activity history:** every reply, change, withdrawal and check-in with who, when and from where (web, email link, admin check-in, QR or NFC)
+- **Export:** all appointment data as an ODS spreadsheet
+- **Calendar subscription:** a personal iCal feed for Google Calendar, Apple Calendar, Outlook or Thunderbird, with token regeneration
+
+### Administration
+- **Six group-based permissions:** manage appointments, create own appointments, check-in access, see response and check-in summary, see comments, self-check-in
+- **Response summary groups:** choose which groups and Teams appear as sections (this also scopes the check-in list)
+- **Reminder settings:** days before the appointment and repeat frequency
+- **Self-check-in settings:** which groups may self-check-in, how wide the check-in window is, plus the instance QR code and the NFC URL
+- **Calendar sync:** keep imported appointments in step with the source event (Nextcloud 32+)
+
+## Requirements
+
+- Nextcloud 31 to 34 (32 or newer for calendar sync)
+- PHP 8.1 or newer
+- The Notifications app enabled, for reminders and notifications
 
 ## Installation
 
