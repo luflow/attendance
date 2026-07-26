@@ -941,6 +941,10 @@ class AppointmentService {
 	 *                                     the caller's PERMISSION_SEE_RESPONSE_OVERVIEW.
 	 * @param bool $includeComments Include free-text comments in that overview.
 	 *                              Gate on the caller's PERMISSION_SEE_COMMENTS.
+	 * @param bool $notScheduledOut Drop appointments the user was scheduled out
+	 *                              of (see isScheduledOut). Implies $onlyForMe —
+	 *                              a relevance filter that still let through
+	 *                              other people's appointments would be odd.
 	 */
 	public function getAppointmentsWithUserResponses(
 		string $userId,
@@ -949,6 +953,7 @@ class AppointmentService {
 		bool $onlyForMe = false,
 		bool $includeResponseSummary = false,
 		bool $includeComments = false,
+		bool $notScheduledOut = false,
 	): array {
 		$appointments = $showPastAppointments
 			? $this->getPastAppointments()
@@ -960,7 +965,7 @@ class AppointmentService {
 		// "Unanswered" only makes sense for appointments actually addressed to
 		// the user. For managers, the visibility check otherwise lets through
 		// every unanswered appointment in the system, which defeats the inbox.
-		$onlyForMe = $onlyForMe || $unansweredOnly;
+		$onlyForMe = $onlyForMe || $unansweredOnly || $notScheduledOut;
 
 		$globalManage = $this->permissionService->canManageAppointments($userId);
 		$result = [];
@@ -973,6 +978,9 @@ class AppointmentService {
 				continue;
 			}
 			if ($unansweredOnly && ($appointment->isClosed() || $appointment->isCancelled())) {
+				continue;
+			}
+			if ($notScheduledOut && $this->bookingService->isScheduledOut($appointment, $userId)) {
 				continue;
 			}
 
@@ -1024,6 +1032,9 @@ class AppointmentService {
 				continue;
 			}
 			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
+				continue;
+			}
+			if ($this->bookingService->isScheduledOut($appointment, $userId)) {
 				continue;
 			}
 

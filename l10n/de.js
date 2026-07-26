@@ -534,6 +534,7 @@ OC.L10N.register(
     "Closed" : "Geschlossen",
     "Relevance" : "Wichtigkeit",
     "Only for me" : "Nur für mich",
+    "Only for me, not scheduled out" : "Nur für mich, nicht ausgeplant",
     "Upcoming" : "Kommende",
     "Past" : "Vergangene",
     "View all" : "Alle anzeigen",

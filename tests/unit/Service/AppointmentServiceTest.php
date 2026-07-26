@@ -788,4 +788,55 @@ class AppointmentServiceTest extends TestCase {
 
 		$this->assertEquals(['alice'], $result->getOrganizersList());
 	}
+
+	// --- scheduling: "not scheduled out" ---
+	// The predicate itself lives in BookingService and is covered there; here we
+	// only assert that the two list paths honour it.
+
+	public function testWidgetHidesAppointmentsTheUserWasScheduledOutOf(): void {
+		$appointment = $this->createAppointment(1, 'Closed meeting');
+
+		$this->appointmentMapper->method('findUpcoming')->willReturn([$appointment]);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+		$this->attachmentService->method('getAttachments')->willReturn([]);
+		$this->bookingService->method('isScheduledOut')->willReturn(true);
+
+		$this->assertSame([], $this->service->getUpcomingAppointmentsForWidget('alice', 5));
+	}
+
+	public function testNotScheduledOutFilterDropsTheAppointmentFromTheList(): void {
+		$scheduledOut = $this->createAppointment(1, 'Closed meeting');
+
+		$this->appointmentMapper->method('findUpcoming')->willReturn([$scheduledOut]);
+		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+		$this->attachmentService->method('getAttachments')->willReturn([]);
+		$this->bookingService->method('isScheduledOut')->willReturn(true);
+
+		// Without the filter the appointment is still listed — being scheduled
+		// out only ever hides it on request.
+		$this->assertCount(1, $this->service->getAppointmentsWithUserResponses('alice'));
+		$this->assertSame([], $this->service->getAppointmentsWithUserResponses(
+			'alice',
+			notScheduledOut: true,
+		));
+	}
+
+	public function testNotScheduledOutFilterImpliesOnlyForMe(): void {
+		// A manager sees every appointment by default; the relevance filter must
+		// still cut those the manager is not part of the audience for.
+		$foreign = $this->createAppointment(1, 'Bob only');
+
+		$this->appointmentMapper->method('findUpcoming')->willReturn([$foreign]);
+		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
+		$this->visibilityService->expects($this->once())
+			->method('isUserTargetAttendee')
+			->willReturn(false);
+		$this->attachmentService->method('getAttachments')->willReturn([]);
+
+		$this->assertSame([], $this->service->getAppointmentsWithUserResponses(
+			'alice',
+			notScheduledOut: true,
+		));
+	}
 }

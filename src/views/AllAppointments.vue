@@ -231,7 +231,7 @@ const F = Object.freeze({
 })
 const RESPONSE = Object.freeze({ YES: 'yes', MAYBE: 'maybe', NO: 'no', NONE: 'none' })
 const STATUS = Object.freeze({ OPEN: 'open', CLOSED: 'closed', CANCELLED: 'cancelled' })
-const AUDIENCE = Object.freeze({ ME: 'me' })
+const AUDIENCE = Object.freeze({ ME: 'me', ME_SCHEDULED: 'me-scheduled' })
 
 const { permissions, capabilities, config, loadPermissions } = usePermissions()
 
@@ -259,14 +259,29 @@ const filterDefs = computed(() => [
 		],
 	},
 	{
-		// Server-side via VisibilityService::isUserTargetAttendee. Without it,
-		// managers see every appointment in the system.
+		// Server-side: the audience check via VisibilityService::isUserTargetAttendee,
+		// the scheduling check via BookingService::isScheduledOut. Two steps of
+		// the same axis, so they share one filter and exclude each other.
 		id: F.AUDIENCE,
 		label: t('attendance', 'Relevance'),
 		icon: AccountIcon,
-		visible: permissions.canManageAppointments,
 		options: [
-			{ id: AUDIENCE.ME, label: t('attendance', 'Only for me') },
+			{
+				// Without it, managers see every appointment in the system.
+				// Everyone else only ever gets their own — a no-op, so hide it.
+				id: AUDIENCE.ME,
+				label: t('attendance', 'Only for me'),
+				visible: permissions.canManageAppointments,
+			},
+			{
+				id: AUDIENCE.ME_SCHEDULED,
+				// TRANSLATORS: Filter option in the appointment list. Hides appointments
+				// where the user was explicitly not given a place after scheduling
+				// finished (German "nicht ausgeplant" — not "abgesagt", which this app
+				// uses for calling off an appointment).
+				label: t('attendance', 'Only for me, not scheduled out'),
+				visible: capabilities.bookingEnabled,
+			},
 		],
 	},
 ])
@@ -284,11 +299,24 @@ function loadStoredFilterValues() {
 }
 
 const filters = computed(() => filterDefs.value
-	.filter((def) => def.visible !== false)
+	.map((def) => ({
+		...def,
+		options: def.options.filter((opt) => opt.visible !== false),
+	}))
+	// A filter whose every option is hidden has nothing left to offer.
+	.filter((def) => def.options.length > 0)
 	.map((def) => ({
 		...def,
 		value: def.options.find((opt) => opt.id === filterValues.value[def.id]) ?? null,
 	})))
+
+// Read filter state through the *visible* filters, never through filterValues
+// directly: a value stored back when an option was still available (planning
+// feature later switched off, manage permission revoked) must stop taking
+// effect, not keep filtering invisibly.
+const activeAudience = computed(() => {
+	return filters.value.find((f) => f.id === F.AUDIENCE)?.value?.id ?? null
+})
 
 const activeFilters = computed(() => filters.value.filter((f) => f.value))
 
@@ -401,12 +429,15 @@ async function loadAppointments(skipLoadingSpinner = false) {
 			loading.value = true
 		}
 		const url = generateUrl('/apps/attendance/api/appointments')
-		const onlyForMe = filterValues.value[F.AUDIENCE] === AUDIENCE.ME
+		// notScheduledOut implies onlyForMe server-side, so it never needs both.
+		const audienceParams = {
+			[AUDIENCE.ME]: { onlyForMe: true },
+			[AUDIENCE.ME_SCHEDULED]: { notScheduledOut: true },
+		}[activeAudience.value] ?? {}
 		if (props.showAll) {
-			const baseParams = onlyForMe ? { onlyForMe: true } : {}
 			const [upcoming, past] = await Promise.all([
-				axios.get(url, { params: baseParams }),
-				axios.get(url, { params: { ...baseParams, showPastAppointments: true } }),
+				axios.get(url, { params: audienceParams }),
+				axios.get(url, { params: { ...audienceParams, showPastAppointments: true } }),
 			])
 			// Tag for the All-view section split — the server already partitions,
 			// don't re-derive from end_datetime in the browser.
@@ -415,10 +446,9 @@ async function loadAppointments(skipLoadingSpinner = false) {
 				...past.data.map((a) => ({ ...a, _isPast: true })),
 			]
 		} else {
-			const params = {}
+			const params = { ...audienceParams }
 			if (props.showPast) params.showPastAppointments = true
 			if (props.showUnanswered) params.unansweredOnly = true
-			if (onlyForMe) params.onlyForMe = true
 			const response = await axios.get(url, { params })
 			appointments.value = response.data
 		}
@@ -439,7 +469,9 @@ async function loadAppointments(skipLoadingSpinner = false) {
 	}
 }
 
-// The audience filter is server-side, so flipping it requires a refetch.
+// The audience filter is server-side, so flipping it requires a refetch. Watch
+// the raw value, which only ever moves through setFilter — activeAudience also
+// flips when permissions arrive at mount, which onMounted already fetches for.
 watch(() => filterValues.value[F.AUDIENCE], () => {
 	loadAppointments(true)
 })

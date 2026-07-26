@@ -70,7 +70,7 @@ function ensureAuthDir() {
 /**
  * Build Basic Auth headers for API calls
  */
-function authHeaders(username = 'admin', password = 'admin') {
+export function authHeaders(username = 'admin', password = 'admin') {
 	return {
 		'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
 		'Content-Type': 'application/json',
@@ -187,11 +187,12 @@ export async function deleteAppointmentViaAPI(request, id, { username = 'admin',
  * @param {boolean} [opts.unansweredOnly] Server-side filter: drop closed
  *        inquiries and any appointment the user has already answered.
  */
-export async function listAppointmentsViaAPI(request, { showPast = true, unansweredOnly = false, username = 'admin', password = 'admin' } = {}) {
+export async function listAppointmentsViaAPI(request, { showPast = true, unansweredOnly = false, notScheduledOut = false, username = 'admin', password = 'admin' } = {}) {
 	const params = new URLSearchParams({
 		showPastAppointments: String(showPast),
 	})
 	if (unansweredOnly) params.set('unansweredOnly', 'true')
+	if (notScheduledOut) params.set('notScheduledOut', 'true')
 	const resp = await resilientJson(() =>
 		request.get(
 			`${API_BASE}/apps/attendance/api/appointments?${params.toString()}`,

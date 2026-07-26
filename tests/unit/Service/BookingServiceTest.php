@@ -197,4 +197,59 @@ class BookingServiceTest extends TestCase {
 		$a->setStartDatetime('2026-07-20 10:00:00');
 		return $a;
 	}
+
+	private function closedAppointment(): Appointment {
+		$a = $this->appointment();
+		$a->setClosedAt('2026-07-20 09:00:00');
+		return $a;
+	}
+
+	// --- isScheduledOut: the read side of the close-time wave ---
+
+	public function testIsScheduledOutIsFalseWhenPlanningIsDisabled(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(false);
+		$this->responseMapper->expects($this->never())->method('findByAppointment');
+
+		$this->assertFalse($this->service->isScheduledOut($this->closedAppointment(), 'alice'));
+	}
+
+	public function testIsScheduledOutIsFalseWhileInquiryIsStillOpen(): void {
+		// Nothing has been decided yet — hiding here would take away the very
+		// appointment the user still needs to answer.
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+		$this->responseMapper->expects($this->never())->method('findByAppointment');
+
+		$this->assertFalse($this->service->isScheduledOut($this->appointment(), 'alice'));
+	}
+
+	public function testIsScheduledOutIsFalseWhenNobodyWasScheduled(): void {
+		// The manager closed without using the feature — everyone keeps seeing it.
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+		$this->responseMapper->method('findByAppointment')->willReturn([
+			$this->response('alice', 'yes'),
+			$this->response('bob', 'yes'),
+		]);
+
+		$this->assertFalse($this->service->isScheduledOut($this->closedAppointment(), 'alice'));
+	}
+
+	public function testIsScheduledOutIsFalseForTheScheduledUser(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+		$this->responseMapper->method('findByAppointment')->willReturn([
+			$this->response('bob', 'yes', BookingService::STATUS_BOOKED),
+			$this->response('alice', 'yes', BookingService::STATUS_BOOKED),
+		]);
+
+		$this->assertFalse($this->service->isScheduledOut($this->closedAppointment(), 'alice'));
+	}
+
+	public function testIsScheduledOutIsTrueWhenSomebodyElseGotThePlace(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+		$this->responseMapper->method('findByAppointment')->willReturn([
+			$this->response('bob', 'yes', BookingService::STATUS_BOOKED),
+			$this->response('alice', 'yes', BookingService::STATUS_DECLINED),
+		]);
+
+		$this->assertTrue($this->service->isScheduledOut($this->closedAppointment(), 'alice'));
+	}
 }

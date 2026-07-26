@@ -76,6 +76,8 @@ export default defineConfig({
 				'18-widget-relevance.spec.js',
 				'19-default-view.spec.js',
 				'20-summary-direct-user.spec.js',
+				// Toggles the instance-wide planning feature on and off.
+				'25-scheduled-out.spec.js',
 			],
 			fullyParallel: false,
 			workers: 1,
