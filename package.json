@@ -31,6 +31,7 @@
     "@nextcloud/l10n": "^3.4.1",
     "@nextcloud/router": "^3.1.0",
     "@nextcloud/vue": "^9.9.0",
+    "brace-expansion": "^5.0.8",
     "canvas-confetti": "^1.9.4",
     "date-fns": "^4.4.0",
     "date-fns-tz": "^3.2.0",
