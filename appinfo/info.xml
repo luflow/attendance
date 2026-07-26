@@ -104,9 +104,6 @@ Gemacht für Chöre, Orchester, Sportvereine, Feuerwehren, Gemeinden und jede an
 	<namespace>Attendance</namespace>
 	<category>dashboard</category>
 	<category>organization</category>
-	<types>
-		<type>notification</type>
-	</types>
 	<website>https://anwesenheit.app</website>
 	<bugs>https://github.com/luflow/attendance/issues</bugs>
 	<repository type="git">https://github.com/luflow/attendance</repository>
@@ -119,6 +116,17 @@ Gemacht für Chöre, Orchester, Sportvereine, Feuerwehren, Gemeinden und jede an
 		<php min-version="8.1"/>
 		<nextcloud min-version="31" max-version="34"/>
 	</dependencies>
+	<repair-steps>
+		<post-migration>
+			<step>OCA\Attendance\Repair\EnsureAppointmentSchema</step>
+		</post-migration>
+	</repair-steps>
+	<settings>
+		<admin>OCA\Attendance\Settings\AdminSettings</admin>
+		<admin-section>OCA\Attendance\Settings\AdminSection</admin-section>
+		<personal>OCA\Attendance\Settings\PersonalSettings</personal>
+		<personal-section>OCA\Attendance\Settings\PersonalSection</personal-section>
+	</settings>
 	<navigations>
 		<navigation>
 			<id>attendance</id>
@@ -129,15 +137,4 @@ Gemacht für Chöre, Orchester, Sportvereine, Feuerwehren, Gemeinden und jede an
 			<type>link</type>
 		</navigation>
 	</navigations>
-	<settings>
-		<admin>OCA\Attendance\Settings\AdminSettings</admin>
-		<admin-section>OCA\Attendance\Settings\AdminSection</admin-section>
-		<personal>OCA\Attendance\Settings\PersonalSettings</personal>
-		<personal-section>OCA\Attendance\Settings\PersonalSection</personal-section>
-	</settings>
-	<repair-steps>
-		<post-migration>
-			<step>OCA\Attendance\Repair\EnsureAppointmentSchema</step>
-		</post-migration>
-	</repair-steps>
 </info>
