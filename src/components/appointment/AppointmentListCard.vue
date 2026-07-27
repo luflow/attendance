@@ -210,6 +210,12 @@ const stateLabel = computed(() => (isCancelled.value
         cursor: pointer;
         color: var(--color-text-maxcontrast);
 
+        // Nextcloud's server styles set an explicit cursor on <p>, which beats
+        // the inherited pointer from the clickable row.
+        > * {
+            cursor: inherit;
+        }
+
         p {
             margin: 0;
             flex: 1;
