@@ -184,8 +184,8 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 			await page.waitForLoadState('networkidle')
 
-			// Admin should see response summary
-			const adminResponseSummary = page.getByRole('heading', { name: 'Response Summary' }).first()
+			// Admin should see the response overview (a bar on the list card)
+			const adminResponseSummary = page.locator('[data-test="response-bar"]').first()
 			await expect(adminResponseSummary).toBeVisible()
 
 			// Login as test user
@@ -193,9 +193,9 @@ test.describe('Attendance App - Admin Settings', () => {
 			await attendanceApp()
 			await page.waitForLoadState('networkidle')
 
-			// Test user should NOT see response summary
-			const testUserResponseSummary = page.getByRole('heading', { name: 'Response Summary' })
-			await expect(testUserResponseSummary).not.toBeVisible()
+			// Test user should NOT see the response overview
+			const testUserResponseSummary = page.locator('[data-test="response-bar"]')
+			await expect(testUserResponseSummary).toHaveCount(0)
 
 			// But test user should still be able to respond
 			const yesButton = page.getByRole('button', { name: 'Yes', exact: true }).first()

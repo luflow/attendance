@@ -5,484 +5,53 @@
 		data-test="response-summary">
 		<h4>{{ t("attendance", "Response summary") }}</h4>
 
-		<!-- Overall Stats -->
-		<div class="summary-stats">
-			<NcChip
-				:text="`${t('attendance', 'Yes')}: ${responseSummary.yes}`"
-				variant="success"
-				noClose />
-			<NcChip
-				:text="`${t('attendance', 'Maybe')}: ${responseSummary.maybe}`"
-				variant="warning"
-				noClose />
-			<NcChip
-				:text="`${t('attendance', 'No')}: ${responseSummary.no}`"
-				variant="error"
-				noClose />
-			<NcChip
-				:text="`${t('attendance', 'No response')}: ${responseSummary.no_response}`"
-				variant="tertiary"
-				noClose />
-		</div>
+		<ResponseBar class="response-summary-detailed__bar" :segments="responseSegments(responseSummary)" />
 
-		<!-- Unified Group/Team Summary -->
-		<div
-			v-if="hasGroupsOrTeams"
-			class="group-summary"
-			data-test="group-summary">
-			<!-- Groups -->
+		<div v-if="sections.length" class="group-summary" data-test="group-summary">
 			<div
-				v-for="(groupStats, groupId) in responseSummary.by_group"
-				:key="`group-${groupId}`"
+				v-for="section in sections"
+				:key="section.key"
 				class="group-container"
-				:data-test="`group-container-${groupId}`">
+				:data-test="section.containerTest">
 				<div
 					class="group-stats clickable"
-					data-test="group-header"
-					@click="toggleGroup(`group-${groupId}`)">
+					:data-test="section.headerTest"
+					@click="toggleGroup(section.key)">
 					<div class="group-name">
-						<span
-							class="expand-icon"
-							:class="{
-								expanded: expandedGroups[`group-${groupId}`],
-							}">▶</span>
-						<AccountGroup :size="18" class="type-icon" />
-						{{ formatGroupLabel(groupId) }}
+						<span class="expand-icon" :class="{ expanded: expandedGroups[section.key] }">▶</span>
+						<component :is="section.icon"
+							v-if="section.icon"
+							:size="18"
+							class="type-icon" />
+						{{ section.label }}
 					</div>
 					<div class="group-counts">
-						<NcChip
-							:text="String(groupStats.yes)"
-							variant="success"
-							noClose />
-						<NcChip
-							:text="String(groupStats.maybe)"
-							variant="warning"
-							noClose />
-						<NcChip
-							:text="String(groupStats.no)"
-							variant="error"
-							noClose />
-						<NcChip
-							:text="String(groupStats.no_response)"
-							variant="tertiary"
-							noClose />
+						<NcChip :text="String(section.stats.yes)" variant="success" noClose />
+						<NcChip :text="String(section.stats.maybe)" variant="warning" noClose />
+						<NcChip :text="String(section.stats.no)" variant="error" noClose />
+						<NcChip :text="String(section.stats.no_response ?? 0)" variant="tertiary" noClose />
 					</div>
 				</div>
 
-				<!-- Expanded Group Details -->
-				<div
-					v-if="expandedGroups[`group-${groupId}`]"
-					class="group-details">
-					<!-- Show responses if any exist -->
-					<div
-						v-if="
-							groupStats.responses
-								&& groupStats.responses.length > 0
-						"
-						class="group-responses">
-						<div
-							v-for="response in getSortedResponses(
-								groupStats.responses,
-							)"
+				<div v-if="expandedGroups[section.key]" class="group-details">
+					<div v-if="section.stats.responses?.length" class="group-responses">
+						<ResponseRow
+							v-for="response in sortByName(section.stats.responses)"
 							:key="response.id"
-							class="response-item">
-							<div class="response-header">
-								<div class="user-info">
-									<strong>{{ response.userName }}</strong>
-									<NcChip
-										:text="
-											getResponseText(response.response)
-										"
-										:variant="
-											getResponseVariant(
-												response.response,
-											)
-										"
-										noClose />
-									<NcPopover
-										v-if="response.response === 'maybe' && canSendReminders && appointmentId"
-										:shown="openRemindPopover === response.userId"
-										popupRole="dialog"
-										class="remind-maybe-popover-wrapper"
-										@update:shown="(val) => openRemindPopover = val ? response.userId : null">
-										<template #trigger>
-											<span
-												class="remind-maybe-btn"
-												:class="{ 'remind-maybe-btn--pending': remindingUsers.has(response.userId) }"
-												role="button"
-												tabindex="0"
-												@click.stop><BellRingOutlineIcon :size="14" class="remind-icon" /></span>
-										</template>
-										<div class="remind-popover" role="dialog" aria-modal="true">
-											<p>{{ t('attendance', 'Send a reminder to {name}?', { name: response.userName }) }}</p>
-											<NcButton
-												variant="primary"
-												:disabled="remindingUsers.has(response.userId)"
-												@click="handleRemindFromPopover(response.userId)">
-												<template #icon>
-													<BellRingOutlineIcon :size="20" />
-												</template>
-												{{ t('attendance', 'Send reminder') }}
-											</NcButton>
-										</div>
-									</NcPopover>
-									<NcButton
-										v-if="canManageBooking && response.response === 'yes'"
-										class="booking-toggle"
-										:variant="response.bookingStatus === 'booked' ? 'success' : 'tertiary'"
-										:disabled="togglingBooking.has(response.userId) || isClosed"
-										:title="bookingToggleTitle"
-										:data-test="`booking-toggle-${response.userId}`"
-										@click="toggleBooking(response)">
-										<template #icon>
-											<CalendarCheckIcon :size="20" />
-										</template>
-										{{ bookingToggleLabel(response) }}
-									</NcButton>
-								</div>
-								<div
-									v-if="response.isCheckedIn"
-									class="checkin-info">
-									<span class="checkin-badge">{{
-										t("attendance", "Checked in?")
-									}}</span>
-									<NcChip
-										:text="
-											getResponseText(
-												response.checkinState,
-											)
-										"
-										:variant="
-											getResponseVariant(
-												response.checkinState,
-											)
-										"
-										noClose />
-								</div>
-							</div>
-							<div
-								v-if="
-									canSeeComments
-										&& response.comment
-										&& response.comment.trim()
-								"
-								class="response-comment">
-								{{ response.comment }}
-							</div>
-						</div>
+							:response="response"
+							:canSeeComments="canSeeComments"
+							:canSendReminders="canSendReminders"
+							:canManageBooking="canManageBooking"
+							:isClosed="isClosed"
+							:remindingUsers="remindingUsers"
+							:togglingBooking="togglingBooking"
+							@remind="remindUser"
+							@toggleBooking="toggleBooking" />
 					</div>
 
-					<!-- Non-responding users -->
 					<NonRespondingUserList
-						v-if="
-							groupStats.non_responding_users
-								&& groupStats.non_responding_users.length > 0
-						"
-						:users="groupStats.non_responding_users"
-						:headerText="t('attendance', 'No response yet:')"
-						:canManageAppointments="canSendReminders"
-						:appointmentId="appointmentId"
-						:remindingUsers="remindingUsers"
-						@remind="remindUser" />
-				</div>
-			</div>
-
-			<!-- Teams -->
-			<div
-				v-for="(teamStats, teamId) in responseSummary.by_team"
-				:key="`team-${teamId}`"
-				class="group-container"
-				:data-test="`team-container-${teamId}`">
-				<div
-					class="group-stats clickable"
-					data-test="team-header"
-					@click="toggleGroup(`team-${teamId}`)">
-					<div class="group-name">
-						<span
-							class="expand-icon"
-							:class="{
-								expanded: expandedGroups[`team-${teamId}`],
-							}">▶</span>
-						<AccountStar :size="18" class="type-icon" />
-						{{ teamStats.displayName || teamId }}
-					</div>
-					<div class="group-counts">
-						<NcChip
-							:text="String(teamStats.yes)"
-							variant="success"
-							noClose />
-						<NcChip
-							:text="String(teamStats.maybe)"
-							variant="warning"
-							noClose />
-						<NcChip
-							:text="String(teamStats.no)"
-							variant="error"
-							noClose />
-						<NcChip
-							:text="String(teamStats.no_response)"
-							variant="tertiary"
-							noClose />
-					</div>
-				</div>
-
-				<!-- Expanded Team Details -->
-				<div
-					v-if="expandedGroups[`team-${teamId}`]"
-					class="group-details">
-					<!-- Show responses if any exist -->
-					<div
-						v-if="
-							teamStats.responses
-								&& teamStats.responses.length > 0
-						"
-						class="group-responses">
-						<div
-							v-for="response in getSortedResponses(
-								teamStats.responses,
-							)"
-							:key="response.id"
-							class="response-item">
-							<div class="response-header">
-								<div class="user-info">
-									<strong>{{ response.userName }}</strong>
-									<NcChip
-										:text="
-											getResponseText(response.response)
-										"
-										:variant="
-											getResponseVariant(
-												response.response,
-											)
-										"
-										noClose />
-									<NcPopover
-										v-if="response.response === 'maybe' && canSendReminders && appointmentId"
-										:shown="openRemindPopover === response.userId"
-										popupRole="dialog"
-										class="remind-maybe-popover-wrapper"
-										@update:shown="(val) => openRemindPopover = val ? response.userId : null">
-										<template #trigger>
-											<span
-												class="remind-maybe-btn"
-												:class="{ 'remind-maybe-btn--pending': remindingUsers.has(response.userId) }"
-												role="button"
-												tabindex="0"
-												@click.stop><BellRingOutlineIcon :size="14" class="remind-icon" /></span>
-										</template>
-										<div class="remind-popover" role="dialog" aria-modal="true">
-											<p>{{ t('attendance', 'Send a reminder to {name}?', { name: response.userName }) }}</p>
-											<NcButton
-												variant="primary"
-												:disabled="remindingUsers.has(response.userId)"
-												@click="handleRemindFromPopover(response.userId)">
-												<template #icon>
-													<BellRingOutlineIcon :size="20" />
-												</template>
-												{{ t('attendance', 'Send reminder') }}
-											</NcButton>
-										</div>
-									</NcPopover>
-									<NcButton
-										v-if="canManageBooking && response.response === 'yes'"
-										class="booking-toggle"
-										:variant="response.bookingStatus === 'booked' ? 'success' : 'tertiary'"
-										:disabled="togglingBooking.has(response.userId) || isClosed"
-										:title="bookingToggleTitle"
-										:data-test="`booking-toggle-${response.userId}`"
-										@click="toggleBooking(response)">
-										<template #icon>
-											<CalendarCheckIcon :size="20" />
-										</template>
-										{{ bookingToggleLabel(response) }}
-									</NcButton>
-								</div>
-								<div
-									v-if="response.isCheckedIn"
-									class="checkin-info">
-									<span class="checkin-badge">{{
-										t("attendance", "Checked in?")
-									}}</span>
-									<NcChip
-										:text="
-											getResponseText(
-												response.checkinState,
-											)
-										"
-										:variant="
-											getResponseVariant(
-												response.checkinState,
-											)
-										"
-										noClose />
-								</div>
-							</div>
-							<div
-								v-if="
-									canSeeComments
-										&& response.comment
-										&& response.comment.trim()
-								"
-								class="response-comment">
-								{{ response.comment }}
-							</div>
-						</div>
-					</div>
-
-					<!-- Non-responding users -->
-					<NonRespondingUserList
-						v-if="
-							teamStats.non_responding_users
-								&& teamStats.non_responding_users.length > 0
-						"
-						:users="teamStats.non_responding_users"
-						:headerText="t('attendance', 'No response yet:')"
-						:canManageAppointments="canSendReminders"
-						:appointmentId="appointmentId"
-						:remindingUsers="remindingUsers"
-						@remind="remindUser" />
-				</div>
-			</div>
-
-			<!-- Others Section -->
-			<div
-				v-if="responseSummary.others && (hasOthersResponses() || hasOthersNonResponders())"
-				class="group-container">
-				<div
-					class="group-stats clickable"
-					@click="toggleGroup('others')">
-					<div class="group-name">
-						<span
-							class="expand-icon"
-							:class="{ expanded: expandedGroups['others'] }">▶</span>
-						<!-- TRANSLATORS: Section heading in the response summary for users who are not in any of the tracked groups ("other people"). -->
-						{{ t("attendance", "Others") }}
-					</div>
-					<div class="group-counts">
-						<NcChip
-							:text="String(responseSummary.others.yes)"
-							variant="success"
-							noClose />
-						<NcChip
-							:text="String(responseSummary.others.maybe)"
-							variant="warning"
-							noClose />
-						<NcChip
-							:text="String(responseSummary.others.no)"
-							variant="error"
-							noClose />
-						<NcChip
-							v-if="responseSummary.others.no_response > 0"
-							:text="String(responseSummary.others.no_response)"
-							variant="tertiary"
-							noClose />
-					</div>
-				</div>
-
-				<!-- Expanded Others Details -->
-				<div v-if="expandedGroups['others']" class="group-details">
-					<div
-						v-if="responseSummary.others.responses.length > 0"
-						class="group-responses">
-						<div
-							v-for="response in getSortedResponses(
-								responseSummary.others.responses,
-							)"
-							:key="response.id"
-							class="response-item">
-							<div class="response-header">
-								<div class="user-info">
-									<strong>{{ response.userName }}</strong>
-									<NcChip
-										:text="
-											getResponseText(response.response)
-										"
-										:variant="
-											getResponseVariant(
-												response.response,
-											)
-										"
-										noClose />
-									<NcPopover
-										v-if="response.response === 'maybe' && canSendReminders && appointmentId"
-										:shown="openRemindPopover === response.userId"
-										popupRole="dialog"
-										class="remind-maybe-popover-wrapper"
-										@update:shown="(val) => openRemindPopover = val ? response.userId : null">
-										<template #trigger>
-											<span
-												class="remind-maybe-btn"
-												:class="{ 'remind-maybe-btn--pending': remindingUsers.has(response.userId) }"
-												role="button"
-												tabindex="0"
-												@click.stop><BellRingOutlineIcon :size="14" class="remind-icon" /></span>
-										</template>
-										<div class="remind-popover" role="dialog" aria-modal="true">
-											<p>{{ t('attendance', 'Send a reminder to {name}?', { name: response.userName }) }}</p>
-											<NcButton
-												variant="primary"
-												:disabled="remindingUsers.has(response.userId)"
-												@click="handleRemindFromPopover(response.userId)">
-												<template #icon>
-													<BellRingOutlineIcon :size="20" />
-												</template>
-												{{ t('attendance', 'Send reminder') }}
-											</NcButton>
-										</div>
-									</NcPopover>
-									<NcButton
-										v-if="canManageBooking && response.response === 'yes'"
-										class="booking-toggle"
-										:variant="response.bookingStatus === 'booked' ? 'success' : 'tertiary'"
-										:disabled="togglingBooking.has(response.userId) || isClosed"
-										:title="bookingToggleTitle"
-										:data-test="`booking-toggle-${response.userId}`"
-										@click="toggleBooking(response)">
-										<template #icon>
-											<CalendarCheckIcon :size="20" />
-										</template>
-										{{ bookingToggleLabel(response) }}
-									</NcButton>
-								</div>
-								<div
-									v-if="response.isCheckedIn"
-									class="checkin-info">
-									<span class="checkin-badge">{{
-										t("attendance", "Checked in?")
-									}}</span>
-									<NcChip
-										:text="
-											getResponseText(
-												response.checkinState,
-											)
-										"
-										:variant="
-											getResponseVariant(
-												response.checkinState,
-											)
-										"
-										noClose />
-								</div>
-							</div>
-							<div
-								v-if="
-									canSeeComments
-										&& response.comment
-										&& response.comment.trim()
-								"
-								class="response-comment">
-								{{ response.comment }}
-							</div>
-						</div>
-					</div>
-
-					<!-- Non-responding users in Others (e.g. invited guests) -->
-					<NonRespondingUserList
-						v-if="
-							responseSummary.others.non_responding_users
-								&& responseSummary.others.non_responding_users.length > 0
-						"
-						:users="responseSummary.others.non_responding_users"
+						v-if="section.stats.non_responding_users?.length"
+						:users="section.stats.non_responding_users"
 						:headerText="t('attendance', 'No response yet:')"
 						:canManageAppointments="canSendReminders"
 						:appointmentId="appointmentId"
@@ -498,15 +67,16 @@
 import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
-import { NcButton, NcChip, NcPopover } from '@nextcloud/vue'
+import { NcChip } from '@nextcloud/vue'
 import { computed, reactive, ref } from 'vue'
 import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
 import AccountStar from 'vue-material-design-icons/AccountStar.vue'
-import BellRingOutlineIcon from 'vue-material-design-icons/BellRingOutline.vue'
-import CalendarCheckIcon from 'vue-material-design-icons/CalendarCheck.vue'
 import NonRespondingUserList from './NonRespondingUserList.vue'
+import ResponseBar from './ResponseBar.vue'
+import ResponseRow from './ResponseRow.vue'
+import { usePermissions } from '../../composables/usePermissions.js'
 import { formatGroupLabel } from '../../utils/groups.js'
-import { getResponseText, getResponseVariant } from '../../utils/response.js'
+import { responseSegments } from '../../utils/response.js'
 
 const props = defineProps({
 	responseSummary: {
@@ -529,45 +99,71 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
-	// Instance-wide booking capability. Off = no booking UI anywhere.
-	bookingEnabled: {
-		type: Boolean,
-		default: false,
-	},
 })
+
+const { capabilities } = usePermissions()
 
 const canSendReminders = computed(() => props.canManageAppointments && !props.isClosed)
 
 // The per-person booking toggle only shows when the feature is on and the
 // viewer may manage the appointment; individual rows additionally require a
-// "yes" response (handled inline).
-const canManageBooking = computed(() => props.canManageAppointments && props.bookingEnabled)
+// "yes" response (handled by the row).
+const canManageBooking = computed(() => props.canManageAppointments && capabilities.bookingEnabled)
 
 const expandedGroups = ref({})
 const remindingUsers = reactive(new Set())
 const togglingBooking = reactive(new Set())
 
-// Booking-toggle texts live here instead of inline in the template: the
-// string extractor only associates a TRANSLATORS comment with the first
-// t() call on the very next line, which multi-line template expressions
-// cannot provide.
-const bookingToggleTitle = computed(() => {
-	if (!props.isClosed) {
-		return null
+// Groups, teams and the catch-all "Others" bucket all render the same way — the
+// only differences are the label, the leading icon and the data-test hooks.
+const sections = computed(() => {
+	const summary = props.responseSummary
+	if (!summary) return []
+	const result = []
+	for (const [groupId, stats] of Object.entries(summary.by_group ?? {})) {
+		result.push({
+			key: `group-${groupId}`,
+			label: formatGroupLabel(groupId),
+			icon: AccountGroup,
+			containerTest: `group-container-${groupId}`,
+			headerTest: 'group-header',
+			stats,
+		})
 	}
-	// TRANSLATORS: Tooltip on the disabled scheduling toggle. "scheduling" = the feature of giving people a place in the appointment (German: the noun is "Planung", the per-person action is "einplanen").
-	return t('attendance', 'Reopen the inquiry to change scheduling')
+	for (const [teamId, stats] of Object.entries(summary.by_team ?? {})) {
+		result.push({
+			key: `team-${teamId}`,
+			label: stats.displayName || teamId,
+			icon: AccountStar,
+			containerTest: `team-container-${teamId}`,
+			headerTest: 'team-header',
+			stats,
+		})
+	}
+	const others = summary.others
+	const othersHasContent = others
+		&& (others.yes > 0 || others.maybe > 0 || others.no > 0 || others.non_responding_users?.length > 0)
+	if (othersHasContent) {
+		result.push({
+			key: 'others',
+			// TRANSLATORS: Section heading in the response summary for users who are not in any of the tracked groups ("other people").
+			label: t('attendance', 'Others'),
+			icon: null,
+			containerTest: 'others-container',
+			headerTest: 'others-header',
+			stats: others,
+		})
+	}
+	return result
 })
 
-function bookingToggleLabel(response) {
-	if (response.bookingStatus === 'booked') {
-		// TRANSLATORS: Status label on the per-person scheduling toggle — the person got a place in the appointment (German "Eingeplant", not "Geplant").
-		return t('attendance', 'Scheduled')
-	}
-	// TRANSLATORS: Action label on the per-person scheduling toggle — the manager gives the person a place in the appointment ("schedule someone in", German "Einplanen" — not "Planen": the appointment itself is not being planned).
-	return t('attendance', 'Schedule')
+function toggleGroup(key) {
+	expandedGroups.value[key] = !expandedGroups.value[key]
 }
-const openRemindPopover = ref(null)
+
+function sortByName(responses) {
+	return [...responses].sort((a, b) => a.userName.localeCompare(b.userName))
+}
 
 async function toggleBooking(response) {
 	if (!props.appointmentId || togglingBooking.has(response.userId)) return
@@ -601,47 +197,6 @@ async function remindUser(userId) {
 		remindingUsers.delete(userId)
 	}
 }
-
-function handleRemindFromPopover(userId) {
-	openRemindPopover.value = null
-	remindUser(userId)
-}
-
-const hasGroupsOrTeams = computed(() => {
-	if (!props.responseSummary) return false
-	const hasGroups
-		= props.responseSummary.by_group
-			&& Object.keys(props.responseSummary.by_group).length > 0
-	const hasTeams
-		= props.responseSummary.by_team
-			&& Object.keys(props.responseSummary.by_team).length > 0
-	const hasOthers = hasOthersResponses() || hasOthersNonResponders()
-	return hasGroups || hasTeams || hasOthers
-})
-
-function toggleGroup(groupId) {
-	expandedGroups.value[groupId] = !expandedGroups.value[groupId]
-}
-
-function getSortedResponses(responses) {
-	if (!responses || responses.length === 0) return []
-	return [...responses].sort((a, b) => a.userName.localeCompare(b.userName))
-}
-
-function hasOthersResponses() {
-	if (!props.responseSummary?.others) return false
-	return (
-		props.responseSummary.others.yes > 0
-		|| props.responseSummary.others.maybe > 0
-		|| props.responseSummary.others.no > 0
-	)
-}
-
-function hasOthersNonResponders() {
-	const others = props.responseSummary?.others
-	if (!others) return false
-	return (others.non_responding_users?.length ?? 0) > 0
-}
 </script>
 
 <style scoped lang="scss">
@@ -655,16 +210,7 @@ function hasOthersNonResponders() {
         margin: 0 0 10px 0;
     }
 
-    h5 {
-        margin: 15px 0 10px 0;
-        font-size: 14px;
-        color: var(--color-text-lighter);
-    }
-
-    .summary-stats {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
+    &__bar {
         margin-bottom: 15px;
     }
 }
@@ -675,12 +221,17 @@ function hasOthersNonResponders() {
         border: 1px solid var(--color-border);
         border-radius: var(--border-radius);
         overflow: hidden;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
     }
 
     .group-stats {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 10px;
         padding: 10px;
         background: var(--color-background-hover);
 
@@ -724,82 +275,8 @@ function hasOthersNonResponders() {
     }
 
     .group-details {
-        padding: 10px;
+        padding: 4px 10px 10px;
         background: var(--color-main-background);
     }
-
-    .group-responses {
-        .response-item {
-            padding: 8px;
-            margin-bottom: 8px;
-            border-left: 3px solid var(--color-border);
-            background: var(--color-background-hover);
-            border-radius: 0 var(--border-radius) var(--border-radius) 0;
-
-            &:last-child {
-                margin-bottom: 0;
-            }
-
-            .response-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-
-                .user-info {
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-
-                    strong {
-                        font-size: 14px;
-                    }
-
-                    :deep(.remind-maybe-popover-wrapper) {
-                        display: inline-flex;
-                    }
-
-                    .remind-maybe-btn {
-                        cursor: pointer;
-
-                        .remind-icon {
-                            display: inline-flex;
-                            margin-left: 2px;
-                            opacity: 0.5;
-                            vertical-align: middle;
-                            cursor: pointer;
-                        }
-
-                        &:hover .remind-icon {
-                            opacity: 1;
-                        }
-
-                        &--pending {
-                            opacity: 0.3;
-                            cursor: wait;
-                        }
-                    }
-                }
-
-                .checkin-info {
-                    display: flex;
-                    align-items: center;
-                    gap: 5px;
-                    font-size: 13px;
-
-                    .checkin-badge {
-                        color: var(--color-text-lighter);
-                    }
-                }
-            }
-
-            .response-comment {
-                font-size: 13px;
-                color: var(--color-text-lighter);
-                font-style: italic;
-                padding-top: 5px;
-            }
-        }
-    }
-
 }
 </style>

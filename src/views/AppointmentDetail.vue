@@ -21,19 +21,12 @@
 			<!-- Use reusable AppointmentCard component -->
 			<AppointmentCard
 				:appointment="appointment"
-				:canManageAppointments="permissions.canManageAppointments"
-				:canCheckin="permissions.canCheckin"
-				:canSeeResponseOverview="permissions.canSeeResponseOverview"
-				:canSeeComments="permissions.canSeeComments"
-				:canSeeAuditLog="canSeeAuditTimeline"
-				:displayOrder="config.displayOrder"
 				@startCheckin="startCheckin"
 				@edit="editAppointment"
 				@copy="copyAppointment"
 				@delete="deleteAppointment"
 				@export="showExportDialog"
 				@submitResponse="submitResponse"
-				@updateComment="updateComment"
 				@closedToggled="onClosedToggled"
 				@showAuditLog="scrollToAuditLog" />
 
@@ -97,7 +90,7 @@ const exportDialogVisible = ref(false)
 const showDeleteDialog = ref(false)
 
 // Use the shared permissions composable
-const { permissions, capabilities, config, loadPermissions } = usePermissions()
+const { permissions, capabilities, loadPermissions } = usePermissions()
 
 const canSeeAuditTimeline = computed(() => {
 	// Per-appointment verdict from the server (knows the audit visibility
@@ -169,18 +162,6 @@ async function submitResponse(appointmentId, response) {
 		}
 		appointment.value.userResponse.response = response
 	}
-
-	await submitResponseApi(appointmentId, response, comment)
-}
-
-async function updateComment(appointmentId, comment) {
-	const response = appointment.value.userResponse?.response || 'yes'
-
-	// Optimistic update
-	if (!appointment.value.userResponse) {
-		appointment.value.userResponse = {}
-	}
-	appointment.value.userResponse.comment = comment
 
 	await submitResponseApi(appointmentId, response, comment)
 }

@@ -116,10 +116,10 @@
 					<template
 						v-if="
 							pastAppointmentsExpanded
-								&& pastAppointments.length > 0
+								&& activePastAppointments.length > 0
 						">
 						<NcAppNavigationItem
-							v-for="appointment in pastAppointments"
+							v-for="appointment in activePastAppointments"
 							:key="appointment.id"
 							:name="formatAppointmentDisplay(appointment)"
 							:active="
@@ -514,8 +514,14 @@ function onSearchInput() {
 // Use the shared permissions composable
 const { permissions, capabilities, config, loadPermissions } = usePermissions()
 
+// Cancelled appointments are only listed on the "All" view, which gives them
+// their own section — the scoped lists (here and in AllAppointments.vue) leave
+// them out, so the sidebar and the main list agree on what "upcoming" means.
+const activeAppointments = computed(() => currentAppointments.value.filter((a) => !a.cancelledAt))
+const activePastAppointments = computed(() => pastAppointments.value.filter((a) => !a.cancelledAt))
+
 const unansweredAppointments = computed(() => {
-	return currentAppointments.value.filter((appointment) => {
+	return activeAppointments.value.filter((appointment) => {
 		const noResponse = !appointment.userResponse || appointment.userResponse === null
 		const open = !appointment.closedAt
 		// Managers see everything via canUserSeeAppointment; only flag the
@@ -527,7 +533,7 @@ const unansweredAppointments = computed(() => {
 // Closed-but-unanswered appointments bucket here so they don't vanish from
 // the UI (no longer "unanswered", never answered).
 const answeredAppointments = computed(() => {
-	return currentAppointments.value.filter((appointment) => {
+	return activeAppointments.value.filter((appointment) => {
 		const hasResponse = appointment.userResponse && appointment.userResponse !== null
 		const closedWithoutResponse = !hasResponse && appointment.closedAt
 		return hasResponse || closedWithoutResponse

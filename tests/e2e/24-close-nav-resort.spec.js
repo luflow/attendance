@@ -45,7 +45,7 @@ test.describe('Close inquiry re-buckets it in the nav sidebar (#76)', () => {
 		await expect(card).toBeVisible()
 		await card.getByRole('button', { name: 'Actions' }).click()
 		await page.getByRole('menuitem', { name: 'Close inquiry' }).click()
-		await expect(card.locator('[data-test="closed-banner"]')).toBeVisible()
+		await expect(card.locator('[data-test="closed-info"]')).toBeVisible()
 
 		// The fix: without a reload this inquiry must leave "Unanswered" and show
 		// up under "Upcoming". Assert the item moved — not that the whole section

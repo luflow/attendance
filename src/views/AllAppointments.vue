@@ -103,17 +103,10 @@
 					<h3 v-if="section.label" class="section-heading">
 						{{ section.label }}
 					</h3>
-					<AppointmentCard
+					<AppointmentListCard
 						v-for="appointment in section.items"
 						:key="appointment.id"
 						:appointment="appointment"
-						:canManageAppointments="permissions.canManageAppointments"
-						:canCheckin="permissions.canCheckin"
-						:canSeeResponseOverview="permissions.canSeeResponseOverview"
-						:canSeeComments="permissions.canSeeComments"
-						:canSeeAuditLog="canSeeAuditLog"
-						:displayOrder="config.displayOrder"
-						variant="list"
 						@openDetail="(id) => emit('openDetail', id)"
 						@startCheckin="startCheckin"
 						@edit="editAppointment"
@@ -121,7 +114,6 @@
 						@delete="deleteAppointment"
 						@export="showExportDialog"
 						@submitResponse="submitResponse"
-						@updateComment="updateComment"
 						@closedToggled="handleClosedToggled"
 						@showAuditLog="(id) => emit('showAuditLog', id)" />
 				</template>
@@ -148,13 +140,13 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcChip, NcPopover } from '@nextcloud/vue'
 import { create as createConfetti } from 'canvas-confetti'
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import AccountIcon from 'vue-material-design-icons/Account.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
 import CheckCircleIcon from 'vue-material-design-icons/CheckCircle.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
 import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
-import AppointmentCard from '../components/appointment/AppointmentCard.vue'
+import AppointmentListCard from '../components/appointment/AppointmentListCard.vue'
 import DeleteAppointmentDialog from '../components/appointment/DeleteAppointmentDialog.vue'
 import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
 import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
@@ -233,7 +225,7 @@ const RESPONSE = Object.freeze({ YES: 'yes', MAYBE: 'maybe', NO: 'no', NONE: 'no
 const STATUS = Object.freeze({ OPEN: 'open', CLOSED: 'closed', CANCELLED: 'cancelled' })
 const AUDIENCE = Object.freeze({ ME: 'me', ME_SCHEDULED: 'me-scheduled' })
 
-const { permissions, capabilities, config, loadPermissions } = usePermissions()
+const { permissions, capabilities, loadPermissions } = usePermissions()
 
 const filterDefs = computed(() => [
 	{
@@ -404,16 +396,10 @@ function handleClosedToggled(updated) {
 	emit('responseUpdated')
 }
 const loading = ref(true)
-const responseComments = reactive({})
 
 // On the Unanswered view the empty state is the celebratory "Hurray!" banner;
 // repeating "Unanswered" above it just adds noise.
 const hideHeading = computed(() => props.showUnanswered && !loading.value && appointments.value.length === 0)
-
-const canSeeAuditLog = computed(() => {
-	if (!capabilities.auditLog) return false
-	return permissions.canManageAppointments || permissions.canSeeResponseOverview
-})
 
 // Use the shared response composable
 const { submitResponse: submitResponseApi } = useAppointmentResponse({
@@ -453,12 +439,6 @@ async function loadAppointments(skipLoadingSpinner = false) {
 			appointments.value = response.data
 		}
 
-		appointments.value.forEach((appointment) => {
-			if (appointment.userResponse) {
-				responseComments[appointment.id] = appointment.userResponse.comment || ''
-			}
-		})
-
 		if (permissions.canManageAppointments) {
 			await loadDetailedResponses()
 		}
@@ -492,12 +472,6 @@ async function loadDetailedResponses() {
 async function submitResponse(appointmentId, response) {
 	const appointment = appointments.value.find((a) => a.id === appointmentId)
 	const comment = appointment?.userResponse?.comment || ''
-	await submitResponseApi(appointmentId, response, comment)
-}
-
-async function updateComment(appointmentId, comment) {
-	const appointment = appointments.value.find((a) => a.id === appointmentId)
-	const response = appointment?.userResponse?.response || 'yes'
 	await submitResponseApi(appointmentId, response, comment)
 }
 

@@ -196,15 +196,17 @@ test.describe('Attendance App - Close inquiry (UI)', () => {
 		await card.getByRole('button', { name: 'Actions' }).click()
 		await page.getByRole('menuitem', { name: 'Close inquiry' }).click()
 
-		const banner = card.locator('[data-test="closed-banner"]')
-		await expect(banner).toBeVisible()
-		await expect(banner.getByText('Inquiry closed')).toBeVisible()
+		// The list card states the closure inline; the banner with the Reopen
+		// button lives on the detail page, reopening from the list goes through
+		// the same action menu.
+		await expect(card.locator('[data-test="closed-info"]')).toContainText('Closed')
 		await expect(card.locator('[data-test="response-yes"]')).toHaveCount(0)
 		await expect(card.locator('[data-test="response-section-readonly"]')).toBeVisible()
 
-		await banner.getByRole('button', { name: 'Reopen' }).click()
+		await card.getByRole('button', { name: 'Actions' }).click()
+		await page.getByRole('menuitem', { name: 'Reopen inquiry' }).click()
 
-		await expect(card.locator('[data-test="closed-banner"]')).toHaveCount(0)
+		await expect(card.locator('[data-test="response-section-readonly"]')).toHaveCount(0)
 		await expect(card.locator('[data-test="response-yes"]')).toBeVisible()
 	})
 

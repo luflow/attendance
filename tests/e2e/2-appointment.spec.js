@@ -169,8 +169,9 @@ test.describe('Attendance App - User Responses', () => {
 		await page.waitForLoadState('networkidle')
 
 		await page.getByRole('button', { name: 'Yes', exact: true }).first().click()
-		const summary = page.getByRole('heading', { name: 'Response Summary' }).first()
-		await expect(summary).toBeVisible()
+		// The list card summarises responses as a bar; the headed "Response
+		// summary" section lives on the detail page.
+		await expect(page.locator('[data-test="response-bar"]').first()).toBeVisible()
 	})
 
 	test('should allow changing response', async ({ page, loginAsUser, attendanceApp }) => {
@@ -183,7 +184,7 @@ test.describe('Attendance App - User Responses', () => {
 		await page.getByRole('button', { name: 'Maybe' }).first().click()
 		await page.waitForLoadState('networkidle')
 
-		await expect(page.getByRole('heading', { name: 'Response Summary' }).first()).toBeVisible()
+		await expect(page.locator('[data-test="response-bar"]').first()).toBeVisible()
 	})
 
 	test('should add comment to response', async ({ page, loginAsUser, attendanceApp }) => {
@@ -206,8 +207,11 @@ test.describe('Attendance App - User Responses', () => {
 		const commentText = 'Looking forward to this appointment!'
 		await commentField.fill(commentText)
 
-		const savedIndicator = page.locator('.saved-indicator').first()
-		await expect(savedIndicator).toBeVisible({ timeout: 5000 })
+		// Comments are saved explicitly — no auto-save to wait on.
+		const saveComment = page.locator('[data-test="button-save-comment"]').first()
+		await expect(saveComment).toBeEnabled({ timeout: 5000 })
+		await saveComment.click()
+		await expect(saveComment).toBeDisabled({ timeout: 5000 })
 
 		await page.reload()
 		await page.waitForLoadState('networkidle')

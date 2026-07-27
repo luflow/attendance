@@ -71,26 +71,29 @@ test.describe('Attendance App - Dashboard Widget Voting', () => {
 		await yesButton.click()
 		await page.waitForLoadState('networkidle')
 
-		const commentToggle = widget.locator('[data-test="button-widget-toggle-comment"]').first()
+		const commentToggle = widget.locator('[data-test="button-toggle-comment"]').first()
 		await commentToggle.click()
 
-		const commentField = widget.locator('[data-test="widget-response-comment"]').first()
+		const commentField = widget.locator('[data-test="response-comment"]').first()
 		await expect(commentField).toBeVisible({ timeout: 5000 })
 		const commentText = 'Great meeting, looking forward to it!'
 		await commentField.fill(commentText)
 
-		const savedIndicator = widget.locator('.saved-indicator').first()
-		await expect(savedIndicator).toBeVisible({ timeout: 5000 })
+		// Comments are saved explicitly — no auto-save to wait on.
+		const saveComment = widget.locator('[data-test="button-save-comment"]').first()
+		await expect(saveComment).toBeEnabled({ timeout: 5000 })
+		await saveComment.click()
+		await expect(saveComment).toBeDisabled({ timeout: 5000 })
 
 		await page.reload()
 		await page.waitForLoadState('networkidle')
 
 		const reloadedWidget = page.locator('.appointment-widget-container').or(page.getByRole('heading', { name: 'Attendance' }).locator('..'))
 
-		const reloadedCommentToggle = reloadedWidget.locator('[data-test="button-widget-toggle-comment"]').first()
+		const reloadedCommentToggle = reloadedWidget.locator('[data-test="button-toggle-comment"]').first()
 		await reloadedCommentToggle.click()
 
-		const reloadedCommentField = reloadedWidget.locator('[data-test="widget-response-comment"]').first()
+		const reloadedCommentField = reloadedWidget.locator('[data-test="response-comment"]').first()
 		await expect(reloadedCommentField).toBeVisible({ timeout: 5000 })
 		await expect(reloadedCommentField).toHaveValue(commentText)
 	})
