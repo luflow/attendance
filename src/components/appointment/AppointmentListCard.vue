@@ -6,11 +6,13 @@
 				class="list-card__headline"
 				data-test="appointment-title-link"
 				@click.prevent="emit('openDetail', appointment.id)">
-				<h3 data-test="appointment-title">
-					<span :class="{ 'title-cancelled': isCancelled }">{{ titleText }}</span>
+				<div class="list-card__headline-row">
+					<h3 data-test="appointment-title" :class="{ 'title-cancelled': isCancelled }">
+						{{ titleText }}
+					</h3>
 					<ChevronRightIcon :size="20" class="list-card__chevron" />
 					<AppointmentStatusChips :appointment="appointment" />
-				</h3>
+				</div>
 				<AppointmentMeta :appointment="appointment" :dateText="subtitleText" />
 			</a>
 			<AppointmentActionsMenu
@@ -65,7 +67,7 @@
 				<span class="list-card__note" data-test="closed-info">· {{ stateLabel }}</span>
 			</div>
 
-			<ResponseBar v-if="canSeeResponses && appointment.responseSummary" :segments="responseSegments(appointment.responseSummary)">
+			<ResponseBar v-if="canSeeResponses && appointment.responseSummary" :segments="summarySegments">
 				<template #trailing>
 					<a
 						:href="detailUrl"
@@ -131,6 +133,8 @@ const detailUrl = computed(() => appointmentDetailUrl(props.appointment.id))
 // nothing beyond the first line is ever shown.
 const descriptionPreview = computed(() => stripMarkdown((props.appointment.description || '').slice(0, 300)))
 
+const summarySegments = computed(() => responseSegments(props.appointment.responseSummary))
+
 const attachmentCount = computed(() => props.appointment.attachments?.length ?? 0)
 
 const stateLabel = computed(() => (isCancelled.value
@@ -175,15 +179,21 @@ const stateLabel = computed(() => (isCancelled.value
             transform: translateX(2px);
         }
 
+        .list-card__headline-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            // The chips sit next to the heading, not inside it, so the row sets
+            // the size they inherit and the h3 overrides it for itself.
+            font-size: 13px;
+        }
+
         h3 {
             margin: 0;
             font-size: 19px;
             font-weight: 700;
             color: var(--color-main-text);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
             text-wrap: pretty;
         }
     }

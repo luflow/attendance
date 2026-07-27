@@ -12,8 +12,6 @@ import { generateUrl } from '@nextcloud/router'
 import { computed, ref, unref } from 'vue'
 import { usePermissions } from './usePermissions.js'
 
-const BOOKING_PREVIEW_LIMIT = 10
-
 /**
  * @param {object|import('vue').Ref<object>} appointmentSource The appointment payload.
  * @param {object} options Callbacks.
@@ -145,6 +143,5 @@ export function useAppointmentLifecycle(appointmentSource, { onUpdated } = {}) {
 		toggleClosed,
 		confirmClose,
 		toggleCancelled,
-		BOOKING_PREVIEW_LIMIT,
 	}
 }

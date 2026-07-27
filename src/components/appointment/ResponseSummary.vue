@@ -26,10 +26,12 @@
 						{{ section.label }}
 					</div>
 					<div class="group-counts">
-						<NcChip :text="String(section.stats.yes)" variant="success" noClose />
-						<NcChip :text="String(section.stats.maybe)" variant="warning" noClose />
-						<NcChip :text="String(section.stats.no)" variant="error" noClose />
-						<NcChip :text="String(section.stats.no_response ?? 0)" variant="tertiary" noClose />
+						<NcChip
+							v-for="segment in responseSegments(section.stats)"
+							:key="segment.key"
+							:text="String(segment.count)"
+							:variant="segment.variant"
+							noClose />
 					</div>
 				</div>
 

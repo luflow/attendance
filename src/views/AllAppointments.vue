@@ -576,8 +576,6 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-@use '../styles/shared.scss';
-
 .attendance-container {
 	padding: 20px;
 	max-width: 1200px;

@@ -35,16 +35,18 @@ export const RESPONSE_VARIANTS = {
  * @param {string} response - The response value (yes, no, maybe)
  * @return {string} The translated display text
  */
+let responseTexts = null
+
 export function getResponseText(response) {
 	const t = window.t || ((app, text) => text)
-
-	const texts = {
+	// Built on first use, not per call: the list renders this for every card,
+	// every dot and every bar legend, and t() is not free.
+	responseTexts ??= {
 		yes: t('attendance', 'Yes'),
 		no: t('attendance', 'No'),
 		maybe: t('attendance', 'Maybe'),
 	}
-
-	return texts[response] || response
+	return responseTexts[response] || response
 }
 
 /**

@@ -25,7 +25,8 @@
 			</NcSettingsSection>
 
 			<!-- TRANSLATORS: Admin settings section title. Similar to groups above, but for Nextcloud Teams (formerly Circles). Teams selected here will have their own sections in the attendance statistics on the appointment detail page, showing how many team members responded yes/no/maybe. -->
-			<NcSettingsSection v-if="teamsAvailable" :name="t('attendance', 'Response summary teams')"
+			<NcSettingsSection v-if="teamsAvailable"
+				:name="t('attendance', 'Response summary teams')"
 				:description="t('attendance', 'Select which teams to include in response summaries. Team members will be grouped together like regular groups.')"
 				data-test="section-tracking-teams">
 				<NcSelect

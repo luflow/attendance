@@ -2,10 +2,12 @@
 	<div class="appointment-card" data-test="appointment-card">
 		<div class="appointment-header" :class="{ 'appointment-header--cancelled': isCancelled }">
 			<div class="appointment-title-block">
-				<h3 data-test="appointment-title">
-					<span :class="{ 'title-cancelled': isCancelled }">{{ titleText }}</span>
+				<div class="appointment-headline">
+					<h3 data-test="appointment-title" :class="{ 'title-cancelled': isCancelled }">
+						{{ titleText }}
+					</h3>
 					<AppointmentStatusChips :appointment="appointment" />
-				</h3>
+				</div>
 				<AppointmentMeta :appointment="appointment" :dateText="subtitleText" />
 			</div>
 			<AppointmentActionsMenu
@@ -266,15 +268,22 @@ const renderedDescription = computed(() => {
         flex: 1;
         min-width: 0;
 
-        h3 {
-            margin: 0 0 4px;
-            font-size: 1.5em;
-            font-weight: 700;
-            color: var(--color-main-text);
+        .appointment-headline {
             display: flex;
             align-items: center;
             gap: 8px;
             flex-wrap: wrap;
+            // The chips sit next to the heading, not inside it, so the row sets
+            // the size they inherit and the h3 overrides it for itself.
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        h3 {
+            margin: 0;
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--color-main-text);
             text-wrap: pretty;
         }
 
@@ -357,12 +366,6 @@ const renderedDescription = computed(() => {
     gap: 6px;
     font-size: 13px;
     color: var(--color-text-maxcontrast);
-}
-
-.summary-stats {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
 }
 
 .attachment-chips {

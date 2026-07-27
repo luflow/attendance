@@ -145,7 +145,6 @@
 		<CloseInquiryDialog
 			v-if="showCloseDialog"
 			:groups="dialogGroups"
-			:previewLimit="BOOKING_PREVIEW_LIMIT"
 			:disabled="togglingClosed"
 			@confirm="confirmClose"
 			@cancel="showCloseDialog = false" />
@@ -211,7 +210,6 @@ const {
 	toggleClosed,
 	confirmClose,
 	toggleCancelled,
-	BOOKING_PREVIEW_LIMIT,
 } = useAppointmentLifecycle(() => props.appointment, {
 	onUpdated: (updated) => emit('closedToggled', updated),
 })

@@ -115,9 +115,38 @@ test.describe('Attendance App - Close inquiry permissions (sequential)', () => {
 		await expect(card.locator('[data-test="closed-info"]')).toBeVisible()
 		await expect(card.locator('[data-test="closed-info"]')).toContainText('Closed')
 
-		// Banner + Reopen button are reserved for managers/creators.
-		await expect(card.locator('[data-test="closed-banner"]')).toHaveCount(0)
-		await expect(card.locator('[data-test="banner-reopen-inquiry"]')).toHaveCount(0)
 		await expect(card.locator('[data-test="response-yes"]')).toHaveCount(0)
+
+		// Banner + Reopen button are reserved for managers/creators. They live on
+		// the detail card, so assert them there — on the list card they would be
+		// absent for everyone and the check would prove nothing.
+		await page.goto(`/apps/attendance/appointment/${inquiry.id}`)
+		await page.waitForLoadState('networkidle')
+		const detail = page.locator('[data-test="appointment-card"]')
+		await expect(detail).toBeVisible()
+		await expect(detail.locator('[data-test="closed-info"]')).toBeVisible()
+		await expect(detail.locator('[data-test="closed-banner"]')).toHaveCount(0)
+		await expect(detail.locator('[data-test="banner-reopen-inquiry"]')).toHaveCount(0)
+	})
+
+	test('manager sees the closed banner and can reopen from the detail page', async ({ page, request, loginAsUser, attendanceApp }) => {
+		const inquiry = await createAppointmentViaAPI(request, {
+			name: 'Manager Closed Detail View',
+			daysFromNow: 12,
+		})
+		await closeAppointmentViaAPI(request, inquiry.id)
+
+		await loginAsUser('admin', 'admin')
+		await attendanceApp()
+		await page.goto(`/apps/attendance/appointment/${inquiry.id}`)
+		await page.waitForLoadState('networkidle')
+
+		const banner = page.locator('[data-test="closed-banner"]')
+		await expect(banner).toBeVisible()
+		await expect(banner.getByText('Inquiry closed')).toBeVisible()
+
+		await banner.getByRole('button', { name: 'Reopen' }).click()
+		await expect(page.locator('[data-test="closed-banner"]')).toHaveCount(0)
+		await expect(page.locator('[data-test="response-yes"]')).toBeVisible()
 	})
 })

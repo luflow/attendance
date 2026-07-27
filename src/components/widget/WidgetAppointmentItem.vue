@@ -83,8 +83,6 @@ const strippedDescription = computed(() => stripMarkdown(props.item.description)
 </script>
 
 <style scoped lang="scss">
-@use "../../styles/shared.scss";
-
 .appointment-item {
     padding: 0 14px 12px 14px;
     border-bottom: 1px solid var(--color-border);

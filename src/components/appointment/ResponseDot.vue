@@ -1,7 +1,7 @@
 <template>
 	<component
 		:is="icon"
-		:size="size"
+		:size="18"
 		class="response-dot"
 		:class="`response-dot--${getResponseVariant(response)}`"
 		:title="getResponseText(response)" />
@@ -18,10 +18,6 @@ const props = defineProps({
 	response: {
 		type: String,
 		required: true,
-	},
-	size: {
-		type: Number,
-		default: 18,
 	},
 })
 

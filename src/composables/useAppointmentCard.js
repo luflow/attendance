@@ -50,7 +50,6 @@ export function useAppointmentCard(appointmentSource) {
 
 	return {
 		capabilities,
-		permissions,
 		isClosed,
 		isCancelled,
 		acceptsResponses,

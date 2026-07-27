@@ -45,9 +45,12 @@ export function calendarDeepLink(appointment) {
 	const fileName = calendarEventUid.endsWith('.ics') ? calendarEventUid : `${calendarEventUid}.ics`
 	const davPath = `/remote.php/dav/calendars/${owner}/${calendarUri}/${fileName}`
 
+	// The object id goes into a path segment, and base64's alphabet includes
+	// "/" — unescaped it would split into extra segments and miss the route.
 	// "next" as recurrence id opens the upcoming occurrence of a series and is
 	// the correct value for one-off events too.
-	return generateUrl(`/apps/calendar/dayGridMonth/${dateStr}/edit/popover/${btoa(davPath)}/next`)
+	const objectId = encodeURIComponent(btoa(davPath))
+	return generateUrl(`/apps/calendar/dayGridMonth/${dateStr}/edit/popover/${objectId}/next`)
 }
 
 /**

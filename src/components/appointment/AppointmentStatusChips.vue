@@ -68,13 +68,6 @@ const scheduleLabel = computed(() => {
 .status-chip {
     flex-shrink: 0;
 
-    // The chips sit inside the card's <h3>, so without this they inherit the
-    // title's font-size (19px in the list, 24px on the detail card) while the
-    // chip box stays 24px high.
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1.2;
-
     // The closed state is easy to overlook next to a plain title, so it gets a
     // stronger outline than the default chip.
     &--closed {
