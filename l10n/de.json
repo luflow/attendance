@@ -706,6 +706,20 @@
     "Organizers" : "Organisatoren",
     "Organizers can edit this appointment and see all responses. Organizers can add other organizers but only remove themselves." : "Organisatoren können diesen Termin bearbeiten und alle Antworten sehen. Organisatoren können weitere Organisatoren hinzufügen, aber nur sich selbst entfernen.",
     "Search users …" : "Benutzer suchen …",
-    "Some users may appear in the section \"Others\" in the response summary because they are not configured for tracking." : "Einige Benutzer erscheinen möglicherweise im Abschnitt \"Andere\" der Antwortübersicht, da sie nicht für die Nachverfolgung eingerichtet sind."
+    "Some users may appear in the section \"Others\" in the response summary because they are not configured for tracking." : "Einige Benutzer erscheinen möglicherweise im Abschnitt \"Andere\" der Antwortübersicht, da sie nicht für die Nachverfolgung eingerichtet sind.",
+    "Appointment list" : "Terminliste",
+    "Show response bar in lists" : "Antwortbalken in Listen anzeigen",
+    "The bar sums up how everyone answered, at the bottom edge of each appointment." : "Der Balken fasst am unteren Rand jedes Termins zusammen, wie alle geantwortet haben.",
+    "attended" : "anwesend",
+    "absent" : "abwesend",
+    "pending" : "ausstehend",
+    "Imported from the Nextcloud calendar." : "Aus dem Nextcloud-Kalender importiert.",
+    "Open in calendar" : "Im Kalender öffnen",
+    "Part of a series — this appointment repeats regularly." : "Teil einer Serie — dieser Termin wiederholt sich regelmäßig.",
+    "Reactivate" : "Reaktivieren",
+    "This appointment was cancelled and no longer accepts responses." : "Dieser Termin wurde abgesagt und es können keine Antworten mehr eingegeben werden.",
+    "This appointment is already fully scheduled — thanks for offering!" : "Für diesen Termin sind bereits genug Leute eingeplant — danke, dass du dich angeboten hast!",
+    "You are scheduled in for this appointment. Please be there at {when}." : "Du bist für diesen Termin eingeplant. Bitte sei um {when} da.",
+    "_+%n attachment_::_+%n attachments_" : ["+%n Anhang","+%n Anhänge"]
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
