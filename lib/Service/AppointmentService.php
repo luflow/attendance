@@ -672,7 +672,7 @@ class AppointmentService {
 		// A row with response=NULL exists when an admin checked the user in
 		// before they ever responded; treat that as "no response" (matches list endpoint).
 		$userResponse = $this->getUserResponse($appointment->getId(), $userId);
-		$appointmentData['userResponse'] = ($userResponse && $userResponse->getResponse() !== null) ? $userResponse : null;
+		$appointmentData['userResponse'] = $this->serializeUserResponse($appointment, $userResponse, $userId);
 		if ($myPermissions['canSeeResponses']) {
 			$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId(), $myPermissions['canSeeComments']);
 		}
@@ -694,6 +694,29 @@ class AppointmentService {
 	 *
 	 * @return array{isOrganizer: bool, canEdit: bool, canSeeResponses: bool, canSeeComments: bool, canSeeAuditLog: bool}
 	 */
+	/**
+	 * The user's own response as the clients receive it, with the booking
+	 * status resolved to the verdict the user is actually under.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	private function serializeUserResponse(
+		Appointment $appointment,
+		?AttendanceResponse $userResponse,
+		string $userId,
+	): ?array {
+		if ($userResponse === null || $userResponse->getResponse() === null) {
+			return null;
+		}
+		$data = $userResponse->jsonSerialize();
+		$data['bookingStatus'] = $this->bookingService->effectiveBookingStatus(
+			$appointment,
+			$userResponse,
+			$userId,
+		);
+		return $data;
+	}
+
 	private function buildMyPermissions(
 		Appointment $appointment,
 		string $userId,
@@ -1008,7 +1031,7 @@ class AppointmentService {
 			$appointmentData = $appointment->jsonSerialize();
 			$appointmentData = $this->enrichVisibilityData($appointmentData);
 			$appointmentData = $this->enrichSeriesCount($appointmentData, $appointment);
-			$appointmentData['userResponse'] = $hasResponse ? $userResponse : null;
+			$appointmentData['userResponse'] = $hasResponse ? $this->serializeUserResponse($appointment, $userResponse, $userId) : null;
 			if ($myPermissions['canSeeResponses']) {
 				$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId(), $myPermissions['canSeeComments']);
 			}
@@ -1048,7 +1071,7 @@ class AppointmentService {
 			$appointmentData = $appointment->jsonSerialize();
 			$appointmentData = $this->enrichVisibilityData($appointmentData);
 			$userResponse = $this->getUserResponse($appointment->getId(), $userId);
-			$appointmentData['userResponse'] = ($userResponse && $userResponse->getResponse() !== null) ? $userResponse : null;
+			$appointmentData['userResponse'] = $this->serializeUserResponse($appointment, $userResponse, $userId);
 			$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
 			$result[] = $appointmentData;
 			$count++;

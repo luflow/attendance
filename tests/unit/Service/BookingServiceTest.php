@@ -252,4 +252,67 @@ class BookingServiceTest extends TestCase {
 
 		$this->assertTrue($this->service->isScheduledOut($this->closedAppointment(), 'alice'));
 	}
+
+	// --- effectiveBookingStatus: what the user is actually told ---
+
+	public function testEffectiveBookingStatusKeepsTheStoredVerdict(): void {
+		// The close-time wave already spoke; nothing to second-guess.
+		$this->configService->expects($this->never())->method('isBookingEnabled');
+
+		$booked = $this->response('alice', 'yes', BookingService::STATUS_BOOKED);
+		$this->assertSame(
+			BookingService::STATUS_BOOKED,
+			$this->service->effectiveBookingStatus($this->closedAppointment(), $booked, 'alice'),
+		);
+	}
+
+	public function testEffectiveBookingStatusDeclinesWhenSomebodyElseGotThePlace(): void {
+		// Never stamped — a wave that ran before this booking passed them over.
+		// Without this the card would read "you answered yes" to someone who is
+		// not coming.
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+		$this->responseMapper->method('findByAppointment')->willReturn([
+			$this->response('bob', 'yes', BookingService::STATUS_BOOKED),
+			$this->response('alice', 'yes'),
+		]);
+
+		$this->assertSame(
+			BookingService::STATUS_DECLINED,
+			$this->service->effectiveBookingStatus(
+				$this->closedAppointment(),
+				$this->response('alice', 'yes'),
+				'alice',
+			),
+		);
+	}
+
+	public function testEffectiveBookingStatusStaysOpenWhenNobodyWasScheduled(): void {
+		// The manager does not use planning — a red "not scheduled" on every
+		// yes-responder would be pure noise.
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+		$this->responseMapper->method('findByAppointment')->willReturn([
+			$this->response('alice', 'yes'),
+			$this->response('bob', 'yes'),
+		]);
+
+		$this->assertNull(
+			$this->service->effectiveBookingStatus(
+				$this->closedAppointment(),
+				$this->response('alice', 'yes'),
+				'alice',
+			),
+		);
+	}
+
+	public function testEffectiveBookingStatusStaysOpenWhileTheInquiryRuns(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+
+		$this->assertNull(
+			$this->service->effectiveBookingStatus(
+				$this->appointment(),
+				$this->response('alice', 'yes'),
+				'alice',
+			),
+		);
+	}
 }
