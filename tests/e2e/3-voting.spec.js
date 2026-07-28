@@ -1,4 +1,4 @@
-import { test, expect, createAppointmentViaAPI, deleteAllAppointments } from './fixtures/nextcloud.js'
+import { test, expect, createAppointmentViaAPI, deleteAllAppointments, openCommentField, waitForRespond } from './fixtures/nextcloud.js'
 
 test.describe('Attendance App - Dashboard Widget Voting', () => {
 	test.beforeAll(async ({ request }) => {
@@ -71,26 +71,30 @@ test.describe('Attendance App - Dashboard Widget Voting', () => {
 		await yesButton.click()
 		await page.waitForLoadState('networkidle')
 
-		const commentToggle = widget.locator('[data-test="button-widget-toggle-comment"]').first()
-		await commentToggle.click()
+		await openCommentField(widget.locator('[data-test="button-toggle-comment"]').first())
 
-		const commentField = widget.locator('[data-test="widget-response-comment"]').first()
+		const commentField = widget.locator('[data-test="response-comment"]').first()
 		await expect(commentField).toBeVisible({ timeout: 5000 })
 		const commentText = 'Great meeting, looking forward to it!'
 		await commentField.fill(commentText)
 
-		const savedIndicator = widget.locator('.saved-indicator').first()
-		await expect(savedIndicator).toBeVisible({ timeout: 5000 })
+		// Comments are saved explicitly. Wait for the request itself: the button
+		// goes disabled the moment the save starts, so reloading on that signal
+		// would cancel the very request under test.
+		const saveComment = widget.locator('[data-test="button-save-comment"]').first()
+		await expect(saveComment).toBeEnabled({ timeout: 5000 })
+		const saved = waitForRespond(page)
+		await saveComment.click()
+		await saved
 
 		await page.reload()
 		await page.waitForLoadState('networkidle')
 
 		const reloadedWidget = page.locator('.appointment-widget-container').or(page.getByRole('heading', { name: 'Attendance' }).locator('..'))
 
-		const reloadedCommentToggle = reloadedWidget.locator('[data-test="button-widget-toggle-comment"]').first()
-		await reloadedCommentToggle.click()
+		await openCommentField(reloadedWidget.locator('[data-test="button-toggle-comment"]').first())
 
-		const reloadedCommentField = reloadedWidget.locator('[data-test="widget-response-comment"]').first()
+		const reloadedCommentField = reloadedWidget.locator('[data-test="response-comment"]').first()
 		await expect(reloadedCommentField).toBeVisible({ timeout: 5000 })
 		await expect(reloadedCommentField).toHaveValue(commentText)
 	})

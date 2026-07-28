@@ -388,6 +388,42 @@
 				</NcNoteCard>
 			</div>
 
+			<div v-if="organizersAvailable" class="form-section">
+				<h3>{{ t("attendance", "Organizers") }}</h3>
+				<p class="hint-text">
+					{{
+						t(
+							"attendance",
+							"Organizers can edit this appointment and see all responses. Organizers can add other organizers but only remove themselves.",
+						)
+					}}
+				</p>
+				<NcSelect
+					v-model="organizerItems"
+					:options="organizerSearchResults"
+					:loading="isSearchingOrganizers"
+					:multiple="true"
+					keepOpen
+					:filterable="false"
+					label="label"
+					:placeholder="t('attendance', 'Search users\u00A0…')"
+					data-test="select-organizers"
+					@search="onOrganizerSearch">
+					<template #option="{ label }">
+						<span style="display: flex; align-items: center; gap: 8px">
+							<Account :size="20" />
+							<span>{{ label }}</span>
+						</span>
+					</template>
+					<template #selected-option="{ label }">
+						<span style="display: flex; align-items: center; gap: 8px">
+							<Account :size="16" />
+							<span>{{ label }}</span>
+						</span>
+					</template>
+				</NcSelect>
+			</div>
+
 			<div class="form-actions">
 				<NcButton
 					variant="secondary"
@@ -504,6 +540,7 @@ const formData = reactive({
 	visibleUsers: [],
 	visibleGroups: [],
 	visibleTeams: [],
+	organizers: [],
 })
 
 // Deadline UI is split into three modes that the user toggles between:
@@ -546,6 +583,14 @@ const visibilityItems = ref([])
 const searchResults = ref([])
 const isSearching = ref(false)
 const guestInvitationAvailable = computed(() => capabilities.guestInvitation === true)
+
+const organizerItems = ref([])
+const organizerSearchResults = ref([])
+const isSearchingOrganizers = ref(false)
+const organizersAvailable = computed(() => capabilities.organizers === true)
+// Organizer list as loaded in edit mode — updates omit the field when it is
+// unchanged so the server skips re-validating every organizer on plain edits.
+const initialOrganizerIds = ref(null)
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const isEmailAddress = (value) => typeof value === 'string' && EMAIL_REGEX.test(value.trim())
@@ -762,6 +807,75 @@ watch(visibilityItems, (selected) => {
 		.map((item) => item.value)
 })
 
+watch(organizerItems, (selected) => {
+	formData.organizers = selected.map((item) => item.value)
+})
+
+// Prefill the current user as organizer for new appointments — matches the
+// server default and makes the delegation visible in the form.
+function prefillCurrentUserAsOrganizer() {
+	const currentUser = window.OC?.getCurrentUser?.()
+	if (!currentUser?.uid) return
+	organizerItems.value = [{
+		id: `user:${currentUser.uid}`,
+		value: currentUser.uid,
+		label: currentUser.displayName || currentUser.uid,
+		type: 'user',
+	}]
+}
+
+/**
+ * Query the directory endpoint and merge the results with the already
+ * selected items (selected entries always stay available in the dropdown).
+ *
+ * @param {string} query Search term
+ * @param {Array} selectedItems Currently selected select items
+ * @param {object} options Options
+ * @param {boolean} options.usersOnly Restrict results to non-guest users (organizer picker)
+ * @return {Promise<Array>} Merged select items
+ */
+async function searchDirectory(query, selectedItems, { usersOnly = false } = {}) {
+	const response = await axios.get(
+		generateUrl('/apps/attendance/api/search/users-groups-teams'),
+		{ params: { search: query } },
+	)
+
+	const newResults = response.data
+		.filter((item) => !usersOnly || (item.type === 'user' && !item.isGuest))
+		.map((item) => ({
+			id: `${item.type}:${item.id}`,
+			value: item.id,
+			label: item.type === 'group' ? formatGroupLabel(item.id, item.label) : item.label,
+			type: item.type,
+			isGuest: !!item.isGuest,
+		}))
+
+	const merged = [...selectedItems]
+	for (const result of newResults) {
+		if (!selectedItems.some((item) => item.id === result.id)) {
+			merged.push(result)
+		}
+	}
+	return merged
+}
+
+async function onOrganizerSearch(query) {
+	if (!query || query.length < 1) {
+		organizerSearchResults.value = [...organizerItems.value]
+		return
+	}
+
+	isSearchingOrganizers.value = true
+	try {
+		organizerSearchResults.value = await searchDirectory(query, organizerItems.value, { usersOnly: true })
+	} catch (error) {
+		console.error('Failed to search:', error)
+		organizerSearchResults.value = [...organizerItems.value]
+	} finally {
+		isSearchingOrganizers.value = false
+	}
+}
+
 function formatDateTimeForInput(dateTime) {
 	if (!dateTime) return ''
 	const date = new Date(dateTime)
@@ -853,6 +967,19 @@ async function loadAppointment() {
 		searchResults.value = [...items]
 		visibilityItems.value = [...items]
 
+		// Load organizers (enriched data with id, label)
+		const organizerList = (appointment.organizers || []).map((o) => ({
+			id: `user:${o.id}`,
+			value: o.id,
+			label: o.label,
+			type: 'user',
+		}))
+		organizerItems.value = organizerList
+		organizerSearchResults.value = [...organizerList]
+		if (props.mode === 'edit') {
+			initialOrganizerIds.value = organizerList.map((o) => o.value)
+		}
+
 		// Load notification preference for copy mode
 		if (props.mode === 'copy') {
 			sendNotification.value = appointment.sendNotification
@@ -942,32 +1069,13 @@ async function onSearch(query) {
 
 	isSearching.value = true
 	try {
-		const response = await axios.get(
-			generateUrl('/apps/attendance/api/search/users-groups-teams'),
-			{ params: { search: query } },
-		)
-
-		const newResults = response.data.map((item) => ({
-			id: `${item.type}:${item.id}`,
-			value: item.id,
-			label: item.type === 'group' ? formatGroupLabel(item.id, item.label) : item.label,
-			type: item.type,
-			isGuest: !!item.isGuest,
-		}))
-
-		const mergedResults = [...visibilityItems.value]
-		for (const result of newResults) {
-			const isAlreadySelected = visibilityItems.value.some((item) => item.id === result.id)
-			if (!isAlreadySelected) {
-				mergedResults.push(result)
-			}
-		}
+		const mergedResults = await searchDirectory(query, visibilityItems.value)
 
 		// Offer to provision a guest account when the query is an email and
 		// no existing user matches it. Gated on `guestInvitation` capability.
 		const trimmedQuery = query.trim()
 		if (guestInvitationAvailable.value && isEmailAddress(trimmedQuery)) {
-			const exactUserMatch = newResults.some((r) => r.type === 'user' && (r.value === trimmedQuery || r.label === trimmedQuery))
+			const exactUserMatch = mergedResults.some((r) => r.type === 'user' && (r.value === trimmedQuery || r.label === trimmedQuery))
 			if (!exactUserMatch) {
 				mergedResults.push({
 					id: `create-guest:${trimmedQuery.toLowerCase()}`,
@@ -1223,6 +1331,7 @@ async function handleRecurringCreate() {
 				appointments,
 				sendNotification: sendNotification.value,
 				attachments: attachmentFileIds.value,
+				organizers: formData.organizers || [],
 			},
 		)
 
@@ -1337,6 +1446,11 @@ async function saveAppointment(scope = 'single') {
 				attachments: attachmentFileIds.value,
 				scope,
 			}
+			const organizersChanged = initialOrganizerIds.value === null
+				|| JSON.stringify(formData.organizers) !== JSON.stringify(initialOrganizerIds.value)
+			if (organizersChanged) {
+				updatePayload.organizers = formData.organizers || []
+			}
 			if (deadlineWithTz) {
 				updatePayload.responseDeadline = deadlineWithTz
 			} else if (hadDeadlineInitially.value) {
@@ -1357,6 +1471,7 @@ async function saveAppointment(scope = 'single') {
 				visibleUsers: formData.visibleUsers || [],
 				visibleGroups: formData.visibleGroups || [],
 				visibleTeams: formData.visibleTeams || [],
+				organizers: formData.organizers || [],
 				sendNotification: sendNotification.value,
 				calendarUri: calendarReference.value.calendarUri,
 				calendarEventUid: calendarReference.value.calendarEventUid,
@@ -1376,9 +1491,11 @@ async function saveAppointment(scope = 'single') {
 		emit('saved', appointmentId)
 	} catch (error) {
 		console.error('Failed to save appointment:', error)
-		showError(props.mode === 'edit'
+		// Surface server-side rule violations (e.g. organizer removal rules)
+		// instead of the generic message.
+		showError(error.response?.data?.error || (props.mode === 'edit'
 			? t('attendance', 'Error updating appointment')
-			: t('attendance', 'Error creating appointment'))
+			: t('attendance', 'Error creating appointment')))
 	} finally {
 		saving.value = false
 	}
@@ -1388,6 +1505,8 @@ onMounted(async () => {
 	await Promise.all([loadTrackingGroups(), loadPermissions()])
 	if (props.mode === 'edit' || props.mode === 'copy') {
 		await loadAppointment()
+	} else {
+		prefillCurrentUserAsOrganizer()
 	}
 })
 

@@ -77,6 +77,9 @@ class ResponseService {
 		if ($appointment->isClosed()) {
 			throw new \RuntimeException('This appointment is closed and no longer accepts responses.');
 		}
+		if ($appointment->isCancelled()) {
+			throw new \RuntimeException('This appointment was cancelled and no longer accepts responses.');
+		}
 
 		$beforeResponse = null;
 		$beforeComment = '';

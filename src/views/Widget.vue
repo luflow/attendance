@@ -103,13 +103,17 @@ const items = computed(() => {
 
 // Methods
 async function respond(appointmentId, response) {
+	const appointmentIndex = appointments.value.findIndex((a) => a.id === appointmentId)
+	// The endpoint stores response and comment together, so posting an empty
+	// string here would wipe a comment the user wrote earlier.
+	const comment = appointments.value[appointmentIndex]?.userResponse?.comment || ''
+
 	try {
-		await submitResponseApi(appointmentId, response, '')
-		const appointmentIndex = appointments.value.findIndex((a) => a.id === appointmentId)
+		await submitResponseApi(appointmentId, response, comment)
 		if (appointmentIndex !== -1) {
 			appointments.value[appointmentIndex].userResponse = response === null
 				? null
-				: { response, comment: '' }
+				: { response, comment }
 		}
 	} catch {
 		// Error already handled by composable

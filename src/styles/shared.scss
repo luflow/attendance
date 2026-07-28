@@ -1,60 +1,32 @@
-// Comment auto-save indicators (Widget.vue, AppointmentCard.vue)
+@use 'sass:color';
 
-.saving-spinner,
-.saved-indicator,
-.error-indicator {
-	position: absolute;
-	top: 10px;
-	right: 15px;
-	pointer-events: none;
-	z-index: 10;
-}
+// Signal colours for the yes / maybe / no scale.
+//
+// Nextcloud's --color-success / --color-warning / --color-error are *surface*
+// tokens, not signal colours: in the dark theme they resolve to near-black
+// tints (#11321A, #3D3010, #552121), which turns an 8px summary bar into three
+// shades of grey. The scale needs saturated hues that survive both themes, so
+// it gets its own values — the ones the design handoff specifies.
+//
+// SCSS variables rather than custom properties on :root: this file is @use'd
+// from scoped style blocks, where Vue would rewrite `:root` to
+// `:root[data-v-…]` and the declarations would never apply.
+$color-yes: #2f9e44;
+$color-maybe: #ffcc00;
+$color-no: #db3b3b;
 
-.saving-spinner {
-	.spinner {
-		width: 16px;
-		height: 16px;
-		border: 2px solid var(--color-border);
-		border-top: 2px solid var(--color-primary);
-		border-radius: 50%;
-		animation: spin 1s linear infinite;
-	}
-}
+// Softer tier for the summary bar. The dots carry a glyph and need enough
+// depth for white to sit on them, but an 8px band of the same fully saturated
+// hues reads as an alarm rather than a summary — so the bar gets the hues
+// lightened by a quarter, derived here so the two tiers cannot drift apart.
+$bar-yes: color.mix($color-yes, #ffffff, 75%);
+$bar-maybe: color.mix($color-maybe, #ffffff, 75%);
+$bar-no: color.mix($color-no, #ffffff, 75%);
 
-.saved-indicator {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 16px;
-	height: 16px;
-	background-color: green;
-	border-radius: 50%;
-	animation: fadeIn 0.3s ease-in;
-
-	.check-icon {
-		color: white;
-	}
-}
-
-.error-indicator {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 16px;
-	height: 16px;
-	animation: fadeIn 0.3s ease-in;
-
-	.error-icon {
-		color: var(--color-error);
-	}
-}
-
-@keyframes spin {
-	0% { transform: rotate(0deg); }
-	100% { transform: rotate(360deg); }
-}
-
-@keyframes fadeIn {
-	from { opacity: 0; transform: scale(0.5); }
-	to { opacity: 1; transform: scale(1); }
+// A called-off appointment keeps its title readable but visibly struck out
+// (AppointmentCard.vue, AppointmentListCard.vue).
+.title-cancelled {
+	text-decoration: line-through;
+	text-decoration-color: var(--color-error-text, var(--color-error));
+	text-decoration-thickness: 2px;
 }

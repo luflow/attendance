@@ -3,7 +3,7 @@
     "info": {
         "title": "attendance-administration",
         "version": "0.0.1",
-        "description": "Event attendance management with advance RSVP functionality, real-time check-in, and group-based statistics",
+        "description": "Collect replies, check people in and see attendance by group – now with a companion app for iOS and Android",
         "license": {
             "name": "AGPL-3.0-or-later"
         }
@@ -182,7 +182,8 @@
                     "responseToggle",
                     "guestInvitation",
                     "auditLog",
-                    "selfCheckin"
+                    "selfCheckin",
+                    "organizers"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -222,6 +223,9 @@
                         "type": "boolean"
                     },
                     "selfCheckin": {
+                        "type": "boolean"
+                    },
+                    "organizers": {
                         "type": "boolean"
                     }
                 }

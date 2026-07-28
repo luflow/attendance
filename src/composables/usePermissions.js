@@ -5,6 +5,7 @@ import { reactive, readonly } from 'vue'
 const state = reactive({
 	permissions: {
 		canManageAppointments: false,
+		canCreateAppointments: false,
 		canCheckin: false,
 		canSeeResponseOverview: false,
 		canSeeComments: false,
@@ -20,6 +21,7 @@ const state = reactive({
 		auditLog: false,
 		cancelling: false,
 		bookingEnabled: false,
+		organizers: false,
 	},
 	config: {
 		displayOrder: 'name_first',
@@ -62,6 +64,7 @@ export function usePermissions() {
 			])
 
 			state.permissions.canManageAppointments = permissionsRes.data.canManageAppointments || false
+			state.permissions.canCreateAppointments = permissionsRes.data.canCreateAppointments || false
 			state.permissions.canCheckin = permissionsRes.data.canCheckin || false
 			state.permissions.canSeeResponseOverview = permissionsRes.data.canSeeResponseOverview || false
 			state.permissions.canSeeComments = permissionsRes.data.canSeeComments || false
@@ -76,6 +79,7 @@ export function usePermissions() {
 			state.capabilities.auditLog = capabilitiesRes.data.auditLog === true
 			state.capabilities.cancelling = capabilitiesRes.data.cancelling === true
 			state.capabilities.bookingEnabled = capabilitiesRes.data.bookingEnabled === true
+			state.capabilities.organizers = capabilitiesRes.data.organizers === true
 
 			state.config.displayOrder = configRes.data.displayOrder || 'name_first'
 			state.config.mobileAppBannerEnabled = configRes.data.mobileAppBannerEnabled !== false
@@ -87,6 +91,7 @@ export function usePermissions() {
 			state.error = error
 
 			state.permissions.canManageAppointments = false
+			state.permissions.canCreateAppointments = false
 			state.permissions.canCheckin = false
 			state.permissions.canSeeResponseOverview = false
 			state.permissions.canSeeComments = false
@@ -99,6 +104,7 @@ export function usePermissions() {
 			state.capabilities.auditLog = false
 			state.capabilities.cancelling = false
 			state.capabilities.bookingEnabled = false
+			state.capabilities.organizers = false
 			state.config.displayOrder = 'name_first'
 			state.config.mobileAppBannerEnabled = true
 			state.config.hasPushDevice = false
@@ -118,6 +124,7 @@ export function usePermissions() {
 		state.loading = false
 		state.error = null
 		state.permissions.canManageAppointments = false
+		state.permissions.canCreateAppointments = false
 		state.permissions.canCheckin = false
 		state.permissions.canSeeResponseOverview = false
 		state.permissions.canSeeComments = false

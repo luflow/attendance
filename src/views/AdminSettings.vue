@@ -25,7 +25,8 @@
 			</NcSettingsSection>
 
 			<!-- TRANSLATORS: Admin settings section title. Similar to groups above, but for Nextcloud Teams (formerly Circles). Teams selected here will have their own sections in the attendance statistics on the appointment detail page, showing how many team members responded yes/no/maybe. -->
-			<NcSettingsSection v-if="teamsAvailable" :name="t('attendance', 'Response summary teams')"
+			<NcSettingsSection v-if="teamsAvailable"
+				:name="t('attendance', 'Response summary teams')"
 				:description="t('attendance', 'Select which teams to include in response summaries. Team members will be grouped together like regular groups.')"
 				data-test="section-tracking-teams">
 				<NcSelect
@@ -73,6 +74,22 @@
 						data-test="select-manage-appointments-roles" />
 					<p class="hint-text">
 						{{ n('attendance', '%n group selected', '%n groups selected', selectedManageAppointmentsRoles.length, { n: selectedManageAppointmentsRoles.length }) }}
+					</p>
+				</div>
+
+				<div class="subsection">
+					<h4>{{ t('attendance', 'Create own appointments') }}</h4>
+					<p class="subsection-hint">
+						{{ t('attendance', 'Groups that can create appointments and manage them as organizers, in addition to the groups above. If no group is selected, only the groups above can create appointments.') }}
+					</p>
+					<GroupSelect
+						v-model="selectedCreateAppointmentsRoles"
+						:options="availableGroups"
+						:placeholder="t('attendance', 'Select groups …')"
+						:disabled="loading"
+						data-test="select-create-appointments-roles" />
+					<p class="hint-text">
+						{{ n('attendance', '%n group selected', '%n groups selected', selectedCreateAppointmentsRoles.length, { n: selectedCreateAppointmentsRoles.length }) }}
 					</p>
 				</div>
 
@@ -634,6 +651,7 @@ const teamSearchResults = ref([])
 const isSearchingTeams = ref(false)
 const teamsAvailable = ref(false)
 const selectedManageAppointmentsRoles = ref([])
+const selectedCreateAppointmentsRoles = ref([])
 const selectedCheckinRoles = ref([])
 const selectedSeeResponseOverviewRoles = ref([])
 const selectedSeeCommentsRoles = ref([])
@@ -771,6 +789,9 @@ async function loadSettings() {
 			selectedSelfCheckinRoles.value = (config.permissions.self_checkin || [])
 				.map((id) => groups.find((group) => group.id === id))
 				.filter((group) => group !== undefined)
+			selectedCreateAppointmentsRoles.value = (config.permissions.create_appointments || [])
+				.map((id) => groups.find((group) => group.id === id))
+				.filter((group) => group !== undefined)
 		}
 
 		selfCheckinWindowMinutes.value = config.selfCheckinWindowMinutes ?? 30
@@ -863,6 +884,7 @@ async function saveSettings() {
 					PERMISSION_SEE_RESPONSE_OVERVIEW: selectedSeeResponseOverviewRoles.value.map((g) => g.id),
 					PERMISSION_SEE_COMMENTS: selectedSeeCommentsRoles.value.map((g) => g.id),
 					PERMISSION_SELF_CHECKIN: selectedSelfCheckinRoles.value.map((g) => g.id),
+					PERMISSION_CREATE_APPOINTMENTS: selectedCreateAppointmentsRoles.value.map((g) => g.id),
 				},
 				reminders: {
 					enabled: remindersEnabled.value,

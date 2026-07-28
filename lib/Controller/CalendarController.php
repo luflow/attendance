@@ -69,7 +69,7 @@ class CalendarController extends Controller {
 		}
 
 		// User must be able to create appointments to use calendar import
-		if (!$this->permissionService->canManageAppointments($user->getUID())) {
+		if (!$this->permissionService->canCreateAppointments($user->getUID())) {
 			return new DataResponse(['error' => 'Insufficient permissions'], 403);
 		}
 
@@ -103,7 +103,7 @@ class CalendarController extends Controller {
 		}
 
 		// User must be able to create appointments to use calendar import
-		if (!$this->permissionService->canManageAppointments($user->getUID())) {
+		if (!$this->permissionService->canCreateAppointments($user->getUID())) {
 			return new DataResponse(['error' => 'Insufficient permissions'], 403);
 		}
 

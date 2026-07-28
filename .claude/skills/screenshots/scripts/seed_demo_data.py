@@ -32,6 +32,10 @@ import sys
 ID_BASE = 101
 ID_MAX = 199
 
+# The redesign showcase (--design-states) lives at the top of the reserved
+# range so it never collides with the ten app store appointments.
+DESIGN_ID_BASE = 151
+
 # Voice groups expected on the instance, plus the conductor group we add so
 # the person taking the screenshots does not land in the "Others" bucket of
 # the response summary.
@@ -184,6 +188,73 @@ RESPONSES = {
         ("bob", Y, "", "", None),
         ("user2", M, "Depends on the babysitter.", "", None),
     ],
+    # --- redesign showcase (--design-states) -------------------------------
+    # One appointment per state the appointment card was designed for. The
+    # optional 6th tuple element is the scheduling verdict: "booked" (planned
+    # in), "declined" (not planned in) or absent/None (undecided).
+    "d_maybe": [
+        ("admin", M, "Trying to swap my shift.", "", None),
+        ("alice", Y, "", "", None),
+        ("user3", Y, "", "", None),
+        ("user6", M, "", "", None),
+        ("jane", Y, "", "", None),
+        ("user1", N, "Parents' evening at school.", "", None),
+        ("user5", Y, "", "", None),
+        ("john", Y, "", "", None),
+        ("bob", Y, "", "", None),
+    ],
+    "d_no": [
+        ("admin", N, "On holiday that week.", "", None),
+        ("alice", Y, "", "", None),
+        ("user3", Y, "", "", None),
+        ("user6", Y, "", "", None),
+        ("jane", M, "", "", None),
+        ("user1", Y, "", "", None),
+        ("user5", N, "", "", None),
+        ("john", Y, "", "", None),
+        ("bob", Y, "", "", None),
+    ],
+    "d_booked": [
+        ("admin", Y, "I can bring the folding chairs.", "", None, "booked"),
+        ("alice", Y, "", "", None, "booked"),
+        ("user3", Y, "", "", None, "booked"),
+        ("user6", Y, "", "", None, "declined"),
+        ("jane", Y, "", "", None, "declined"),
+        ("user1", M, "", "", None),
+        ("user5", N, "", "", None),
+        ("john", Y, "", "", None, "booked"),
+        ("bob", Y, "", "", None, "declined"),
+    ],
+    "d_declined": [
+        ("admin", Y, "", "", None, "declined"),
+        ("alice", Y, "", "", None, "booked"),
+        ("user3", Y, "", "", None, "booked"),
+        ("user6", Y, "", "", None, "booked"),
+        ("jane", Y, "", "", None, "booked"),
+        ("user1", M, "", "", None),
+        ("user5", N, "Night shift.", "", None),
+        ("john", Y, "", "", None, "declined"),
+        ("bob", Y, "", "", None, "booked"),
+    ],
+    "d_cancelled": [
+        ("admin", Y, "", "", None),
+        ("alice", Y, "", "", None),
+        ("user3", M, "", "", None),
+        ("user6", Y, "", "", None),
+        ("jane", N, "", "", None),
+        ("user1", Y, "", "", None),
+        ("john", Y, "", "", None),
+    ],
+    # Nobody from the screenshot account — shows the "no response yet" card
+    # plus the response deadline line.
+    "d_unanswered": [
+        ("alice", Y, "", "", None),
+        ("user3", M, "", "", None),
+        ("user6", Y, "", "", None),
+        ("jane", Y, "", "", None),
+        ("user1", N, "", "", None),
+        ("john", Y, "", "", None),
+    ],
     "weekend": [
         ("admin", Y, "", "", None),
         ("alice", Y, "", "", None),
@@ -322,6 +393,54 @@ def build_appointments(now: dt.datetime) -> list[dict]:
     return appts
 
 
+def build_design_appointments(now: dt.datetime) -> list[dict]:
+    """One appointment per state the redesigned card was drawn for.
+
+    Kept out of the default seed so the app store screenshots keep showing the
+    plain choir list. Scheduling states only render when the instance has
+    `booking_enabled=yes` — apply_config turns it on.
+    """
+    today = now.date()
+    tue, sat = 1, 5
+
+    def day(weeks: int, weekday: int) -> dt.date:
+        return weekday_near(today, weekday, weeks)
+
+    appts = [
+        dict(key="d_maybe", name="Stimmgruppenprobe Tenor",
+             desc="Nur Tenor und Bass. Wir arbeiten an den Übergängen im zweiten Satz.",
+             start=at(day(4, tue), 19, 30), end=at(day(4, tue), 21, 30)),
+        dict(key="d_no", name="Probe mit Orchester",
+             desc="Gemeinsame Probe mit dem Kammerorchester. Bitte pünktlich sein.",
+             start=at(day(5, tue), 19), end=at(day(5, tue), 22)),
+        dict(key="d_booked", name="Sommerfest im Vereinsheim",
+             desc="Wir feiern den Saisonabschluss! Für Essen und Getränke ist gesorgt.\n\n"
+                  "## Mitbringen\n\nGute Laune und festes Schuhwerk für die Spiele.\n\n"
+                  "> Bitte bis Freitag antworten, damit wir planen können.",
+             start=at(day(5, sat), 15), end=at(day(5, sat), 19), closed=True),
+        dict(key="d_declined", name="Auftritt Stadtfest — Schicht 2",
+             desc="Zweite Schicht auf der Hauptbühne. Wir brauchen nur die halbe Besetzung.",
+             start=at(day(6, sat), 14), end=at(day(6, sat), 18), closed=True),
+        dict(key="d_cancelled", name="Stimmgruppenprobe Sopran",
+             desc="Fällt aus — der Raum ist an dem Abend belegt.",
+             start=at(day(6, tue), 19), end=at(day(6, tue), 21, 30), cancelled=True),
+        dict(key="d_unanswered", name="Chorfahrt Planungstreffen",
+             desc="Kurzes Treffen zur Chorfahrt: Termin, Unterkunft, Programm.",
+             start=at(day(7, tue), 19), end=at(day(7, tue), 20, 30),
+             deadline=at(day(6, sat), 23, 59)),
+    ]
+
+    for i, a in enumerate(appts, start=DESIGN_ID_BASE):
+        a["id"] = i
+        a.setdefault("series_pos", None)
+        a.setdefault("deadline", None)
+        # Closing/cancelling happened a week before the appointment itself.
+        stamp = a["start"] - dt.timedelta(days=7)
+        a["closed"] = stamp if a.pop("closed", False) else None
+        a["cancelled"] = stamp if a.pop("cancelled", False) else None
+    return appts
+
+
 def build_sql(appts: list[dict], known_users: set[str]) -> list[str]:
     fmt = "%Y-%m-%d %H:%M:%S"
     out = [
@@ -348,11 +467,14 @@ def build_sql(appts: list[dict], known_users: set[str]) -> list[str]:
             "0",
             q(a["closed"].strftime(fmt)) if a["closed"] else "NULL",
             q(a["deadline"].strftime(fmt)) if a["deadline"] else "NULL",
-            "NULL", q(organizers),
+            q(a["cancelled"].strftime(fmt)) if a.get("cancelled") else "NULL",
+            q(organizers),
         ])
         out.append(f"INSERT INTO oc_att_appointments ({cols}) VALUES ({vals});")
 
-        for idx, (user, resp, comment, ci, ci_src) in enumerate(RESPONSES[a["key"]]):
+        for idx, row in enumerate(RESPONSES[a["key"]]):
+            user, resp, comment, ci, ci_src = row[:5]
+            booking = row[5] if len(row) > 5 else None
             if user not in known_users:
                 continue
             responded = (a["start"] - dt.timedelta(days=9)
@@ -362,17 +484,17 @@ def build_sql(appts: list[dict], known_users: set[str]) -> list[str]:
             ci_by = ("" if not ci else (ORGANIZER if ci_src == "manual" else user))
             rcols = ("appointment_id, user_id, response, comment, responded_at, "
                      "checkin_state, checkin_comment, checkin_by, checkin_at, "
-                     "response_source, checkin_source")
+                     "response_source, checkin_source, booking_status")
             rvals = ", ".join([
                 str(a["id"]), q(user), q(resp), q(comment), q(responded),
                 q(ci), q(""), q(ci_by), q(ci_at),
-                q("quick_link" if idx % 4 == 3 else "app"), q(ci_src),
+                q("quick_link" if idx % 4 == 3 else "app"), q(ci_src), q(booking),
             ])
             out.append(f"INSERT INTO oc_att_responses ({rcols}) VALUES ({rvals});")
     return out
 
 
-def apply_config(nc: str, known_users: set[str]) -> None:
+def apply_config(nc: str, known_users: set[str], design_states: bool = False) -> None:
     print("configuring instance …")
     existing_groups = occ(nc, "group:list", "--output=json")
     try:
@@ -405,6 +527,11 @@ def apply_config(nc: str, known_users: set[str]) -> None:
     occ(nc, "user:setting", ORGANIZER, "core", "locale", "en_GB", check=False)
     print(f"  + {ORGANIZER}: lang=en locale=en_GB")
 
+    # The "Scheduled" / "Not scheduled" states only render with the feature on.
+    if design_states:
+        occ(nc, "config:app:set", "attendance", "booking_enabled", "--value=yes")
+        print("  + booking_enabled = yes")
+
 
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__,
@@ -414,6 +541,10 @@ def main() -> None:
     p.add_argument("--dry-run", action="store_true", help="print SQL, change nothing")
     p.add_argument("--no-config", action="store_true",
                    help="only seed appointments; skip display names, groups, locale")
+    p.add_argument("--design-states", action="store_true",
+                   help="also seed one appointment per designed card state "
+                        "(open/maybe/no, closed + scheduled, closed + not "
+                        "scheduled, cancelled, unanswered with deadline)")
     args = p.parse_args()
 
     names = docker_names()
@@ -423,6 +554,8 @@ def main() -> None:
     users = set(json.loads(occ(nc, "user:list", "--output=json")).keys())
     now = instance_now(nc)
     appts = build_appointments(now)
+    if args.design_states:
+        appts += build_design_appointments(now)
     sql = build_sql(appts, users)
 
     if args.dry_run:
@@ -432,7 +565,7 @@ def main() -> None:
 
     print(f"instance {nc}, db {db}, now (UTC) {now}")
     if not args.no_config:
-        apply_config(nc, users)
+        apply_config(nc, users, design_states=args.design_states)
 
     cfg = db_config(nc)
     cmd = ["docker", "exec", "-i", db, "mysql",
@@ -447,7 +580,7 @@ def main() -> None:
 
     print(f"seeded {len(appts)} appointments (IDs {ID_BASE}-{appts[-1]['id']}):")
     for a in appts:
-        state = "closed" if a["closed"] else "open"
+        state = "cancelled" if a.get("cancelled") else "closed" if a["closed"] else "open"
         running = "  <- running now" if a["start"] <= now <= a["end"] else ""
         print(f"  {a['id']}  {a['start']:%a %d %b %H:%M} UTC  {a['name']:<16} {state}{running}")
 

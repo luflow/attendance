@@ -46,6 +46,30 @@ still yields sensible data. Rehearsals land on Tuesdays, concerts on Saturdays,
 and one appointment is **running right now** (started 90 min ago) — that is what
 unlocks the live "Start check-in" button on the dashboard widget.
 
+### Reviewing the card states (`--design-states`)
+
+```bash
+python3 .claude/skills/screenshots/scripts/seed_demo_data.py --design-states
+```
+
+Adds six more appointments (IDs 151-156), one per state the appointment card is
+designed for, so a UI change can be eyeballed against all of them at once
+instead of hunting for a closed or cancelled example:
+
+| ID | State |
+|---|---|
+| 151 | open, own answer "maybe" |
+| 152 | open, own answer "no" |
+| 153 | closed, own scheduling verdict **Scheduled** (plus markdown, headings and a quote in the description) |
+| 154 | closed, own scheduling verdict **Not scheduled** |
+| 155 | **cancelled** |
+| 156 | open, unanswered, with a response deadline |
+
+The scheduling states need `booking_enabled=yes`, which this flag turns on.
+They are **not** part of the app store set — the plain run deletes them again,
+because the shipped list screenshot should show an ordinary choir list. Re-pass
+the flag whenever you want them back.
+
 The script also fixes four things that otherwise ruin the screenshots. Do not
 skip them with `--no-config` unless you know they are already right:
 

@@ -1,4 +1,4 @@
-import { test as base } from '@playwright/test'
+import { expect, test as base } from '@playwright/test'
 import { existsSync, mkdirSync, readFileSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
@@ -70,7 +70,7 @@ function ensureAuthDir() {
 /**
  * Build Basic Auth headers for API calls
  */
-function authHeaders(username = 'admin', password = 'admin') {
+export function authHeaders(username = 'admin', password = 'admin') {
 	return {
 		'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
 		'Content-Type': 'application/json',
@@ -187,11 +187,12 @@ export async function deleteAppointmentViaAPI(request, id, { username = 'admin',
  * @param {boolean} [opts.unansweredOnly] Server-side filter: drop closed
  *        inquiries and any appointment the user has already answered.
  */
-export async function listAppointmentsViaAPI(request, { showPast = true, unansweredOnly = false, username = 'admin', password = 'admin' } = {}) {
+export async function listAppointmentsViaAPI(request, { showPast = true, unansweredOnly = false, notScheduledOut = false, username = 'admin', password = 'admin' } = {}) {
 	const params = new URLSearchParams({
 		showPastAppointments: String(showPast),
 	})
 	if (unansweredOnly) params.set('unansweredOnly', 'true')
+	if (notScheduledOut) params.set('notScheduledOut', 'true')
 	const resp = await resilientJson(() =>
 		request.get(
 			`${API_BASE}/apps/attendance/api/appointments?${params.toString()}`,
@@ -516,6 +517,34 @@ export function toICalDate(date) {
 	return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
 }
 
+/**
+ * Resolve once a response POST has actually come back.
+ *
+ * Answering and commenting share one endpoint. Its UI signals (a disabled
+ * button, a spinner) flip synchronously when the request *starts*, so a test
+ * that reloads on them tears down the request it is trying to verify. Start
+ * this before the click and await it after.
+ */
+export function waitForRespond(page) {
+	return page.waitForResponse((response) => /\/appointments\/\d+\/respond$/.test(new URL(response.url()).pathname)
+		&& response.request().method() === 'POST'
+		&& response.ok())
+}
+
+/**
+ * Click a comment toggle that a background refresh may pull out from under us.
+ *
+ * Answering reloads the appointment list, so the button that was just resolved
+ * can be detached mid-click. Playwright retries a detached element on its own,
+ * but not a click that already began, so retry the whole action.
+ */
+export async function openCommentField(toggle) {
+	await expect(toggle).toBeVisible({ timeout: 5000 })
+	await expect(async () => {
+		await toggle.click({ timeout: 2000 })
+	}).toPass({ timeout: 15000 })
+}
+
 // ---------------------------------------------------------------------------
 // Playwright test fixtures
 // ---------------------------------------------------------------------------
@@ -545,4 +574,4 @@ export const test = base.extend({
 	},
 })
 
-export { expect } from '@playwright/test'
+export { expect }

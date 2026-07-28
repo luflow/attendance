@@ -104,7 +104,7 @@
 
 		<NcSettingsSection v-if="notifyResponseChanges !== null"
 			:name="t('attendance', 'Response notifications')"
-			:description="t('attendance', 'Get notified when team members respond to appointments. Only available for users who can manage appointments.')">
+			:description="t('attendance', 'Get notified when team members respond to appointments. Only available for users who can manage or organize appointments.')">
 			<NcCheckboxRadioSwitch v-model="notifyResponseChanges"
 				type="switch"
 				data-test="switch-notify-response-changes"

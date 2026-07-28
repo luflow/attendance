@@ -260,11 +260,8 @@ All interactive elements in the app have `data-test` attributes for reliable tes
 - `widget-appointment-item` - Individual appointment in widget
 - `widget-appointment-title` - Appointment title in widget
 - `button-widget-checkin` - Widget check-in button
-- `widget-response-yes` - Yes response in widget
-- `widget-response-maybe` - Maybe response in widget
-- `widget-response-no` - No response in widget
-- `button-widget-toggle-comment` - Toggle comment button
-- `widget-response-comment` - Comment textarea in widget
+- `response-yes` / `response-maybe` / `response-no` - response buttons (list, detail and widget share one component)
+- `button-toggle-comment` / `response-comment` / `button-save-comment` - comment field and its explicit save
 - `button-show-all` - Show all appointments button
 
 ### Response Summary

@@ -10,12 +10,23 @@ use OCP\AppFramework\Http\Attribute\FrontpageRoute;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\OpenAPI;
+use OCP\AppFramework\Http\RedirectResponse;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\IRequest;
+use OCP\IURLGenerator;
 
 /**
  * @psalm-suppress UnusedClass
  */
 class PageController extends Controller {
+	public function __construct(
+		string $appName,
+		IRequest $request,
+		private IURLGenerator $urlGenerator,
+	) {
+		parent::__construct($appName, $request);
+	}
+
 	#[NoCSRFRequired]
 	#[NoAdminRequired]
 	#[OpenAPI(OpenAPI::SCOPE_IGNORE)]
@@ -64,6 +75,23 @@ class PageController extends Controller {
 		return new TemplateResponse(
 			Application::APP_ID,
 			'index',
+		);
+	}
+
+	/**
+	 * Up to 1.42 the frontend built the detail URL by appending to the current
+	 * path without stripping the "all" segment first, so every link copied or
+	 * shared from the All view looks like /all/appointment/42. Those links are
+	 * out in the wild; send them to the canonical URL instead of a 404.
+	 *
+	 * Safe to drop once those links can be assumed gone.
+	 */
+	#[NoCSRFRequired]
+	#[NoAdminRequired]
+	#[OpenAPI(OpenAPI::SCOPE_IGNORE)]
+	public function legacyAllAppointment(int $id): RedirectResponse {
+		return new RedirectResponse(
+			$this->urlGenerator->linkToRoute(Application::APP_ID . '.page.appointment', ['id' => $id]),
 		);
 	}
 

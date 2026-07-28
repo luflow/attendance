@@ -4,92 +4,129 @@
 	<id>attendance</id>
 	<name>Attendance</name>
 	<name lang="de">Anwesenheit</name>
-	<summary>Event attendance management with advance RSVP functionality, real-time check-in, and group-based statistics</summary>
-	<summary lang="de">Veranstaltungsanwesenheitsverwaltung mit Vorab-RSVP-Funktionalität, Echtzeit-Check-in und gruppenbasierten Statistiken</summary>
-	<description><![CDATA[A small Nextcloud app for managing event attendance with advance RSVP functionality and real-time check-in capabilities.
+	<summary>Collect replies, check people in and see attendance by group – now with a companion app for iOS and Android</summary>
+	<summary lang="de">Zu- und Absagen einsammeln, Anwesenheit abhaken, nach Gruppen auswerten – jetzt mit App für iOS und Android</summary>
+	<description><![CDATA[Know who is coming – to every rehearsal, training session and meeting. Attendance collects replies up front, records who actually turned up, and breaks every response down by your Nextcloud groups. Everything runs on your own server.
 
-**For Administrators:**
-- **Appointment Management:** Create and manage appointments with name, description (with Markdown support), and date/time
-- **Visibility Control:** Restrict appointments to specific users or groups
-- **Response Tracking:** Track responses with detailed attendance summaries organized by user groups
-- **Unanswered View:** Dedicated section to quickly identify appointments without responses
-- **Reminder System:** Automated Nextcloud notifications for upcoming appointments
-- **New Appointment Notifications:** Optional notifications when new appointments are created
-- **Check-in Management:** Dedicated interface to track actual attendance during events
-- **Bulk Operations:** Mark multiple users as present/absent with bulk check-in actions
-- **Admin Comments:** Add check-in specific comments for detailed attendance tracking
-- **Group Whitelisting:** Configure which user groups are included in attendance statistics and check-in lists
-- **Export Functionality:** Export all appointment data to ODS spreadsheet format for further analysis
-- **Granular Permissions:** Control who can view response overviews, comments, manage appointments, and access check-in features
+## New: the companion app for iOS and Android
 
-**For All Users:**
-- **Easy RSVP:** Respond with Yes/No/Maybe to any appointment
-- **Comments:** Add optional comments with your response
-- **Flexible Updates:** Update responses anytime until the event date
-- **Dashboard Widget:** Quick access via dashboard widget
-- **Share Links:** Share appointment links for easy access
-- **Calendar Subscription:** Subscribe to appointments via iCal feed in Google Calendar, Apple Calendar, or any calendar app
-- **Quick Subscribe:** One-click buttons to add feed to Google Calendar or Apple Calendar
+Attendance now has a mobile app. It talks to your own Nextcloud and adds the two things a browser cannot do:
 
-**Group-Based Organization:**
-- **Group Statistics:** Statistics automatically organized by Nextcloud user groups
-- **Missing Responses:** See which group members haven't responded yet
-- **Full Visibility:** Complete visibility into attendance across all groups
-- **Filtered Check-in:** Search and filter users by name or group during check-in process
+- **Self-check-in by QR code or NFC:** print one QR code for the whole instance or stick an NFC tag next to the door. People scan or tap as they arrive and the attendance list fills itself. Every self-check-in is logged with its source.
+- **Push notifications:** new appointments and reminders reach the phone straight away, without anyone opening Nextcloud first.
 
-Perfect for organizations, teams, and communities that want to coordinate attendance for meetings, events, and activities with both advance planning and real-time attendance tracking.]]></description>
-	<description lang="de"><![CDATA[Eine kleine Nextcloud-App zur Verwaltung der Veranstaltungsanwesenheit mit Vorab-RSVP-Funktionalität und Echtzeit-Check-in-Funktionen.
+It also puts your appointments, replies and comments on your phone and holds several Nextcloud accounts in one app.
 
-**Für Administratoren:**
-- **Terminverwaltung:** Termine erstellen und verwalten mit Name, Beschreibung (mit Markdown-Unterstützung) und Datum/Uhrzeit
-- **Sichtbarkeitssteuerung:** Termine auf bestimmte Benutzer oder Gruppen beschränken
-- **Antwortverfolgung:** Antworten verfolgen mit detaillierten Anwesenheitszusammenfassungen nach Benutzergruppen organisiert
-- **Unbeantwortet-Ansicht:** Dedizierter Bereich zur schnellen Identifizierung von Terminen ohne Rückmeldungen
-- **Erinnerungssystem:** Automatische Nextcloud-Benachrichtigungen für bevorstehende Termine
-- **Benachrichtigungen für neue Termine:** Optionale Benachrichtigungen bei Erstellung neuer Termine
-- **Check-in-Verwaltung:** Dedizierte Benutzeroberfläche zur Verfolgung der tatsächlichen Anwesenheit während Veranstaltungen
-- **Massenoperationen:** Mehrere Benutzer gleichzeitig als anwesend/abwesend markieren
-- **Admin-Kommentare:** Check-in-spezifische Kommentare für detaillierte Anwesenheitsverfolgung hinzufügen
-- **Gruppen-Whitelist:** Konfigurieren, welche Benutzergruppen in Anwesenheitsstatistiken und Check-in-Listen enthalten sind
-- **Export-Funktion:** Alle Termindaten zur weiteren Analyse in ODS-Tabellenformat exportieren
-- **Granulare Berechtigungen:** Steuern Sie, wer Antwortübersichten, Kommentare einsehen, Termine verwalten und Check-in-Funktionen nutzen kann
+[App Store](https://apps.apple.com/app/id6759988681) · [Google Play](https://play.google.com/store/apps/details?id=de.krautnerds.attendance) · [What the app does](https://anwesenheit.app/mobile)
 
-**Für alle Benutzer:**
-- **Einfache RSVP:** Mit Ja/Nein/Vielleicht auf jeden Termin antworten
-- **Kommentare:** Optionale Kommentare zu Ihrer Antwort hinzufügen
-- **Flexible Aktualisierung:** Antworten jederzeit bis zum Veranstaltungsdatum aktualisieren
-- **Dashboard-Widget:** Schneller Zugriff über Dashboard-Widget
-- **Links teilen:** Termin-Links zum einfachen Teilen
-- **Kalender-Abonnement:** Termine per iCal-Feed in Google Kalender, Apple Kalender oder jeder anderen Kalender-App abonnieren
-- **Schnell-Abonnieren:** Ein-Klick-Buttons zum Hinzufügen des Feeds zu Google Kalender oder Apple Kalender
+The mobile app is free for the first 30 days per Nextcloud instance, then one yearly subscription covers the whole instance. **This Nextcloud app stays free and open source**, and everything listed below works without the mobile app.
 
-**Gruppenbasierte Organisation:**
-- **Gruppenstatistiken:** Statistiken automatisch nach Nextcloud-Benutzergruppen organisiert
-- **Fehlende Antworten:** Sehen, welche Gruppenmitglieder noch nicht geantwortet haben
-- **Volle Sichtbarkeit:** Vollständige Sichtbarkeit der Anwesenheit über alle Gruppen hinweg
-- **Gefilterter Check-in:** Benutzer nach Name oder Gruppe während des Check-in-Prozesses suchen und filtern
+## Collecting replies
 
-Perfekt für Organisationen, Teams und Gemeinschaften, die die Anwesenheit bei Meetings, Veranstaltungen und Aktivitäten sowohl im Voraus planen als auch in Echtzeit verfolgen möchten.]]></description>
-	<screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/screen-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/screen.jpg</screenshot>
-    <screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/admin-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/admin.jpg</screenshot>
-    <screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/checkin-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/checkin.jpg</screenshot>
+- **One click:** Yes, No or Maybe, with an optional comment
+- **Changed plans:** update or withdraw a reply any time before the appointment
+- **Quick-reply links:** answer straight from the notification email, no login needed
+- **Dashboard widget:** reply from the Nextcloud dashboard without opening the app
+- **Guests without an account:** invite people by email address through the Nextcloud Guests app
+- **Reminders:** automatic nudges for everyone who has not replied yet, plus manual reminders
+
+## Organising appointments
+
+- **Recurring appointments:** create daily, weekly or monthly series in one go, then edit or delete this one, this and following, or all of them
+- **Import from your calendar:** pull events out of Nextcloud Calendar, with optional automatic sync (Nextcloud 32+)
+- **Closing and deadlines:** close an inquiry by hand, on a deadline, or automatically once it starts
+- **Cancel and reactivate:** cancelling is a state of its own, and plans can change back
+- **Scheduling:** mark the yes-repliers you actually need and notify exactly those people
+- **Attachments:** attach sheet music, agendas or minutes straight from Nextcloud Files
+- **Visibility:** restrict an appointment to individual people, groups or Nextcloud Teams (Circles)
+- **Copy:** duplicate an appointment with all of its settings
+
+## Seeing what you need
+
+- **Response summary by group:** your Nextcloud groups and Teams appear as separate sections, each with its own counts
+- **Check-in:** tick off who actually turned up, in bulk if you like, with a note per person
+- **Unanswered:** a section that shows only what still waits for your reply
+- **Activity history:** every reply, change, withdrawal and check-in with who, when and from where
+- **Export:** all data as an ODS spreadsheet
+- **Calendar subscription:** a personal iCal feed for Google Calendar, Apple Calendar, Outlook or Thunderbird
+- **Permissions:** six group-based permissions decide who may manage appointments, check people in, see summaries and read comments
+
+Made for choirs, orchestras, sports clubs, volunteer crews, congregations and every other group that needs to know not just how many are coming, but who.]]></description>
+	<description lang="de"><![CDATA[Wissen, wer kommt – zu jeder Probe, jedem Training, jeder Sitzung. Anwesenheit sammelt vorab Zu- und Absagen ein, hält fest, wer wirklich da war, und schlüsselt jede Antwort nach deinen Nextcloud-Gruppen auf. Alles läuft auf deinem eigenen Server.
+
+## Neu: die Begleit-App für iOS und Android
+
+Anwesenheit hat jetzt eine mobile App. Sie spricht mit deiner eigenen Nextcloud und bringt die beiden Dinge mit, die im Browser nicht gehen:
+
+- **Self-Check-in per QR-Code oder NFC:** einen QR-Code für die ganze Instanz ausdrucken oder einen NFC-Tag neben die Tür kleben. Alle scannen oder tippen beim Ankommen, und die Anwesenheitsliste füllt sich von selbst. Jeder Self-Check-in landet mit seiner Quelle im Aktivitätsverlauf.
+- **Push-Benachrichtigungen:** neue Termine und Erinnerungen kommen sofort aufs Handy, ohne dass jemand erst Nextcloud öffnen muss.
+
+Dazu hast du deine Termine, Antworten und Kommentare unterwegs dabei und kannst mehrere Nextcloud-Konten in einer App verbinden.
+
+[App Store](https://apps.apple.com/app/id6759988681) · [Google Play](https://play.google.com/store/apps/details?id=de.krautnerds.attendance) · [Was kann die App?](https://anwesenheit.app/de/mobile)
+
+Die mobile App ist die ersten 30 Tage pro Nextcloud-Instanz gratis, danach deckt ein Jahresabo die ganze Instanz ab. **Diese Nextcloud-App bleibt kostenlos und Open Source**, und alles Folgende funktioniert auch ohne die mobile App.
+
+## Antworten einsammeln
+
+- **Ein Klick:** Ja, Nein oder Vielleicht, auf Wunsch mit Kommentar
+- **Pläne geändert:** Antworten lassen sich bis zum Termin ändern oder zurückziehen
+- **Schnellantwort-Links:** direkt aus der Benachrichtigungs-E-Mail antworten, ganz ohne Anmeldung
+- **Dashboard-Widget:** vom Nextcloud-Dashboard aus antworten, ohne die App zu öffnen
+- **Gäste ohne Konto:** Personen über ihre E-Mail-Adresse einladen, mit der Nextcloud-App Guests
+- **Erinnerungen:** automatisch an alle, die noch nicht geantwortet haben, dazu manuelle Erinnerungen
+
+## Termine organisieren
+
+- **Serientermine:** tägliche, wöchentliche oder monatliche Serien in einem Rutsch anlegen und später nur diesen, diesen und folgende oder alle Termine ändern
+- **Kalender-Import:** Termine aus dem Nextcloud-Kalender übernehmen, auf Wunsch automatisch synchron halten (ab Nextcloud 32)
+- **Schließen und Antwortfristen:** eine Umfrage von Hand schließen, per Frist oder automatisch mit dem Terminbeginn
+- **Absagen und reaktivieren:** Absagen ist ein eigener Zustand, und Pläne können sich wieder ändern
+- **Einplanen:** aus den Zusagen genau die markieren, die du brauchst, und nur diese benachrichtigen
+- **Dateianhänge:** Noten, Tagesordnungen oder Protokolle direkt aus Nextcloud Files anhängen
+- **Sichtbarkeit:** Termine auf einzelne Personen, Gruppen oder Nextcloud Teams (Circles) beschränken
+- **Kopieren:** einen Termin mit allen Einstellungen duplizieren
+
+## Den Überblick behalten
+
+- **Antwort-Übersicht nach Gruppen:** deine Nextcloud-Gruppen und Teams als eigene Abschnitte, jeweils mit eigenen Zahlen
+- **Check-in:** abhaken, wer tatsächlich da ist, auf Wunsch ganze Gruppen auf einmal, mit Notiz pro Person
+- **Unbeantwortet:** ein Bereich, der nur zeigt, was noch auf deine Antwort wartet
+- **Aktivitätsverlauf:** jede Antwort, Änderung, Rücknahme und jeder Check-in mit wer, wann und woher
+- **Export:** alle Daten als ODS-Tabelle
+- **Kalender-Abo:** ein persönlicher iCal-Feed für Google Kalender, Apple Kalender, Outlook oder Thunderbird
+- **Berechtigungen:** sechs gruppenbasierte Rechte steuern, wer Termine verwaltet, eincheckt, Auswertungen sieht und Kommentare liest
+
+Gemacht für Chöre, Orchester, Sportvereine, Feuerwehren, Gemeinden und jede andere Gruppe, die nicht nur wissen muss, wie viele kommen, sondern wer.]]></description>
 	<version>1.41.2</version>
 	<licence>AGPL-3.0-or-later</licence>
 	<author mail="florian@krautnerds.de" homepage="https://krautnerds.de">Florian Ludwig</author>
 	<namespace>Attendance</namespace>
 	<category>dashboard</category>
 	<category>organization</category>
-	<types>
-		<type>notification</type>
-	</types>
 	<website>https://anwesenheit.app</website>
 	<bugs>https://github.com/luflow/attendance/issues</bugs>
 	<repository type="git">https://github.com/luflow/attendance</repository>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/screen-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/screen.jpg</screenshot>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/appointments-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/appointments.jpg</screenshot>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/admin-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/admin.jpg</screenshot>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/checkin-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/checkin.jpg</screenshot>
 	<donation type="stripe">https://donate.stripe.com/fZu4gzd1k9AqgHgdWv7ss00</donation>
 	<dependencies>
 		<php min-version="8.1"/>
 		<nextcloud min-version="31" max-version="34"/>
 	</dependencies>
+	<repair-steps>
+		<post-migration>
+			<step>OCA\Attendance\Repair\EnsureAppointmentSchema</step>
+		</post-migration>
+	</repair-steps>
+	<settings>
+		<admin>OCA\Attendance\Settings\AdminSettings</admin>
+		<admin-section>OCA\Attendance\Settings\AdminSection</admin-section>
+		<personal>OCA\Attendance\Settings\PersonalSettings</personal>
+		<personal-section>OCA\Attendance\Settings\PersonalSection</personal-section>
+	</settings>
 	<navigations>
 		<navigation>
 			<id>attendance</id>
@@ -100,15 +137,4 @@ Perfekt für Organisationen, Teams und Gemeinschaften, die die Anwesenheit bei M
 			<type>link</type>
 		</navigation>
 	</navigations>
-	<settings>
-		<admin>OCA\Attendance\Settings\AdminSettings</admin>
-		<admin-section>OCA\Attendance\Settings\AdminSection</admin-section>
-		<personal>OCA\Attendance\Settings\PersonalSettings</personal>
-		<personal-section>OCA\Attendance\Settings\PersonalSection</personal-section>
-	</settings>
-	<repair-steps>
-		<post-migration>
-			<step>OCA\Attendance\Repair\EnsureAppointmentSchema</step>
-		</post-migration>
-	</repair-steps>
 </info>

@@ -1,53 +1,45 @@
 <template>
-	<div class="reminder-user-list" :class="`reminder-user-list--${variant}`">
-		<div class="reminder-user-list__header">
+	<div class="pending-users">
+		<div class="pending-users__header">
 			{{ headerText }}
 		</div>
-		<div class="reminder-user-list__users">
-			<template
-				v-for="(u, idx) in sortedUsers"
-				:key="u.userId">
-				<NcPopover
+		<div class="pending-users__chips">
+			<span
+				v-for="user in sortedUsers"
+				:key="user.userId"
+				class="pending-user"
+				:class="{ 'pending-user--pending': remindingUsers.has(user.userId) }">
+				{{ user.displayName }}
+				<RemindUserPopover
 					v-if="canManageAppointments && appointmentId"
-					:shown="openPopover === u.userId"
-					popupRole="dialog"
-					class="remind-popover-wrapper"
-					@update:shown="(val) => openPopover = val ? u.userId : null">
-					<template #trigger>
-						<span
-							class="reminder-user reminder-user--clickable"
-							:class="{ 'reminder-user--pending': remindingUsers.has(u.userId) }"
-							role="button"
-							tabindex="0"
-							@keydown.enter.prevent="openPopover = u.userId"
-							@keydown.space.prevent="openPopover = u.userId">{{ u.displayName }}<BellRingOutlineIcon :size="14" class="remind-icon" /></span>
-					</template>
-					<div class="remind-popover" role="dialog" aria-modal="true">
-						<p>{{ t('attendance', 'Send a reminder to {name}?', { name: u.displayName }) }}</p>
+					:userId="user.userId"
+					:displayName="user.displayName"
+					:pending="remindingUsers.has(user.userId)"
+					@remind="emit('remind', $event)">
+					<template #default="{ pending }">
 						<NcButton
-							variant="primary"
-							:disabled="remindingUsers.has(u.userId)"
-							@click="handleRemind(u.userId)">
+							variant="secondary"
+							size="small"
+							:disabled="pending"
+							:aria-label="t('attendance', 'Send reminder')"
+							:title="t('attendance', 'Send reminder')"
+							:data-test="`remind-${user.userId}`">
 							<template #icon>
-								<BellRingOutlineIcon :size="20" />
+								<BellRingOutlineIcon :size="16" />
 							</template>
-							{{ t('attendance', 'Send reminder') }}
 						</NcButton>
-					</div>
-				</NcPopover><span
-					v-else
-					class="reminder-user">{{ u.displayName }}</span><template v-if="idx < sortedUsers.length - 1">
-						,
 					</template>
-			</template>
+				</RemindUserPopover>
+			</span>
 		</div>
 	</div>
 </template>
 
 <script setup>
-import { NcButton, NcPopover } from '@nextcloud/vue'
-import { computed, ref } from 'vue'
+import { NcButton } from '@nextcloud/vue'
+import { computed } from 'vue'
 import BellRingOutlineIcon from 'vue-material-design-icons/BellRingOutline.vue'
+import RemindUserPopover from './RemindUserPopover.vue'
 
 const props = defineProps({
 	users: {
@@ -57,11 +49,6 @@ const props = defineProps({
 	headerText: {
 		type: String,
 		default: '',
-	},
-	variant: {
-		type: String,
-		default: 'default',
-		validator: (v) => ['default', 'warning'].includes(v),
 	},
 	canManageAppointments: {
 		type: Boolean,
@@ -79,83 +66,40 @@ const props = defineProps({
 
 const emit = defineEmits(['remind'])
 
-const openPopover = ref(null)
-
-function handleRemind(userId) {
-	openPopover.value = null
-	emit('remind', userId)
-}
-
-const sortedUsers = computed(() => {
-	if (!props.users || props.users.length === 0) return []
-	return [...props.users].sort((a, b) => a.displayName.localeCompare(b.displayName))
-})
+const sortedUsers = computed(() => [...props.users]
+	.sort((a, b) => a.displayName.localeCompare(b.displayName)))
 </script>
 
 <style scoped lang="scss">
-.reminder-user-list {
+.pending-users {
     margin-top: 10px;
-    padding: 8px;
-    background: var(--color-background-dark);
-    border-radius: var(--border-radius);
 
-    &--warning {
-        background: var(--color-warning-hover, rgba(250, 200, 0, 0.08));
-    }
-
-    .reminder-user-list__header {
-        font-weight: 500;
-        margin-bottom: 5px;
+    &__header {
         font-size: 13px;
         color: var(--color-text-maxcontrast);
+        margin-bottom: 6px;
     }
 
-    .reminder-user-list__users {
-        font-size: 13px;
-        color: var(--color-text-lighter);
-
-        .reminder-user {
-            white-space: nowrap;
-        }
-
-        :deep(.remind-popover-wrapper) {
-            display: inline;
-        }
-
-        .reminder-user--clickable {
-            cursor: pointer;
-
-            &:hover {
-                text-decoration: underline;
-            }
-
-            &.reminder-user--pending {
-                opacity: 0.5;
-                cursor: wait;
-            }
-        }
-
-        .remind-icon {
-            display: inline-flex;
-            margin-left: 2px;
-            opacity: 0.5;
-            vertical-align: middle;
-            cursor: pointer;
-        }
+    &__chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
     }
 }
-</style>
 
-<style lang="scss">
-.remind-popover {
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
+.pending-user {
+    display: inline-flex;
     align-items: center;
-    text-align: center;
+    gap: 6px;
+    // Tighter on the button side so the chip hugs it.
+    padding: 3px 4px 3px 10px;
+    border-radius: 16px;
+    border: 1px solid var(--color-border);
+    font-size: 13px;
+    white-space: nowrap;
 
-    p {
-        margin: 0 0 10px 0;
+    &--pending {
+        opacity: 0.5;
     }
 }
 </style>

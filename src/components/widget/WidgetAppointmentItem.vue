@@ -42,83 +42,21 @@
 			{{ strippedDescription }}
 		</div>
 
-		<!-- Response Section -->
-		<div class="response-section">
-			<div
-				class="response-buttons"
-				:class="{ 'has-response': item.userResponse }">
-				<NcButton
-					:class="{ active: item.userResponse?.response === 'yes' }"
-					variant="success"
-					:text="t('attendance', 'Yes')"
-					:disabled="responseCooldown"
-					data-test="widget-response-yes"
-					@click="handleResponse('yes')" />
-				<NcButton
-					:class="{ active: item.userResponse?.response === 'maybe' }"
-					variant="warning"
-					:text="t('attendance', 'Maybe')"
-					:disabled="responseCooldown"
-					data-test="widget-response-maybe"
-					@click="handleResponse('maybe')" />
-				<NcButton
-					:class="{ active: item.userResponse?.response === 'no' }"
-					variant="error"
-					:text="t('attendance', 'No')"
-					:disabled="responseCooldown"
-					data-test="widget-response-no"
-					@click="handleResponse('no')" />
-				<!-- Comment Toggle Button (only show when user has responded) -->
-				<NcButton
-					v-if="item.userResponse"
-					class="comment-toggle"
-					:class="{
-						'comment-active': commentExpanded,
-					}"
-					variant="tertiary"
-					data-test="button-widget-toggle-comment"
-					@click="toggleComment">
-					<template #icon>
-						<CommentIcon :size="14" />
-					</template>
-				</NcButton>
-			</div>
-
-			<!-- Comment Section -->
-			<div v-if="commentExpanded" class="comment-section">
-				<div class="textarea-container">
-					<NcInputField
-						ref="commentInput"
-						v-model="localComment"
-						type="text"
-						:label="t('attendance', 'Comment (optional)')"
-						:placeholder="t('attendance', 'Add your comment\u00A0…')"
-						data-test="widget-response-comment"
-						@update:modelValue="handleCommentInput" />
-
-					<div v-if="saving" class="saving-spinner">
-						<div class="spinner" />
-					</div>
-					<div v-else-if="saved" class="saved-indicator">
-						<CheckIcon :size="16" class="check-icon" />
-					</div>
-					<div v-else-if="error" class="error-indicator">
-						<CloseCircle :size="16" class="error-icon" />
-					</div>
-				</div>
-			</div>
-		</div>
+		<ResponseEditor
+			compact
+			class="response-section"
+			:appointmentId="item.id"
+			:userResponse="item.userResponse?.response ?? null"
+			:comment="item.userResponse?.comment || ''"
+			@submitResponse="(id, response) => emit('respond', id, response)" />
 	</div>
 </template>
 
 <script setup>
-import { NcButton, NcInputField } from '@nextcloud/vue'
-import { computed, nextTick, ref, watch } from 'vue'
-import CheckIcon from 'vue-material-design-icons/Check.vue'
-import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
-import CommentIcon from 'vue-material-design-icons/Comment.vue'
+import { NcButton } from '@nextcloud/vue'
+import { computed } from 'vue'
 import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
-import { useAppointmentResponse, useResponseCooldown } from '../../composables/useAppointmentResponse.js'
+import ResponseEditor from '../appointment/ResponseEditor.vue'
 import { formatDateTime } from '../../utils/datetime.js'
 import { stripMarkdown } from '../../utils/markdown.js'
 
@@ -139,78 +77,12 @@ const props = defineProps({
 
 const emit = defineEmits(['respond', 'openCheckin', 'openDetail'])
 
-const { responseCooldown, resolveNext, startCooldown } = useResponseCooldown(() => props.item.userResponse?.response ?? null)
+const formattedDate = computed(() => formatDateTime(props.item.subText))
 
-function handleResponse(response) {
-	if (responseCooldown.value) return
-	startCooldown()
-	emit('respond', props.item.id, resolveNext(response))
-}
-
-// Local state for comment
-const commentExpanded = ref(false)
-const commentInput = ref(null)
-const localComment = ref(props.item.userResponse?.comment || '')
-let commentTimeout = null
-
-// Use the shared response composable for comment auto-save
-const {
-	savingComment: saving,
-	commentSaved: saved,
-	errorComment: error,
-	autoSaveComment,
-} = useAppointmentResponse()
-
-// Watch for external changes to userResponse
-watch(
-	() => props.item.userResponse,
-	(newResponse) => {
-		if (!commentTimeout) {
-			localComment.value = newResponse?.comment || ''
-		}
-	},
-	{ deep: true },
-)
-
-async function toggleComment() {
-	commentExpanded.value = !commentExpanded.value
-	if (commentExpanded.value) {
-		await nextTick()
-		commentInput.value?.$el?.querySelector('input')?.focus()
-	}
-}
-
-function handleCommentInput() {
-	if (commentTimeout) {
-		clearTimeout(commentTimeout)
-	}
-
-	commentTimeout = setTimeout(async () => {
-		await nextTick()
-		const userResponse = props.item.userResponse
-		if (userResponse) {
-			autoSaveComment(
-				props.item.id,
-				userResponse.response,
-				localComment.value,
-			)
-		}
-		commentTimeout = null
-	}, 500)
-}
-
-const formattedDate = computed(() => {
-	return formatDateTime(props.item.subText)
-})
-
-const strippedDescription = computed(() => {
-	return stripMarkdown(props.item.description)
-})
+const strippedDescription = computed(() => stripMarkdown(props.item.description))
 </script>
 
 <style scoped lang="scss">
-@use "../../styles/shared.scss";
-
 .appointment-item {
     padding: 0 14px 12px 14px;
     border-bottom: 1px solid var(--color-border);
@@ -305,48 +177,5 @@ const strippedDescription = computed(() => {
 
 .response-section {
     margin-top: 8px;
-
-    .response-buttons {
-        display: flex;
-        gap: 4px;
-        margin-bottom: 8px;
-        flex-wrap: wrap;
-
-        :deep(.button-vue) {
-            font-size: 11px;
-            padding: 4px 12px;
-            height: 32px;
-        }
-
-        &.has-response {
-            :deep(.button-vue:not(.active):not(.comment-toggle)) {
-                background-color: var(--color-background-dark) !important;
-                color: var(--color-text-lighter) !important;
-                border-color: var(--color-border-dark) !important;
-
-                &:hover {
-                    background-color: var(--color-background-hover) !important;
-                    color: var(--color-text) !important;
-                }
-            }
-        }
-
-        :deep(.button-vue.active) {
-            font-weight: bold;
-        }
-
-        :deep(.button-vue.comment-active) {
-            background-color: var(--color-primary-element) !important;
-            color: white !important;
-        }
-    }
-
-    .comment-section {
-        margin-top: 16px;
-
-        .textarea-container {
-            position: relative;
-        }
-    }
 }
 </style>

@@ -99,6 +99,37 @@ class BookingService {
 	}
 
 	/**
+	 * Whether the user was scheduled out of an appointment: planning is on, the
+	 * inquiry is closed, at least one person got a place — and this user did
+	 * not. The mirror image of the notifyOnClose() wave below, kept next to it
+	 * on purpose: exactly the people told "you are not scheduled" are the ones
+	 * callers may hide the appointment from.
+	 *
+	 * Everything softer stays visible: an open inquiry has decided nothing yet,
+	 * and an appointment nobody was scheduled for is one where the manager
+	 * simply doesn't use the feature — it stays visible to everyone.
+	 */
+	public function isScheduledOut(Appointment $appointment, string $userId): bool {
+		if (!$this->isEnabled() || !$appointment->isClosed()) {
+			return false;
+		}
+
+		$anyoneBooked = false;
+		foreach ($this->responseMapper->findByAppointment($appointment->getId()) as $response) {
+			if ($response->getBookingStatus() !== self::STATUS_BOOKED) {
+				continue;
+			}
+			// Own booking wins outright — no need to look at the rest.
+			if ($response->getUserId() === $userId) {
+				return false;
+			}
+			$anyoneBooked = true;
+		}
+
+		return $anyoneBooked;
+	}
+
+	/**
 	 * Notification wave triggered when an appointment is closed: tell booked
 	 * yes-responders they are planned in and the remaining yes-responders they
 	 * are not. Rules:

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Service;
 
+use OCA\Attendance\Db\Appointment;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IUserManager;
@@ -23,10 +24,22 @@ class PermissionService {
 	public const PERMISSION_SEE_RESPONSE_OVERVIEW = 'see_response_overview';
 	public const PERMISSION_SEE_COMMENTS = 'see_comments';
 	public const PERMISSION_SELF_CHECKIN = 'self_checkin';
+	public const PERMISSION_CREATE_APPOINTMENTS = 'create_appointments';
 
 	private const GUEST_BLOCKED_PERMISSIONS = [
 		self::PERMISSION_MANAGE_APPOINTMENTS,
 		self::PERMISSION_CHECKIN,
+		self::PERMISSION_CREATE_APPOINTMENTS,
+	];
+
+	/**
+	 * Permissions that grant NOBODY when no groups are configured. All other
+	 * permissions default to "everyone" on empty config. Additive permissions
+	 * (rights on top of manage_appointments) belong here — otherwise an
+	 * upgrade would silently grant them to all users.
+	 */
+	private const CLOSED_WHEN_UNCONFIGURED = [
+		self::PERMISSION_CREATE_APPOINTMENTS,
 	];
 
 	public function __construct(
@@ -76,9 +89,8 @@ class PermissionService {
 
 		$allowedRoles = $this->getRolesForPermission($permission);
 
-		// If no roles are configured, allow all users
 		if (empty($allowedRoles)) {
-			return true;
+			return !in_array($permission, self::CLOSED_WHEN_UNCONFIGURED, true);
 		}
 
 		// Get user object and their groups
@@ -131,6 +143,7 @@ class PermissionService {
 			self::PERMISSION_SEE_RESPONSE_OVERVIEW => $this->getRolesForPermission(self::PERMISSION_SEE_RESPONSE_OVERVIEW),
 			self::PERMISSION_SEE_COMMENTS => $this->getRolesForPermission(self::PERMISSION_SEE_COMMENTS),
 			self::PERMISSION_SELF_CHECKIN => $this->getRolesForPermission(self::PERMISSION_SELF_CHECKIN),
+			self::PERMISSION_CREATE_APPOINTMENTS => $this->getRolesForPermission(self::PERMISSION_CREATE_APPOINTMENTS),
 		];
 	}
 
@@ -145,6 +158,7 @@ class PermissionService {
 			'PERMISSION_SEE_RESPONSE_OVERVIEW' => self::PERMISSION_SEE_RESPONSE_OVERVIEW,
 			'PERMISSION_SEE_COMMENTS' => self::PERMISSION_SEE_COMMENTS,
 			'PERMISSION_SELF_CHECKIN' => self::PERMISSION_SELF_CHECKIN,
+			'PERMISSION_CREATE_APPOINTMENTS' => self::PERMISSION_CREATE_APPOINTMENTS,
 		];
 
 		foreach ($permissions as $permission => $roles) {
@@ -157,6 +171,7 @@ class PermissionService {
 				self::PERMISSION_SEE_RESPONSE_OVERVIEW,
 				self::PERMISSION_SEE_COMMENTS,
 				self::PERMISSION_SELF_CHECKIN,
+				self::PERMISSION_CREATE_APPOINTMENTS,
 			])) {
 				$this->setRolesForPermission($permissionValue, $roles);
 			}
@@ -192,10 +207,50 @@ class PermissionService {
 	}
 
 	/**
+	 * Check if user can create appointments: either a full manager, or member
+	 * of one of the create_appointments groups (delegated creation). Creators
+	 * become organizers of their own appointments.
+	 */
+	public function canCreateAppointments(string $userId): bool {
+		return $this->canManageAppointments($userId)
+			|| $this->hasPermission($userId, self::PERMISSION_CREATE_APPOINTMENTS);
+	}
+
+	/**
+	 * Check if a user is an organizer of the given appointment. Guests can
+	 * never hold organizer rights, even if their ID ends up in the list.
+	 */
+	public function isOrganizer(Appointment $appointment, string $userId): bool {
+		if ($this->guestService->isGuestUser($userId)) {
+			return false;
+		}
+		return in_array($userId, $appointment->getOrganizersList(), true);
+	}
+
+	/**
+	 * Appointment-aware manage check: global managers plus organizers of this
+	 * specific appointment. Organizers hold a fixed right set on their own
+	 * appointment (edit everything, delete, insights) — see issue #73.
+	 */
+	public function canManageAppointment(string $userId, Appointment $appointment): bool {
+		return $this->canManageAppointments($userId)
+			|| $this->isOrganizer($appointment, $userId);
+	}
+
+	/**
 	 * Check if user can see response overview
 	 */
 	public function canSeeResponseOverview(string $userId): bool {
 		return $this->hasPermission($userId, self::PERMISSION_SEE_RESPONSE_OVERVIEW);
+	}
+
+	/**
+	 * Appointment-aware response overview check: the global permission plus
+	 * organizers of this specific appointment (their "insights").
+	 */
+	public function canSeeResponseOverviewFor(string $userId, Appointment $appointment): bool {
+		return $this->canSeeResponseOverview($userId)
+			|| $this->isOrganizer($appointment, $userId);
 	}
 
 	/**

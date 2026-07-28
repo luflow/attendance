@@ -13,6 +13,13 @@ export const RESPONSES = {
 }
 
 /**
+ * Display order for the three answers, best-case first. Object key order is not
+ * something the UI should depend on, so anything that renders all three — the
+ * answer buttons, the summary bar and its legend — iterates this instead.
+ */
+export const RESPONSE_ORDER = [RESPONSES.YES, RESPONSES.MAYBE, RESPONSES.NO]
+
+/**
  * Response variant mapping for UI components.
  */
 export const RESPONSE_VARIANTS = {
@@ -28,16 +35,18 @@ export const RESPONSE_VARIANTS = {
  * @param {string} response - The response value (yes, no, maybe)
  * @return {string} The translated display text
  */
+let responseTexts = null
+
 export function getResponseText(response) {
 	const t = window.t || ((app, text) => text)
-
-	const texts = {
+	// Built on first use, not per call: the list renders this for every card,
+	// every dot and every bar legend, and t() is not free.
+	responseTexts ??= {
 		yes: t('attendance', 'Yes'),
 		no: t('attendance', 'No'),
 		maybe: t('attendance', 'Maybe'),
 	}
-
-	return texts[response] || response
+	return responseTexts[response] || response
 }
 
 /**
@@ -49,6 +58,26 @@ export function getResponseText(response) {
  */
 export function getResponseVariant(response) {
 	return RESPONSE_VARIANTS[response] || 'tertiary'
+}
+
+/**
+ * Bar segments for a response summary, in display order.
+ *
+ * @param {object} summary The `responseSummary` payload.
+ * @return {Array} Segments for ResponseBar.
+ */
+export function responseSegments(summary) {
+	const t = window.t || ((app, text) => text)
+	return [
+		...RESPONSE_ORDER.map((response) => ({
+			key: response,
+			variant: getResponseVariant(response),
+			count: summary?.[response] ?? 0,
+			label: getResponseText(response),
+		})),
+		// No answer is the empty part of the track — legend only, no fill.
+		{ key: 'none', variant: 'tertiary', count: summary?.no_response ?? 0, label: t('attendance', 'No response') },
+	]
 }
 
 /**

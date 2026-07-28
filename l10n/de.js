@@ -534,6 +534,7 @@ OC.L10N.register(
     "Closed" : "Geschlossen",
     "Relevance" : "Wichtigkeit",
     "Only for me" : "Nur für mich",
+    "Only for me, not scheduled out" : "Nur für mich, nicht ausgeplant",
     "Upcoming" : "Kommende",
     "Past" : "Vergangene",
     "View all" : "Alle anzeigen",
@@ -643,7 +644,6 @@ OC.L10N.register(
     "Reminders before appointment" : "Erinnerungen vor einem Termin",
     "No reminders" : "Keine Erinnerungen",
     "Response notifications" : "Antwortbenachrichtigungen",
-    "Get notified when team members respond to appointments. Only available for users who can manage appointments." : "Benachrichtigungen erhalten, sobald Teammitglieder auf Termine reagieren. Nur für Benutzer verfügbar, die Termine verwalten können.",
     "Receive notifications for response changes" : "Benachrichtigungen über Antwortänderungen erhalten",
     "Unable to process response" : "Antwort konnte nicht verarbeitet werden",
     "Open Attendance app" : "Anwesenheits-App öffnen",
@@ -700,6 +700,14 @@ OC.L10N.register(
     "{actor} cancelled the appointment" : "{actor} hat diesen Termin abgesagt",
     "{actor} reactivated the appointment" : "{actor} hat diesen Termin reaktiviert",
     "{actor} performed {verb}" : "{actor} hat {verb} durchgeführt",
-    "Guests" : "Gäste"
+    "Guests" : "Gäste",
+    "Create own appointments" : "Eigene Termine erstellen",
+    "Get notified when team members respond to appointments. Only available for users who can manage or organize appointments." : "Erhalte Benachrichtigungen, wenn Teammitglieder auf Termine antworten. Nur verfügbar für Benutzer, die Termine verwalten oder organisieren können.",
+    "Groups that can create appointments and manage them as organizers, in addition to the groups above. If no group is selected, only the groups above can create appointments." : "Gruppen, die zusätzlich zu den obigen Gruppen Termine erstellen und als Organisatoren verwalten können. Wenn keine Gruppe ausgewählt ist, können nur die obigen Gruppen Termine erstellen.",
+    "Organized by {names}" : "Organisiert von {names}",
+    "Organizers" : "Organisatoren",
+    "Organizers can edit this appointment and see all responses. Organizers can add other organizers but only remove themselves." : "Organisatoren können diesen Termin bearbeiten und alle Antworten sehen. Organisatoren können weitere Organisatoren hinzufügen, aber nur sich selbst entfernen.",
+    "Search users …" : "Benutzer suchen …",
+    "Some users may appear in the section \"Others\" in the response summary because they are not configured for tracking." : "Einige Benutzer erscheinen möglicherweise im Abschnitt \"Andere\" der Antwortübersicht, da sie nicht für die Nachverfolgung eingerichtet sind."
 },
 "nplurals=2; plural=(n != 1);");

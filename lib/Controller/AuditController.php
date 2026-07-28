@@ -70,19 +70,21 @@ class AuditController extends Controller {
 			return new DataResponse(['error' => 'Audit log is disabled'], Http::STATUS_PRECONDITION_FAILED);
 		}
 
+		try {
+			$appointment = $this->appointmentMapper->find($id);
+		} catch (DoesNotExistException $e) {
+			return new DataResponse(['error' => 'Appointment not found'], Http::STATUS_NOT_FOUND);
+		}
+
+		// Organizers get the audit timeline of their own appointment in both
+		// visibility modes — it is part of their per-appointment insights.
 		$visibility = $this->configService->getAuditLogVisibility();
 		$canRead = $visibility === ConfigService::AUDIT_LOG_VISIBILITY_ALL_WITH_OVERVIEW
-			? $this->permissionService->canSeeResponseOverview($user->getUID())
-			: $this->permissionService->canManageAppointments($user->getUID());
+			? $this->permissionService->canSeeResponseOverviewFor($user->getUID(), $appointment)
+			: $this->permissionService->canManageAppointment($user->getUID(), $appointment);
 
 		if (!$canRead) {
 			return new DataResponse(['error' => 'Insufficient permissions'], Http::STATUS_FORBIDDEN);
-		}
-
-		try {
-			$this->appointmentMapper->find($id);
-		} catch (DoesNotExistException $e) {
-			return new DataResponse(['error' => 'Appointment not found'], Http::STATUS_NOT_FOUND);
 		}
 
 		$limit = max(1, min(200, $limit));

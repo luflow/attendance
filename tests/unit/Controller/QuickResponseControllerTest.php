@@ -65,13 +65,14 @@ class QuickResponseControllerTest extends TestCase {
 		);
 	}
 
-	private function makeAppointment(bool $closed): Appointment {
+	private function makeAppointment(bool $closed, bool $cancelled = false): Appointment {
 		$apt = new Appointment();
 		$apt->setId(42);
 		$apt->setName('Closed Banner Test');
 		$apt->setStartDatetime('2030-06-01 10:00:00');
 		$apt->setEndDatetime('2030-06-01 11:00:00');
 		$apt->setClosedAt($closed ? '2030-05-28 09:00:00' : null);
+		$apt->setCancelledAt($cancelled ? '2030-05-28 09:00:00' : null);
 		$apt->setResponseDeadline(null);
 		return $apt;
 	}
@@ -97,6 +98,19 @@ class QuickResponseControllerTest extends TestCase {
 		$reflection = new \ReflectionClass($this->controller);
 		$method = $reflection->getMethod('validateQuickResponse');
 		return $method->invoke($this->controller, $appointmentId, $response, $token, $userId);
+	}
+
+	public function testValidatorFlagsCancelledAppointmentAsCancelledNotError(): void {
+		// A called-off appointment is the same kind of state as a closed one:
+		// the link is legitimate, there is just nothing left to answer. It gets
+		// its own flag so the page can name the reason.
+		$this->primeValidationDependencies($this->makeAppointment(closed: false, cancelled: true));
+
+		$result = $this->invokeValidator(42, 'yes', 'sometoken', 'alice');
+
+		$this->assertFalse($result['error']);
+		$this->assertTrue($result['cancelled']);
+		$this->assertArrayNotHasKey('errorMessage', $result);
 	}
 
 	public function testValidatorFlagsClosedAppointmentAsClosedNotError(): void {

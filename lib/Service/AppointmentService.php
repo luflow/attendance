@@ -37,6 +37,9 @@ class AppointmentService {
 	private GuestService $guestService;
 	private AuditEventService $auditEventService;
 	private BookingService $bookingService;
+	private PermissionService $permissionService;
+	/** @var array<string, bool> per-request cache for isOrganizerAnywhere() */
+	private array $organizerAnywhereCache = [];
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -53,6 +56,7 @@ class AppointmentService {
 		GuestService $guestService,
 		AuditEventService $auditEventService,
 		BookingService $bookingService,
+		PermissionService $permissionService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -68,6 +72,7 @@ class AppointmentService {
 		$this->guestService = $guestService;
 		$this->auditEventService = $auditEventService;
 		$this->bookingService = $bookingService;
+		$this->permissionService = $permissionService;
 	}
 
 	/**
@@ -88,6 +93,7 @@ class AppointmentService {
 		?string $seriesId = null,
 		?int $seriesPosition = null,
 		?string $responseDeadline = null,
+		?array $organizers = null,
 	): Appointment {
 		$this->validateDateRange($startDatetime, $endDatetime);
 
@@ -116,6 +122,14 @@ class AppointmentService {
 		$appointment->setSeriesPosition($seriesPosition);
 		$appointment->setSendNotification($sendNotification);
 		$appointment->setResponseDeadline($deadlineFormatted);
+		// The creator freely chooses the initial organizer list; when the client
+		// sends nothing, the creator becomes the sole organizer.
+		$this->applyOrganizerChange(
+			$appointment,
+			$this->normalizeOrganizers($organizers ?? [$createdBy]),
+			$createdBy,
+			true,
+		);
 
 		$appointment = $this->appointmentMapper->insert($appointment);
 
@@ -148,6 +162,7 @@ class AppointmentService {
 		array $visibleGroups = [],
 		array $visibleTeams = [],
 		?DeadlineUpdate $deadlineUpdate = null,
+		?array $organizers = null,
 	): Appointment {
 		$appointment = $this->appointmentMapper->find($id);
 
@@ -167,6 +182,15 @@ class AppointmentService {
 		$appointment->setVisibleGroups(empty($visibleGroups) ? null : json_encode($visibleGroups));
 		$appointment->setVisibleTeams(empty($visibleTeams) ? null : json_encode($visibleTeams));
 
+		if ($organizers !== null) {
+			$this->applyOrganizerChange(
+				$appointment,
+				$this->normalizeOrganizers($organizers),
+				$userId,
+				$this->permissionService->canManageAppointments($userId),
+			);
+		}
+
 		$deadlineUpdate ??= DeadlineUpdate::unchanged();
 		if ($deadlineUpdate->isClear()) {
 			$appointment->setResponseDeadline(null);
@@ -184,6 +208,46 @@ class AppointmentService {
 		}
 
 		return $updated;
+	}
+
+	/**
+	 * Normalize an organizer list: drop unknown users and guests, dedupe.
+	 * Guests must never hold organizer rights (mirrors GUEST_BLOCKED_PERMISSIONS).
+	 *
+	 * @param array $organizers Raw user IDs from the client
+	 * @return list<string>
+	 */
+	private function normalizeOrganizers(array $organizers): array {
+		$normalized = [];
+		foreach ($organizers as $userId) {
+			$userId = (string)$userId;
+			if (isset($normalized[$userId])) {
+				continue;
+			}
+			if ($this->userManager->get($userId) === null || $this->guestService->isGuestUser($userId)) {
+				continue;
+			}
+			$normalized[$userId] = true;
+		}
+		return array_keys($normalized);
+	}
+
+	/**
+	 * Apply an already-normalized organizer list against the guardrails:
+	 * managers may change the list freely; organizers may add anyone but
+	 * remove only themselves.
+	 *
+	 * @param list<string> $normalized Result of normalizeOrganizers()
+	 * @throws \InvalidArgumentException When a non-manager removes someone else
+	 */
+	private function applyOrganizerChange(Appointment $appointment, array $normalized, string $actorId, bool $actorIsManager): void {
+		if (!$actorIsManager) {
+			$removed = array_diff($appointment->getOrganizersList(), $normalized);
+			if (array_diff($removed, [$actorId]) !== []) {
+				throw new \InvalidArgumentException('Organizers can only remove themselves from the organizer list.');
+			}
+		}
+		$appointment->setOrganizers($normalized === [] ? null : json_encode($normalized));
 	}
 
 	/**
@@ -213,6 +277,9 @@ class AppointmentService {
 		}
 		if ($before->getResponseDeadline() !== $after->getResponseDeadline()) {
 			$fields[] = 'deadline';
+		}
+		if ($before->getOrganizersList() !== $after->getOrganizersList()) {
+			$fields[] = 'organizers';
 		}
 
 		return $fields;
@@ -356,6 +423,7 @@ class AppointmentService {
 	 * @param list<string> $visibleGroups Group IDs
 	 * @param list<string> $visibleTeams Team IDs
 	 * @param ?DeadlineUpdate $deadlineUpdate Deadline change instruction.
+	 * @param ?list<string> $organizers New organizer list, or null to leave unchanged
 	 * @return list<Appointment> Updated appointments
 	 */
 	public function updateSeriesAppointments(
@@ -370,6 +438,7 @@ class AppointmentService {
 		array $visibleGroups = [],
 		array $visibleTeams = [],
 		?DeadlineUpdate $deadlineUpdate = null,
+		?array $organizers = null,
 	): array {
 		$deadlineUpdate ??= DeadlineUpdate::unchanged();
 		$reference = $this->appointmentMapper->find($referenceId);
@@ -382,7 +451,7 @@ class AppointmentService {
 			$updated = $this->updateAppointment(
 				$referenceId, $name, $description, $startDatetime, $endDatetime,
 				$userId, $visibleUsers, $visibleGroups, $visibleTeams,
-				$deadlineUpdate,
+				$deadlineUpdate, $organizers,
 			);
 			return [$updated];
 		}
@@ -393,7 +462,7 @@ class AppointmentService {
 			$updated = $this->updateAppointment(
 				$referenceId, $name, $description, $startDatetime, $endDatetime,
 				$userId, $visibleUsers, $visibleGroups, $visibleTeams,
-				$deadlineUpdate,
+				$deadlineUpdate, $organizers,
 			);
 			return [$updated];
 		}
@@ -415,6 +484,13 @@ class AppointmentService {
 		} else {
 			$siblings = $this->appointmentMapper->findBySeriesId($seriesId);
 		}
+
+		// Hoisted once for the whole series: the requested organizer list and
+		// the actor's manager status are identical for every sibling.
+		$actorIsManager = $this->permissionService->canManageAppointments($userId);
+		$normalizedOrganizers = $organizers === null ? null : $this->normalizeOrganizers($organizers);
+
+		$this->assertCanManageSiblings($siblings, $userId, $actorIsManager);
 
 		$this->validateDateRange($startDatetime, $endDatetime);
 
@@ -453,6 +529,10 @@ class AppointmentService {
 			$sibling->setVisibleUsers($visibleUsersJson);
 			$sibling->setVisibleGroups($visibleGroupsJson);
 			$sibling->setVisibleTeams($visibleTeamsJson);
+
+			if ($normalizedOrganizers !== null) {
+				$this->applyOrganizerChange($sibling, $normalizedOrganizers, $userId, $actorIsManager);
+			}
 
 			if ($deadlineUpdate->isClear()) {
 				$sibling->setResponseDeadline(null);
@@ -512,6 +592,8 @@ class AppointmentService {
 			$siblings = $this->appointmentMapper->findBySeriesId($seriesId);
 		}
 
+		$this->assertCanManageSiblings($siblings, $userId, $this->permissionService->canManageAppointments($userId));
+
 		foreach ($siblings as $sibling) {
 			$sibling->setIsActive(0);
 			$sibling->setUpdatedAt(gmdate('Y-m-d H:i:s'));
@@ -522,10 +604,39 @@ class AppointmentService {
 	}
 
 	/**
+	 * Series-wide operations touch appointments beyond the one the controller
+	 * authorized. Managers may touch all of them; organizers only when they
+	 * are organizer of every affected sibling.
+	 *
+	 * @param list<Appointment> $siblings
+	 * @throws \InvalidArgumentException
+	 */
+	private function assertCanManageSiblings(array $siblings, string $userId, bool $actorIsManager): void {
+		if ($actorIsManager) {
+			return;
+		}
+		foreach ($siblings as $sibling) {
+			if (!$this->permissionService->isOrganizer($sibling, $userId)) {
+				throw new \InvalidArgumentException('You are not an organizer of all appointments in this series.');
+			}
+		}
+	}
+
+	/**
 	 * Get a single appointment by ID.
 	 */
 	public function getAppointment(int $id): Appointment {
 		return $this->appointmentMapper->find($id);
+	}
+
+	/**
+	 * Whether the user is organizer of at least one active appointment.
+	 * Memoized per request — the user-search endpoint consults this per
+	 * keystroke and the underlying LIKE query scans the appointments table.
+	 */
+	public function isOrganizerAnywhere(string $userId): bool {
+		return $this->organizerAnywhereCache[$userId]
+			??= $this->appointmentMapper->existsWithOrganizer($userId);
 	}
 
 	/**
@@ -544,6 +655,16 @@ class AppointmentService {
 			return null;
 		}
 
+		// Organizers get the insights for their own appointment even without
+		// the global overview/comments permissions.
+		$myPermissions = $this->buildMyPermissions(
+			$appointment,
+			$userId,
+			$this->permissionService->canManageAppointments($userId),
+			$includeResponseSummary,
+			$includeComments,
+		);
+
 		$appointmentData = $appointment->jsonSerialize();
 		$appointmentData = $this->enrichVisibilityData($appointmentData);
 		$appointmentData = $this->enrichSeriesCount($appointmentData, $appointment);
@@ -552,12 +673,52 @@ class AppointmentService {
 		// before they ever responded; treat that as "no response" (matches list endpoint).
 		$userResponse = $this->getUserResponse($appointment->getId(), $userId);
 		$appointmentData['userResponse'] = ($userResponse && $userResponse->getResponse() !== null) ? $userResponse : null;
-		if ($includeResponseSummary) {
-			$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId(), $includeComments);
+		if ($myPermissions['canSeeResponses']) {
+			$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId(), $myPermissions['canSeeComments']);
 		}
 		$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
+		$appointmentData['myPermissions'] = $myPermissions;
 
 		return $appointmentData;
+	}
+
+	/**
+	 * Per-appointment permissions of the requesting user, shipped with every
+	 * appointment payload so clients gate their UI on the appointment context
+	 * instead of the global flags.
+	 *
+	 * Composes the same "global permission OR organizer" rules as
+	 * PermissionService::canManageAppointment()/canSeeResponseOverviewFor(),
+	 * but takes the global flags precomputed so the list endpoint does not
+	 * redo the group lookups per appointment.
+	 *
+	 * @return array{isOrganizer: bool, canEdit: bool, canSeeResponses: bool, canSeeComments: bool, canSeeAuditLog: bool}
+	 */
+	private function buildMyPermissions(
+		Appointment $appointment,
+		string $userId,
+		bool $globalManage,
+		bool $globalSeeResponses,
+		bool $globalSeeComments,
+	): array {
+		$isOrganizer = $this->permissionService->isOrganizer($appointment, $userId);
+		$canEdit = $globalManage || $isOrganizer;
+		$canSeeResponses = $globalSeeResponses || $isOrganizer;
+
+		// Mirrors AuditController's gate — computed server-side because the
+		// audit visibility mode is admin config the clients don't know.
+		$canSeeAuditLog = $this->configService->isAuditLogEnabled()
+			&& ($this->configService->getAuditLogVisibility() === ConfigService::AUDIT_LOG_VISIBILITY_ALL_WITH_OVERVIEW
+				? $canSeeResponses
+				: $canEdit);
+
+		return [
+			'isOrganizer' => $isOrganizer,
+			'canEdit' => $canEdit,
+			'canSeeResponses' => $canSeeResponses,
+			'canSeeComments' => $globalSeeComments || $isOrganizer,
+			'canSeeAuditLog' => $canSeeAuditLog,
+		];
 	}
 
 	/**
@@ -613,6 +774,13 @@ class AppointmentService {
 
 		if ($appointment->isClosed()) {
 			throw new \RuntimeException('This appointment is closed and no longer accepts responses.');
+		}
+
+		// A called-off appointment will not take place, so there is nothing left
+		// to answer. The clients hide the controls, but notification actions and
+		// older app versions reach this endpoint directly.
+		if ($appointment->isCancelled()) {
+			throw new \RuntimeException('This appointment was cancelled and no longer accepts responses.');
 		}
 
 		// Withdrawing also wipes the comment so an orphan comment can't survive
@@ -780,6 +948,10 @@ class AppointmentService {
 	 *                                     the caller's PERMISSION_SEE_RESPONSE_OVERVIEW.
 	 * @param bool $includeComments Include free-text comments in that overview.
 	 *                              Gate on the caller's PERMISSION_SEE_COMMENTS.
+	 * @param bool $notScheduledOut Drop appointments the user was scheduled out
+	 *                              of (see isScheduledOut). Implies $onlyForMe —
+	 *                              a relevance filter that still let through
+	 *                              other people's appointments would be odd.
 	 */
 	public function getAppointmentsWithUserResponses(
 		string $userId,
@@ -788,6 +960,7 @@ class AppointmentService {
 		bool $onlyForMe = false,
 		bool $includeResponseSummary = false,
 		bool $includeComments = false,
+		bool $notScheduledOut = false,
 	): array {
 		$appointments = $showPastAppointments
 			? $this->getPastAppointments()
@@ -799,8 +972,9 @@ class AppointmentService {
 		// "Unanswered" only makes sense for appointments actually addressed to
 		// the user. For managers, the visibility check otherwise lets through
 		// every unanswered appointment in the system, which defeats the inbox.
-		$onlyForMe = $onlyForMe || $unansweredOnly;
+		$onlyForMe = $onlyForMe || $unansweredOnly || $notScheduledOut;
 
+		$globalManage = $this->permissionService->canManageAppointments($userId);
 		$result = [];
 
 		foreach ($appointments as $appointment) {
@@ -813,6 +987,9 @@ class AppointmentService {
 			if ($unansweredOnly && ($appointment->isClosed() || $appointment->isCancelled())) {
 				continue;
 			}
+			if ($notScheduledOut && $this->bookingService->isScheduledOut($appointment, $userId)) {
+				continue;
+			}
 
 			$userResponse = $this->getUserResponse($appointment->getId(), $userId);
 			$hasResponse = $userResponse && $userResponse->getResponse() !== null;
@@ -820,14 +997,23 @@ class AppointmentService {
 				continue;
 			}
 
+			$myPermissions = $this->buildMyPermissions(
+				$appointment,
+				$userId,
+				$globalManage,
+				$includeResponseSummary,
+				$includeComments,
+			);
+
 			$appointmentData = $appointment->jsonSerialize();
 			$appointmentData = $this->enrichVisibilityData($appointmentData);
 			$appointmentData = $this->enrichSeriesCount($appointmentData, $appointment);
 			$appointmentData['userResponse'] = $hasResponse ? $userResponse : null;
-			if ($includeResponseSummary) {
-				$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId(), $includeComments);
+			if ($myPermissions['canSeeResponses']) {
+				$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId(), $myPermissions['canSeeComments']);
 			}
 			$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
+			$appointmentData['myPermissions'] = $myPermissions;
 			$result[] = $appointmentData;
 		}
 
@@ -853,6 +1039,9 @@ class AppointmentService {
 				continue;
 			}
 			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
+				continue;
+			}
+			if ($this->bookingService->isScheduledOut($appointment, $userId)) {
 				continue;
 			}
 
@@ -1222,13 +1411,8 @@ class AppointmentService {
 		// Enrich visible users
 		$enrichedUsers = [];
 		foreach ($appointmentData['visibleUsers'] ?? [] as $userId) {
-			$user = $this->userManager->get($userId);
-			$enrichedUsers[] = [
-				'id' => $userId,
-				'label' => $user ? $user->getDisplayName() : $userId,
-				'type' => 'user',
-				'isGuest' => $this->guestService->isGuestUser($userId),
-			];
+			$enrichedUsers[] = $this->enrichUserRef($userId)
+				+ ['isGuest' => $this->guestService->isGuestUser($userId)];
 		}
 		$appointmentData['visibleUsers'] = $enrichedUsers;
 
@@ -1256,7 +1440,25 @@ class AppointmentService {
 		}
 		$appointmentData['visibleTeams'] = $enrichedTeams;
 
+		// Enrich organizers
+		$appointmentData['organizers'] = array_map(
+			fn (string $userId) => $this->enrichUserRef($userId),
+			$appointmentData['organizers'] ?? [],
+		);
+
 		return $appointmentData;
+	}
+
+	/**
+	 * @return array{id: string, label: string, type: string}
+	 */
+	private function enrichUserRef(string $userId): array {
+		$user = $this->userManager->get($userId);
+		return [
+			'id' => $userId,
+			'label' => $user ? $user->getDisplayName() : $userId,
+			'type' => 'user',
+		];
 	}
 
 	/**

@@ -15,9 +15,9 @@ use OCP\Notification\IManager as INotificationManager;
 use Psr\Log\LoggerInterface;
 
 /**
- * Dispatches a notification to every manage_appointments user who opted in
- * via personal settings, whenever a response is submitted, changed, or
- * rescinded.
+ * Dispatches a notification to every manage_appointments user and every
+ * organizer of the affected appointment who opted in via personal settings,
+ * whenever a response is submitted, changed, or rescinded.
  */
 class ResponseChangeNotificationListener {
 	private const SUBJECT_BY_VERB = [
@@ -61,7 +61,7 @@ class ResponseChangeNotificationListener {
 			return;
 		}
 
-		$recipients = $this->resolveOptedInRecipients($event->getActorId());
+		$recipients = $this->resolveOptedInRecipients($event->getActorId(), $appointment);
 		if ($recipients === []) {
 			return;
 		}
@@ -100,20 +100,22 @@ class ResponseChangeNotificationListener {
 	}
 
 	/**
-	 * Bulk-fetch the notify_response_changes opt-in for every manager and
-	 * filter to those who actually want pushes, minus the actor (no self-notify).
+	 * Bulk-fetch the notify_response_changes opt-in for every manager plus the
+	 * organizers of the affected appointment, and filter to those who actually
+	 * want pushes, minus the actor (no self-notify).
 	 *
 	 * @return list<string>
 	 */
-	private function resolveOptedInRecipients(?string $actorId): array {
+	private function resolveOptedInRecipients(?string $actorId, \OCA\Attendance\Db\Appointment $appointment): array {
 		$managers = $this->permissionService->getUsersWith(PermissionService::PERMISSION_MANAGE_APPOINTMENTS);
-		if ($managers === []) {
+		$candidates = array_values(array_unique(array_merge($managers, $appointment->getOrganizersList())));
+		if ($candidates === []) {
 			return [];
 		}
 		// One bulk read instead of N getUserValue() calls.
-		$optInValues = $this->config->getUserValueForUsers('attendance', 'notify_response_changes', $managers);
+		$optInValues = $this->config->getUserValueForUsers('attendance', 'notify_response_changes', $candidates);
 		$recipients = [];
-		foreach ($managers as $uid) {
+		foreach ($candidates as $uid) {
 			if ($uid === $actorId) {
 				continue;
 			}

@@ -79,17 +79,36 @@ class AppointmentController extends Controller {
 	}
 
 	/**
+	 * Load an appointment and authorize the current user to manage it
+	 * (global manager or organizer of this appointment). Returns the error
+	 * DataResponse to send when loading or authorization fails, the
+	 * Appointment otherwise.
+	 */
+	private function findManageableAppointment(int $id, string $userId, string $permissionError): \OCA\Attendance\Db\Appointment|DataResponse {
+		try {
+			$appointment = $this->appointmentService->getAppointment($id);
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => 'Appointment not found'], 404);
+		}
+		if (!$this->permissionService->canManageAppointment($userId, $appointment)) {
+			return new DataResponse(['error' => $permissionError], 403);
+		}
+		return $appointment;
+	}
+
+	/**
 	 * List appointments visible to the current user
 	 *
 	 * @param bool $showPastAppointments Whether to show past appointments instead of upcoming ones
 	 * @param bool $unansweredOnly When true, only return upcoming appointments that the user has not answered yet AND that are still open. Ignored when $showPastAppointments is true.
 	 * @param bool $onlyForMe When true, restrict the result to appointments the user is part of the target audience for (visibleUsers/Groups/Teams membership; appointments with no visibility restriction count as "for everyone" and are included). Useful for managers, who otherwise see every appointment in the system.
+	 * @param bool $notScheduledOut When true, additionally drop closed appointments where somebody was scheduled but the user was not. Only has an effect while the planning feature is enabled; appointments nobody was scheduled for stay visible to everyone. Implies $onlyForMe.
 	 * @return DataResponse<Http::STATUS_OK, list<AttendanceAppointmentWithResponse>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI]
-	public function index(bool $showPastAppointments = false, bool $unansweredOnly = false, bool $onlyForMe = false): DataResponse {
+	public function index(bool $showPastAppointments = false, bool $unansweredOnly = false, bool $onlyForMe = false, bool $notScheduledOut = false): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
@@ -110,11 +129,13 @@ class AppointmentController extends Controller {
 			$onlyForMe,
 			$canSeeResponseOverview,
 			$canSeeComments,
+			$notScheduledOut,
 		);
 
-		// Add checkin summary to each appointment if user can see response overview
-		if ($canSeeResponseOverview) {
-			foreach ($appointments as &$appointment) {
+		// Add checkin summary to each appointment the user may see responses
+		// for (global permission or organizer of that appointment)
+		foreach ($appointments as &$appointment) {
+			if ($appointment['myPermissions']['canSeeResponses']) {
 				$appointment['checkinSummary'] = $this->checkinService->getCheckinSummary($appointment['id']);
 			}
 		}
@@ -155,6 +176,7 @@ class AppointmentController extends Controller {
 	 * @param ?string $calendarEventUid UID of the source calendar event
 	 * @param list<int> $attachments File IDs to attach to the appointment
 	 * @param ?string $responseDeadline Optional response deadline (ISO 8601). Cron auto-closes the inquiry once passed.
+	 * @param list<string> $organizers User IDs to set as organizers; empty defaults to the creator
 	 * @return DataResponse<Http::STATUS_CREATED, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
@@ -173,14 +195,16 @@ class AppointmentController extends Controller {
 		?string $calendarEventUid = null,
 		array $attachments = [],
 		?string $responseDeadline = null,
+		array $organizers = [],
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
-		// Check if user can manage appointments
-		if (!$this->permissionService->canManageAppointments($user->getUID())) {
+		// Managers or members of the create_appointments groups may create;
+		// the creator becomes organizer of the new appointment.
+		if (!$this->permissionService->canCreateAppointments($user->getUID())) {
 			return new DataResponse(['error' => 'Insufficient permissions to create appointments'], 403);
 		}
 
@@ -200,6 +224,7 @@ class AppointmentController extends Controller {
 				null,
 				null,
 				$responseDeadline,
+				$organizers === [] ? null : $organizers,
 			);
 
 			$this->addAttachmentsToAppointment($appointment->getId(), $attachments, $user->getUID());
@@ -216,18 +241,19 @@ class AppointmentController extends Controller {
 	 * @param list<AttendanceBulkAppointmentItem> $appointments List of appointments to create
 	 * @param bool $sendNotification Whether to send a batch notification to affected users
 	 * @param list<int> $attachments File IDs to attach to all created appointments
+	 * @param list<string> $organizers User IDs to set as organizers on all created appointments; empty defaults to the creator
 	 * @return DataResponse<Http::STATUS_CREATED, array{created: list<int>, errors: list<array{index: int, name: string, error: string}>}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI]
-	public function bulkCreate(array $appointments, bool $sendNotification = false, array $attachments = []): DataResponse {
+	public function bulkCreate(array $appointments, bool $sendNotification = false, array $attachments = [], array $organizers = []): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
-		if (!$this->permissionService->canManageAppointments($user->getUID())) {
+		if (!$this->permissionService->canCreateAppointments($user->getUID())) {
 			return new DataResponse(['error' => 'Insufficient permissions to create appointments'], 403);
 		}
 
@@ -255,6 +281,7 @@ class AppointmentController extends Controller {
 					$seriesId,
 					$index,
 					$data['responseDeadline'] ?? null,
+					$organizers === [] ? null : $organizers,
 				);
 				$createdIds[] = $appointment->getId();
 				if ($firstAppointment === null) {
@@ -307,6 +334,7 @@ class AppointmentController extends Controller {
 	 * @param list<int> $attachments File IDs to attach to the appointment
 	 * @param string $scope Series update scope: single, future, or all
 	 * @param ?string $responseDeadline Optional response deadline (ISO 8601). Empty string clears it; null leaves unchanged.
+	 * @param ?list<string> $organizers New organizer list, or null to leave unchanged. Organizers may add anyone but remove only themselves; managers may change freely.
 	 * @return DataResponse<Http::STATUS_OK, AttendanceAppointmentData|list<AttendanceAppointmentData>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
@@ -324,20 +352,16 @@ class AppointmentController extends Controller {
 		array $attachments = [],
 		string $scope = 'single',
 		?string $responseDeadline = null,
+		?array $organizers = null,
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
-		// Check if user can manage appointments or is creator
-		try {
-			$appointment = $this->appointmentService->getAppointment($id);
-			if (!$this->permissionService->canManageAppointments($user->getUID()) && $appointment->getCreatedBy() !== $user->getUID()) {
-				return new DataResponse(['error' => 'Insufficient permissions to update appointments'], 403);
-			}
-		} catch (\Exception $e) {
-			return new DataResponse(['error' => 'Appointment not found'], 404);
+		$appointment = $this->findManageableAppointment($id, $user->getUID(), 'Insufficient permissions to update appointments');
+		if ($appointment instanceof DataResponse) {
+			return $appointment;
 		}
 
 		try {
@@ -347,7 +371,7 @@ class AppointmentController extends Controller {
 				$updatedAppointments = $this->appointmentService->updateSeriesAppointments(
 					$id, $scope, $name, $description, $startDatetime, $endDatetime,
 					$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
-					$deadlineUpdate,
+					$deadlineUpdate, $organizers,
 				);
 
 				// Sync attachments across all affected appointments
@@ -363,7 +387,7 @@ class AppointmentController extends Controller {
 				$updatedAppointments = $this->appointmentService->updateSeriesAppointments(
 					$id, 'single', $name, $description, $startDatetime, $endDatetime,
 					$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
-					$deadlineUpdate,
+					$deadlineUpdate, $organizers,
 				);
 				$this->syncAttachments($id, $attachments, $user->getUID());
 				return new DataResponse($updatedAppointments[0]);
@@ -372,7 +396,7 @@ class AppointmentController extends Controller {
 			$appointment = $this->appointmentService->updateAppointment(
 				$id, $name, $description, $startDatetime, $endDatetime,
 				$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
-				$deadlineUpdate,
+				$deadlineUpdate, $organizers,
 			);
 
 			$this->syncAttachments($id, $attachments, $user->getUID());
@@ -403,14 +427,9 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
-		try {
-			$appointment = $this->appointmentService->getAppointment($id);
-			if (!$this->permissionService->canManageAppointments($user->getUID())
-				&& $appointment->getCreatedBy() !== $user->getUID()) {
-				return new DataResponse(['error' => 'Insufficient permissions to close this appointment'], 403);
-			}
-		} catch (\Exception $e) {
-			return new DataResponse(['error' => 'Appointment not found'], 404);
+		$appointment = $this->findManageableAppointment($id, $user->getUID(), 'Insufficient permissions to close this appointment');
+		if ($appointment instanceof DataResponse) {
+			return $appointment;
 		}
 
 		$updated = $this->appointmentService->closeAppointment($id);
@@ -432,14 +451,9 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
-		try {
-			$appointment = $this->appointmentService->getAppointment($id);
-			if (!$this->permissionService->canManageAppointments($user->getUID())
-				&& $appointment->getCreatedBy() !== $user->getUID()) {
-				return new DataResponse(['error' => 'Insufficient permissions to re-open this appointment'], 403);
-			}
-		} catch (\Exception $e) {
-			return new DataResponse(['error' => 'Appointment not found'], 404);
+		$appointment = $this->findManageableAppointment($id, $user->getUID(), 'Insufficient permissions to re-open this appointment');
+		if ($appointment instanceof DataResponse) {
+			return $appointment;
 		}
 
 		$updated = $this->appointmentService->reopenAppointment($id);
@@ -466,14 +480,9 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
-		try {
-			$appointment = $this->appointmentService->getAppointment($id);
-			if (!$this->permissionService->canManageAppointments($user->getUID())
-				&& $appointment->getCreatedBy() !== $user->getUID()) {
-				return new DataResponse(['error' => 'Insufficient permissions to cancel this appointment'], 403);
-			}
-		} catch (\Exception $e) {
-			return new DataResponse(['error' => 'Appointment not found'], 404);
+		$appointment = $this->findManageableAppointment($id, $user->getUID(), 'Insufficient permissions to cancel this appointment');
+		if ($appointment instanceof DataResponse) {
+			return $appointment;
 		}
 
 		$updated = $this->appointmentService->cancelAppointment($id, $user->getUID());
@@ -495,14 +504,9 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
-		try {
-			$appointment = $this->appointmentService->getAppointment($id);
-			if (!$this->permissionService->canManageAppointments($user->getUID())
-				&& $appointment->getCreatedBy() !== $user->getUID()) {
-				return new DataResponse(['error' => 'Insufficient permissions to reactivate this appointment'], 403);
-			}
-		} catch (\Exception $e) {
-			return new DataResponse(['error' => 'Appointment not found'], 404);
+		$appointment = $this->findManageableAppointment($id, $user->getUID(), 'Insufficient permissions to reactivate this appointment');
+		if ($appointment instanceof DataResponse) {
+			return $appointment;
 		}
 
 		$updated = $this->appointmentService->uncancelAppointment($id);
@@ -554,14 +558,9 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'Booking is not enabled'], 400);
 		}
 
-		try {
-			$appointment = $this->appointmentService->getAppointment($id);
-			if (!$this->permissionService->canManageAppointments($user->getUID())
-				&& $appointment->getCreatedBy() !== $user->getUID()) {
-				return new DataResponse(['error' => 'Insufficient permissions to change bookings'], 403);
-			}
-		} catch (\Exception $e) {
-			return new DataResponse(['error' => 'Appointment not found'], 404);
+		$appointment = $this->findManageableAppointment($id, $user->getUID(), 'Insufficient permissions to change bookings');
+		if ($appointment instanceof DataResponse) {
+			return $appointment;
 		}
 
 		try {
@@ -608,8 +607,8 @@ class AppointmentController extends Controller {
 				return new DataResponse(['error' => 'Appointment not found or not visible'], 404);
 			}
 
-			// Add checkin summary if user can see response overview
-			if ($canSeeResponseOverview) {
+			// Add checkin summary if user may see responses for this appointment
+			if ($appointment['myPermissions']['canSeeResponses']) {
 				$appointment['checkinSummary'] = $this->checkinService->getCheckinSummary($id);
 			}
 
@@ -636,13 +635,9 @@ class AppointmentController extends Controller {
 		}
 
 		// Check if user can manage appointments or is creator
-		try {
-			$appointment = $this->appointmentService->getAppointment($id);
-			if (!$this->permissionService->canManageAppointments($user->getUID()) && $appointment->getCreatedBy() !== $user->getUID()) {
-				return new DataResponse(['error' => 'Insufficient permissions to delete appointments'], 403);
-			}
-		} catch (\Exception $e) {
-			return new DataResponse(['error' => 'Appointment not found'], 404);
+		$appointment = $this->findManageableAppointment($id, $user->getUID(), 'Insufficient permissions to delete appointments');
+		if ($appointment instanceof DataResponse) {
+			return $appointment;
 		}
 
 		try {
@@ -664,10 +659,10 @@ class AppointmentController extends Controller {
 	}
 
 	/**
-	 * Get detailed responses for an appointment (requires manage appointments permission)
+	 * Get detailed responses for an appointment (requires manage appointments permission or being an organizer of it)
 	 *
 	 * @param int $id Appointment ID
-	 * @return DataResponse<Http::STATUS_OK, list<AttendanceResponseWithUser>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, list<AttendanceResponseWithUser>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -678,9 +673,9 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
-		// Check if user can manage appointments
-		if (!$this->permissionService->canManageAppointments($user->getUID())) {
-			return new DataResponse(['error' => 'Insufficient permissions to view detailed responses'], 403);
+		$appointment = $this->findManageableAppointment($id, $user->getUID(), 'Insufficient permissions to view detailed responses');
+		if ($appointment instanceof DataResponse) {
+			return $appointment;
 		}
 
 		try {
@@ -838,6 +833,7 @@ class AppointmentController extends Controller {
 
 		return new DataResponse([
 			'canManageAppointments' => $this->permissionService->canManageAppointments($user->getUID()),
+			'canCreateAppointments' => $this->permissionService->canCreateAppointments($user->getUID()),
 			'canCheckin' => $this->permissionService->canCheckin($user->getUID()),
 			'canSeeResponseOverview' => $this->permissionService->canSeeResponseOverview($user->getUID()),
 			'canSeeComments' => $this->permissionService->canSeeComments($user->getUID()),
@@ -878,6 +874,10 @@ class AppointmentController extends Controller {
 			// Server supports QR/NFC self-check-in (method param + overview
 			// endpoint). Mobile clients hide the scan UI when this is false.
 			'selfCheckin' => true,
+			// Server supports per-appointment organizers (organizer list,
+			// myPermissions payload, create_appointments permission). Mobile
+			// clients hide organizer UI when this is false.
+			'organizers' => true,
 		]);
 	}
 
@@ -924,7 +924,8 @@ class AppointmentController extends Controller {
 	 * Get personal user settings
 	 *
 	 * Response-change notification toggle is only included for users who can
-	 * actually receive these notifications (manage_appointments + audit log
+	 * actually receive these notifications (managers, users allowed to create
+	 * appointments, or organizers of at least one appointment — with audit log
 	 * enabled). Frontend uses the key's presence to decide whether to render
 	 * the toggle at all.
 	 *
@@ -944,7 +945,7 @@ class AppointmentController extends Controller {
 		];
 
 		if ($this->configService->isAuditLogEnabled()
-			&& $this->permissionService->canManageAppointments($user->getUID())) {
+			&& $this->canReceiveResponseNotifications($user->getUID())) {
 			$payload['notifyResponseChanges'] = $this->configService->wantsResponseChangeNotifications($user->getUID());
 		}
 
@@ -971,11 +972,21 @@ class AppointmentController extends Controller {
 
 		if ($notifyResponseChanges !== null
 			&& $this->configService->isAuditLogEnabled()
-			&& $this->permissionService->canManageAppointments($user->getUID())) {
+			&& $this->canReceiveResponseNotifications($user->getUID())) {
 			$this->configService->setWantsResponseChangeNotifications($user->getUID(), $notifyResponseChanges);
 		}
 
 		return new DataResponse(['success' => true]);
+	}
+
+	/**
+	 * Whether the user can receive response-change notifications: global
+	 * managers, users allowed to create appointments (they will become
+	 * organizers), and current organizers of at least one appointment.
+	 */
+	private function canReceiveResponseNotifications(string $userId): bool {
+		return $this->permissionService->canCreateAppointments($userId)
+			|| $this->appointmentService->isOrganizerAnywhere($userId);
 	}
 
 	/**
@@ -1068,8 +1079,10 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
-		// Check if user can manage appointments
-		if (!$this->permissionService->canManageAppointments($user->getUID())) {
+		// Managers and users allowed to create appointments need the picker
+		// for visibility/organizer fields; organizers need it in the edit form.
+		if (!$this->permissionService->canCreateAppointments($user->getUID())
+			&& !$this->appointmentService->isOrganizerAnywhere($user->getUID())) {
 			return new DataResponse(['error' => 'Insufficient permissions'], 403);
 		}
 
@@ -1133,18 +1146,13 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
-		if (!$this->permissionService->canManageAppointments($user->getUID())) {
-			return new DataResponse(['error' => 'Insufficient permissions'], 403);
-		}
-
 		if (!in_array($target, ConfigService::VALID_REMINDER_TARGETS, true)) {
 			return new DataResponse(['error' => 'Invalid target, must be one of: non_responders, maybe, both'], 400);
 		}
 
-		try {
-			$appointment = $this->appointmentService->getAppointment($id);
-		} catch (\Exception $e) {
-			return new DataResponse(['error' => 'Appointment not found'], 404);
+		$appointment = $this->findManageableAppointment($id, $user->getUID(), 'Insufficient permissions');
+		if ($appointment instanceof DataResponse) {
+			return $appointment;
 		}
 
 		if ($appointment->isClosed()) {
@@ -1173,14 +1181,9 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
-		if (!$this->permissionService->canManageAppointments($user->getUID())) {
-			return new DataResponse(['error' => 'Insufficient permissions'], 403);
-		}
-
-		try {
-			$appointment = $this->appointmentService->getAppointment($id);
-		} catch (\Exception $e) {
-			return new DataResponse(['error' => 'Appointment not found'], 404);
+		$appointment = $this->findManageableAppointment($id, $user->getUID(), 'Insufficient permissions');
+		if ($appointment instanceof DataResponse) {
+			return $appointment;
 		}
 
 		if ($appointment->isClosed()) {

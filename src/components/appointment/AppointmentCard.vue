@@ -1,172 +1,65 @@
 <template>
 	<div class="appointment-card" data-test="appointment-card">
-		<div class="appointment-header">
+		<div class="appointment-header" :class="{ 'appointment-header--cancelled': isCancelled }">
 			<div class="appointment-title-block">
-				<h3
-					data-test="appointment-title"
-					:class="{ 'appointment-date-title': displayOrder === 'date_first' }">
-					<a
-						v-if="isListVariant"
-						:href="detailUrl"
-						class="title-link"
-						data-test="appointment-title-link"
-						@click.prevent="emit('openDetail', appointment.id)">
+				<div class="appointment-headline">
+					<h3 data-test="appointment-title" :class="{ 'title-cancelled': isCancelled }">
 						{{ titleText }}
-						<ChevronRightIcon :size="18" class="title-chevron" />
-					</a>
-					<template v-else>
-						{{ titleText }}
-					</template>
-					<a
-						v-if="displayOrder === 'date_first' && calendarLink"
-						:href="calendarLink"
-						target="_blank"
-						rel="noopener noreferrer"
-						class="calendar-link"
-						:title="t('attendance', 'Imported from calendar')">
-						<CalendarSyncIcon :size="14" />
-					</a>
-					<span
-						v-if="appointment.seriesId"
-						class="series-indicator"
-						:title="t('attendance', 'Part of a recurring series')">
-						<RepeatIcon :size="14" />
-					</span>
-				</h3>
-				<span class="appointment-date-subtitle">
-					{{ subtitleText }}
-					<a
-						v-if="displayOrder !== 'date_first' && calendarLink"
-						:href="calendarLink"
-						target="_blank"
-						rel="noopener noreferrer"
-						class="calendar-link"
-						:title="t('attendance', 'Imported from calendar')">
-						<CalendarSyncIcon :size="14" />
-					</a>
-				</span>
-				<!-- TRANSLATORS: Status badge on an appointment that was called off (German "Abgesagt", not "Abgebrochen"). The generic dialog button "Cancel" (German "Abbrechen") is a different string. -->
-				<NcChip v-if="isCancelled" class="cancelled-badge" :text="t('attendance', 'Cancelled')" variant="error" noClose data-test="cancelled-badge" />
+					</h3>
+					<AppointmentStatusChips :appointment="appointment" />
+				</div>
+				<AppointmentMeta :appointment="appointment" :dateText="subtitleText" />
 			</div>
-			<div class="appointment-actions">
-				<NcActions
-					:forceMenu="true"
-					data-test="appointment-actions-menu">
-					<NcActionButton
-						:closeAfterClick="true"
-						data-test="action-share-link"
-						@click="copyShareLink">
-						<template #icon>
-							<ShareVariantIcon :size="20" />
-						</template>
-						{{ t("attendance", "Share link") }}
-					</NcActionButton>
-					<NcActionButton
-						v-if="canCheckin"
-						:closeAfterClick="true"
-						data-test="action-start-checkin"
-						@click="handleStartCheckin">
-						<template #icon>
-							<ListStatusIcon :size="20" />
-						</template>
-						{{ t("attendance", "Start check-in") }}
-					</NcActionButton>
-					<NcActionButton
-						v-if="canManageAppointments && !isClosed"
-						:closeAfterClick="true"
-						:disabled="sendingReminders"
-						data-test="action-remind-all"
-						@click="showRemindDialog = true">
-						<template #icon>
-							<BellRingIcon :size="20" />
-						</template>
-						{{ t("attendance", "Remind") }}
-					</NcActionButton>
-					<NcActionButton
-						v-if="canToggleClosed"
-						:closeAfterClick="true"
-						:disabled="togglingClosed"
-						:data-test="isClosed ? 'action-reopen-inquiry' : 'action-close-inquiry'"
-						@click="handleToggleClosed">
-						<template #icon>
-							<LockOpenIcon v-if="isClosed" :size="20" />
-							<LockIcon v-else :size="20" />
-						</template>
-						{{
-							isClosed
-								? t("attendance", "Reopen inquiry")
-								: t("attendance", "Close inquiry")
-						}}
-					</NcActionButton>
-					<NcActionButton
-						v-if="canCancel"
-						:closeAfterClick="true"
-						:disabled="togglingCancelled"
-						:data-test="isCancelled ? 'action-reactivate-appointment' : 'action-cancel-appointment'"
-						@click="handleToggleCancelled">
-						<template #icon>
-							<CalendarRefreshIcon v-if="isCancelled" :size="20" />
-							<CalendarRemoveIcon v-else :size="20" />
-						</template>
-						{{ cancelToggleLabel }}
-					</NcActionButton>
-					<NcActionButton
-						v-if="canManageAppointments"
-						:closeAfterClick="true"
-						data-test="action-edit"
-						@click="handleEdit">
-						<template #icon>
-							<Pencil :size="20" />
-						</template>
-						{{ t("attendance", "Edit") }}
-					</NcActionButton>
-					<NcActionButton
-						v-if="canManageAppointments"
-						:closeAfterClick="true"
-						data-test="action-export"
-						@click="handleExport">
-						<template #icon>
-							<DownloadIcon :size="20" />
-						</template>
-						{{ t("attendance", "Export") }}
-					</NcActionButton>
-					<NcActionButton
-						v-if="canManageAppointments"
-						:closeAfterClick="true"
-						data-test="action-copy"
-						@click="handleCopy">
-						<template #icon>
-							<ContentCopy :size="20" />
-						</template>
-						{{ t("attendance", "Copy") }}
-					</NcActionButton>
-					<NcActionButton
-						v-if="canSeeAuditLog"
-						:closeAfterClick="true"
-						data-test="action-show-audit-log"
-						@click="emit('showAuditLog', appointment.id)">
-						<template #icon>
-							<HistoryIcon :size="20" />
-						</template>
-						{{ t("attendance", "Show activity history") }}
-					</NcActionButton>
-					<NcActionButton
-						v-if="canManageAppointments"
-						:closeAfterClick="true"
-						data-test="action-delete"
-						@click="handleDelete">
-						<template #icon>
-							<Delete :size="20" />
-						</template>
-						{{ t("attendance", "Delete") }}
-					</NcActionButton>
-				</NcActions>
+			<AppointmentActionsMenu
+				:appointment="appointment"
+				:canSeeAuditLog="canSeeAuditLog"
+				@startCheckin="emit('startCheckin', $event)"
+				@edit="emit('edit', $event)"
+				@copy="emit('copy', $event)"
+				@delete="emit('delete', $event)"
+				@export="emit('export', $event)"
+				@showAuditLog="emit('showAuditLog', $event)"
+				@closedToggled="emit('closedToggled', $event)" />
+		</div>
+
+		<!-- Cancelled banner -->
+		<div v-if="isCancelled" class="status-banner status-banner--error" data-test="cancelled-banner">
+			<CalendarRemoveIcon :size="20" />
+			<div class="status-banner__text">
+				<!-- TRANSLATORS: Banner headline on an appointment that was called off (German "Termin abgesagt", not "abgebrochen"). -->
+				<strong>{{ t("attendance", "Appointment cancelled") }}</strong>
+				<span>{{ formatCancelledLabel(appointment.cancelledAt) }}</span>
 			</div>
+			<NcButton
+				v-if="canCancel"
+				variant="secondary"
+				:disabled="togglingCancelled"
+				data-test="banner-reactivate-appointment"
+				@click="toggleCancelled">
+				<!-- TRANSLATORS: Button that takes a cancellation back — the appointment will take place again. -->
+				{{ t("attendance", "Reactivate") }}
+			</NcButton>
+		</div>
+
+		<!-- Closed banner — only managers can act on it, everyone else gets the chip -->
+		<div v-else-if="isClosed && canManage" class="status-banner" data-test="closed-banner">
+			<LockIcon :size="20" />
+			<div class="status-banner__text">
+				<strong>{{ t("attendance", "Inquiry closed") }}</strong>
+				<span>{{ closedLabel }}</span>
+			</div>
+			<NcButton
+				variant="secondary"
+				:disabled="togglingClosed"
+				data-test="banner-reopen-inquiry"
+				@click="toggleClosed">
+				{{ t("attendance", "Reopen") }}
+			</NcButton>
 		</div>
 
 		<!-- eslint-disable vue/no-v-html -- sanitized with DOMPurify -->
 		<div
-			v-if="!isListVariant && appointment.description"
+			v-if="appointment.description"
 			class="appointment-description"
 			v-html="renderedDescription" />
 		<!-- eslint-enable vue/no-v-html -->
@@ -178,7 +71,7 @@
 			<a
 				v-for="attachment in appointment.attachments"
 				:key="attachment.fileId"
-				:href="getAttachmentUrl(attachment)"
+				:href="attachment.downloadUrl || generateUrl(`/f/${attachment.fileId}`)"
 				target="_blank"
 				rel="noopener noreferrer"
 				class="attachment-link"
@@ -191,347 +84,80 @@
 			</a>
 		</div>
 
-		<div v-if="isListVariant" class="details-link-row">
-			<NcButton
-				variant="tertiary"
-				data-test="button-show-details"
-				@click="emit('openDetail', appointment.id)">
-				<template #icon>
-					<ChevronRightIcon :size="20" />
-				</template>
-				{{ t("attendance", "Show details") }}
-			</NcButton>
+		<!-- Response: editable while the inquiry runs -->
+		<div v-if="acceptsResponses" class="card-section" data-test="response-section">
+			<h4>{{ t("attendance", "Your response") }}</h4>
+			<ResponseEditor
+				:appointmentId="appointment.id"
+				:userResponse="userResponse"
+				:comment="appointment.userResponse?.comment || ''"
+				:responseDeadline="appointment.responseDeadline"
+				@submitResponse="(id, response) => emit('submitResponse', id, response)" />
 		</div>
 
-		<!-- Read-only response chip while the inquiry is closed -->
-		<div
-			v-if="isClosed"
-			class="response-section response-section--readonly"
-			data-test="response-section-readonly">
+		<!-- Response: read-only once closed or cancelled -->
+		<div v-else class="card-section card-section--readonly" data-test="response-section-readonly">
 			<div class="response-row">
 				<h4>{{ t("attendance", "Your response") }}</h4>
-				<NcChip
-					:text="userResponse ? getResponseText(userResponse) : t('attendance', 'No response')"
-					:variant="userResponse ? getResponseVariant(userResponse) : 'tertiary'"
-					noClose />
+				<span v-if="userResponse" class="response-row__value">
+					<ResponseDot :response="userResponse" />
+					<strong>{{ getResponseText(userResponse) }}</strong>
+				</span>
+				<span v-else class="response-row__value">{{ t("attendance", "No response") }}</span>
 			</div>
-			<div v-if="canToggleClosed" class="closed-banner" data-test="closed-banner">
-				<LockIcon :size="20" />
-				<div class="closed-banner-text">
-					<strong>{{ t("attendance", "Inquiry closed") }}</strong>
-					<span v-if="formattedClosedAt">{{ closedLabel }}</span>
-				</div>
-				<NcButton
-					variant="secondary"
-					:disabled="togglingClosed"
-					data-test="banner-reopen-inquiry"
-					@click="handleToggleClosed">
-					{{ t("attendance", "Reopen") }}
-				</NcButton>
+			<div v-if="scheduleNote" class="schedule-note" data-test="schedule-note">
+				{{ scheduleNote }}
 			</div>
-			<div v-else class="closed-info" data-test="closed-info">
+			<div v-if="isClosed && !canManage" class="closed-info" data-test="closed-info">
 				<LockIcon :size="16" />
 				<span>{{ closedLabel }}</span>
 			</div>
 		</div>
 
-		<!-- Response Section (hidden once the inquiry is closed) -->
+		<!-- Check-in summary (only when check-ins exist and the viewer may see them) -->
 		<div
-			v-if="!isClosed"
-			class="response-section"
-			data-test="response-section">
-			<h4>{{ t("attendance", "Your response") }}</h4>
-			<div
-				class="response-buttons"
-				:class="{ 'has-response': userResponse }">
-				<NcButton
-					:class="{ active: userResponse === 'yes' }"
-					variant="success"
-					:text="t('attendance', 'Yes')"
-					:disabled="responseCooldown"
-					data-test="response-yes"
-					@click="handleResponse('yes')" />
-				<NcButton
-					:class="{ active: userResponse === 'maybe' }"
-					variant="warning"
-					:text="t('attendance', 'Maybe')"
-					:disabled="responseCooldown"
-					data-test="response-maybe"
-					@click="handleResponse('maybe')" />
-				<NcButton
-					:class="{ active: userResponse === 'no' }"
-					variant="error"
-					:text="t('attendance', 'No')"
-					:disabled="responseCooldown"
-					data-test="response-no"
-					@click="handleResponse('no')" />
-				<!-- Comment Toggle Button (only show when user has responded) -->
-				<NcButton
-					v-if="userResponse"
-					class="comment-toggle"
-					:class="{
-						'comment-active': commentExpanded,
-					}"
-					variant="tertiary"
-					data-test="button-toggle-comment"
-					@click="toggleComment">
-					<template #icon>
-						<CommentIcon :size="20" />
-					</template>
-				</NcButton>
-			</div>
-
-			<div
-				v-if="formattedDeadline"
-				class="deadline-info"
-				data-test="deadline-info">
-				<ClockIcon :size="16" />
-				<span>{{
-					t("attendance", "Responses possible until {when}", {
-						when: formattedDeadline,
-					})
-				}}</span>
-			</div>
-
-			<!-- Comment Section -->
-			<div v-if="commentExpanded" class="comment-section">
-				<div class="textarea-container">
-					<NcInputField
-						ref="commentInput"
-						v-model="localComment"
-						type="text"
-						:label="t('attendance', 'Comment (optional)')"
-						:placeholder="t('attendance', 'Add your comment\u00A0…')"
-						data-test="response-comment"
-						@update:modelValue="handleCommentInputEvent" />
-
-					<div v-if="savingComment" class="saving-spinner">
-						<div class="spinner" />
-					</div>
-					<div v-else-if="commentSaved" class="saved-indicator">
-						<CheckIcon :size="16" class="check-icon" />
-					</div>
-					<div v-else-if="errorComment" class="error-indicator">
-						<CloseCircle :size="16" class="error-icon" />
-					</div>
-				</div>
-			</div>
-		</div>
-
-		<!-- Checkin Summary (only shown when checkins exist and user can see response overview) -->
-		<div
-			v-if="
-				canSeeResponseOverview
-					&& appointment.checkinSummary?.hasCheckins
-			"
-			class="checkin-summary"
+			v-if="canSeeResponses && appointment.checkinSummary?.hasCheckins"
+			class="card-section"
 			data-test="checkin-summary">
 			<h4>{{ t("attendance", "Check-in summary") }}</h4>
-			<div class="summary-stats">
-				<NcChip
-					:text="attendedChipText"
-					variant="success"
-					noClose>
-					<template #icon>
-						<CheckIcon :size="16" />
-					</template>
-				</NcChip>
-				<NcChip
-					:text="absentChipText"
-					variant="error"
-					noClose>
-					<template #icon>
-						<CloseIcon :size="16" />
-					</template>
-				</NcChip>
-				<NcChip
-					v-if="appointment.checkinSummary.notCheckedIn > 0"
-					:text="pendingChipText"
-					variant="tertiary"
-					noClose>
-					<template #icon>
-						<HelpCircleOutlineIcon :size="16" />
-					</template>
-				</NcChip>
-			</div>
+			<ResponseBar :segments="checkinSegments" />
 		</div>
 
-		<!-- Detailed Response Summary -->
 		<ResponseSummary
-			v-if="canSeeResponseOverview && appointment.responseSummary"
+			v-if="canSeeResponses && appointment.responseSummary"
 			:responseSummary="appointment.responseSummary"
 			:canSeeComments="canSeeComments"
-			:canManageAppointments="canManageAppointments"
+			:canManageAppointments="canManage"
 			:appointmentId="appointment.id"
-			:bookingEnabled="capabilities.bookingEnabled"
 			:isClosed="isClosed" />
-
-		<!-- Remind target dialog -->
-		<NcDialog
-			v-if="showRemindDialog"
-			:name="t('attendance', 'Send reminders')"
-			@closing="showRemindDialog = false">
-			<div class="remind-target-choices">
-				<NcButton
-					variant="primary"
-					wide
-					:disabled="sendingReminders"
-					data-test="remind-non-responders"
-					@click="handleRemindAll('non_responders')">
-					<!-- TRANSLATORS: Button in the "Send reminders" dialog — reminds everyone who has not responded yet. People who answered "no" are deliberately not reminded. -->
-					{{ t('attendance', 'Non-responders') }}
-				</NcButton>
-				<NcButton
-					variant="secondary"
-					wide
-					:disabled="sendingReminders"
-					data-test="remind-maybe"
-					@click="handleRemindAll('maybe')">
-					<!-- TRANSLATORS: Button in the "Send reminders" dialog — reminds everyone who answered "maybe". -->
-					{{ t('attendance', 'Maybe responders') }}
-				</NcButton>
-				<NcButton
-					variant="secondary"
-					wide
-					:disabled="sendingReminders"
-					data-test="remind-both"
-					@click="handleRemindAll('both')">
-					<!-- TRANSLATORS: Button in the "Send reminders" dialog — reminds both groups: non-responders and maybe responders. -->
-					{{ t('attendance', 'Both') }}
-				</NcButton>
-			</div>
-		</NcDialog>
-
-		<!-- Close confirmation with planned-in / not-planned-in groups -->
-		<NcDialog
-			v-if="showCloseBookingDialog"
-			:name="t('attendance', 'Close and notify?')"
-			data-test="close-booking-dialog"
-			@closing="showCloseBookingDialog = false">
-			<div class="booking-confirm">
-				<p class="booking-confirm__hint">
-					<!-- TRANSLATORS: Hint in the close-inquiry dialog — people get notified whether they got a place in the appointment or not (German: "Planungsstatus"). -->
-					{{ t('attendance', 'Closing notifies these people about their scheduling status.') }}
-				</p>
-				<div
-					v-for="group in bookingDialogGroups"
-					:key="group.key"
-					class="booking-confirm__group">
-					<h4>{{ group.label }}</h4>
-					<p v-if="group.names.length === 0" class="booking-confirm__empty">
-						{{ t('attendance', 'Nobody') }}
-					</p>
-					<p v-else class="booking-confirm__names">
-						{{ visibleBookingNames(group).join(', ') }}
-						<NcButton
-							v-if="group.names.length > BOOKING_PREVIEW_LIMIT"
-							variant="tertiary"
-							@click="toggleBookingGroup(group.key)">
-							{{ expandedBookingGroups[group.key]
-								? t('attendance', 'Show less')
-								: t('attendance', '+{count} more', { count: group.names.length - BOOKING_PREVIEW_LIMIT }) }}
-						</NcButton>
-					</p>
-				</div>
-			</div>
-			<template #actions>
-				<NcButton
-					variant="tertiary"
-					data-test="close-booking-cancel"
-					@click="showCloseBookingDialog = false">
-					{{ t('attendance', 'Cancel') }}
-				</NcButton>
-				<NcButton
-					variant="primary"
-					:disabled="togglingClosed"
-					data-test="close-booking-confirm"
-					@click="confirmCloseWithBookings">
-					{{ t('attendance', 'Close inquiry') }}
-				</NcButton>
-			</template>
-		</NcDialog>
 	</div>
 </template>
 
 <script setup>
-import axios from '@nextcloud/axios'
-import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
-import {
-	NcActionButton,
-	NcActions,
-	NcButton,
-	NcChip,
-	NcDialog,
-	NcInputField,
-} from '@nextcloud/vue'
-import { computed, nextTick, ref, watch } from 'vue'
-import BellRingIcon from 'vue-material-design-icons/BellRing.vue'
-import CalendarRefreshIcon from 'vue-material-design-icons/CalendarRefresh.vue'
+import { NcButton, NcChip } from '@nextcloud/vue'
+import { computed } from 'vue'
 import CalendarRemoveIcon from 'vue-material-design-icons/CalendarRemove.vue'
-import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
-import CheckIcon from 'vue-material-design-icons/Check.vue'
-import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
-import ClockIcon from 'vue-material-design-icons/Clock.vue'
-import CloseIcon from 'vue-material-design-icons/Close.vue'
-import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
-import CommentIcon from 'vue-material-design-icons/Comment.vue'
-import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
-import Delete from 'vue-material-design-icons/Delete.vue'
-import DownloadIcon from 'vue-material-design-icons/Download.vue'
-import HelpCircleOutlineIcon from 'vue-material-design-icons/HelpCircleOutline.vue'
-import HistoryIcon from 'vue-material-design-icons/History.vue'
-import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
-import LockOpenIcon from 'vue-material-design-icons/LockOpen.vue'
 import Paperclip from 'vue-material-design-icons/Paperclip.vue'
-import Pencil from 'vue-material-design-icons/Pencil.vue'
-import RepeatIcon from 'vue-material-design-icons/Repeat.vue'
-import ShareVariantIcon from 'vue-material-design-icons/ShareVariant.vue'
+import AppointmentActionsMenu from './AppointmentActionsMenu.vue'
+import AppointmentMeta from './AppointmentMeta.vue'
+import AppointmentStatusChips from './AppointmentStatusChips.vue'
+import ResponseBar from './ResponseBar.vue'
+import ResponseDot from './ResponseDot.vue'
+import ResponseEditor from './ResponseEditor.vue'
 import ResponseSummary from './ResponseSummary.vue'
-import { useAppointmentResponse, useResponseCooldown } from '../../composables/useAppointmentResponse.js'
-import { usePermissions } from '../../composables/usePermissions.js'
-import { appointmentDetailUrl, formatClosedLabel } from '../../utils/appointment.js'
-import { copyToClipboard } from '../../utils/clipboard.js'
-import { formatDateRange, formatDateTime } from '../../utils/datetime.js'
+import { useAppointmentCard } from '../../composables/useAppointmentCard.js'
+import { useAppointmentLifecycle } from '../../composables/useAppointmentLifecycle.js'
+import { finalScheduleStatus, formatCancelledLabel, formatClosedLabel } from '../../utils/appointment.js'
+import { formatTime } from '../../utils/datetime.js'
 import { renderMarkdown, sanitizeHtml } from '../../utils/markdown.js'
-import { getResponseText, getResponseVariant } from '../../utils/response.js'
+import { getResponseText } from '../../utils/response.js'
 
 const props = defineProps({
 	appointment: {
 		type: Object,
 		required: true,
-	},
-	canManageAppointments: {
-		type: Boolean,
-		default: false,
-	},
-	canCheckin: {
-		type: Boolean,
-		default: false,
-	},
-	canSeeResponseOverview: {
-		type: Boolean,
-		default: true,
-	},
-	canSeeComments: {
-		type: Boolean,
-		default: true,
-	},
-	displayOrder: {
-		type: String,
-		default: 'name_first',
-	},
-	canSeeAuditLog: {
-		type: Boolean,
-		default: false,
-	},
-	// 'detail' renders the full card (description, no navigation);
-	// 'list' hides the description and links to the detail page instead.
-	variant: {
-		type: String,
-		default: 'detail',
-		validator: (value) => ['detail', 'list'].includes(value),
 	},
 })
 
@@ -542,369 +168,79 @@ const emit = defineEmits([
 	'delete',
 	'export',
 	'submitResponse',
-	'updateComment',
 	'closedToggled',
 	'showAuditLog',
-	'openDetail',
 ])
 
-const { capabilities } = usePermissions()
+// NB: pass a getter, never bind it to a name — every top-level binding in
+// <script setup> is exposed to the template, and a local `appointment` would
+// shadow `props.appointment` there with the function itself.
+const {
+	capabilities,
+	isClosed,
+	isCancelled,
+	acceptsResponses,
+	userResponse,
+	canManage,
+	canSeeResponses,
+	canSeeComments,
+	canSeeAuditLog,
+	titleText,
+	subtitleText,
+} = useAppointmentCard(() => props.appointment)
 
-const currentUserUid = window.OC?.getCurrentUser?.()?.uid || window.OC?.currentUser || null
-
-const localComment = ref(props.appointment.userResponse?.comment || '')
-const commentExpanded = ref(false)
-const commentInput = ref(null)
-let commentTimeout = null
-
-// Use the shared response composable for comment auto-save
-const { savingComment, commentSaved, errorComment, autoSaveComment }
-	= useAppointmentResponse()
-
-async function toggleComment() {
-	commentExpanded.value = !commentExpanded.value
-	if (commentExpanded.value) {
-		await nextTick()
-		commentInput.value?.$el?.querySelector('input')?.focus()
-	}
-}
-
-const userResponse = computed(() => {
-	return props.appointment.userResponse?.response || null
-})
-
-const isClosed = computed(() => Boolean(props.appointment.closedAt))
-
-const canToggleClosed = computed(() => {
-	if (props.canManageAppointments) return true
-	return Boolean(currentUserUid) && props.appointment.createdBy === currentUserUid
-})
-
-const isCancelled = computed(() => Boolean(props.appointment.cancelledAt))
-
-// Lives here instead of inline in the template: the string extractor only
-// associates a TRANSLATORS comment with the first t() call on the very
-// next line, which a multi-line ternary cannot provide.
-const cancelToggleLabel = computed(() => {
-	if (isCancelled.value) {
-		// TRANSLATORS: Menu action that takes a cancellation back — the appointment will take place again.
-		return t('attendance', 'Reactivate appointment')
-	}
-	// TRANSLATORS: Menu action that calls off the appointment — it will not take place (German "Termin absagen", not "abbrechen").
-	return t('attendance', 'Cancel appointment')
-})
-
-// Check-in status chips of the same event — like above, each t() sits
-// directly below its TRANSLATORS comment for the string extractor.
-const attendedChipText = computed(() =>
-	// TRANSLATORS: Check-in status chip on the appointment card — the person has checked in. Sibling chips: "{count} absent", "{count} pending". All three describe the current check-in state of the same event, so translate as status labels rather than strict past/present tense.
-	t('attendance', '{count} attended', { count: props.appointment.checkinSummary?.attended ?? 0 }))
-const absentChipText = computed(() =>
-	// TRANSLATORS: Check-in status chip — the person was explicitly marked absent. See "{count} attended".
-	t('attendance', '{count} absent', { count: props.appointment.checkinSummary?.absent ?? 0 }))
-const pendingChipText = computed(() =>
-	// TRANSLATORS: Check-in status chip — no check-in recorded for the person yet. See "{count} attended".
-	t('attendance', '{count} pending', { count: props.appointment.checkinSummary?.notCheckedIn ?? 0 }))
-
-// Cancelling is a manager/creator action gated behind the server capability, so
-// instances (and older servers) that don't offer it never show the UI.
-const canCancel = computed(() => capabilities.cancelling && canToggleClosed.value)
-
-const formattedClosedAt = computed(() => props.appointment.closedAt ? formatDateTime(props.appointment.closedAt) : '')
-
-const formattedDeadline = computed(() => props.appointment.responseDeadline
-	? formatDateTime(props.appointment.responseDeadline)
-	: '')
+// The banners offer the reverse of the menu's destructive actions, so they
+// drive the same lifecycle logic — never the confirmation dialog, which only
+// guards closing.
+const { canCancel, togglingClosed, togglingCancelled, toggleClosed, toggleCancelled }
+	= useAppointmentLifecycle(() => props.appointment, { onUpdated: (updated) => emit('closedToggled', updated) })
 
 const closedLabel = computed(() => formatClosedLabel(props.appointment.closedAt, props.appointment.responseDeadline))
 
+// Once the inquiry is closed the scheduling verdict is final — spell it out
+// below the read-only answer, the header chip alone is easy to misread.
+const scheduleNote = computed(() => {
+	const status = finalScheduleStatus(props.appointment, capabilities.bookingEnabled)
+	if (status === 'booked') {
+		// TRANSLATORS: Note under the user's own answer on a closed inquiry — they got a place in the appointment (German "eingeplant").
+		return t('attendance', 'You are scheduled in for this appointment. Please be there at {when}.', {
+			when: formatTime(props.appointment.startDatetime),
+		})
+	}
+	if (status === 'declined') {
+		// TRANSLATORS: Note under the user's own answer on a closed inquiry — enough people were scheduled in already, so this one did not get a place (German "nicht eingeplant").
+		return t('attendance', 'This appointment is already fully scheduled — thanks for offering!')
+	}
+	return ''
+})
+
+// One computed instead of three: the string extractor only binds a TRANSLATORS
+// comment to a t() call on the very next line, which rules out inline ternaries
+// and one-expression arrow bodies.
+const checkinSegments = computed(() => {
+	const summary = props.appointment.checkinSummary ?? {}
+	// TRANSLATORS: Legend under the check-in bar — how many people have checked in. Sibling labels: "absent", "pending". All three describe the current check-in state of the same event, so translate as status labels rather than strict past/present tense.
+	const attended = t('attendance', 'attended')
+	// TRANSLATORS: Legend under the check-in bar — the person was explicitly marked absent. See "attended".
+	const absent = t('attendance', 'absent')
+	// TRANSLATORS: Legend under the check-in bar — no check-in recorded for the person yet. See "attended".
+	const pending = t('attendance', 'pending')
+	return [
+		{ key: 'attended', variant: 'success', count: summary.attended ?? 0, label: attended },
+		{ key: 'absent', variant: 'error', count: summary.absent ?? 0, label: absent },
+		{ key: 'pending', variant: 'tertiary', count: summary.notCheckedIn ?? 0, label: pending },
+	]
+})
+
 const renderedDescription = computed(() => {
 	if (!props.appointment.description) return ''
-	const html = renderMarkdown(props.appointment.description, false)
-	return sanitizeHtml(html)
+	return sanitizeHtml(renderMarkdown(props.appointment.description, false))
 })
 
-const isListVariant = computed(() => props.variant === 'list')
-
-const dateRangeText = computed(() => formatDateRange(props.appointment.startDatetime, props.appointment.endDatetime))
-
-const titleText = computed(() => (props.displayOrder === 'date_first' ? dateRangeText.value : props.appointment.name))
-
-const subtitleText = computed(() => (props.displayOrder === 'date_first' ? props.appointment.name : dateRangeText.value))
-
-const detailUrl = computed(() => appointmentDetailUrl(props.appointment.id))
-
-const calendarLink = computed(() => {
-	if (
-		!props.appointment.calendarUri
-		|| !props.appointment.calendarEventUid
-		|| !props.appointment.startDatetime
-	) {
-		return null
-	}
-
-	// Generate deeplink to open the event popup directly in Calendar app
-	// URL format: /apps/calendar/{view}/{date}/edit/popover/{base64_dav_path}/{recurrenceId}
-	const dateObj = new Date(props.appointment.startDatetime)
-	const year = dateObj.getFullYear()
-	const month = String(dateObj.getMonth() + 1).padStart(2, '0')
-	const day = String(dateObj.getDate()).padStart(2, '0')
-	const dateStr = `${year}-${month}-${day}`
-
-	// Get current user from Nextcloud
-	const currentUser = window.OC?.currentUser || 'admin'
-
-	// calendarEventUid contains the filename (e.g., "70EB1F77-0025-44EB-88B3-B64F65CC3F84.ics")
-	const eventUri = props.appointment.calendarEventUid
-
-	// Build the DAV path: /remote.php/dav/calendars/{user}/{calendar}/{filename}
-	const davPath = `/remote.php/dav/calendars/${currentUser}/${props.appointment.calendarUri}/${eventUri}`
-
-	// Base64 encode the path
-	const base64Path = btoa(davPath)
-
-	// For non-recurring events, use "next" as recurrenceId
-	const recurrenceId = 'next'
-
-	return generateUrl(`/apps/calendar/dayGridMonth/${dateStr}/edit/popover/${base64Path}/${recurrenceId}`)
-})
-
-watch(
-	() => props.appointment.userResponse,
-	(newResponse) => {
-		if (!commentTimeout) {
-			localComment.value = newResponse?.comment || ''
-		}
-	},
-	{ immediate: true, deep: true },
-)
-
-function copyShareLink() {
-	const appointmentUrl = window.location.origin + detailUrl.value
-	return copyToClipboard(appointmentUrl, {
-		successMessage: t('attendance', 'Link copied to clipboard'),
-	})
-}
-
-function handleStartCheckin() {
-	emit('startCheckin', props.appointment.id)
-}
-
-function handleEdit() {
-	emit('edit', props.appointment)
-}
-
-function handleCopy() {
-	emit('copy', props.appointment)
-}
-
-function handleDelete() {
-	emit('delete', props.appointment.id)
-}
-
-function handleExport() {
-	emit('export', props.appointment.id)
-}
-
-const sendingReminders = ref(false)
-const showRemindDialog = ref(false)
-
-async function handleRemindAll(target = 'non_responders') {
-	showRemindDialog.value = false
-	sendingReminders.value = true
-	try {
-		const response = await axios.post(
-			generateUrl(`/apps/attendance/api/appointments/${props.appointment.id}/remind`),
-			{ target },
-		)
-		const count = response.data.sent || 0
-		showSuccess(t('attendance', '{count} reminders sent', { count }))
-	} catch (error) {
-		console.error('Failed to send reminders:', error)
-		showError(t('attendance', 'Failed to send reminders'))
-	} finally {
-		sendingReminders.value = false
-	}
-}
-
-const { responseCooldown, resolveNext, startCooldown } = useResponseCooldown(userResponse)
-
-function handleResponse(response) {
-	if (responseCooldown.value) return
-	startCooldown()
-	emit('submitResponse', props.appointment.id, resolveNext(response))
-}
-
-const togglingClosed = ref(false)
-const showCloseBookingDialog = ref(false)
-
-// Yes-responders split into planned-in / not-planned-in, deduped by user. Drives
-// the close-confirmation dialog and mirrors the server's close-time wave.
-const bookingGroups = computed(() => {
-	const summary = props.appointment.responseSummary
-	const booked = new Map()
-	const declined = new Map()
-	if (!summary) return { booked: [], declined: [] }
-	const sections = []
-	if (summary.by_group) sections.push(...Object.values(summary.by_group))
-	if (summary.by_team) sections.push(...Object.values(summary.by_team))
-	if (summary.others) sections.push(summary.others)
-	for (const section of sections) {
-		for (const r of section.responses || []) {
-			if (r.response !== 'yes') continue
-			const target = r.bookingStatus === 'booked' ? booked : declined
-			target.set(r.userId, r.userName || r.userId)
-		}
-	}
-	for (const uid of booked.keys()) declined.delete(uid)
-	return { booked: [...booked.values()], declined: [...declined.values()] }
-})
-
-async function handleToggleClosed() {
-	if (togglingClosed.value) return
-	const wantsClose = !isClosed.value
-	// Closing with planned-in people triggers a notification wave — confirm the
-	// two named groups first. Without booking / without anyone booked, close is
-	// a direct click as before.
-	if (wantsClose && capabilities.bookingEnabled && bookingGroups.value.booked.length >= 1) {
-		showCloseBookingDialog.value = true
-		return
-	}
-	await performToggleClosed(wantsClose)
-}
-
-async function confirmCloseWithBookings() {
-	showCloseBookingDialog.value = false
-	await performToggleClosed(true)
-}
-
-const BOOKING_PREVIEW_LIMIT = 10
-const expandedBookingGroups = ref({})
-const bookingDialogGroups = computed(() => [
-	{
-		key: 'booked',
-		// TRANSLATORS: Group heading in the close-inquiry dialog — the {count} people who got a place in the appointment (German "Eingeplant", not "Geplant").
-		label: t('attendance', 'Scheduled ({count})', { count: bookingGroups.value.booked.length }),
-		names: bookingGroups.value.booked,
-	},
-	{
-		key: 'declined',
-		// TRANSLATORS: Group heading in the close-inquiry dialog — the {count} people who did not get a place in the appointment (German "Nicht eingeplant").
-		label: t('attendance', 'Not scheduled ({count})', { count: bookingGroups.value.declined.length }),
-		names: bookingGroups.value.declined,
-	},
-])
-function toggleBookingGroup(key) {
-	expandedBookingGroups.value[key] = !expandedBookingGroups.value[key]
-}
-function visibleBookingNames(group) {
-	return expandedBookingGroups.value[group.key]
-		? group.names
-		: group.names.slice(0, BOOKING_PREVIEW_LIMIT)
-}
-
-async function performToggleClosed(wantsClose) {
-	if (togglingClosed.value) return
-	togglingClosed.value = true
-	const url = generateUrl(`/apps/attendance/api/appointments/${props.appointment.id}/${wantsClose ? 'close' : 'reopen'}`)
-	try {
-		const response = await axios.post(url)
-		showSuccess(wantsClose
-			? t('attendance', 'Inquiry closed')
-			: t('attendance', 'Inquiry re-opened'))
-		emit('closedToggled', response.data)
-	} catch (error) {
-		console.error('Failed to toggle closed state:', error)
-		showError(wantsClose
-			? t('attendance', 'Failed to close inquiry')
-			: t('attendance', 'Failed to re-open inquiry'))
-	} finally {
-		togglingClosed.value = false
-	}
-}
-
-const togglingCancelled = ref(false)
-
-async function handleToggleCancelled() {
-	if (togglingCancelled.value) return
-	togglingCancelled.value = true
-	const wantsCancel = !isCancelled.value
-	const url = generateUrl(`/apps/attendance/api/appointments/${props.appointment.id}/${wantsCancel ? 'cancel' : 'uncancel'}`)
-	try {
-		const response = await axios.post(url)
-		if (wantsCancel) {
-			// TRANSLATORS: Success toast — the appointment was called off (German "abgesagt", not "abgebrochen").
-			showSuccess(t('attendance', 'Appointment cancelled'))
-		} else {
-			// TRANSLATORS: Success toast — the cancellation was taken back, the appointment takes place again.
-			showSuccess(t('attendance', 'Appointment reactivated'))
-		}
-		// Reuse the closedToggled channel: the parent merges the full updated
-		// appointment (incl. cancelledAt) reactively, so no extra wiring needed.
-		emit('closedToggled', response.data)
-	} catch (error) {
-		console.error('Failed to toggle cancelled state:', error)
-		showError(wantsCancel
-			? t('attendance', 'Failed to cancel appointment')
-			: t('attendance', 'Failed to reactivate appointment'))
-	} finally {
-		togglingCancelled.value = false
-	}
-}
-
-function getAttachmentUrl(attachment) {
-	return attachment.downloadUrl || generateUrl(`/f/${attachment.fileId}`)
-}
-
-function handleCommentInputEvent() {
-	if (commentTimeout) {
-		clearTimeout(commentTimeout)
-	}
-
-	commentTimeout = setTimeout(async () => {
-		// Wait for Vue to update the DOM and reactive values
-		await nextTick()
-		autoSaveComment(
-			props.appointment.id,
-			userResponse.value,
-			localComment.value,
-		)
-	}, 500)
-}
 </script>
 
 <style scoped lang="scss">
 @use "../../styles/shared.scss";
-
-.booking-confirm {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-
-    &__hint {
-        color: var(--color-text-maxcontrast);
-    }
-
-    &__group h4 {
-        margin: 0 0 4px;
-    }
-
-    &__names {
-        line-height: 1.5;
-    }
-
-    &__empty {
-        color: var(--color-text-maxcontrast);
-        font-style: italic;
-    }
-}
-
-.remind-target-choices {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 8px 0;
-}
 
 .appointment-card {
     background: var(--color-main-background);
@@ -918,82 +254,138 @@ function handleCommentInputEvent() {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    gap: 10px;
     background: var(--color-background-hover);
     margin: -20px -20px 20px -20px;
     padding: 20px;
     border-radius: var(--border-radius-large) var(--border-radius-large) 0 0;
 
+    &--cancelled {
+        background: rgba(var(--color-error-rgb), 0.12);
+    }
+
     .appointment-title-block {
         flex: 1;
         min-width: 0;
+
+        .appointment-headline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            // The chips sit next to the heading, not inside it, so the row sets
+            // the size they inherit and the h3 overrides it for itself.
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
 
         h3 {
             margin: 0;
             font-size: 1.5em;
             font-weight: 700;
             color: var(--color-main-text);
+            text-wrap: pretty;
         }
 
-        .title-link {
-            display: inline-flex;
-            align-items: center;
-            color: inherit;
-            text-decoration: none;
-
-            &:hover,
-            &:focus-visible {
-                text-decoration: underline;
-
-                .title-chevron {
-                    transform: translateX(2px);
-                }
-            }
-        }
-
-        .title-chevron {
-            display: inline-flex;
-            align-items: center;
-            margin-left: 2px;
-            color: var(--color-text-maxcontrast);
-            transition: transform 0.15s ease;
-        }
-
-        .appointment-date-subtitle {
-            display: block;
-            font-size: 15px;
-            font-weight: 500;
-            color: var(--color-text-maxcontrast);
-            margin-top: 4px;
-        }
-
-        .calendar-link {
-            display: inline-flex;
-            align-items: center;
-            vertical-align: middle;
-            margin-left: 4px;
-            color: var(--color-primary-element);
-        }
-
-        .series-indicator {
-            display: inline-flex;
-            align-items: center;
-            vertical-align: middle;
-            margin-left: 4px;
-            color: var(--color-text-maxcontrast);
-        }
-    }
-
-    .appointment-actions {
-        margin-left: 10px;
     }
 }
 
-.details-link-row {
+.status-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    border-radius: var(--border-radius-large);
+    background: var(--color-background-dark);
+    border: 1px solid var(--color-border);
+
+    &--error {
+        background: rgba(var(--color-error-rgb), 0.12);
+        border-color: var(--color-error);
+
+        strong {
+            color: var(--color-error-text);
+        }
+    }
+
+    &__text {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        strong {
+            font-weight: 600;
+        }
+
+        span {
+            font-size: 0.85em;
+            color: var(--color-text-maxcontrast);
+        }
+    }
+}
+
+.card-section {
+    border-top: 1px solid var(--color-border);
+    padding-top: 15px;
+    margin-top: 15px;
+
+    h4 {
+        font-size: 1.2em;
+        margin: 0 0 10px 0;
+    }
+
+    &--readonly {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        h4 {
+            margin: 0;
+        }
+    }
+}
+
+.response-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    &__value {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+}
+
+.schedule-note,
+.closed-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--color-text-maxcontrast);
+}
+
+.attachment-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
     margin-bottom: 15px;
+
+    .attachment-link {
+        text-decoration: none;
+        color: inherit;
+
+        &:hover :deep(.nc-chip) {
+            background-color: var(--color-background-hover);
+        }
+    }
 }
 
 .appointment-description {
-    color: var(--color-text-lighter);
+    color: var(--color-text-maxcontrast);
     margin-bottom: 15px;
 
     // Markdown formatting
@@ -1076,13 +468,14 @@ function handleCommentInputEvent() {
     }
 
     :deep(h1) {
-        font-size: 1.5em;
+        font-size: 1.75em;
+        font-weight: 700;
     }
     :deep(h2) {
-        font-size: 1.3em;
+        font-size: 1.45em;
     }
     :deep(h3) {
-        font-size: 1.15em;
+        font-size: 1.2em;
     }
     :deep(h4) {
         font-size: 1.05em;
@@ -1128,154 +521,6 @@ function handleCommentInputEvent() {
         max-width: 100%;
         height: auto;
         border-radius: var(--border-radius);
-    }
-}
-
-.attachment-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    margin-bottom: 15px;
-
-    .attachment-link {
-        text-decoration: none;
-        color: inherit;
-
-        &:hover :deep(.nc-chip) {
-            background-color: var(--color-background-hover);
-        }
-    }
-}
-
-.checkin-summary {
-    border-top: 1px solid var(--color-border);
-    padding-top: 15px;
-    margin-top: 15px;
-
-    h4 {
-        font-size: 1.2em;
-        margin: 0 0 10px 0;
-    }
-
-    .summary-stats {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-    }
-}
-
-// Any content block between the header and the response section gets a divider
-:not(.appointment-header) + .response-section {
-    border-top: 1px solid var(--color-border);
-    padding-top: 15px;
-}
-
-.response-section {
-    margin-top: 15px;
-
-    h4 {
-        font-size: 1.2em;
-        margin: 0 0 10px 0;
-    }
-
-    .response-buttons {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 15px;
-
-        // When a response exists, gray out non-active buttons (except comment toggle)
-        &.has-response {
-            :deep(.button-vue:not(.active):not(.comment-toggle)) {
-                background-color: var(--color-background-dark) !important;
-                color: var(--color-text-lighter) !important;
-                border-color: var(--color-border-dark) !important;
-
-                &:hover {
-                    background-color: var(--color-background-hover) !important;
-                    color: var(--color-text) !important;
-                }
-            }
-        }
-
-        // Active button styles - keep bold
-        :deep(.button-vue.active) {
-            font-weight: bold;
-        }
-
-        // Comment toggle active state
-        :deep(.button-vue.comment-active) {
-            background-color: var(--color-primary-element) !important;
-            color: white !important;
-        }
-    }
-
-    .comment-section {
-        margin-top: 10px;
-
-        .textarea-container {
-            position: relative;
-        }
-    }
-}
-
-.closed-banner {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    margin-bottom: 16px;
-    border-radius: var(--border-radius-large);
-    background: var(--color-background-dark);
-    border: 1px solid var(--color-border);
-
-    .closed-banner-text {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-
-        strong {
-            font-weight: 600;
-        }
-
-        span {
-            font-size: 0.85em;
-            color: var(--color-text-maxcontrast);
-        }
-    }
-}
-
-.deadline-info,
-.closed-info {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 12px;
-    color: var(--color-text-maxcontrast);
-    font-size: 0.9em;
-}
-
-.response-section--readonly {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-
-    .response-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    h4 {
-        margin: 0;
-    }
-
-    .closed-banner {
-        margin-bottom: 0;
-    }
-
-    .closed-info {
-        margin-bottom: 0;
     }
 }
 </style>

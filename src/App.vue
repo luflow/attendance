@@ -116,10 +116,10 @@
 					<template
 						v-if="
 							pastAppointmentsExpanded
-								&& pastAppointments.length > 0
+								&& activePastAppointments.length > 0
 						">
 						<NcAppNavigationItem
-							v-for="appointment in pastAppointments"
+							v-for="appointment in activePastAppointments"
 							:key="appointment.id"
 							:name="formatAppointmentDisplay(appointment)"
 							:active="
@@ -141,7 +141,7 @@
 			<!-- Bottom button for creating new appointment -->
 			<template #footer>
 				<NcAppNavigationItem
-					v-if="permissions.canManageAppointments"
+					v-if="permissions.canCreateAppointments"
 					:name="t('attendance', 'Create appointment')"
 					data-test="button-create-appointment"
 					@click.prevent="createNewAppointment">
@@ -514,8 +514,14 @@ function onSearchInput() {
 // Use the shared permissions composable
 const { permissions, capabilities, config, loadPermissions } = usePermissions()
 
+// Cancelled appointments are only listed on the "All" view, which gives them
+// their own section — the scoped lists (here and in AllAppointments.vue) leave
+// them out, so the sidebar and the main list agree on what "upcoming" means.
+const activeAppointments = computed(() => currentAppointments.value.filter((a) => !a.cancelledAt))
+const activePastAppointments = computed(() => pastAppointments.value.filter((a) => !a.cancelledAt))
+
 const unansweredAppointments = computed(() => {
-	return currentAppointments.value.filter((appointment) => {
+	return activeAppointments.value.filter((appointment) => {
 		const noResponse = !appointment.userResponse || appointment.userResponse === null
 		const open = !appointment.closedAt
 		// Managers see everything via canUserSeeAppointment; only flag the
@@ -527,7 +533,7 @@ const unansweredAppointments = computed(() => {
 // Closed-but-unanswered appointments bucket here so they don't vanish from
 // the UI (no longer "unanswered", never answered).
 const answeredAppointments = computed(() => {
-	return currentAppointments.value.filter((appointment) => {
+	return activeAppointments.value.filter((appointment) => {
 		const hasResponse = appointment.userResponse && appointment.userResponse !== null
 		const closedWithoutResponse = !hasResponse && appointment.closedAt
 		return hasResponse || closedWithoutResponse
@@ -538,6 +544,23 @@ const allAppointments = computed(() => {
 	return [...currentAppointments.value, ...pastAppointments.value]
 })
 
+// Every in-app navigation rebuilds the URL from the app root, so it first has
+// to drop whichever view segment is currently on it. Four of these five call
+// sites used to carry their own copy of the pattern and one of them had gone
+// out of sync — it was missing "all", so opening an appointment from the All
+// view produced /apps/attendance/all/appointment/42, which works via pushState
+// but 404s the moment anyone reloads or shares the link.
+const VIEW_SEGMENT = /\/(all|past|unanswered|appointment\/\d+|checkin\/\d+|create|edit\/\d+|copy\/\d+)?$/
+
+/**
+ * The app's root URL, with any current view segment stripped off.
+ *
+ * @return {string} Path to build the next view's URL on.
+ */
+function appBaseUrl() {
+	return window.location.pathname.replace(VIEW_SEGMENT, '')
+}
+
 function setView(view) {
 	// Scoped views (Upcoming/Past/Unanswered) reset the search; the "All"
 	// view is the search target, so navigating there preserves the term.
@@ -546,10 +569,7 @@ function setView(view) {
 	}
 	currentView.value = view
 
-	const baseUrl = window.location.pathname.replace(
-		/\/(all|past|unanswered|appointment\/\d+|checkin\/\d+|create|edit\/\d+|copy\/\d+)?$/,
-		'',
-	)
+	const baseUrl = appBaseUrl()
 	let newUrl = baseUrl
 
 	if (view === 'past') {
@@ -569,10 +589,7 @@ function navigateToAppointment(appointmentId) {
 	currentView.value = 'appointment'
 	appointmentDetailId.value = appointmentId
 
-	const baseUrl = window.location.pathname.replace(
-		/\/(past|unanswered|appointment\/\d+|checkin\/\d+|create|edit\/\d+|copy\/\d+)?$/,
-		'',
-	)
+	const baseUrl = appBaseUrl()
 	const newUrl = baseUrl + '/appointment/' + appointmentId
 
 	window.history.pushState(
@@ -602,10 +619,7 @@ function createNewAppointment() {
 	currentView.value = 'create'
 	formAppointmentId.value = null
 
-	const baseUrl = window.location.pathname.replace(
-		/\/(past|unanswered|appointment\/\d+|checkin\/\d+|create|edit\/\d+|copy\/\d+)?$/,
-		'',
-	)
+	const baseUrl = appBaseUrl()
 	const newUrl = baseUrl + '/create'
 
 	window.history.pushState({ view: 'create' }, '', newUrl)
@@ -615,10 +629,7 @@ function editAppointment(appointment) {
 	currentView.value = 'edit'
 	formAppointmentId.value = appointment.id
 
-	const baseUrl = window.location.pathname.replace(
-		/\/(past|unanswered|appointment\/\d+|checkin\/\d+|create|edit\/\d+|copy\/\d+)?$/,
-		'',
-	)
+	const baseUrl = appBaseUrl()
 	const newUrl = baseUrl + '/edit/' + appointment.id
 
 	window.history.pushState(
@@ -632,10 +643,7 @@ function copyAppointment(appointment) {
 	currentView.value = 'copy'
 	formAppointmentId.value = appointment.id
 
-	const baseUrl = window.location.pathname.replace(
-		/\/(past|unanswered|appointment\/\d+|checkin\/\d+|create|edit\/\d+|copy\/\d+)?$/,
-		'',
-	)
+	const baseUrl = appBaseUrl()
 	const newUrl = baseUrl + '/copy/' + appointment.id
 
 	window.history.pushState(
