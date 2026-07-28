@@ -98,7 +98,7 @@ Die mobile App ist die ersten 30 Tage pro Nextcloud-Instanz gratis, danach deckt
 - **Berechtigungen:** sechs gruppenbasierte Rechte steuern, wer Termine verwaltet, eincheckt, Auswertungen sieht und Kommentare liest
 
 Gemacht für Chöre, Orchester, Sportvereine, Feuerwehren, Gemeinden und jede andere Gruppe, die nicht nur wissen muss, wie viele kommen, sondern wer.]]></description>
-	<version>1.41.2</version>
+	<version>1.42.0</version>
 	<licence>AGPL-3.0-or-later</licence>
 	<author mail="florian@krautnerds.de" homepage="https://krautnerds.de">Florian Ludwig</author>
 	<namespace>Attendance</namespace>

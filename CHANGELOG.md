@@ -2,6 +2,35 @@
 
 ## [Unreleased]
 
+## 1.42.0 – 2026-07-28
+
+### Added
+
+- **Organizers for each appointment**: every appointment now has its own organizers. They may edit and delete it, see responses, comments and the history, schedule attendees and send reminders — without being a manager of the whole app. The new permission "Create appointments" hands appointment creation to a group of your choice, and whoever creates an appointment becomes its organizer. Existing appointments keep their creator as organizer, so nothing changes for you when you update
+- **Appointments you were not scheduled for now disappear**: if scheduling is switched on and someone else got the place, the appointment leaves your dashboard widget, and the list has a new filter step that shows only the appointments you are still part of. Appointments where nobody was scheduled stay visible for everyone
+- **A summary bar for responses and check-ins**: the appointment card shows at a glance how the answers are distributed — and how many people were checked in — as a proportional bar. Until now there were only chips with the plain counts
+- Buttons for headings in the description editor
+
+### Improved
+
+- **A new look for the appointment cards**: in the list you see a compact card with the title linking to the details, icons for date, place and category, a short description with the number of attachments, the answer buttons and the new summary bar. The detail page shows the whole picture: your scheduling status next to the title, an explanation of your answer, and one row per person instead of grey boxes. The dashboard widget now uses the same answer buttons as the rest of the app
+- Comments are saved with a button instead of automatically after a pause, and a comment you already wrote is open right away on the detail page
+- Notifications about scheduling now speak to people directly and thank them ("Thank you! You are scheduled for this appointment.")
+- Headings are no longer oversized and the levels are easy to tell apart
+
+### Fixed
+
+- Someone who did not get a place now reads "you are not scheduled" on the card instead of only "you answered yes"
+- A cancelled appointment no longer accepts answers — this now also applies to the buttons in mobile notifications, to the quick-answer link and to older versions of the mobile app. The quick-answer page says that the appointment was cancelled instead of asking you to try again
+- Appointments opened from the "All appointments" view no longer lead to an error page after a reload or when the link is shared; links that are already out there are redirected
+- Cancelled appointments can no longer be edited and no longer appear under Upcoming or Past in the sidebar
+- Screen readers read out the appointment title without the status labels
+
+### Maintenance
+
+- German translations completed, context notes for translators, and updates from Transifex
+- npm and composer dependencies updated, including a security fix for brace-expansion (CVE-2026-14257)
+
 ## 1.41.2 – 2026-07-19
 
 ### Fixed
