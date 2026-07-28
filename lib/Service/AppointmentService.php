@@ -776,6 +776,13 @@ class AppointmentService {
 			throw new \RuntimeException('This appointment is closed and no longer accepts responses.');
 		}
 
+		// A called-off appointment will not take place, so there is nothing left
+		// to answer. The clients hide the controls, but notification actions and
+		// older app versions reach this endpoint directly.
+		if ($appointment->isCancelled()) {
+			throw new \RuntimeException('This appointment was cancelled and no longer accepts responses.');
+		}
+
 		// Withdrawing also wipes the comment so an orphan comment can't survive
 		// the response that gave it context.
 		if ($response === null) {

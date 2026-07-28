@@ -8,6 +8,8 @@ return [
 		['name' => 'page#past', 'url' => '/past', 'verb' => 'GET'],
 		['name' => 'page#all', 'url' => '/all', 'verb' => 'GET'],
 		['name' => 'page#appointment', 'url' => '/appointment/{id}', 'verb' => 'GET'],
+		// Legacy shape produced by <=1.42, redirects to the canonical URL.
+		['name' => 'page#legacyAllAppointment', 'url' => '/all/appointment/{id}', 'verb' => 'GET'],
 		['name' => 'page#checkin', 'url' => '/checkin/{id}', 'verb' => 'GET'],
 		['name' => 'page#create', 'url' => '/create', 'verb' => 'GET'],
 		['name' => 'page#edit', 'url' => '/edit/{id}', 'verb' => 'GET'],

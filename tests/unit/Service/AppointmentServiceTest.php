@@ -255,6 +255,35 @@ class AppointmentServiceTest extends TestCase {
 		$this->assertNull($result->getClosedAt());
 	}
 
+	public function testSubmitResponseRejectsCancelledAppointment(): void {
+		$appointment = new Appointment();
+		$appointment->setId(9);
+		$appointment->setCancelledAt('2030-05-28 09:00:00');
+
+		$this->appointmentMapper->method('find')->with(9)->willReturn($appointment);
+		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
+		$this->responseMapper->expects($this->never())->method('insert');
+		$this->responseMapper->expects($this->never())->method('update');
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('cancelled');
+		$this->service->submitResponse(9, 'alice', 'yes');
+	}
+
+	public function testSubmitResponseRejectsClosedAppointment(): void {
+		$appointment = new Appointment();
+		$appointment->setId(9);
+		$appointment->setClosedAt('2030-05-28 09:00:00');
+
+		$this->appointmentMapper->method('find')->with(9)->willReturn($appointment);
+		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
+		$this->responseMapper->expects($this->never())->method('insert');
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('closed');
+		$this->service->submitResponse(9, 'alice', 'yes');
+	}
+
 	public function testCancelAppointmentRecordsAuditEventAndNotifies(): void {
 		$appointment = new Appointment();
 		$appointment->setId(8);

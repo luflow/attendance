@@ -168,11 +168,14 @@ class QuickResponseController extends Controller {
 			return $errorResponse;
 		}
 
-		// Closed inquiries: reject with a clear message but don't throttle
+		// Closed or cancelled: reject with a clear message but don't throttle
 		// — the link is legitimate, the user is just late. The GET page
 		// already hides the confirm button; this is defense in depth.
-		if ($validationResult['closed'] ?? false) {
-			$closedMessage = $this->l->t('This appointment is closed and no longer accepts responses.');
+		if (($validationResult['closed'] ?? false) || ($validationResult['cancelled'] ?? false)) {
+			$closedMessage = ($validationResult['cancelled'] ?? false)
+				// TRANSLATORS: Shown on the quick-response page when the appointment was called off (German "abgesagt", not "abgebrochen") after the link was sent.
+				? $this->l->t('This appointment was cancelled and no longer accepts responses.')
+				: $this->l->t('This appointment is closed and no longer accepts responses.');
 			$this->tokenService->logQuickResponse(
 				$appointmentId,
 				$userId,
@@ -285,6 +288,16 @@ class QuickResponseController extends Controller {
 			return [
 				'error' => true,
 				'errorMessage' => $this->l->t('This appointment no longer exists.'),
+			];
+		}
+
+		// Appointment was called off after the link was sent. Same shape as the
+		// closed state — the link is legitimate, there is just nothing left to
+		// answer — but the reason differs, so the page can say which it is.
+		if ($appointment->isCancelled()) {
+			return [
+				'error' => false,
+				'cancelled' => true,
 			];
 		}
 
