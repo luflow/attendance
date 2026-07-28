@@ -255,64 +255,40 @@ class BookingServiceTest extends TestCase {
 
 	// --- effectiveBookingStatus: what the user is actually told ---
 
-	public function testEffectiveBookingStatusKeepsTheStoredVerdict(): void {
-		// The close-time wave already spoke; nothing to second-guess.
-		$this->configService->expects($this->never())->method('isBookingEnabled');
-
-		$booked = $this->response('alice', 'yes', BookingService::STATUS_BOOKED);
+	public function testEffectiveBookingStatusKeepsAStoredBooking(): void {
 		$this->assertSame(
 			BookingService::STATUS_BOOKED,
-			$this->service->effectiveBookingStatus($this->closedAppointment(), $booked, 'alice'),
+			$this->service->effectiveBookingStatus(
+				$this->response('alice', 'yes', BookingService::STATUS_BOOKED),
+			),
 		);
 	}
 
-	public function testEffectiveBookingStatusDeclinesWhenSomebodyElseGotThePlace(): void {
-		// Never stamped — a wave that ran before this booking passed them over.
-		// Without this the card would read "you answered yes" to someone who is
-		// not coming.
-		$this->configService->method('isBookingEnabled')->willReturn(true);
-		$this->responseMapper->method('findByAppointment')->willReturn([
-			$this->response('bob', 'yes', BookingService::STATUS_BOOKED),
-			$this->response('alice', 'yes'),
-		]);
-
+	public function testEffectiveBookingStatusReportsWhatTheCloseWaveTold(): void {
+		// 'declined' never reaches booking_status — only book()/unbook() write
+		// there. Without reading the wave's own column the card would tell a
+		// passed-over user "you answered yes" and nothing more.
 		$this->assertSame(
 			BookingService::STATUS_DECLINED,
 			$this->service->effectiveBookingStatus(
-				$this->closedAppointment(),
-				$this->response('alice', 'yes'),
-				'alice',
+				$this->response('alice', 'yes', null, BookingService::STATUS_DECLINED),
 			),
 		);
 	}
 
-	public function testEffectiveBookingStatusStaysOpenWhenNobodyWasScheduled(): void {
-		// The manager does not use planning — a red "not scheduled" on every
-		// yes-responder would be pure noise.
-		$this->configService->method('isBookingEnabled')->willReturn(true);
-		$this->responseMapper->method('findByAppointment')->willReturn([
-			$this->response('alice', 'yes'),
-			$this->response('bob', 'yes'),
-		]);
-
+	public function testEffectiveBookingStatusIsOpenWhenNoWaveHasRun(): void {
+		// Planning never used, or the inquiry still running: nothing to say.
 		$this->assertNull(
-			$this->service->effectiveBookingStatus(
-				$this->closedAppointment(),
-				$this->response('alice', 'yes'),
-				'alice',
-			),
+			$this->service->effectiveBookingStatus($this->response('alice', 'yes')),
 		);
 	}
 
-	public function testEffectiveBookingStatusStaysOpenWhileTheInquiryRuns(): void {
-		$this->configService->method('isBookingEnabled')->willReturn(true);
+	public function testEffectiveBookingStatusCostsNoQuery(): void {
+		// It reads two columns of a row the caller already holds; a list
+		// endpoint calls this once per appointment.
+		$this->responseMapper->expects($this->never())->method('findByAppointment');
+		$this->configService->expects($this->never())->method('isBookingEnabled');
 
-		$this->assertNull(
-			$this->service->effectiveBookingStatus(
-				$this->appointment(),
-				$this->response('alice', 'yes'),
-				'alice',
-			),
-		);
+		$this->service->effectiveBookingStatus($this->response('alice', 'no'));
 	}
 }

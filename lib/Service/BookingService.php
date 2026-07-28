@@ -130,27 +130,21 @@ class BookingService {
 	}
 
 	/**
-	 * The booking status as the user should be told it, which is not always the
-	 * one on the row.
+	 * The booking status as the user was actually told it.
 	 *
-	 * The close-time wave stamps every yes-responder 'booked' or 'declined', so
-	 * normally the stored value is the whole truth. It can fall behind, though:
-	 * a wave that found nobody booked stamps no one, and a later booking (after
-	 * a reopen and re-close) leaves the people it passed over still sitting on
-	 * null. To them the appointment reads "you answered yes" when in fact a
-	 * place went to someone else — so fall back to the same verdict the filter
-	 * already draws in [isScheduledOut].
+	 * 'declined' never reaches the booking_status column: only book()/unbook()
+	 * write there, so it holds 'booked' or nothing. The verdict for everyone
+	 * else is recorded by the close-time wave in bookingNotifiedStatus, which
+	 * is what those people received a notification about — and therefore what
+	 * their appointment should keep saying. Reading it costs nothing: it is a
+	 * column on the row the caller already holds.
+	 *
+	 * The wave's own guards come along for free — it skips anyone who did not
+	 * answer yes, and it does not run at all unless somebody got a place, so an
+	 * appointment where planning was never used stays unmarked.
 	 */
-	public function effectiveBookingStatus(
-		Appointment $appointment,
-		AttendanceResponse $response,
-		string $userId,
-	): ?string {
-		$stored = $response->getBookingStatus();
-		if ($stored !== null) {
-			return $stored;
-		}
-		return $this->isScheduledOut($appointment, $userId) ? self::STATUS_DECLINED : null;
+	public function effectiveBookingStatus(AttendanceResponse $response): ?string {
+		return $response->getBookingStatus() ?? $response->getBookingNotifiedStatus();
 	}
 
 	/**
