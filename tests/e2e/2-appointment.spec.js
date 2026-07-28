@@ -1,4 +1,4 @@
-import { test, expect, createAppointmentViaAPI, deleteAllAppointments } from './fixtures/nextcloud.js'
+import { test, expect, createAppointmentViaAPI, deleteAllAppointments, openCommentField, waitForRespond } from './fixtures/nextcloud.js'
 
 // Helper function to create an appointment via UI
 async function createAppointmentViaUI(page, { name, description, daysFromNow = 2, durationHours = 1 }) {
@@ -198,20 +198,21 @@ test.describe('Attendance App - User Responses', () => {
 		await page.getByRole('button', { name: 'Yes', exact: true }).first().click()
 		await page.waitForLoadState('networkidle')
 
-		const commentToggle = page.locator('[data-test="button-toggle-comment"]').first()
-		await expect(commentToggle).toBeVisible({ timeout: 5000 })
-		await commentToggle.click()
+		await openCommentField(page.locator('[data-test="button-toggle-comment"]').first())
 
 		const commentField = page.locator('[data-test="response-comment"]').first()
 		await expect(commentField).toBeVisible({ timeout: 5000 })
 		const commentText = 'Looking forward to this appointment!'
 		await commentField.fill(commentText)
 
-		// Comments are saved explicitly — no auto-save to wait on.
+		// Comments are saved explicitly. Wait for the request itself: the button
+		// goes disabled the moment the save starts, so reloading on that signal
+		// would cancel the very request under test.
 		const saveComment = page.locator('[data-test="button-save-comment"]').first()
 		await expect(saveComment).toBeEnabled({ timeout: 5000 })
+		const saved = waitForRespond(page)
 		await saveComment.click()
-		await expect(saveComment).toBeDisabled({ timeout: 5000 })
+		await saved
 
 		await page.reload()
 		await page.waitForLoadState('networkidle')
@@ -219,9 +220,7 @@ test.describe('Attendance App - User Responses', () => {
 		await page.getByRole('link', { name: 'Upcoming Appointments' }).click()
 		await page.waitForLoadState('networkidle')
 
-		const reloadedCommentToggle = page.locator('[data-test="button-toggle-comment"]').first()
-		await expect(reloadedCommentToggle).toBeVisible({ timeout: 5000 })
-		await reloadedCommentToggle.click()
+		await openCommentField(page.locator('[data-test="button-toggle-comment"]').first())
 
 		const reloadedCommentField = page.locator('[data-test="response-comment"]').first()
 		await expect(reloadedCommentField).toBeVisible({ timeout: 5000 })

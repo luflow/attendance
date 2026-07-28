@@ -130,9 +130,15 @@ const localComment = ref(props.comment)
 const commentExpanded = ref(Boolean(props.comment) && !props.compact)
 const commentInput = ref(null)
 
-const { savingComment, autoSaveComment, reset } = useAppointmentResponse()
+const { savingComment, errorComment, autoSaveComment, reset } = useAppointmentResponse()
 
-const commentChanged = computed(() => localComment.value !== (props.comment || ''))
+// Saving a comment does not refresh the parent, so props.comment stays on the
+// value the card was rendered with. Without a local baseline the Save button
+// springs back to enabled a moment after a successful save and reads as
+// "still unsaved".
+const savedComment = ref(null)
+
+const commentChanged = computed(() => localComment.value !== (savedComment.value ?? props.comment ?? ''))
 
 async function toggleComment() {
 	commentExpanded.value = !commentExpanded.value
@@ -146,13 +152,18 @@ async function toggleComment() {
 // refresh never overwrites what the user is in the middle of typing.
 watch(() => props.comment, (next) => {
 	if (!commentChanged.value) {
+		savedComment.value = null
 		localComment.value = next || ''
 	}
 })
 
-function saveComment() {
+async function saveComment() {
 	if (!commentChanged.value || savingComment.value) return
-	autoSaveComment(props.appointmentId, props.userResponse, localComment.value, false)
+	const pending = localComment.value
+	await autoSaveComment(props.appointmentId, props.userResponse, pending, false)
+	if (!errorComment.value) {
+		savedComment.value = pending
+	}
 }
 
 // The composable keeps its own spinner/indicator timeouts, which would
