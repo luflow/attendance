@@ -252,4 +252,43 @@ class BookingServiceTest extends TestCase {
 
 		$this->assertTrue($this->service->isScheduledOut($this->closedAppointment(), 'alice'));
 	}
+
+	// --- effectiveBookingStatus: what the user is actually told ---
+
+	public function testEffectiveBookingStatusKeepsAStoredBooking(): void {
+		$this->assertSame(
+			BookingService::STATUS_BOOKED,
+			$this->service->effectiveBookingStatus(
+				$this->response('alice', 'yes', BookingService::STATUS_BOOKED),
+			),
+		);
+	}
+
+	public function testEffectiveBookingStatusReportsWhatTheCloseWaveTold(): void {
+		// 'declined' never reaches booking_status — only book()/unbook() write
+		// there. Without reading the wave's own column the card would tell a
+		// passed-over user "you answered yes" and nothing more.
+		$this->assertSame(
+			BookingService::STATUS_DECLINED,
+			$this->service->effectiveBookingStatus(
+				$this->response('alice', 'yes', null, BookingService::STATUS_DECLINED),
+			),
+		);
+	}
+
+	public function testEffectiveBookingStatusIsOpenWhenNoWaveHasRun(): void {
+		// Planning never used, or the inquiry still running: nothing to say.
+		$this->assertNull(
+			$this->service->effectiveBookingStatus($this->response('alice', 'yes')),
+		);
+	}
+
+	public function testEffectiveBookingStatusCostsNoQuery(): void {
+		// It reads two columns of a row the caller already holds; a list
+		// endpoint calls this once per appointment.
+		$this->responseMapper->expects($this->never())->method('findByAppointment');
+		$this->configService->expects($this->never())->method('isBookingEnabled');
+
+		$this->service->effectiveBookingStatus($this->response('alice', 'no'));
+	}
 }

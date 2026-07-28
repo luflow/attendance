@@ -130,6 +130,24 @@ class BookingService {
 	}
 
 	/**
+	 * The booking status as the user was actually told it.
+	 *
+	 * 'declined' never reaches the booking_status column: only book()/unbook()
+	 * write there, so it holds 'booked' or nothing. The verdict for everyone
+	 * else is recorded by the close-time wave in bookingNotifiedStatus, which
+	 * is what those people received a notification about — and therefore what
+	 * their appointment should keep saying. Reading it costs nothing: it is a
+	 * column on the row the caller already holds.
+	 *
+	 * The wave's own guards come along for free — it skips anyone who did not
+	 * answer yes, and it does not run at all unless somebody got a place, so an
+	 * appointment where planning was never used stays unmarked.
+	 */
+	public function effectiveBookingStatus(AttendanceResponse $response): ?string {
+		return $response->getBookingStatus() ?? $response->getBookingNotifiedStatus();
+	}
+
+	/**
 	 * Notification wave triggered when an appointment is closed: tell booked
 	 * yes-responders they are planned in and the remaining yes-responders they
 	 * are not. Rules:
