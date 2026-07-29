@@ -33,6 +33,7 @@ OC.L10N.register(
     "Share link" : "Partejar via ligam",
     "Edit" : "Modificar",
     "Delete" : "Suprimir",
+    "pending" : "pendent",
     "Show details" : "Mostrar detalhs",
     "Loading …" : "Cargament …",
     "No activity yet" : "Cap d’activitat pel moment",

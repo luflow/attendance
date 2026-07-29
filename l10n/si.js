@@ -24,6 +24,7 @@ OC.L10N.register(
     "Cancel" : "Cancel",
     "Edit" : "සංස්කරණය",
     "Delete" : "Delete",
+    "Closed" : "වසා ඇත",
     "Daily" : "දිනපතා",
     "Weekly" : "සතිපතා",
     "Monday" : "සඳුදා",
@@ -39,7 +40,6 @@ OC.L10N.register(
     "Link copied" : "සබැඳිය පිටපත් කළා",
     "Preview" : "පෙරදසුන",
     "Open" : "විවෘත",
-    "Closed" : "වසා ඇත",
     "User" : "පරිශීලක",
     "Description" : "විස්තරය",
     "Confirm" : "තහවුරු කරන්න"

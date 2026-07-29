@@ -22,6 +22,7 @@
     "Cancel" : "Cancel",
     "Edit" : "සංස්කරණය",
     "Delete" : "Delete",
+    "Closed" : "වසා ඇත",
     "Daily" : "දිනපතා",
     "Weekly" : "සතිපතා",
     "Monday" : "සඳුදා",
@@ -37,7 +38,6 @@
     "Link copied" : "සබැඳිය පිටපත් කළා",
     "Preview" : "පෙරදසුන",
     "Open" : "විවෘත",
-    "Closed" : "වසා ඇත",
     "User" : "පරිශීලක",
     "Description" : "විස්තරය",
     "Confirm" : "තහවුරු කරන්න"
