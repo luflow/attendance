@@ -25,6 +25,7 @@ class IcalService {
 	private AttendanceResponseMapper $responseMapper;
 	private VisibilityService $visibilityService;
 	private ConfigService $configService;
+	private BookingService $bookingService;
 	private ISecureRandom $secureRandom;
 	private IURLGenerator $urlGenerator;
 	private IL10NFactory $l10nFactory;
@@ -40,6 +41,7 @@ class IcalService {
 		AttendanceResponseMapper $responseMapper,
 		VisibilityService $visibilityService,
 		ConfigService $configService,
+		BookingService $bookingService,
 		ISecureRandom $secureRandom,
 		IURLGenerator $urlGenerator,
 		IL10NFactory $l10nFactory,
@@ -51,6 +53,7 @@ class IcalService {
 		$this->responseMapper = $responseMapper;
 		$this->visibilityService = $visibilityService;
 		$this->configService = $configService;
+		$this->bookingService = $bookingService;
 		$this->secureRandom = $secureRandom;
 		$this->urlGenerator = $urlGenerator;
 		$this->l10nFactory = $l10nFactory;
@@ -224,14 +227,24 @@ class IcalService {
 		// Build summary with response suffix
 		$summary = $appointment->getName() . ' (' . $l->t('Me') . ': ' . $responseLabel . ')';
 
-		// Booking status (only when the feature is on and the user said yes):
-		// reflect whether the user is scheduled via a title marker and TRANSP.
-		// scheduled → busy (OPAQUE); not scheduled → free (TRANSPARENT). No
-		// COLOR — Google ignores it in subscribed feeds. Flows through on the
-		// next poll since the feed is regenerated per request.
-		$bookingStatus = $response ? $response->getBookingStatus() : null;
-		if ($responseState === 'yes' && $this->configService->isBookingEnabled()) {
-			if ($bookingStatus === 'booked') {
+		// Booking status: the scheduling verdict replaces the plain answer in the
+		// title, and drives TRANSP — scheduled → busy (OPAQUE), not scheduled →
+		// free (TRANSPARENT). No COLOR, Google ignores it in subscribed feeds.
+		// Flows through on the next poll since the feed is regenerated per
+		// request.
+		//
+		// Only once the inquiry is closed, and only for somebody the close-time
+		// wave actually reached: while people can still answer, nobody has been
+		// passed over yet, and a title saying "not scheduled" would be a verdict
+		// the organizer has not made. Same rule the cards use in
+		// finalScheduleStatus(), so calendar and app never disagree.
+		$bookingStatus = $response ? $this->bookingService->effectiveBookingStatus($response) : null;
+		if ($responseState === 'yes'
+			&& $this->configService->isBookingEnabled()
+			&& $appointment->isClosed()
+			&& ($bookingStatus === BookingService::STATUS_BOOKED
+				|| $bookingStatus === BookingService::STATUS_DECLINED)) {
+			if ($bookingStatus === BookingService::STATUS_BOOKED) {
 				$transp = 'OPAQUE';
 				// TRANSLATORS Status marker appended to the calendar event title — the person got a place in the appointment (German "Eingeplant", not "Geplant"; the appointment itself is not being planned).
 				$statusLabel = $l->t('Scheduled');
