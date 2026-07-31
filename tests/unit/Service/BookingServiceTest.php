@@ -253,6 +253,58 @@ class BookingServiceTest extends TestCase {
 		$this->assertTrue($this->service->isScheduledOut($this->closedAppointment(), 'alice'));
 	}
 
+	// --- isScheduledIn: the "only my scheduled" filter ---
+
+	public function testIsScheduledInIsFalseWhenPlanningIsOff(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(false);
+		$this->responseMapper->method('findByAppointment')->willReturn([
+			$this->response('alice', 'yes', BookingService::STATUS_BOOKED),
+		]);
+
+		$this->assertFalse($this->service->isScheduledIn($this->closedAppointment(), 'alice'));
+	}
+
+	public function testIsScheduledInIsTrueForTheBookedUser(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+		$this->responseMapper->method('findByAppointment')->willReturn([
+			$this->response('bob', 'yes'),
+			$this->response('alice', 'yes', BookingService::STATUS_BOOKED),
+		]);
+
+		$this->assertTrue($this->service->isScheduledIn($this->closedAppointment(), 'alice'));
+	}
+
+	public function testIsScheduledInCountsAnOpenInquiry(): void {
+		// Being booked is an explicit act by a manager, so it means something
+		// before closing — unlike not being booked. The date is one the user
+		// has to turn up for either way.
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+		$this->responseMapper->method('findByAppointment')->willReturn([
+			$this->response('alice', 'yes', BookingService::STATUS_BOOKED),
+		]);
+
+		$this->assertTrue($this->service->isScheduledIn($this->appointment(), 'alice'));
+	}
+
+	public function testIsScheduledInIsFalseForSomebodyElsesPlace(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+		$this->responseMapper->method('findByAppointment')->willReturn([
+			$this->response('bob', 'yes', BookingService::STATUS_BOOKED),
+			$this->response('alice', 'yes', BookingService::STATUS_DECLINED),
+		]);
+
+		$this->assertFalse($this->service->isScheduledIn($this->closedAppointment(), 'alice'));
+	}
+
+	public function testIsScheduledInIsFalseWithoutAnyResponse(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+		$this->responseMapper->method('findByAppointment')->willReturn([
+			$this->response('bob', 'yes', BookingService::STATUS_BOOKED),
+		]);
+
+		$this->assertFalse($this->service->isScheduledIn($this->closedAppointment(), 'alice'));
+	}
+
 	// --- effectiveBookingStatus: what the user is actually told ---
 
 	public function testEffectiveBookingStatusKeepsAStoredBooking(): void {

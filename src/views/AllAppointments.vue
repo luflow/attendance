@@ -223,7 +223,7 @@ const F = Object.freeze({
 })
 const RESPONSE = Object.freeze({ YES: 'yes', MAYBE: 'maybe', NO: 'no', NONE: 'none' })
 const STATUS = Object.freeze({ OPEN: 'open', CLOSED: 'closed', CANCELLED: 'cancelled' })
-const AUDIENCE = Object.freeze({ ME: 'me', ME_SCHEDULED: 'me-scheduled' })
+const AUDIENCE = Object.freeze({ ME: 'me', ME_SCHEDULED: 'me-scheduled', ME_BOOKED: 'me-booked' })
 
 const { permissions, capabilities, loadPermissions } = usePermissions()
 
@@ -273,6 +273,13 @@ const filterDefs = computed(() => [
 				// uses for calling off an appointment).
 				label: t('attendance', 'Only for me, not scheduled out'),
 				visible: capabilities.bookingEnabled,
+			},
+			{
+				id: AUDIENCE.ME_BOOKED,
+				// TRANSLATORS: Filter option in the appointment list. Keeps only the
+				// appointments the user was given a place in (German "eingeplant").
+				label: t('attendance', 'Only where I am scheduled in'),
+				visible: capabilities.bookingEnabled && capabilities.scheduledFilter,
 			},
 		],
 	},
@@ -419,6 +426,7 @@ async function loadAppointments(skipLoadingSpinner = false) {
 		const audienceParams = {
 			[AUDIENCE.ME]: { onlyForMe: true },
 			[AUDIENCE.ME_SCHEDULED]: { notScheduledOut: true },
+			[AUDIENCE.ME_BOOKED]: { onlyScheduled: true },
 		}[activeAudience.value] ?? {}
 		if (props.showAll) {
 			const [upcoming, past] = await Promise.all([

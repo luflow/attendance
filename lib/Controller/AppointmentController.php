@@ -103,12 +103,13 @@ class AppointmentController extends Controller {
 	 * @param bool $unansweredOnly When true, only return upcoming appointments that the user has not answered yet AND that are still open. Ignored when $showPastAppointments is true.
 	 * @param bool $onlyForMe When true, restrict the result to appointments the user is part of the target audience for (visibleUsers/Groups/Teams membership; appointments with no visibility restriction count as "for everyone" and are included). Useful for managers, who otherwise see every appointment in the system.
 	 * @param bool $notScheduledOut When true, additionally drop closed appointments where somebody was scheduled but the user was not. Only has an effect while the planning feature is enabled; appointments nobody was scheduled for stay visible to everyone. Implies $onlyForMe.
+	 * @param bool $onlyScheduled When true, return only appointments the user has been given a place in. Only has an effect while the planning feature is enabled. Open inquiries count as soon as a manager booked the user — being booked is an explicit act, unlike not being booked. Implies $onlyForMe.
 	 * @return DataResponse<Http::STATUS_OK, list<AttendanceAppointmentWithResponse>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI]
-	public function index(bool $showPastAppointments = false, bool $unansweredOnly = false, bool $onlyForMe = false, bool $notScheduledOut = false): DataResponse {
+	public function index(bool $showPastAppointments = false, bool $unansweredOnly = false, bool $onlyForMe = false, bool $notScheduledOut = false, bool $onlyScheduled = false): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
@@ -130,6 +131,7 @@ class AppointmentController extends Controller {
 			$canSeeResponseOverview,
 			$canSeeComments,
 			$notScheduledOut,
+			$onlyScheduled,
 		);
 
 		// Add checkin summary to each appointment the user may see responses
@@ -860,6 +862,10 @@ class AppointmentController extends Controller {
 			'closing' => true,
 			'cancelling' => true,
 			'bookingEnabled' => $this->configService->isBookingEnabled(),
+			// Server understands index(onlyScheduled). Older servers ignore the
+			// parameter and would answer with an unfiltered list, so clients
+			// must hide the filter rather than send it blind.
+			'scheduledFilter' => true,
 			'remindMaybe' => true,
 			// Older servers reject response=null. Mobile clients gate the
 			// withdraw-response affordance on this flag.

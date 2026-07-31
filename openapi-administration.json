@@ -178,6 +178,7 @@
                     "closing",
                     "cancelling",
                     "bookingEnabled",
+                    "scheduledFilter",
                     "remindMaybe",
                     "responseToggle",
                     "guestInvitation",
@@ -208,6 +209,9 @@
                         "type": "boolean"
                     },
                     "bookingEnabled": {
+                        "type": "boolean"
+                    },
+                    "scheduledFilter": {
                         "type": "boolean"
                     },
                     "remindMaybe": {

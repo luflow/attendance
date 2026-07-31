@@ -51,12 +51,12 @@
 					tabindex="0"
 					role="img"
 					data-test="organizer-info"
-					:aria-label="t('attendance', 'Organized by {names}', { names: organizerNames })">
+					:aria-label="organizedByLabel">
 					<AccountStarIcon :size="15" />
 				</span>
 			</template>
 			<div class="meta-tooltip">
-				<span>{{ t('attendance', 'Organized by {names}', { names: organizerNames }) }}</span>
+				<span>{{ organizedByLabel }}</span>
 			</div>
 		</NcPopover>
 	</span>
@@ -97,6 +97,13 @@ const organizerNames = computed(() => (props.appointment.organizers || [])
 	.map((organizer) => organizer.label || organizer.id || organizer)
 	.filter((name) => typeof name === 'string' && name)
 	.join(', '))
+
+// Both the tooltip and the icon's aria-label read this — a computed is also the
+// only place a TRANSLATORS hint binds, an attribute binding never gets one.
+const organizedByLabel = computed(() => {
+	// TRANSLATORS: Tooltip on the organizer icon of an appointment. {names} is a comma-separated list of the organizers' display names — usually one name, but there can be several.
+	return t('attendance', 'Organized by {names}', { names: organizerNames.value })
+})
 </script>
 
 <style scoped lang="scss">
