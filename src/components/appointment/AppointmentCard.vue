@@ -219,11 +219,11 @@ const scheduleNote = computed(() => {
 // and one-expression arrow bodies.
 const checkinSegments = computed(() => {
 	const summary = props.appointment.checkinSummary ?? {}
-	// TRANSLATORS: Legend under the check-in bar — how many people have checked in. Sibling labels: "absent", "pending". All three describe the current check-in state of the same event, so translate as status labels rather than strict past/present tense.
+	// TRANSLATORS: Legend under the check-in bar, rendered directly after the number as "5 attended" — so keep it lowercase in languages that do not capitalize mid-sentence, and do not repeat the count. Means physically present at the event, not "signed up". Sibling labels: "absent", "pending". All three describe the current check-in state of the same event, so translate as status labels rather than strict past/present tense.
 	const attended = t('attendance', 'attended')
-	// TRANSLATORS: Legend under the check-in bar — the person was explicitly marked absent. See "attended".
+	// TRANSLATORS: Legend under the check-in bar, rendered directly after the number as "2 absent" — the person was expected but explicitly marked absent. Same lowercase and no-count rules as "attended".
 	const absent = t('attendance', 'absent')
-	// TRANSLATORS: Legend under the check-in bar — no check-in recorded for the person yet. See "attended".
+	// TRANSLATORS: Legend under the check-in bar, rendered directly after the number as "7 pending" — no check-in recorded for the person yet. Same lowercase and no-count rules as "attended".
 	const pending = t('attendance', 'pending')
 	return [
 		{ key: 'attended', variant: 'success', count: summary.attended ?? 0, label: attended },

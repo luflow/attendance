@@ -1,8 +1,8 @@
 OC.L10N.register(
     "attendance",
     {
-    "This appointment was cancelled and no longer accepts responses." : "Dieser Termin wurde abgesagt und es können keine Antworten mehr eingegeben werden",
-    "This appointment is closed and no longer accepts responses." : "Dieser Termin wurde geschlossen und es können keine Antworten mehr eingegeben werden",
+    "This appointment was cancelled and no longer accepts responses." : "Dieser Termin wurde abgesagt und es können keine Antworten mehr eingegeben werden.",
+    "This appointment is closed and no longer accepts responses." : "Dieser Termin wurde geschlossen und es können keine Antworten mehr eingegeben werden.",
     "Response recorded" : "Antwort aufgezeichnet",
     "An error occurred while recording your response. Please try again." : "Bei der Aufzeichnung Ihrer Antwort ist ein Fehler aufgetreten. Bitte erneut versuchen.",
     "Invalid response type." : "Ungültiger Antworttyp.",
@@ -281,9 +281,9 @@ OC.L10N.register(
     "Delete" : "Löschen",
     "You are scheduled in for this appointment. Please be there at {when}." : "Für diesen Termin sind Sie eingeplant. Bitte seien Sie um {when} dort.",
     "This appointment is already fully scheduled — thanks for offering!" : "Dieser Termin ist bereits vollständig geplant — danke für das Angebot!",
-    "attended" : "Teilnehmend",
-    "absent" : "Abwesend",
-    "pending" : "Ausstehend",
+    "attended" : "anwesend",
+    "absent" : "abwesend",
+    "pending" : "ausstehend",
     "Appointment cancelled" : "Termin abgesagt",
     "Reactivate" : "Reaktivieren",
     "Inquiry closed" : "Anfrage geschlossen",
