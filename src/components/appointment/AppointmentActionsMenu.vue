@@ -41,7 +41,7 @@
 					<LockOpenIcon v-if="isClosed" :size="20" />
 					<LockIcon v-else :size="20" />
 				</template>
-				{{ isClosed ? t("attendance", "Reopen inquiry") : t("attendance", "Close inquiry") }}
+				{{ closeToggleLabel }}
 			</NcActionButton>
 			<NcActionButton
 				v-if="canCancel"
@@ -217,6 +217,17 @@ const {
 // Lives here instead of inline in the template: the string extractor only
 // associates a TRANSLATORS comment with the first t() call on the very
 // next line, which a multi-line ternary cannot provide.
+// One computed per label, never an inline ternary: the extractor's regex for the
+// Vue template merges two t() calls on one line into a single broken string.
+const closeToggleLabel = computed(() => {
+	if (isClosed.value) {
+		// TRANSLATORS: Menu action that lets people answer again after the inquiry was closed — the counterpart of "Close inquiry".
+		return t('attendance', 'Reopen inquiry')
+	}
+	// TRANSLATORS: Menu action that stops the appointment from accepting further responses; the answers stay visible.
+	return t('attendance', 'Close inquiry')
+})
+
 const cancelToggleLabel = computed(() => {
 	if (isCancelled.value) {
 		// TRANSLATORS: Menu action that takes a cancellation back — the appointment will take place again.
