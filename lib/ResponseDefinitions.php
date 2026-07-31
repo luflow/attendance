@@ -157,6 +157,7 @@ namespace OCA\Attendance;
  *   closing: bool,
  *   cancelling: bool,
  *   bookingEnabled: bool,
+ *   scheduledFilter: bool,
  *   remindMaybe: bool,
  *   responseToggle: bool,
  *   guestInvitation: bool,

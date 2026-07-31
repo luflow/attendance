@@ -130,6 +130,31 @@ class BookingService {
 	}
 
 	/**
+	 * Whether the user holds a place in an appointment: planning is on and a
+	 * manager has booked them.
+	 *
+	 * Not the negation of isScheduledOut(), and deliberately not gated on the
+	 * inquiry being closed. Being booked is an explicit act by a manager, so it
+	 * means something the moment it happens; not being booked only means
+	 * anything once closing has made the verdict final. So a caller filtering
+	 * for "appointments I have a place in" sees the open ones too — those are
+	 * exactly the upcoming dates the user has to turn up for.
+	 */
+	public function isScheduledIn(Appointment $appointment, string $userId): bool {
+		if (!$this->isEnabled()) {
+			return false;
+		}
+
+		foreach ($this->responseMapper->findByAppointment($appointment->getId()) as $response) {
+			if ($response->getUserId() === $userId) {
+				return $response->getBookingStatus() === self::STATUS_BOOKED;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * The booking status as the user was actually told it.
 	 *
 	 * 'declined' never reaches the booking_status column: only book()/unbook()

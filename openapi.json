@@ -456,6 +456,7 @@
                     "closing",
                     "cancelling",
                     "bookingEnabled",
+                    "scheduledFilter",
                     "remindMaybe",
                     "responseToggle",
                     "guestInvitation",
@@ -486,6 +487,9 @@
                         "type": "boolean"
                     },
                     "bookingEnabled": {
+                        "type": "boolean"
+                    },
+                    "scheduledFilter": {
                         "type": "boolean"
                     },
                     "remindMaybe": {
@@ -1148,6 +1152,15 @@
                         "name": "notScheduledOut",
                         "in": "query",
                         "description": "When true, additionally drop closed appointments where somebody was scheduled but the user was not. Only has an effect while the planning feature is enabled; appointments nobody was scheduled for stay visible to everyone. Implies $onlyForMe.",
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    {
+                        "name": "onlyScheduled",
+                        "in": "query",
+                        "description": "When true, return only appointments the user has been given a place in. Only has an effect while the planning feature is enabled. Open inquiries count as soon as a manager booked the user — being booked is an explicit act, unlike not being booked. Implies $onlyForMe.",
                         "schema": {
                             "type": "boolean",
                             "default": false

@@ -967,6 +967,9 @@ class AppointmentService {
 	 *                              of (see isScheduledOut). Implies $onlyForMe —
 	 *                              a relevance filter that still let through
 	 *                              other people's appointments would be odd.
+	 * @param bool $onlyScheduled Keep only appointments the user holds a place
+	 *                            in (see isScheduledIn). The strictest step of
+	 *                            the same axis, so it also implies $onlyForMe.
 	 */
 	public function getAppointmentsWithUserResponses(
 		string $userId,
@@ -976,6 +979,7 @@ class AppointmentService {
 		bool $includeResponseSummary = false,
 		bool $includeComments = false,
 		bool $notScheduledOut = false,
+		bool $onlyScheduled = false,
 	): array {
 		$appointments = $showPastAppointments
 			? $this->getPastAppointments()
@@ -987,7 +991,7 @@ class AppointmentService {
 		// "Unanswered" only makes sense for appointments actually addressed to
 		// the user. For managers, the visibility check otherwise lets through
 		// every unanswered appointment in the system, which defeats the inbox.
-		$onlyForMe = $onlyForMe || $unansweredOnly || $notScheduledOut;
+		$onlyForMe = $onlyForMe || $unansweredOnly || $notScheduledOut || $onlyScheduled;
 
 		$globalManage = $this->permissionService->canManageAppointments($userId);
 		$result = [];
@@ -1003,6 +1007,9 @@ class AppointmentService {
 				continue;
 			}
 			if ($notScheduledOut && $this->bookingService->isScheduledOut($appointment, $userId)) {
+				continue;
+			}
+			if ($onlyScheduled && !$this->bookingService->isScheduledIn($appointment, $userId)) {
 				continue;
 			}
 
