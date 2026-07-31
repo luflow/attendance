@@ -202,13 +202,13 @@ const closedLabel = computed(() => formatClosedLabel(props.appointment.closedAt,
 const scheduleNote = computed(() => {
 	const status = finalScheduleStatus(props.appointment, capabilities.bookingEnabled)
 	if (status === 'booked') {
-		// TRANSLATORS: Note under the user's own answer on a closed inquiry — they got a place in the appointment (German "eingeplant").
+		// TRANSLATORS: Note under the user's own answer on a closed inquiry — they got a place in the appointment (German "eingeplant"). {when} is a time of day only, e.g. "10:00" or "10:00 AM", never a date; the date is shown in the appointment header above.
 		return t('attendance', 'You are scheduled in for this appointment. Please be there at {when}.', {
 			when: formatTime(props.appointment.startDatetime),
 		})
 	}
 	if (status === 'declined') {
-		// TRANSLATORS: Note under the user's own answer on a closed inquiry — enough people were scheduled in already, so this one did not get a place (German "nicht eingeplant").
+		// TRANSLATORS: Note under the user's own answer on a closed inquiry, shown to somebody who volunteered but did NOT get a place because the organizer had already scheduled in enough people. "fully scheduled" means all the places are taken, not that the planning is finished. German: "Für diesen Termin sind bereits genug Leute eingeplant — danke, dass du dich angeboten hast!".
 		return t('attendance', 'This appointment is already fully scheduled — thanks for offering!')
 	}
 	return ''
