@@ -208,8 +208,8 @@ const scheduleNote = computed(() => {
 		})
 	}
 	if (status === 'declined') {
-		// TRANSLATORS: Note under the user's own answer on a closed inquiry, shown to somebody who volunteered but did NOT get a place because the organizer had already scheduled in enough people. "scheduled in" is the same act as in the sibling string "You are scheduled in for this appointment." German: "Für diesen Termin sind bereits genug Leute eingeplant — danke, dass du dich gemeldet hast."
-		return t('attendance', 'Enough people are already scheduled in for this appointment — thanks for volunteering.')
+		// TRANSLATORS: Note under the user's own answer on a closed inquiry, shown to somebody who volunteered but did NOT get a place because the organizer had already scheduled in enough people. "scheduled in" is the same act as in the sibling string "You are scheduled in for this appointment." The thanks is for answering at all, not for the answer being yes. German: "Für diesen Termin sind bereits genug Leute eingeplant — danke für deine Rückmeldung!"
+		return t('attendance', 'Enough people are already scheduled in for this appointment — thanks for your response!')
 	}
 	return ''
 })
