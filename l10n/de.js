@@ -280,7 +280,7 @@ OC.L10N.register(
     "Show activity history" : "Aktivitätsverlauf anzeigen",
     "Delete" : "Löschen",
     "You are scheduled in for this appointment. Please be there at {when}." : "Für diesen Termin bist du eingeplant. Bitte sei um {when} dort.",
-    "This appointment is already fully scheduled — thanks for offering!" : "Dieser Termin ist bereits vollständig geplant — danke für das Angebot!",
+    "Enough people are already scheduled in for this appointment — thanks for volunteering." : "Für diesen Termin sind bereits genug Leute eingeplant — danke, dass du dich gemeldet hast.",
     "attended" : "anwesend",
     "absent" : "abwesend",
     "pending" : "ausstehend",

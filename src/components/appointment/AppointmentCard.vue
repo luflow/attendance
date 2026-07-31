@@ -208,8 +208,8 @@ const scheduleNote = computed(() => {
 		})
 	}
 	if (status === 'declined') {
-		// TRANSLATORS: Note under the user's own answer on a closed inquiry, shown to somebody who volunteered but did NOT get a place because the organizer had already scheduled in enough people. "fully scheduled" means all the places are taken, not that the planning is finished. German: "Für diesen Termin sind bereits genug Leute eingeplant — danke, dass du dich angeboten hast!".
-		return t('attendance', 'This appointment is already fully scheduled — thanks for offering!')
+		// TRANSLATORS: Note under the user's own answer on a closed inquiry, shown to somebody who volunteered but did NOT get a place because the organizer had already scheduled in enough people. "scheduled in" is the same act as in the sibling string "You are scheduled in for this appointment." German: "Für diesen Termin sind bereits genug Leute eingeplant — danke, dass du dich gemeldet hast."
+		return t('attendance', 'Enough people are already scheduled in for this appointment — thanks for volunteering.')
 	}
 	return ''
 })
