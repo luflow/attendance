@@ -274,6 +274,66 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->assertSame([], $this->backend->deleted);
 	}
 
+	public function testPatchPreservesForeignPropertiesAndAlarms(): void {
+		$this->configureEnabled();
+		$appointment = $this->buildAppointment();
+		$appointment->setName('New title');
+		$appointment->setCalendarUri('org-events-owner-uri');
+		$appointment->setCalendarEventUid('attendance-org-5@cloud.example.com');
+		$this->backend->existingObjects['attendance-org-5@cloud.example.com.ics'] = [
+			'calendardata' => "BEGIN:VCALENDAR\r\n"
+				. "VERSION:2.0\r\n"
+				. "BEGIN:VEVENT\r\n"
+				. "UID:attendance-org-5@cloud.example.com\r\n"
+				. "SUMMARY:Old title\r\n"
+				. "DTSTART:20260101T100000Z\r\n"
+				. "DTEND:20260101T110000Z\r\n"
+				. "LOCATION:Club house\r\n"
+				. "BEGIN:VALARM\r\n"
+				. "TRIGGER:-PT15M\r\n"
+				. "ACTION:DISPLAY\r\n"
+				. "DESCRIPTION:Old title\r\n"
+				. "END:VALARM\r\n"
+				. "END:VEVENT\r\n"
+				. "END:VCALENDAR\r\n",
+		];
+
+		$this->assertTrue($this->service->syncAppointment($appointment));
+		$ics = $this->backend->updated[0][2];
+
+		$this->assertStringContainsString('SUMMARY:New title', $ics);
+		$this->assertStringContainsString('DTSTART:20260901T180000Z', $ics);
+		// Properties the app does not model survive the patch
+		$this->assertStringContainsString('LOCATION:Club house', $ics);
+		$this->assertStringContainsString('TRIGGER:-PT15M', $ics);
+		// The VALARM's DESCRIPTION is a nested property and must stay untouched
+		$this->assertStringContainsString('DESCRIPTION:Old title', $ics);
+		// Managed properties missing from the old event get appended
+		$this->assertStringContainsString('DESCRIPTION:Bring instruments', $ics);
+		$this->assertStringContainsString('STATUS:CONFIRMED', $ics);
+		$this->assertStringNotContainsString('SUMMARY:Old title', $ics);
+	}
+
+	public function testPatchRemovesDescriptionWhenCleared(): void {
+		$this->configureEnabled();
+		$appointment = $this->buildAppointment();
+		$appointment->setDescription('');
+		$appointment->setCalendarUri('org-events-owner-uri');
+		$appointment->setCalendarEventUid('attendance-org-5@cloud.example.com');
+		$this->backend->existingObjects['attendance-org-5@cloud.example.com.ics'] = [
+			'calendardata' => "BEGIN:VCALENDAR\r\n"
+				. "BEGIN:VEVENT\r\n"
+				. "UID:attendance-org-5@cloud.example.com\r\n"
+				. "SUMMARY:Rehearsal\r\n"
+				. "DESCRIPTION:Old text\r\n"
+				. "END:VEVENT\r\n"
+				. "END:VCALENDAR\r\n",
+		];
+
+		$this->assertTrue($this->service->syncAppointment($appointment));
+		$this->assertStringNotContainsString('DESCRIPTION:', $this->backend->updated[0][2]);
+	}
+
 	public function testSyncAllUpcomingCountsOnlyPushedAppointments(): void {
 		$this->configureEnabled();
 		$own = $this->buildAppointment(5);

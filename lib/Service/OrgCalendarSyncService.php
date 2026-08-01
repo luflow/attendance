@@ -91,12 +91,18 @@ class OrgCalendarSyncService {
 			}
 
 			$objectUri = $uid . '.ics';
-			$ics = $this->buildIcs($appointment, $uid);
 
-			if ($backend->getCalendarObject($calendarId, $objectUri) !== null) {
+			$existing = $backend->getCalendarObject($calendarId, $objectUri);
+			if ($existing !== null) {
+				// Patch only the properties the app models so anything added in
+				// the Calendar app (alarms, location, attendees, …) survives.
+				$existingIcs = $this->extractCalendarData($existing);
+				$ics = $existingIcs !== null
+					? $this->patchIcs($existingIcs, $appointment)
+					: $this->buildIcs($appointment, $uid);
 				$backend->updateCalendarObject($calendarId, $objectUri, $ics);
 			} else {
-				$backend->createCalendarObject($calendarId, $objectUri, $ics);
+				$backend->createCalendarObject($calendarId, $objectUri, $this->buildIcs($appointment, $uid));
 			}
 
 			// Store the link with the owner's calendar URI — calendar events
@@ -200,7 +206,7 @@ class OrgCalendarSyncService {
 	}
 
 	/**
-	 * Build the full VCALENDAR document for an appointment.
+	 * Build the full VCALENDAR document for a new appointment event.
 	 *
 	 * DESCRIPTION is exactly the plain appointment description — no extras —
 	 * so that the CalendarObjectUpdateListener echoing our own write back into
@@ -208,38 +214,143 @@ class OrgCalendarSyncService {
 	 */
 	public function buildIcs(Appointment $appointment, string $uid): string {
 		$utc = new \DateTimeZone('UTC');
-		$start = new \DateTime($appointment->getStartDatetime(), $utc);
-		$end = new \DateTime($appointment->getEndDatetime(), $utc);
-		$lastModified = new \DateTime($appointment->getUpdatedAt() ?: 'now', $utc);
 		$created = new \DateTime($appointment->getCreatedAt() ?: 'now', $utc);
 
 		$appointmentUrl = $this->urlGenerator->linkToRouteAbsolute('attendance.page.index')
 			. '#/appointment/' . $appointment->getId();
 
-		$status = $appointment->isCancelled() ? 'CANCELLED' : 'CONFIRMED';
-
-		$output = "BEGIN:VCALENDAR\r\n";
-		$output .= "VERSION:2.0\r\n";
-		$output .= "PRODID:-//Nextcloud//Attendance App//EN\r\n";
-		$output .= "CALSCALE:GREGORIAN\r\n";
-		$output .= "BEGIN:VEVENT\r\n";
-		$output .= 'UID:' . $uid . "\r\n";
-		$output .= 'DTSTAMP:' . $lastModified->format('Ymd\THis\Z') . "\r\n";
-		$output .= 'CREATED:' . $created->format('Ymd\THis\Z') . "\r\n";
-		$output .= 'LAST-MODIFIED:' . $lastModified->format('Ymd\THis\Z') . "\r\n";
-		$output .= 'DTSTART:' . $start->format('Ymd\THis\Z') . "\r\n";
-		$output .= 'DTEND:' . $end->format('Ymd\THis\Z') . "\r\n";
-		$output .= 'SUMMARY:' . $this->icalService->escapeIcalText($appointment->getName()) . "\r\n";
-		if (($appointment->getDescription() ?? '') !== '') {
-			$output .= 'DESCRIPTION:' . $this->icalService->escapeIcalText($appointment->getDescription()) . "\r\n";
+		$lines = [
+			'BEGIN:VCALENDAR',
+			'VERSION:2.0',
+			'PRODID:-//Nextcloud//Attendance App//EN',
+			'CALSCALE:GREGORIAN',
+			'BEGIN:VEVENT',
+			'UID:' . $uid,
+			'CREATED:' . $created->format('Ymd\THis\Z'),
+			'URL:' . $appointmentUrl,
+			'TRANSP:OPAQUE',
+		];
+		foreach ($this->managedProperties($appointment) as $line) {
+			if ($line !== null) {
+				$lines[] = $line;
+			}
 		}
-		$output .= 'URL:' . $appointmentUrl . "\r\n";
-		$output .= 'STATUS:' . $status . "\r\n";
-		$output .= "TRANSP:OPAQUE\r\n";
-		$output .= "END:VEVENT\r\n";
-		$output .= "END:VCALENDAR\r\n";
+		$lines[] = 'END:VEVENT';
+		$lines[] = 'END:VCALENDAR';
 
-		return $this->icalService->foldIcalContent($output);
+		return $this->icalService->foldIcalContent(implode("\r\n", $lines) . "\r\n");
+	}
+
+	/**
+	 * Patch an existing VCALENDAR document: replace only the properties the
+	 * app models (times, summary, description, status) inside the first
+	 * VEVENT and leave every other line untouched — alarms, location,
+	 * attendees, categories and custom properties added in the Calendar app
+	 * survive app-side edits (issue #70, phase 2).
+	 *
+	 * Properties inside nested components (e.g. a VALARM's DESCRIPTION) are
+	 * never touched. Falls back to a full rebuild if no VEVENT is found.
+	 */
+	public function patchIcs(string $existingIcs, Appointment $appointment): string {
+		// Normalize newlines and unfold continuation lines (RFC 5545 3.1)
+		$content = str_replace(["\r\n", "\r"], "\n", $existingIcs);
+		$content = preg_replace("/\n[ \t]/", '', $content) ?? $content;
+		$lines = explode("\n", trim($content));
+
+		$props = $this->managedProperties($appointment);
+		$result = [];
+		$inVevent = false;
+		$nested = 0;
+		$patched = false;
+
+		foreach ($lines as $line) {
+			if (!$inVevent) {
+				if ($line === 'BEGIN:VEVENT' && !$patched) {
+					$inVevent = true;
+				}
+				$result[] = $line;
+				continue;
+			}
+			if (str_starts_with($line, 'BEGIN:')) {
+				$nested++;
+				$result[] = $line;
+				continue;
+			}
+			if (str_starts_with($line, 'END:')) {
+				if ($nested > 0) {
+					$nested--;
+					$result[] = $line;
+					continue;
+				}
+				// END:VEVENT — append managed properties the event did not have yet
+				foreach ($props as $newLine) {
+					if ($newLine !== null) {
+						$result[] = $newLine;
+					}
+				}
+				$props = [];
+				$inVevent = false;
+				$patched = true;
+				$result[] = $line;
+				continue;
+			}
+			if ($nested === 0) {
+				$name = strtoupper(substr($line, 0, strcspn($line, ';:')));
+				if (array_key_exists($name, $props)) {
+					$newLine = $props[$name];
+					unset($props[$name]);
+					if ($newLine !== null) {
+						$result[] = $newLine;
+					}
+					continue;
+				}
+			}
+			$result[] = $line;
+		}
+
+		if (!$patched) {
+			return $this->buildIcs($appointment, $this->buildEventUid($appointment->getId()));
+		}
+
+		return $this->icalService->foldIcalContent(implode("\r\n", $result) . "\r\n");
+	}
+
+	/**
+	 * The VEVENT properties the app owns, as full unfolded lines.
+	 * A null value means the property must be absent (e.g. empty description).
+	 *
+	 * @return array<string, ?string> property name => line
+	 */
+	private function managedProperties(Appointment $appointment): array {
+		$utc = new \DateTimeZone('UTC');
+		$start = new \DateTime($appointment->getStartDatetime(), $utc);
+		$end = new \DateTime($appointment->getEndDatetime(), $utc);
+		$lastModified = new \DateTime($appointment->getUpdatedAt() ?: 'now', $utc);
+
+		$description = $appointment->getDescription() ?? '';
+
+		return [
+			'DTSTAMP' => 'DTSTAMP:' . $lastModified->format('Ymd\THis\Z'),
+			'LAST-MODIFIED' => 'LAST-MODIFIED:' . $lastModified->format('Ymd\THis\Z'),
+			'DTSTART' => 'DTSTART:' . $start->format('Ymd\THis\Z'),
+			'DTEND' => 'DTEND:' . $end->format('Ymd\THis\Z'),
+			'SUMMARY' => 'SUMMARY:' . $this->icalService->escapeIcalText($appointment->getName()),
+			'DESCRIPTION' => $description !== ''
+				? 'DESCRIPTION:' . $this->icalService->escapeIcalText($description)
+				: null,
+			'STATUS' => 'STATUS:' . ($appointment->isCancelled() ? 'CANCELLED' : 'CONFIRMED'),
+		];
+	}
+
+	/**
+	 * Get the raw ICS string out of a CalDavBackend object row.
+	 */
+	private function extractCalendarData(array $object): ?string {
+		$data = $object['calendardata'] ?? null;
+		if (is_resource($data)) {
+			$data = stream_get_contents($data);
+		}
+		return (is_string($data) && $data !== '') ? $data : null;
 	}
 
 	/**
