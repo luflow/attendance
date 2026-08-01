@@ -48,6 +48,7 @@ class ResponseService {
 	// Response source constants
 	public const SOURCE_APP = 'app';
 	public const SOURCE_QUICK_LINK = 'quick_link';
+	public const SOURCE_ADMIN = 'admin';
 
 	/**
 	 * Submit or update an attendance response.

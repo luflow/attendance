@@ -28,6 +28,7 @@ return [
 
 		// Attendance response routes
 		['name' => 'appointment#respond', 'url' => '/api/appointments/{id}/respond', 'verb' => 'POST'],
+		['name' => 'appointment#respondForUser', 'url' => '/api/appointments/{appointmentId}/respond/{targetUserId}', 'verb' => 'POST'],
 		['name' => 'appointment#getResponses', 'url' => '/api/appointments/{id}/responses', 'verb' => 'GET'],
 
 		// Audit log

@@ -129,7 +129,9 @@
 			:canSeeComments="canSeeComments"
 			:canManageAppointments="canManage"
 			:appointmentId="appointment.id"
-			:isClosed="isClosed" />
+			:isClosed="isClosed"
+			:acceptsResponses="acceptsResponses"
+			@answerSet="emit('refreshAppointment')" />
 	</div>
 </template>
 
@@ -170,6 +172,7 @@ const emit = defineEmits([
 	'submitResponse',
 	'closedToggled',
 	'showAuditLog',
+	'refreshAppointment',
 ])
 
 // NB: pass a getter, never bind it to a name — every top-level binding in

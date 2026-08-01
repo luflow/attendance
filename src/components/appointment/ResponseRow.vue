@@ -41,6 +41,30 @@
 					</template>
 					{{ bookingLabel }}
 				</NcButton>
+				<!-- Icon-only on purpose: the row already carries up to two labelled
+					buttons, so the on-behalf editor stays as light as possible. -->
+				<SetAnswerPopover
+					v-if="canSetAnswer"
+					:userId="response.userId"
+					:displayName="response.userName"
+					:currentResponse="response.response"
+					:pending="isSettingAnswer"
+					@setAnswer="(userId, value) => emit('setAnswer', userId, value)">
+					<template #default="{ pending }">
+						<NcButton
+							class="response-row__action"
+							variant="tertiary"
+							size="small"
+							:disabled="pending"
+							:aria-label="setAnswerLabel"
+							:title="setAnswerLabel"
+							:data-test="`set-answer-${response.userId}`">
+							<template #icon>
+								<PencilOutlineIcon :size="16" />
+							</template>
+						</NcButton>
+					</template>
+				</SetAnswerPopover>
 			</div>
 			<div v-if="response.isCheckedIn" class="response-row__checkin">
 				<span>{{ t("attendance", "Checked in?") }}</span>
@@ -63,8 +87,10 @@ import BellRingOutlineIcon from 'vue-material-design-icons/BellRingOutline.vue'
 import CalendarCheckIcon from 'vue-material-design-icons/CalendarCheck.vue'
 import CalendarCheckOutlineIcon from 'vue-material-design-icons/CalendarCheckOutline.vue'
 import CommentIcon from 'vue-material-design-icons/Comment.vue'
+import PencilOutlineIcon from 'vue-material-design-icons/PencilOutline.vue'
 import RemindUserPopover from './RemindUserPopover.vue'
 import ResponseDot from './ResponseDot.vue'
+import SetAnswerPopover from './SetAnswerPopover.vue'
 
 const props = defineProps({
 	response: {
@@ -87,6 +113,10 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
+	canSetAnswer: {
+		type: Boolean,
+		default: false,
+	},
 	remindingUsers: {
 		type: Set,
 		default: () => new Set(),
@@ -95,13 +125,20 @@ const props = defineProps({
 		type: Set,
 		default: () => new Set(),
 	},
+	settingAnswer: {
+		type: Set,
+		default: () => new Set(),
+	},
 })
 
-const emit = defineEmits(['remind', 'toggleBooking'])
+const emit = defineEmits(['remind', 'toggleBooking', 'setAnswer'])
 
 // Nudging only makes sense for the undecided — a "yes" or "no" is already final.
 const canRemind = computed(() => props.canSendReminders && props.response.response === 'maybe')
 const isReminding = computed(() => props.remindingUsers.has(props.response.userId))
+const isSettingAnswer = computed(() => props.settingAnswer.has(props.response.userId))
+// TRANSLATORS: Tooltip/aria-label on the icon button that lets a manager record the person's answer on their behalf.
+const setAnswerLabel = computed(() => t('attendance', 'Set answer'))
 const isTogglingBooking = computed(() => props.togglingBooking.has(props.response.userId))
 const isBooked = computed(() => props.response.bookingStatus === 'booked')
 const bookingLabel = computed(() => {

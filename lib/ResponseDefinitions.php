@@ -164,6 +164,7 @@ namespace OCA\Attendance;
  *   auditLog: bool,
  *   selfCheckin: bool,
  *   organizers: bool,
+ *   respondOnBehalf: bool,
  * }
  * @psalm-type AttendanceAuditUserRef = array{
  *   userId: string,

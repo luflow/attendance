@@ -719,6 +719,41 @@ class AppointmentController extends Controller {
 	}
 
 	/**
+	 * Set or clear a response on behalf of another user (requires manage appointments permission or being an organizer)
+	 *
+	 * @param int $appointmentId Appointment ID
+	 * @param string $targetUserId User ID whose response is set
+	 * @param ?string $response Response value: yes, no, maybe — or null to clear the response so the person counts as "not yet responded" again
+	 * @return DataResponse<Http::STATUS_OK, AttendanceResponseData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function respondForUser(int $appointmentId, string $targetUserId, ?string $response = null): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		$appointment = $this->findManageableAppointment($appointmentId, $user->getUID(), 'Insufficient permissions to set responses for other users');
+		if ($appointment instanceof DataResponse) {
+			return $appointment;
+		}
+
+		try {
+			$attendanceResponse = $this->appointmentService->submitResponseForUser(
+				$appointmentId,
+				$targetUserId,
+				$response,
+				$user->getUID()
+			);
+			return new DataResponse($attendanceResponse);
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => $e->getMessage()], 400);
+		}
+	}
+
+	/**
 	 * Get upcoming appointments for dashboard widget
 	 *
 	 * @return DataResponse<Http::STATUS_OK, list<AttendanceAppointmentWithResponse>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
@@ -884,6 +919,10 @@ class AppointmentController extends Controller {
 			// myPermissions payload, create_appointments permission). Mobile
 			// clients hide organizer UI when this is false.
 			'organizers' => true,
+			// Server supports POST /respond/{targetUserId} so managers can
+			// set an answer on behalf of a person (issue #47). Mobile clients
+			// hide the on-behalf picker when this is false.
+			'respondOnBehalf' => true,
 		]);
 	}
 

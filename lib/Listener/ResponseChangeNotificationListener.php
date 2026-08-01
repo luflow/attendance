@@ -128,10 +128,15 @@ class ResponseChangeNotificationListener {
 
 	private function subjectParametersFor(AuditEvent $event, string $appointmentName): array {
 		$meta = $event->getMetaArray();
+		$actor = $event->getActorId() ?? '';
+		$subject = $event->getSubjectId() ?? '';
 		return [
 			'appointmentId' => $event->getAppointmentId(),
 			'appointmentName' => $appointmentName,
-			'actor' => $event->getActorId() ?? '',
+			'actor' => $actor,
+			// Only set when someone answered on behalf of another person —
+			// the Notifier then renders the on-behalf wording.
+			'onBehalfOf' => $subject !== '' && $subject !== $actor ? $subject : '',
 			'from' => (string)($meta['from'] ?? ''),
 			'to' => (string)($meta['to'] ?? ($meta['response'] ?? '')),
 		];
