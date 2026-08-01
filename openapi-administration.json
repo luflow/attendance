@@ -54,6 +54,7 @@
                     "permissions",
                     "reminders",
                     "calendarSync",
+                    "orgCalendar",
                     "audit",
                     "displayOrder",
                     "pushEnabled",
@@ -84,6 +85,9 @@
                     "calendarSync": {
                         "$ref": "#/components/schemas/AdminCalendarSyncConfig"
                     },
+                    "orgCalendar": {
+                        "$ref": "#/components/schemas/AdminOrgCalendarConfig"
+                    },
                     "audit": {
                         "$ref": "#/components/schemas/AdminAuditConfig"
                     },
@@ -105,6 +109,27 @@
                     },
                     "guestsApp": {
                         "$ref": "#/components/schemas/GuestsAppStatus"
+                    }
+                }
+            },
+            "AdminOrgCalendarConfig": {
+                "type": "object",
+                "required": [
+                    "enabled",
+                    "calendarUri",
+                    "userId"
+                ],
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "calendarUri": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "userId": {
+                        "type": "string",
+                        "nullable": true
                     }
                 }
             },
@@ -311,6 +336,25 @@
                         "type": "string"
                     }
                 }
+            },
+            "WritableCalendar": {
+                "type": "object",
+                "required": [
+                    "uri",
+                    "displayName",
+                    "color"
+                ],
+                "properties": {
+                    "uri": {
+                        "type": "string"
+                    },
+                    "displayName": {
+                        "type": "string"
+                    },
+                    "color": {
+                        "type": "string"
+                    }
+                }
             }
         }
     },
@@ -341,7 +385,8 @@
                                     "required": [
                                         "config",
                                         "status",
-                                        "groups"
+                                        "groups",
+                                        "writableCalendars"
                                     ],
                                     "properties": {
                                         "config": {
@@ -354,6 +399,12 @@
                                             "type": "array",
                                             "items": {
                                                 "$ref": "#/components/schemas/GroupOption"
+                                            }
+                                        },
+                                        "writableCalendars": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/WritableCalendar"
                                             }
                                         }
                                     }
@@ -524,6 +575,19 @@
                                         "properties": {
                                             "enabled": {
                                                 "type": "boolean"
+                                            }
+                                        }
+                                    },
+                                    "orgCalendar": {
+                                        "type": "object",
+                                        "default": {},
+                                        "description": "Organization calendar settings (target calendar for automatic event creation)",
+                                        "properties": {
+                                            "enabled": {
+                                                "type": "boolean"
+                                            },
+                                            "calendarUri": {
+                                                "type": "string"
                                             }
                                         }
                                     },

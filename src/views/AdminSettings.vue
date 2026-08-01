@@ -377,6 +377,51 @@
 				</NcSettingsSection>
 			</div>
 
+			<div id="org-calendar">
+				<NcSettingsSection
+					:name="t('attendance', 'Organization calendar')"
+					:description="t('attendance', 'Automatically create and update events in a shared calendar for every appointment, so everyone can see them in the Calendar app.')">
+					<NcNoteCard v-if="!calendarAvailable" type="warning">
+						<p>{{ t('attendance', 'The Calendar app is not enabled. Enable it to use the organization calendar.') }}</p>
+					</NcNoteCard>
+
+					<template v-else>
+						<NcCheckboxRadioSwitch
+							v-model="orgCalendarEnabled"
+							type="switch"
+							:disabled="loading"
+							data-test="switch-org-calendar-enabled">
+							{{ t('attendance', 'Create calendar events for appointments') }}
+						</NcCheckboxRadioSwitch>
+
+						<template v-if="orgCalendarEnabled">
+							<div class="subsection">
+								<h4>{{ t('attendance', 'Target calendar') }}</h4>
+								<NcNoteCard v-if="!orgCalendarOptions.length" type="warning">
+									<p>{{ t('attendance', 'No writable calendar found. Create one in the Calendar app first.') }}</p>
+								</NcNoteCard>
+								<NcSelect v-else
+									v-model="selectedOrgCalendar"
+									:options="orgCalendarOptions"
+									label="displayName"
+									:placeholder="t('attendance', 'Select a calendar …')"
+									:disabled="loading"
+									data-test="select-org-calendar" />
+								<p class="hint-text">
+									{{ t('attendance', 'Share the selected calendar with your groups in the Calendar app so everyone can see the events.') }}
+								</p>
+								<p class="hint-text">
+									{{ t('attendance', 'Events are created for all appointments, regardless of their visibility restrictions. Changing the target calendar does not move events that were already created.') }}
+								</p>
+								<p v-if="orgCalendarUserId" class="hint-text">
+									{{ t('attendance', 'Events are written using the account of {user}.', { user: orgCalendarUserId }) }}
+								</p>
+							</div>
+						</template>
+					</template>
+				</NcSettingsSection>
+			</div>
+
 			<div id="audit-log">
 				<NcSettingsSection :name="t('attendance', 'Audit log')"
 					:description="t('attendance', 'Records who responded what and when, and surfaces a timeline on every appointment. Also drives the response-change push notifications that managers can opt into in their personal settings.')">
@@ -685,6 +730,11 @@ const nextAppointment = ref(null)
 const nextReminderRun = ref(null)
 const calendarSyncEnabled = ref(false)
 const calendarSyncAvailable = ref(false)
+const calendarAvailable = ref(false)
+const orgCalendarEnabled = ref(false)
+const selectedOrgCalendar = ref(null)
+const orgCalendarUserId = ref(null)
+const writableCalendars = ref([])
 const auditLogEnabled = ref(true)
 const auditLogVisibility = ref('managers')
 const pushEnabled = ref(true)
@@ -709,6 +759,17 @@ const guestsHintVariant = computed(() => {
 		return 'whitelist'
 	}
 	return null
+})
+
+// Keep a stored calendar selectable even when the current admin cannot see it
+// (it was picked by a different admin) — otherwise saving would silently drop it.
+const orgCalendarOptions = computed(() => {
+	const options = [...writableCalendars.value]
+	const selected = selectedOrgCalendar.value
+	if (selected?.uri && !options.some((c) => c.uri === selected.uri)) {
+		options.unshift(selected)
+	}
+	return options
 })
 
 const guestsAdminUrl = computed(() => generateUrl('/settings/admin/guests'))
@@ -828,6 +889,19 @@ async function loadSettings() {
 		// Load calendar sync settings
 		calendarSyncEnabled.value = config.calendarSync.enabled || false
 		calendarSyncAvailable.value = caps.calendarSyncAvailable || false
+		calendarAvailable.value = caps.calendarAvailable || false
+
+		// Load organization calendar settings
+		writableCalendars.value = settingsRes.data.writableCalendars || []
+		if (config.orgCalendar) {
+			orgCalendarEnabled.value = config.orgCalendar.enabled || false
+			orgCalendarUserId.value = config.orgCalendar.userId || null
+			const storedUri = config.orgCalendar.calendarUri
+			if (storedUri) {
+				selectedOrgCalendar.value = writableCalendars.value.find((c) => c.uri === storedUri)
+					|| { uri: storedUri, displayName: storedUri, color: '#0082c9' }
+			}
+		}
 
 		// Load audit log settings
 		if (config.audit) {
@@ -915,6 +989,10 @@ async function saveSettings() {
 				},
 				calendarSync: {
 					enabled: calendarSyncEnabled.value,
+				},
+				orgCalendar: {
+					enabled: orgCalendarEnabled.value,
+					...(selectedOrgCalendar.value?.uri ? { calendarUri: selectedOrgCalendar.value.uri } : {}),
 				},
 				audit: {
 					enabled: auditLogEnabled.value,

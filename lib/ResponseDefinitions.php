@@ -202,6 +202,16 @@ namespace OCA\Attendance;
  * @psalm-type AttendanceAdminCalendarSyncConfig = array{
  *   enabled: bool,
  * }
+ * @psalm-type AttendanceAdminOrgCalendarConfig = array{
+ *   enabled: bool,
+ *   calendarUri: ?string,
+ *   userId: ?string,
+ * }
+ * @psalm-type AttendanceWritableCalendar = array{
+ *   uri: string,
+ *   displayName: string,
+ *   color: string,
+ * }
  * @psalm-type AttendanceAdminAuditConfig = array{
  *   enabled: bool,
  *   visibility: string,
@@ -212,6 +222,7 @@ namespace OCA\Attendance;
  *   permissions: AttendancePermissionSettings,
  *   reminders: AttendanceAdminReminderConfig,
  *   calendarSync: AttendanceAdminCalendarSyncConfig,
+ *   orgCalendar: AttendanceAdminOrgCalendarConfig,
  *   audit: AttendanceAdminAuditConfig,
  *   displayOrder: string,
  *   pushEnabled: bool,

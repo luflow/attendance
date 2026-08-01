@@ -6,9 +6,11 @@ namespace OCA\Attendance\Controller;
 
 use OCA\Attendance\BackgroundJob\ReminderJob;
 use OCA\Attendance\Db\AppointmentMapper;
+use OCA\Attendance\Service\CalendarService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\NotificationService;
+use OCA\Attendance\Service\OrgCalendarSyncService;
 use OCA\Attendance\Service\PermissionService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\App\IAppManager;
@@ -33,6 +35,8 @@ class AdminController extends Controller {
 	private AppointmentMapper $appointmentMapper;
 	private IJobList $jobList;
 	private GuestService $guestService;
+	private CalendarService $calendarService;
+	private OrgCalendarSyncService $orgCalendarSyncService;
 
 	public function __construct(
 		string $appName,
@@ -47,6 +51,8 @@ class AdminController extends Controller {
 		AppointmentMapper $appointmentMapper,
 		IJobList $jobList,
 		GuestService $guestService,
+		CalendarService $calendarService,
+		OrgCalendarSyncService $orgCalendarSyncService,
 	) {
 		parent::__construct($appName, $request);
 		$this->userSession = $userSession;
@@ -59,6 +65,8 @@ class AdminController extends Controller {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->jobList = $jobList;
 		$this->guestService = $guestService;
+		$this->calendarService = $calendarService;
+		$this->orgCalendarSyncService = $orgCalendarSyncService;
 	}
 
 	/**
@@ -68,7 +76,7 @@ class AdminController extends Controller {
 	 * System-wide capabilities (teamsAvailable, calendarSyncAvailable, notificationsAppEnabled)
 	 * are available via GET /api/capabilities.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{config: AttendanceAdminConfig, status: AttendanceAdminStatus, groups: list<AttendanceGroupOption>}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, array{config: AttendanceAdminConfig, status: AttendanceAdminStatus, groups: list<AttendanceGroupOption>, writableCalendars: list<AttendanceWritableCalendar>}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
 	 */
 	#[NoCSRFRequired]
 	#[OpenAPI(OpenAPI::SCOPE_ADMINISTRATION)]
@@ -138,6 +146,11 @@ class AdminController extends Controller {
 					'calendarSync' => [
 						'enabled' => $this->configService->isCalendarSyncEnabled(),
 					],
+					'orgCalendar' => [
+						'enabled' => $this->configService->isOrgCalendarEnabled(),
+						'calendarUri' => $this->configService->getOrgCalendarUri() ?: null,
+						'userId' => $this->configService->getOrgCalendarUserId() ?: null,
+					],
 					'audit' => [
 						'enabled' => $this->configService->isAuditLogEnabled(),
 						'visibility' => $this->configService->getAuditLogVisibility(),
@@ -159,6 +172,7 @@ class AdminController extends Controller {
 					'pushDeviceCount' => $pushDeviceCount,
 				],
 				'groups' => $groupOptions,
+				'writableCalendars' => $this->calendarService->getWritableCalendarsForUser($user->getUID()),
 			]);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 500);
@@ -173,6 +187,7 @@ class AdminController extends Controller {
 	 * @param array<string, list<string>> $permissions Permission name to group IDs mapping
 	 * @param array{enabled?: bool, reminderDays?: int, reminderFrequency?: int, reminderTarget?: string} $reminders Reminder settings
 	 * @param array{enabled?: bool} $calendarSync Calendar sync settings
+	 * @param array{enabled?: bool, calendarUri?: string} $orgCalendar Organization calendar settings (target calendar for automatic event creation)
 	 * @param array{enabled?: bool, visibility?: string} $audit Audit log settings (master switch + read visibility)
 	 * @param ?string $displayOrder Display order for appointments: chronological, name, or group
 	 * @param ?bool $pushEnabled Whether push notifications are enabled
@@ -189,6 +204,7 @@ class AdminController extends Controller {
 		array $permissions = [],
 		array $reminders = [],
 		array $calendarSync = [],
+		array $orgCalendar = [],
 		array $audit = [],
 		?string $displayOrder = null,
 		?bool $pushEnabled = null,
@@ -236,6 +252,28 @@ class AdminController extends Controller {
 			// Save calendar sync settings
 			if (isset($calendarSync['enabled'])) {
 				$this->configService->setCalendarSyncEnabled((bool)$calendarSync['enabled']);
+			}
+
+			// Save organization calendar settings. When the feature is (re-)pointed
+			// at a calendar, backfill all upcoming appointments into it.
+			$orgCalendarChanged = false;
+			if (isset($orgCalendar['enabled'])) {
+				$wasEnabled = $this->configService->isOrgCalendarEnabled();
+				$this->configService->setOrgCalendarEnabled((bool)$orgCalendar['enabled']);
+				$orgCalendarChanged = $orgCalendarChanged || ($wasEnabled !== (bool)$orgCalendar['enabled']);
+			}
+			if (isset($orgCalendar['calendarUri']) && is_string($orgCalendar['calendarUri']) && $orgCalendar['calendarUri'] !== '') {
+				$oldUri = $this->configService->getOrgCalendarUri();
+				$this->configService->setOrgCalendarUri($orgCalendar['calendarUri']);
+				// Writes happen through the principal of the admin who selected
+				// the calendar; keep the stored account when the target is unchanged.
+				if ($oldUri !== $orgCalendar['calendarUri'] || $this->configService->getOrgCalendarUserId() === '') {
+					$this->configService->setOrgCalendarUserId($user->getUID());
+					$orgCalendarChanged = true;
+				}
+			}
+			if ($orgCalendarChanged && $this->orgCalendarSyncService->isEnabled()) {
+				$this->orgCalendarSyncService->syncAllUpcoming();
 			}
 
 			// Save audit log settings

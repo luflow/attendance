@@ -240,6 +240,64 @@ class ConfigService {
 	}
 
 	/**
+	 * Check if the organization calendar feature is enabled.
+	 * When enabled, appointments are automatically written as events into a
+	 * configured shared calendar so the whole organization can see them.
+	 *
+	 * @return bool True if the organization calendar feature is enabled
+	 */
+	public function isOrgCalendarEnabled(): bool {
+		return $this->config->getAppValue(self::APP_ID, 'org_calendar_enabled', 'no') === 'yes';
+	}
+
+	/**
+	 * Set the organization calendar feature enabled status.
+	 *
+	 * @param bool $enabled Whether the organization calendar feature should be enabled
+	 */
+	public function setOrgCalendarEnabled(bool $enabled): void {
+		$this->config->setAppValue(self::APP_ID, 'org_calendar_enabled', $enabled ? 'yes' : 'no');
+	}
+
+	/**
+	 * Get the URI of the target organization calendar (as visible to the
+	 * configured user, see getOrgCalendarUserId()).
+	 *
+	 * @return string Calendar URI, empty string if not configured
+	 */
+	public function getOrgCalendarUri(): string {
+		return $this->config->getAppValue(self::APP_ID, 'org_calendar_uri', '');
+	}
+
+	/**
+	 * Set the URI of the target organization calendar.
+	 *
+	 * @param string $uri Calendar URI
+	 */
+	public function setOrgCalendarUri(string $uri): void {
+		$this->config->setAppValue(self::APP_ID, 'org_calendar_uri', $uri);
+	}
+
+	/**
+	 * Get the user ID whose principal is used to resolve and write into the
+	 * organization calendar (the admin who selected it).
+	 *
+	 * @return string User ID, empty string if not configured
+	 */
+	public function getOrgCalendarUserId(): string {
+		return $this->config->getAppValue(self::APP_ID, 'org_calendar_user_id', '');
+	}
+
+	/**
+	 * Set the user ID whose principal is used for organization calendar writes.
+	 *
+	 * @param string $userId User ID
+	 */
+	public function setOrgCalendarUserId(string $userId): void {
+		$this->config->setAppValue(self::APP_ID, 'org_calendar_user_id', $userId);
+	}
+
+	/**
 	 * Check if push notifications are enabled.
 	 *
 	 * @return bool True if push notifications are enabled

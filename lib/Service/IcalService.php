@@ -379,7 +379,7 @@ class IcalService {
 	/**
 	 * Escape text for iCal format (RFC 5545)
 	 */
-	private function escapeIcalText(string $text): string {
+	public function escapeIcalText(string $text): string {
 		// Escape backslashes first, then other special chars
 		$text = str_replace('\\', '\\\\', $text);
 		$text = str_replace(';', '\\;', $text);
@@ -393,7 +393,7 @@ class IcalService {
 	 * Fold iCal content lines per RFC 5545 Section 3.1
 	 * Lines must not exceed 75 octets; fold with CRLF + space.
 	 */
-	private function foldIcalContent(string $content): string {
+	public function foldIcalContent(string $content): string {
 		$content = rtrim($content, "\r\n");
 		$lines = explode("\r\n", $content);
 		$folded = array_map([$this, 'foldIcalLine'], $lines);

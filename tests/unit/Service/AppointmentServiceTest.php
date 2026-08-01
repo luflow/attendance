@@ -16,6 +16,7 @@ use OCA\Attendance\Service\BookingService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\NotificationService;
+use OCA\Attendance\Service\OrgCalendarSyncService;
 use OCA\Attendance\Service\PermissionService;
 use OCA\Attendance\Service\ResponseSummaryService;
 use OCA\Attendance\Service\VisibilityService;
@@ -73,6 +74,9 @@ class AppointmentServiceTest extends TestCase {
 	/** @var PermissionService|MockObject */
 	private $permissionService;
 
+	/** @var OrgCalendarSyncService|MockObject */
+	private $orgCalendarSyncService;
+
 	private AppointmentService $service;
 
 	protected function setUp(): void {
@@ -91,6 +95,7 @@ class AppointmentServiceTest extends TestCase {
 		$this->auditEventService = $this->createMock(AuditEventService::class);
 		$this->bookingService = $this->createMock(BookingService::class);
 		$this->permissionService = $this->createMock(PermissionService::class);
+		$this->orgCalendarSyncService = $this->createMock(OrgCalendarSyncService::class);
 
 		$this->service = new AppointmentService(
 			$this->appointmentMapper,
@@ -108,6 +113,7 @@ class AppointmentServiceTest extends TestCase {
 			$this->auditEventService,
 			$this->bookingService,
 			$this->permissionService,
+			$this->orgCalendarSyncService,
 		);
 	}
 

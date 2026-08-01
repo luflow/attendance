@@ -64,6 +64,43 @@ class CalendarService {
 	}
 
 	/**
+	 * Get all calendars a user can write into.
+	 * Used by the admin settings to pick the organization calendar target.
+	 *
+	 * @param string $userId
+	 * @return list<array{uri: string, displayName: string, color: string}>
+	 */
+	public function getWritableCalendarsForUser(string $userId): array {
+		if (!$this->isCalendarAvailable()) {
+			return [];
+		}
+
+		$principal = 'principals/users/' . $userId;
+		$calendars = $this->calendarManager->getCalendarsForPrincipal($principal);
+
+		$result = [];
+		foreach ($calendars as $calendar) {
+			if ($calendar->isDeleted()) {
+				continue;
+			}
+			// Only real CalDAV calendars accept new objects
+			if (!$calendar instanceof \OCP\Calendar\ICreateFromString) {
+				continue;
+			}
+			if ($calendar instanceof \OCP\Calendar\ICalendarIsWritable && !$calendar->isWritable()) {
+				continue;
+			}
+			$result[] = [
+				'uri' => $calendar->getUri(),
+				'displayName' => $calendar->getDisplayName() ?? $calendar->getUri(),
+				'color' => $calendar->getDisplayColor() ?? '#0082c9',
+			];
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Get events from a specific calendar within a date range.
 	 *
 	 * @param string $userId

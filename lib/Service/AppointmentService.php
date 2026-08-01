@@ -38,6 +38,7 @@ class AppointmentService {
 	private AuditEventService $auditEventService;
 	private BookingService $bookingService;
 	private PermissionService $permissionService;
+	private OrgCalendarSyncService $orgCalendarSyncService;
 	/** @var array<string, bool> per-request cache for isOrganizerAnywhere() */
 	private array $organizerAnywhereCache = [];
 
@@ -57,6 +58,7 @@ class AppointmentService {
 		AuditEventService $auditEventService,
 		BookingService $bookingService,
 		PermissionService $permissionService,
+		OrgCalendarSyncService $orgCalendarSyncService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -73,6 +75,7 @@ class AppointmentService {
 		$this->auditEventService = $auditEventService;
 		$this->bookingService = $bookingService;
 		$this->permissionService = $permissionService;
+		$this->orgCalendarSyncService = $orgCalendarSyncService;
 	}
 
 	/**
@@ -138,6 +141,8 @@ class AppointmentService {
 			$appointment->getId(),
 			\OCA\Attendance\Audit\Verb::SOURCE_APP,
 		);
+
+		$this->orgCalendarSyncService->syncAppointment($appointment);
 
 		if ($sendNotification) {
 			$affectedUsers = $this->getAffectedUsers($appointment);
@@ -206,6 +211,8 @@ class AppointmentService {
 		if ($changedFields !== []) {
 			$this->auditEventService->recordAppointmentUpdate($id, $changedFields);
 		}
+
+		$this->orgCalendarSyncService->syncAppointment($updated);
 
 		return $updated;
 	}
@@ -365,6 +372,8 @@ class AppointmentService {
 			\OCA\Attendance\Audit\Verb::SOURCE_APP,
 		);
 
+		$this->orgCalendarSyncService->syncAppointment($updated);
+
 		// Notify addressed attendees that the appointment will not take place.
 		$affectedUsers = $this->getAffectedUsers($updated);
 		if ($actorId !== null) {
@@ -396,6 +405,8 @@ class AppointmentService {
 			\OCA\Attendance\Audit\Verb::SOURCE_APP,
 		);
 
+		$this->orgCalendarSyncService->syncAppointment($updated);
+
 		return $updated;
 	}
 
@@ -407,6 +418,7 @@ class AppointmentService {
 		$appointment->setIsActive(0);
 		$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
 		$this->appointmentMapper->update($appointment);
+		$this->orgCalendarSyncService->handleAppointmentDeleted($appointment);
 	}
 
 	/**
@@ -554,6 +566,7 @@ class AppointmentService {
 					$changedFields,
 				);
 			}
+			$this->orgCalendarSyncService->syncAppointment($updatedSibling);
 			$updated[] = $updatedSibling;
 		}
 
@@ -598,6 +611,7 @@ class AppointmentService {
 			$sibling->setIsActive(0);
 			$sibling->setUpdatedAt(gmdate('Y-m-d H:i:s'));
 			$this->appointmentMapper->update($sibling);
+			$this->orgCalendarSyncService->handleAppointmentDeleted($sibling);
 		}
 
 		return count($siblings);
