@@ -130,7 +130,6 @@ OC.L10N.register(
     "All languages" : "Alle Sprachen",
     "Already checked in" : "Bereits eingecheckt",
     "Another reason" : "Ein weiterer Grund",
-    "App developer" : "App-Programmierer",
     "Appointment list" : "Terminliste",
     "Ask each time" : "Jedes Mal fragen",
     "Attendees scan this code with the Attendance app to check in. One code works for all appointments." : "Teilnehmer scannen diesen Code mit der Anwesenheits-App, um einzuchecken. Ein Code gilt für alle Termine.",
@@ -734,7 +733,6 @@ OC.L10N.register(
     "Get a personal license for yourself, or save with one license for your whole group." : "Hol dir eine persönliche Lizenz für dich selbst – oder spare mit einer Lizenz für deine ganze Gruppe.",
     "Groups that can record or clear an answer on behalf of another person in the response summary. Not granted automatically to managers — if no group is selected, nobody has this permission." : "Gruppen, die in der Antwortübersicht Antworten im Namen anderer Personen eintragen oder entfernen dürfen. Managern wird das nicht automatisch gewährt — wenn keine Gruppe ausgewählt ist, hat niemand diese Berechtigung.",
     "Just for me" : "Nur für mich",
-    "Just for you, on any of your accounts" : "Nur für dich, auf allen deinen Konten",
     "Less than one euro a month" : "Weniger als ein Euro im Monat",
     "Manager" : "Manager",
     "Most popular" : "Am beliebtesten",
@@ -772,6 +770,8 @@ OC.L10N.register(
     "_%n person on this server pays for a personal license — one organization license covers everyone and costs less_::_%n people on this server pay for personal licenses — one organization license covers everyone and costs less_" : ["%n Person auf diesem Server zahlt für eine persönliche Lizenz — eine Organisationslizenz deckt alle ab und kostet weniger","%n Personen auf diesem Server zahlen für persönliche Lizenzen — eine Organisationslizenz deckt alle ab und kostet weniger"],
     "{actor} answered {response} for {subject}" : "{actor} hat für {subject} mit {response} geantwortet",
     "{actor} changed the response of {subject} from {from} to {to}" : "{actor} hat die Antwort von {subject} von {from} auf {to} geändert",
-    "{actor} removed the response of {subject}" : "{actor} hat die Antwort von {subject} entfernt"
+    "{actor} removed the response of {subject}" : "{actor} hat die Antwort von {subject} entfernt",
+    "Product developer" : "Produktentwickler",
+    "Just for you, on any of your Nextcloud accounts" : "Nur für dich, auf allen deinen Nextcloud-Konten"
 },
 "nplurals=2; plural=(n != 1);");

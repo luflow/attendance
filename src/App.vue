@@ -395,7 +395,6 @@ t('attendance', 'A personal license covers just you, so nobody else has to agree
 t('attendance', 'All languages')
 t('attendance', 'Already checked in')
 t('attendance', 'Another reason')
-t('attendance', 'App developer')
 t('attendance', 'Appointment list')
 t('attendance', 'Ask each time')
 t('attendance', 'Attendees scan this code with the Attendance app to check in. One code works for all appointments.')
@@ -437,7 +436,7 @@ t('attendance', 'Invite guest')
 t('attendance', 'Invoice/association')
 t('attendance', "It's not my decision alone")
 t('attendance', 'Just for me')
-t('attendance', 'Just for you, on any of your accounts')
+t('attendance', 'Just for you, on any of your Nextcloud accounts')
 t('attendance', 'Language')
 // TRANSLATORS: Framing for the yearly personal plan (11.99 € per year). The
 // price itself always comes from the app store, never from this string.
@@ -460,6 +459,7 @@ t('attendance', 'Point your camera at the check-in code, or hold your phone to t
 t('attendance', 'Point your camera at the check-in code.')
 // TRANSLATORS: Name of the largest organization subscription plan.
 t('attendance', 'Premium')
+t('attendance', 'Product developer')
 t('attendance', 'Questions?')
 t('attendance', 'Rather book directly?')
 t('attendance', 'Scan NFC tag')
