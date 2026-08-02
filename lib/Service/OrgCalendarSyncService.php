@@ -6,10 +6,13 @@ namespace OCA\Attendance\Service;
 
 use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
+use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCP\Calendar\ICalendarIsWritable;
 use OCP\Calendar\ICreateFromString;
 use OCP\Calendar\IManager as ICalendarManager;
+use OCP\IConfig;
 use OCP\IURLGenerator;
+use OCP\L10N\IFactory as IL10NFactory;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -38,12 +41,25 @@ use Psr\Log\LoggerInterface;
 class OrgCalendarSyncService {
 	private const UID_PREFIX = 'attendance-org-';
 
+	/**
+	 * Separator line between the appointment description and the app-generated
+	 * response summary inside the event DESCRIPTION. Doubles as the suppression
+	 * marker: CalendarObjectUpdateListener strips everything from this line on
+	 * before syncing a calendar-side description back into the appointment, so
+	 * the summary never leaks into the appointment description (echo loop).
+	 * Must stay untranslated — stripping has to work in every language.
+	 */
+	public const SUMMARY_SEPARATOR = '--- Attendance ---';
+
 	public function __construct(
 		private ICalendarManager $calendarManager,
 		private AppointmentMapper $appointmentMapper,
+		private AttendanceResponseMapper $responseMapper,
 		private ConfigService $configService,
 		private IcalService $icalService,
 		private IURLGenerator $urlGenerator,
+		private IL10NFactory $l10nFactory,
+		private IConfig $config,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -327,7 +343,7 @@ class OrgCalendarSyncService {
 		$end = new \DateTime($appointment->getEndDatetime(), $utc);
 		$lastModified = new \DateTime($appointment->getUpdatedAt() ?: 'now', $utc);
 
-		$description = $appointment->getDescription() ?? '';
+		$description = $this->buildDescription($appointment);
 
 		return [
 			'DTSTAMP' => 'DTSTAMP:' . $lastModified->format('Ymd\THis\Z'),
@@ -340,6 +356,66 @@ class OrgCalendarSyncService {
 				: null,
 			'STATUS' => 'STATUS:' . ($appointment->isCancelled() ? 'CANCELLED' : 'CONFIRMED'),
 		];
+	}
+
+	/**
+	 * Event DESCRIPTION = plain appointment description, plus — when anybody
+	 * responded — the response summary behind the SUMMARY_SEPARATOR marker
+	 * (the "who is coming" visibility agreed in issue #71).
+	 */
+	private function buildDescription(Appointment $appointment): string {
+		$description = trim($appointment->getDescription() ?? '');
+
+		$summary = $this->buildResponseSummary($appointment);
+		if ($summary !== null) {
+			$description = ($description !== '' ? $description . "\n\n" : '')
+				. self::SUMMARY_SEPARATOR . "\n" . $summary;
+		}
+
+		return $description;
+	}
+
+	/**
+	 * One-line response summary, e.g. "12 attending, 3 declined, 2 maybe".
+	 * Uses the instance default language — the calendar is shared org-wide,
+	 * so the text must not depend on whoever responded last.
+	 *
+	 * @return string|null Null when nobody responded yet
+	 */
+	private function buildResponseSummary(Appointment $appointment): ?string {
+		$counts = ['yes' => 0, 'no' => 0, 'maybe' => 0];
+		foreach ($this->responseMapper->findByAppointment($appointment->getId()) as $response) {
+			$value = $response->getResponse();
+			if (isset($counts[$value])) {
+				$counts[$value]++;
+			}
+		}
+		if (array_sum($counts) === 0) {
+			return null;
+		}
+
+		$lang = $this->config->getSystemValueString('default_language', 'en');
+		$l = $this->l10nFactory->get('attendance', $lang);
+
+		return implode(', ', [
+			$l->n('%n attending', '%n attending', $counts['yes']),
+			$l->n('%n declined', '%n declined', $counts['no']),
+			$l->n('%n maybe', '%n maybe', $counts['maybe']),
+		]);
+	}
+
+	/**
+	 * Remove the app-generated response summary block from a calendar-side
+	 * description. Used by CalendarObjectUpdateListener before syncing a
+	 * description back into the appointment, so our own summary (which always
+	 * sits at the end) never becomes part of the appointment description.
+	 */
+	public static function stripResponseSummary(string $description): string {
+		$pos = strpos($description, self::SUMMARY_SEPARATOR);
+		if ($pos === false) {
+			return $description;
+		}
+		return rtrim(substr($description, 0, $pos));
 	}
 
 	/**

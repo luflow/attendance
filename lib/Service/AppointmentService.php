@@ -957,6 +957,9 @@ class AppointmentService {
 		// next reminder run will re-notify them.
 		$this->notificationService->markAppointmentNotificationsProcessed($appointmentId, $userId);
 
+		// Keep the response summary in the organization calendar event current
+		$this->orgCalendarSyncService->syncAppointment($appointment);
+
 		return $result;
 	}
 

@@ -6,6 +6,8 @@ namespace OCA\Attendance\Tests\Unit\Service;
 
 use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
+use OCA\Attendance\Db\AttendanceResponse;
+use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\IcalService;
 use OCA\Attendance\Service\OrgCalendarSyncService;
@@ -13,7 +15,10 @@ use OCP\Calendar\ICalendar;
 use OCP\Calendar\ICalendarIsWritable;
 use OCP\Calendar\ICreateFromString;
 use OCP\Calendar\IManager as ICalendarManager;
+use OCP\IConfig;
+use OCP\IL10N;
 use OCP\IURLGenerator;
+use OCP\L10N\IFactory as IL10NFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -107,6 +112,9 @@ class OrgCalendarSyncServiceTest extends TestCase {
 	/** @var AppointmentMapper|MockObject */
 	private $appointmentMapper;
 
+	/** @var AttendanceResponseMapper|MockObject */
+	private $responseMapper;
+
 	/** @var ConfigService|MockObject */
 	private $configService;
 
@@ -122,6 +130,7 @@ class OrgCalendarSyncServiceTest extends TestCase {
 	protected function setUp(): void {
 		$this->calendarManager = $this->createMock(ICalendarManager::class);
 		$this->appointmentMapper = $this->createMock(AppointmentMapper::class);
+		$this->responseMapper = $this->createMock(AttendanceResponseMapper::class);
 		$this->configService = $this->createMock(ConfigService::class);
 		$this->icalService = $this->createMock(IcalService::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
@@ -133,18 +142,31 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->urlGenerator->method('getAbsoluteURL')->willReturn('https://cloud.example.com/');
 		$this->urlGenerator->method('linkToRouteAbsolute')->willReturn('https://cloud.example.com/apps/attendance/');
 
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('n')->willReturnCallback(
+			fn (string $singular, string $plural, int $count) => str_replace('%n', (string)$count, $count === 1 ? $singular : $plural),
+		);
+		$l10nFactory = $this->createMock(IL10NFactory::class);
+		$l10nFactory->method('get')->willReturn($l10n);
+
+		$config = $this->createMock(IConfig::class);
+		$config->method('getSystemValueString')->willReturn('en');
+
 		$backend = $this->backend;
-		$this->service = new class($this->calendarManager, $this->appointmentMapper, $this->configService, $this->icalService, $this->urlGenerator, $this->createMock(LoggerInterface::class), $backend, ) extends OrgCalendarSyncService {
+		$this->service = new class($this->calendarManager, $this->appointmentMapper, $this->responseMapper, $this->configService, $this->icalService, $this->urlGenerator, $l10nFactory, $config, $this->createMock(LoggerInterface::class), $backend) extends OrgCalendarSyncService {
 			public function __construct(
 				$calendarManager,
 				$appointmentMapper,
+				$responseMapper,
 				$configService,
 				$icalService,
 				$urlGenerator,
+				$l10nFactory,
+				$config,
 				$logger,
 				private object $fakeBackend,
 			) {
-				parent::__construct($calendarManager, $appointmentMapper, $configService, $icalService, $urlGenerator, $logger);
+				parent::__construct($calendarManager, $appointmentMapper, $responseMapper, $configService, $icalService, $urlGenerator, $l10nFactory, $config, $logger);
 			}
 
 			protected function getCalDavBackend(): ?object {
@@ -332,6 +354,52 @@ class OrgCalendarSyncServiceTest extends TestCase {
 
 		$this->assertTrue($this->service->syncAppointment($appointment));
 		$this->assertStringNotContainsString('DESCRIPTION:', $this->backend->updated[0][2]);
+	}
+
+	public function testResponseSummaryIsAppendedBehindMarker(): void {
+		$this->configureEnabled();
+		$appointment = $this->buildAppointment();
+		$this->appointmentMapper->method('update')->willReturnArgument(0);
+
+		$responses = [];
+		foreach (['yes', 'yes', 'no', 'maybe'] as $value) {
+			$response = new AttendanceResponse();
+			$response->setResponse($value);
+			$responses[] = $response;
+		}
+		$this->responseMapper->method('findByAppointment')->with(5)->willReturn($responses);
+
+		$this->assertTrue($this->service->syncAppointment($appointment));
+		$ics = $this->backend->created[0][2];
+
+		$this->assertStringContainsString(
+			"DESCRIPTION:Bring instruments\n\n"
+			. OrgCalendarSyncService::SUMMARY_SEPARATOR
+			. "\n2 attending, 1 declined, 1 maybe",
+			$ics,
+		);
+	}
+
+	public function testNoSummaryBlockWithoutResponses(): void {
+		$this->configureEnabled();
+		$appointment = $this->buildAppointment();
+		$this->appointmentMapper->method('update')->willReturnArgument(0);
+		$this->responseMapper->method('findByAppointment')->willReturn([]);
+
+		$this->assertTrue($this->service->syncAppointment($appointment));
+		$this->assertStringNotContainsString(OrgCalendarSyncService::SUMMARY_SEPARATOR, $this->backend->created[0][2]);
+	}
+
+	public function testStripResponseSummary(): void {
+		$description = "Bring instruments\n\n" . OrgCalendarSyncService::SUMMARY_SEPARATOR . "\n2 attending, 1 declined, 1 maybe";
+		$this->assertSame('Bring instruments', OrgCalendarSyncService::stripResponseSummary($description));
+
+		// Description that is only a summary block collapses to empty
+		$onlySummary = OrgCalendarSyncService::SUMMARY_SEPARATOR . "\n2 attending, 0 declined, 0 maybe";
+		$this->assertSame('', OrgCalendarSyncService::stripResponseSummary($onlySummary));
+
+		// No marker → unchanged
+		$this->assertSame('Plain text', OrgCalendarSyncService::stripResponseSummary('Plain text'));
 	}
 
 	public function testSyncAllUpcomingCountsOnlyPushedAppointments(): void {
