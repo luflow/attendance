@@ -18,7 +18,6 @@ use OCP\IInitialStateService;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserManager;
-use OCP\Util;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -69,14 +68,6 @@ class QuickResponseController extends Controller {
 		string $token,
 		string $userId,
 	): TemplateResponse {
-		// Provide NC version for CSS compatibility
-		$ncVersion = Util::getVersion();
-		$this->initialStateService->provideInitialState(
-			Application::APP_ID,
-			'nc-version',
-			$ncVersion[0]
-		);
-
 		$validationResult = $this->validateQuickResponse($appointmentId, $response, $token, $userId);
 
 		if ($validationResult['error']) {

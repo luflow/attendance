@@ -7,6 +7,7 @@ namespace OCA\Attendance\Listener;
 use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Service\ConfigService;
+use OCA\Attendance\Service\OrgCalendarSyncService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use Psr\Log\LoggerInterface;
@@ -77,7 +78,8 @@ class CalendarObjectUpdateListener implements IEventListener {
 			$appointment->setName($summary);
 		}
 		if ($description !== '') {
-			$appointment->setDescription(strip_tags($description));
+			// The app-generated response summary block is calendar-only content
+			$appointment->setDescription(strip_tags(OrgCalendarSyncService::stripResponseSummary($description)));
 		}
 
 		$dtstart = $vevent->DTSTART ? $vevent->DTSTART->getDateTime() : null;
@@ -149,7 +151,7 @@ class CalendarObjectUpdateListener implements IEventListener {
 						$appointment->setName($summary);
 					}
 					if ($description !== '') {
-						$appointment->setDescription(strip_tags($description));
+						$appointment->setDescription(strip_tags(OrgCalendarSyncService::stripResponseSummary($description)));
 					}
 					$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
 					$this->appointmentMapper->update($appointment);

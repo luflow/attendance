@@ -29,8 +29,6 @@ class Application extends App implements IBootstrap {
 		$context->registerNotifierService(\OCA\Attendance\Notification\Notifier::class);
 		$context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
 
-		// Register calendar event listeners (NC 32+ only)
-		// These event classes only exist in Nextcloud 32 and later
 		$this->registerCalendarListeners($context);
 	}
 
@@ -55,30 +53,20 @@ class Application extends App implements IBootstrap {
 
 	/**
 	 * Register calendar event listeners for automatic sync.
-	 * These are only available in Nextcloud 32+.
 	 */
 	private function registerCalendarListeners(IRegistrationContext $context): void {
-		// Check if calendar events exist (NC 32+)
-		if (class_exists(\OCP\Calendar\Events\CalendarObjectUpdatedEvent::class)) {
-			$context->registerEventListener(
-				\OCP\Calendar\Events\CalendarObjectUpdatedEvent::class,
-				CalendarObjectUpdateListener::class
-			);
-		}
-
-		if (class_exists(\OCP\Calendar\Events\CalendarObjectDeletedEvent::class)) {
-			$context->registerEventListener(
-				\OCP\Calendar\Events\CalendarObjectDeletedEvent::class,
-				CalendarObjectUpdateListener::class
-			);
-		}
-
+		$context->registerEventListener(
+			\OCP\Calendar\Events\CalendarObjectUpdatedEvent::class,
+			CalendarObjectUpdateListener::class
+		);
+		$context->registerEventListener(
+			\OCP\Calendar\Events\CalendarObjectDeletedEvent::class,
+			CalendarObjectUpdateListener::class
+		);
 		// Also handle "moved to trash" (default behavior when deleting calendar events)
-		if (class_exists(\OCP\Calendar\Events\CalendarObjectMovedToTrashEvent::class)) {
-			$context->registerEventListener(
-				\OCP\Calendar\Events\CalendarObjectMovedToTrashEvent::class,
-				CalendarObjectUpdateListener::class
-			);
-		}
+		$context->registerEventListener(
+			\OCP\Calendar\Events\CalendarObjectMovedToTrashEvent::class,
+			CalendarObjectUpdateListener::class
+		);
 	}
 }

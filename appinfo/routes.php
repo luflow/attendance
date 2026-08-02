@@ -55,6 +55,7 @@ return [
 		['name' => 'admin#getSettings', 'url' => '/api/admin/settings', 'verb' => 'GET'],
 		['name' => 'admin#saveSettings', 'url' => '/api/admin/settings', 'verb' => 'POST'],
 		['name' => 'admin#sendTestReminder', 'url' => '/api/admin/test-reminder', 'verb' => 'POST'],
+		['name' => 'admin#syncOrgCalendar', 'url' => '/api/admin/org-calendar/sync', 'verb' => 'POST'],
 
 		// User data
 		['name' => 'appointment#getPermissions', 'url' => '/api/user/permissions', 'verb' => 'GET'],

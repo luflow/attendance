@@ -1,5 +1,5 @@
 <template>
-	<div class="quick-response-container guest-box" :data-nc-version="ncVersion">
+	<div class="quick-response-container guest-box">
 		<!-- Error State -->
 		<template v-if="error">
 			<NcNoteCard type="error">
@@ -125,14 +125,6 @@ import { formatDateRange } from '../utils/datetime.js'
 import { getResponseVariant } from '../utils/response.js'
 
 const initialState = loadState('attendance', 'quick-response-data', {})
-
-let ncVersionState = 31
-try {
-	ncVersionState = loadState('attendance', 'nc-version')
-} catch {
-	console.debug('nc-version not available, defaulting to 31')
-}
-const ncVersion = ref(ncVersionState)
 
 // Reactive state — only flags that the user can mutate after load.
 const error = ref(initialState.error || false)
@@ -277,27 +269,6 @@ async function confirmResponse() {
 
 	.separator {
 		color: var(--color-text-maxcontrast);
-	}
-}
-</style>
-
-<style>
-/* NcChip text color overrides for Nextcloud 31 */
-#attendance-quick-response [data-nc-version="31"] .nc-chip--error .nc-chip__text,
-#attendance-quick-response [data-nc-version="31"] .nc-chip--warning .nc-chip__text,
-#attendance-quick-response [data-nc-version="31"] .nc-chip--success .nc-chip__text {
-	color: white !important;
-}
-
-/* Dark Mode (explicit): Warning elements need black text for better contrast */
-body[data-theme-dark] #attendance-quick-response [data-nc-version="31"] .nc-chip--warning .nc-chip__text {
-	color: black !important;
-}
-
-/* Dark Mode (system preference): Only when using default theme */
-@media (prefers-color-scheme: dark) {
-	body[data-theme-default] #attendance-quick-response [data-nc-version="31"] .nc-chip--warning .nc-chip__text {
-		color: black !important;
 	}
 }
 </style>

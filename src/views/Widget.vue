@@ -1,5 +1,5 @@
 <template>
-	<div class="appointment-widget-container" :data-nc-version="ncVersion" data-test="widget-container">
+	<div class="appointment-widget-container" data-test="widget-container">
 		<NcDashboardWidget
 			:items="items"
 			:loading="state === 'loading'"
@@ -57,7 +57,6 @@ defineProps({
 // Load initial state
 let initialAppointments = []
 let initialState = 'ok'
-let ncVersionState = 31
 let displayOrderState = 'name_first'
 
 try {
@@ -65,12 +64,6 @@ try {
 } catch (error) {
 	console.error('Error loading appointments:', error)
 	initialState = 'error'
-}
-
-try {
-	ncVersionState = loadState('attendance', 'nc-version')
-} catch {
-	console.debug('nc-version not available, defaulting to 31')
 }
 
 try {
@@ -82,7 +75,6 @@ try {
 // State
 const appointments = ref(initialAppointments)
 const state = ref(initialState)
-const ncVersion = ref(ncVersionState)
 const displayOrder = ref(displayOrderState)
 
 const { permissions, loadPermissions } = usePermissions()
@@ -147,17 +139,6 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
-/* Dark mode: explicit dark theme */
-body[data-theme-dark] .appointment-widget-container[data-nc-version="31"] :deep(.button-vue--warning) {
-	color: black !important;
-}
-
-/* Dark mode: system preference when using default theme */
-@media (prefers-color-scheme: dark) {
-	body[data-theme-default] .appointment-widget-container[data-nc-version="31"] :deep(.button-vue--warning) {
-		color: black !important;
-	}
-}
 
 .appointment-widget-container {
 	display: flex;

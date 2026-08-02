@@ -89,11 +89,6 @@ class Widget implements IAPIWidget {
 			$this->initialStateService->provideInitialState('dashboard-widget-items', $items);
 		}
 
-		// Get Nextcloud major version for CSS compatibility
-		$ncVersion = Util::getVersion();
-		$ncMajorVersion = $ncVersion[0];
-		$this->initialStateService->provideInitialState('nc-version', $ncMajorVersion);
-
 		$this->initialStateService->provideInitialState('display-order', $this->configService->getDisplayOrder());
 
 		Util::addScript(Application::APP_ID, Application::APP_ID . '-dashboard');

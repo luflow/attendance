@@ -114,7 +114,7 @@ Gemacht für Chöre, Orchester, Sportvereine, Feuerwehren, Gemeinden und jede an
 	<donation type="stripe">https://donate.stripe.com/fZu4gzd1k9AqgHgdWv7ss00</donation>
 	<dependencies>
 		<php min-version="8.1"/>
-		<nextcloud min-version="31" max-version="34"/>
+		<nextcloud min-version="32" max-version="34"/>
 	</dependencies>
 	<repair-steps>
 		<post-migration>

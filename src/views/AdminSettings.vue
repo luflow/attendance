@@ -356,23 +356,75 @@
 				<NcSettingsSection
 					:name="t('attendance', 'Calendar sync')"
 					:description="t('attendance', 'Automatically update attendance appointments when their linked calendar events are modified.')">
-					<NcNoteCard v-if="!calendarSyncAvailable" type="warning">
-						<p>{{ t('attendance', 'Calendar sync requires Nextcloud 32 or newer.') }}</p>
-						<p class="hint-text">
-							{{ t('attendance', 'This feature uses calendar event hooks that are only available in Nextcloud 32 and later versions.') }}
-						</p>
+					<NcCheckboxRadioSwitch
+						v-model="calendarSyncEnabled"
+						type="switch"
+						data-test="switch-calendar-sync-enabled">
+						{{ t('attendance', 'Enable automatic calendar sync') }}
+					</NcCheckboxRadioSwitch>
+					<p class="hint-text">
+						{{ t('attendance', 'When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time).') }}
+					</p>
+				</NcSettingsSection>
+			</div>
+
+			<div id="org-calendar">
+				<NcSettingsSection
+					:name="t('attendance', 'Organization calendar')"
+					:description="t('attendance', 'Automatically create and update events in a shared calendar for every appointment, so everyone can see them in the Calendar app.')">
+					<NcNoteCard v-if="!calendarAvailable" type="warning">
+						<p>{{ t('attendance', 'The Calendar app is not enabled. Enable it to use the organization calendar.') }}</p>
 					</NcNoteCard>
 
 					<template v-else>
 						<NcCheckboxRadioSwitch
-							v-model="calendarSyncEnabled"
+							v-model="orgCalendarEnabled"
 							type="switch"
-							data-test="switch-calendar-sync-enabled">
-							{{ t('attendance', 'Enable automatic calendar sync') }}
+							:disabled="loading"
+							data-test="switch-org-calendar-enabled">
+							{{ t('attendance', 'Create calendar events for appointments') }}
 						</NcCheckboxRadioSwitch>
-						<p class="hint-text">
-							{{ t('attendance', 'When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time).') }}
-						</p>
+
+						<div v-if="orgCalendarEnabled" class="subsection">
+							<h4>{{ t('attendance', 'Target calendar') }}</h4>
+							<NcNoteCard v-if="!orgCalendarOptions.length" type="warning">
+								<p>{{ t('attendance', 'No writable calendar found. Create one in the Calendar app first.') }}</p>
+							</NcNoteCard>
+							<NcSelect v-else
+								v-model="selectedOrgCalendar"
+								:options="orgCalendarOptions"
+								label="displayName"
+								:placeholder="t('attendance', 'Select a calendar …')"
+								:disabled="loading"
+								data-test="select-org-calendar" />
+							<p class="hint-text">
+								{{ t('attendance', 'Share the selected calendar with your groups in the Calendar app so everyone can see the events.') }}
+							</p>
+							<p class="hint-text">
+								{{ t('attendance', 'When you select a calendar, all upcoming appointments are transferred to it. Past appointments are not transferred.') }}
+							</p>
+							<p class="hint-text">
+								{{ t('attendance', 'Events are created for all appointments, regardless of their visibility restrictions. Changing the target calendar does not move events that were already created.') }}
+							</p>
+							<p v-if="orgCalendarUserId" class="hint-text">
+								{{ t('attendance', 'Events are written using the account of {user}.', { user: orgCalendarUserId }) }}
+							</p>
+							<NcButton
+								v-if="selectedOrgCalendar"
+								variant="tertiary"
+								:disabled="syncingOrgCalendar"
+								data-test="button-sync-org-calendar"
+								@click="syncOrgCalendar">
+								<template #icon>
+									<NcLoadingIcon v-if="syncingOrgCalendar" :size="20" />
+									<CalendarSyncIcon v-else :size="20" />
+								</template>
+								{{ t('attendance', 'Sync upcoming appointments now') }}
+							</NcButton>
+							<p class="hint-text">
+								{{ t('attendance', 'Creates or updates the calendar events for all upcoming appointments. This also runs automatically when you enable the feature or change the calendar.') }}
+							</p>
+						</div>
 					</template>
 				</NcSettingsSection>
 			</div>
@@ -644,6 +696,7 @@ import { computed, nextTick, onMounted, ref } from 'vue'
 import AccountStar from 'vue-material-design-icons/AccountStar.vue'
 import AppleIcon from 'vue-material-design-icons/Apple.vue'
 import BellRingIcon from 'vue-material-design-icons/BellRing.vue'
+import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
 import CellphoneCheck from 'vue-material-design-icons/CellphoneCheck.vue'
 import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
 import Download from 'vue-material-design-icons/Download.vue'
@@ -684,7 +737,11 @@ const notificationsAppEnabled = ref(true)
 const nextAppointment = ref(null)
 const nextReminderRun = ref(null)
 const calendarSyncEnabled = ref(false)
-const calendarSyncAvailable = ref(false)
+const calendarAvailable = ref(false)
+const orgCalendarEnabled = ref(false)
+const selectedOrgCalendar = ref(null)
+const orgCalendarUserId = ref(null)
+const writableCalendars = ref([])
 const auditLogEnabled = ref(true)
 const auditLogVisibility = ref('managers')
 const pushEnabled = ref(true)
@@ -695,6 +752,7 @@ const pushDeviceCount = ref(0)
 const loading = ref(false)
 const loadingData = ref(true)
 const sendingTestReminder = ref(false)
+const syncingOrgCalendar = ref(false)
 const guestsApp = ref({ enabled: false, whitelistEnabled: false, attendanceInWhitelist: false })
 
 // Computed
@@ -709,6 +767,17 @@ const guestsHintVariant = computed(() => {
 		return 'whitelist'
 	}
 	return null
+})
+
+// Keep a stored calendar selectable even when the current admin cannot see it
+// (it was picked by a different admin) — otherwise saving would silently drop it.
+const orgCalendarOptions = computed(() => {
+	const options = [...writableCalendars.value]
+	const selected = selectedOrgCalendar.value
+	if (selected?.uri && !options.some((c) => c.uri === selected.uri)) {
+		options.unshift(selected)
+	}
+	return options
 })
 
 const guestsAdminUrl = computed(() => generateUrl('/settings/admin/guests'))
@@ -827,7 +896,19 @@ async function loadSettings() {
 
 		// Load calendar sync settings
 		calendarSyncEnabled.value = config.calendarSync.enabled || false
-		calendarSyncAvailable.value = caps.calendarSyncAvailable || false
+		calendarAvailable.value = caps.calendarAvailable || false
+
+		// Load organization calendar settings
+		writableCalendars.value = settingsRes.data.writableCalendars || []
+		if (config.orgCalendar) {
+			orgCalendarEnabled.value = config.orgCalendar.enabled || false
+			orgCalendarUserId.value = config.orgCalendar.userId || null
+			const storedUri = config.orgCalendar.calendarUri
+			if (storedUri) {
+				selectedOrgCalendar.value = writableCalendars.value.find((c) => c.uri === storedUri)
+					|| { uri: storedUri, displayName: storedUri }
+			}
+		}
 
 		// Load audit log settings
 		if (config.audit) {
@@ -916,6 +997,10 @@ async function saveSettings() {
 				calendarSync: {
 					enabled: calendarSyncEnabled.value,
 				},
+				orgCalendar: {
+					enabled: orgCalendarEnabled.value,
+					...(selectedOrgCalendar.value?.uri ? { calendarUri: selectedOrgCalendar.value.uri } : {}),
+				},
 				audit: {
 					enabled: auditLogEnabled.value,
 					visibility: auditLogVisibility.value,
@@ -970,6 +1055,20 @@ function copyGuestsOccCommand() {
 			errorMessage: window.t('attendance', 'Failed to copy command'),
 		},
 	)
+}
+
+async function syncOrgCalendar() {
+	syncingOrgCalendar.value = true
+	try {
+		const response = await axios.post(generateUrl('/apps/attendance/api/admin/org-calendar/sync'))
+		const count = response.data.synced ?? 0
+		showSuccess(window.n('attendance', '%n appointment synced to the calendar', '%n appointments synced to the calendar', count))
+	} catch (error) {
+		console.error('Error syncing organization calendar:', error)
+		showError(window.t('attendance', 'Failed to sync appointments to the calendar'))
+	} finally {
+		syncingOrgCalendar.value = false
+	}
 }
 
 async function sendTestReminder() {

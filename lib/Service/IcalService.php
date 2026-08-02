@@ -307,7 +307,7 @@ class IcalService {
 		}
 
 		// Add link to respond
-		$descriptionParts[] = $l->t('View or change your response') . ":\n" . $this->urlGenerator->linkToRouteAbsolute('attendance.page.index') . '#/appointment/' . $appointment->getId();
+		$descriptionParts[] = $l->t('View or change your response') . ":\n" . $this->getAppointmentUrl($appointment->getId());
 
 		$description = implode("\n\n", $descriptionParts);
 
@@ -339,7 +339,7 @@ class IcalService {
 		}
 
 		// Build URL for direct access to appointment
-		$appointmentUrl = $this->urlGenerator->linkToRouteAbsolute('attendance.page.index') . '#/appointment/' . $appointment->getId();
+		$appointmentUrl = $this->getAppointmentUrl($appointment->getId());
 
 		$output = "BEGIN:VEVENT\r\n";
 		$output .= 'UID:attendance-appointment-' . $appointment->getId() . '@' . $domain . "\r\n";
@@ -377,9 +377,16 @@ class IcalService {
 	}
 
 	/**
+	 * Absolute deep link to an appointment in the web app.
+	 */
+	public function getAppointmentUrl(int $appointmentId): string {
+		return $this->urlGenerator->linkToRouteAbsolute('attendance.page.index') . '#/appointment/' . $appointmentId;
+	}
+
+	/**
 	 * Escape text for iCal format (RFC 5545)
 	 */
-	private function escapeIcalText(string $text): string {
+	public function escapeIcalText(string $text): string {
 		// Escape backslashes first, then other special chars
 		$text = str_replace('\\', '\\\\', $text);
 		$text = str_replace(';', '\\;', $text);
@@ -393,7 +400,7 @@ class IcalService {
 	 * Fold iCal content lines per RFC 5545 Section 3.1
 	 * Lines must not exceed 75 octets; fold with CRLF + space.
 	 */
-	private function foldIcalContent(string $content): string {
+	public function foldIcalContent(string $content): string {
 		$content = rtrim($content, "\r\n");
 		$lines = explode("\r\n", $content);
 		$folded = array_map([$this, 'foldIcalLine'], $lines);

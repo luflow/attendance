@@ -24,6 +24,7 @@ class ResponseService {
 	private IUserManager $userManager;
 	private GuestService $guestService;
 	private AuditEventService $auditEventService;
+	private OrgCalendarSyncService $orgCalendarSyncService;
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -34,6 +35,7 @@ class ResponseService {
 		IUserManager $userManager,
 		GuestService $guestService,
 		AuditEventService $auditEventService,
+		OrgCalendarSyncService $orgCalendarSyncService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -43,6 +45,7 @@ class ResponseService {
 		$this->userManager = $userManager;
 		$this->guestService = $guestService;
 		$this->auditEventService = $auditEventService;
+		$this->orgCalendarSyncService = $orgCalendarSyncService;
 	}
 
 	// Response source constants
@@ -122,6 +125,9 @@ class ResponseService {
 		);
 
 		$this->notificationService->markAppointmentNotificationsProcessed($appointmentId, $userId);
+
+		// Keep the response summary in the organization calendar event current
+		$this->orgCalendarSyncService->syncAppointment($appointment);
 
 		return $result;
 	}
