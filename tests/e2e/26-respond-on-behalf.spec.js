@@ -6,6 +6,7 @@ import {
 	listAppointmentsViaAPI,
 	respondForUserViaAPI,
 	respondToAppointmentViaAPI,
+	saveAdminSettings,
 	test,
 } from './fixtures/nextcloud.js'
 
@@ -23,8 +24,22 @@ async function fetchAudit(request, appointmentId) {
 	return { status: resp.status(), body: resp.status() === 200 ? await resp.json() : null }
 }
 
+// The respond_for_others permission grants NOBODY when unconfigured — it is
+// deliberately not implied by manage rights. Grant it to the admin group for
+// the duration of this file (which is why it runs in sequential-admin).
+async function grantRespondForOthers(request, groups) {
+	await saveAdminSettings(request, {
+		permissions: { respond_for_others: groups },
+	})
+}
+
 test.describe('Respond on behalf — API', () => {
+	test.beforeAll(async ({ request }) => {
+		await grantRespondForOthers(request, ['admin'])
+	})
+
 	test.afterAll(async ({ request }) => {
+		await grantRespondForOthers(request, [])
 		await deleteAllAppointments(request)
 	})
 
@@ -137,6 +152,35 @@ test.describe('Respond on behalf — API', () => {
 		}
 	})
 
+	test('user outside the configured groups is rejected, manage rights notwithstanding', async ({ request }) => {
+		const apt = await createAppointmentViaAPI(request, {
+			name: 'On-Behalf No Permission',
+			daysFromNow: 9,
+		})
+
+		// "test" holds manage rights (unconfigured = everyone) but is not in
+		// the admin group, which is the only one granted respond_for_others.
+		const blocked = await respondForUserViaAPI(request, apt.id, 'test1', {
+			response: 'yes',
+			username: 'test',
+			password: 'test',
+		})
+		expect(blocked.error).toMatch(/permission/i)
+	})
+
+	test('permission is reported via the user permissions endpoint', async ({ request }) => {
+		const adminPerms = await request.get(`${API_BASE}/apps/attendance/api/user/permissions`, {
+			headers: { Authorization: adminAuth, 'OCS-APIREQUEST': 'true' },
+		})
+		expect((await adminPerms.json()).canRespondForOthers).toBe(true)
+
+		const userAuth = 'Basic ' + Buffer.from('test:test').toString('base64')
+		const userPerms = await request.get(`${API_BASE}/apps/attendance/api/user/permissions`, {
+			headers: { Authorization: userAuth, 'OCS-APIREQUEST': 'true' },
+		})
+		expect((await userPerms.json()).canRespondForOthers).toBe(false)
+	})
+
 	test('capability flag respondOnBehalf is exposed', async ({ request }) => {
 		const resp = await request.get(`${API_BASE}/apps/attendance/api/capabilities`, {
 			headers: { Authorization: adminAuth, 'OCS-APIREQUEST': 'true' },
@@ -152,6 +196,7 @@ test.describe('Respond on behalf — UI', () => {
 	const meetingName = 'UI On-Behalf Test'
 
 	test.beforeAll(async ({ request }) => {
+		await grantRespondForOthers(request, ['admin'])
 		// Directly addressing test1 puts them into the "Others" bucket's
 		// non-responder list — an unrestricted appointment has no known
 		// audience (no whitelisted groups in the default config), so the
@@ -164,6 +209,7 @@ test.describe('Respond on behalf — UI', () => {
 	})
 
 	test.afterAll(async ({ request }) => {
+		await grantRespondForOthers(request, [])
 		await deleteAllAppointments(request)
 	})
 

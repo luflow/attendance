@@ -53,7 +53,6 @@ export default defineConfig({
 				'14-close-inquiry.spec.js',
 				'22-response-rescind.spec.js',
 				'24-close-nav-resort.spec.js',
-				'26-respond-on-behalf.spec.js',
 				'checkin.spec.js',
 			],
 			fullyParallel: false, // tests within a file stay sequential
@@ -81,6 +80,8 @@ export default defineConfig({
 				'23-audit-history.spec.js',
 				// Toggles the instance-wide planning feature on and off.
 				'25-scheduled-out.spec.js',
+				// Grants/revokes the respond_for_others permission.
+				'26-respond-on-behalf.spec.js',
 			],
 			fullyParallel: false,
 			workers: 1,

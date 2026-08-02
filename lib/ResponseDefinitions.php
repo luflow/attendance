@@ -147,6 +147,7 @@ namespace OCA\Attendance;
  *   canSeeResponseOverview: bool,
  *   canSeeComments: bool,
  *   canSelfCheckin: bool,
+ *   canRespondForOthers: bool,
  * }
  * @psalm-type AttendanceCapabilities = array{
  *   calendarAvailable: bool,

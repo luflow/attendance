@@ -244,7 +244,7 @@ class PermissionServiceTest extends TestCase {
 	}
 
 	public function testGetAllPermissionSettings(): void {
-		$this->config->expects($this->exactly(6))
+		$this->config->expects($this->exactly(7))
 			->method('getAppValue')
 			->willReturnMap([
 				['attendance', 'permission_manage_appointments', '[]', '["admin"]'],
@@ -252,7 +252,8 @@ class PermissionServiceTest extends TestCase {
 				['attendance', 'permission_see_response_overview', '[]', '["admin"]'],
 				['attendance', 'permission_see_comments', '[]', '["admin","managers"]'],
 				['attendance', 'permission_self_checkin', '[]', '["users"]'],
-				['attendance', 'permission_create_appointments', '[]', '["members"]']
+				['attendance', 'permission_create_appointments', '[]', '["members"]'],
+				['attendance', 'permission_respond_for_others', '[]', '["staff"]']
 			]);
 
 		$result = $this->service->getAllPermissionSettings();
@@ -263,7 +264,8 @@ class PermissionServiceTest extends TestCase {
 			PermissionService::PERMISSION_SEE_RESPONSE_OVERVIEW => ['admin'],
 			PermissionService::PERMISSION_SEE_COMMENTS => ['admin', 'managers'],
 			PermissionService::PERMISSION_SELF_CHECKIN => ['users'],
-			PermissionService::PERMISSION_CREATE_APPOINTMENTS => ['members']
+			PermissionService::PERMISSION_CREATE_APPOINTMENTS => ['members'],
+			PermissionService::PERMISSION_RESPOND_FOR_OTHERS => ['staff']
 		];
 
 		$this->assertEquals($expected, $result);
@@ -418,6 +420,56 @@ class PermissionServiceTest extends TestCase {
 			]);
 
 		$this->assertFalse($this->service->canCreateAppointments('guestuser'));
+	}
+
+	// --- respond_for_others: empty config must mean "nobody", not even managers ---
+
+	public function testRespondForOthersEmptyConfigDeniesEveryone(): void {
+		$this->guestService->method('isGuestUser')->willReturn(false);
+		// Unconfigured: manage_appointments would default to "everyone", but
+		// respond_for_others is closed-when-unconfigured — nobody gets it.
+		$this->config->method('getAppValue')->willReturn('[]');
+
+		$this->assertFalse($this->service->canRespondForOthers('regularuser'));
+	}
+
+	public function testRespondForOthersNotImpliedByManagePermission(): void {
+		$this->guestService->method('isGuestUser')->willReturn(false);
+		// User is a manager, but respond_for_others is granted to a group
+		// they are not in — manage rights must not bleed through.
+		$this->config->method('getAppValue')
+			->willReturnMap([
+				['attendance', 'permission_manage_appointments', '[]', '["managers"]'],
+				['attendance', 'permission_respond_for_others', '[]', '["office"]'],
+			]);
+		$user = $this->createMock(IUser::class);
+		$this->userManager->method('get')->willReturn($user);
+		$this->groupManager->method('getUserGroupIds')->willReturn(['managers']);
+
+		$this->assertTrue($this->service->canManageAppointments('manageruser'));
+		$this->assertFalse($this->service->canRespondForOthers('manageruser'));
+	}
+
+	public function testRespondForOthersGrantedViaConfiguredGroup(): void {
+		$this->guestService->method('isGuestUser')->willReturn(false);
+		$this->config->method('getAppValue')
+			->willReturnMap([
+				['attendance', 'permission_respond_for_others', '[]', '["office"]'],
+			]);
+		$user = $this->createMock(IUser::class);
+		$this->userManager->method('get')->willReturn($user);
+		$this->groupManager->method('getUserGroupIds')->willReturn(['office']);
+
+		$this->assertTrue($this->service->canRespondForOthers('officeuser'));
+	}
+
+	public function testRespondForOthersBlockedForGuests(): void {
+		$this->guestService->method('isGuestUser')->with('guestuser')->willReturn(true);
+		// Guest hard-block runs before the role lookup, even when the guest
+		// group was accidentally whitelisted.
+		$this->config->expects($this->never())->method('getAppValue');
+
+		$this->assertFalse($this->service->canRespondForOthers('guestuser'));
 	}
 
 	// --- organizer checks ---

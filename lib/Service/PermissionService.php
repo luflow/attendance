@@ -25,11 +25,13 @@ class PermissionService {
 	public const PERMISSION_SEE_COMMENTS = 'see_comments';
 	public const PERMISSION_SELF_CHECKIN = 'self_checkin';
 	public const PERMISSION_CREATE_APPOINTMENTS = 'create_appointments';
+	public const PERMISSION_RESPOND_FOR_OTHERS = 'respond_for_others';
 
 	private const GUEST_BLOCKED_PERMISSIONS = [
 		self::PERMISSION_MANAGE_APPOINTMENTS,
 		self::PERMISSION_CHECKIN,
 		self::PERMISSION_CREATE_APPOINTMENTS,
+		self::PERMISSION_RESPOND_FOR_OTHERS,
 	];
 
 	/**
@@ -40,6 +42,7 @@ class PermissionService {
 	 */
 	private const CLOSED_WHEN_UNCONFIGURED = [
 		self::PERMISSION_CREATE_APPOINTMENTS,
+		self::PERMISSION_RESPOND_FOR_OTHERS,
 	];
 
 	public function __construct(
@@ -144,6 +147,7 @@ class PermissionService {
 			self::PERMISSION_SEE_COMMENTS => $this->getRolesForPermission(self::PERMISSION_SEE_COMMENTS),
 			self::PERMISSION_SELF_CHECKIN => $this->getRolesForPermission(self::PERMISSION_SELF_CHECKIN),
 			self::PERMISSION_CREATE_APPOINTMENTS => $this->getRolesForPermission(self::PERMISSION_CREATE_APPOINTMENTS),
+			self::PERMISSION_RESPOND_FOR_OTHERS => $this->getRolesForPermission(self::PERMISSION_RESPOND_FOR_OTHERS),
 		];
 	}
 
@@ -159,6 +163,7 @@ class PermissionService {
 			'PERMISSION_SEE_COMMENTS' => self::PERMISSION_SEE_COMMENTS,
 			'PERMISSION_SELF_CHECKIN' => self::PERMISSION_SELF_CHECKIN,
 			'PERMISSION_CREATE_APPOINTMENTS' => self::PERMISSION_CREATE_APPOINTMENTS,
+			'PERMISSION_RESPOND_FOR_OTHERS' => self::PERMISSION_RESPOND_FOR_OTHERS,
 		];
 
 		foreach ($permissions as $permission => $roles) {
@@ -172,6 +177,7 @@ class PermissionService {
 				self::PERMISSION_SEE_COMMENTS,
 				self::PERMISSION_SELF_CHECKIN,
 				self::PERMISSION_CREATE_APPOINTMENTS,
+				self::PERMISSION_RESPOND_FOR_OTHERS,
 			])) {
 				$this->setRolesForPermission($permissionValue, $roles);
 			}
@@ -265,6 +271,16 @@ class PermissionService {
 	 */
 	public function canSelfCheckin(string $userId): bool {
 		return $this->hasPermission($userId, self::PERMISSION_SELF_CHECKIN);
+	}
+
+	/**
+	 * Check if user can set or clear responses on behalf of other users.
+	 * Deliberately NOT granted to managers or organizers automatically —
+	 * only members of the explicitly configured groups get it, and with no
+	 * groups configured nobody does (CLOSED_WHEN_UNCONFIGURED).
+	 */
+	public function canRespondForOthers(string $userId): bool {
+		return $this->hasPermission($userId, self::PERMISSION_RESPOND_FOR_OTHERS);
 	}
 
 	/**

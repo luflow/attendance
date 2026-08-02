@@ -142,6 +142,22 @@
 				</div>
 
 				<div class="subsection">
+					<h4>{{ t('attendance', 'Can set responses for other users') }}</h4>
+					<p class="subsection-hint">
+						{{ t('attendance', 'Groups that can record or clear an answer on behalf of another person in the response summary. Not granted automatically to managers — if no group is selected, nobody has this permission.') }}
+					</p>
+					<GroupSelect
+						v-model="selectedRespondForOthersRoles"
+						:options="availableGroups"
+						:placeholder="t('attendance', 'Select groups …')"
+						:disabled="loading"
+						data-test="select-respond-for-others-roles" />
+					<p class="hint-text">
+						{{ n('attendance', '%n group selected', '%n groups selected', selectedRespondForOthersRoles.length, { n: selectedRespondForOthersRoles.length }) }}
+					</p>
+				</div>
+
+				<div class="subsection">
 					<h4>{{ t('attendance', 'Self-check-in') }}</h4>
 					<p class="subsection-hint">
 						{{ t('attendance', 'Groups that can self-check-in via NFC sticker or deep link') }}
@@ -655,6 +671,7 @@ const selectedCreateAppointmentsRoles = ref([])
 const selectedCheckinRoles = ref([])
 const selectedSeeResponseOverviewRoles = ref([])
 const selectedSeeCommentsRoles = ref([])
+const selectedRespondForOthersRoles = ref([])
 const selectedSelfCheckinRoles = ref([])
 const selfCheckinWindowMinutes = ref(30)
 const qrDataUrl = ref(null)
@@ -789,6 +806,9 @@ async function loadSettings() {
 			selectedSelfCheckinRoles.value = (config.permissions.self_checkin || [])
 				.map((id) => groups.find((group) => group.id === id))
 				.filter((group) => group !== undefined)
+			selectedRespondForOthersRoles.value = (config.permissions.respond_for_others || [])
+				.map((id) => groups.find((group) => group.id === id))
+				.filter((group) => group !== undefined)
 			selectedCreateAppointmentsRoles.value = (config.permissions.create_appointments || [])
 				.map((id) => groups.find((group) => group.id === id))
 				.filter((group) => group !== undefined)
@@ -885,6 +905,7 @@ async function saveSettings() {
 					PERMISSION_SEE_COMMENTS: selectedSeeCommentsRoles.value.map((g) => g.id),
 					PERMISSION_SELF_CHECKIN: selectedSelfCheckinRoles.value.map((g) => g.id),
 					PERMISSION_CREATE_APPOINTMENTS: selectedCreateAppointmentsRoles.value.map((g) => g.id),
+					PERMISSION_RESPOND_FOR_OTHERS: selectedRespondForOthersRoles.value.map((g) => g.id),
 				},
 				reminders: {
 					enabled: remindersEnabled.value,

@@ -10,6 +10,7 @@ const state = reactive({
 		canSeeResponseOverview: false,
 		canSeeComments: false,
 		canSelfCheckin: false,
+		canRespondForOthers: false,
 	},
 	capabilities: {
 		calendarAvailable: false,
@@ -69,6 +70,7 @@ export function usePermissions() {
 			state.permissions.canSeeResponseOverview = permissionsRes.data.canSeeResponseOverview || false
 			state.permissions.canSeeComments = permissionsRes.data.canSeeComments || false
 			state.permissions.canSelfCheckin = permissionsRes.data.canSelfCheckin || false
+			state.permissions.canRespondForOthers = permissionsRes.data.canRespondForOthers === true
 
 			state.capabilities.calendarAvailable = capabilitiesRes.data.calendarAvailable || false
 			state.capabilities.calendarSyncEnabled = capabilitiesRes.data.calendarSyncEnabled || false
@@ -96,6 +98,7 @@ export function usePermissions() {
 			state.permissions.canSeeResponseOverview = false
 			state.permissions.canSeeComments = false
 			state.permissions.canSelfCheckin = false
+			state.permissions.canRespondForOthers = false
 			state.capabilities.calendarAvailable = false
 			state.capabilities.calendarSyncEnabled = false
 			state.capabilities.teamsAvailable = false
@@ -129,6 +132,7 @@ export function usePermissions() {
 		state.permissions.canSeeResponseOverview = false
 		state.permissions.canSeeComments = false
 		state.permissions.canSelfCheckin = false
+		state.permissions.canRespondForOthers = false
 	}
 
 	return {

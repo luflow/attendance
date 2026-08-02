@@ -117,7 +117,7 @@ const props = defineProps({
 
 const emit = defineEmits(['refreshAppointment'])
 
-const { capabilities } = usePermissions()
+const { capabilities, permissions } = usePermissions()
 
 const canSendReminders = computed(() => props.canManageAppointments && !props.isClosed)
 
@@ -126,9 +126,10 @@ const canSendReminders = computed(() => props.canManageAppointments && !props.is
 // "yes" response (handled by the row).
 const canManageBooking = computed(() => props.canManageAppointments && capabilities.bookingEnabled)
 
-// Managers may record an answer on a person's behalf (issue #47) while the
-// inquiry still accepts responses.
-const canSetAnswer = computed(() => props.canManageAppointments && props.acceptsResponses)
+// Recording an answer on a person's behalf (issue #47) is its own admin-
+// configured permission — deliberately not implied by manage rights — and
+// only while the inquiry still accepts responses.
+const canSetAnswer = computed(() => permissions.canRespondForOthers && props.acceptsResponses)
 
 const expandedGroups = ref({})
 const remindingUsers = reactive(new Set())

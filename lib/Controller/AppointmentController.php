@@ -719,7 +719,7 @@ class AppointmentController extends Controller {
 	}
 
 	/**
-	 * Set or clear a response on behalf of another user (requires manage appointments permission or being an organizer)
+	 * Set or clear a response on behalf of another user (requires the respond-for-others permission)
 	 *
 	 * @param int $appointmentId Appointment ID
 	 * @param string $targetUserId User ID whose response is set
@@ -735,9 +735,16 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
-		$appointment = $this->findManageableAppointment($appointmentId, $user->getUID(), 'Insufficient permissions to set responses for other users');
-		if ($appointment instanceof DataResponse) {
-			return $appointment;
+		// Own permission, deliberately not implied by manage/organizer rights —
+		// only members of the explicitly configured groups may answer for others.
+		if (!$this->permissionService->canRespondForOthers($user->getUID())) {
+			return new DataResponse(['error' => 'Insufficient permissions to set responses for other users'], 403);
+		}
+
+		try {
+			$appointment = $this->appointmentService->getAppointment($appointmentId);
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => 'Appointment not found'], 404);
 		}
 
 		try {
@@ -875,6 +882,7 @@ class AppointmentController extends Controller {
 			'canSeeResponseOverview' => $this->permissionService->canSeeResponseOverview($user->getUID()),
 			'canSeeComments' => $this->permissionService->canSeeComments($user->getUID()),
 			'canSelfCheckin' => $this->permissionService->canSelfCheckin($user->getUID()),
+			'canRespondForOthers' => $this->permissionService->canRespondForOthers($user->getUID()),
 		]);
 	}
 
@@ -919,9 +927,11 @@ class AppointmentController extends Controller {
 			// myPermissions payload, create_appointments permission). Mobile
 			// clients hide organizer UI when this is false.
 			'organizers' => true,
-			// Server supports POST /respond/{targetUserId} so managers can
-			// set an answer on behalf of a person (issue #47). Mobile clients
-			// hide the on-behalf picker when this is false.
+			// Server supports POST /respond/{targetUserId} for setting an
+			// answer on behalf of a person (issue #47), gated by the
+			// respond_for_others permission. Mobile clients hide the
+			// on-behalf picker when this is false or the user lacks the
+			// permission (getPermissions.canRespondForOthers).
 			'respondOnBehalf' => true,
 		]);
 	}

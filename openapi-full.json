@@ -1304,7 +1304,8 @@
                     "canCheckin",
                     "canSeeResponseOverview",
                     "canSeeComments",
-                    "canSelfCheckin"
+                    "canSelfCheckin",
+                    "canRespondForOthers"
                 ],
                 "properties": {
                     "canManageAppointments": {
@@ -1323,6 +1324,9 @@
                         "type": "boolean"
                     },
                     "canSelfCheckin": {
+                        "type": "boolean"
+                    },
+                    "canRespondForOthers": {
                         "type": "boolean"
                     }
                 }
@@ -2526,7 +2530,7 @@
         "/index.php/apps/attendance/api/appointments/{appointmentId}/respond/{targetUserId}": {
             "post": {
                 "operationId": "appointment-respond-for-user",
-                "summary": "Set or clear a response on behalf of another user (requires manage appointments permission or being an organizer)",
+                "summary": "Set or clear a response on behalf of another user (requires the respond-for-others permission)",
                 "tags": [
                     "appointment"
                 ],
