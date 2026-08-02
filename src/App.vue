@@ -418,6 +418,7 @@ t('attendance', 'Done')
 t('attendance', 'Email')
 t('attendance', 'Every plan has every feature. Billed yearly.')
 t('attendance', 'Failed to write the tag.')
+t('attendance', 'For my whole group')
 // TRANSLATORS: Label of the paywall segment showing the single-person plan.
 t('attendance', 'For you')
 // TRANSLATORS: Label of the paywall segment showing the plans that cover a whole group.
@@ -438,7 +439,6 @@ t('attendance', 'Invite guest')
 t('attendance', 'Invoice/association')
 t('attendance', "It's not my decision alone")
 t('attendance', 'Just for me')
-t('attendance', 'Just for me, not my organization')
 t('attendance', 'Just for you, on any of your accounts')
 t('attendance', 'Language')
 // TRANSLATORS: Framing for the yearly personal plan (11.99 € per year). The
@@ -483,8 +483,6 @@ t('attendance', 'Tag written. Scan it to test the check-in.')
 t('attendance', 'Tell me more (optional)')
 t('attendance', 'Thanks — that really helps.')
 t('attendance', 'The bar sums up how everyone answered, at the bottom edge of each appointment.')
-t('attendance', 'The personal license covers you alone — every feature, on every Nextcloud account you sign in with. Less than one euro a month.')
-t('attendance', 'There is a plan just for you')
 t('attendance', 'There is no appointment to check into right now.')
 // TRANSLATORS: The appointment was called off and will not take place (German "abgesagt", not "abgebrochen").
 t('attendance', 'This appointment has been cancelled.')
@@ -502,6 +500,9 @@ t('attendance', 'Using Attendance with a group? One license for the whole group 
 t('attendance', 'Using account {user} on {server}')
 t('attendance', 'What would you be willing to pay?')
 t('attendance', "What's still holding you back?")
+// TRANSLATORS: Asked after someone says the price is too high, to learn whether
+// they mean the personal license or the one covering their whole group.
+t('attendance', 'Which license did you have in mind?')
 t('attendance', 'Which appointment?')
 t('attendance', 'Write NFC tag')
 t('attendance', 'Write email')
