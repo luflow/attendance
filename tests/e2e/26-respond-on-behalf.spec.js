@@ -100,15 +100,18 @@ test.describe('Respond on behalf — API', () => {
 		expect(blocked.error).toMatch(/closed/i)
 	})
 
-	test('setting an answer for someone outside the audience is rejected', async ({ request }) => {
+	// NOTE: the audience rejection cannot be exercised here — with the test
+	// instance's unconfigured permissions every user counts as a manager and
+	// managers always pass the visibility check. It is covered by unit tests
+	// (testSubmitResponseForUserRejectsUserOutsideAudience).
+	test('setting an answer for an unknown user is rejected', async ({ request }) => {
 		const apt = await createAppointmentViaAPI(request, {
-			name: 'On-Behalf Audience',
+			name: 'On-Behalf Unknown User',
 			daysFromNow: 9,
-			visibleUsers: ['test'],
 		})
 
-		const blocked = await respondForUserViaAPI(request, apt.id, 'test2', { response: 'yes' })
-		expect(blocked.error).toMatch(/audience/i)
+		const blocked = await respondForUserViaAPI(request, apt.id, 'does-not-exist', { response: 'yes' })
+		expect(blocked.error).toMatch(/not found/i)
 	})
 
 	test('audit log records the manager as actor with source admin_response', async ({ request }) => {
@@ -149,9 +152,14 @@ test.describe('Respond on behalf — UI', () => {
 	const meetingName = 'UI On-Behalf Test'
 
 	test.beforeAll(async ({ request }) => {
+		// Directly addressing test1 puts them into the "Others" bucket's
+		// non-responder list — an unrestricted appointment has no known
+		// audience (no whitelisted groups in the default config), so the
+		// group summary would stay empty and never render a section.
 		await createAppointmentViaAPI(request, {
 			name: meetingName,
 			daysFromNow: 8,
+			visibleUsers: ['test1'],
 		})
 	})
 

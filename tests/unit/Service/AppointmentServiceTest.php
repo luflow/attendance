@@ -574,6 +574,8 @@ class AppointmentServiceTest extends TestCase {
 		$this->appointmentMapper->expects($this->never())
 			->method('find');
 
+		$this->userManager->method('get')->willReturn($this->createMock(\OCP\IUser::class));
+
 		$this->visibilityService->expects($this->once())
 			->method('canUserSeeAppointment')
 			->with($appointment, $targetUserId)
@@ -623,6 +625,7 @@ class AppointmentServiceTest extends TestCase {
 		$appointment = new Appointment();
 		$appointment->setId($appointmentId);
 
+		$this->userManager->method('get')->willReturn($this->createMock(\OCP\IUser::class));
 		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
 
 		$existingResponse = new AttendanceResponse();
@@ -670,6 +673,7 @@ class AppointmentServiceTest extends TestCase {
 		$appointment = new Appointment();
 		$appointment->setId($appointmentId);
 
+		$this->userManager->method('get')->willReturn($this->createMock(\OCP\IUser::class));
 		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
 
 		$existingResponse = new AttendanceResponse();
@@ -706,10 +710,27 @@ class AppointmentServiceTest extends TestCase {
 		$this->assertInstanceOf(AttendanceResponse::class, $result);
 	}
 
+	public function testSubmitResponseForUserRejectsUnknownUser(): void {
+		$appointment = new Appointment();
+		$appointment->setId(1);
+
+		// userManager->get returns null for unknown users; the guard must
+		// fire before the permission-based visibility check, which treats
+		// unknown users as managers when permissions are unconfigured.
+		$this->visibilityService->expects($this->never())->method('canUserSeeAppointment');
+		$this->responseMapper->expects($this->never())->method('insert');
+		$this->responseMapper->expects($this->never())->method('update');
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('User not found');
+		$this->service->submitResponseForUser($appointment, 'ghost', 'yes', 'manager');
+	}
+
 	public function testSubmitResponseForUserRejectsUserOutsideAudience(): void {
 		$appointment = new Appointment();
 		$appointment->setId(1);
 
+		$this->userManager->method('get')->willReturn($this->createMock(\OCP\IUser::class));
 		$this->visibilityService->expects($this->once())
 			->method('canUserSeeAppointment')
 			->with($appointment, 'stranger')
@@ -734,6 +755,7 @@ class AppointmentServiceTest extends TestCase {
 		$appointment->setId(1);
 		$appointment->setClosedAt('2026-01-01 12:00:00');
 
+		$this->userManager->method('get')->willReturn($this->createMock(\OCP\IUser::class));
 		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
 
 		$this->responseMapper->expects($this->never())->method('update');

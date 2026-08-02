@@ -817,6 +817,13 @@ class AppointmentService {
 	): AttendanceResponse {
 		$this->validateResponseValue($response);
 
+		// The audience check below trusts the permission layer, which treats
+		// unknown users as managers when permissions are unconfigured — so an
+		// explicit existence check is needed to keep junk rows out.
+		if ($this->userManager->get($targetUserId) === null) {
+			throw new \InvalidArgumentException('User not found');
+		}
+
 		// The target must be part of the appointment's audience — a manager
 		// cannot invent responses for people the inquiry never reached.
 		if (!$this->visibilityService->canUserSeeAppointment($appointment, $targetUserId)) {
