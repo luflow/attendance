@@ -1,7 +1,6 @@
 import { createAppConfig } from "@nextcloud/vite-config";
 import { readFileSync } from "fs";
 import { join, resolve } from "path";
-import { createLogger } from "vite";
 
 // Read app id/version from appinfo/info.xml so we can inject them as globals.
 // @nextcloud/vue expects top-level `appName` / `appVersion` identifiers; since Vite 7
@@ -10,18 +9,6 @@ import { createLogger } from "vite";
 const infoXml = readFileSync(resolve("appinfo", "info.xml"), "utf8");
 const appId = infoXml.match(/<id>([^<]+)<\/id>/i)[1];
 const appVersion = infoXml.match(/<version>([^<]+)<\/version>/i)[1];
-
-// Nextcloud apps emit js/, css/ and img/ into the repo root, which is why
-// @nextcloud/vite-config sets outDir to '' — vite's warning about that layout
-// is unavoidable noise here, everything else still gets through.
-const logger = createLogger();
-const loggerWarn = logger.warn.bind(logger);
-logger.warn = (msg, options) => {
-  if (msg.includes("build.outDir must not be the same directory of root")) {
-    return;
-  }
-  loggerWarn(msg, options);
-};
 
 export default (env) => {
   const isDev = env.mode === "development";
@@ -45,7 +32,6 @@ export default (env) => {
       // (duplicate-object-key in fast-xml-parser via webdav) on every build.
       minify: false,
       config: {
-        customLogger: logger,
         define: {
           appName: JSON.stringify(appId),
           appVersion: JSON.stringify(appVersion),
