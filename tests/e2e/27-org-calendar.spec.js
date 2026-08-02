@@ -184,8 +184,6 @@ test.describe('Attendance App - Organization calendar', () => {
 	})
 
 	test.describe('Calendar to app sync of pushed events', () => {
-		// Calendar-side edits reach the app through calendar event hooks that
-		// only exist on Nextcloud 32+ — same precondition as 13-calendar-sync.
 		test('calendar edit syncs back without leaking the summary block', async ({ request }) => {
 			await saveAdminSettings(request, { calendarSync: { enabled: true } })
 

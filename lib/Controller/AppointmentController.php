@@ -899,7 +899,9 @@ class AppointmentController extends Controller {
 			'calendarAvailable' => $this->calendarService->isCalendarAvailable(),
 			'calendarSyncEnabled' => $this->configService->isCalendarSyncEnabled(),
 			'teamsAvailable' => $this->visibilityService->isTeamsAvailable(),
-			'calendarSyncAvailable' => \OCP\Util::getVersion()[0] >= 32,
+			// Always true since the app requires NC 32+; kept for older mobile
+			// clients that still gate their calendar sync UI on this flag.
+			'calendarSyncAvailable' => true,
 			'notificationsAppEnabled' => $this->appManager->isEnabledForUser('notifications'),
 			// Older servers omit this flag → mobile clients hide close-inquiry UI.
 			'closing' => true,

@@ -356,24 +356,15 @@
 				<NcSettingsSection
 					:name="t('attendance', 'Calendar sync')"
 					:description="t('attendance', 'Automatically update attendance appointments when their linked calendar events are modified.')">
-					<NcNoteCard v-if="!calendarSyncAvailable" type="warning">
-						<p>{{ t('attendance', 'Calendar sync requires Nextcloud 32 or newer.') }}</p>
-						<p class="hint-text">
-							{{ t('attendance', 'This feature uses calendar event hooks that are only available in Nextcloud 32 and later versions.') }}
-						</p>
-					</NcNoteCard>
-
-					<template v-else>
-						<NcCheckboxRadioSwitch
-							v-model="calendarSyncEnabled"
-							type="switch"
-							data-test="switch-calendar-sync-enabled">
-							{{ t('attendance', 'Enable automatic calendar sync') }}
-						</NcCheckboxRadioSwitch>
-						<p class="hint-text">
-							{{ t('attendance', 'When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time).') }}
-						</p>
-					</template>
+					<NcCheckboxRadioSwitch
+						v-model="calendarSyncEnabled"
+						type="switch"
+						data-test="switch-calendar-sync-enabled">
+						{{ t('attendance', 'Enable automatic calendar sync') }}
+					</NcCheckboxRadioSwitch>
+					<p class="hint-text">
+						{{ t('attendance', 'When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time).') }}
+					</p>
 				</NcSettingsSection>
 			</div>
 
@@ -727,7 +718,6 @@ const notificationsAppEnabled = ref(true)
 const nextAppointment = ref(null)
 const nextReminderRun = ref(null)
 const calendarSyncEnabled = ref(false)
-const calendarSyncAvailable = ref(false)
 const calendarAvailable = ref(false)
 const orgCalendarEnabled = ref(false)
 const selectedOrgCalendar = ref(null)
@@ -886,7 +876,6 @@ async function loadSettings() {
 
 		// Load calendar sync settings
 		calendarSyncEnabled.value = config.calendarSync.enabled || false
-		calendarSyncAvailable.value = caps.calendarSyncAvailable || false
 		calendarAvailable.value = caps.calendarAvailable || false
 
 		// Load organization calendar settings
