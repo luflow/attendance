@@ -28,6 +28,7 @@ const icon = computed(() => ICONS[getResponseIcon(props.response)] ?? HelpCircle
 </script>
 
 <style scoped lang="scss">
+@use "sass:math";
 @use "../../styles/shared.scss";
 
 .response-dot {
@@ -60,7 +61,7 @@ const icon = computed(() => ICONS[getResponseIcon(props.response)] ?? HelpCircle
             content: "";
             position: absolute;
             // The MDI circle is r=10 about (12,12) in a 24-unit viewBox.
-            inset: percentage(calc(2 / 24));
+            inset: math.percentage(math.div(2, 24));
             border-radius: 50%;
             background: #222;
         }
