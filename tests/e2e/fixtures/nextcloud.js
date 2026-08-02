@@ -277,6 +277,38 @@ export async function respondToAppointmentViaAPI(request, appointmentId, {
 }
 
 /**
+ * Cancel an appointment via the REST API (event will not take place)
+ */
+export async function cancelAppointmentViaAPI(request, id, { username = 'admin', password = 'admin' } = {}) {
+	const resp = await resilientJson(() =>
+		request.post(`${API_BASE}/apps/attendance/api/appointments/${id}/cancel`, {
+			headers: authHeaders(username, password),
+		}),
+	)
+	return resp.json()
+}
+
+/**
+ * Update an appointment via the REST API
+ */
+export async function updateAppointmentViaAPI(request, id, {
+	name,
+	description = '',
+	startDatetime,
+	endDatetime,
+	username = 'admin',
+	password = 'admin',
+} = {}) {
+	const resp = await resilientJson(() =>
+		request.put(`${API_BASE}/apps/attendance/api/appointments/${id}`, {
+			headers: authHeaders(username, password),
+			data: { name, description, startDatetime, endDatetime },
+		}),
+	)
+	return resp.json()
+}
+
+/**
  * Set check-in status for a user via the REST API
  */
 export async function checkinUserViaAPI(request, appointmentId, targetUserId, {
@@ -487,6 +519,21 @@ export async function deleteCalendarEvent(request, { uid, calendarName = 'person
 		{ headers: authHeaders(username, password) },
 	)
 	return resp.status() === 204 || resp.status() === 404
+}
+
+/**
+ * Fetch a calendar object's raw ICS via CalDAV GET.
+ * Returns null when the object does not exist (404).
+ *
+ * @param {string} options.objectUri Full object filename, e.g. 'my-uid.ics'
+ */
+export async function getCalendarEventIcs(request, { objectUri, calendarName = 'personal', username = 'admin', password = 'admin' } = {}) {
+	const resp = await request.get(
+		`${BASE_URL}/remote.php/dav/calendars/${username}/${calendarName}/${objectUri}`,
+		{ headers: authHeaders(username, password) },
+	)
+	if (resp.status() !== 200) return null
+	return resp.text()
 }
 
 /**

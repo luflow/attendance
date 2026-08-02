@@ -82,6 +82,8 @@ export default defineConfig({
 				'25-scheduled-out.spec.js',
 				// Grants/revokes the respond_for_others permission.
 				'26-respond-on-behalf.spec.js',
+				// Enables the org calendar push and writes into a CalDAV calendar.
+				'26-org-calendar.spec.js',
 			],
 			fullyParallel: false,
 			workers: 1,
