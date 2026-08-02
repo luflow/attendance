@@ -401,6 +401,9 @@
 								{{ t('attendance', 'Share the selected calendar with your groups in the Calendar app so everyone can see the events.') }}
 							</p>
 							<p class="hint-text">
+								{{ t('attendance', 'When you select a calendar, all upcoming appointments are transferred to it. Past appointments are not transferred.') }}
+							</p>
+							<p class="hint-text">
 								{{ t('attendance', 'Events are created for all appointments, regardless of their visibility restrictions. Changing the target calendar does not move events that were already created.') }}
 							</p>
 							<p v-if="orgCalendarUserId" class="hint-text">
