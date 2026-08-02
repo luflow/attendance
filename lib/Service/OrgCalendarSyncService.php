@@ -216,14 +216,17 @@ class OrgCalendarSyncService {
 
 	/**
 	 * Push all upcoming active appointments into the organization calendar.
-	 * Used as backfill when the feature is enabled or the target changes.
+	 * Runs as backfill when the feature is enabled or the target changes, and
+	 * on demand via the admin settings button.
+	 *
+	 * @return int Number of appointments written
 	 */
-	public function syncAllUpcoming(): void {
+	public function syncAllUpcoming(): int {
+		$count = 0;
 		try {
 			if (!$this->isEnabled()) {
-				return;
+				return 0;
 			}
-			$count = 0;
 			foreach ($this->appointmentMapper->findUpcoming() as $appointment) {
 				if ($this->syncAppointment($appointment)) {
 					$count++;
@@ -238,6 +241,7 @@ class OrgCalendarSyncService {
 				'exception' => $e,
 			]);
 		}
+		return $count;
 	}
 
 	/**

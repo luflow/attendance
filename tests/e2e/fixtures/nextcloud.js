@@ -358,6 +358,19 @@ export async function saveAdminSettings(request, settings = {}) {
 }
 
 /**
+ * Trigger the organization calendar backfill via the admin API.
+ * Returns { status, body }.
+ */
+export async function syncOrgCalendarViaAPI(request) {
+	const resp = await resilientJson(() =>
+		request.post(`${API_BASE}/apps/attendance/api/admin/org-calendar/sync`, {
+			headers: authHeaders('admin', 'admin'),
+		}),
+	)
+	return { status: resp.status(), body: await resp.json() }
+}
+
+/**
  * Reset admin settings to permissive defaults
  */
 export async function resetAdminSettings(request) {

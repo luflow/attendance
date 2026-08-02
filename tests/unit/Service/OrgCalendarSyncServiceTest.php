@@ -428,8 +428,15 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->appointmentMapper->method('findUpcoming')->willReturn([$own, $imported]);
 		$this->appointmentMapper->method('update')->willReturnArgument(0);
 
-		$this->service->syncAllUpcoming();
+		$this->assertSame(1, $this->service->syncAllUpcoming());
 		$this->assertCount(1, $this->backend->created);
+	}
+
+	public function testSyncAllUpcomingReturnsZeroWhenDisabled(): void {
+		$this->configService->method('isOrgCalendarEnabled')->willReturn(false);
+
+		$this->assertSame(0, $this->service->syncAllUpcoming());
+		$this->assertSame([], $this->backend->created);
 	}
 
 	public function testApplySettingsBackfillsOnEnable(): void {

@@ -406,6 +406,21 @@
 							<p v-if="orgCalendarUserId" class="hint-text">
 								{{ t('attendance', 'Events are written using the account of {user}.', { user: orgCalendarUserId }) }}
 							</p>
+							<NcButton
+								v-if="selectedOrgCalendar"
+								variant="tertiary"
+								:disabled="syncingOrgCalendar"
+								data-test="button-sync-org-calendar"
+								@click="syncOrgCalendar">
+								<template #icon>
+									<NcLoadingIcon v-if="syncingOrgCalendar" :size="20" />
+									<CalendarSyncIcon v-else :size="20" />
+								</template>
+								{{ t('attendance', 'Sync upcoming appointments now') }}
+							</NcButton>
+							<p class="hint-text">
+								{{ t('attendance', 'Creates or updates the calendar events for all upcoming appointments. This also runs automatically when you enable the feature or change the calendar.') }}
+							</p>
 						</div>
 					</template>
 				</NcSettingsSection>
@@ -678,6 +693,7 @@ import { computed, nextTick, onMounted, ref } from 'vue'
 import AccountStar from 'vue-material-design-icons/AccountStar.vue'
 import AppleIcon from 'vue-material-design-icons/Apple.vue'
 import BellRingIcon from 'vue-material-design-icons/BellRing.vue'
+import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
 import CellphoneCheck from 'vue-material-design-icons/CellphoneCheck.vue'
 import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
 import Download from 'vue-material-design-icons/Download.vue'
@@ -733,6 +749,7 @@ const pushDeviceCount = ref(0)
 const loading = ref(false)
 const loadingData = ref(true)
 const sendingTestReminder = ref(false)
+const syncingOrgCalendar = ref(false)
 const guestsApp = ref({ enabled: false, whitelistEnabled: false, attendanceInWhitelist: false })
 
 // Computed
@@ -1035,6 +1052,20 @@ function copyGuestsOccCommand() {
 			errorMessage: window.t('attendance', 'Failed to copy command'),
 		},
 	)
+}
+
+async function syncOrgCalendar() {
+	syncingOrgCalendar.value = true
+	try {
+		const response = await axios.post(generateUrl('/apps/attendance/api/admin/org-calendar/sync'))
+		const count = response.data.synced ?? 0
+		showSuccess(window.n('attendance', '%n appointment synced to the calendar', '%n appointments synced to the calendar', count))
+	} catch (error) {
+		console.error('Error syncing organization calendar:', error)
+		showError(window.t('attendance', 'Failed to sync appointments to the calendar'))
+	} finally {
+		syncingOrgCalendar.value = false
+	}
 }
 
 async function sendTestReminder() {

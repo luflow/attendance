@@ -11,6 +11,7 @@ import {
 	login,
 	respondToAppointmentViaAPI,
 	saveAdminSettings,
+	syncOrgCalendarViaAPI,
 	test,
 	toICalDate,
 	updateAppointmentViaAPI,
@@ -66,6 +67,9 @@ test.describe('Attendance App - Organization calendar', () => {
 			const picker = page.locator('[data-test="select-org-calendar"]')
 			await expect(picker).toBeVisible()
 			await expect(picker).toContainText(CALENDAR_DISPLAY)
+
+			// Manual backfill button is offered for the selected calendar
+			await expect(page.locator('[data-test="button-sync-org-calendar"]')).toBeVisible()
 		})
 	})
 
@@ -154,6 +158,21 @@ test.describe('Attendance App - Organization calendar', () => {
 			await deleteAppointmentViaAPI(request, appointment.id)
 
 			expect(await fetchOrgEventIcs(request, appointment)).toBeNull()
+		})
+
+		test('manual sync endpoint pushes upcoming appointments', async ({ request }) => {
+			const appointment = await createAppointmentViaAPI(request, {
+				name: 'Org Manual Sync',
+				daysFromNow: 22,
+			})
+
+			const { status, body } = await syncOrgCalendarViaAPI(request)
+			expect(status).toBe(200)
+			expect(body.synced).toBeGreaterThanOrEqual(1)
+
+			expect(await fetchOrgEventIcs(request, appointment)).toContain('SUMMARY:Org Manual Sync')
+
+			await deleteAppointmentViaAPI(request, appointment.id)
 		})
 
 		test('enabling the feature backfills existing upcoming appointments', async ({ request }) => {

@@ -327,6 +327,33 @@ class AdminController extends Controller {
 		}
 	}
 
+	/**
+	 * Push all upcoming appointments into the organization calendar
+	 *
+	 * Explicit backfill trigger for the admin settings — the same sync that
+	 * runs automatically when the feature is enabled or re-pointed.
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{synced: int}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
+	 */
+	#[NoCSRFRequired]
+	#[OpenAPI(OpenAPI::SCOPE_ADMINISTRATION)]
+	public function syncOrgCalendar(): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		if (!$this->permissionService->isAdmin($user->getUID())) {
+			return new DataResponse(['error' => 'Insufficient permissions'], 403);
+		}
+
+		if (!$this->orgCalendarSyncService->isEnabled()) {
+			return new DataResponse(['error' => 'Organization calendar is not configured'], 400);
+		}
+
+		return new DataResponse(['synced' => $this->orgCalendarSyncService->syncAllUpcoming()]);
+	}
+
 	private function findFirstOpenUpcoming(): ?\OCA\Attendance\Db\Appointment {
 		foreach ($this->appointmentMapper->findUpcoming() as $candidate) {
 			if (!$candidate->isClosed()) {
