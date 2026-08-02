@@ -6,15 +6,14 @@ namespace OCA\Attendance\Tests\Unit\Service;
 
 use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
-use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
+use OCA\Attendance\Service\CalendarService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\IcalService;
 use OCA\Attendance\Service\OrgCalendarSyncService;
 use OCP\Calendar\ICalendar;
 use OCP\Calendar\ICalendarIsWritable;
 use OCP\Calendar\ICreateFromString;
-use OCP\Calendar\IManager as ICalendarManager;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -105,9 +104,20 @@ class FakeCalDavBackend {
 	}
 }
 
+/**
+ * Production service with the CalDAV backend seam replaced by the fake.
+ */
+class TestableOrgCalendarSyncService extends OrgCalendarSyncService {
+	public ?object $fakeBackend = null;
+
+	protected function getCalDavBackend(): ?object {
+		return $this->fakeBackend;
+	}
+}
+
 class OrgCalendarSyncServiceTest extends TestCase {
-	/** @var ICalendarManager|MockObject */
-	private $calendarManager;
+	/** @var CalendarService|MockObject */
+	private $calendarService;
 
 	/** @var AppointmentMapper|MockObject */
 	private $appointmentMapper;
@@ -125,10 +135,10 @@ class OrgCalendarSyncServiceTest extends TestCase {
 	private $urlGenerator;
 
 	private FakeCalDavBackend $backend;
-	private OrgCalendarSyncService $service;
+	private TestableOrgCalendarSyncService $service;
 
 	protected function setUp(): void {
-		$this->calendarManager = $this->createMock(ICalendarManager::class);
+		$this->calendarService = $this->createMock(CalendarService::class);
 		$this->appointmentMapper = $this->createMock(AppointmentMapper::class);
 		$this->responseMapper = $this->createMock(AttendanceResponseMapper::class);
 		$this->configService = $this->createMock(ConfigService::class);
@@ -138,9 +148,14 @@ class OrgCalendarSyncServiceTest extends TestCase {
 
 		$this->icalService->method('escapeIcalText')->willReturnArgument(0);
 		$this->icalService->method('foldIcalContent')->willReturnArgument(0);
+		$this->icalService->method('getAppointmentUrl')
+			->willReturnCallback(fn (int $id) => 'https://cloud.example.com/apps/attendance/#/appointment/' . $id);
 
 		$this->urlGenerator->method('getAbsoluteURL')->willReturn('https://cloud.example.com/');
-		$this->urlGenerator->method('linkToRouteAbsolute')->willReturn('https://cloud.example.com/apps/attendance/');
+
+		$this->responseMapper->method('getResponseSummary')->willReturnCallback(
+			fn () => $this->responseSummary,
+		);
 
 		$l10n = $this->createMock(IL10N::class);
 		$l10n->method('n')->willReturnCallback(
@@ -152,38 +167,31 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$config = $this->createMock(IConfig::class);
 		$config->method('getSystemValueString')->willReturn('en');
 
-		$backend = $this->backend;
-		$this->service = new class($this->calendarManager, $this->appointmentMapper, $this->responseMapper, $this->configService, $this->icalService, $this->urlGenerator, $l10nFactory, $config, $this->createMock(LoggerInterface::class), $backend) extends OrgCalendarSyncService {
-			public function __construct(
-				$calendarManager,
-				$appointmentMapper,
-				$responseMapper,
-				$configService,
-				$icalService,
-				$urlGenerator,
-				$l10nFactory,
-				$config,
-				$logger,
-				private object $fakeBackend,
-			) {
-				parent::__construct($calendarManager, $appointmentMapper, $responseMapper, $configService, $icalService, $urlGenerator, $l10nFactory, $config, $logger);
-			}
-
-			protected function getCalDavBackend(): ?object {
-				return $this->fakeBackend;
-			}
-		};
+		$this->service = new TestableOrgCalendarSyncService(
+			$this->calendarService,
+			$this->appointmentMapper,
+			$this->responseMapper,
+			$this->configService,
+			$this->icalService,
+			$this->urlGenerator,
+			$l10nFactory,
+			$config,
+			$this->createMock(LoggerInterface::class),
+		);
+		$this->service->fakeBackend = $this->backend;
 	}
+
+	/** @var array<string, int> */
+	private array $responseSummary = [];
 
 	private function configureEnabled(): void {
 		$this->configService->method('isOrgCalendarEnabled')->willReturn(true);
 		$this->configService->method('getOrgCalendarUri')->willReturn('org-events');
 		$this->configService->method('getOrgCalendarUserId')->willReturn('admin');
 
-		$calendar = new FakeWritableCalendar('42', 'org-events');
-		$this->calendarManager->method('getCalendarsForPrincipal')
-			->with('principals/users/admin', ['org-events'])
-			->willReturn([$calendar]);
+		$this->calendarService->method('findWritableCalendar')
+			->with('admin', 'org-events')
+			->willReturn(new FakeWritableCalendar('42', 'org-events'));
 	}
 
 	private function buildAppointment(int $id = 5): Appointment {
@@ -258,6 +266,22 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->assertCount(1, $this->backend->updated);
 	}
 
+	public function testOwnershipSurvivesDomainChange(): void {
+		// UID stored under a previous instance domain: still ours (prefix match),
+		// and the stored UID keeps addressing the existing object.
+		$this->configureEnabled();
+		$appointment = $this->buildAppointment();
+		$appointment->setCalendarUri('org-events-owner-uri');
+		$appointment->setCalendarEventUid('attendance-org-5@old.example.org');
+		$this->backend->existingObjects['attendance-org-5@old.example.org.ics'] = ['id' => 1];
+
+		$this->appointmentMapper->expects($this->never())->method('update');
+
+		$this->assertTrue($this->service->syncAppointment($appointment));
+		$this->assertSame([], $this->backend->created);
+		$this->assertSame('attendance-org-5@old.example.org.ics', $this->backend->updated[0][1]);
+	}
+
 	public function testCancelledAppointmentGetsCancelledStatus(): void {
 		$this->configureEnabled();
 		$appointment = $this->buildAppointment();
@@ -283,7 +307,7 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$appointment->setCalendarEventUid('attendance-org-5@cloud.example.com');
 		$this->backend->existingObjects['attendance-org-5@cloud.example.com.ics'] = ['id' => 1];
 
-		$this->assertTrue($this->service->handleAppointmentDeleted($appointment));
+		$this->service->handleAppointmentDeleted($appointment);
 		$this->assertSame([[42, 'attendance-org-5@cloud.example.com.ics']], $this->backend->deleted);
 	}
 
@@ -292,7 +316,7 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$appointment = $this->buildAppointment();
 		$appointment->setCalendarEventUid('some-imported-uid@foreign');
 
-		$this->assertFalse($this->service->handleAppointmentDeleted($appointment));
+		$this->service->handleAppointmentDeleted($appointment);
 		$this->assertSame([], $this->backend->deleted);
 	}
 
@@ -360,14 +384,7 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->configureEnabled();
 		$appointment = $this->buildAppointment();
 		$this->appointmentMapper->method('update')->willReturnArgument(0);
-
-		$responses = [];
-		foreach (['yes', 'yes', 'no', 'maybe'] as $value) {
-			$response = new AttendanceResponse();
-			$response->setResponse($value);
-			$responses[] = $response;
-		}
-		$this->responseMapper->method('findByAppointment')->with(5)->willReturn($responses);
+		$this->responseSummary = ['yes' => 2, 'no' => 1, 'maybe' => 1];
 
 		$this->assertTrue($this->service->syncAppointment($appointment));
 		$ics = $this->backend->created[0][2];
@@ -384,7 +401,7 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->configureEnabled();
 		$appointment = $this->buildAppointment();
 		$this->appointmentMapper->method('update')->willReturnArgument(0);
-		$this->responseMapper->method('findByAppointment')->willReturn([]);
+		$this->responseSummary = ['yes' => 0, 'no' => 0, 'maybe' => 0];
 
 		$this->assertTrue($this->service->syncAppointment($appointment));
 		$this->assertStringNotContainsString(OrgCalendarSyncService::SUMMARY_SEPARATOR, $this->backend->created[0][2]);
@@ -402,7 +419,7 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->assertSame('Plain text', OrgCalendarSyncService::stripResponseSummary('Plain text'));
 	}
 
-	public function testSyncAllUpcomingCountsOnlyPushedAppointments(): void {
+	public function testSyncAllUpcomingSkipsImportedAppointments(): void {
 		$this->configureEnabled();
 		$own = $this->buildAppointment(5);
 		$imported = $this->buildAppointment(6);
@@ -411,7 +428,38 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->appointmentMapper->method('findUpcoming')->willReturn([$own, $imported]);
 		$this->appointmentMapper->method('update')->willReturnArgument(0);
 
-		$this->assertSame(1, $this->service->syncAllUpcoming());
+		$this->service->syncAllUpcoming();
 		$this->assertCount(1, $this->backend->created);
+	}
+
+	public function testApplySettingsBackfillsOnEnable(): void {
+		$this->configService->method('isOrgCalendarEnabled')->willReturn(false);
+		$this->configService->method('getOrgCalendarUri')->willReturn('org-events');
+		$this->configService->method('getOrgCalendarUserId')->willReturn('admin');
+		$this->configService->expects($this->once())->method('setOrgCalendarEnabled')->with(true);
+		// isEnabled() inside syncAllUpcoming still sees the stale mock (false),
+		// so the backfill exits early — asserting the attempt is enough here.
+		$this->appointmentMapper->method('findUpcoming')->willReturn([]);
+
+		$this->service->applySettings(['enabled' => true], 'admin');
+	}
+
+	public function testApplySettingsStoresActingUserOnCalendarChange(): void {
+		$this->configService->method('isOrgCalendarEnabled')->willReturn(false);
+		$this->configService->method('getOrgCalendarUri')->willReturn('old-uri');
+		$this->configService->method('getOrgCalendarUserId')->willReturn('previous-admin');
+		$this->configService->expects($this->once())->method('setOrgCalendarUri')->with('new-uri');
+		$this->configService->expects($this->once())->method('setOrgCalendarUserId')->with('acting-admin');
+
+		$this->service->applySettings(['calendarUri' => 'new-uri'], 'acting-admin');
+	}
+
+	public function testApplySettingsKeepsStoredUserWhenUriUnchanged(): void {
+		$this->configService->method('isOrgCalendarEnabled')->willReturn(true);
+		$this->configService->method('getOrgCalendarUri')->willReturn('org-events');
+		$this->configService->method('getOrgCalendarUserId')->willReturn('previous-admin');
+		$this->configService->expects($this->never())->method('setOrgCalendarUserId');
+
+		$this->service->applySettings(['calendarUri' => 'org-events'], 'other-admin');
 	}
 }

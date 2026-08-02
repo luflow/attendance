@@ -307,7 +307,7 @@ class IcalService {
 		}
 
 		// Add link to respond
-		$descriptionParts[] = $l->t('View or change your response') . ":\n" . $this->urlGenerator->linkToRouteAbsolute('attendance.page.index') . '#/appointment/' . $appointment->getId();
+		$descriptionParts[] = $l->t('View or change your response') . ":\n" . $this->getAppointmentUrl($appointment->getId());
 
 		$description = implode("\n\n", $descriptionParts);
 
@@ -339,7 +339,7 @@ class IcalService {
 		}
 
 		// Build URL for direct access to appointment
-		$appointmentUrl = $this->urlGenerator->linkToRouteAbsolute('attendance.page.index') . '#/appointment/' . $appointment->getId();
+		$appointmentUrl = $this->getAppointmentUrl($appointment->getId());
 
 		$output = "BEGIN:VEVENT\r\n";
 		$output .= 'UID:attendance-appointment-' . $appointment->getId() . '@' . $domain . "\r\n";
@@ -374,6 +374,13 @@ class IcalService {
 		$output .= "END:VEVENT\r\n";
 
 		return $output;
+	}
+
+	/**
+	 * Absolute deep link to an appointment in the web app.
+	 */
+	public function getAppointmentUrl(int $appointmentId): string {
+		return $this->urlGenerator->linkToRouteAbsolute('attendance.page.index') . '#/appointment/' . $appointmentId;
 	}
 
 	/**

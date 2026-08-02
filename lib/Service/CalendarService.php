@@ -38,39 +38,10 @@ class CalendarService {
 	 * Get all calendars for a user.
 	 *
 	 * @param string $userId
-	 * @return array Array of calendars with uri, displayName, color
-	 */
-	public function getCalendarsForUser(string $userId): array {
-		if (!$this->isCalendarAvailable()) {
-			return [];
-		}
-
-		$principal = 'principals/users/' . $userId;
-		$calendars = $this->calendarManager->getCalendarsForPrincipal($principal);
-
-		$result = [];
-		foreach ($calendars as $calendar) {
-			if ($calendar->isDeleted()) {
-				continue;
-			}
-			$result[] = [
-				'uri' => $calendar->getUri(),
-				'displayName' => $calendar->getDisplayName(),
-				'color' => $calendar->getDisplayColor() ?? '#0082c9',
-			];
-		}
-
-		return $result;
-	}
-
-	/**
-	 * Get all calendars a user can write into.
-	 * Used by the admin settings to pick the organization calendar target.
-	 *
-	 * @param string $userId
+	 * @param bool $writableOnly Only calendars the user can write events into
 	 * @return list<array{uri: string, displayName: string, color: string}>
 	 */
-	public function getWritableCalendarsForUser(string $userId): array {
+	public function getCalendarsForUser(string $userId, bool $writableOnly = false): array {
 		if (!$this->isCalendarAvailable()) {
 			return [];
 		}
@@ -83,11 +54,7 @@ class CalendarService {
 			if ($calendar->isDeleted()) {
 				continue;
 			}
-			// Only real CalDAV calendars accept new objects
-			if (!$calendar instanceof \OCP\Calendar\ICreateFromString) {
-				continue;
-			}
-			if ($calendar instanceof \OCP\Calendar\ICalendarIsWritable && !$calendar->isWritable()) {
+			if ($writableOnly && !$this->isWritableCalendar($calendar)) {
 				continue;
 			}
 			$result[] = [
@@ -98,6 +65,37 @@ class CalendarService {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Whether events can be written into this calendar.
+	 * Single source of truth for the admin picker and the org calendar sync.
+	 */
+	public function isWritableCalendar(\OCP\Calendar\ICalendar $calendar): bool {
+		// Only real CalDAV calendars accept new objects
+		if (!$calendar instanceof \OCP\Calendar\ICreateFromString) {
+			return false;
+		}
+		return !($calendar instanceof \OCP\Calendar\ICalendarIsWritable) || $calendar->isWritable();
+	}
+
+	/**
+	 * Resolve a calendar of a user by URI, but only if events can be written
+	 * into it. Used by the org calendar sync to resolve its target.
+	 */
+	public function findWritableCalendar(string $userId, string $uri): ?\OCP\Calendar\ICalendar {
+		if (!$this->isCalendarAvailable()) {
+			return null;
+		}
+
+		$principal = 'principals/users/' . $userId;
+		foreach ($this->calendarManager->getCalendarsForPrincipal($principal, [$uri]) as $calendar) {
+			if ($calendar->getUri() === $uri && !$calendar->isDeleted() && $this->isWritableCalendar($calendar)) {
+				return $calendar;
+			}
+		}
+
+		return null;
 	}
 
 	/**

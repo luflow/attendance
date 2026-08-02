@@ -7,10 +7,8 @@ namespace OCA\Attendance\Service;
 use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponseMapper;
-use OCP\Calendar\ICalendarIsWritable;
-use OCP\Calendar\ICreateFromString;
-use OCP\Calendar\IManager as ICalendarManager;
 use OCP\IConfig;
+use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\L10N\IFactory as IL10NFactory;
 use Psr\Log\LoggerInterface;
@@ -24,9 +22,10 @@ use Psr\Log\LoggerInterface;
  * in the Calendar app) is covered by the existing CalendarObjectUpdateListener,
  * because pushed events are linked through the same calendarUri/calendarEventUid
  * columns the import flow uses. The listener writes through the mapper (not this
- * service), so no push/echo loop can form; our own writes fired back at the
- * listener are idempotent because the pushed DESCRIPTION is exactly the plain
- * appointment description.
+ * service), so no push/echo loop can form; the listener echo of our own writes
+ * is idempotent because the pushed DESCRIPTION is the plain appointment
+ * description plus the response summary block, which the listener strips again
+ * via stripResponseSummary() before writing back.
  *
  * Object CRUD uses OCA\DAV\CalDAV\CalDavBackend because OCP offers no public
  * update/delete API for calendar objects (nextcloud/server#20154):
@@ -51,8 +50,15 @@ class OrgCalendarSyncService {
 	 */
 	public const SUMMARY_SEPARATOR = '--- Attendance ---';
 
+	/** @var array{0: int, 1: string}|false|null Memoized target; false = resolution failed */
+	private array|false|null $resolvedTarget = null;
+	private ?object $calDavBackend = null;
+	private bool $backendResolved = false;
+	private ?string $uidDomain = null;
+	private ?IL10N $l10n = null;
+
 	public function __construct(
-		private ICalendarManager $calendarManager,
+		private CalendarService $calendarService,
 		private AppointmentMapper $appointmentMapper,
 		private AttendanceResponseMapper $responseMapper,
 		private ConfigService $configService,
@@ -74,6 +80,40 @@ class OrgCalendarSyncService {
 	}
 
 	/**
+	 * Apply an admin settings change: persist the toggles, remember which
+	 * account resolves and writes the calendar, and backfill upcoming
+	 * appointments when the feature was enabled or re-pointed. Owning the
+	 * transition here keeps controller and any future callers consistent.
+	 *
+	 * @param array{enabled?: bool, calendarUri?: string} $orgCalendar Settings payload
+	 * @param string $actingUserId The admin performing the change
+	 */
+	public function applySettings(array $orgCalendar, string $actingUserId): void {
+		$changed = false;
+
+		if (isset($orgCalendar['enabled'])) {
+			$changed = $this->configService->isOrgCalendarEnabled() !== (bool)$orgCalendar['enabled'];
+			$this->configService->setOrgCalendarEnabled((bool)$orgCalendar['enabled']);
+		}
+
+		if (isset($orgCalendar['calendarUri']) && $orgCalendar['calendarUri'] !== '') {
+			$oldUri = $this->configService->getOrgCalendarUri();
+			$this->configService->setOrgCalendarUri($orgCalendar['calendarUri']);
+			// Writes happen through the principal of the admin who selected
+			// the calendar; keep the stored account when the target is unchanged.
+			if ($oldUri !== $orgCalendar['calendarUri'] || $this->configService->getOrgCalendarUserId() === '') {
+				$this->configService->setOrgCalendarUserId($actingUserId);
+				$changed = true;
+			}
+		}
+
+		if ($changed) {
+			$this->resolvedTarget = null;
+			$this->syncAllUpcoming();
+		}
+	}
+
+	/**
 	 * Create or update the calendar event for an appointment.
 	 *
 	 * Appointments that are linked to a foreign calendar event (imported ones)
@@ -88,23 +128,20 @@ class OrgCalendarSyncService {
 				return false;
 			}
 
-			$uid = $this->buildEventUid($appointment->getId());
-			$existingUid = $appointment->getCalendarEventUid();
-			if ($existingUid !== null && $existingUid !== '' && $existingUid !== $uid) {
+			$existingUid = $appointment->getCalendarEventUid() ?? '';
+			if ($existingUid !== '' && !$this->isOwnEventUid($existingUid)) {
 				// Imported from a calendar — that event is the source of truth
 				return false;
 			}
+			// Reuse the stored UID so events survive an instance domain change
+			$uid = $existingUid !== '' ? $existingUid : $this->buildEventUid($appointment->getId());
 
 			$resolved = $this->resolveTargetCalendar();
-			if ($resolved === null) {
+			$backend = $this->getCalDavBackend();
+			if ($resolved === null || $backend === null) {
 				return false;
 			}
 			[$calendarId, $ownerCalendarUri] = $resolved;
-
-			$backend = $this->getCalDavBackend();
-			if ($backend === null) {
-				return false;
-			}
 
 			$objectUri = $uid . '.ics';
 
@@ -145,95 +182,94 @@ class OrgCalendarSyncService {
 	/**
 	 * Remove the calendar event of a deleted appointment (moves it to the
 	 * calendar trash bin). Only events this service created are touched.
-	 *
-	 * @return bool True if an event was removed
 	 */
-	public function handleAppointmentDeleted(Appointment $appointment): bool {
+	public function handleAppointmentDeleted(Appointment $appointment): void {
 		try {
 			if (!$this->isEnabled()) {
-				return false;
+				return;
 			}
 
-			$uid = $this->buildEventUid($appointment->getId());
-			if ($appointment->getCalendarEventUid() !== $uid) {
-				return false;
+			$uid = $appointment->getCalendarEventUid() ?? '';
+			if (!$this->isOwnEventUid($uid)) {
+				return;
 			}
 
 			$resolved = $this->resolveTargetCalendar();
-			if ($resolved === null) {
-				return false;
+			$backend = $this->getCalDavBackend();
+			if ($resolved === null || $backend === null) {
+				return;
 			}
 			[$calendarId, ] = $resolved;
 
-			$backend = $this->getCalDavBackend();
-			if ($backend === null) {
-				return false;
-			}
-
 			$objectUri = $uid . '.ics';
-			if ($backend->getCalendarObject($calendarId, $objectUri) === null) {
-				return false;
+			if ($backend->getCalendarObject($calendarId, $objectUri) !== null) {
+				$backend->deleteCalendarObject($calendarId, $objectUri);
 			}
-
-			$backend->deleteCalendarObject($calendarId, $objectUri);
-			return true;
 		} catch (\Throwable $e) {
 			$this->logger->warning('Attendance: failed to remove organization calendar event for appointment {id}: {message}', [
 				'id' => $appointment->getId(),
 				'message' => $e->getMessage(),
 				'exception' => $e,
 			]);
-			return false;
 		}
 	}
 
 	/**
 	 * Push all upcoming active appointments into the organization calendar.
 	 * Used as backfill when the feature is enabled or the target changes.
-	 *
-	 * @return int Number of appointments written
 	 */
-	public function syncAllUpcoming(): int {
-		$count = 0;
+	public function syncAllUpcoming(): void {
 		try {
+			if (!$this->isEnabled()) {
+				return;
+			}
+			$count = 0;
 			foreach ($this->appointmentMapper->findUpcoming() as $appointment) {
 				if ($this->syncAppointment($appointment)) {
 					$count++;
 				}
 			}
+			$this->logger->info('Attendance: backfilled {count} appointments into the organization calendar', [
+				'count' => $count,
+			]);
 		} catch (\Throwable $e) {
 			$this->logger->warning('Attendance: organization calendar backfill failed: {message}', [
 				'message' => $e->getMessage(),
 				'exception' => $e,
 			]);
 		}
-		return $count;
 	}
 
 	/**
-	 * Deterministic VEVENT UID for an appointment. Also used to recognize
-	 * "our" events: an appointment whose calendarEventUid matches this value
-	 * was pushed by this service, anything else is an import.
+	 * Deterministic VEVENT UID for an appointment.
 	 */
 	public function buildEventUid(int $appointmentId): string {
-		$domain = $this->urlGenerator->getAbsoluteURL('/');
-		$domain = parse_url($domain, PHP_URL_HOST) ?? 'nextcloud';
-		return self::UID_PREFIX . $appointmentId . '@' . $domain;
+		if ($this->uidDomain === null) {
+			$domain = $this->urlGenerator->getAbsoluteURL('/');
+			$this->uidDomain = parse_url($domain, PHP_URL_HOST) ?? 'nextcloud';
+		}
+		return self::UID_PREFIX . $appointmentId . '@' . $this->uidDomain;
+	}
+
+	/**
+	 * Whether a stored calendarEventUid was created by this service. Matched
+	 * by prefix, not full equality, so ownership survives an instance domain
+	 * change; anything else is an import.
+	 */
+	private function isOwnEventUid(string $uid): bool {
+		return str_starts_with($uid, self::UID_PREFIX);
 	}
 
 	/**
 	 * Build the full VCALENDAR document for a new appointment event.
 	 *
-	 * DESCRIPTION is exactly the plain appointment description — no extras —
-	 * so that the CalendarObjectUpdateListener echoing our own write back into
-	 * the appointment is a no-op. The deep link goes into URL instead.
+	 * DESCRIPTION carries only content derived from the appointment (plus the
+	 * summary block the listener strips again), so the listener echo of our
+	 * own writes is a no-op. The deep link goes into URL instead.
 	 */
 	public function buildIcs(Appointment $appointment, string $uid): string {
 		$utc = new \DateTimeZone('UTC');
 		$created = new \DateTime($appointment->getCreatedAt() ?: 'now', $utc);
-
-		$appointmentUrl = $this->urlGenerator->linkToRouteAbsolute('attendance.page.index')
-			. '#/appointment/' . $appointment->getId();
 
 		$lines = [
 			'BEGIN:VCALENDAR',
@@ -243,7 +279,7 @@ class OrgCalendarSyncService {
 			'BEGIN:VEVENT',
 			'UID:' . $uid,
 			'CREATED:' . $created->format('Ymd\THis\Z'),
-			'URL:' . $appointmentUrl,
+			'URL:' . $this->icalService->getAppointmentUrl($appointment->getId()),
 			'TRANSP:OPAQUE',
 		];
 		foreach ($this->managedProperties($appointment) as $line) {
@@ -264,8 +300,10 @@ class OrgCalendarSyncService {
 	 * attendees, categories and custom properties added in the Calendar app
 	 * survive app-side edits (issue #70, phase 2).
 	 *
-	 * Properties inside nested components (e.g. a VALARM's DESCRIPTION) are
-	 * never touched. Falls back to a full rebuild if no VEVENT is found.
+	 * Hand-rolled on purpose: Sabre VObject only exists at Nextcloud runtime,
+	 * and this transform has to stay unit-testable. Properties inside nested
+	 * components (e.g. a VALARM's DESCRIPTION) are never touched. Falls back
+	 * to a full rebuild if no VEVENT is found.
 	 */
 	public function patchIcs(string $existingIcs, Appointment $appointment): string {
 		// Normalize newlines and unfold continuation lines (RFC 5545 3.1)
@@ -383,24 +421,20 @@ class OrgCalendarSyncService {
 	 * @return string|null Null when nobody responded yet
 	 */
 	private function buildResponseSummary(Appointment $appointment): ?string {
-		$counts = ['yes' => 0, 'no' => 0, 'maybe' => 0];
-		foreach ($this->responseMapper->findByAppointment($appointment->getId()) as $response) {
-			$value = $response->getResponse();
-			if (isset($counts[$value])) {
-				$counts[$value]++;
-			}
-		}
-		if (array_sum($counts) === 0) {
+		$counts = $this->responseMapper->getResponseSummary($appointment->getId());
+		if (($counts['yes'] ?? 0) + ($counts['no'] ?? 0) + ($counts['maybe'] ?? 0) === 0) {
 			return null;
 		}
 
-		$lang = $this->config->getSystemValueString('default_language', 'en');
-		$l = $this->l10nFactory->get('attendance', $lang);
+		if ($this->l10n === null) {
+			$lang = $this->config->getSystemValueString('default_language', 'en');
+			$this->l10n = $this->l10nFactory->get('attendance', $lang);
+		}
 
 		return implode(', ', [
-			$l->n('%n attending', '%n attending', $counts['yes']),
-			$l->n('%n declined', '%n declined', $counts['no']),
-			$l->n('%n maybe', '%n maybe', $counts['maybe']),
+			$this->l10n->n('%n attending', '%n attending', $counts['yes'] ?? 0),
+			$this->l10n->n('%n declined', '%n declined', $counts['no'] ?? 0),
+			$this->l10n->n('%n maybe', '%n maybe', $counts['maybe'] ?? 0),
 		]);
 	}
 
@@ -419,6 +453,47 @@ class OrgCalendarSyncService {
 	}
 
 	/**
+	 * Resolve the configured calendar to its numeric CalDAV id plus the
+	 * owner-side calendar URI (a calendar shared with the configured admin has
+	 * a different URI in their principal than in the owner's). Memoized —
+	 * the target cannot change within a request, and the series/backfill
+	 * loops call this once per appointment.
+	 *
+	 * @return array{0: int, 1: string}|null
+	 */
+	private function resolveTargetCalendar(): ?array {
+		if ($this->resolvedTarget !== null) {
+			return $this->resolvedTarget ?: null;
+		}
+
+		$this->resolvedTarget = false;
+		$userId = $this->configService->getOrgCalendarUserId();
+		$uri = $this->configService->getOrgCalendarUri();
+
+		$calendar = $this->calendarService->findWritableCalendar($userId, $uri);
+		if ($calendar === null) {
+			$this->logger->warning('Attendance: configured organization calendar {uri} not found or not writable for user {userId}', [
+				'uri' => $uri,
+				'userId' => $userId,
+			]);
+			return null;
+		}
+
+		$calendarId = (int)$calendar->getKey();
+		$backend = $this->getCalDavBackend();
+		if ($backend === null) {
+			return null;
+		}
+		$row = $backend->getCalendarById($calendarId);
+		if ($row === null) {
+			return null;
+		}
+
+		$this->resolvedTarget = [$calendarId, (string)($row['uri'] ?? $uri)];
+		return $this->resolvedTarget;
+	}
+
+	/**
 	 * Get the raw ICS string out of a CalDavBackend object row.
 	 */
 	private function extractCalendarData(array $object): ?string {
@@ -430,62 +505,23 @@ class OrgCalendarSyncService {
 	}
 
 	/**
-	 * Resolve the configured calendar to its numeric CalDAV id plus the
-	 * owner-side calendar URI (a calendar shared with the configured admin has
-	 * a different URI in their principal than in the owner's).
-	 *
-	 * @return array{0: int, 1: string}|null
-	 */
-	private function resolveTargetCalendar(): ?array {
-		$userId = $this->configService->getOrgCalendarUserId();
-		$uri = $this->configService->getOrgCalendarUri();
-
-		$principal = 'principals/users/' . $userId;
-		$calendars = $this->calendarManager->getCalendarsForPrincipal($principal, [$uri]);
-
-		foreach ($calendars as $calendar) {
-			if ($calendar->getUri() !== $uri || $calendar->isDeleted()) {
-				continue;
-			}
-			if (!$calendar instanceof ICreateFromString) {
-				continue;
-			}
-			if ($calendar instanceof ICalendarIsWritable && !$calendar->isWritable()) {
-				continue;
-			}
-
-			$calendarId = (int)$calendar->getKey();
-			$backend = $this->getCalDavBackend();
-			if ($backend === null) {
-				return null;
-			}
-			$row = $backend->getCalendarById($calendarId);
-			if ($row === null) {
-				return null;
-			}
-			return [$calendarId, (string)($row['uri'] ?? $uri)];
-		}
-
-		$this->logger->warning('Attendance: configured organization calendar {uri} not found or not writable for user {userId}', [
-			'uri' => $uri,
-			'userId' => $userId,
-		]);
-		return null;
-	}
-
-	/**
-	 * Lazily resolve the CalDAV backend. Protected so unit tests can stub it;
-	 * resolved by class name string so the app still loads if the dav app's
-	 * internals move.
+	 * Lazily resolve the CalDAV backend, once per request. Protected so unit
+	 * tests can stub it; resolved by class name string so the app still loads
+	 * if the dav app's internals move.
 	 */
 	protected function getCalDavBackend(): ?object {
+		if ($this->backendResolved) {
+			return $this->calDavBackend;
+		}
+		$this->backendResolved = true;
 		try {
-			return \OCP\Server::get('OCA\DAV\CalDAV\CalDavBackend');
+			$this->calDavBackend = \OCP\Server::get('OCA\DAV\CalDAV\CalDavBackend');
 		} catch (\Throwable $e) {
 			$this->logger->warning('Attendance: CalDAV backend unavailable, organization calendar sync skipped: {message}', [
 				'message' => $e->getMessage(),
 			]);
-			return null;
+			$this->calDavBackend = null;
 		}
+		return $this->calDavBackend;
 	}
 }

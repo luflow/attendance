@@ -394,30 +394,28 @@
 							{{ t('attendance', 'Create calendar events for appointments') }}
 						</NcCheckboxRadioSwitch>
 
-						<template v-if="orgCalendarEnabled">
-							<div class="subsection">
-								<h4>{{ t('attendance', 'Target calendar') }}</h4>
-								<NcNoteCard v-if="!orgCalendarOptions.length" type="warning">
-									<p>{{ t('attendance', 'No writable calendar found. Create one in the Calendar app first.') }}</p>
-								</NcNoteCard>
-								<NcSelect v-else
-									v-model="selectedOrgCalendar"
-									:options="orgCalendarOptions"
-									label="displayName"
-									:placeholder="t('attendance', 'Select a calendar …')"
-									:disabled="loading"
-									data-test="select-org-calendar" />
-								<p class="hint-text">
-									{{ t('attendance', 'Share the selected calendar with your groups in the Calendar app so everyone can see the events.') }}
-								</p>
-								<p class="hint-text">
-									{{ t('attendance', 'Events are created for all appointments, regardless of their visibility restrictions. Changing the target calendar does not move events that were already created.') }}
-								</p>
-								<p v-if="orgCalendarUserId" class="hint-text">
-									{{ t('attendance', 'Events are written using the account of {user}.', { user: orgCalendarUserId }) }}
-								</p>
-							</div>
-						</template>
+						<div v-if="orgCalendarEnabled" class="subsection">
+							<h4>{{ t('attendance', 'Target calendar') }}</h4>
+							<NcNoteCard v-if="!orgCalendarOptions.length" type="warning">
+								<p>{{ t('attendance', 'No writable calendar found. Create one in the Calendar app first.') }}</p>
+							</NcNoteCard>
+							<NcSelect v-else
+								v-model="selectedOrgCalendar"
+								:options="orgCalendarOptions"
+								label="displayName"
+								:placeholder="t('attendance', 'Select a calendar …')"
+								:disabled="loading"
+								data-test="select-org-calendar" />
+							<p class="hint-text">
+								{{ t('attendance', 'Share the selected calendar with your groups in the Calendar app so everyone can see the events.') }}
+							</p>
+							<p class="hint-text">
+								{{ t('attendance', 'Events are created for all appointments, regardless of their visibility restrictions. Changing the target calendar does not move events that were already created.') }}
+							</p>
+							<p v-if="orgCalendarUserId" class="hint-text">
+								{{ t('attendance', 'Events are written using the account of {user}.', { user: orgCalendarUserId }) }}
+							</p>
+						</div>
 					</template>
 				</NcSettingsSection>
 			</div>
@@ -899,7 +897,7 @@ async function loadSettings() {
 			const storedUri = config.orgCalendar.calendarUri
 			if (storedUri) {
 				selectedOrgCalendar.value = writableCalendars.value.find((c) => c.uri === storedUri)
-					|| { uri: storedUri, displayName: storedUri, color: '#0082c9' }
+					|| { uri: storedUri, displayName: storedUri }
 			}
 		}
 

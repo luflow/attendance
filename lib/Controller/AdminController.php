@@ -172,7 +172,7 @@ class AdminController extends Controller {
 					'pushDeviceCount' => $pushDeviceCount,
 				],
 				'groups' => $groupOptions,
-				'writableCalendars' => $this->calendarService->getWritableCalendarsForUser($user->getUID()),
+				'writableCalendars' => $this->calendarService->getCalendarsForUser($user->getUID(), true),
 			]);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 500);
@@ -254,27 +254,8 @@ class AdminController extends Controller {
 				$this->configService->setCalendarSyncEnabled((bool)$calendarSync['enabled']);
 			}
 
-			// Save organization calendar settings. When the feature is (re-)pointed
-			// at a calendar, backfill all upcoming appointments into it.
-			$orgCalendarChanged = false;
-			if (isset($orgCalendar['enabled'])) {
-				$wasEnabled = $this->configService->isOrgCalendarEnabled();
-				$this->configService->setOrgCalendarEnabled((bool)$orgCalendar['enabled']);
-				$orgCalendarChanged = $orgCalendarChanged || ($wasEnabled !== (bool)$orgCalendar['enabled']);
-			}
-			if (isset($orgCalendar['calendarUri']) && is_string($orgCalendar['calendarUri']) && $orgCalendar['calendarUri'] !== '') {
-				$oldUri = $this->configService->getOrgCalendarUri();
-				$this->configService->setOrgCalendarUri($orgCalendar['calendarUri']);
-				// Writes happen through the principal of the admin who selected
-				// the calendar; keep the stored account when the target is unchanged.
-				if ($oldUri !== $orgCalendar['calendarUri'] || $this->configService->getOrgCalendarUserId() === '') {
-					$this->configService->setOrgCalendarUserId($user->getUID());
-					$orgCalendarChanged = true;
-				}
-			}
-			if ($orgCalendarChanged && $this->orgCalendarSyncService->isEnabled()) {
-				$this->orgCalendarSyncService->syncAllUpcoming();
-			}
+			// Save organization calendar settings (backfills on enable/re-point)
+			$this->orgCalendarSyncService->applySettings($orgCalendar, $user->getUID());
 
 			// Save audit log settings
 			if (isset($audit['enabled'])) {
