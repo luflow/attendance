@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+## 1.43.0 – 2026-08-03
+
+### Added
+
+- **Organization calendar**: pick a writable calendar in the admin settings and every appointment is pushed there as an event — created, updated and removed automatically, cancellations included. Share the calendar with your groups and everyone sees all appointments in the Calendar app. The event description carries the response summary, and a backfill button pushes all upcoming appointments on demand
+- **Answers on behalf of others**: managers can set or clear a person's answer from the response summary (pencil icon). The audit history records who answered for whom. Guarded by the new permission "Can set responses for other users" — no group has it until an admin assigns it
+- **Scheduled filter**: the appointment list can show only the appointments you are scheduled in for
+
+### Changed
+
+- Requires Nextcloud 32 or later
+
+### Fixed
+
+- Calendar subscription no longer shows "Not scheduled" while an inquiry is still open or when scheduling is not used — the verdict appears only once it is final
+- Close and reopen inquiry labels are translatable again
+
+### Maintenance
+
+- Updated translations from Transifex
+
 ## 1.42.0 – 2026-07-28
 
 ### Added
