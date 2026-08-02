@@ -10,6 +10,26 @@
 				class="pending-user"
 				:class="{ 'pending-user--pending': remindingUsers.has(user.userId) }">
 				{{ user.displayName }}
+				<SetAnswerPopover
+					v-if="canSetAnswer && appointmentId"
+					:userId="user.userId"
+					:displayName="user.displayName"
+					:pending="settingAnswer.has(user.userId)"
+					@setAnswer="(userId, value) => emit('setAnswer', userId, value)">
+					<template #default="{ pending }">
+						<NcButton
+							variant="secondary"
+							size="small"
+							:disabled="pending"
+							:aria-label="t('attendance', 'Set answer')"
+							:title="t('attendance', 'Set answer')"
+							:data-test="`set-answer-${user.userId}`">
+							<template #icon>
+								<PencilOutlineIcon :size="16" />
+							</template>
+						</NcButton>
+					</template>
+				</SetAnswerPopover>
 				<RemindUserPopover
 					v-if="canManageAppointments && appointmentId"
 					:userId="user.userId"
@@ -39,7 +59,9 @@
 import { NcButton } from '@nextcloud/vue'
 import { computed } from 'vue'
 import BellRingOutlineIcon from 'vue-material-design-icons/BellRingOutline.vue'
+import PencilOutlineIcon from 'vue-material-design-icons/PencilOutline.vue'
 import RemindUserPopover from './RemindUserPopover.vue'
+import SetAnswerPopover from './SetAnswerPopover.vue'
 
 const props = defineProps({
 	users: {
@@ -54,6 +76,10 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
+	canSetAnswer: {
+		type: Boolean,
+		default: false,
+	},
 	appointmentId: {
 		type: Number,
 		default: null,
@@ -62,9 +88,13 @@ const props = defineProps({
 		type: Set,
 		default: () => new Set(),
 	},
+	settingAnswer: {
+		type: Set,
+		default: () => new Set(),
+	},
 })
 
-const emit = defineEmits(['remind'])
+const emit = defineEmits(['remind', 'setAnswer'])
 
 const sortedUsers = computed(() => [...props.users]
 	.sort((a, b) => a.displayName.localeCompare(b.displayName)))

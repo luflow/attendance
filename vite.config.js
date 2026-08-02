@@ -10,28 +10,55 @@ const infoXml = readFileSync(resolve("appinfo", "info.xml"), "utf8");
 const appId = infoXml.match(/<id>([^<]+)<\/id>/i)[1];
 const appVersion = infoXml.match(/<version>([^<]+)<\/version>/i)[1];
 
-export default createAppConfig(
-  {
-    main: resolve(join("src", "main.js")),
-    dashboard: resolve(join("src", "dashboard.js")),
-    settings: resolve(join("src", "settings.js")),
-    personal: resolve(join("src", "personal.js")),
-    quickresponse: resolve(join("src", "quickresponse.js")),
-    selfcheckin: resolve(join("src", "selfcheckin.js")),
-  },
-  {
-    createEmptyCSSEntryPoints: true,
-    extractLicenseInformation: true,
-    thirdPartyLicense: false,
-    config: {
-      define: {
-        appName: JSON.stringify(appId),
-        appVersion: JSON.stringify(appVersion),
-      },
-      build: {
-        // Suppress chunk size warning - Nextcloud apps typically have large chunks
-        chunkSizeWarningLimit: 1500,
-      },
+export default (env) => {
+  const isDev = env.mode === "development";
+
+  const config = createAppConfig(
+    {
+      main: resolve(join("src", "main.js")),
+      dashboard: resolve(join("src", "dashboard.js")),
+      settings: resolve(join("src", "settings.js")),
+      personal: resolve(join("src", "personal.js")),
+      quickresponse: resolve(join("src", "quickresponse.js")),
+      selfcheckin: resolve(join("src", "selfcheckin.js")),
     },
-  }
-);
+    {
+      createEmptyCSSEntryPoints: true,
+      extractLicenseInformation: true,
+      thirdPartyLicense: false,
+      // Skip the extra rollup-plugin-esbuild-minify pass: vite's own esbuild
+      // minifier (re-enabled below) produces the same output, while the
+      // plugin loudly warns about vendored code it cannot change
+      // (duplicate-object-key in fast-xml-parser via webdav) on every build.
+      minify: false,
+      config: {
+        define: {
+          appName: JSON.stringify(appId),
+          appVersion: JSON.stringify(appVersion),
+        },
+        build: {
+          // `minify: false` above also disabled vite's internal minifier —
+          // bring it back for production builds.
+          minify: isDev ? false : "esbuild",
+          // Suppress chunk size warning - Nextcloud apps typically have large chunks
+          chunkSizeWarningLimit: 1500,
+          rollupOptions: {
+            onwarn(warning, warn) {
+              // Dependencies ship /*#__PURE__*/ annotations in positions
+              // Rollup cannot interpret (@vueuse/core) — not actionable here.
+              if (
+                warning.code === "INVALID_ANNOTATION" &&
+                warning.id?.includes("node_modules")
+              ) {
+                return;
+              }
+              warn(warning);
+            },
+          },
+        },
+      },
+    }
+  );
+
+  return typeof config === "function" ? config(env) : config;
+};

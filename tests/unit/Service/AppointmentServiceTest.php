@@ -561,6 +561,210 @@ class AppointmentServiceTest extends TestCase {
 		$this->service->submitResponse($appointmentId, $userId, null);
 	}
 
+	public function testSubmitResponseForUserCreatesNewResponseWithAdminSource(): void {
+		$appointmentId = 1;
+		$targetUserId = 'phoneuser';
+		$actorUserId = 'manager';
+
+		$appointment = new Appointment();
+		$appointment->setId($appointmentId);
+
+		// The controller already loaded the appointment, so the service must
+		// not fetch it again.
+		$this->appointmentMapper->expects($this->never())
+			->method('find');
+
+		$this->userManager->method('get')->willReturn($this->createMock(\OCP\IUser::class));
+
+		$this->visibilityService->expects($this->once())
+			->method('canUserSeeAppointment')
+			->with($appointment, $targetUserId)
+			->willReturn(true);
+
+		$this->responseMapper->expects($this->once())
+			->method('findByAppointmentAndUser')
+			->with($appointmentId, $targetUserId)
+			->willThrowException(new DoesNotExistException(''));
+
+		$this->responseMapper->expects($this->once())
+			->method('insert')
+			->willReturnCallback(function (AttendanceResponse $r) use ($targetUserId) {
+				$this->assertSame($targetUserId, $r->getUserId());
+				$this->assertSame('yes', $r->getResponse());
+				$this->assertSame('', $r->getComment());
+				$this->assertSame('admin', $r->getResponseSource());
+				return $r;
+			});
+
+		$this->auditEventService->expects($this->once())
+			->method('recordResponseChange')
+			->with(
+				$appointmentId,
+				$targetUserId,
+				null,
+				'',
+				'yes',
+				'',
+				Verb::SOURCE_ADMIN_RESPONSE,
+				$actorUserId,
+			);
+
+		$this->notificationService->expects($this->once())
+			->method('markAppointmentNotificationsProcessed')
+			->with($appointmentId, $targetUserId);
+
+		$result = $this->service->submitResponseForUser($appointment, $targetUserId, 'yes', $actorUserId);
+		$this->assertInstanceOf(AttendanceResponse::class, $result);
+	}
+
+	public function testSubmitResponseForUserPreservesExistingComment(): void {
+		$appointmentId = 1;
+		$targetUserId = 'phoneuser';
+		$actorUserId = 'manager';
+
+		$appointment = new Appointment();
+		$appointment->setId($appointmentId);
+
+		$this->userManager->method('get')->willReturn($this->createMock(\OCP\IUser::class));
+		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
+
+		$existingResponse = new AttendanceResponse();
+		$existingResponse->setId(1);
+		$existingResponse->setResponse('maybe');
+		$existingResponse->setComment('depends on my shift');
+
+		$this->responseMapper->expects($this->once())
+			->method('findByAppointmentAndUser')
+			->with($appointmentId, $targetUserId)
+			->willReturn($existingResponse);
+
+		$this->responseMapper->expects($this->once())
+			->method('update')
+			->willReturnCallback(function (AttendanceResponse $r) {
+				$this->assertSame('yes', $r->getResponse());
+				// The person's own comment must survive a manager override.
+				$this->assertSame('depends on my shift', $r->getComment());
+				$this->assertSame('admin', $r->getResponseSource());
+				return $r;
+			});
+
+		$this->auditEventService->expects($this->once())
+			->method('recordResponseChange')
+			->with(
+				$appointmentId,
+				$targetUserId,
+				'maybe',
+				'depends on my shift',
+				'yes',
+				'depends on my shift',
+				Verb::SOURCE_ADMIN_RESPONSE,
+				$actorUserId,
+			);
+
+		$result = $this->service->submitResponseForUser($appointment, $targetUserId, 'yes', $actorUserId);
+		$this->assertInstanceOf(AttendanceResponse::class, $result);
+	}
+
+	public function testSubmitResponseForUserWithNullClearsResponseAndComment(): void {
+		$appointmentId = 1;
+		$targetUserId = 'phoneuser';
+		$actorUserId = 'manager';
+
+		$appointment = new Appointment();
+		$appointment->setId($appointmentId);
+
+		$this->userManager->method('get')->willReturn($this->createMock(\OCP\IUser::class));
+		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
+
+		$existingResponse = new AttendanceResponse();
+		$existingResponse->setId(1);
+		$existingResponse->setResponse('yes');
+		$existingResponse->setComment('see you there');
+
+		$this->responseMapper->expects($this->once())
+			->method('findByAppointmentAndUser')
+			->willReturn($existingResponse);
+
+		$this->responseMapper->expects($this->once())
+			->method('update')
+			->willReturnCallback(function (AttendanceResponse $r) {
+				$this->assertNull($r->getResponse());
+				$this->assertSame('', $r->getComment());
+				return $r;
+			});
+
+		$this->auditEventService->expects($this->once())
+			->method('recordResponseChange')
+			->with(
+				$appointmentId,
+				$targetUserId,
+				'yes',
+				'see you there',
+				null,
+				'',
+				Verb::SOURCE_ADMIN_RESPONSE,
+				$actorUserId,
+			);
+
+		$result = $this->service->submitResponseForUser($appointment, $targetUserId, null, $actorUserId);
+		$this->assertInstanceOf(AttendanceResponse::class, $result);
+	}
+
+	public function testSubmitResponseForUserRejectsUnknownUser(): void {
+		$appointment = new Appointment();
+		$appointment->setId(1);
+
+		// userManager->get returns null for unknown users; the guard must
+		// fire before the permission-based visibility check, which treats
+		// unknown users as managers when permissions are unconfigured.
+		$this->visibilityService->expects($this->never())->method('canUserSeeAppointment');
+		$this->responseMapper->expects($this->never())->method('insert');
+		$this->responseMapper->expects($this->never())->method('update');
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('User not found');
+		$this->service->submitResponseForUser($appointment, 'ghost', 'yes', 'manager');
+	}
+
+	public function testSubmitResponseForUserRejectsUserOutsideAudience(): void {
+		$appointment = new Appointment();
+		$appointment->setId(1);
+
+		$this->userManager->method('get')->willReturn($this->createMock(\OCP\IUser::class));
+		$this->visibilityService->expects($this->once())
+			->method('canUserSeeAppointment')
+			->with($appointment, 'stranger')
+			->willReturn(false);
+
+		$this->responseMapper->expects($this->never())->method('insert');
+		$this->responseMapper->expects($this->never())->method('update');
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->service->submitResponseForUser($appointment, 'stranger', 'yes', 'manager');
+	}
+
+	public function testSubmitResponseForUserThrowsForInvalidResponse(): void {
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Invalid response. Must be yes, no, maybe, or null.');
+
+		$this->service->submitResponseForUser(new Appointment(), 'user', 'invalid', 'manager');
+	}
+
+	public function testSubmitResponseForUserRejectsClosedAppointment(): void {
+		$appointment = new Appointment();
+		$appointment->setId(1);
+		$appointment->setClosedAt('2026-01-01 12:00:00');
+
+		$this->userManager->method('get')->willReturn($this->createMock(\OCP\IUser::class));
+		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
+
+		$this->responseMapper->expects($this->never())->method('update');
+		$this->responseMapper->expects($this->never())->method('insert');
+
+		$this->expectException(\RuntimeException::class);
+		$this->service->submitResponseForUser($appointment, 'phoneuser', 'yes', 'manager');
+	}
+
 	public function testGetUserResponseReturnsNullWhenNotFound(): void {
 		$appointmentId = 1;
 		$userId = 'testuser';

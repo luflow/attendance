@@ -609,7 +609,8 @@
                     "guestInvitation",
                     "auditLog",
                     "selfCheckin",
-                    "organizers"
+                    "organizers",
+                    "respondOnBehalf"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -655,6 +656,9 @@
                         "type": "boolean"
                     },
                     "organizers": {
+                        "type": "boolean"
+                    },
+                    "respondOnBehalf": {
                         "type": "boolean"
                     }
                 }
@@ -1300,7 +1304,8 @@
                     "canCheckin",
                     "canSeeResponseOverview",
                     "canSeeComments",
-                    "canSelfCheckin"
+                    "canSelfCheckin",
+                    "canRespondForOthers"
                 ],
                 "properties": {
                     "canManageAppointments": {
@@ -1319,6 +1324,9 @@
                         "type": "boolean"
                     },
                     "canSelfCheckin": {
+                        "type": "boolean"
+                    },
+                    "canRespondForOthers": {
                         "type": "boolean"
                     }
                 }
@@ -2512,6 +2520,161 @@
                                             }
                                         }
                                     ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/attendance/api/appointments/{appointmentId}/respond/{targetUserId}": {
+            "post": {
+                "operationId": "appointment-respond-for-user",
+                "summary": "Set or clear a response on behalf of another user (requires the respond-for-others permission)",
+                "tags": [
+                    "appointment"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "response": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Response value: yes, no, maybe — or null to clear the response so the person counts as \"not yet responded\" again"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "appointmentId",
+                        "in": "path",
+                        "description": "Appointment ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    },
+                    {
+                        "name": "targetUserId",
+                        "in": "path",
+                        "description": "User ID whose response is set",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ResponseData"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
                                 }
                             }
                         }

@@ -203,9 +203,14 @@ class Notifier implements INotifier {
 	private function prepareResponseChangeNotification(INotification $notification, \OCP\IL10N $l): INotification {
 		$params = $notification->getSubjectParameters();
 		$actor = (string)($params['actor'] ?? '');
+		$subject = (string)($params['subject'] ?? '');
 		$appointmentName = (string)($params['appointmentName'] ?? '');
 		$from = (string)($params['from'] ?? '');
 		$to = (string)($params['to'] ?? '');
+
+		// Same collapse rule as the audit renderers: a subject only shows up
+		// in the wording when someone answered on behalf of another person.
+		$onBehalfOf = ($subject !== '' && $subject !== $actor) ? $subject : '';
 
 		$actorLabel = $actor !== '' ? $actor : $l->t('Someone');
 		$fromLabel = $this->translateResponseValue($from, $l);
@@ -213,26 +218,47 @@ class Notifier implements INotifier {
 
 		switch ($notification->getSubject()) {
 			case 'response_changed':
-				$subject = $l->t('%1$s changed their response from %2$s to %3$s on "%4$s"', [
-					$actorLabel,
-					$fromLabel,
-					$toLabel,
-					$appointmentName,
-				]);
+				$subject = $onBehalfOf !== ''
+					? $l->t('%1$s changed the response of %2$s from %3$s to %4$s on "%5$s"', [
+						$actorLabel,
+						$onBehalfOf,
+						$fromLabel,
+						$toLabel,
+						$appointmentName,
+					])
+					: $l->t('%1$s changed their response from %2$s to %3$s on "%4$s"', [
+						$actorLabel,
+						$fromLabel,
+						$toLabel,
+						$appointmentName,
+					]);
 				break;
 			case 'response_rescinded':
-				$subject = $l->t('%1$s took back their response on "%2$s"', [
-					$actorLabel,
-					$appointmentName,
-				]);
+				$subject = $onBehalfOf !== ''
+					? $l->t('%1$s removed the response of %2$s on "%3$s"', [
+						$actorLabel,
+						$onBehalfOf,
+						$appointmentName,
+					])
+					: $l->t('%1$s took back their response on "%2$s"', [
+						$actorLabel,
+						$appointmentName,
+					]);
 				break;
 			case 'response_submitted':
 			default:
-				$subject = $l->t('%1$s answered %2$s on "%3$s"', [
-					$actorLabel,
-					$toLabel,
-					$appointmentName,
-				]);
+				$subject = $onBehalfOf !== ''
+					? $l->t('%1$s answered %2$s for %3$s on "%4$s"', [
+						$actorLabel,
+						$toLabel,
+						$onBehalfOf,
+						$appointmentName,
+					])
+					: $l->t('%1$s answered %2$s on "%3$s"', [
+						$actorLabel,
+						$toLabel,
+						$appointmentName,
+					]);
 				break;
 		}
 

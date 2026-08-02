@@ -18,6 +18,9 @@ export const SOURCE_LABELS = {
 	// TRANSLATORS: Noun — audit-log source label: the response was recorded
 	// via the check-in screen.
 	admin_checkin: () => t('attendance', 'Check-in'),
+	// TRANSLATORS: Noun — audit-log source label: a manager set the answer
+	// on behalf of the person.
+	admin_response: () => t('attendance', 'Manager'),
 	legacy_backfill: () => t('attendance', 'Historic'),
 	auto_close: () => t('attendance', 'Automatic'),
 }
@@ -33,7 +36,9 @@ export function formatSource(source) {
 // TRANSLATORS: Audit-log entries. {actor}/{subject} are names, {response},
 // {from}, {to} and {state} render as response chips (yes/no/maybe/…).
 t('attendance', '{actor} answered {response}')
+t('attendance', '{actor} answered {response} for {subject}')
 t('attendance', '{actor} changed response from {from} to {to}')
+t('attendance', '{actor} changed the response of {subject} from {from} to {to}')
 t('attendance', '{actor} recorded check-in for {subject}: {state}')
 t('attendance', 'Check-in recorded: {state}')
 t('attendance', '{actor} updated check-in for {subject}: {state}')
@@ -129,8 +134,10 @@ export function formatAuditEvent(event) {
 				icon: getResponseIcon(meta.response, 'outline'),
 				iconVariant: getResponseVariant(meta.response),
 				segments: buildSegments(
-					'{actor} answered {response}',
-					{ actor },
+					subject
+						? '{actor} answered {response} for {subject}'
+						: '{actor} answered {response}',
+					subject ? { actor, subject } : { actor },
 					[{ key: 'response', value: meta.response }],
 				),
 			}
@@ -139,8 +146,10 @@ export function formatAuditEvent(event) {
 				icon: getResponseIcon(meta.to, 'outline'),
 				iconVariant: getResponseVariant(meta.to),
 				segments: buildSegments(
-					'{actor} changed response from {from} to {to}',
-					{ actor },
+					subject
+						? '{actor} changed the response of {subject} from {from} to {to}'
+						: '{actor} changed response from {from} to {to}',
+					subject ? { actor, subject } : { actor },
 					[
 						{ key: 'from', value: meta.from },
 						{ key: 'to', value: meta.to },
@@ -151,7 +160,10 @@ export function formatAuditEvent(event) {
 			return {
 				icon: 'UndoVariant',
 				iconVariant: 'default',
-				segments: textOnly(t('attendance', '{actor} took back their response', { actor })),
+				segments: textOnly(subject
+					// TRANSLATORS: Audit-log entry. {actor} removed the yes/no/maybe answer of {subject} (both are names).
+					? t('attendance', '{actor} removed the response of {subject}', { actor, subject })
+					: t('attendance', '{actor} took back their response', { actor })),
 			}
 		case 'response.comment_updated':
 			return {

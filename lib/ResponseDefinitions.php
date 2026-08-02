@@ -147,6 +147,7 @@ namespace OCA\Attendance;
  *   canSeeResponseOverview: bool,
  *   canSeeComments: bool,
  *   canSelfCheckin: bool,
+ *   canRespondForOthers: bool,
  * }
  * @psalm-type AttendanceCapabilities = array{
  *   calendarAvailable: bool,
@@ -164,6 +165,7 @@ namespace OCA\Attendance;
  *   auditLog: bool,
  *   selfCheckin: bool,
  *   organizers: bool,
+ *   respondOnBehalf: bool,
  * }
  * @psalm-type AttendanceAuditUserRef = array{
  *   userId: string,

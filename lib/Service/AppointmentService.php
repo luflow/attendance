@@ -777,15 +777,95 @@ class AppointmentService {
 		?string $response,
 		string $comment = '',
 	): AttendanceResponse {
-		if ($response !== null && !in_array($response, ['yes', 'no', 'maybe'])) {
-			throw new \InvalidArgumentException('Invalid response. Must be yes, no, maybe, or null.');
-		}
+		$this->validateResponseValue($response);
 
 		$appointment = $this->appointmentMapper->find($appointmentId);
 
 		if (!$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
 			throw new DoesNotExistException('Appointment not found');
 		}
+
+		return $this->applyResponse(
+			$appointment,
+			$userId,
+			$response,
+			$comment,
+			null,
+			\OCA\Attendance\Audit\Verb::SOURCE_APP,
+			null,
+		);
+	}
+
+	/**
+	 * Submit or clear an attendance response on behalf of another user.
+	 *
+	 * Managers use this when a person announced their answer out of band
+	 * (e.g. on the phone) and did not respond themselves. The target user's
+	 * own comment survives a value change — only the manager-visible answer
+	 * is touched. Withdrawing ($response = null) restores the "not yet
+	 * responded" state so the person is picked up by reminders again, and
+	 * clears the comment like a self-withdraw would.
+	 *
+	 * Callers load (and authorize) the appointment themselves, so it is
+	 * passed in rather than re-fetched.
+	 */
+	public function submitResponseForUser(
+		Appointment $appointment,
+		string $targetUserId,
+		?string $response,
+		string $actorUserId,
+	): AttendanceResponse {
+		$this->validateResponseValue($response);
+
+		// The audience check below trusts the permission layer, which treats
+		// unknown users as managers when permissions are unconfigured — so an
+		// explicit existence check is needed to keep junk rows out.
+		if ($this->userManager->get($targetUserId) === null) {
+			throw new \InvalidArgumentException('User not found');
+		}
+
+		// The target must be part of the appointment's audience — a manager
+		// cannot invent responses for people the inquiry never reached.
+		if (!$this->visibilityService->canUserSeeAppointment($appointment, $targetUserId)) {
+			throw new \InvalidArgumentException('User is not part of this appointment\'s audience');
+		}
+
+		return $this->applyResponse(
+			$appointment,
+			$targetUserId,
+			$response,
+			null,
+			ResponseService::SOURCE_ADMIN,
+			\OCA\Attendance\Audit\Verb::SOURCE_ADMIN_RESPONSE,
+			$actorUserId,
+		);
+	}
+
+	private function validateResponseValue(?string $response): void {
+		if ($response !== null && !in_array($response, ['yes', 'no', 'maybe'])) {
+			throw new \InvalidArgumentException('Invalid response. Must be yes, no, maybe, or null.');
+		}
+	}
+
+	/**
+	 * Shared persist-and-audit core for self and on-behalf responses.
+	 *
+	 * @param ?string $comment new comment, or null to keep the existing one
+	 *                         (withdrawing always wipes it so an orphan comment
+	 *                         can't survive the response that gave it context)
+	 * @param ?string $responseSource value for response_source, or null to leave it untouched
+	 * @param ?string $actorUserId audit actor when acting on someone else's behalf
+	 */
+	private function applyResponse(
+		Appointment $appointment,
+		string $userId,
+		?string $response,
+		?string $comment,
+		?string $responseSource,
+		string $auditSource,
+		?string $actorUserId,
+	): AttendanceResponse {
+		$appointmentId = $appointment->getId();
 
 		if ($appointment->isClosed()) {
 			throw new \RuntimeException('This appointment is closed and no longer accepts responses.');
@@ -798,8 +878,6 @@ class AppointmentService {
 			throw new \RuntimeException('This appointment was cancelled and no longer accepts responses.');
 		}
 
-		// Withdrawing also wipes the comment so an orphan comment can't survive
-		// the response that gave it context.
 		if ($response === null) {
 			$comment = '';
 		}
@@ -818,9 +896,13 @@ class AppointmentService {
 				return $existingResponse;
 			}
 
+			$afterComment = $comment ?? $beforeComment;
 			$existingResponse->setResponse($response);
-			$existingResponse->setComment($comment);
+			$existingResponse->setComment($afterComment);
 			$existingResponse->setRespondedAt(gmdate('Y-m-d H:i:s'));
+			if ($responseSource !== null) {
+				$existingResponse->setResponseSource($responseSource);
+			}
 			$result = $this->responseMapper->update($existingResponse);
 		} catch (DoesNotExistException $e) {
 			// No row to withdraw from — return a transient placeholder rather
@@ -832,12 +914,16 @@ class AppointmentService {
 				$placeholder->setResponse(null);
 				return $placeholder;
 			}
+			$afterComment = $comment ?? '';
 			$attendanceResponse = new AttendanceResponse();
 			$attendanceResponse->setAppointmentId($appointmentId);
 			$attendanceResponse->setUserId($userId);
 			$attendanceResponse->setResponse($response);
-			$attendanceResponse->setComment($comment);
+			$attendanceResponse->setComment($afterComment);
 			$attendanceResponse->setRespondedAt(gmdate('Y-m-d H:i:s'));
+			if ($responseSource !== null) {
+				$attendanceResponse->setResponseSource($responseSource);
+			}
 			$result = $this->responseMapper->insert($attendanceResponse);
 		}
 
@@ -847,10 +933,14 @@ class AppointmentService {
 			$beforeResponse,
 			$beforeComment,
 			$response,
-			$comment,
-			\OCA\Attendance\Audit\Verb::SOURCE_APP,
+			$afterComment,
+			$auditSource,
+			$actorUserId,
 		);
 
+		// The person no longer counts as "missing a response", so their
+		// pending respond-notifications are stale either way; on a clear the
+		// next reminder run will re-notify them.
 		$this->notificationService->markAppointmentNotificationsProcessed($appointmentId, $userId);
 
 		return $result;

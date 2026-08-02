@@ -76,8 +76,12 @@ export default defineConfig({
 				'18-widget-relevance.spec.js',
 				'19-default-view.spec.js',
 				'20-summary-direct-user.spec.js',
+				// Toggles the instance-wide audit log on and off.
+				'23-audit-history.spec.js',
 				// Toggles the instance-wide planning feature on and off.
 				'25-scheduled-out.spec.js',
+				// Grants/revokes the respond_for_others permission.
+				'26-respond-on-behalf.spec.js',
 			],
 			fullyParallel: false,
 			workers: 1,

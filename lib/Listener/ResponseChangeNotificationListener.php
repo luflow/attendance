@@ -132,6 +132,9 @@ class ResponseChangeNotificationListener {
 			'appointmentId' => $event->getAppointmentId(),
 			'appointmentName' => $appointmentName,
 			'actor' => $event->getActorId() ?? '',
+			// Shipped verbatim like the audit API does — the Notifier collapses
+			// subject == actor into the self wording, same as the audit renderers.
+			'subject' => $event->getSubjectId() ?? '',
 			'from' => (string)($meta['from'] ?? ''),
 			'to' => (string)($meta['to'] ?? ($meta['response'] ?? '')),
 		];

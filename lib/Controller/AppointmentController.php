@@ -719,6 +719,48 @@ class AppointmentController extends Controller {
 	}
 
 	/**
+	 * Set or clear a response on behalf of another user (requires the respond-for-others permission)
+	 *
+	 * @param int $appointmentId Appointment ID
+	 * @param string $targetUserId User ID whose response is set
+	 * @param ?string $response Response value: yes, no, maybe — or null to clear the response so the person counts as "not yet responded" again
+	 * @return DataResponse<Http::STATUS_OK, AttendanceResponseData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function respondForUser(int $appointmentId, string $targetUserId, ?string $response = null): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		// Own permission, deliberately not implied by manage/organizer rights —
+		// only members of the explicitly configured groups may answer for others.
+		if (!$this->permissionService->canRespondForOthers($user->getUID())) {
+			return new DataResponse(['error' => 'Insufficient permissions to set responses for other users'], 403);
+		}
+
+		try {
+			$appointment = $this->appointmentService->getAppointment($appointmentId);
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => 'Appointment not found'], 404);
+		}
+
+		try {
+			$attendanceResponse = $this->appointmentService->submitResponseForUser(
+				$appointment,
+				$targetUserId,
+				$response,
+				$user->getUID()
+			);
+			return new DataResponse($attendanceResponse);
+		} catch (\Exception $e) {
+			return new DataResponse(['error' => $e->getMessage()], 400);
+		}
+	}
+
+	/**
 	 * Get upcoming appointments for dashboard widget
 	 *
 	 * @return DataResponse<Http::STATUS_OK, list<AttendanceAppointmentWithResponse>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
@@ -840,6 +882,7 @@ class AppointmentController extends Controller {
 			'canSeeResponseOverview' => $this->permissionService->canSeeResponseOverview($user->getUID()),
 			'canSeeComments' => $this->permissionService->canSeeComments($user->getUID()),
 			'canSelfCheckin' => $this->permissionService->canSelfCheckin($user->getUID()),
+			'canRespondForOthers' => $this->permissionService->canRespondForOthers($user->getUID()),
 		]);
 	}
 
@@ -884,6 +927,12 @@ class AppointmentController extends Controller {
 			// myPermissions payload, create_appointments permission). Mobile
 			// clients hide organizer UI when this is false.
 			'organizers' => true,
+			// Server supports POST /respond/{targetUserId} for setting an
+			// answer on behalf of a person (issue #47), gated by the
+			// respond_for_others permission. Mobile clients hide the
+			// on-behalf picker when this is false or the user lacks the
+			// permission (getPermissions.canRespondForOthers).
+			'respondOnBehalf' => true,
 		]);
 	}
 

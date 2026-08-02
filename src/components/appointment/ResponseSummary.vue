@@ -45,10 +45,13 @@
 							:canSendReminders="canSendReminders"
 							:canManageBooking="canManageBooking"
 							:isClosed="isClosed"
+							:canSetAnswer="canSetAnswer"
 							:remindingUsers="remindingUsers"
 							:togglingBooking="togglingBooking"
+							:settingAnswer="settingAnswer"
 							@remind="remindUser"
-							@toggleBooking="toggleBooking" />
+							@toggleBooking="toggleBooking"
+							@setAnswer="setAnswer" />
 					</div>
 
 					<NonRespondingUserList
@@ -56,9 +59,12 @@
 						:users="section.stats.non_responding_users"
 						:headerText="t('attendance', 'No response yet:')"
 						:canManageAppointments="canSendReminders"
+						:canSetAnswer="canSetAnswer"
 						:appointmentId="appointmentId"
 						:remindingUsers="remindingUsers"
-						@remind="remindUser" />
+						:settingAnswer="settingAnswer"
+						@remind="remindUser"
+						@setAnswer="setAnswer" />
 				</div>
 			</div>
 		</div>
@@ -101,9 +107,17 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
+	// Whether the appointment still takes responses (open and not cancelled) —
+	// the on-behalf answer editor follows the same rule as self-responses.
+	acceptsResponses: {
+		type: Boolean,
+		default: false,
+	},
 })
 
-const { capabilities } = usePermissions()
+const emit = defineEmits(['refreshAppointment'])
+
+const { capabilities, permissions } = usePermissions()
 
 const canSendReminders = computed(() => props.canManageAppointments && !props.isClosed)
 
@@ -112,9 +126,15 @@ const canSendReminders = computed(() => props.canManageAppointments && !props.is
 // "yes" response (handled by the row).
 const canManageBooking = computed(() => props.canManageAppointments && capabilities.bookingEnabled)
 
+// Recording an answer on a person's behalf (issue #47) is its own admin-
+// configured permission — deliberately not implied by manage rights — and
+// only while the inquiry still accepts responses.
+const canSetAnswer = computed(() => permissions.canRespondForOthers && props.acceptsResponses)
+
 const expandedGroups = ref({})
 const remindingUsers = reactive(new Set())
 const togglingBooking = reactive(new Set())
+const settingAnswer = reactive(new Set())
 
 // Groups, teams and the catch-all "Others" bucket all render the same way — the
 // only differences are the label, the leading icon and the data-test hooks.
@@ -183,6 +203,23 @@ async function toggleBooking(response) {
 		showError(t('attendance', 'Failed to update scheduling'))
 	} finally {
 		togglingBooking.delete(response.userId)
+	}
+}
+
+async function setAnswer(userId, response) {
+	if (!props.appointmentId || settingAnswer.has(userId)) return
+	settingAnswer.add(userId)
+	try {
+		await axios.post(generateUrl(`/apps/attendance/api/appointments/${props.appointmentId}/respond/${encodeURIComponent(userId)}`), { response })
+		showSuccess(t('attendance', 'Response updated'))
+		// Group buckets, counts and the non-responder list all shift, so let
+		// the parent refetch instead of patching the summary in place.
+		emit('refreshAppointment')
+	} catch (error) {
+		console.error('Failed to set answer:', error)
+		showError(t('attendance', 'Failed to update response'))
+	} finally {
+		settingAnswer.delete(userId)
 	}
 }
 

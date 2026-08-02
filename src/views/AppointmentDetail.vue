@@ -28,7 +28,8 @@
 				@export="showExportDialog"
 				@submitResponse="submitResponse"
 				@closedToggled="onClosedToggled"
-				@showAuditLog="scrollToAuditLog" />
+				@showAuditLog="scrollToAuditLog"
+				@refreshAppointment="loadAppointmentSilently" />
 
 			<AuditTimeline v-if="canSeeAuditTimeline" ref="auditTimeline" :appointmentId="appointment.id" />
 		</div>
