@@ -1,4 +1,4 @@
-import { expect, test as base } from '@playwright/test'
+import { test as base, expect } from '@playwright/test'
 import { existsSync, mkdirSync, readFileSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
@@ -24,7 +24,7 @@ async function resilientJson(responseFn, { retries = 3, delay = 1000 } = {}) {
 		}
 		// Non-JSON (likely HTML error page) — retry unless last attempt.
 		if (attempt < retries) {
-			await new Promise(r => setTimeout(r, delay * attempt))
+			await new Promise((r) => setTimeout(r, delay * attempt))
 		} else {
 			return resp // let the caller deal with the failure
 		}
@@ -72,10 +72,10 @@ function ensureAuthDir() {
  */
 export function authHeaders(username = 'admin', password = 'admin') {
 	return {
-		'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
+		Authorization: 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
 		'Content-Type': 'application/json',
 		'OCS-APIREQUEST': 'true',
-		'Cookie': '',
+		Cookie: '',
 	}
 }
 
@@ -159,12 +159,10 @@ export async function createAppointmentViaAPI(request, {
 		sendNotification,
 		...(responseDeadline ? { responseDeadline: responseDeadline.toISOString() } : {}),
 	}
-	const resp = await resilientJson(() =>
-		request.post(`${API_BASE}/apps/attendance/api/appointments`, {
-			headers: authHeaders(username, password),
-			data,
-		}),
-	)
+	const resp = await resilientJson(() => request.post(`${API_BASE}/apps/attendance/api/appointments`, {
+		headers: authHeaders(username, password),
+		data,
+	}))
 	return resp.json()
 }
 
@@ -172,11 +170,9 @@ export async function createAppointmentViaAPI(request, {
  * Delete a single appointment via the REST API
  */
 export async function deleteAppointmentViaAPI(request, id, { username = 'admin', password = 'admin' } = {}) {
-	await resilientJson(() =>
-		request.delete(`${API_BASE}/apps/attendance/api/appointments/${id}`, {
-			headers: authHeaders(username, password),
-		}),
-	)
+	await resilientJson(() => request.delete(`${API_BASE}/apps/attendance/api/appointments/${id}`, {
+		headers: authHeaders(username, password),
+	}))
 }
 
 /**
@@ -193,12 +189,10 @@ export async function listAppointmentsViaAPI(request, { showPast = true, unanswe
 	})
 	if (unansweredOnly) params.set('unansweredOnly', 'true')
 	if (notScheduledOut) params.set('notScheduledOut', 'true')
-	const resp = await resilientJson(() =>
-		request.get(
-			`${API_BASE}/apps/attendance/api/appointments?${params.toString()}`,
-			{ headers: authHeaders(username, password) },
-		),
-	)
+	const resp = await resilientJson(() => request.get(
+		`${API_BASE}/apps/attendance/api/appointments?${params.toString()}`,
+		{ headers: authHeaders(username, password) },
+	))
 	return resp.json()
 }
 
@@ -206,11 +200,9 @@ export async function listAppointmentsViaAPI(request, { showPast = true, unanswe
  * Close an appointment inquiry. Returns the updated appointment payload.
  */
 export async function closeAppointmentViaAPI(request, id, { username = 'admin', password = 'admin' } = {}) {
-	const resp = await resilientJson(() =>
-		request.post(`${API_BASE}/apps/attendance/api/appointments/${id}/close`, {
-			headers: authHeaders(username, password),
-		}),
-	)
+	const resp = await resilientJson(() => request.post(`${API_BASE}/apps/attendance/api/appointments/${id}/close`, {
+		headers: authHeaders(username, password),
+	}))
 	return { status: resp.status(), body: await resp.json() }
 }
 
@@ -218,11 +210,9 @@ export async function closeAppointmentViaAPI(request, id, { username = 'admin', 
  * Re-open a previously closed appointment inquiry.
  */
 export async function reopenAppointmentViaAPI(request, id, { username = 'admin', password = 'admin' } = {}) {
-	const resp = await resilientJson(() =>
-		request.post(`${API_BASE}/apps/attendance/api/appointments/${id}/reopen`, {
-			headers: authHeaders(username, password),
-		}),
-	)
+	const resp = await resilientJson(() => request.post(`${API_BASE}/apps/attendance/api/appointments/${id}/reopen`, {
+		headers: authHeaders(username, password),
+	}))
 	return { status: resp.status(), body: await resp.json() }
 }
 
@@ -263,7 +253,7 @@ export async function forceWipeAllAppointments(request, { username = 'admin', pa
 		for (const id of ids) {
 			await deleteAppointmentViaAPI(request, id, { username, password })
 		}
-		await new Promise(r => setTimeout(r, 200))
+		await new Promise((r) => setTimeout(r, 200))
 	}
 }
 
@@ -276,15 +266,13 @@ export async function respondToAppointmentViaAPI(request, appointmentId, {
 	username = 'admin',
 	password = 'admin',
 } = {}) {
-	const resp = await resilientJson(() =>
-		request.post(
-			`${API_BASE}/apps/attendance/api/appointments/${appointmentId}/respond`,
-			{
-				headers: authHeaders(username, password),
-				data: { response: vote, comment },
-			},
-		),
-	)
+	const resp = await resilientJson(() => request.post(
+		`${API_BASE}/apps/attendance/api/appointments/${appointmentId}/respond`,
+		{
+			headers: authHeaders(username, password),
+			data: { response: vote, comment },
+		},
+	))
 	return resp.json()
 }
 
@@ -297,15 +285,32 @@ export async function checkinUserViaAPI(request, appointmentId, targetUserId, {
 	username = 'admin',
 	password = 'admin',
 } = {}) {
-	const resp = await resilientJson(() =>
-		request.post(
-			`${API_BASE}/apps/attendance/api/appointments/${appointmentId}/checkin/${targetUserId}`,
-			{
-				headers: authHeaders(username, password),
-				data: { response, comment },
-			},
-		),
-	)
+	const resp = await resilientJson(() => request.post(
+		`${API_BASE}/apps/attendance/api/appointments/${appointmentId}/checkin/${targetUserId}`,
+		{
+			headers: authHeaders(username, password),
+			data: { response, comment },
+		},
+	))
+	return resp.json()
+}
+
+/**
+ * Set or clear a response on behalf of another user via the REST API
+ * (issue #47). Pass response: null to clear the target's answer.
+ */
+export async function respondForUserViaAPI(request, appointmentId, targetUserId, {
+	response = 'yes',
+	username = 'admin',
+	password = 'admin',
+} = {}) {
+	const resp = await resilientJson(() => request.post(
+		`${API_BASE}/apps/attendance/api/appointments/${appointmentId}/respond/${targetUserId}`,
+		{
+			headers: authHeaders(username, password),
+			data: { response },
+		},
+	))
 	return resp.json()
 }
 
@@ -313,12 +318,10 @@ export async function checkinUserViaAPI(request, appointmentId, targetUserId, {
  * Save admin settings via the REST API
  */
 export async function saveAdminSettings(request, settings = {}) {
-	const resp = await resilientJson(() =>
-		request.post(`${API_BASE}/apps/attendance/api/admin/settings`, {
-			headers: authHeaders('admin', 'admin'),
-			data: settings,
-		}),
-	)
+	const resp = await resilientJson(() => request.post(`${API_BASE}/apps/attendance/api/admin/settings`, {
+		headers: authHeaders('admin', 'admin'),
+		data: settings,
+	}))
 	return resp.json()
 }
 
@@ -375,7 +378,7 @@ export async function createFileViaWebDAV(request, { filename, content = 'Test c
 		`${API_BASE}/remote.php/dav/files/${username}/${filename}`,
 		{
 			headers: {
-				'Authorization': 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
+				Authorization: 'Basic ' + Buffer.from(`${username}:${password}`).toString('base64'),
 				'Content-Type': 'text/plain',
 			},
 			data: content,
