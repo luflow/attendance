@@ -742,7 +742,7 @@ class AppointmentController extends Controller {
 
 		try {
 			$attendanceResponse = $this->appointmentService->submitResponseForUser(
-				$appointmentId,
+				$appointment,
 				$targetUserId,
 				$response,
 				$user->getUID()

@@ -131,7 +131,7 @@
 			:appointmentId="appointment.id"
 			:isClosed="isClosed"
 			:acceptsResponses="acceptsResponses"
-			@answerSet="emit('refreshAppointment')" />
+			@refreshAppointment="emit('refreshAppointment')" />
 	</div>
 </template>
 

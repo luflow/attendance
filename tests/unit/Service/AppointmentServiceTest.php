@@ -569,10 +569,10 @@ class AppointmentServiceTest extends TestCase {
 		$appointment = new Appointment();
 		$appointment->setId($appointmentId);
 
-		$this->appointmentMapper->expects($this->once())
-			->method('find')
-			->with($appointmentId)
-			->willReturn($appointment);
+		// The controller already loaded the appointment, so the service must
+		// not fetch it again.
+		$this->appointmentMapper->expects($this->never())
+			->method('find');
 
 		$this->visibilityService->expects($this->once())
 			->method('canUserSeeAppointment')
@@ -611,7 +611,7 @@ class AppointmentServiceTest extends TestCase {
 			->method('markAppointmentNotificationsProcessed')
 			->with($appointmentId, $targetUserId);
 
-		$result = $this->service->submitResponseForUser($appointmentId, $targetUserId, 'yes', $actorUserId);
+		$result = $this->service->submitResponseForUser($appointment, $targetUserId, 'yes', $actorUserId);
 		$this->assertInstanceOf(AttendanceResponse::class, $result);
 	}
 
@@ -623,7 +623,6 @@ class AppointmentServiceTest extends TestCase {
 		$appointment = new Appointment();
 		$appointment->setId($appointmentId);
 
-		$this->appointmentMapper->method('find')->willReturn($appointment);
 		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
 
 		$existingResponse = new AttendanceResponse();
@@ -659,7 +658,7 @@ class AppointmentServiceTest extends TestCase {
 				$actorUserId,
 			);
 
-		$result = $this->service->submitResponseForUser($appointmentId, $targetUserId, 'yes', $actorUserId);
+		$result = $this->service->submitResponseForUser($appointment, $targetUserId, 'yes', $actorUserId);
 		$this->assertInstanceOf(AttendanceResponse::class, $result);
 	}
 
@@ -671,7 +670,6 @@ class AppointmentServiceTest extends TestCase {
 		$appointment = new Appointment();
 		$appointment->setId($appointmentId);
 
-		$this->appointmentMapper->method('find')->willReturn($appointment);
 		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
 
 		$existingResponse = new AttendanceResponse();
@@ -704,17 +702,14 @@ class AppointmentServiceTest extends TestCase {
 				$actorUserId,
 			);
 
-		$result = $this->service->submitResponseForUser($appointmentId, $targetUserId, null, $actorUserId);
+		$result = $this->service->submitResponseForUser($appointment, $targetUserId, null, $actorUserId);
 		$this->assertInstanceOf(AttendanceResponse::class, $result);
 	}
 
 	public function testSubmitResponseForUserRejectsUserOutsideAudience(): void {
-		$appointmentId = 1;
-
 		$appointment = new Appointment();
-		$appointment->setId($appointmentId);
+		$appointment->setId(1);
 
-		$this->appointmentMapper->method('find')->willReturn($appointment);
 		$this->visibilityService->expects($this->once())
 			->method('canUserSeeAppointment')
 			->with($appointment, 'stranger')
@@ -724,31 +719,28 @@ class AppointmentServiceTest extends TestCase {
 		$this->responseMapper->expects($this->never())->method('update');
 
 		$this->expectException(\InvalidArgumentException::class);
-		$this->service->submitResponseForUser($appointmentId, 'stranger', 'yes', 'manager');
+		$this->service->submitResponseForUser($appointment, 'stranger', 'yes', 'manager');
 	}
 
 	public function testSubmitResponseForUserThrowsForInvalidResponse(): void {
 		$this->expectException(\InvalidArgumentException::class);
 		$this->expectExceptionMessage('Invalid response. Must be yes, no, maybe, or null.');
 
-		$this->service->submitResponseForUser(1, 'user', 'invalid', 'manager');
+		$this->service->submitResponseForUser(new Appointment(), 'user', 'invalid', 'manager');
 	}
 
 	public function testSubmitResponseForUserRejectsClosedAppointment(): void {
-		$appointmentId = 1;
-
 		$appointment = new Appointment();
-		$appointment->setId($appointmentId);
+		$appointment->setId(1);
 		$appointment->setClosedAt('2026-01-01 12:00:00');
 
-		$this->appointmentMapper->method('find')->willReturn($appointment);
 		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
 
 		$this->responseMapper->expects($this->never())->method('update');
 		$this->responseMapper->expects($this->never())->method('insert');
 
 		$this->expectException(\RuntimeException::class);
-		$this->service->submitResponseForUser($appointmentId, 'phoneuser', 'yes', 'manager');
+		$this->service->submitResponseForUser($appointment, 'phoneuser', 'yes', 'manager');
 	}
 
 	public function testGetUserResponseReturnsNullWhenNotFound(): void {

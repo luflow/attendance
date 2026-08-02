@@ -138,7 +138,7 @@ const canRemind = computed(() => props.canSendReminders && props.response.respon
 const isReminding = computed(() => props.remindingUsers.has(props.response.userId))
 const isSettingAnswer = computed(() => props.settingAnswer.has(props.response.userId))
 // TRANSLATORS: Tooltip/aria-label on the icon button that lets a manager record the person's answer on their behalf.
-const setAnswerLabel = computed(() => t('attendance', 'Set answer'))
+const setAnswerLabel = t('attendance', 'Set answer')
 const isTogglingBooking = computed(() => props.togglingBooking.has(props.response.userId))
 const isBooked = computed(() => props.response.bookingStatus === 'booked')
 const bookingLabel = computed(() => {

@@ -115,7 +115,7 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['answerSet'])
+const emit = defineEmits(['refreshAppointment'])
 
 const { capabilities } = usePermissions()
 
@@ -213,7 +213,7 @@ async function setAnswer(userId, response) {
 		showSuccess(t('attendance', 'Response updated'))
 		// Group buckets, counts and the non-responder list all shift, so let
 		// the parent refetch instead of patching the summary in place.
-		emit('answerSet')
+		emit('refreshAppointment')
 	} catch (error) {
 		console.error('Failed to set answer:', error)
 		showError(t('attendance', 'Failed to update response'))

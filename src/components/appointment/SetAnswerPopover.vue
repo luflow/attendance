@@ -20,7 +20,7 @@
 					:data-test="`set-answer-${option}-${userId}`"
 					@click="choose(option)">
 					<template #icon>
-						<component :is="ANSWER_ICONS[option]" :size="16" />
+						<component :is="ICONS[getResponseIcon(option)]" :size="16" />
 					</template>
 					{{ getResponseText(option) }}
 				</NcButton>
@@ -46,11 +46,11 @@
 <script setup>
 import { NcButton, NcPopover } from '@nextcloud/vue'
 import { ref } from 'vue'
-import CheckCircleIcon from 'vue-material-design-icons/CheckCircle.vue'
-import CloseCircleIcon from 'vue-material-design-icons/CloseCircle.vue'
-import HelpCircleIcon from 'vue-material-design-icons/HelpCircle.vue'
+import CheckCircle from 'vue-material-design-icons/CheckCircle.vue'
+import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
+import HelpCircle from 'vue-material-design-icons/HelpCircle.vue'
 import UndoVariantIcon from 'vue-material-design-icons/UndoVariant.vue'
-import { getResponseText, getResponseVariant, RESPONSE_ORDER } from '../../utils/response.js'
+import { getResponseIcon, getResponseText, getResponseVariant, RESPONSE_ORDER } from '../../utils/response.js'
 
 const props = defineProps({
 	userId: {
@@ -75,11 +75,9 @@ const props = defineProps({
 
 const emit = defineEmits(['setAnswer'])
 
-const ANSWER_ICONS = {
-	yes: CheckCircleIcon,
-	maybe: HelpCircleIcon,
-	no: CloseCircleIcon,
-}
+// Same shared glyph mapping the response editor uses, so the popover cannot
+// drift from the dots and buttons elsewhere.
+const ICONS = { CheckCircle, HelpCircle, CloseCircle }
 
 const open = ref(false)
 

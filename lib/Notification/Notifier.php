@@ -203,10 +203,14 @@ class Notifier implements INotifier {
 	private function prepareResponseChangeNotification(INotification $notification, \OCP\IL10N $l): INotification {
 		$params = $notification->getSubjectParameters();
 		$actor = (string)($params['actor'] ?? '');
-		$onBehalfOf = (string)($params['onBehalfOf'] ?? '');
+		$subject = (string)($params['subject'] ?? '');
 		$appointmentName = (string)($params['appointmentName'] ?? '');
 		$from = (string)($params['from'] ?? '');
 		$to = (string)($params['to'] ?? '');
+
+		// Same collapse rule as the audit renderers: a subject only shows up
+		// in the wording when someone answered on behalf of another person.
+		$onBehalfOf = ($subject !== '' && $subject !== $actor) ? $subject : '';
 
 		$actorLabel = $actor !== '' ? $actor : $l->t('Someone');
 		$fromLabel = $this->translateResponseValue($from, $l);

@@ -133,39 +133,28 @@ export function formatAuditEvent(event) {
 			return {
 				icon: getResponseIcon(meta.response, 'outline'),
 				iconVariant: getResponseVariant(meta.response),
-				segments: subject
-					? buildSegments(
-							'{actor} answered {response} for {subject}',
-							{ actor, subject },
-							[{ key: 'response', value: meta.response }],
-						)
-					: buildSegments(
-							'{actor} answered {response}',
-							{ actor },
-							[{ key: 'response', value: meta.response }],
-						),
+				segments: buildSegments(
+					subject
+						? '{actor} answered {response} for {subject}'
+						: '{actor} answered {response}',
+					subject ? { actor, subject } : { actor },
+					[{ key: 'response', value: meta.response }],
+				),
 			}
 		case 'response.changed':
 			return {
 				icon: getResponseIcon(meta.to, 'outline'),
 				iconVariant: getResponseVariant(meta.to),
-				segments: subject
-					? buildSegments(
-							'{actor} changed the response of {subject} from {from} to {to}',
-							{ actor, subject },
-							[
-								{ key: 'from', value: meta.from },
-								{ key: 'to', value: meta.to },
-							],
-						)
-					: buildSegments(
-							'{actor} changed response from {from} to {to}',
-							{ actor },
-							[
-								{ key: 'from', value: meta.from },
-								{ key: 'to', value: meta.to },
-							],
-						),
+				segments: buildSegments(
+					subject
+						? '{actor} changed the response of {subject} from {from} to {to}'
+						: '{actor} changed response from {from} to {to}',
+					subject ? { actor, subject } : { actor },
+					[
+						{ key: 'from', value: meta.from },
+						{ key: 'to', value: meta.to },
+					],
+				),
 			}
 		case 'response.rescinded':
 			return {
