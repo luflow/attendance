@@ -4,6 +4,31 @@
 			<div class="response-row__user">
 				<ResponseDot :response="response.response" />
 				<strong>{{ response.userName }}</strong>
+				<!-- Icon-only on purpose: the row already carries up to two labelled
+					buttons, so the on-behalf editor stays as light as possible. It
+					leads the action group because it edits the answer the dot shows. -->
+				<SetAnswerPopover
+					v-if="canSetAnswer"
+					:userId="response.userId"
+					:displayName="response.userName"
+					:currentResponse="response.response"
+					:pending="isSettingAnswer"
+					@setAnswer="(userId, value) => emit('setAnswer', userId, value)">
+					<template #default="{ pending }">
+						<NcButton
+							class="response-row__action"
+							variant="secondary"
+							size="small"
+							:disabled="pending"
+							:aria-label="setAnswerLabel"
+							:title="setAnswerLabel"
+							:data-test="`set-answer-${response.userId}`">
+							<template #icon>
+								<PencilOutlineIcon :size="16" />
+							</template>
+						</NcButton>
+					</template>
+				</SetAnswerPopover>
 				<RemindUserPopover
 					v-if="canRemind"
 					:userId="response.userId"
@@ -41,30 +66,6 @@
 					</template>
 					{{ bookingLabel }}
 				</NcButton>
-				<!-- Icon-only on purpose: the row already carries up to two labelled
-					buttons, so the on-behalf editor stays as light as possible. -->
-				<SetAnswerPopover
-					v-if="canSetAnswer"
-					:userId="response.userId"
-					:displayName="response.userName"
-					:currentResponse="response.response"
-					:pending="isSettingAnswer"
-					@setAnswer="(userId, value) => emit('setAnswer', userId, value)">
-					<template #default="{ pending }">
-						<NcButton
-							class="response-row__action"
-							variant="tertiary"
-							size="small"
-							:disabled="pending"
-							:aria-label="setAnswerLabel"
-							:title="setAnswerLabel"
-							:data-test="`set-answer-${response.userId}`">
-							<template #icon>
-								<PencilOutlineIcon :size="16" />
-							</template>
-						</NcButton>
-					</template>
-				</SetAnswerPopover>
 			</div>
 			<div v-if="response.isCheckedIn" class="response-row__checkin">
 				<span>{{ t("attendance", "Checked in?") }}</span>

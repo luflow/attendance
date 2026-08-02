@@ -10,26 +10,6 @@
 				class="pending-user"
 				:class="{ 'pending-user--pending': remindingUsers.has(user.userId) }">
 				{{ user.displayName }}
-				<RemindUserPopover
-					v-if="canManageAppointments && appointmentId"
-					:userId="user.userId"
-					:displayName="user.displayName"
-					:pending="remindingUsers.has(user.userId)"
-					@remind="emit('remind', $event)">
-					<template #default="{ pending }">
-						<NcButton
-							variant="secondary"
-							size="small"
-							:disabled="pending"
-							:aria-label="t('attendance', 'Send reminder')"
-							:title="t('attendance', 'Send reminder')"
-							:data-test="`remind-${user.userId}`">
-							<template #icon>
-								<BellRingOutlineIcon :size="16" />
-							</template>
-						</NcButton>
-					</template>
-				</RemindUserPopover>
 				<SetAnswerPopover
 					v-if="canSetAnswer && appointmentId"
 					:userId="user.userId"
@@ -50,6 +30,26 @@
 						</NcButton>
 					</template>
 				</SetAnswerPopover>
+				<RemindUserPopover
+					v-if="canManageAppointments && appointmentId"
+					:userId="user.userId"
+					:displayName="user.displayName"
+					:pending="remindingUsers.has(user.userId)"
+					@remind="emit('remind', $event)">
+					<template #default="{ pending }">
+						<NcButton
+							variant="secondary"
+							size="small"
+							:disabled="pending"
+							:aria-label="t('attendance', 'Send reminder')"
+							:title="t('attendance', 'Send reminder')"
+							:data-test="`remind-${user.userId}`">
+							<template #icon>
+								<BellRingOutlineIcon :size="16" />
+							</template>
+						</NcButton>
+					</template>
+				</RemindUserPopover>
 			</span>
 		</div>
 	</div>
