@@ -12,6 +12,7 @@ import { test, expect, resetAdminSettings, deleteAllAppointments } from './fixtu
  * - Manage Appointments permission (create/edit/delete buttons)
  * - Check-in Access permission (check-in interface)
  * - See Response Overview permission (response summary visibility)
+ * - See Response Counts permission (aggregate bar visibility)
  * - See Comments permission (comment visibility in responses)
  * - Whitelisted Groups configuration
  * - Reminder settings
@@ -193,13 +194,20 @@ test.describe('Attendance App - Admin Settings', () => {
 			await attendanceApp()
 			await page.waitForLoadState('networkidle')
 
-			// Test user should NOT see the response overview
+			// Test user still sees the aggregate bar — the counts permission
+			// is open to everyone while unconfigured
 			const testUserResponseSummary = page.locator('[data-test="response-bar"]')
-			await expect(testUserResponseSummary).toHaveCount(0)
+			await expect(testUserResponseSummary.first()).toBeVisible()
 
-			// But test user should still be able to respond
+			// And test user should still be able to respond
 			const yesButton = page.getByRole('button', { name: 'Yes', exact: true }).first()
 			await expect(yesButton).toBeVisible()
+
+			// But the per-person breakdown stays hidden on the detail view
+			await page.locator('[data-test="button-show-details"]').first().click()
+			await page.waitForLoadState('networkidle')
+			await expect(page.locator('[data-test="response-summary"]')).toBeVisible()
+			await expect(page.locator('[data-test="group-summary"]')).toHaveCount(0)
 		})
 
 		test('should restrict comment visibility in responses', async ({ page, loginAsUser, attendanceApp }) => {
@@ -229,6 +237,41 @@ test.describe('Attendance App - Admin Settings', () => {
 			// This test verifies the permission is saved
 			// Actual comment visibility would require checking the response summary UI
 			// which shows/hides comments based on canSeeComments permission
+		})
+
+		test('should restrict response counts visibility', async ({ page, loginAsUser, attendanceApp }) => {
+			// Login as admin
+			await loginAsUser('admin', 'admin')
+
+			// Configure "See response counts" permission to admin only — the
+			// overview is already admin-only from the spec above, so this
+			// takes the last summary tier away from the test user
+			await page.goto('/settings/admin/attendance')
+			await page.waitForLoadState('networkidle')
+
+			const countsSelect = page.locator('[data-test="select-see-response-counts-roles"]')
+			await expect(countsSelect).toBeVisible()
+
+			await countsSelect.getByRole('combobox').click()
+			const adminOption = page.getByRole('option', { name: 'admin' })
+			await adminOption.waitFor({ state: 'visible' })
+			await adminOption.click()
+
+			const saveButton = page.locator('[data-test="button-save-settings"]')
+			await saveButton.click()
+			await page.waitForLoadState('networkidle')
+
+			// Test user now sees no bar at all
+			await loginAsUser('test', 'test')
+			await attendanceApp()
+			await page.waitForLoadState('networkidle')
+			await expect(page.locator('[data-test="response-bar"]')).toHaveCount(0)
+
+			// Admin keeps the full view
+			await loginAsUser('admin', 'admin')
+			await attendanceApp()
+			await page.waitForLoadState('networkidle')
+			await expect(page.locator('[data-test="response-bar"]').first()).toBeVisible()
 		})
 	})
 

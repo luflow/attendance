@@ -8,7 +8,6 @@ const state = reactive({
 		canCreateAppointments: false,
 		canCheckin: false,
 		canSeeResponseOverview: false,
-		canSeeResponseCounts: false,
 		canSeeComments: false,
 		canSelfCheckin: false,
 		canRespondForOthers: false,
@@ -69,7 +68,6 @@ export function usePermissions() {
 			state.permissions.canCreateAppointments = permissionsRes.data.canCreateAppointments || false
 			state.permissions.canCheckin = permissionsRes.data.canCheckin || false
 			state.permissions.canSeeResponseOverview = permissionsRes.data.canSeeResponseOverview || false
-			state.permissions.canSeeResponseCounts = permissionsRes.data.canSeeResponseCounts === true
 			state.permissions.canSeeComments = permissionsRes.data.canSeeComments || false
 			state.permissions.canSelfCheckin = permissionsRes.data.canSelfCheckin || false
 			state.permissions.canRespondForOthers = permissionsRes.data.canRespondForOthers === true
@@ -98,7 +96,6 @@ export function usePermissions() {
 			state.permissions.canCreateAppointments = false
 			state.permissions.canCheckin = false
 			state.permissions.canSeeResponseOverview = false
-			state.permissions.canSeeResponseCounts = false
 			state.permissions.canSeeComments = false
 			state.permissions.canSelfCheckin = false
 			state.permissions.canRespondForOthers = false
@@ -133,7 +130,6 @@ export function usePermissions() {
 		state.permissions.canCreateAppointments = false
 		state.permissions.canCheckin = false
 		state.permissions.canSeeResponseOverview = false
-		state.permissions.canSeeResponseCounts = false
 		state.permissions.canSeeComments = false
 		state.permissions.canSelfCheckin = false
 		state.permissions.canRespondForOthers = false

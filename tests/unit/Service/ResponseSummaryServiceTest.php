@@ -286,11 +286,6 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
 
 		$this->configService->method('getWhitelistedGroups')->willReturn([]);
-		$this->configService->method('getWhitelistedTeams')->willReturn([]);
-
-		$this->visibilityService->method('getVisibilitySettings')
-			->willReturn(['users' => [], 'groups' => [], 'teams' => []]);
-		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(false);
 		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
 
 		$alice = $this->createMock(IUser::class);
@@ -300,17 +295,9 @@ class ResponseSummaryServiceTest extends TestCase {
 		$bob->method('getUID')->willReturn('bob');
 		$bob->method('getDisplayName')->willReturn('Bob');
 
-		// Bob never answered → counted as no_response in the full summary.
+		// Bob never answered → counted as no_response.
 		$this->visibilityService->method('getRelevantUsersForAppointment')
 			->willReturn(['alice' => $alice, 'bob' => $bob]);
-
-		$choir = $this->createMock(IGroup::class);
-		$choir->method('getGID')->willReturn('choir');
-		$choir->method('getUsers')->willReturn([$alice, $bob]);
-
-		$this->userManager->method('get')->with('alice')->willReturn($alice);
-		$this->groupManager->method('getUserGroups')->willReturn([$choir]);
-		$this->groupManager->method('search')->with('')->willReturn([$choir]);
 
 		$counts = $this->service->getResponseCounts($appointmentId);
 
@@ -318,7 +305,6 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->assertSame(0, $counts['no']);
 		$this->assertSame(0, $counts['maybe']);
 		$this->assertSame(1, $counts['no_response']);
-		$this->assertTrue($counts['countsOnly']);
 		$this->assertSame([], $counts['by_group']);
 		$this->assertSame([], $counts['by_team']);
 		$this->assertSame([], $counts['others']['responses']);

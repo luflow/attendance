@@ -691,15 +691,30 @@ class AppointmentService {
 		// before they ever responded; treat that as "no response" (matches list endpoint).
 		$userResponse = $this->getUserResponse($appointment->getId(), $userId);
 		$appointmentData['userResponse'] = $this->serializeUserResponse($userResponse);
-		if ($myPermissions['canSeeResponses']) {
-			$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId(), $myPermissions['canSeeComments']);
-		} elseif ($myPermissions['canSeeResponseCounts']) {
-			$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseCounts($appointment->getId());
+		$responseSummary = $this->buildResponseSummaryFor($myPermissions, $appointment->getId());
+		if ($responseSummary !== null) {
+			$appointmentData['responseSummary'] = $responseSummary;
 		}
 		$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
 		$appointmentData['myPermissions'] = $myPermissions;
 
 		return $appointmentData;
+	}
+
+	/**
+	 * The summary tier the viewer gets on this appointment: the full overview,
+	 * the aggregate counts, or nothing.
+	 *
+	 * @param array{canSeeResponses: bool, canSeeResponseCounts: bool, canSeeComments: bool} $myPermissions
+	 */
+	private function buildResponseSummaryFor(array $myPermissions, int $appointmentId): ?array {
+		if ($myPermissions['canSeeResponses']) {
+			return $this->responseSummaryService->getResponseSummary($appointmentId, $myPermissions['canSeeComments']);
+		}
+		if ($myPermissions['canSeeResponseCounts']) {
+			return $this->responseSummaryService->getResponseCounts($appointmentId);
+		}
+		return null;
 	}
 
 	/**
@@ -720,7 +735,7 @@ class AppointmentService {
 		bool $globalManage,
 		bool $globalSeeResponses,
 		bool $globalSeeComments,
-		bool $globalSeeCounts = false,
+		bool $globalSeeCounts,
 	): array {
 		$isOrganizer = $this->permissionService->isOrganizer($appointment, $userId);
 		$canEdit = $globalManage || $isOrganizer;
@@ -1151,10 +1166,9 @@ class AppointmentService {
 			$appointmentData = $this->enrichVisibilityData($appointmentData);
 			$appointmentData = $this->enrichSeriesCount($appointmentData, $appointment);
 			$appointmentData['userResponse'] = $this->serializeUserResponse($userResponse);
-			if ($myPermissions['canSeeResponses']) {
-				$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId(), $myPermissions['canSeeComments']);
-			} elseif ($myPermissions['canSeeResponseCounts']) {
-				$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseCounts($appointment->getId());
+			$responseSummary = $this->buildResponseSummaryFor($myPermissions, $appointment->getId());
+			if ($responseSummary !== null) {
+				$appointmentData['responseSummary'] = $responseSummary;
 			}
 			$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
 			$appointmentData['myPermissions'] = $myPermissions;

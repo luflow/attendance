@@ -36,9 +36,6 @@ export function useAppointmentCard(appointmentSource) {
 	const myPermissions = computed(() => appointment.value.myPermissions || {})
 	const canManage = computed(() => permissions.canManageAppointments || myPermissions.value.canEdit === true)
 	const canSeeResponses = computed(() => permissions.canSeeResponseOverview || myPermissions.value.canSeeResponses === true)
-	const canSeeResponseCounts = computed(() => canSeeResponses.value
-		|| permissions.canSeeResponseCounts
-		|| myPermissions.value.canSeeResponseCounts === true)
 	const canSeeComments = computed(() => permissions.canSeeComments || myPermissions.value.canSeeComments === true)
 	const canSeeAuditLog = computed(() => capabilities.auditLog
 		&& (myPermissions.value.canSeeAuditLog === true
@@ -59,7 +56,6 @@ export function useAppointmentCard(appointmentSource) {
 		userResponse,
 		canManage,
 		canSeeResponses,
-		canSeeResponseCounts,
 		canSeeComments,
 		canSeeAuditLog,
 		titleText,
