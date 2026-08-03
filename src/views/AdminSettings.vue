@@ -126,6 +126,22 @@
 				</div>
 
 				<div class="subsection">
+					<h4>{{ t('attendance', 'See response counts') }}</h4>
+					<p class="subsection-hint">
+						{{ t('attendance', 'Groups that can see how many people answered yes, no or maybe — without any names. If no group is selected, everyone can see the counts. Groups with the full summary above always see the counts.') }}
+					</p>
+					<GroupSelect
+						v-model="selectedSeeResponseCountsRoles"
+						:options="availableGroups"
+						:placeholder="t('attendance', 'Select groups …')"
+						:disabled="loading"
+						data-test="select-see-response-counts-roles" />
+					<p class="hint-text">
+						{{ n('attendance', '%n group selected', '%n groups selected', selectedSeeResponseCountsRoles.length, { n: selectedSeeResponseCountsRoles.length }) }}
+					</p>
+				</div>
+
+				<div class="subsection">
 					<h4>{{ t('attendance', 'See comments') }}</h4>
 					<p class="subsection-hint">
 						{{ t('attendance', 'Groups that can see comments in the response overview') }}
@@ -723,6 +739,7 @@ const selectedManageAppointmentsRoles = ref([])
 const selectedCreateAppointmentsRoles = ref([])
 const selectedCheckinRoles = ref([])
 const selectedSeeResponseOverviewRoles = ref([])
+const selectedSeeResponseCountsRoles = ref([])
 const selectedSeeCommentsRoles = ref([])
 const selectedRespondForOthersRoles = ref([])
 const selectedSelfCheckinRoles = ref([])
@@ -869,6 +886,9 @@ async function loadSettings() {
 			selectedSeeResponseOverviewRoles.value = (config.permissions.see_response_overview || [])
 				.map((id) => groups.find((group) => group.id === id))
 				.filter((group) => group !== undefined)
+			selectedSeeResponseCountsRoles.value = (config.permissions.see_response_counts || [])
+				.map((id) => groups.find((group) => group.id === id))
+				.filter((group) => group !== undefined)
 			selectedSeeCommentsRoles.value = (config.permissions.see_comments || [])
 				.map((id) => groups.find((group) => group.id === id))
 				.filter((group) => group !== undefined)
@@ -983,6 +1003,7 @@ async function saveSettings() {
 					PERMISSION_MANAGE_APPOINTMENTS: selectedManageAppointmentsRoles.value.map((g) => g.id),
 					PERMISSION_CHECKIN: selectedCheckinRoles.value.map((g) => g.id),
 					PERMISSION_SEE_RESPONSE_OVERVIEW: selectedSeeResponseOverviewRoles.value.map((g) => g.id),
+					PERMISSION_SEE_RESPONSE_COUNTS: selectedSeeResponseCountsRoles.value.map((g) => g.id),
 					PERMISSION_SEE_COMMENTS: selectedSeeCommentsRoles.value.map((g) => g.id),
 					PERMISSION_SELF_CHECKIN: selectedSelfCheckinRoles.value.map((g) => g.id),
 					PERMISSION_CREATE_APPOINTMENTS: selectedCreateAppointmentsRoles.value.map((g) => g.id),

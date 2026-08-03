@@ -87,6 +87,48 @@ class ResponseSummaryService {
 	}
 
 	/**
+	 * Aggregate yes/no/maybe counts only, in the summary's shape but with the
+	 * per-person sections empty. Safe for holders of the counts permission —
+	 * it must never carry names, timestamps or comments.
+	 *
+	 * Deliberately not built by stripping the full summary: this runs per
+	 * appointment on the list endpoint for a permission that is open by
+	 * default, so it tallies straight over the responses and the relevant
+	 * users — the same shape (and non-responder semantics) as the check-in
+	 * summary.
+	 */
+	public function getResponseCounts(int $appointmentId): array {
+		$appointment = $this->appointmentMapper->find($appointmentId);
+		/** @var list<\OCA\Attendance\Db\AttendanceResponse> $responses */
+		$responses = $this->responseMapper->findByAppointment($appointmentId);
+
+		$counts = $this->initializeSummary();
+		/** @var array<string, true> $respondedUserIds */
+		$respondedUserIds = [];
+		foreach ($responses as $response) {
+			$value = $response->getResponse();
+			if (!in_array($value, ['yes', 'no', 'maybe'], true)
+				|| !$this->visibilityService->isUserTargetAttendee($appointment, $response->getUserId())) {
+				continue;
+			}
+			$counts[$value]++;
+			$respondedUserIds[$response->getUserId()] = true;
+		}
+
+		$whitelistedGroups = $this->configService->getWhitelistedGroups();
+		$relevantUsers = $this->visibilityService->getRelevantUsersForAppointment($appointment, $whitelistedGroups);
+		foreach ($relevantUsers as $user) {
+			$userId = $user->getUID();
+			if (!isset($respondedUserIds[$userId])
+				&& $this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
+				$counts['no_response']++;
+			}
+		}
+
+		return $counts;
+	}
+
+	/**
 	 * Build cache of users, groups, teams, and settings to avoid N+1 queries.
 	 *
 	 * Optimized to only load relevant users based on appointment visibility

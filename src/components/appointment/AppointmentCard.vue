@@ -114,17 +114,20 @@
 			</div>
 		</div>
 
-		<!-- Check-in summary (only when check-ins exist and the viewer may see them) -->
+		<!-- Check-in summary — data-driven: the server only attaches it to
+			viewers who may see at least the aggregate numbers. -->
 		<div
-			v-if="canSeeResponses && appointment.checkinSummary?.hasCheckins"
+			v-if="appointment.checkinSummary?.hasCheckins"
 			class="card-section"
 			data-test="checkin-summary">
 			<h4>{{ t("attendance", "Check-in summary") }}</h4>
 			<ResponseBar :segments="checkinSegments" />
 		</div>
 
+		<!-- Data-driven: counts-only viewers get a payload with empty sections,
+			so this renders as just the heading and the bar for them. -->
 		<ResponseSummary
-			v-if="canSeeResponses && appointment.responseSummary"
+			v-if="appointment.responseSummary"
 			:responseSummary="appointment.responseSummary"
 			:canSeeComments="canSeeComments"
 			:canManageAppointments="canManage"
@@ -185,7 +188,6 @@ const {
 	acceptsResponses,
 	userResponse,
 	canManage,
-	canSeeResponses,
 	canSeeComments,
 	canSeeAuditLog,
 	titleText,

@@ -261,4 +261,60 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->assertSame('Secret personal reason', $fullResponse['comment']);
 		$this->assertSame('Secret checkin note', $fullResponse['checkinComment']);
 	}
+
+	/**
+	 * The counts-only summary is sent to users holding only the counts
+	 * permission — it must carry the aggregate numbers and nothing that could
+	 * identify a responder.
+	 */
+	public function testGetResponseCountsCarriesOnlyAggregateNumbers(): void {
+		$appointmentId = 5;
+		$appointment = new Appointment();
+		$appointment->setId($appointmentId);
+		$appointment->setVisibleUsers('[]');
+		$appointment->setVisibleGroups('[]');
+		$appointment->setVisibleTeams('[]');
+
+		$response = new AttendanceResponse();
+		$response->setId(1);
+		$response->setAppointmentId($appointmentId);
+		$response->setUserId('alice');
+		$response->setResponse('yes');
+		$response->setComment('Secret personal reason');
+
+		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
+		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
+
+		$this->configService->method('getWhitelistedGroups')->willReturn([]);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+
+		$alice = $this->createMock(IUser::class);
+		$alice->method('getUID')->willReturn('alice');
+		$alice->method('getDisplayName')->willReturn('Alice');
+		$bob = $this->createMock(IUser::class);
+		$bob->method('getUID')->willReturn('bob');
+		$bob->method('getDisplayName')->willReturn('Bob');
+
+		// Bob never answered → counted as no_response.
+		$this->visibilityService->method('getRelevantUsersForAppointment')
+			->willReturn(['alice' => $alice, 'bob' => $bob]);
+
+		$counts = $this->service->getResponseCounts($appointmentId);
+
+		$this->assertSame(1, $counts['yes']);
+		$this->assertSame(0, $counts['no']);
+		$this->assertSame(0, $counts['maybe']);
+		$this->assertSame(1, $counts['no_response']);
+		$this->assertSame([], $counts['by_group']);
+		$this->assertSame([], $counts['by_team']);
+		$this->assertSame([], $counts['others']['responses']);
+		$this->assertSame([], $counts['others']['non_responding_users']);
+
+		// Nothing in the payload may identify a responder.
+		$encoded = json_encode($counts);
+		$this->assertStringNotContainsString('alice', $encoded);
+		$this->assertStringNotContainsString('Alice', $encoded);
+		$this->assertStringNotContainsString('bob', $encoded);
+		$this->assertStringNotContainsString('Secret', $encoded);
+	}
 }
