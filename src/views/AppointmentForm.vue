@@ -743,7 +743,6 @@ function resolveDeadlineFor(occurrenceStartLocal) {
 		if (isNaN(start.getTime())) return null
 		return new Date(start.getTime() - deadlineRelativeOffsetMs.value)
 	}
-	// absolute
 	if (!deadlineAbsolute.value) return null
 	const abs = new Date(deadlineAbsolute.value)
 	if (isNaN(abs.getTime())) return null

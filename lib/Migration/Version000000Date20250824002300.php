@@ -21,7 +21,6 @@ class Version000000Date20250824002300 extends SimpleMigrationStep {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
 
-		// Create appointments table
 		if (!$schema->hasTable('att_appointments')) {
 			$table = $schema->createTable('att_appointments');
 			$table->addColumn('id', 'integer', [
@@ -63,7 +62,6 @@ class Version000000Date20250824002300 extends SimpleMigrationStep {
 			$table->addIndex(['is_active'], 'att_appt_active');
 		}
 
-		// Create attendance responses table
 		if (!$schema->hasTable('att_responses')) {
 			$table = $schema->createTable('att_responses');
 			$table->addColumn('id', 'integer', [

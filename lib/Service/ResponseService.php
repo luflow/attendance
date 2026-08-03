@@ -71,7 +71,6 @@ class ResponseService {
 		string $comment = '',
 		string $source = self::SOURCE_APP,
 	): AttendanceResponse {
-		// Validate response
 		if (!in_array($response, ['yes', 'no', 'maybe'])) {
 			throw new \InvalidArgumentException('Invalid response. Must be yes, no, or maybe.');
 		}

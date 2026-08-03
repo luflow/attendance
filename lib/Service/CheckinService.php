@@ -88,7 +88,6 @@ class CheckinService {
 		$attendanceResponse->setCheckinAt(gmdate('Y-m-d H:i:s'));
 		$attendanceResponse->setCheckinSource('manual');
 
-		// Save or update
 		$saved = $attendanceResponse->getId()
 			? $this->responseMapper->update($attendanceResponse)
 			: $this->responseMapper->insert($attendanceResponse);
@@ -139,7 +138,6 @@ class CheckinService {
 		// Build group list for filtering UI
 		$userGroups = $this->buildGroupList($whitelistedGroups);
 
-		// Build unified user list
 		$users = $this->buildUserList($appointment, $relevantUsers, $userResponseMap, $whitelistedGroups);
 
 		return [

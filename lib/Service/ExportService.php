@@ -115,7 +115,6 @@ class ExportService {
 			return strcmp($a['displayName'], $b['displayName']);
 		});
 
-		// Generate ODS content
 		$odsContent = $this->generateOdsContent($appointments, $users, $appointmentResponses, $includeComments);
 
 		// Create the Attendance folder
@@ -198,16 +197,13 @@ class ExportService {
 		$zip->addFromString('mimetype', 'application/vnd.oasis.opendocument.spreadsheet');
 		$zip->setCompressionName('mimetype', \ZipArchive::CM_STORE);
 
-		// Add META-INF/manifest.xml
 		$zip->addFromString('META-INF/manifest.xml', $this->getManifestXml());
 
 		// Add content.xml with the table
 		$zip->addFromString('content.xml', $this->getContentXml($appointments, $users, $appointmentResponses, $includeComments));
 
-		// Add styles.xml
 		$zip->addFromString('styles.xml', $this->getStylesXml());
 
-		// Add meta.xml
 		$zip->addFromString('meta.xml', $this->getMetaXml());
 
 		$zip->close();

@@ -63,7 +63,6 @@ class ResponseSummaryService {
 		$summary = $this->initializeSummary();
 		$respondedUserIds = [];
 
-		// Process each response
 		foreach ($responses as $response) {
 			$this->processResponse($appointment, $response, $summary, $respondedUserIds, $cache, $includeComments);
 		}
@@ -81,7 +80,6 @@ class ResponseSummaryService {
 		$summary['by_group'] = $this->filterEmptyGroups($summary['by_group']);
 		$summary['by_team'] = $this->filterEmptyGroups($summary['by_team']);
 
-		// Sort groups and teams
 		$summary['by_group'] = $this->sortGroups($summary['by_group'], $cache['whitelistedGroups']);
 		$summary['by_team'] = $this->sortTeams($summary['by_team'], $cache['whitelistedTeams']);
 
@@ -103,7 +101,6 @@ class ResponseSummaryService {
 		// Cache whitelisted teams
 		$whitelistedTeams = $this->configService->getWhitelistedTeams();
 
-		// Cache appointment visibility restrictions
 		$visibilitySettings = $this->visibilityService->getVisibilitySettings($appointment);
 		$appointmentHasRestrictions = $this->visibilityService->hasRestrictedVisibility($appointment);
 		$appointmentVisibleUsers = $visibilitySettings['users'];

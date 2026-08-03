@@ -65,7 +65,6 @@ try {
 	console.debug('display-order not available, defaulting to name_first')
 }
 
-// State
 const appointments = ref(initialAppointments)
 const state = ref(initialState)
 const displayOrder = ref(displayOrderState)
@@ -75,7 +74,6 @@ const { permissions, loadPermissions } = usePermissions()
 // Use the shared response composable
 const { submitResponse: submitResponseApi } = useAppointmentResponse()
 
-// Computed
 const items = computed(() => {
 	return appointments.value.map((appointment) => ({
 		id: appointment.id,

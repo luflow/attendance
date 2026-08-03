@@ -1537,7 +1537,6 @@ class AppointmentService {
 	 * @return array The enriched appointment data
 	 */
 	public function enrichVisibilityData(array $appointmentData): array {
-		// Enrich visible users
 		$enrichedUsers = [];
 		foreach ($appointmentData['visibleUsers'] ?? [] as $userId) {
 			$enrichedUsers[] = $this->enrichUserRef($userId)
@@ -1545,7 +1544,6 @@ class AppointmentService {
 		}
 		$appointmentData['visibleUsers'] = $enrichedUsers;
 
-		// Enrich visible groups
 		$enrichedGroups = [];
 		foreach ($appointmentData['visibleGroups'] ?? [] as $groupId) {
 			$group = $this->groupManager->get($groupId);
@@ -1557,7 +1555,6 @@ class AppointmentService {
 		}
 		$appointmentData['visibleGroups'] = $enrichedGroups;
 
-		// Enrich visible teams
 		$enrichedTeams = [];
 		foreach ($appointmentData['visibleTeams'] ?? [] as $teamId) {
 			$teamInfo = $this->visibilityService->getTeamInfo($teamId);
@@ -1569,7 +1566,6 @@ class AppointmentService {
 		}
 		$appointmentData['visibleTeams'] = $enrichedTeams;
 
-		// Enrich organizers
 		$appointmentData['organizers'] = array_map(
 			fn (string $userId) => $this->enrichUserRef($userId),
 			$appointmentData['organizers'] ?? [],

@@ -270,7 +270,6 @@ class QuickResponseController extends Controller {
 			];
 		}
 
-		// Verify token
 		if (!$this->tokenService->verifyToken($token, $userId, $appointmentId, $response)) {
 			return [
 				'error' => true,
