@@ -47,13 +47,6 @@ import { useAppointmentResponse } from '../composables/useAppointmentResponse.js
 import { usePermissions } from '../composables/usePermissions.js'
 import { canCheckinNow } from '../utils/datetime.js'
 
-defineProps({
-	title: {
-		type: String,
-		required: true,
-	},
-})
-
 // Load initial state
 let initialAppointments = []
 let initialState = 'ok'

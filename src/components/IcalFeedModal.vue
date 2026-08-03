@@ -180,7 +180,7 @@ async function handleRegenerate() {
 }
 
 .last-used-label {
-	margin-right: 4px;
+	margin-inline-end: 4px;
 }
 
 .quick-subscribe-section {

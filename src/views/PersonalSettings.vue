@@ -269,7 +269,7 @@ onMounted(() => {
 }
 
 .last-used-label {
-	margin-right: 4px;
+	margin-inline-end: 4px;
 }
 
 .security-warning {

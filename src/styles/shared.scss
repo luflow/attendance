@@ -1,13 +1,13 @@
 @use 'sass:color';
 
 // Signal colours for the yes / maybe / no scale.
-//
+
 // Nextcloud's --color-success / --color-warning / --color-error are *surface*
 // tokens, not signal colours: in the dark theme they resolve to near-black
 // tints (#11321A, #3D3010, #552121), which turns an 8px summary bar into three
 // shades of grey. The scale needs saturated hues that survive both themes, so
 // it gets its own values — the ones the design handoff specifies.
-//
+
 // SCSS variables rather than custom properties on :root: this file is @use'd
 // from scoped style blocks, where Vue would rewrite `:root` to
 // `:root[data-v-…]` and the declarations would never apply.
