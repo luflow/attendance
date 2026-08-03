@@ -24,6 +24,9 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 	const OTHER = 'Organizer Visibility B'
 
 	test.beforeAll(async ({ request }) => {
+		// A retry re-runs this hook in a fresh worker; stale A/B copies from
+		// the failed attempt would break the strict-mode card locators.
+		await deleteAllAppointments(request)
 		// Every response-visibility tier is admin-only; test3's only grant is
 		// being organizer of appointment A.
 		await saveAdminSettings(request, {
@@ -91,8 +94,9 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 		await attendanceApp()
 		await page.waitForLoadState('networkidle')
 
+		// No bar on B means no "Show details" link either — go via the title.
 		const otherCard = page.locator('[data-test="appointment-card"]', { hasText: OTHER })
-		await otherCard.locator('[data-test="button-show-details"]').click()
+		await otherCard.locator('[data-test="appointment-title-link"]').click()
 		await page.waitForLoadState('networkidle')
 
 		await expect(page.locator('[data-test="response-summary"]')).toHaveCount(0)
@@ -108,7 +112,8 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 		await expect(organizedCard).toBeVisible()
 		await expect(page.locator('[data-test="response-bar"]')).toHaveCount(0)
 
-		await organizedCard.locator('[data-test="button-show-details"]').click()
+		// No bar for this user, hence no "Show details" link — via the title.
+		await organizedCard.locator('[data-test="appointment-title-link"]').click()
 		await page.waitForLoadState('networkidle')
 		await expect(page.locator('[data-test="response-summary"]')).toHaveCount(0)
 	})
