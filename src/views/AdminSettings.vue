@@ -32,9 +32,11 @@
 						:title="row.title"
 						:hint="row.hint"
 						:implication="row.implication"
+						:implicationLink="row.implicationLink"
 						:warningWhenAll="row.warningWhenAll"
 						:options="availableGroups"
 						:dataTest="`permission-${row.name}`"
+						@navigate="scrollToSection"
 						@update:modelValue="onPermissionChange(row.name, $event)" />
 				</div>
 			</NcSettingsSection>
@@ -91,6 +93,13 @@
 			<NcSettingsSection id="self-checkin"
 				:name="t('attendance', 'Self-check-in')"
 				:description="t('attendance', 'Attendees check themselves in via QR code or NFC tag. One code works for all appointments — the app matches by time.')">
+				<NcNoteCard type="info">
+					<p>
+						{{ t('attendance', 'Self-check-in only works with the Attendance mobile app.') }}
+						<a class="text-link" href="#mobile-apps" @click.prevent="scrollToSection('mobile-apps')">{{ t('attendance', 'Go to the mobile apps section.') }}</a>
+					</p>
+				</NcNoteCard>
+
 				<!-- Wrapper div: scoped attrs don't reach the NcInputField root,
 				     so the spacing lives on an own template element. -->
 				<div class="self-checkin-window-field">
@@ -138,7 +147,7 @@
 						{{ t('attendance', 'NFC tag shopping advice: use NXP NTAG213 tags (or newer) of at least 25 mm, and on-metal tags for metal surfaces. Avoid MIFARE Classic tags — they do not work with iPhones.') }}
 					</p>
 					<p class="hint-text">
-						<a class="self-checkin-qr__app-link" href="#mobile-apps" @click.prevent="scrollToSection('mobile-apps')">
+						<a class="text-link" href="#mobile-apps" @click.prevent="scrollToSection('mobile-apps')">
 							{{ t('attendance', 'You can also write NFC tags directly with the Attendance mobile app.') }}
 						</a>
 					</p>
@@ -268,7 +277,7 @@
 
 			<NcSettingsSection id="calendar-sync"
 				:name="t('attendance', 'Calendar sync')"
-				:description="t('attendance', 'Automatically update attendance appointments when their linked calendar events are modified.')">
+				:description="t('attendance', 'Keep appointments that were imported from a calendar in sync with their calendar event.')">
 				<NcCheckboxRadioSwitch
 					v-model="calendarSyncEnabled"
 					type="switch"
@@ -276,7 +285,7 @@
 					{{ t('attendance', 'Enable automatic calendar sync') }}
 				</NcCheckboxRadioSwitch>
 				<p class="hint-text">
-					{{ t('attendance', 'When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time).') }}
+					{{ t('attendance', 'This only affects appointments created with Import from calendar. When the calendar event changes, its title, description and date are updated on the appointment.') }}
 				</p>
 			</NcSettingsSection>
 
@@ -320,7 +329,8 @@
 						</p>
 						<NcButton
 							v-if="selectedOrgCalendar"
-							variant="tertiary"
+							class="org-calendar-sync-button"
+							variant="secondary"
 							:disabled="syncingOrgCalendar"
 							data-test="button-sync-org-calendar"
 							@click="syncOrgCalendar">
@@ -624,13 +634,13 @@ const permissionGroups = [
 		rows: [
 			{
 				name: 'manage_appointments',
-				title: t('attendance', 'Manage appointments'),
+				title: t('attendance', 'May manage appointments'),
 				hint: t('attendance', 'Create, edit and delete any appointment and manage its responses.'),
 				warningWhenAll: t('attendance', 'Every user can create, edit and delete all appointments.'),
 			},
 			{
 				name: 'create_appointments',
-				title: t('attendance', 'Create own appointments'),
+				title: t('attendance', 'May create own appointments'),
 				hint: t('attendance', 'Create appointments and manage them as organizer.'),
 				implication: t('attendance', 'Users who can manage appointments can always create appointments.'),
 			},
@@ -642,24 +652,24 @@ const permissionGroups = [
 		rows: [
 			{
 				name: 'see_response_overview',
-				title: t('attendance', 'See response & check-in summary'),
-				hint: t('attendance', 'See the full response and check-in summary, including names.'),
+				title: t('attendance', 'May see detailed response & check-in summary'),
+				hint: t('attendance', 'See the detailed summary including names — who answered what and who checked in.'),
 				implication: t('attendance', 'Organizers always see the summary of their own appointments.'),
 			},
 			{
 				name: 'see_response_counts',
-				title: t('attendance', 'See response counts'),
+				title: t('attendance', 'May see response counts'),
 				hint: t('attendance', 'See how many people answered yes, no or maybe — without any names.'),
-				implication: t('attendance', 'Users who see the full summary always see the counts.'),
+				implication: t('attendance', 'Users who see the detailed summary always see the counts.'),
 			},
 			{
 				name: 'see_comments',
-				title: t('attendance', 'See comments'),
+				title: t('attendance', 'May see comments'),
 				hint: t('attendance', 'See comments in the response overview.'),
 			},
 			{
 				name: 'respond_for_others',
-				title: t('attendance', 'Set responses for other users'),
+				title: t('attendance', 'May set responses for other users'),
 				hint: t('attendance', 'Record or clear an answer on behalf of another person.'),
 				implication: t('attendance', 'Not granted automatically to users who can manage appointments.'),
 			},
@@ -671,14 +681,15 @@ const permissionGroups = [
 		rows: [
 			{
 				name: 'checkin',
-				title: t('attendance', 'Check-in access'),
+				title: t('attendance', 'May check in attendees'),
 				hint: t('attendance', 'Access the check-in interface and check in attendees.'),
 			},
 			{
 				name: 'self_checkin',
-				title: t('attendance', 'Self-check-in'),
+				title: t('attendance', 'May check in themselves'),
 				hint: t('attendance', 'Check in themselves via QR code, NFC tag or deep link.'),
-				implication: t('attendance', 'Set up QR codes and NFC tags in the Self-check-in section.'),
+				implication: t('attendance', 'QR codes and NFC tags can be set up in the {section} section.'),
+				implicationLink: { label: t('attendance', 'Self-check-in'), sectionId: 'self-checkin' },
 			},
 		],
 	},
@@ -752,7 +763,11 @@ const guestsAppStoreUrl = 'https://apps.nextcloud.com/apps/guests'
 const guestsWhitelistOccCommand = 'occ config:app:set guests whitelist --value=$(occ config:app:get guests whitelist),attendance'
 
 const reminderSectionDescription = computed(() => {
-	return t('attendance', 'Reminders are sent to users in the groups configured under "Response summary groups" and "Response summary teams". If an appointment has restricted access, only users matching that restriction will be reminded.')
+	// TRANSLATORS: {groupsSection} and {teamsSection} are replaced with the translated headings of two settings sections on this page ("Response summary groups" and "Response summary teams") — translate those headings identically so admins find the sections referenced here.
+	return t('attendance', 'Reminders are sent to users in the groups and teams configured under {groupsSection} and {teamsSection}. If an appointment has restricted access, only users matching that restriction will be reminded.', {
+		groupsSection: t('attendance', 'Response summary groups'),
+		teamsSection: t('attendance', 'Response summary teams'),
+	})
 })
 
 const reminderPreviewDates = computed(() => {
@@ -1240,11 +1255,15 @@ onMounted(async () => {
 	font-weight: 600;
 }
 
+.org-calendar-sync-button {
+	margin-top: 12px;
+}
+
 .self-checkin-window-field {
 	max-width: 400px;
 	/* The floating label sits above the input border, so it needs extra
-	   room to not collide with the section description above. */
-	margin-top: 12px;
+	   room to not collide with the note card above. */
+	margin-top: 24px;
 }
 
 .self-checkin-qr {
@@ -1270,11 +1289,11 @@ onMounted(async () => {
 		flex-wrap: wrap;
 		margin: 8px 0;
 	}
+}
 
-	.self-checkin-qr__app-link {
-		color: var(--color-primary-element);
-		text-decoration: underline;
-	}
+.text-link {
+	color: var(--color-primary-element);
+	text-decoration: underline;
 }
 
 .subsection-hint {

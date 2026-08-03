@@ -37,13 +37,20 @@
 		</p>
 		<p v-if="implication" class="permission-row__note">
 			<InformationIcon :size="16" />
-			{{ implication }}
+			<span v-if="implicationLink">
+				{{ implicationParts[0]
+				}}<a class="permission-row__link"
+					:href="`#${implicationLink.sectionId}`"
+					@click.prevent="$emit('navigate', implicationLink.sectionId)">{{ implicationLink.label }}</a>{{ implicationParts[1] }}
+			</span>
+			<span v-else>{{ implication }}</span>
 		</p>
 	</div>
 </template>
 
 <script setup>
 import { NcCheckboxRadioSwitch } from '@nextcloud/vue'
+import { computed } from 'vue'
 import AlertIcon from 'vue-material-design-icons/Alert.vue'
 import InformationIcon from 'vue-material-design-icons/InformationOutline.vue'
 import GroupSelect from '../common/GroupSelect.vue'
@@ -71,6 +78,11 @@ const props = defineProps({
 		type: String,
 		default: '',
 	},
+	/** Turns the `{section}` placeholder of the implication into a link: { label, sectionId } */
+	implicationLink: {
+		type: Object,
+		default: null,
+	},
 	/** Warning note shown while the "all users" mode is selected */
 	warningWhenAll: {
 		type: String,
@@ -82,7 +94,9 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'navigate'])
+
+const implicationParts = computed(() => props.implication.split('{section}'))
 
 const MODES = [
 	{ value: 'all', label: t('attendance', 'All users') },
@@ -136,6 +150,11 @@ function setGroups(groups) {
 	margin-top: 8px;
 	color: var(--color-text-maxcontrast);
 	font-size: 13px;
+}
+
+.permission-row__link {
+	color: var(--color-primary-element);
+	text-decoration: underline;
 }
 
 .permission-row__note--warning {
