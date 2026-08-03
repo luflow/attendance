@@ -28,8 +28,8 @@ test.describe('Attendance App - Create appointment permission (sequential)', () 
 			whitelistedTeams: [],
 			permissions: {
 				...PERMISSIVE_PERMISSIONS,
-				manage_appointments: ['admin'],
-				create_appointments: ['creators'],
+				manage_appointments: { mode: 'groups', groups: ['admin'] },
+				create_appointments: { mode: 'groups', groups: ['creators'] },
 			},
 			reminders: { enabled: false },
 		})

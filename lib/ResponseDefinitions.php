@@ -140,7 +140,8 @@ namespace OCA\Attendance;
  * }
  * @psalm-type AttendanceGroupOption = array{id: string, displayName: string}
  * @psalm-type AttendanceTeamOption = array{id: string, displayName: string}
- * @psalm-type AttendancePermissionSettings = array<string, list<string>>
+ * @psalm-type AttendancePermissionSetting = array{mode: string, groups: list<string>}
+ * @psalm-type AttendancePermissionSettings = array<string, AttendancePermissionSetting>
  * @psalm-type AttendanceUserPermissions = array{
  *   canManageAppointments: bool,
  *   canCreateAppointments: bool,

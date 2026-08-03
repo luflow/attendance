@@ -107,11 +107,6 @@
       <code><![CDATA[(int)$reminders['reminderDays']]]></code>
       <code><![CDATA[(int)$reminders['reminderFrequency']]]></code>
     </RedundantCastGivenDocblockType>
-    <RedundantCondition>
-      <code><![CDATA[is_array($permissions)]]></code>
-      <code><![CDATA[isset($permissions)]]></code>
-      <code><![CDATA[isset($permissions) && is_array($permissions)]]></code>
-    </RedundantCondition>
     <RedundantConditionGivenDocblockType>
       <code><![CDATA[is_string($audit['visibility'])]]></code>
       <code><![CDATA[isset($audit['visibility']) && is_string($audit['visibility'])]]></code>
@@ -1095,6 +1090,18 @@
       <code><![CDATA[Version000017Date20260724120000]]></code>
     </UnusedClass>
   </file>
+  <file src="lib/Migration/Version000018Date20260803120000.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[Version000018Date20260803120000]]></code>
+    </ClassMustBeFinal>
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {]]></code>
+      <code><![CDATA[public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[Version000018Date20260803120000]]></code>
+    </UnusedClass>
+  </file>
   <file src="lib/Notification/Notifier.php">
     <ClassMustBeFinal>
       <code><![CDATA[Notifier]]></code>
@@ -1553,10 +1560,8 @@
       <code><![CDATA[getAppValue]]></code>
       <code><![CDATA[getAppValue]]></code>
       <code><![CDATA[getAppValue]]></code>
-      <code><![CDATA[getAppValue]]></code>
       <code><![CDATA[getUserValue]]></code>
       <code><![CDATA[getUserValue]]></code>
-      <code><![CDATA[setAppValue]]></code>
       <code><![CDATA[setAppValue]]></code>
       <code><![CDATA[setAppValue]]></code>
       <code><![CDATA[setAppValue]]></code>
@@ -1581,26 +1586,21 @@
     <MixedReturnStatement>
       <code><![CDATA[json_decode($groupsJson, true) ?: []]]></code>
       <code><![CDATA[json_decode($groupsJson, true) ?: []]]></code>
-      <code><![CDATA[json_decode($rolesJson, true) ?: []]]></code>
-      <code><![CDATA[json_decode($rolesJson, true) ?: []]]></code>
       <code><![CDATA[json_decode($teamsJson, true) ?: []]]></code>
       <code><![CDATA[json_decode($teamsJson, true) ?: []]]></code>
     </MixedReturnStatement>
     <PossiblyFalseArgument>
       <code><![CDATA[json_encode($filtered)]]></code>
       <code><![CDATA[json_encode($groups)]]></code>
-      <code><![CDATA[json_encode($roles)]]></code>
       <code><![CDATA[json_encode($teams)]]></code>
     </PossiblyFalseArgument>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
-      <code><![CDATA[getPermissionRoles]]></code>
       <code><![CDATA[getPushProxyServer]]></code>
       <code><![CDATA[getReminderSettings]]></code>
       <code><![CDATA[isGroupAllowed]]></code>
       <code><![CDATA[isMobileAppBannerEnabled]]></code>
       <code><![CDATA[isPushEnabled]]></code>
-      <code><![CDATA[setPermissionRoles]]></code>
       <code><![CDATA[setPushProxyServer]]></code>
       <code><![CDATA[setReminderSettings]]></code>
     </PossiblyUnusedMethod>
@@ -1892,9 +1892,6 @@
     </RedundantCastGivenDocblockType>
   </file>
   <file src="lib/Service/PermissionService.php">
-    <ArgumentTypeCoercion>
-      <code><![CDATA[$allowedRoles]]></code>
-    </ArgumentTypeCoercion>
     <ClassMustBeFinal>
       <code><![CDATA[PermissionService]]></code>
     </ClassMustBeFinal>
@@ -1903,23 +1900,6 @@
       <code><![CDATA[search]]></code>
       <code><![CDATA[setAppValue]]></code>
     </DeprecatedMethod>
-    <MixedArgument>
-      <code><![CDATA[$roles]]></code>
-    </MixedArgument>
-    <MixedArgumentTypeCoercion>
-      <code><![CDATA[$permissionValue]]></code>
-    </MixedArgumentTypeCoercion>
-    <MixedAssignment>
-      <code><![CDATA[$roles]]></code>
-      <code><![CDATA[$roles]]></code>
-    </MixedAssignment>
-    <MixedReturnStatement>
-      <code><![CDATA[$roles]]></code>
-      <code><![CDATA[$roles]]></code>
-    </MixedReturnStatement>
-    <PossiblyFalseArgument>
-      <code><![CDATA[json_encode($roles)]]></code>
-    </PossiblyFalseArgument>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
       <code><![CDATA[canRespondForOthers]]></code>

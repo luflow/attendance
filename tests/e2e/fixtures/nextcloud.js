@@ -283,11 +283,9 @@ export async function respondToAppointmentViaAPI(request, appointmentId, {
  * Cancel an appointment via the REST API (event will not take place)
  */
 export async function cancelAppointmentViaAPI(request, id, { username = 'admin', password = 'admin' } = {}) {
-	const resp = await resilientJson(() =>
-		request.post(`${API_BASE}/apps/attendance/api/appointments/${id}/cancel`, {
-			headers: authHeaders(username, password),
-		}),
-	)
+	const resp = await resilientJson(() => request.post(`${API_BASE}/apps/attendance/api/appointments/${id}/cancel`, {
+		headers: authHeaders(username, password),
+	}))
 	return resp.json()
 }
 
@@ -302,12 +300,10 @@ export async function updateAppointmentViaAPI(request, id, {
 	username = 'admin',
 	password = 'admin',
 } = {}) {
-	const resp = await resilientJson(() =>
-		request.put(`${API_BASE}/apps/attendance/api/appointments/${id}`, {
-			headers: authHeaders(username, password),
-			data: { name, description, startDatetime, endDatetime },
-		}),
-	)
+	const resp = await resilientJson(() => request.put(`${API_BASE}/apps/attendance/api/appointments/${id}`, {
+		headers: authHeaders(username, password),
+		data: { name, description, startDatetime, endDatetime },
+	}))
 	return resp.json()
 }
 
@@ -365,31 +361,31 @@ export async function saveAdminSettings(request, settings = {}) {
  * Returns { status, body }.
  */
 export async function syncOrgCalendarViaAPI(request) {
-	const resp = await resilientJson(() =>
-		request.post(`${API_BASE}/apps/attendance/api/admin/org-calendar/sync`, {
-			headers: authHeaders('admin', 'admin'),
-		}),
-	)
+	const resp = await resilientJson(() => request.post(`${API_BASE}/apps/attendance/api/admin/org-calendar/sync`, {
+		headers: authHeaders('admin', 'admin'),
+	}))
 	return { status: resp.status(), body: await resp.json() }
 }
 
 /**
- * Every permission key at its permissive default. Specs that restrict
- * permissions should spread this and override only the keys they are
- * actually about.
+ * Every permission key at the default of a fresh install: open to all users,
+ * except the additive ones (create own / respond for others), which grant
+ * nobody. Specs that restrict permissions should spread this and override
+ * only the keys they are actually about.
  */
 export const PERMISSIVE_PERMISSIONS = Object.freeze({
-	manage_appointments: [],
-	checkin: [],
-	see_response_overview: [],
-	see_response_counts: [],
-	see_comments: [],
-	create_appointments: [],
-	respond_for_others: [],
+	manage_appointments: { mode: 'all', groups: [] },
+	checkin: { mode: 'all', groups: [] },
+	see_response_overview: { mode: 'all', groups: [] },
+	see_response_counts: { mode: 'all', groups: [] },
+	see_comments: { mode: 'all', groups: [] },
+	self_checkin: { mode: 'all', groups: [] },
+	create_appointments: { mode: 'nobody', groups: [] },
+	respond_for_others: { mode: 'nobody', groups: [] },
 })
 
 /**
- * Reset admin settings to permissive defaults
+ * Reset admin settings to the defaults of a fresh install
  */
 export async function resetAdminSettings(request) {
 	return saveAdminSettings(request, {
@@ -620,6 +616,36 @@ export function waitForRespond(page) {
 	return page.waitForResponse((response) => /\/appointments\/\d+\/respond$/.test(new URL(response.url()).pathname)
 		&& response.request().method() === 'POST'
 		&& response.ok())
+}
+
+/**
+ * Wait for the admin settings auto-save POST. The settings page has no save
+ * button — arm this before the change and await it after.
+ */
+export function waitForSettingsSave(page) {
+	return page.waitForResponse((response) => response.url().includes('/api/admin/settings')
+		&& response.request().method() === 'POST'
+		&& response.ok())
+}
+
+/**
+ * On the admin settings page: switch a permission row to "Specific groups"
+ * and pick a group. Resolves once the auto-save POST went through.
+ */
+export async function restrictPermissionToGroup(page, permission, groupName) {
+	const row = page.locator(`[data-test="permission-${permission}"]`)
+	await expect(row).toBeVisible()
+	await row.getByText('Specific groups', { exact: true }).click()
+
+	const select = page.locator(`[data-test="permission-${permission}-groups"]`)
+	await expect(select).toBeVisible()
+	await select.getByRole('combobox').click()
+	const option = page.getByRole('option', { name: groupName })
+	await option.waitFor({ state: 'visible' })
+
+	const saved = waitForSettingsSave(page)
+	await option.click()
+	await saved
 }
 
 /**

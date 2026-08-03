@@ -6,6 +6,7 @@ namespace OCA\Attendance\Tests\Unit\Service;
 
 use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\PermissionService;
+use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IGroup;
 use OCP\IGroupManager;
@@ -18,6 +19,9 @@ use PHPUnit\Framework\TestCase;
 class PermissionServiceTest extends TestCase {
 	/** @var IConfig|MockObject */
 	private $config;
+
+	/** @var IAppConfig|MockObject */
+	private $appConfig;
 
 	/** @var IGroupManager|MockObject */
 	private $groupManager;
@@ -35,6 +39,7 @@ class PermissionServiceTest extends TestCase {
 
 	protected function setUp(): void {
 		$this->config = $this->createMock(IConfig::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 		$this->userManager = $this->createMock(IUserManager::class);
@@ -42,6 +47,7 @@ class PermissionServiceTest extends TestCase {
 
 		$this->service = new PermissionService(
 			$this->config,
+			$this->appConfig,
 			$this->groupManager,
 			$this->userSession,
 			$this->userManager,
@@ -49,11 +55,31 @@ class PermissionServiceTest extends TestCase {
 		);
 	}
 
+	/**
+	 * Stub app config values by key: group lists live on IConfig, the
+	 * `*_mode` keys on IAppConfig. Unknown keys return their default, so
+	 * unset mode keys exercise the legacy fallback exactly like an
+	 * un-migrated install.
+	 */
+	private function configValues(array $values): void {
+		$this->config->method('getAppValue')
+			->willReturnCallback(
+				fn (string $app, string $key, string $default = '') => $values[$key] ?? $default,
+			);
+		$this->appConfig->method('getValueString')
+			->willReturnCallback(
+				fn (string $app, string $key, string $default = '') => $values[$key] ?? $default,
+			);
+	}
+
+	private function userInGroups(string $userId, array $groups): void {
+		$user = $this->createMock(IUser::class);
+		$this->userManager->method('get')->with($userId)->willReturn($user);
+		$this->groupManager->method('getUserGroupIds')->with($user)->willReturn($groups);
+	}
+
 	public function testGetRolesForPermission(): void {
-		$this->config->expects($this->once())
-			->method('getAppValue')
-			->with('attendance', 'permission_manage_appointments', '[]')
-			->willReturn('["admin","managers"]');
+		$this->configValues(['permission_manage_appointments' => '["admin","managers"]']);
 
 		$roles = $this->service->getRolesForPermission(PermissionService::PERMISSION_MANAGE_APPOINTMENTS);
 
@@ -61,10 +87,7 @@ class PermissionServiceTest extends TestCase {
 	}
 
 	public function testGetRolesForPermissionEmpty(): void {
-		$this->config->expects($this->once())
-			->method('getAppValue')
-			->with('attendance', 'permission_checkin', '[]')
-			->willReturn('[]');
+		$this->configValues([]);
 
 		$roles = $this->service->getRolesForPermission(PermissionService::PERMISSION_CHECKIN);
 
@@ -82,11 +105,85 @@ class PermissionServiceTest extends TestCase {
 		);
 	}
 
+	// --- modes ---
+
+	public function testModeAllGrantsWithoutGroupLookup(): void {
+		$this->configValues([
+			'permission_manage_appointments_mode' => 'all',
+			'permission_manage_appointments' => '["managers"]',
+		]);
+		$this->userManager->expects($this->never())->method('get');
+
+		$this->assertTrue($this->service->hasPermission('testuser', PermissionService::PERMISSION_MANAGE_APPOINTMENTS));
+	}
+
+	public function testModeNobodyDeniesEvenGroupMembers(): void {
+		$this->configValues([
+			'permission_checkin_mode' => 'nobody',
+			'permission_checkin' => '["staff"]',
+		]);
+		$this->userManager->expects($this->never())->method('get');
+
+		$this->assertFalse($this->service->hasPermission('testuser', PermissionService::PERMISSION_CHECKIN));
+	}
+
+	public function testModeGroupsWithEmptyListDeniesEveryone(): void {
+		$this->configValues(['permission_checkin_mode' => 'groups']);
+
+		$this->assertFalse($this->service->hasPermission('testuser', PermissionService::PERMISSION_CHECKIN));
+	}
+
+	public function testGetModeForPermissionExplicit(): void {
+		$this->configValues(['permission_checkin_mode' => 'nobody']);
+
+		$this->assertSame('nobody', $this->service->getModeForPermission(PermissionService::PERMISSION_CHECKIN));
+	}
+
+	public function testGetModeForPermissionLegacyFallbacks(): void {
+		$this->configValues(['permission_checkin' => '["staff"]']);
+
+		// Non-empty list → groups; empty + open → all; empty + additive → nobody
+		$this->assertSame('groups', $this->service->getModeForPermission(PermissionService::PERMISSION_CHECKIN));
+		$this->assertSame('all', $this->service->getModeForPermission(PermissionService::PERMISSION_MANAGE_APPOINTMENTS));
+		$this->assertSame('nobody', $this->service->getModeForPermission(PermissionService::PERMISSION_CREATE_APPOINTMENTS));
+		$this->assertSame('nobody', $this->service->getModeForPermission(PermissionService::PERMISSION_RESPOND_FOR_OTHERS));
+	}
+
+	public function testGetModeForPermissionInvalidStoredValueFallsBack(): void {
+		$this->configValues(['permission_checkin_mode' => 'bogus']);
+
+		$this->assertSame('all', $this->service->getModeForPermission(PermissionService::PERMISSION_CHECKIN));
+	}
+
+	public function testSetPermissionWritesModeAndGroups(): void {
+		$written = [];
+		$this->config->method('setAppValue')
+			->willReturnCallback(function (string $app, string $key, string $value) use (&$written): void {
+				$written[$key] = $value;
+			});
+		$this->appConfig->method('setValueString')
+			->willReturnCallback(function (string $app, string $key, string $value) use (&$written): bool {
+				$written[$key] = $value;
+				return true;
+			});
+
+		$this->service->setPermission(PermissionService::PERMISSION_CHECKIN, 'groups', ['staff']);
+
+		$this->assertSame('groups', $written['permission_checkin_mode']);
+		$this->assertSame('["staff"]', $written['permission_checkin']);
+	}
+
+	public function testSetPermissionRejectsInvalidMode(): void {
+		$this->expectException(\InvalidArgumentException::class);
+
+		$this->service->setPermission(PermissionService::PERMISSION_CHECKIN, 'everyone', []);
+	}
+
+	// --- legacy behavior via fallback (un-migrated installs) ---
+
 	public function testHasPermissionWhenNoRolesConfigured(): void {
-		// When no roles are configured, all users should have permission
-		$this->config->expects($this->once())
-			->method('getAppValue')
-			->willReturn('[]');
+		// When nothing is configured, all users should have permission
+		$this->configValues([]);
 
 		$result = $this->service->hasPermission('testuser', PermissionService::PERMISSION_MANAGE_APPOINTMENTS);
 
@@ -94,20 +191,8 @@ class PermissionServiceTest extends TestCase {
 	}
 
 	public function testHasPermissionWhenUserInRole(): void {
-		$this->config->expects($this->once())
-			->method('getAppValue')
-			->willReturn('["managers"]');
-
-		$user = $this->createMock(IUser::class);
-		$this->userManager->expects($this->once())
-			->method('get')
-			->with('testuser')
-			->willReturn($user);
-
-		$this->groupManager->expects($this->once())
-			->method('getUserGroupIds')
-			->with($user)
-			->willReturn(['managers', 'employees']);
+		$this->configValues(['permission_manage_appointments' => '["managers"]']);
+		$this->userInGroups('testuser', ['managers', 'employees']);
 
 		$result = $this->service->hasPermission('testuser', PermissionService::PERMISSION_MANAGE_APPOINTMENTS);
 
@@ -115,20 +200,8 @@ class PermissionServiceTest extends TestCase {
 	}
 
 	public function testHasPermissionWhenUserNotInRole(): void {
-		$this->config->expects($this->once())
-			->method('getAppValue')
-			->willReturn('["managers"]');
-
-		$user = $this->createMock(IUser::class);
-		$this->userManager->expects($this->once())
-			->method('get')
-			->with('testuser')
-			->willReturn($user);
-
-		$this->groupManager->expects($this->once())
-			->method('getUserGroupIds')
-			->with($user)
-			->willReturn(['employees']);
+		$this->configValues(['permission_manage_appointments' => '["managers"]']);
+		$this->userInGroups('testuser', ['employees']);
 
 		$result = $this->service->hasPermission('testuser', PermissionService::PERMISSION_MANAGE_APPOINTMENTS);
 
@@ -136,10 +209,7 @@ class PermissionServiceTest extends TestCase {
 	}
 
 	public function testHasPermissionWhenUserDoesNotExist(): void {
-		$this->config->expects($this->once())
-			->method('getAppValue')
-			->willReturn('["managers"]');
-
+		$this->configValues(['permission_manage_appointments' => '["managers"]']);
 		$this->userManager->expects($this->once())
 			->method('get')
 			->with('nonexistent')
@@ -160,9 +230,7 @@ class PermissionServiceTest extends TestCase {
 			->method('getUser')
 			->willReturn($user);
 
-		$this->config->expects($this->once())
-			->method('getAppValue')
-			->willReturn('[]');
+		$this->configValues([]);
 
 		$result = $this->service->currentUserHasPermission(PermissionService::PERMISSION_MANAGE_APPOINTMENTS);
 
@@ -204,9 +272,7 @@ class PermissionServiceTest extends TestCase {
 	}
 
 	public function testCanManageAppointments(): void {
-		$this->config->expects($this->once())
-			->method('getAppValue')
-			->willReturn('[]');
+		$this->configValues([]);
 
 		$result = $this->service->canManageAppointments('testuser');
 
@@ -214,9 +280,7 @@ class PermissionServiceTest extends TestCase {
 	}
 
 	public function testCanCheckin(): void {
-		$this->config->expects($this->once())
-			->method('getAppValue')
-			->willReturn('[]');
+		$this->configValues([]);
 
 		$result = $this->service->canCheckin('testuser');
 
@@ -224,9 +288,7 @@ class PermissionServiceTest extends TestCase {
 	}
 
 	public function testCanSeeResponseOverview(): void {
-		$this->config->expects($this->once())
-			->method('getAppValue')
-			->willReturn('[]');
+		$this->configValues([]);
 
 		$result = $this->service->canSeeResponseOverview('testuser');
 
@@ -234,7 +296,7 @@ class PermissionServiceTest extends TestCase {
 	}
 
 	public function testCanSeeResponseCountsOpenWhenUnconfigured(): void {
-		$this->config->method('getAppValue')->willReturn('[]');
+		$this->configValues([]);
 
 		$this->assertTrue($this->service->canSeeResponseCounts('testuser'));
 	}
@@ -242,37 +304,37 @@ class PermissionServiceTest extends TestCase {
 	public function testCanSeeResponseCountsFallsBackToOverviewPermission(): void {
 		// Counts restricted to "counters", overview open to everyone — the
 		// overview implies the counts, so the user still passes.
-		$this->config->method('getAppValue')
-			->willReturnMap([
-				['attendance', 'permission_see_response_counts', '[]', '["counters"]'],
-				['attendance', 'permission_see_response_overview', '[]', '[]'],
-			]);
-
-		$user = $this->createMock(IUser::class);
-		$this->userManager->method('get')->with('testuser')->willReturn($user);
-		$this->groupManager->method('getUserGroupIds')->with($user)->willReturn(['employees']);
+		$this->configValues(['permission_see_response_counts' => '["counters"]']);
+		$this->userInGroups('testuser', ['employees']);
 
 		$this->assertTrue($this->service->canSeeResponseCounts('testuser'));
 	}
 
 	public function testCanSeeResponseCountsDeniedWhenBothRestricted(): void {
-		$this->config->method('getAppValue')
-			->willReturnMap([
-				['attendance', 'permission_see_response_counts', '[]', '["counters"]'],
-				['attendance', 'permission_see_response_overview', '[]', '["managers"]'],
-			]);
-
-		$user = $this->createMock(IUser::class);
-		$this->userManager->method('get')->with('testuser')->willReturn($user);
-		$this->groupManager->method('getUserGroupIds')->with($user)->willReturn(['employees']);
+		$this->configValues([
+			'permission_see_response_counts' => '["counters"]',
+			'permission_see_response_overview' => '["managers"]',
+		]);
+		$this->userInGroups('testuser', ['employees']);
 
 		$this->assertFalse($this->service->canSeeResponseCounts('testuser'));
 	}
 
+	public function testCanSeeResponseCountsNobodyStillImpliedByOverview(): void {
+		// Explicit "nobody" on the counts keeps the structural implication:
+		// whoever sees the full summary necessarily sees the numbers in it.
+		$this->configValues([
+			'permission_see_response_counts_mode' => 'nobody',
+			'permission_see_response_overview_mode' => 'groups',
+			'permission_see_response_overview' => '["managers"]',
+		]);
+		$this->userInGroups('testuser', ['managers']);
+
+		$this->assertTrue($this->service->canSeeResponseCounts('testuser'));
+	}
+
 	public function testCanSeeComments(): void {
-		$this->config->expects($this->once())
-			->method('getAppValue')
-			->willReturn('[]');
+		$this->configValues([]);
 
 		$result = $this->service->canSeeComments('testuser');
 
@@ -280,33 +342,25 @@ class PermissionServiceTest extends TestCase {
 	}
 
 	public function testGetAllPermissionSettings(): void {
-		$this->config->expects($this->exactly(8))
-			->method('getAppValue')
-			->willReturnMap([
-				['attendance', 'permission_manage_appointments', '[]', '["admin"]'],
-				['attendance', 'permission_checkin', '[]', '["admin","staff"]'],
-				['attendance', 'permission_see_response_overview', '[]', '["admin"]'],
-				['attendance', 'permission_see_response_counts', '[]', '["everyone"]'],
-				['attendance', 'permission_see_comments', '[]', '["admin","managers"]'],
-				['attendance', 'permission_self_checkin', '[]', '["users"]'],
-				['attendance', 'permission_create_appointments', '[]', '["members"]'],
-				['attendance', 'permission_respond_for_others', '[]', '["staff"]']
-			]);
+		$this->configValues([
+			'permission_manage_appointments_mode' => 'groups',
+			'permission_manage_appointments' => '["admin"]',
+			'permission_checkin_mode' => 'all',
+			'permission_checkin' => '[]',
+			'permission_see_response_overview' => '["admin"]',
+			'permission_respond_for_others_mode' => 'nobody',
+		]);
 
 		$result = $this->service->getAllPermissionSettings();
 
-		$expected = [
-			PermissionService::PERMISSION_MANAGE_APPOINTMENTS => ['admin'],
-			PermissionService::PERMISSION_CHECKIN => ['admin', 'staff'],
-			PermissionService::PERMISSION_SEE_RESPONSE_OVERVIEW => ['admin'],
-			PermissionService::PERMISSION_SEE_RESPONSE_COUNTS => ['everyone'],
-			PermissionService::PERMISSION_SEE_COMMENTS => ['admin', 'managers'],
-			PermissionService::PERMISSION_SELF_CHECKIN => ['users'],
-			PermissionService::PERMISSION_CREATE_APPOINTMENTS => ['members'],
-			PermissionService::PERMISSION_RESPOND_FOR_OTHERS => ['staff']
-		];
-
-		$this->assertEquals($expected, $result);
+		$this->assertSame(PermissionService::ALL_PERMISSIONS, array_keys($result));
+		$this->assertEquals(['mode' => 'groups', 'groups' => ['admin']], $result[PermissionService::PERMISSION_MANAGE_APPOINTMENTS]);
+		$this->assertEquals(['mode' => 'all', 'groups' => []], $result[PermissionService::PERMISSION_CHECKIN]);
+		// No stored mode → legacy fallback derives it from the group list
+		$this->assertEquals(['mode' => 'groups', 'groups' => ['admin']], $result[PermissionService::PERMISSION_SEE_RESPONSE_OVERVIEW]);
+		$this->assertEquals(['mode' => 'all', 'groups' => []], $result[PermissionService::PERMISSION_SEE_COMMENTS]);
+		$this->assertEquals(['mode' => 'nobody', 'groups' => []], $result[PermissionService::PERMISSION_CREATE_APPOINTMENTS]);
+		$this->assertEquals(['mode' => 'nobody', 'groups' => []], $result[PermissionService::PERMISSION_RESPOND_FOR_OTHERS]);
 	}
 
 	public function testGuestUserIsBlockedFromManageAppointments(): void {
@@ -338,10 +392,8 @@ class PermissionServiceTest extends TestCase {
 
 	public function testGuestUserCanStillSelfCheckin(): void {
 		// SELF_CHECKIN is not in the guest hard-block list, so the regular
-		// group lookup runs. With no roles configured, the user gets access.
-		$this->config->expects($this->once())
-			->method('getAppValue')
-			->willReturn('[]');
+		// mode lookup runs. Unconfigured → all users, including guests.
+		$this->configValues([]);
 
 		$this->assertTrue(
 			$this->service->hasPermission('guestuser', PermissionService::PERMISSION_SELF_CHECKIN),
@@ -354,9 +406,7 @@ class PermissionServiceTest extends TestCase {
 			->with('regularuser')
 			->willReturn(false);
 
-		$this->config->expects($this->once())
-			->method('getAppValue')
-			->willReturn('[]');
+		$this->configValues([]);
 
 		$this->assertTrue(
 			$this->service->hasPermission('regularuser', PermissionService::PERMISSION_MANAGE_APPOINTMENTS),
@@ -378,29 +428,97 @@ class PermissionServiceTest extends TestCase {
 		);
 	}
 
-	public function testSetAllPermissionSettings(): void {
-		$permissions = [
-			'PERMISSION_MANAGE_APPOINTMENTS' => ['admin'],
-			'PERMISSION_CHECKIN' => ['admin', 'staff']
-		];
-
-		$callCount = 0;
-		$this->config->expects($this->exactly(2))
-			->method('setAppValue')
-			->willReturnCallback(function ($app, $key, $value) use (&$callCount) {
-				$callCount++;
-				if ($callCount === 1) {
-					$this->assertEquals('attendance', $app);
-					$this->assertEquals('permission_manage_appointments', $key);
-					$this->assertEquals('["admin"]', $value);
-				} elseif ($callCount === 2) {
-					$this->assertEquals('attendance', $app);
-					$this->assertEquals('permission_checkin', $key);
-					$this->assertEquals('["admin","staff"]', $value);
-				}
+	public function testSetAllPermissionSettingsExplicitShape(): void {
+		$written = [];
+		$this->config->method('setAppValue')
+			->willReturnCallback(function (string $app, string $key, string $value) use (&$written): void {
+				$written[$key] = $value;
+			});
+		$this->appConfig->method('setValueString')
+			->willReturnCallback(function (string $app, string $key, string $value) use (&$written): bool {
+				$written[$key] = $value;
+				return true;
 			});
 
-		$this->service->setAllPermissionSettings($permissions);
+		$this->service->setAllPermissionSettings([
+			'manage_appointments' => ['mode' => 'groups', 'groups' => ['admin']],
+			'checkin' => ['mode' => 'nobody', 'groups' => []],
+			'see_comments' => ['mode' => 'all', 'groups' => []],
+		]);
+
+		$this->assertSame('groups', $written['permission_manage_appointments_mode']);
+		$this->assertSame('["admin"]', $written['permission_manage_appointments']);
+		$this->assertSame('nobody', $written['permission_checkin_mode']);
+		$this->assertSame('[]', $written['permission_checkin']);
+		$this->assertSame('all', $written['permission_see_comments_mode']);
+	}
+
+	public function testSetAllPermissionSettingsLegacyListShape(): void {
+		$written = [];
+		$this->config->method('setAppValue')
+			->willReturnCallback(function (string $app, string $key, string $value) use (&$written): void {
+				$written[$key] = $value;
+			});
+		$this->appConfig->method('setValueString')
+			->willReturnCallback(function (string $app, string $key, string $value) use (&$written): bool {
+				$written[$key] = $value;
+				return true;
+			});
+
+		$this->service->setAllPermissionSettings([
+			'PERMISSION_MANAGE_APPOINTMENTS' => ['admin'],
+			'checkin' => [],
+			'respond_for_others' => [],
+		]);
+
+		// Bare lists carry the legacy semantics: non-empty → groups,
+		// empty + open → all, empty + additive → nobody.
+		$this->assertSame('groups', $written['permission_manage_appointments_mode']);
+		$this->assertSame('["admin"]', $written['permission_manage_appointments']);
+		$this->assertSame('all', $written['permission_checkin_mode']);
+		$this->assertSame('nobody', $written['permission_respond_for_others_mode']);
+	}
+
+	public function testSetAllPermissionSettingsIgnoresUnknownPermission(): void {
+		$this->config->expects($this->never())->method('setAppValue');
+		$this->appConfig->expects($this->never())->method('setValueString');
+
+		$this->service->setAllPermissionSettings([
+			'made_up_permission' => ['mode' => 'all', 'groups' => []],
+		]);
+	}
+
+	// --- getUsersWith ---
+
+	public function testGetUsersWithNobodyReturnsEmpty(): void {
+		$this->configValues(['permission_checkin_mode' => 'nobody']);
+		$this->userManager->expects($this->never())->method('search');
+
+		$this->assertSame([], $this->service->getUsersWith(PermissionService::PERMISSION_CHECKIN));
+	}
+
+	public function testGetUsersWithAllWalksEveryUser(): void {
+		$this->configValues(['permission_checkin_mode' => 'all']);
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn('alice');
+		$this->userManager->expects($this->once())->method('search')->with('')->willReturn([$user]);
+
+		$this->assertSame(['alice'], $this->service->getUsersWith(PermissionService::PERMISSION_CHECKIN));
+	}
+
+	public function testGetUsersWithGroupsCollectsMembers(): void {
+		$this->configValues([
+			'permission_checkin_mode' => 'groups',
+			'permission_checkin' => '["staff"]',
+		]);
+		$member = $this->createMock(IUser::class);
+		$member->method('getUID')->willReturn('bob');
+		$group = $this->createMock(IGroup::class);
+		$group->method('getUsers')->willReturn([$member]);
+		$this->groupManager->method('get')->with('staff')->willReturn($group);
+		$this->userManager->expects($this->never())->method('search');
+
+		$this->assertSame(['bob'], $this->service->getUsersWith(PermissionService::PERMISSION_CHECKIN));
 	}
 
 	private function makeAppointment(?array $organizers): \OCA\Attendance\Db\Appointment {
@@ -409,64 +527,54 @@ class PermissionServiceTest extends TestCase {
 		return $appointment;
 	}
 
-	// --- create_appointments: empty config must mean "nobody additional" ---
+	// --- create_appointments: unconfigured must mean "nobody additional" ---
 
 	public function testCreateAppointmentsEmptyConfigDeniesNonManagers(): void {
 		$this->guestService->method('isGuestUser')->willReturn(false);
-		// Both manage_appointments and create_appointments configured non-empty
-		// resp. empty: user is in neither group.
-		$this->config->method('getAppValue')
-			->willReturnMap([
-				['attendance', 'permission_manage_appointments', '[]', '["admins"]'],
-				['attendance', 'permission_create_appointments', '[]', '[]'],
-			]);
-		$user = $this->createMock(IUser::class);
-		$this->userManager->method('get')->willReturn($user);
-		$this->groupManager->method('getUserGroupIds')->willReturn(['members']);
+		// manage_appointments configured non-empty, create_appointments
+		// unconfigured: user is in neither group.
+		$this->configValues(['permission_manage_appointments' => '["admins"]']);
+		$this->userInGroups('regularuser', ['members']);
 
 		$this->assertFalse($this->service->canCreateAppointments('regularuser'));
 	}
 
 	public function testCreateAppointmentsGrantedViaCreateGroup(): void {
 		$this->guestService->method('isGuestUser')->willReturn(false);
-		$this->config->method('getAppValue')
-			->willReturnMap([
-				['attendance', 'permission_manage_appointments', '[]', '["admins"]'],
-				['attendance', 'permission_create_appointments', '[]', '["members"]'],
-			]);
-		$user = $this->createMock(IUser::class);
-		$this->userManager->method('get')->willReturn($user);
-		$this->groupManager->method('getUserGroupIds')->willReturn(['members']);
+		$this->configValues([
+			'permission_manage_appointments' => '["admins"]',
+			'permission_create_appointments' => '["members"]',
+		]);
+		$this->userInGroups('regularuser', ['members']);
 
 		$this->assertTrue($this->service->canCreateAppointments('regularuser'));
 	}
 
 	public function testCreateAppointmentsImpliedByManagePermission(): void {
 		$this->guestService->method('isGuestUser')->willReturn(false);
-		// manage_appointments unconfigured → empty = everyone manages = everyone creates
-		$this->config->method('getAppValue')->willReturn('[]');
+		// manage_appointments unconfigured → everyone manages = everyone creates
+		$this->configValues([]);
 
 		$this->assertTrue($this->service->canCreateAppointments('regularuser'));
 	}
 
 	public function testCreateAppointmentsBlockedForGuests(): void {
 		$this->guestService->method('isGuestUser')->with('guestuser')->willReturn(true);
-		$this->config->method('getAppValue')
-			->willReturnMap([
-				['attendance', 'permission_manage_appointments', '[]', '["admins"]'],
-				['attendance', 'permission_create_appointments', '[]', '["guest_app"]'],
-			]);
+		$this->configValues([
+			'permission_manage_appointments' => '["admins"]',
+			'permission_create_appointments' => '["guest_app"]',
+		]);
 
 		$this->assertFalse($this->service->canCreateAppointments('guestuser'));
 	}
 
-	// --- respond_for_others: empty config must mean "nobody", not even managers ---
+	// --- respond_for_others: unconfigured must mean "nobody", not even managers ---
 
 	public function testRespondForOthersEmptyConfigDeniesEveryone(): void {
 		$this->guestService->method('isGuestUser')->willReturn(false);
 		// Unconfigured: manage_appointments would default to "everyone", but
-		// respond_for_others is closed-when-unconfigured — nobody gets it.
-		$this->config->method('getAppValue')->willReturn('[]');
+		// respond_for_others defaults to nobody.
+		$this->configValues([]);
 
 		$this->assertFalse($this->service->canRespondForOthers('regularuser'));
 	}
@@ -475,14 +583,11 @@ class PermissionServiceTest extends TestCase {
 		$this->guestService->method('isGuestUser')->willReturn(false);
 		// User is a manager, but respond_for_others is granted to a group
 		// they are not in — manage rights must not bleed through.
-		$this->config->method('getAppValue')
-			->willReturnMap([
-				['attendance', 'permission_manage_appointments', '[]', '["managers"]'],
-				['attendance', 'permission_respond_for_others', '[]', '["office"]'],
-			]);
-		$user = $this->createMock(IUser::class);
-		$this->userManager->method('get')->willReturn($user);
-		$this->groupManager->method('getUserGroupIds')->willReturn(['managers']);
+		$this->configValues([
+			'permission_manage_appointments' => '["managers"]',
+			'permission_respond_for_others' => '["office"]',
+		]);
+		$this->userInGroups('manageruser', ['managers']);
 
 		$this->assertTrue($this->service->canManageAppointments('manageruser'));
 		$this->assertFalse($this->service->canRespondForOthers('manageruser'));
@@ -490,13 +595,8 @@ class PermissionServiceTest extends TestCase {
 
 	public function testRespondForOthersGrantedViaConfiguredGroup(): void {
 		$this->guestService->method('isGuestUser')->willReturn(false);
-		$this->config->method('getAppValue')
-			->willReturnMap([
-				['attendance', 'permission_respond_for_others', '[]', '["office"]'],
-			]);
-		$user = $this->createMock(IUser::class);
-		$this->userManager->method('get')->willReturn($user);
-		$this->groupManager->method('getUserGroupIds')->willReturn(['office']);
+		$this->configValues(['permission_respond_for_others' => '["office"]']);
+		$this->userInGroups('officeuser', ['office']);
 
 		$this->assertTrue($this->service->canRespondForOthers('officeuser'));
 	}
@@ -542,10 +642,7 @@ class PermissionServiceTest extends TestCase {
 
 	public function testCanManageAppointmentTrueForOrganizerWithoutGlobalPermission(): void {
 		$this->guestService->method('isGuestUser')->willReturn(false);
-		$this->config->method('getAppValue')
-			->willReturnMap([
-				['attendance', 'permission_manage_appointments', '[]', '["admins"]'],
-			]);
+		$this->configValues(['permission_manage_appointments' => '["admins"]']);
 		$user = $this->createMock(IUser::class);
 		$this->userManager->method('get')->willReturn($user);
 		$this->groupManager->method('getUserGroupIds')->willReturn(['members']);
@@ -557,10 +654,7 @@ class PermissionServiceTest extends TestCase {
 
 	public function testCanSeeResponseOverviewForOrganizer(): void {
 		$this->guestService->method('isGuestUser')->willReturn(false);
-		$this->config->method('getAppValue')
-			->willReturnMap([
-				['attendance', 'permission_see_response_overview', '[]', '["admins"]'],
-			]);
+		$this->configValues(['permission_see_response_overview' => '["admins"]']);
 		$user = $this->createMock(IUser::class);
 		$this->userManager->method('get')->willReturn($user);
 		$this->groupManager->method('getUserGroupIds')->willReturn(['members']);

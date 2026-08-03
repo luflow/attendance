@@ -34,10 +34,10 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 			whitelistedTeams: [],
 			permissions: {
 				...PERMISSIVE_PERMISSIONS,
-				manage_appointments: ['admin'],
-				see_response_overview: ['admin'],
-				see_response_counts: ['admin'],
-				see_comments: ['admin'],
+				manage_appointments: { mode: 'groups', groups: ['admin'] },
+				see_response_overview: { mode: 'groups', groups: ['admin'] },
+				see_response_counts: { mode: 'groups', groups: ['admin'] },
+				see_comments: { mode: 'groups', groups: ['admin'] },
 			},
 			reminders: { enabled: false },
 		})
