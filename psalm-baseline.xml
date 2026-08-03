@@ -1923,6 +1923,7 @@
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
       <code><![CDATA[canRespondForOthers]]></code>
+      <code><![CDATA[canSeeResponseCounts]]></code>
       <code><![CDATA[canSeeResponseOverviewFor]]></code>
       <code><![CDATA[currentUserCanCheckin]]></code>
       <code><![CDATA[currentUserCanManageAppointments]]></code>

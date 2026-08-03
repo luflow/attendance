@@ -96,7 +96,7 @@ class ResponseSummaryService {
 
 		$counts = $this->initializeSummary();
 		foreach (['yes', 'no', 'maybe', 'no_response'] as $key) {
-			$counts[$key] = $summary[$key];
+			$counts[$key] = (int)$summary[$key];
 		}
 		$counts['countsOnly'] = true;
 
