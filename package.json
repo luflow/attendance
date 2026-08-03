@@ -11,7 +11,7 @@
     "dev": "vite --mode development build",
     "watch": "vite --mode development build --watch",
     "lint": "eslint src",
-    "stylelint": "stylelint src/**/*.vue src/**/*.scss src/**/*.css",
+    "stylelint": "stylelint \"src/**/*.{vue,scss,css}\"",
     "test:e2e:server": "node tests/e2e/setup/server.js",
     "test:e2e:server-cleanup": "docker stop nextcloud-e2e-test-server_attendance 2>/dev/null || true && docker rm -f nextcloud-e2e-test-server_attendance 2>/dev/null || true && docker volume prune -f",
     "test:e2e": "playwright test",

@@ -438,21 +438,21 @@ const renderedDescription = computed(() => {
     }
 
     :deep(blockquote) {
-        border-left: 3px solid var(--color-primary-element);
+        border-inline-start: 3px solid var(--color-primary-element);
         margin: 10px 0;
-        padding-left: 15px;
+        padding-inline-start: 15px;
         color: var(--color-text-maxcontrast);
     }
 
     :deep(ul) {
         margin: 10px 0;
-        padding-left: 25px;
+        padding-inline-start: 25px;
         list-style-type: disc;
     }
 
     :deep(ol) {
         margin: 10px 0;
-        padding-left: 25px;
+        padding-inline-start: 25px;
         list-style-type: decimal;
     }
 
@@ -502,7 +502,7 @@ const renderedDescription = computed(() => {
     :deep(td) {
         border: 1px solid var(--color-border);
         padding: 8px 12px;
-        text-align: left;
+        text-align: start;
     }
 
     :deep(th) {

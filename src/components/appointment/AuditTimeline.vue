@@ -205,7 +205,7 @@ onMounted(() => {
 
 .audit-timeline__message {
 	color: var(--color-main-text);
-	word-break: break-word;
+	overflow-wrap: break-word;
 }
 
 .audit-timeline__meta {
@@ -217,7 +217,7 @@ onMounted(() => {
 
 .audit-timeline__source::before {
 	content: '·';
-	margin-right: 8px;
+	margin-inline-end: 8px;
 }
 
 .audit-timeline__more {

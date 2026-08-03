@@ -33,7 +33,7 @@ defineProps({
 	padding: 16px 20px;
 	background: var(--color-background-hover);
 	border-radius: var(--border-radius-large);
-	border-left: 4px solid transparent;
+	border-inline-start: 4px solid transparent;
 
 	.status-complete {
 		display: flex;
@@ -51,7 +51,7 @@ defineProps({
 		gap: 12px;
 		background: #ff8c00;
 		color: white;
-		border-left-color: #ff6600;
+		border-inline-start-color: #ff6600;
 		border-radius: var(--border-radius-large);
 		padding: 16px 20px;
 		margin: -16px -20px;
