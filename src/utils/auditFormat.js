@@ -21,6 +21,9 @@ export const SOURCE_LABELS = {
 	// TRANSLATORS: Noun — audit-log source label: a manager set the answer
 	// on behalf of the person.
 	admin_response: () => t('attendance', 'Manager'),
+	// TRANSLATORS: Noun — audit-log source label: the person checked
+	// themselves in (e.g. by scanning the QR code or an NFC tag).
+	self_checkin: () => t('attendance', 'Self check-in'),
 	legacy_backfill: () => t('attendance', 'Historic'),
 	auto_close: () => t('attendance', 'Automatic'),
 }
@@ -40,9 +43,9 @@ t('attendance', '{actor} answered {response} for {subject}')
 t('attendance', '{actor} changed response from {from} to {to}')
 t('attendance', '{actor} changed the response of {subject} from {from} to {to}')
 t('attendance', '{actor} recorded check-in for {subject}: {state}')
-t('attendance', 'Check-in recorded: {state}')
+t('attendance', '{actor} checked in: {state}')
 t('attendance', '{actor} updated check-in for {subject}: {state}')
-t('attendance', 'Check-in updated: {state}')
+t('attendance', '{actor} updated their check-in: {state}')
 
 const CHIP_SENTINEL = /CHIP(\d+)/g
 
@@ -103,13 +106,15 @@ function fieldLabel(key) {
 	return FIELD_LABELS[key]?.() ?? key
 }
 
-function formatCheckin(icon, subject, state, withSubjectTpl, anonTpl, actor) {
+// Without a distinct subject the actor checked themselves in — the line still
+// names them, otherwise a manager's timeline can't tell who arrived.
+function formatCheckin(icon, subject, state, withSubjectTpl, selfTpl, actor) {
 	return {
 		icon,
 		iconVariant: getResponseVariant(state),
 		segments: subject
 			? buildSegments(withSubjectTpl, { actor, subject }, [{ key: 'state', value: state }])
-			: buildSegments(anonTpl, {}, [{ key: 'state', value: state }]),
+			: buildSegments(selfTpl, { actor }, [{ key: 'state', value: state }]),
 	}
 }
 
@@ -177,7 +182,7 @@ export function formatAuditEvent(event) {
 				subject,
 				meta.checkinState,
 				'{actor} recorded check-in for {subject}: {state}',
-				'Check-in recorded: {state}',
+				'{actor} checked in: {state}',
 				actor,
 			)
 		case 'checkin.changed':
@@ -186,7 +191,7 @@ export function formatAuditEvent(event) {
 				subject,
 				meta.checkinState,
 				'{actor} updated check-in for {subject}: {state}',
-				'Check-in updated: {state}',
+				'{actor} updated their check-in: {state}',
 				actor,
 			)
 		case 'appointment.created':
