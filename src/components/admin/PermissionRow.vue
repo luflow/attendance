@@ -37,13 +37,12 @@
 		</p>
 		<p v-if="implication" class="permission-row__note">
 			<InformationIcon :size="16" />
-			<span v-if="implicationLink">
+			<span>
 				{{ implicationParts[0]
-				}}<a class="permission-row__link"
-					:href="`#${implicationLink.sectionId}`"
-					@click.prevent="$emit('navigate', implicationLink.sectionId)">{{ implicationLink.label }}</a>{{ implicationParts[1] }}
+				}}<SectionLink v-if="implicationLink"
+					v-bind="implicationLink"
+					@navigate="$emit('navigate', $event)" />{{ implicationParts[1] }}
 			</span>
-			<span v-else>{{ implication }}</span>
 		</p>
 	</div>
 </template>
@@ -54,6 +53,7 @@ import { computed } from 'vue'
 import AlertIcon from 'vue-material-design-icons/Alert.vue'
 import InformationIcon from 'vue-material-design-icons/InformationOutline.vue'
 import GroupSelect from '../common/GroupSelect.vue'
+import SectionLink from './SectionLink.vue'
 
 const props = defineProps({
 	title: {
@@ -150,11 +150,6 @@ function setGroups(groups) {
 	margin-top: 8px;
 	color: var(--color-text-maxcontrast);
 	font-size: 13px;
-}
-
-.permission-row__link {
-	color: var(--color-primary-element);
-	text-decoration: underline;
 }
 
 .permission-row__note--warning {

@@ -59,7 +59,7 @@
 				</template>
 				<!-- Without a bar the link trails the answer row instead, so the
 				     card never ends on a line of its own. -->
-				<template v-if="!appointment.responseSummary" #trailing>
+				<template v-if="!detailLinkInBar" #trailing>
 					<ShowDetailsLink :appointmentId="appointment.id" @open="emit('openDetail', $event)" />
 				</template>
 			</ResponseEditor>
@@ -71,7 +71,7 @@
 				</span>
 				<span v-else class="list-card__answer">{{ t("attendance", "No response") }}</span>
 				<span class="list-card__note" data-test="closed-info">· {{ stateLabel }}</span>
-				<ShowDetailsLink v-if="!appointment.responseSummary"
+				<ShowDetailsLink v-if="!detailLinkInBar"
 					:appointmentId="appointment.id"
 					@open="emit('openDetail', $event)" />
 			</div>
@@ -79,7 +79,7 @@
 			<!-- The link rides the bar's legend when there is one, but it is not
 			     tied to it: the detail page carries description and attachments,
 			     which everyone who sees the appointment may read. -->
-			<ResponseBar v-if="appointment.responseSummary" :segments="summarySegments">
+			<ResponseBar v-if="detailLinkInBar" :segments="summarySegments">
 				<template #trailing>
 					<ShowDetailsLink :appointmentId="appointment.id" @open="emit('openDetail', $event)" />
 				</template>
@@ -149,6 +149,11 @@ const titleTail = computed(() => titleParts.value.tail)
 // slice keeps the ~20 regex passes of stripMarkdown() off long descriptions;
 // nothing beyond the first line is ever shown.
 const descriptionPreview = computed(() => stripMarkdown((props.appointment.description || '').slice(0, 300)))
+
+// The link rides the last row there is, so the three placements are one
+// decision: it goes into the bar when a bar exists, into the answer row
+// otherwise. Exactly one of them renders.
+const detailLinkInBar = computed(() => Boolean(props.appointment.responseSummary))
 
 const summarySegments = computed(() => responseSegments(props.appointment.responseSummary))
 

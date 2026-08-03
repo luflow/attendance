@@ -96,7 +96,7 @@
 				<NcNoteCard type="info">
 					<p>
 						{{ t('attendance', 'Self-check-in only works with the Attendance mobile app.') }}
-						<a class="text-link" href="#mobile-apps" @click.prevent="scrollToSection('mobile-apps')">{{ t('attendance', 'Go to the mobile apps section.') }}</a>
+						<SectionLink sectionId="mobile-apps" :label="t('attendance', 'Go to the mobile apps section.')" @navigate="scrollToSection" />
 					</p>
 				</NcNoteCard>
 
@@ -147,9 +147,9 @@
 						{{ t('attendance', 'NFC tag shopping advice: use NXP NTAG213 tags (or newer) of at least 25 mm, and on-metal tags for metal surfaces. Avoid MIFARE Classic tags — they do not work with iPhones.') }}
 					</p>
 					<p class="hint-text">
-						<a class="text-link" href="#mobile-apps" @click.prevent="scrollToSection('mobile-apps')">
-							{{ t('attendance', 'You can also write NFC tags directly with the Attendance mobile app.') }}
-						</a>
+						<SectionLink sectionId="mobile-apps"
+							:label="t('attendance', 'You can also write NFC tags directly with the Attendance mobile app.')"
+							@navigate="scrollToSection" />
 					</p>
 				</div>
 			</NcSettingsSection>
@@ -603,6 +603,7 @@ import Download from 'vue-material-design-icons/Download.vue'
 import GoogleIcon from 'vue-material-design-icons/Google.vue'
 import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
 import PermissionRow from '../components/admin/PermissionRow.vue'
+import SectionLink from '../components/admin/SectionLink.vue'
 import GroupSelect from '../components/common/GroupSelect.vue'
 import { copyToClipboard } from '../utils/clipboard.js'
 import { formatDate, formatDateTimeMedium } from '../utils/datetime.js'
@@ -626,6 +627,12 @@ const navSections = [
 	{ id: 'mobile-apps', label: t('attendance', 'Mobile apps') },
 	{ id: 'guests', label: t('attendance', 'Guest invitation') },
 ]
+
+// Anchor plus label for a SectionLink, taken from the nav so a link can never
+// name a section differently than the chip that jumps to the same place.
+function sectionLink(sectionId) {
+	return { sectionId, label: navSections.find((section) => section.id === sectionId).label }
+}
 
 const permissionGroups = [
 	{
@@ -689,7 +696,7 @@ const permissionGroups = [
 				title: t('attendance', 'May check in themselves'),
 				hint: t('attendance', 'Check in themselves via QR code, NFC tag or deep link.'),
 				implication: t('attendance', 'QR codes and NFC tags can be set up in the {section} section.'),
-				implicationLink: { label: t('attendance', 'Self-check-in'), sectionId: 'self-checkin' },
+				implicationLink: sectionLink('self-checkin'),
 			},
 		],
 	},
@@ -1289,11 +1296,6 @@ onMounted(async () => {
 		flex-wrap: wrap;
 		margin: 8px 0;
 	}
-}
-
-.text-link {
-	color: var(--color-primary-element);
-	text-decoration: underline;
 }
 
 .subsection-hint {
