@@ -411,6 +411,10 @@ t('attendance', 'Cancelled on {when}')
 t('attendance', 'Check in')
 t('attendance', 'Check-in failed')
 t('attendance', 'Check-in opens at {time}')
+// TRANSLATORS: Audit entry with the actor hidden; {state} renders as a response chip (yes/no/maybe/…).
+t('attendance', 'Check-in recorded: {state}')
+// TRANSLATORS: Audit entry with the actor hidden; {state} renders as a response chip (yes/no/maybe/…).
+t('attendance', 'Check-in updated: {state}')
 t('attendance', 'Checked in at {time}')
 t('attendance', 'Common')
 t('attendance', 'Could not load language and group options: {error}')
