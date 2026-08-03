@@ -219,11 +219,13 @@ class CalendarService {
 			if ($startHour === 0 && $startMinute === 0 && $startSecond === 0
 				&& $endHour === 0 && $endMinute === 0 && $endSecond === 0) {
 
-				// Duration must be exactly 24 hours or a multiple
+				// Duration must be exactly 24 hours or a multiple. Compared in
+				// seconds: dividing by 3600 first yields a float whenever the
+				// duration is not a whole number of hours, and % would then
+				// silently truncate it.
 				$diff = $dtend->getTimestamp() - $dtstart->getTimestamp();
-				$hours = $diff / 3600;
 
-				if ($hours > 0 && $hours % 24 === 0) {
+				if ($diff > 0 && $diff % 86400 === 0) {
 					return true;
 				}
 			}

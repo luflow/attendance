@@ -246,7 +246,8 @@ class CalendarObjectUpdateListener implements IEventListener {
 		$bestDiff = PHP_INT_MAX;
 
 		foreach ($occurrenceTimestamps as $occTs => $ve) {
-			$diff = abs($apptTs - $occTs);
+			// Keys are timestamps, so PHP has already coerced them to int.
+			$diff = abs($apptTs - (int)$occTs);
 			if ($diff < $bestDiff) {
 				$bestDiff = $diff;
 				$matchedVe = $ve;

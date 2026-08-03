@@ -191,7 +191,7 @@ class ExportService {
 		$zip = new \ZipArchive();
 		$result = $zip->open($tempFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
 		if ($result !== true) {
-			throw new \Exception('Failed to create ODS file. ZipArchive error code: ' . $result);
+			throw new \Exception('Failed to create ODS file. ZipArchive error code: ' . (int)$result);
 		}
 
 		// Add mimetype (must be first and uncompressed)
