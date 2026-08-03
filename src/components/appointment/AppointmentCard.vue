@@ -116,11 +116,21 @@
 
 		<!-- Check-in summary (only when check-ins exist and the viewer may see them) -->
 		<div
-			v-if="canSeeResponses && appointment.checkinSummary?.hasCheckins"
+			v-if="canSeeResponseCounts && appointment.checkinSummary?.hasCheckins"
 			class="card-section"
 			data-test="checkin-summary">
 			<h4>{{ t("attendance", "Check-in summary") }}</h4>
 			<ResponseBar :segments="checkinSegments" />
+		</div>
+
+		<!-- Counts-only viewers get the bar without any names; holders of the
+			full overview get the detailed summary below instead. -->
+		<div
+			v-if="!canSeeResponses && canSeeResponseCounts && appointment.responseSummary"
+			class="card-section"
+			data-test="response-counts">
+			<h4>{{ t("attendance", "Response summary") }}</h4>
+			<ResponseBar :segments="summarySegments" />
 		</div>
 
 		<ResponseSummary
@@ -154,7 +164,7 @@ import { useAppointmentLifecycle } from '../../composables/useAppointmentLifecyc
 import { finalScheduleStatus, formatCancelledLabel, formatClosedLabel } from '../../utils/appointment.js'
 import { formatTime } from '../../utils/datetime.js'
 import { renderMarkdown, sanitizeHtml } from '../../utils/markdown.js'
-import { getResponseText } from '../../utils/response.js'
+import { getResponseText, responseSegments } from '../../utils/response.js'
 
 const props = defineProps({
 	appointment: {
@@ -186,6 +196,7 @@ const {
 	userResponse,
 	canManage,
 	canSeeResponses,
+	canSeeResponseCounts,
 	canSeeComments,
 	canSeeAuditLog,
 	titleText,
@@ -234,6 +245,8 @@ const checkinSegments = computed(() => {
 		{ key: 'pending', variant: 'tertiary', count: summary.notCheckedIn ?? 0, label: pending },
 	]
 })
+
+const summarySegments = computed(() => responseSegments(props.appointment.responseSummary))
 
 const renderedDescription = computed(() => {
 	if (!props.appointment.description) return ''

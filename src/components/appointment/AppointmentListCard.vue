@@ -68,7 +68,7 @@
 				<span class="list-card__note" data-test="closed-info">· {{ stateLabel }}</span>
 			</div>
 
-			<ResponseBar v-if="canSeeResponses && appointment.responseSummary" :segments="summarySegments">
+			<ResponseBar v-if="canSeeResponseCounts && appointment.responseSummary" :segments="summarySegments">
 				<template #trailing>
 					<a
 						:href="detailUrl"
@@ -121,7 +121,7 @@ const {
 	isCancelled,
 	acceptsResponses,
 	userResponse,
-	canSeeResponses,
+	canSeeResponseCounts,
 	canSeeAuditLog,
 	titleText,
 	subtitleText,

@@ -22,6 +22,7 @@ class PermissionService {
 	public const PERMISSION_MANAGE_APPOINTMENTS = 'manage_appointments';
 	public const PERMISSION_CHECKIN = 'checkin';
 	public const PERMISSION_SEE_RESPONSE_OVERVIEW = 'see_response_overview';
+	public const PERMISSION_SEE_RESPONSE_COUNTS = 'see_response_counts';
 	public const PERMISSION_SEE_COMMENTS = 'see_comments';
 	public const PERMISSION_SELF_CHECKIN = 'self_checkin';
 	public const PERMISSION_CREATE_APPOINTMENTS = 'create_appointments';
@@ -144,6 +145,7 @@ class PermissionService {
 			self::PERMISSION_MANAGE_APPOINTMENTS => $this->getRolesForPermission(self::PERMISSION_MANAGE_APPOINTMENTS),
 			self::PERMISSION_CHECKIN => $this->getRolesForPermission(self::PERMISSION_CHECKIN),
 			self::PERMISSION_SEE_RESPONSE_OVERVIEW => $this->getRolesForPermission(self::PERMISSION_SEE_RESPONSE_OVERVIEW),
+			self::PERMISSION_SEE_RESPONSE_COUNTS => $this->getRolesForPermission(self::PERMISSION_SEE_RESPONSE_COUNTS),
 			self::PERMISSION_SEE_COMMENTS => $this->getRolesForPermission(self::PERMISSION_SEE_COMMENTS),
 			self::PERMISSION_SELF_CHECKIN => $this->getRolesForPermission(self::PERMISSION_SELF_CHECKIN),
 			self::PERMISSION_CREATE_APPOINTMENTS => $this->getRolesForPermission(self::PERMISSION_CREATE_APPOINTMENTS),
@@ -160,6 +162,7 @@ class PermissionService {
 			'PERMISSION_MANAGE_APPOINTMENTS' => self::PERMISSION_MANAGE_APPOINTMENTS,
 			'PERMISSION_CHECKIN' => self::PERMISSION_CHECKIN,
 			'PERMISSION_SEE_RESPONSE_OVERVIEW' => self::PERMISSION_SEE_RESPONSE_OVERVIEW,
+			'PERMISSION_SEE_RESPONSE_COUNTS' => self::PERMISSION_SEE_RESPONSE_COUNTS,
 			'PERMISSION_SEE_COMMENTS' => self::PERMISSION_SEE_COMMENTS,
 			'PERMISSION_SELF_CHECKIN' => self::PERMISSION_SELF_CHECKIN,
 			'PERMISSION_CREATE_APPOINTMENTS' => self::PERMISSION_CREATE_APPOINTMENTS,
@@ -174,6 +177,7 @@ class PermissionService {
 				self::PERMISSION_MANAGE_APPOINTMENTS,
 				self::PERMISSION_CHECKIN,
 				self::PERMISSION_SEE_RESPONSE_OVERVIEW,
+				self::PERMISSION_SEE_RESPONSE_COUNTS,
 				self::PERMISSION_SEE_COMMENTS,
 				self::PERMISSION_SELF_CHECKIN,
 				self::PERMISSION_CREATE_APPOINTMENTS,
@@ -248,6 +252,15 @@ class PermissionService {
 	 */
 	public function canSeeResponseOverview(string $userId): bool {
 		return $this->hasPermission($userId, self::PERMISSION_SEE_RESPONSE_OVERVIEW);
+	}
+
+	/**
+	 * Check if user can see the aggregate yes/no/maybe counts. Holders of the
+	 * full overview see them implicitly — the counts are a strict subset.
+	 */
+	public function canSeeResponseCounts(string $userId): bool {
+		return $this->hasPermission($userId, self::PERMISSION_SEE_RESPONSE_COUNTS)
+			|| $this->canSeeResponseOverview($userId);
 	}
 
 	/**

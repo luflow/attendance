@@ -32,6 +32,7 @@ namespace OCA\Attendance;
  *   isOrganizer: bool,
  *   canEdit: bool,
  *   canSeeResponses: bool,
+ *   canSeeResponseCounts: bool,
  *   canSeeComments: bool,
  *   canSeeAuditLog: bool,
  * }
@@ -145,6 +146,7 @@ namespace OCA\Attendance;
  *   canCreateAppointments: bool,
  *   canCheckin: bool,
  *   canSeeResponseOverview: bool,
+ *   canSeeResponseCounts: bool,
  *   canSeeComments: bool,
  *   canSelfCheckin: bool,
  *   canRespondForOthers: bool,
@@ -166,6 +168,7 @@ namespace OCA\Attendance;
  *   selfCheckin: bool,
  *   organizers: bool,
  *   respondOnBehalf: bool,
+ *   responseCounts: bool,
  * }
  * @psalm-type AttendanceAuditUserRef = array{
  *   userId: string,

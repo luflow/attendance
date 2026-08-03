@@ -233,6 +233,42 @@ class PermissionServiceTest extends TestCase {
 		$this->assertTrue($result);
 	}
 
+	public function testCanSeeResponseCountsOpenWhenUnconfigured(): void {
+		$this->config->method('getAppValue')->willReturn('[]');
+
+		$this->assertTrue($this->service->canSeeResponseCounts('testuser'));
+	}
+
+	public function testCanSeeResponseCountsFallsBackToOverviewPermission(): void {
+		// Counts restricted to "counters", overview open to everyone — the
+		// overview implies the counts, so the user still passes.
+		$this->config->method('getAppValue')
+			->willReturnMap([
+				['attendance', 'permission_see_response_counts', '[]', '["counters"]'],
+				['attendance', 'permission_see_response_overview', '[]', '[]'],
+			]);
+
+		$user = $this->createMock(IUser::class);
+		$this->userManager->method('get')->with('testuser')->willReturn($user);
+		$this->groupManager->method('getUserGroupIds')->with($user)->willReturn(['employees']);
+
+		$this->assertTrue($this->service->canSeeResponseCounts('testuser'));
+	}
+
+	public function testCanSeeResponseCountsDeniedWhenBothRestricted(): void {
+		$this->config->method('getAppValue')
+			->willReturnMap([
+				['attendance', 'permission_see_response_counts', '[]', '["counters"]'],
+				['attendance', 'permission_see_response_overview', '[]', '["managers"]'],
+			]);
+
+		$user = $this->createMock(IUser::class);
+		$this->userManager->method('get')->with('testuser')->willReturn($user);
+		$this->groupManager->method('getUserGroupIds')->with($user)->willReturn(['employees']);
+
+		$this->assertFalse($this->service->canSeeResponseCounts('testuser'));
+	}
+
 	public function testCanSeeComments(): void {
 		$this->config->expects($this->once())
 			->method('getAppValue')
@@ -244,12 +280,13 @@ class PermissionServiceTest extends TestCase {
 	}
 
 	public function testGetAllPermissionSettings(): void {
-		$this->config->expects($this->exactly(7))
+		$this->config->expects($this->exactly(8))
 			->method('getAppValue')
 			->willReturnMap([
 				['attendance', 'permission_manage_appointments', '[]', '["admin"]'],
 				['attendance', 'permission_checkin', '[]', '["admin","staff"]'],
 				['attendance', 'permission_see_response_overview', '[]', '["admin"]'],
+				['attendance', 'permission_see_response_counts', '[]', '["everyone"]'],
 				['attendance', 'permission_see_comments', '[]', '["admin","managers"]'],
 				['attendance', 'permission_self_checkin', '[]', '["users"]'],
 				['attendance', 'permission_create_appointments', '[]', '["members"]'],
@@ -262,6 +299,7 @@ class PermissionServiceTest extends TestCase {
 			PermissionService::PERMISSION_MANAGE_APPOINTMENTS => ['admin'],
 			PermissionService::PERMISSION_CHECKIN => ['admin', 'staff'],
 			PermissionService::PERMISSION_SEE_RESPONSE_OVERVIEW => ['admin'],
+			PermissionService::PERMISSION_SEE_RESPONSE_COUNTS => ['everyone'],
 			PermissionService::PERMISSION_SEE_COMMENTS => ['admin', 'managers'],
 			PermissionService::PERMISSION_SELF_CHECKIN => ['users'],
 			PermissionService::PERMISSION_CREATE_APPOINTMENTS => ['members'],

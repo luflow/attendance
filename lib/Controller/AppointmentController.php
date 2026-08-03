@@ -122,6 +122,7 @@ class AppointmentController extends Controller {
 		// permission when the overview itself is withheld.
 		$canSeeResponseOverview = $this->permissionService->canSeeResponseOverview($user->getUID());
 		$canSeeComments = $canSeeResponseOverview && $this->permissionService->canSeeComments($user->getUID());
+		$canSeeResponseCounts = $this->permissionService->canSeeResponseCounts($user->getUID());
 
 		$appointments = $this->appointmentService->getAppointmentsWithUserResponses(
 			$user->getUID(),
@@ -130,14 +131,15 @@ class AppointmentController extends Controller {
 			$onlyForMe,
 			$canSeeResponseOverview,
 			$canSeeComments,
+			$canSeeResponseCounts,
 			$notScheduledOut,
 			$onlyScheduled,
 		);
 
-		// Add checkin summary to each appointment the user may see responses
-		// for (global permission or organizer of that appointment)
+		// Add checkin summary to each appointment the user may see at least
+		// the aggregate numbers for — it only ever carries counts, no names.
 		foreach ($appointments as &$appointment) {
-			if ($appointment['myPermissions']['canSeeResponses']) {
+			if ($appointment['myPermissions']['canSeeResponseCounts']) {
 				$appointment['checkinSummary'] = $this->checkinService->getCheckinSummary($appointment['id']);
 			}
 		}
@@ -598,19 +600,22 @@ class AppointmentController extends Controller {
 			// (see index()). The frontend permission flags are advisory only.
 			$canSeeResponseOverview = $this->permissionService->canSeeResponseOverview($user->getUID());
 			$canSeeComments = $canSeeResponseOverview && $this->permissionService->canSeeComments($user->getUID());
+			$canSeeResponseCounts = $this->permissionService->canSeeResponseCounts($user->getUID());
 
 			$appointment = $this->appointmentService->getAppointmentWithUserResponse(
 				$id,
 				$user->getUID(),
 				$canSeeResponseOverview,
 				$canSeeComments,
+				$canSeeResponseCounts,
 			);
 			if ($appointment === null) {
 				return new DataResponse(['error' => 'Appointment not found or not visible'], 404);
 			}
 
-			// Add checkin summary if user may see responses for this appointment
-			if ($appointment['myPermissions']['canSeeResponses']) {
+			// Add checkin summary if user may see at least the aggregate
+			// numbers for this appointment — it only ever carries counts.
+			if ($appointment['myPermissions']['canSeeResponseCounts']) {
 				$appointment['checkinSummary'] = $this->checkinService->getCheckinSummary($id);
 			}
 
@@ -880,6 +885,7 @@ class AppointmentController extends Controller {
 			'canCreateAppointments' => $this->permissionService->canCreateAppointments($user->getUID()),
 			'canCheckin' => $this->permissionService->canCheckin($user->getUID()),
 			'canSeeResponseOverview' => $this->permissionService->canSeeResponseOverview($user->getUID()),
+			'canSeeResponseCounts' => $this->permissionService->canSeeResponseCounts($user->getUID()),
 			'canSeeComments' => $this->permissionService->canSeeComments($user->getUID()),
 			'canSelfCheckin' => $this->permissionService->canSelfCheckin($user->getUID()),
 			'canRespondForOthers' => $this->permissionService->canRespondForOthers($user->getUID()),
@@ -935,6 +941,11 @@ class AppointmentController extends Controller {
 			// on-behalf picker when this is false or the user lacks the
 			// permission (getPermissions.canRespondForOthers).
 			'respondOnBehalf' => true,
+			// Server understands the see_response_counts permission and sends a
+			// counts-only responseSummary (no names) to holders. Clients show
+			// the yes/no/maybe bar whenever a summary arrives; on older servers
+			// without this flag a summary always carries the full overview.
+			'responseCounts' => true,
 		]);
 	}
 

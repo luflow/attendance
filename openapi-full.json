@@ -635,7 +635,8 @@
                     "auditLog",
                     "selfCheckin",
                     "organizers",
-                    "respondOnBehalf"
+                    "respondOnBehalf",
+                    "responseCounts"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -684,6 +685,9 @@
                         "type": "boolean"
                     },
                     "respondOnBehalf": {
+                        "type": "boolean"
+                    },
+                    "responseCounts": {
                         "type": "boolean"
                     }
                 }
@@ -810,6 +814,7 @@
                     "isOrganizer",
                     "canEdit",
                     "canSeeResponses",
+                    "canSeeResponseCounts",
                     "canSeeComments",
                     "canSeeAuditLog"
                 ],
@@ -821,6 +826,9 @@
                         "type": "boolean"
                     },
                     "canSeeResponses": {
+                        "type": "boolean"
+                    },
+                    "canSeeResponseCounts": {
                         "type": "boolean"
                     },
                     "canSeeComments": {
@@ -1328,6 +1336,7 @@
                     "canCreateAppointments",
                     "canCheckin",
                     "canSeeResponseOverview",
+                    "canSeeResponseCounts",
                     "canSeeComments",
                     "canSelfCheckin",
                     "canRespondForOthers"
@@ -1343,6 +1352,9 @@
                         "type": "boolean"
                     },
                     "canSeeResponseOverview": {
+                        "type": "boolean"
+                    },
+                    "canSeeResponseCounts": {
                         "type": "boolean"
                     },
                     "canSeeComments": {

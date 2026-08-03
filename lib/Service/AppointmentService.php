@@ -661,8 +661,11 @@ class AppointmentService {
 	 *                                     PERMISSION_SEE_RESPONSE_OVERVIEW — it leaks every attendee's answer.
 	 * @param bool $includeComments Include free-text comments in that overview.
 	 *                              Gate on the caller's PERMISSION_SEE_COMMENTS.
+	 * @param bool $includeResponseCounts Attach the aggregate counts (no names)
+	 *                                    when the full overview is withheld. Gate on
+	 *                                    the caller's PERMISSION_SEE_RESPONSE_COUNTS.
 	 */
-	public function getAppointmentWithUserResponse(int $id, string $userId, bool $includeResponseSummary = false, bool $includeComments = false): ?array {
+	public function getAppointmentWithUserResponse(int $id, string $userId, bool $includeResponseSummary = false, bool $includeComments = false, bool $includeResponseCounts = false): ?array {
 		$appointment = $this->appointmentMapper->find($id);
 
 		if (!$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
@@ -677,6 +680,7 @@ class AppointmentService {
 			$this->permissionService->canManageAppointments($userId),
 			$includeResponseSummary,
 			$includeComments,
+			$includeResponseCounts,
 		);
 
 		$appointmentData = $appointment->jsonSerialize();
@@ -689,6 +693,8 @@ class AppointmentService {
 		$appointmentData['userResponse'] = $this->serializeUserResponse($userResponse);
 		if ($myPermissions['canSeeResponses']) {
 			$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId(), $myPermissions['canSeeComments']);
+		} elseif ($myPermissions['canSeeResponseCounts']) {
+			$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseCounts($appointment->getId());
 		}
 		$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
 		$appointmentData['myPermissions'] = $myPermissions;
@@ -706,7 +712,7 @@ class AppointmentService {
 	 * but takes the global flags precomputed so the list endpoint does not
 	 * redo the group lookups per appointment.
 	 *
-	 * @return array{isOrganizer: bool, canEdit: bool, canSeeResponses: bool, canSeeComments: bool, canSeeAuditLog: bool}
+	 * @return array{isOrganizer: bool, canEdit: bool, canSeeResponses: bool, canSeeResponseCounts: bool, canSeeComments: bool, canSeeAuditLog: bool}
 	 */
 	private function buildMyPermissions(
 		Appointment $appointment,
@@ -714,6 +720,7 @@ class AppointmentService {
 		bool $globalManage,
 		bool $globalSeeResponses,
 		bool $globalSeeComments,
+		bool $globalSeeCounts = false,
 	): array {
 		$isOrganizer = $this->permissionService->isOrganizer($appointment, $userId);
 		$canEdit = $globalManage || $isOrganizer;
@@ -730,6 +737,7 @@ class AppointmentService {
 			'isOrganizer' => $isOrganizer,
 			'canEdit' => $canEdit,
 			'canSeeResponses' => $canSeeResponses,
+			'canSeeResponseCounts' => $globalSeeCounts || $canSeeResponses,
 			'canSeeComments' => $globalSeeComments || $isOrganizer,
 			'canSeeAuditLog' => $canSeeAuditLog,
 		];
@@ -1070,6 +1078,9 @@ class AppointmentService {
 	 *                                     the caller's PERMISSION_SEE_RESPONSE_OVERVIEW.
 	 * @param bool $includeComments Include free-text comments in that overview.
 	 *                              Gate on the caller's PERMISSION_SEE_COMMENTS.
+	 * @param bool $includeResponseCounts Attach the aggregate counts (no names)
+	 *                                    when the full overview is withheld. Gate on
+	 *                                    the caller's PERMISSION_SEE_RESPONSE_COUNTS.
 	 * @param bool $notScheduledOut Drop appointments the user was scheduled out
 	 *                              of (see isScheduledOut). Implies $onlyForMe —
 	 *                              a relevance filter that still let through
@@ -1085,6 +1096,7 @@ class AppointmentService {
 		bool $onlyForMe = false,
 		bool $includeResponseSummary = false,
 		bool $includeComments = false,
+		bool $includeResponseCounts = false,
 		bool $notScheduledOut = false,
 		bool $onlyScheduled = false,
 	): array {
@@ -1132,6 +1144,7 @@ class AppointmentService {
 				$globalManage,
 				$includeResponseSummary,
 				$includeComments,
+				$includeResponseCounts,
 			);
 
 			$appointmentData = $appointment->jsonSerialize();
@@ -1140,6 +1153,8 @@ class AppointmentService {
 			$appointmentData['userResponse'] = $this->serializeUserResponse($userResponse);
 			if ($myPermissions['canSeeResponses']) {
 				$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseSummary($appointment->getId(), $myPermissions['canSeeComments']);
+			} elseif ($myPermissions['canSeeResponseCounts']) {
+				$appointmentData['responseSummary'] = $this->responseSummaryService->getResponseCounts($appointment->getId());
 			}
 			$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
 			$appointmentData['myPermissions'] = $myPermissions;

@@ -87,6 +87,23 @@ class ResponseSummaryService {
 	}
 
 	/**
+	 * Aggregate yes/no/maybe counts only, in the summary's shape but with the
+	 * per-person sections empty. Safe for holders of the counts permission —
+	 * it must never carry names, timestamps or comments.
+	 */
+	public function getResponseCounts(int $appointmentId): array {
+		$summary = $this->getResponseSummary($appointmentId);
+
+		$counts = $this->initializeSummary();
+		foreach (['yes', 'no', 'maybe', 'no_response'] as $key) {
+			$counts[$key] = $summary[$key];
+		}
+		$counts['countsOnly'] = true;
+
+		return $counts;
+	}
+
+	/**
 	 * Build cache of users, groups, teams, and settings to avoid N+1 queries.
 	 *
 	 * Optimized to only load relevant users based on appointment visibility
