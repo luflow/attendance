@@ -19,28 +19,6 @@
 		</div>
 
 		<template v-else>
-			<NcSettingsSection id="permissions"
-				:name="t('attendance', 'Permissions')"
-				:description="t('attendance', 'Control who can do what. Every permission is either open to all users, limited to specific groups, or granted to nobody.')">
-				<div v-for="group in permissionGroups" :key="group.key" class="permission-group">
-					<h4 class="permission-group__title">
-						{{ group.label }}
-					</h4>
-					<PermissionRow v-for="row in group.rows"
-						:key="row.name"
-						:modelValue="permissions[row.name]"
-						:title="row.title"
-						:hint="row.hint"
-						:implication="row.implication"
-						:implicationLink="row.implicationLink"
-						:warningWhenAll="row.warningWhenAll"
-						:options="availableGroups"
-						:dataTest="`permission-${row.name}`"
-						@navigate="scrollToSection"
-						@update:modelValue="onPermissionChange(row.name, $event)" />
-				</div>
-			</NcSettingsSection>
-
 			<!-- TRANSLATORS: Admin settings section title. The "Response summary" is the main feature of this app - it shows attendance statistics on the appointment detail page, counting users by their Nextcloud group membership. Groups selected here will have their own sections in the summary; users not in these groups appear under "Others". -->
 			<NcSettingsSection id="response-summary"
 				:name="t('attendance', 'Response summary groups')"
@@ -88,6 +66,28 @@
 				<p class="hint-text">
 					{{ n('attendance', '%n team selected', '%n teams selected', selectedTeams.length, { n: selectedTeams.length }) }}
 				</p>
+			</NcSettingsSection>
+
+			<NcSettingsSection id="permissions"
+				:name="t('attendance', 'Permissions')"
+				:description="t('attendance', 'Control who can do what. Every permission is either open to all users, limited to specific groups, or granted to nobody.')">
+				<div v-for="group in permissionGroups" :key="group.key" class="permission-group">
+					<h4 class="permission-group__title">
+						{{ group.label }}
+					</h4>
+					<PermissionRow v-for="row in group.rows"
+						:key="row.name"
+						:modelValue="permissions[row.name]"
+						:title="row.title"
+						:hint="row.hint"
+						:implication="row.implication"
+						:implicationLink="row.implicationLink"
+						:warningWhenAll="row.warningWhenAll"
+						:options="availableGroups"
+						:dataTest="`permission-${row.name}`"
+						@navigate="scrollToSection"
+						@update:modelValue="onPermissionChange(row.name, $event)" />
+				</div>
 			</NcSettingsSection>
 
 			<NcSettingsSection id="self-checkin"
@@ -614,8 +614,8 @@ const mobileAppStores = [
 ]
 
 const navSections = [
-	{ id: 'permissions', label: t('attendance', 'Permissions') },
 	{ id: 'response-summary', label: t('attendance', 'Response summary') },
+	{ id: 'permissions', label: t('attendance', 'Permissions') },
 	{ id: 'self-checkin', label: t('attendance', 'Self-check-in') },
 	{ id: 'reminders', label: t('attendance', 'Appointment reminders') },
 	{ id: 'calendar-sync', label: t('attendance', 'Calendar sync') },
