@@ -207,6 +207,7 @@ OC.L10N.register(
     "year" : "Jahr",
     "You can book directly through me — no App Store purchase needed, and you'll get a proper invoice. Just send me an email!" : "Du kannst direkt bei mir buchen – ein Kauf im App Store ist nicht erforderlich und du erhältst eine ordnungsgemäße Rechnung. Schicke einfach eine E-Mail!",
     "You can only assign guests to groups you administer. Ask a server admin to grant you sub-admin rights if you need this." : "Gäste können nur Gruppen zugewiesen, die du verwaltest. Bitte die Server-Administration, dir die Rechte eines Unteradministrators zu erteilen, falls du diese benötigst.",
+    "You only see the bar where you are allowed to see responses — through a permission or as organizer of an appointment." : "Du siehst die Leiste nur dort, wo du Antworten sehen darfst – per Berechtigung oder als Organisator eines Termins.",
     "Your 14 extra days are yours either way — this just helps me make the app worth keeping." : "Die 14 zusätzlichen Tage gehören dir sowieso – das hilft mir nur dabei, die App weiterhin behaltenswert zu machen.",
     "Your fair price" : "Dein fairer Preis",
     "Your free trial has ended" : "Deine kostenlose Testphase ist abgelaufen",
