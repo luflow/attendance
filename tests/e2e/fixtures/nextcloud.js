@@ -1,5 +1,6 @@
 import { test as base, expect } from '@playwright/test'
 import { existsSync, mkdirSync, readFileSync } from 'fs'
+import { execSync } from 'node:child_process'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -381,10 +382,27 @@ export async function resetAdminSettings(request) {
 			manage_appointments: [],
 			checkin: [],
 			see_response_overview: [],
+			see_response_counts: [],
 			see_comments: [],
+			create_appointments: [],
+			respond_for_others: [],
 		},
 		reminders: { enabled: false, days_before: 1, frequency_days: 1 },
 	})
+}
+
+/**
+ * Force every Apache worker to reload the app config. APCu (the local
+ * memcache) is per-worker, so a permission change saved through one worker
+ * is not seen by its siblings until they restart — a graceful restart makes
+ * permission-sensitive assertions deterministic.
+ */
+export function reloadWebWorkers() {
+	execSync(
+		'docker exec nextcloud-e2e-test-server_attendance apachectl graceful',
+		{ stdio: 'pipe' },
+	)
+	execSync('sleep 1', { stdio: 'pipe' })
 }
 
 /**

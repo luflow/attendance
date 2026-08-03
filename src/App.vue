@@ -8,6 +8,16 @@
 					:label="t('attendance', 'Search appointments')"
 					@update:modelValue="onSearchInput" />
 			</template>
+			<!-- Primary action on top, the Nextcloud standard spot -->
+			<NcAppNavigationNew
+				v-if="permissions.canCreateAppointments"
+				:text="t('attendance', 'Create appointment')"
+				data-test="button-create-appointment"
+				@click="createNewAppointment">
+				<template #icon>
+					<PlusIcon :size="20" />
+				</template>
+			</NcAppNavigationNew>
 			<template #list>
 				<NcAppNavigationItem
 					:name="t('attendance', 'All appointments')"
@@ -138,17 +148,7 @@
 				</NcAppNavigationItem>
 			</template>
 
-			<!-- Bottom button for creating new appointment -->
 			<template #footer>
-				<NcAppNavigationItem
-					v-if="permissions.canCreateAppointments"
-					:name="t('attendance', 'Create appointment')"
-					data-test="button-create-appointment"
-					@click.prevent="createNewAppointment">
-					<template #icon>
-						<PlusIcon :size="20" />
-					</template>
-				</NcAppNavigationItem>
 				<NcAppNavigationItem
 					v-if="permissions.canManageAppointments"
 					:name="t('attendance', 'Export')"
@@ -259,6 +259,7 @@ import {
 	NcAppContent,
 	NcAppNavigation,
 	NcAppNavigationItem,
+	NcAppNavigationNew,
 	NcAppNavigationSearch,
 	NcContent,
 } from '@nextcloud/vue'

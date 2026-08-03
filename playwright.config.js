@@ -84,6 +84,10 @@ export default defineConfig({
 				'26-respond-on-behalf.spec.js',
 				// Enables the org calendar push and writes into a CalDAV calendar.
 				'27-org-calendar.spec.js',
+				// Restricts the create permission to a dedicated group.
+				'28-create-permission.spec.js',
+				// Restricts every response-visibility tier to admin.
+				'29-organizer-visibility.spec.js',
 			],
 			fullyParallel: false,
 			workers: 1,

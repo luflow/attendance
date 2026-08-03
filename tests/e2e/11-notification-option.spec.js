@@ -20,7 +20,7 @@ test.describe('Attendance App - Notification option visibility', () => {
 		await attendanceApp()
 		await page.waitForLoadState('networkidle')
 
-		const createLink = page.getByRole('link', { name: 'Create Appointment' })
+		const createLink = page.getByRole('button', { name: 'Create Appointment' })
 		await createLink.waitFor({ state: 'visible' })
 		await createLink.click()
 
@@ -37,7 +37,7 @@ test.describe('Attendance App - Notification option visibility', () => {
 		await attendanceApp()
 		await page.waitForLoadState('networkidle')
 
-		const createLink = page.getByRole('link', { name: 'Create Appointment' })
+		const createLink = page.getByRole('button', { name: 'Create Appointment' })
 		await createLink.waitFor({ state: 'visible' })
 		await createLink.click()
 

@@ -2,7 +2,7 @@ import { test, expect, createAppointmentViaAPI, deleteAllAppointments, openComme
 
 // Helper function to create an appointment via UI
 async function createAppointmentViaUI(page, { name, description, daysFromNow = 2, durationHours = 1 }) {
-	const createLink = page.getByRole('link', { name: 'Create Appointment' })
+	const createLink = page.getByRole('button', { name: 'Create Appointment' })
 	await createLink.waitFor({ state: 'visible' })
 	await createLink.click()
 
