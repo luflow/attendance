@@ -141,6 +141,7 @@ export async function createAppointmentViaAPI(request, {
 	durationHours = 1,
 	visibleUsers = [],
 	visibleGroups = [],
+	organizers = [],
 	sendNotification = false,
 	responseDeadline,
 	username = 'admin',
@@ -158,6 +159,7 @@ export async function createAppointmentViaAPI(request, {
 		visibleUsers,
 		visibleGroups,
 		sendNotification,
+		...(organizers.length ? { organizers } : {}),
 		...(responseDeadline ? { responseDeadline: responseDeadline.toISOString() } : {}),
 	}
 	const resp = await resilientJson(() => request.post(`${API_BASE}/apps/attendance/api/appointments`, {
