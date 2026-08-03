@@ -5,7 +5,7 @@ import { test, expect } from './fixtures/nextcloud.js'
  * Returns the series name for later lookup.
  */
 async function createRecurringSeries(page, { name, count = 3, daysFromNow = 5 } = {}) {
-	const createLink = page.getByRole('link', { name: 'Create Appointment' })
+	const createLink = page.getByRole('button', { name: 'Create Appointment' })
 	await createLink.waitFor({ state: 'visible' })
 	await createLink.click()
 
@@ -94,7 +94,7 @@ test.describe('Attendance App - Series Management', () => {
 
 	test('standalone appointment delete should show simple confirmation', async ({ page }) => {
 		// Create a standalone (non-recurring) appointment
-		const createLink = page.getByRole('link', { name: 'Create Appointment' })
+		const createLink = page.getByRole('button', { name: 'Create Appointment' })
 		await createLink.waitFor({ state: 'visible' })
 		await createLink.click()
 		await page.waitForURL(/.*\/create$/)
@@ -398,7 +398,7 @@ test.describe('Attendance App - Series Management', () => {
 
 	test('edit non-series appointment should save directly without dialog', async ({ page }) => {
 		// Create a standalone appointment
-		const createLink = page.getByRole('link', { name: 'Create Appointment' })
+		const createLink = page.getByRole('button', { name: 'Create Appointment' })
 		await createLink.waitFor({ state: 'visible' })
 		await createLink.click()
 		await page.waitForURL(/.*\/create$/)

@@ -8,6 +8,16 @@
 					:label="t('attendance', 'Search appointments')"
 					@update:modelValue="onSearchInput" />
 			</template>
+			<!-- Primary action on top, the Nextcloud standard spot -->
+			<NcAppNavigationNew
+				v-if="permissions.canCreateAppointments"
+				:text="t('attendance', 'Create appointment')"
+				data-test="button-create-appointment"
+				@click="createNewAppointment">
+				<template #icon>
+					<PlusIcon :size="20" />
+				</template>
+			</NcAppNavigationNew>
 			<template #list>
 				<NcAppNavigationItem
 					:name="t('attendance', 'All appointments')"
@@ -138,17 +148,7 @@
 				</NcAppNavigationItem>
 			</template>
 
-			<!-- Bottom button for creating new appointment -->
 			<template #footer>
-				<NcAppNavigationItem
-					v-if="permissions.canCreateAppointments"
-					:name="t('attendance', 'Create appointment')"
-					data-test="button-create-appointment"
-					@click.prevent="createNewAppointment">
-					<template #icon>
-						<PlusIcon :size="20" />
-					</template>
-				</NcAppNavigationItem>
 				<NcAppNavigationItem
 					v-if="permissions.canManageAppointments"
 					:name="t('attendance', 'Export')"
@@ -259,6 +259,7 @@ import {
 	NcAppContent,
 	NcAppNavigation,
 	NcAppNavigationItem,
+	NcAppNavigationNew,
 	NcAppNavigationSearch,
 	NcContent,
 } from '@nextcloud/vue'
@@ -511,6 +512,9 @@ t('attendance', 'year')
 t('attendance', "You can book directly through me — no App Store purchase needed, and you'll get a proper invoice. Just send me an email!")
 t('attendance', 'You are covered by your organization. You can cancel your personal subscription in the store.')
 t('attendance', 'You can only assign guests to groups you administer. Ask a server admin to grant you sub-admin rights if you need this.')
+// TRANSLATORS: Hint under the mobile app's response-bar setting for users
+// without the global permission to see responses.
+t('attendance', 'You only see the bar where you are allowed to see responses — through a permission or as organizer of an appointment.')
 t('attendance', 'Your 14 extra days are yours either way — this just helps me make the app worth keeping.')
 t('attendance', 'Your fair price')
 t('attendance', 'Your free trial has ended')

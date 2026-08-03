@@ -50,7 +50,7 @@ async function setupCalendarEvents(request) {
 
 /** Navigate to create form and open the calendar import picker */
 async function openCalendarPicker(page) {
-	await page.getByRole('link', { name: 'Create Appointment' }).click()
+	await page.getByRole('button', { name: 'Create Appointment' }).click()
 	await page.waitForURL(/.*\/create$/)
 	await page.waitForLoadState('networkidle')
 	await page.locator('[data-test="button-import-calendar"]').click()

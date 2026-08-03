@@ -5,7 +5,7 @@ import { test, expect } from './fixtures/nextcloud.js'
  * Returns the start date for further use.
  */
 async function navigateToCreateForm(page, { name = 'Recurring Test', daysFromNow = 5, durationHours = 1 } = {}) {
-	const createLink = page.getByRole('link', { name: 'Create Appointment' })
+	const createLink = page.getByRole('button', { name: 'Create Appointment' })
 	await createLink.waitFor({ state: 'visible' })
 	await createLink.click()
 
@@ -45,7 +45,7 @@ test.describe('Attendance App - Recurrence', () => {
 	})
 
 	test('recurrence toggle should be disabled without start date', async ({ page }) => {
-		const createLink = page.getByRole('link', { name: 'Create Appointment' })
+		const createLink = page.getByRole('button', { name: 'Create Appointment' })
 		await createLink.waitFor({ state: 'visible' })
 		await createLink.click()
 
@@ -258,7 +258,7 @@ test.describe('Attendance App - Recurrence', () => {
 		const endTime = new Date(nextWednesday.getTime() + 2 * 60 * 60 * 1000)
 
 		// Navigate to create form manually (need a Wednesday start date)
-		const createLink = page.getByRole('link', { name: 'Create Appointment' })
+		const createLink = page.getByRole('button', { name: 'Create Appointment' })
 		await createLink.waitFor({ state: 'visible' })
 		await createLink.click()
 		await page.waitForURL(/.*\/create$/)
@@ -331,7 +331,7 @@ test.describe('Attendance App - Date Validation', () => {
 	})
 
 	test('should block save when end date is before start date', async ({ page }) => {
-		const createLink = page.getByRole('link', { name: 'Create Appointment' })
+		const createLink = page.getByRole('button', { name: 'Create Appointment' })
 		await createLink.waitFor({ state: 'visible' })
 		await createLink.click()
 

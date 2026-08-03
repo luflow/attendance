@@ -42,7 +42,7 @@ async function getFileId(request, username, password, filename) {
 // Helper function to create an appointment with optional attachments
 async function createAppointment(page, { name, description, daysFromNow = 2, durationHours = 1 }) {
 	// Wait for Create Appointment link to be ready
-	const createLink = page.getByRole('link', { name: 'Create Appointment' })
+	const createLink = page.getByRole('button', { name: 'Create Appointment' })
 	await createLink.waitFor({ state: 'visible' })
 
 	// Click create button (navigates to form page)
@@ -98,7 +98,7 @@ test.describe.serial('Attendance App - Attachments', () => {
 
 		test('should show attachment section in create appointment form', async ({ page }) => {
 			// Click create button
-			await page.getByRole('link', { name: 'Create Appointment' }).click()
+			await page.getByRole('button', { name: 'Create Appointment' }).click()
 
 			// Wait for form page to load
 			await page.waitForURL(/.*\/create$/)
@@ -115,7 +115,7 @@ test.describe.serial('Attendance App - Attachments', () => {
 
 		test('should open file picker when clicking Add from Files', async ({ page }) => {
 			// Click create button
-			await page.getByRole('link', { name: 'Create Appointment' }).click()
+			await page.getByRole('button', { name: 'Create Appointment' }).click()
 
 			// Wait for form page to load
 			await page.waitForURL(/.*\/create$/)
@@ -137,7 +137,7 @@ test.describe.serial('Attendance App - Attachments', () => {
 
 		test('should add attachment via file picker', async ({ page }) => {
 			// Click create button
-			await page.getByRole('link', { name: 'Create Appointment' }).click()
+			await page.getByRole('button', { name: 'Create Appointment' }).click()
 
 			// Wait for form page to load
 			await page.waitForURL(/.*\/create$/)

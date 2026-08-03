@@ -22,6 +22,7 @@ const state = reactive({
 		auditLog: false,
 		cancelling: false,
 		bookingEnabled: false,
+		scheduledFilter: false,
 		organizers: false,
 	},
 	config: {
@@ -81,6 +82,7 @@ export function usePermissions() {
 			state.capabilities.auditLog = capabilitiesRes.data.auditLog === true
 			state.capabilities.cancelling = capabilitiesRes.data.cancelling === true
 			state.capabilities.bookingEnabled = capabilitiesRes.data.bookingEnabled === true
+			state.capabilities.scheduledFilter = capabilitiesRes.data.scheduledFilter === true
 			state.capabilities.organizers = capabilitiesRes.data.organizers === true
 
 			state.config.displayOrder = configRes.data.displayOrder || 'name_first'
@@ -107,6 +109,7 @@ export function usePermissions() {
 			state.capabilities.auditLog = false
 			state.capabilities.cancelling = false
 			state.capabilities.bookingEnabled = false
+			state.capabilities.scheduledFilter = false
 			state.capabilities.organizers = false
 			state.config.displayOrder = 'name_first'
 			state.config.mobileAppBannerEnabled = true

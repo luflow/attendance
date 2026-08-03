@@ -75,7 +75,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.waitForLoadState('networkidle')
 
 			// Create test appointment
-			await page.getByRole('link', { name: 'Create Appointment' }).click()
+			await page.getByRole('button', { name: 'Create Appointment' }).click()
 			await page.waitForURL(/.*\/create$/)
 			await page.waitForLoadState('networkidle')
 			await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
@@ -165,7 +165,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			await attendanceApp()
 			await page.waitForLoadState('networkidle')
 
-			await page.getByRole('link', { name: 'Create Appointment' }).click()
+			await page.getByRole('button', { name: 'Create Appointment' }).click()
 			await page.waitForURL(/.*\/create$/)
 			await page.waitForLoadState('networkidle')
 			await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()

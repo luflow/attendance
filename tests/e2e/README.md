@@ -125,7 +125,7 @@ The tests use the `@nextcloud/e2e-test-server` package which provides a pre-conf
 - **Users** (default users created by @nextcloud/e2e-test-server):
   - `admin / admin` (administrator)
   - `test / test` (primary regular user for e2e tests)
-  - `user1 / user1`, `user2 / user2` (additional test users via setupUsers())
+  - `test1 / test1` … `test5 / test5` (additional test users via setupUsers())
 - **Requirements**: Docker must be running on your machine
 - **Note**: The e2e tests primarily use `test/test` as the regular user credential
 - **Installed apps:**

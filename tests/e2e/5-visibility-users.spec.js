@@ -3,7 +3,7 @@ import { test, expect, login, resetAdminSettings, deleteAllAppointments } from '
 // Helper function to create an appointment with visibility settings
 async function createAppointmentWithVisibility(page, { name, description, daysFromNow = 2, durationHours = 1, visibleUsers = [] }) {
 	// Wait for Create Appointment link to be ready
-	const createLink = page.getByRole('link', { name: 'Create Appointment' })
+	const createLink = page.getByRole('button', { name: 'Create Appointment' })
 	await createLink.waitFor({ state: 'visible' })
 
 	// Click create button (navigates to form page)

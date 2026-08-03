@@ -7,37 +7,27 @@ import {
 	reopenAppointmentViaAPI,
 	deleteAllAppointments,
 	resetAdminSettings,
+	saveAdminSettings,
+	reloadWebWorkers,
+	PERMISSIVE_PERMISSIONS,
 } from './fixtures/nextcloud.js'
 
-// Set permission_manage_appointments via the saveSettings HTTP endpoint with
-// curl. We have to use the same web SAPI that serves the actual reopen call —
-// occ runs in CLI mode and APCu lives in a separate process there, so a CLI
-// write would not invalidate the web process's cached app-config and the
-// permission check would still see "everyone is manager".
-function setManageAppointmentsRoles(roles) {
-	const body = JSON.stringify({
+// Set permission_manage_appointments via the same web SAPI that serves the
+// actual reopen call — occ runs in CLI mode and APCu lives in a separate
+// process there, so a CLI write would not invalidate the web process's
+// cached app-config and the permission check would still see "everyone is
+// manager".
+async function setManageAppointmentsRoles(request, roles) {
+	await saveAdminSettings(request, {
 		whitelistedGroups: [],
 		whitelistedTeams: [],
 		permissions: {
+			...PERMISSIVE_PERMISSIONS,
 			manage_appointments: roles,
-			checkin: [],
-			see_response_overview: [],
-			see_comments: [],
 		},
 		reminders: { enabled: false },
 	})
-	execSync(
-		`curl -fsS -u admin:admin -H 'OCS-APIREQUEST: true' -H 'Content-Type: application/json' -X POST -d ${JSON.stringify(body)} 'http://localhost:8080/index.php/apps/attendance/api/admin/settings'`,
-		{ stdio: 'pipe' },
-	)
-	// APCu (the local memcache) is per-Apache-worker — a graceful restart
-	// forces all workers to reload, so the next request sees the fresh config.
-	execSync(
-		'docker exec nextcloud-e2e-test-server_attendance apachectl graceful',
-		{ stdio: 'pipe' },
-	)
-	// Give Apache a moment to cycle workers.
-	execSync('sleep 1', { stdio: 'pipe' })
+	await reloadWebWorkers()
 }
 
 // Mirrors the storage key in src/views/AllAppointments.vue.
@@ -52,8 +42,8 @@ const FILTER_STORAGE_KEY = 'attendance:list-filters'
 test.describe('Attendance App - Close inquiry permissions (sequential)', () => {
 	test.describe.configure({ mode: 'serial' })
 
-	test.beforeAll(() => {
-		setManageAppointmentsRoles(['admin'])
+	test.beforeAll(async ({ request }) => {
+		await setManageAppointmentsRoles(request, ['admin'])
 	})
 
 	test.afterAll(async ({ request }) => {
@@ -64,7 +54,7 @@ test.describe('Attendance App - Close inquiry permissions (sequential)', () => {
 	test('non-manager non-creator cannot reopen via API (403)', async ({ request }) => {
 		// Re-assert the permission right before the call so a flaky beforeAll
 		// or sibling test cannot mask the negative case.
-		setManageAppointmentsRoles(['admin'])
+		await setManageAppointmentsRoles(request, ['admin'])
 		const checkPerm = execSync(
 			`docker exec -u www-data nextcloud-e2e-test-server_attendance php occ config:app:get attendance permission_manage_appointments`,
 			{ stdio: 'pipe' },

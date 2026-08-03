@@ -59,7 +59,7 @@ async function addUserToGroup(page, username, groupName) {
 // Helper function to create an appointment with group visibility
 async function createAppointmentWithGroupVisibility(page, { name, description, daysFromNow = 2, durationHours = 1, visibleGroups = [] }) {
 	// Wait for Create Appointment link to be ready
-	const createLink = page.getByRole('link', { name: 'Create Appointment' })
+	const createLink = page.getByRole('button', { name: 'Create Appointment' })
 	await createLink.waitFor({ state: 'visible' })
 
 	// Click create button (navigates to form page)
@@ -254,7 +254,7 @@ test.describe('Attendance App - Group Visibility Filtering', () => {
 			await page.waitForLoadState('networkidle')
 
 			// Create appointment with both specific user and group
-			const createLink = page.getByRole('link', { name: 'Create Appointment' })
+			const createLink = page.getByRole('button', { name: 'Create Appointment' })
 			await createLink.waitFor({ state: 'visible' })
 			await createLink.click()
 

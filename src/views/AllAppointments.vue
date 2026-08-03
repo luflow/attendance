@@ -276,9 +276,12 @@ const filterDefs = computed(() => [
 			},
 			{
 				id: AUDIENCE.ME_BOOKED,
-				// TRANSLATORS: Filter option in the appointment list. Keeps only the
-				// appointments the user was given a place in (German "eingeplant").
-				label: t('attendance', 'Only where I am scheduled in'),
+				// TRANSLATORS: Filter option in the appointment list, deliberately terse.
+				// "Scheduled" refers to the person, not the appointment: it keeps only
+				// appointments the user was given a place in when the organizer planned
+				// the lineup (German "eingeplant" — "Nur eingeplante"). Read it as
+				// "Only [appointments I am] scheduled [in]".
+				label: t('attendance', 'Only scheduled'),
 				visible: capabilities.bookingEnabled && capabilities.scheduledFilter,
 			},
 		],
