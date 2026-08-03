@@ -197,7 +197,7 @@ onBeforeUnmount(() => {
 			padding: 4px;
 
 			&-cursor {
-				border-left-color: var(--color-main-text);
+				border-inline-start-color: var(--color-main-text);
 			}
 
 			&-selected {

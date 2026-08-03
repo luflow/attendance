@@ -234,10 +234,18 @@ watch(() => props.appointmentId, async (newId, oldId) => {
 </script>
 
 <style scoped lang="scss">
+// Mirrors the list view: a wide padding frame with the content column capped
+// at the same 800px, so a card is the same width on both pages. Capping the
+// frame itself would subtract its padding from the card.
 .appointment-detail {
 	padding: 20px;
-	max-width: 800px;
+	max-width: 1200px;
 	margin: 0 auto;
+
+	> * {
+		max-width: 800px;
+		margin-inline: auto;
+	}
 }
 
 .unanswered-banner {

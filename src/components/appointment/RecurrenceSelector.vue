@@ -428,7 +428,7 @@ watch(
     flex-direction: column;
     gap: 16px;
     margin-top: 12px;
-    padding-left: 4px;
+    padding-inline-start: 4px;
 }
 
 .frequency-row {

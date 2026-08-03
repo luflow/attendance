@@ -148,7 +148,7 @@ defineEmits(['checkin', 'toggleComment', 'saveComment', 'cancelComment', 'update
 
 		.user-details {
 			flex: 1;
-			margin-left: 12px;
+			margin-inline-start: 12px;
 
 			.user-name {
 				font-weight: 600;

@@ -416,7 +416,7 @@ function importSelected() {
 	width: 16px;
 	height: 16px;
 	border-radius: 50%;
-	margin-right: 12px;
+	margin-inline-end: 12px;
 	flex-shrink: 0;
 }
 
@@ -447,7 +447,7 @@ function importSelected() {
 	padding: 1px 8px;
 	border-radius: var(--border-radius-pill);
 	white-space: nowrap;
-	margin-left: auto;
+	margin-inline-start: auto;
 	flex-shrink: 0;
 }
 
@@ -489,7 +489,7 @@ function importSelected() {
 .selected-calendar-name .calendar-color {
 	width: 12px;
 	height: 12px;
-	margin-right: 8px;
+	margin-inline-end: 8px;
 }
 
 .date-range-picker {

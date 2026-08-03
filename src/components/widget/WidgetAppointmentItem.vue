@@ -77,7 +77,7 @@ const formattedDate = computed(() => formatDateTime(props.item.subText))
     padding: 0 14px 12px 14px;
     border-bottom: 1px solid var(--color-border);
     overflow: hidden;
-    word-wrap: break-word;
+    overflow-wrap: break-word;
 
     &:last-child {
         border-bottom: none;
@@ -97,7 +97,7 @@ const formattedDate = computed(() => formatDateTime(props.item.subText))
         text-overflow: ellipsis;
         white-space: nowrap;
         flex: 1;
-        margin-right: 8px;
+        margin-inline-end: 8px;
 
         &.clickable {
             cursor: pointer;

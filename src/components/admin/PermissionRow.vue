@@ -37,16 +37,23 @@
 		</p>
 		<p v-if="implication" class="permission-row__note">
 			<InformationIcon :size="16" />
-			{{ implication }}
+			<span>
+				{{ implicationParts[0]
+				}}<SectionLink v-if="implicationLink"
+					v-bind="implicationLink"
+					@navigate="$emit('navigate', $event)" />{{ implicationParts[1] }}
+			</span>
 		</p>
 	</div>
 </template>
 
 <script setup>
 import { NcCheckboxRadioSwitch } from '@nextcloud/vue'
+import { computed } from 'vue'
 import AlertIcon from 'vue-material-design-icons/Alert.vue'
 import InformationIcon from 'vue-material-design-icons/InformationOutline.vue'
 import GroupSelect from '../common/GroupSelect.vue'
+import SectionLink from './SectionLink.vue'
 
 const props = defineProps({
 	title: {
@@ -71,6 +78,11 @@ const props = defineProps({
 		type: String,
 		default: '',
 	},
+	/** Turns the `{section}` placeholder of the implication into a link: { label, sectionId } */
+	implicationLink: {
+		type: Object,
+		default: null,
+	},
 	/** Warning note shown while the "all users" mode is selected */
 	warningWhenAll: {
 		type: String,
@@ -82,7 +94,9 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'navigate'])
+
+const implicationParts = computed(() => props.implication.split('{section}'))
 
 const MODES = [
 	{ value: 'all', label: t('attendance', 'All users') },

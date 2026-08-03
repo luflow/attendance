@@ -62,8 +62,8 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 	})
 
 	/**
-	 * Land every viewer on the full list: non-managers default to the
-	 * Unanswered view, which is empty for users who already responded.
+	 * Land every viewer on the full list: the default view is role-dependent
+	 * and scoped, so neither default is guaranteed to hold both fixtures.
 	 */
 	async function openAllAppointments(page) {
 		await page.locator('[data-test="nav-all"]').click()
@@ -109,9 +109,11 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 		await page.waitForLoadState('networkidle')
 		await openAllAppointments(page)
 
-		// No bar on B means no "Show details" link either — go via the title.
+		// The detail link stays regardless of the bar — the page carries the
+		// description and attachments, not just the summary.
 		const otherCard = cardFor(page, OTHER)
-		await otherCard.locator('[data-test="appointment-title-link"]').click()
+		await expect(otherCard.locator('[data-test="response-bar"]')).toHaveCount(0)
+		await otherCard.locator('[data-test="button-show-details"]').click()
 		await page.waitForLoadState('networkidle')
 
 		await expect(page.locator('[data-test="response-summary"]')).toHaveCount(0)
@@ -128,8 +130,8 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 		await expect(organizedCard).toBeVisible()
 		await expect(page.locator('[data-test="response-bar"]')).toHaveCount(0)
 
-		// No bar for this user, hence no "Show details" link — via the title.
-		await organizedCard.locator('[data-test="appointment-title-link"]').click()
+		// No bar for this user, but the detail link is still there.
+		await organizedCard.locator('[data-test="button-show-details"]').click()
 		await page.waitForLoadState('networkidle')
 		await expect(page.locator('[data-test="response-summary"]')).toHaveCount(0)
 	})

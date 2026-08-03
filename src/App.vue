@@ -781,10 +781,11 @@ function checkRouting() {
 	} else if (isAllRoute) {
 		currentView.value = 'all'
 	} else {
-		// Default landing: admins drop into "All appointments" (their natural
-		// overview); everyone else lands in "Unanswered" so the pending
-		// action is right in front of them.
-		currentView.value = permissions.canManageAppointments ? 'all' : 'unanswered'
+		// Default landing: managers drop into "All appointments" (their natural
+		// overview), everyone else into "Upcoming". Landing in "Unanswered"
+		// was confusing once everything was answered — an empty list as the
+		// first thing you see.
+		currentView.value = permissions.canManageAppointments ? 'all' : 'current'
 	}
 }
 
@@ -809,8 +810,8 @@ watch(currentView, async (newView, oldView) => {
 
 onMounted(async () => {
 	// Both server fetches are independent — fan out before awaiting either.
-	// checkRouting then resolves the bare-URL default view (admin → All,
-	// others → Unanswered) once permissions are in.
+	// checkRouting then resolves the bare-URL default view (manager → All,
+	// others → Upcoming) once permissions are in.
 	const permissionsPromise = loadPermissions()
 	const isCheckinView = /\/checkin\/\d+/.test(window.location.pathname)
 	const appointmentsPromise = isCheckinView ? null : loadAppointments()
