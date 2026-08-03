@@ -43,9 +43,9 @@ t('attendance', '{actor} answered {response} for {subject}')
 t('attendance', '{actor} changed response from {from} to {to}')
 t('attendance', '{actor} changed the response of {subject} from {from} to {to}')
 t('attendance', '{actor} recorded check-in for {subject}: {state}')
-t('attendance', '{actor} checked in: {state}')
+t('attendance', '{actor} checked themselves in: {state}')
 t('attendance', '{actor} updated check-in for {subject}: {state}')
-t('attendance', '{actor} updated their check-in: {state}')
+t('attendance', '{actor} updated their own check-in: {state}')
 
 const CHIP_SENTINEL = /CHIP(\d+)/g
 
@@ -182,7 +182,7 @@ export function formatAuditEvent(event) {
 				subject,
 				meta.checkinState,
 				'{actor} recorded check-in for {subject}: {state}',
-				'{actor} checked in: {state}',
+				'{actor} checked themselves in: {state}',
 				actor,
 			)
 		case 'checkin.changed':
@@ -191,7 +191,7 @@ export function formatAuditEvent(event) {
 				subject,
 				meta.checkinState,
 				'{actor} updated check-in for {subject}: {state}',
-				'{actor} updated their check-in: {state}',
+				'{actor} updated their own check-in: {state}',
 				actor,
 			)
 		case 'appointment.created':

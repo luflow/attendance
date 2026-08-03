@@ -710,6 +710,7 @@ OC.L10N.register(
     "{actor} cancelled the appointment" : "{actor} hat diesen Termin abgesagt",
     "{actor} reactivated the appointment" : "{actor} hat diesen Termin reaktiviert",
     "{actor} performed {verb}" : "{actor} hat {verb} durchgeführt",
-    "Guests" : "Gäste"
+    "Guests" : "Gäste",
+    "Self check-in" : "Selbst-Check-in"
 },
 "nplurals=2; plural=(n != 1);");
