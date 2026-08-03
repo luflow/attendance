@@ -98,7 +98,7 @@ Dazu hast du Termine, Antworten und Kommentare unterwegs dabei und kannst mehrer
 [App Store](https://apps.apple.com/app/id6759988681) · [Google Play](https://play.google.com/store/apps/details?id=de.krautnerds.attendance) · [Was kann die App?](https://anwesenheit.app/de/mobile)
 
 Dokumentation, Einsatzbeispiele und Roadmap: [anwesenheit.app](https://anwesenheit.app/de)]]></description>
-	<version>1.43.0</version>
+	<version>1.44.0</version>
 	<licence>AGPL-3.0-or-later</licence>
 	<author mail="florian@krautnerds.de" homepage="https://krautnerds.de">Florian Ludwig</author>
 	<namespace>Attendance</namespace>

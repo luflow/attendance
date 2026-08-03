@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+## 1.44.0 – 2026-08-03
+
+### Added
+
+- **Explicit permission modes**: every permission in the admin settings now stores an access mode — all users, specific groups, or nobody — chosen via radio buttons, so you don't have to know the old fallback rules (an empty list used to mean "everyone" for some permissions and "nobody" for others). A migration backfills the mode on every install without changing who can do what
+- **Counts-only response summary**: people without the full response overview now see how the answers are distributed (yes/no/maybe/not answered, without names) once they hold the new permission "See response counts". Open to everyone while unconfigured, restrictable per group. The mobile app gates its summary bar on a new capability
+- **Create appointment in the navigation**: the create button now sits at the top of the navigation like in other Nextcloud apps, instead of in the page
+
+### Changed
+
+- **Admin settings auto-save**: permissions save as you change them (per row, so concurrent admins can't clobber each other) and the save button is gone. The page is regrouped — permissions first, then self check-in setup — with an anchor navigation on top
+- Dashboard widget is more compact: entries drop the description and use text-only response pills, and the answer buttons no longer wrap apart on narrow screens
+
+### Fixed
+
+- Self check-ins in the activity history now read "{actor} checked in" instead of naming no one, and the source badge no longer shows a raw internal key
+
+### Maintenance
+
+- Updated npm and composer dependencies and moved to Node 24 LTS
+
 ## 1.43.0 – 2026-08-03
 
 ### Added
