@@ -16,7 +16,8 @@ that unlocks the live check-in button stays correct whenever you re-run it.
 
 Usage:
     python3 seed_demo_data.py --dry-run     # print SQL, change nothing
-    python3 seed_demo_data.py               # apply
+    python3 seed_demo_data.py               # apply (English UI + data)
+    python3 seed_demo_data.py --lang de     # German UI + data (website shots)
     python3 seed_demo_data.py --no-config   # only appointments, skip
                                             # display names / groups / locale
 """
@@ -38,8 +39,11 @@ DESIGN_ID_BASE = 151
 
 # Voice groups expected on the instance, plus the conductor group we add so
 # the person taking the screenshots does not land in the "Others" bucket of
-# the response summary.
-CONDUCTOR_GROUP = "Conductor"
+# the response summary. The conductor group is per language because the
+# response summary renders group IDs, not display names — renaming the
+# display name of "Conductor" would not change what the screenshot shows.
+CONDUCTOR_GROUP = "Conductor"  # sentinel in MEMBERS; resolved per language
+CONDUCTOR_GROUPS = {"en": "Conductor", "de": "Chorleitung"}
 VOICE_GROUPS = ["Sopran", "Alt", "Tenor", "Bass"]
 
 # uid -> (display name, group). The uids are the standard nextcloud-docker-dev
@@ -60,8 +64,120 @@ MEMBERS = {
 
 ORGANIZER = "admin"
 
-REHEARSAL_DESC = "Weekly rehearsal in the parish hall. Please bring your sheet music."
 SERIES_ID = "demo-rehearsal-series"
+
+# Appointment name + description per language, keyed like RESPONSES. The
+# store screenshots ship in English; `--lang de` produces the same data in
+# German for the website's /de pages (the app store itself cannot take
+# per-language screenshots — info.xsd's screenshot type has no lang attribute).
+TEXTS = {
+    "rehearsal": {
+        "en": ("Rehearsal",
+               "Weekly rehearsal in the parish hall. Please bring your sheet music."),
+        "de": ("Probe",
+               "Wöchentliche Probe im Gemeindesaal. Bitte Noten mitbringen."),
+    },
+    "concert": {
+        "en": ("Summer Concert",
+               "Open air concert in the Stadtpark. Please be there by 19:00 for the warm-up."),
+        "de": ("Sommerkonzert",
+               "Open-Air-Konzert im Stadtpark. Bitte bis 19:00 zum Einsingen da sein."),
+    },
+    "extra": {
+        "en": ("Extra Rehearsal",
+               "Last run-through before the open air gig. Full programme, no breaks."),
+        "de": ("Zusatzprobe",
+               "Letzter Durchlauf vor dem Open-Air-Auftritt. Volles Programm, ohne Pausen."),
+    },
+    "dress": {
+        "en": ("Dress Rehearsal",
+               "Full dress rehearsal with the band. Please make sure to sing all songs by heart!"),
+        "de": ("Generalprobe",
+               "Generalprobe mit Band. Bitte alle Stücke auswendig können!"),
+    },
+    "gig": {
+        "en": ("Open Air Gig",
+               "Marktplatz main stage. We will sing all songs of the summer programme."),
+        "de": ("Open-Air-Auftritt",
+               "Hauptbühne am Marktplatz. Wir singen das komplette Sommerprogramm."),
+    },
+    "weekend": {
+        "en": ("Choir Weekend",
+               "Kloster Banz. Two days of intensive rehearsals, plus singing together in the evening."),
+        "de": ("Chorwochenende",
+               "Kloster Banz. Zwei Tage intensive Proben, abends gemeinsames Singen."),
+    },
+    "d_maybe": {
+        "en": ("Voice rehearsal — Tenor & Bass",
+               "Tenor and bass only. We work on the transitions in the second movement."),
+        "de": ("Stimmgruppenprobe Tenor",
+               "Nur Tenor und Bass. Wir arbeiten an den Übergängen im zweiten Satz."),
+    },
+    "d_no": {
+        "en": ("Rehearsal with orchestra",
+               "Joint rehearsal with the chamber orchestra. Please be on time."),
+        "de": ("Probe mit Orchester",
+               "Gemeinsame Probe mit dem Kammerorchester. Bitte pünktlich sein."),
+    },
+    "d_booked": {
+        "en": ("Summer party at the club house",
+               "We are celebrating the end of the season! Food and drinks are taken care of.\n\n"
+               "## What to bring\n\nGood spirits, and sturdy shoes for the games.\n\n"
+               "> Please answer by Friday so we can plan ahead."),
+        "de": ("Sommerfest im Vereinsheim",
+               "Wir feiern den Saisonabschluss! Für Essen und Getränke ist gesorgt.\n\n"
+               "## Mitbringen\n\nGute Laune und festes Schuhwerk für die Spiele.\n\n"
+               "> Bitte bis Freitag antworten, damit wir planen können."),
+    },
+    "d_declined": {
+        "en": ("Town festival gig — Shift 2",
+               "Second shift on the main stage. We only need half the choir."),
+        "de": ("Auftritt Stadtfest — Schicht 2",
+               "Zweite Schicht auf der Hauptbühne. Wir brauchen nur die halbe Besetzung."),
+    },
+    "d_cancelled": {
+        "en": ("Voice rehearsal — Sopran",
+               "Cancelled — the room is booked that evening."),
+        "de": ("Stimmgruppenprobe Sopran",
+               "Fällt aus — der Raum ist an dem Abend belegt."),
+    },
+    "d_unanswered": {
+        "en": ("Choir trip planning meeting",
+               "Short meeting about the choir trip: date, lodging, programme."),
+        "de": ("Chorfahrt Planungstreffen",
+               "Kurzes Treffen zur Chorfahrt: Termin, Unterkunft, Programm."),
+    },
+}
+
+# Response comments are authored in English in RESPONSES; `--lang de` swaps
+# them through this table so no English sneaks into a German screenshot.
+COMMENTS_DE = {
+    "Depends on my shift, I will confirm on Monday.": "Hängt an meiner Schicht, ich sage Montag Bescheid.",
+    "On holiday.": "Im Urlaub.",
+    "Family birthday.": "Geburtstag in der Familie.",
+    "Might be 15 minutes late.": "Komme evtl. 15 Minuten später.",
+    "I can bring the folding chairs.": "Ich kann die Klappstühle mitbringen.",
+    "On holiday that week, sorry!": "In der Woche im Urlaub, sorry!",
+    "On holiday that week.": "In der Woche im Urlaub.",
+    "Train arrives 19:20 – will join for the warm-up.": "Zug kommt 19:20 an – ich bin beim Einsingen dabei.",
+    "Trying to swap my shift.": "Ich versuche, meine Schicht zu tauschen.",
+    "Night shift.": "Nachtschicht.",
+    "Parents' evening at school.": "Elternabend in der Schule.",
+    "Still on holiday.": "Immer noch im Urlaub.",
+    "Wedding of a friend.": "Hochzeit einer Freundin.",
+    "I can drive four people and the keyboard.": "Ich kann vier Leute und das Keyboard fahren.",
+    "Depends on the babysitter.": "Hängt vom Babysitter ab.",
+}
+
+
+def text(key: str, lang: str) -> tuple[str, str]:
+    return TEXTS[key][lang]
+
+
+def localize_comment(comment: str, lang: str) -> str:
+    if lang == "de" and comment:
+        return COMMENTS_DE.get(comment, comment)
+    return comment
 
 Y, N, M = "yes", "no", "maybe"
 
@@ -336,7 +452,7 @@ def weekday_near(base: dt.date, weekday: int, offset_weeks: int) -> dt.date:
     return monday + dt.timedelta(weeks=offset_weeks, days=weekday)
 
 
-def build_appointments(now: dt.datetime) -> list[dict]:
+def build_appointments(now: dt.datetime, lang: str) -> list[dict]:
     today = now.date()
     tue, sat, fri = 1, 5, 4
 
@@ -346,41 +462,44 @@ def build_appointments(now: dt.datetime) -> list[dict]:
     extra_start = now - dt.timedelta(minutes=90)
     extra_end = now + dt.timedelta(minutes=60)
 
+    def named(key: str, **kw) -> dict:
+        name, desc = text(key, lang)
+        return dict(key=key, name=name, desc=desc, **kw)
+
     def rehearsal(weeks: int, pos: int) -> dict:
         day = weekday_near(today, tue, weeks)
-        return dict(key=f"r{pos + 1}", name="Rehearsal", desc=REHEARSAL_DESC,
+        name, desc = text("rehearsal", lang)
+        return dict(key=f"r{pos + 1}", name=name, desc=desc,
                     start=at(day, 20), end=at(day, 22), series_pos=pos)
 
     appts = [
         rehearsal(-3, 0),
         rehearsal(-2, 1),
-        dict(key="concert", name="Summer Concert",
-             desc="Open air concert in the Stadtpark. Please be there by 19:00 for the warm-up.",
-             start=at(weekday_near(today, sat, -1), 19, 30),
-             end=at(weekday_near(today, sat, -1), 22)),
-        dict(key="extra", name="Extra Rehearsal",
-             desc="Last run-through before the open air gig. Full programme, no breaks.",
-             start=extra_start, end=extra_end,
-             # Without a deadline in the future the auto-close job would shut
-             # this one (deadline falls back to start, which has passed).
-             deadline=extra_end),
+        named("concert",
+              start=at(weekday_near(today, sat, -1), 19, 30),
+              end=at(weekday_near(today, sat, -1), 22)),
+        named("extra",
+              start=extra_start, end=extra_end,
+              # NOTE: this deadline does NOT protect the appointment from the
+              # auto-close job — autoCloseExpired() closes as soon as the START
+              # time has passed, deadline or not. Expect the cron to close it a
+              # few minutes after seeding; re-open before each shot (see the
+              # skill's "Traps" section).
+              deadline=extra_end),
         rehearsal(1, 2),
         rehearsal(2, 3),
         rehearsal(3, 4),
-        dict(key="dress", name="Dress Rehearsal",
-             desc="Full dress rehearsal with the band. Please make sure to sing all songs by heart!",
-             start=at(weekday_near(today, fri, 3), 19),
-             end=at(weekday_near(today, fri, 3), 22)),
-        dict(key="gig", name="Open Air Gig",
-             desc="Marktplatz main stage. We will sing all songs of the summer programme.",
-             start=at(weekday_near(today, sat, 3), 18, 30),
-             end=at(weekday_near(today, sat, 3), 21, 30),
-             deadline=at(weekday_near(today, sat, 2), 23, 59)),
-        dict(key="weekend", name="Choir Weekend",
-             desc="Kloster Banz. Two days of intensive rehearsals, plus singing together in the evening.",
-             start=at(weekday_near(today, sat, 8), 9),
-             end=at(weekday_near(today, sat, 8) + dt.timedelta(days=1), 16),
-             deadline=at(weekday_near(today, sat, 6), 23, 59)),
+        named("dress",
+              start=at(weekday_near(today, fri, 3), 19),
+              end=at(weekday_near(today, fri, 3), 22)),
+        named("gig",
+              start=at(weekday_near(today, sat, 3), 18, 30),
+              end=at(weekday_near(today, sat, 3), 21, 30),
+              deadline=at(weekday_near(today, sat, 2), 23, 59)),
+        named("weekend",
+              start=at(weekday_near(today, sat, 8), 9),
+              end=at(weekday_near(today, sat, 8) + dt.timedelta(days=1), 16),
+              deadline=at(weekday_near(today, sat, 6), 23, 59)),
     ]
 
     for i, a in enumerate(appts, start=ID_BASE):
@@ -393,12 +512,13 @@ def build_appointments(now: dt.datetime) -> list[dict]:
     return appts
 
 
-def build_design_appointments(now: dt.datetime) -> list[dict]:
+def build_design_appointments(now: dt.datetime, lang: str) -> list[dict]:
     """One appointment per state the redesigned card was drawn for.
 
     Kept out of the default seed so the app store screenshots keep showing the
     plain choir list. Scheduling states only render when the instance has
-    `booking_enabled=yes` — apply_config turns it on.
+    `booking_enabled=yes` — apply_config turns it on. Names follow --lang so a
+    German design review and a German website shot use the same command.
     """
     today = now.date()
     tue, sat = 1, 5
@@ -406,28 +526,18 @@ def build_design_appointments(now: dt.datetime) -> list[dict]:
     def day(weeks: int, weekday: int) -> dt.date:
         return weekday_near(today, weekday, weeks)
 
+    def named(key: str, **kw) -> dict:
+        name, desc = text(key, lang)
+        return dict(key=key, name=name, desc=desc, **kw)
+
     appts = [
-        dict(key="d_maybe", name="Stimmgruppenprobe Tenor",
-             desc="Nur Tenor und Bass. Wir arbeiten an den Übergängen im zweiten Satz.",
-             start=at(day(4, tue), 19, 30), end=at(day(4, tue), 21, 30)),
-        dict(key="d_no", name="Probe mit Orchester",
-             desc="Gemeinsame Probe mit dem Kammerorchester. Bitte pünktlich sein.",
-             start=at(day(5, tue), 19), end=at(day(5, tue), 22)),
-        dict(key="d_booked", name="Sommerfest im Vereinsheim",
-             desc="Wir feiern den Saisonabschluss! Für Essen und Getränke ist gesorgt.\n\n"
-                  "## Mitbringen\n\nGute Laune und festes Schuhwerk für die Spiele.\n\n"
-                  "> Bitte bis Freitag antworten, damit wir planen können.",
-             start=at(day(5, sat), 15), end=at(day(5, sat), 19), closed=True),
-        dict(key="d_declined", name="Auftritt Stadtfest — Schicht 2",
-             desc="Zweite Schicht auf der Hauptbühne. Wir brauchen nur die halbe Besetzung.",
-             start=at(day(6, sat), 14), end=at(day(6, sat), 18), closed=True),
-        dict(key="d_cancelled", name="Stimmgruppenprobe Sopran",
-             desc="Fällt aus — der Raum ist an dem Abend belegt.",
-             start=at(day(6, tue), 19), end=at(day(6, tue), 21, 30), cancelled=True),
-        dict(key="d_unanswered", name="Chorfahrt Planungstreffen",
-             desc="Kurzes Treffen zur Chorfahrt: Termin, Unterkunft, Programm.",
-             start=at(day(7, tue), 19), end=at(day(7, tue), 20, 30),
-             deadline=at(day(6, sat), 23, 59)),
+        named("d_maybe", start=at(day(4, tue), 19, 30), end=at(day(4, tue), 21, 30)),
+        named("d_no", start=at(day(5, tue), 19), end=at(day(5, tue), 22)),
+        named("d_booked", start=at(day(5, sat), 15), end=at(day(5, sat), 19), closed=True),
+        named("d_declined", start=at(day(6, sat), 14), end=at(day(6, sat), 18), closed=True),
+        named("d_cancelled", start=at(day(6, tue), 19), end=at(day(6, tue), 21, 30), cancelled=True),
+        named("d_unanswered", start=at(day(7, tue), 19), end=at(day(7, tue), 20, 30),
+              deadline=at(day(6, sat), 23, 59)),
     ]
 
     for i, a in enumerate(appts, start=DESIGN_ID_BASE):
@@ -441,14 +551,14 @@ def build_design_appointments(now: dt.datetime) -> list[dict]:
     return appts
 
 
-def build_sql(appts: list[dict], known_users: set[str]) -> list[str]:
+def build_sql(appts: list[dict], known_users: set[str], lang: str) -> list[str]:
     fmt = "%Y-%m-%d %H:%M:%S"
     out = [
         "SET NAMES utf8mb4;",
         f"DELETE FROM oc_att_responses WHERE appointment_id BETWEEN {ID_BASE} AND {ID_MAX};",
         f"DELETE FROM oc_att_appointments WHERE id BETWEEN {ID_BASE} AND {ID_MAX};",
     ]
-    groups = json.dumps([CONDUCTOR_GROUP] + VOICE_GROUPS)
+    groups = json.dumps([CONDUCTOR_GROUPS[lang]] + VOICE_GROUPS)
     organizers = json.dumps([ORGANIZER])
 
     for a in appts:
@@ -474,6 +584,7 @@ def build_sql(appts: list[dict], known_users: set[str]) -> list[str]:
 
         for idx, row in enumerate(RESPONSES[a["key"]]):
             user, resp, comment, ci, ci_src = row[:5]
+            comment = localize_comment(comment, lang)
             booking = row[5] if len(row) > 5 else None
             if user not in known_users:
                 continue
@@ -494,16 +605,80 @@ def build_sql(appts: list[dict], known_users: set[str]) -> list[str]:
     return out
 
 
-def apply_config(nc: str, known_users: set[str], design_states: bool = False) -> None:
+# One believable activity history for the concert appointment: created →
+# responses trickling in → an edit → a response change → a manager override →
+# self check-ins → a manual check-in → auto-close. Verbs live in
+# lib/Audit/Verb.php; meta shapes mirror lib/Service/AuditEventService.php.
+# The timeline renders verbs localized client-side, so these rows are
+# language-independent and serve both the EN and DE audit-log motif.
+#
+# (verb, actor, subject, meta, source, offset) — offset is relative to the
+# appointment's start; negative days reach back into the response phase.
+AUDIT_EVENTS = [
+    ("appointment.created", "admin", None, {}, "app",
+     dt.timedelta(days=-9)),
+    ("response.submitted", "alice", "alice",
+     {"response": "yes", "comment": ""}, "app", dt.timedelta(days=-9, hours=3)),
+    ("response.submitted", "john", "john",
+     {"response": "yes", "comment": ""}, "app", dt.timedelta(days=-8, hours=-4)),
+    ("response.submitted", "user6", "user6",
+     {"response": "yes", "comment": ""}, "app", dt.timedelta(days=-7, hours=2)),
+    ("appointment.updated", "admin", None,
+     {"fields": ["time", "description"]}, "app", dt.timedelta(days=-6, hours=-2)),
+    ("response.submitted", "bob", "bob",
+     {"response": "maybe", "comment": ""}, "app", dt.timedelta(days=-5, hours=5)),
+    ("response.changed", "user6", "user6",
+     {"from": "yes", "to": "maybe", "commentChanged": True}, "app",
+     dt.timedelta(days=-3, hours=-6)),
+    ("response.changed", "admin", "user2",
+     {"from": "maybe", "to": "yes", "commentChanged": False}, "admin_response",
+     dt.timedelta(days=-1, hours=4)),
+    ("checkin.recorded", "alice", "alice",
+     {"checkinState": "yes", "checkinComment": ""}, "self_checkin",
+     dt.timedelta(minutes=-26)),
+    ("checkin.recorded", "john", "john",
+     {"checkinState": "yes", "checkinComment": ""}, "self_checkin",
+     dt.timedelta(minutes=-21)),
+    ("checkin.recorded", "admin", "bob",
+     {"checkinState": "no", "checkinComment": ""}, "admin_checkin",
+     dt.timedelta(minutes=-4)),
+    ("appointment.closed", None, None, {}, "auto_close",
+     dt.timedelta(seconds=2)),
+]
+
+
+def build_audit_sql(appts: list[dict], known_users: set[str]) -> list[str]:
+    fmt = "%Y-%m-%d %H:%M:%S"
+    concert = next((a for a in appts if a["key"] == "concert"), None)
+    out = [f"DELETE FROM oc_att_audit_event WHERE appointment_id "
+           f"BETWEEN {ID_BASE} AND {ID_MAX};"]
+    if concert is None:
+        return out
+    cols = "appointment_id, verb, actor_id, subject_id, meta, source, created_at"
+    for verb, actor, subject, meta, source, offset in AUDIT_EVENTS:
+        if (actor and actor not in known_users) or (subject and subject not in known_users):
+            continue
+        stamp = (concert["start"] + offset).strftime(fmt)
+        vals = ", ".join([
+            str(concert["id"]), q(verb), q(actor), q(subject),
+            q(json.dumps(meta)), q(source), q(stamp),
+        ])
+        out.append(f"INSERT INTO oc_att_audit_event ({cols}) VALUES ({vals});")
+    return out
+
+
+def apply_config(nc: str, known_users: set[str], lang: str,
+                 design_states: bool = False) -> None:
     print("configuring instance …")
+    conductor = CONDUCTOR_GROUPS[lang]
     existing_groups = occ(nc, "group:list", "--output=json")
     try:
         groups = json.loads(existing_groups)
     except json.JSONDecodeError:
         groups = {}
-    if CONDUCTOR_GROUP not in groups:
-        occ(nc, "group:add", CONDUCTOR_GROUP, check=False)
-        print(f"  + group {CONDUCTOR_GROUP}")
+    if conductor not in groups:
+        occ(nc, "group:add", conductor, check=False)
+        print(f"  + group {conductor}")
 
     for uid, (name, group) in MEMBERS.items():
         if uid not in known_users:
@@ -511,21 +686,23 @@ def apply_config(nc: str, known_users: set[str], design_states: bool = False) ->
             continue
         occ(nc, "user:setting", uid, "settings", "display_name", name, check=False)
         if group == CONDUCTOR_GROUP:
-            occ(nc, "group:adduser", CONDUCTOR_GROUP, uid, check=False)
+            occ(nc, "group:adduser", conductor, uid, check=False)
     print(f"  + display names for {len(known_users & MEMBERS.keys())} users")
 
     # Without every group on the whitelist, members of the missing ones are
     # lumped into an "Others" row in the response summary, which reads like a
-    # data bug in a screenshot.
-    whitelist = json.dumps([CONDUCTOR_GROUP] + VOICE_GROUPS)
+    # data bug in a screenshot. The list carries the language's conductor
+    # group, matching the visible_groups build_sql writes.
+    whitelist = json.dumps([conductor] + VOICE_GROUPS)
     occ(nc, "config:app:set", "attendance", "whitelisted_groups", f"--value={whitelist}")
     print(f"  + whitelisted_groups = {whitelist}")
 
-    # English UI with English date formats. lang=en alone would still render
-    # dates German if the locale stayed de_DE.
-    occ(nc, "user:setting", ORGANIZER, "core", "lang", "en", check=False)
-    occ(nc, "user:setting", ORGANIZER, "core", "locale", "en_GB", check=False)
-    print(f"  + {ORGANIZER}: lang=en locale=en_GB")
+    # UI language and date format must agree — lang alone would still render
+    # dates in the old locale's format.
+    ui_lang, ui_locale = ("de", "de_DE") if lang == "de" else ("en", "en_GB")
+    occ(nc, "user:setting", ORGANIZER, "core", "lang", ui_lang, check=False)
+    occ(nc, "user:setting", ORGANIZER, "core", "locale", ui_locale, check=False)
+    print(f"  + {ORGANIZER}: lang={ui_lang} locale={ui_locale}")
 
     # The "Scheduled" / "Not scheduled" states only render with the feature on.
     if design_states:
@@ -545,6 +722,12 @@ def main() -> None:
                    help="also seed one appointment per designed card state "
                         "(open/maybe/no, closed + scheduled, closed + not "
                         "scheduled, cancelled, unanswered with deadline)")
+    p.add_argument("--lang", choices=["en", "de"], default="en",
+                   help="language of the seeded data AND the admin UI. "
+                        "'en' for the app store set (the store cannot take "
+                        "per-language screenshots), 'de' for the website's "
+                        "/de pages. Each run overwrites the other language's "
+                        "state — data, whitelist and admin locale.")
     args = p.parse_args()
 
     names = docker_names()
@@ -553,19 +736,19 @@ def main() -> None:
 
     users = set(json.loads(occ(nc, "user:list", "--output=json")).keys())
     now = instance_now(nc)
-    appts = build_appointments(now)
+    appts = build_appointments(now, args.lang)
     if args.design_states:
-        appts += build_design_appointments(now)
-    sql = build_sql(appts, users)
+        appts += build_design_appointments(now, args.lang)
+    sql = build_sql(appts, users, args.lang) + build_audit_sql(appts, users)
 
     if args.dry_run:
-        print(f"-- instance: {nc} / db: {db} / now (UTC): {now}")
+        print(f"-- instance: {nc} / db: {db} / now (UTC): {now} / lang: {args.lang}")
         print("\n".join(sql))
         return
 
-    print(f"instance {nc}, db {db}, now (UTC) {now}")
+    print(f"instance {nc}, db {db}, now (UTC) {now}, lang {args.lang}")
     if not args.no_config:
-        apply_config(nc, users, design_states=args.design_states)
+        apply_config(nc, users, args.lang, design_states=args.design_states)
 
     cfg = db_config(nc)
     cmd = ["docker", "exec", "-i", db, "mysql",
