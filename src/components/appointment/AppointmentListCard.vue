@@ -57,6 +57,11 @@
 				<template #label>
 					<span class="list-card__label">{{ t("attendance", "Your response") }}</span>
 				</template>
+				<!-- Without a bar the link trails the answer row instead, so the
+				     card never ends on a line of its own. -->
+				<template v-if="!appointment.responseSummary" #trailing>
+					<ShowDetailsLink :appointmentId="appointment.id" @open="emit('openDetail', $event)" />
+				</template>
 			</ResponseEditor>
 			<div v-else class="list-card__response" data-test="response-section-readonly">
 				<span class="list-card__label">{{ t("attendance", "Your response") }}</span>
@@ -66,18 +71,17 @@
 				</span>
 				<span v-else class="list-card__answer">{{ t("attendance", "No response") }}</span>
 				<span class="list-card__note" data-test="closed-info">· {{ stateLabel }}</span>
+				<ShowDetailsLink v-if="!appointment.responseSummary"
+					:appointmentId="appointment.id"
+					@open="emit('openDetail', $event)" />
 			</div>
 
+			<!-- The link rides the bar's legend when there is one, but it is not
+			     tied to it: the detail page carries description and attachments,
+			     which everyone who sees the appointment may read. -->
 			<ResponseBar v-if="appointment.responseSummary" :segments="summarySegments">
 				<template #trailing>
-					<a
-						:href="detailUrl"
-						class="list-card__details"
-						data-test="button-show-details"
-						@click.prevent="emit('openDetail', appointment.id)">
-						{{ t("attendance", "Show details") }}
-						<ChevronRightIcon :size="15" />
-					</a>
+					<ShowDetailsLink :appointmentId="appointment.id" @open="emit('openDetail', $event)" />
 				</template>
 			</ResponseBar>
 		</div>
@@ -93,6 +97,7 @@ import AppointmentStatusChips from './AppointmentStatusChips.vue'
 import ResponseBar from './ResponseBar.vue'
 import ResponseDot from './ResponseDot.vue'
 import ResponseEditor from './ResponseEditor.vue'
+import ShowDetailsLink from './ShowDetailsLink.vue'
 import { useAppointmentCard } from '../../composables/useAppointmentCard.js'
 import { appointmentDetailUrl, formatCancelledLabel, formatClosedLabel } from '../../utils/appointment.js'
 import { stripMarkdown } from '../../utils/markdown.js'
@@ -218,7 +223,7 @@ const stateLabel = computed(() => (isCancelled.value
     &__chevron {
         display: inline-flex;
         vertical-align: -4px;
-        margin-left: 2px;
+        margin-inline-start: 2px;
         color: var(--color-text-maxcontrast);
         transition: transform 0.15s ease;
     }
@@ -246,7 +251,9 @@ const stateLabel = computed(() => (isCancelled.value
 
         p {
             margin: 0;
-            flex: 1;
+            // Shrink-to-fit rather than flex: 1 — a short description keeps the
+            // attachment count right behind it instead of at the card edge, and
+            // a long one still truncates, putting it right after the ellipsis.
             min-width: 0;
             white-space: nowrap;
             overflow: hidden;
@@ -288,19 +295,5 @@ const stateLabel = computed(() => (isCancelled.value
         color: var(--color-text-maxcontrast);
     }
 
-    &__details {
-        margin-left: auto;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 13.5px;
-        font-weight: 600;
-        color: var(--color-primary-element);
-        text-decoration: none;
-
-        &:hover {
-            text-decoration: underline;
-        }
-    }
 }
 </style>

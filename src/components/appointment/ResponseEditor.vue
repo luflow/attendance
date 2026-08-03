@@ -33,6 +33,7 @@
 					</template>
 				</NcButton>
 			</div>
+			<slot name="trailing" />
 		</div>
 
 		<div v-if="commentExpanded" class="response-editor__comment">

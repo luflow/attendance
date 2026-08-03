@@ -214,6 +214,10 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.waitForLoadState('networkidle')
 			await expect(page.locator('[data-test="response-bar"]')).toHaveCount(0)
 
+			// … but still reaches the detail page for description and
+			// attachments, which no summary permission gates.
+			await expect(page.locator('[data-test="button-show-details"]').first()).toBeVisible()
+
 			// Admin keeps the full view
 			await loginAsUser('admin', 'admin')
 			await attendanceApp()
