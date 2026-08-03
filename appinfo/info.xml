@@ -107,10 +107,12 @@ Gemacht für Chöre, Orchester, Sportvereine, Feuerwehren, Gemeinden und jede an
 	<website>https://anwesenheit.app</website>
 	<bugs>https://github.com/luflow/attendance/issues</bugs>
 	<repository type="git">https://github.com/luflow/attendance</repository>
-	<screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/screen-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/screen.jpg</screenshot>
 	<screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/appointments-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/appointments.jpg</screenshot>
 	<screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/admin-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/admin.jpg</screenshot>
 	<screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/checkin-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/checkin.jpg</screenshot>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/scheduling-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/scheduling.jpg</screenshot>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/audit-log-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/audit-log.jpg</screenshot>
+	<screenshot small-thumbnail="https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/screen-small.jpg">https://raw.githubusercontent.com/luflow/attendance/refs/heads/main/appinfo/screens/screen.jpg</screenshot>
 	<donation type="stripe">https://donate.stripe.com/fZu4gzd1k9AqgHgdWv7ss00</donation>
 	<dependencies>
 		<php min-version="8.1"/>

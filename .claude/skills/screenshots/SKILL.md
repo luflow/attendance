@@ -5,15 +5,19 @@ description: Produce the app store and website screenshots for the attendance ap
 
 # App store screenshots
 
-Four screenshots ship with the app. They live in `appinfo/screens/` and are
-referenced from `appinfo/info.xml`:
+Six screenshots ship with the app. They live in `appinfo/screens/` and are
+referenced from `appinfo/info.xml` — **in this order**, which is what the
+store renders (the first one is the headline visual, so the instantly readable
+list view leads and the dashboard widget closes):
 
-| File | Role in the store listing | What it shows |
+| # | File | What it shows |
 |---|---|---|
-| `screen.jpg` | RSVP / responses | Dashboard widget with the live "Start check-in" button |
-| `appointments.jpg` | overview | Appointment list with the full navigation sidebar |
-| `admin.jpg` | group statistics | Appointment card with one voice group expanded (names visible) |
-| `checkin.jpg` | real-time check-in | Check-in list mixing present / absent / pending |
+| 1 | `appointments.jpg` | Appointment list with the full navigation sidebar |
+| 2 | `admin.jpg` | Appointment card with one voice group expanded (names visible) |
+| 3 | `checkin.jpg` | Check-in list mixing present / absent / pending |
+| 4 | `scheduling.jpg` | Closed cards with the Scheduled / Not scheduled chips |
+| 5 | `audit-log.jpg` | Activity history of the Summer Concert |
+| 6 | `screen.jpg` | Dashboard widget with the live "Start check-in" button |
 
 Each has a `-small.jpg` thumbnail next to it. The same four images are reused
 in the marketing website repo (`attendance-website`, at
@@ -248,9 +252,9 @@ cp appinfo/screens/{screen,appointments,admin,checkin}.jpg \
 
 The website loads them at full size in a lightbox, so use the same files.
 
-## Website-only motifs: audit log & scheduling
+## Shooting the audit-log & scheduling motifs
 
-Two extra shots exist only on the website (no thumbnails, no info.xml entry):
+These two started as website-only shots and are now part of the store set too:
 
 - **`audit-log.jpg`** — the appointment detail of the Summer Concert (ID 103)
   scrolled so the Activity history fills the frame. The seed writes the audit
