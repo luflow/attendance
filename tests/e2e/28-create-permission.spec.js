@@ -7,6 +7,7 @@ import {
 	createGroupViaOCS,
 	addUserToGroupViaOCS,
 	deleteAllAppointments,
+	PERMISSIVE_PERMISSIONS,
 } from './fixtures/nextcloud.js'
 
 /**
@@ -26,20 +27,18 @@ test.describe('Attendance App - Create appointment permission (sequential)', () 
 			whitelistedGroups: [],
 			whitelistedTeams: [],
 			permissions: {
+				...PERMISSIVE_PERMISSIONS,
 				manage_appointments: ['admin'],
 				create_appointments: ['creators'],
-				checkin: [],
-				see_response_overview: [],
-				see_comments: [],
 			},
 			reminders: { enabled: false },
 		})
-		reloadWebWorkers()
+		await reloadWebWorkers()
 	})
 
 	test.afterAll(async ({ request }) => {
 		await resetAdminSettings(request)
-		reloadWebWorkers()
+		await reloadWebWorkers()
 		await deleteAllAppointments(request)
 	})
 
@@ -59,7 +58,7 @@ test.describe('Attendance App - Create appointment permission (sequential)', () 
 		const createButton = page.locator('[data-test="button-create-appointment"]')
 		await expect(createButton).toBeVisible()
 
-		await page.getByRole('button', { name: 'Create Appointment' }).click()
+		await createButton.click()
 		await page.waitForURL(/.*\/create$/)
 		await expect(page.getByRole('heading', { name: 'Create Appointment' })).toBeVisible()
 	})

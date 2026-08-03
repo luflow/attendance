@@ -159,7 +159,7 @@ export async function createAppointmentViaAPI(request, {
 		visibleUsers,
 		visibleGroups,
 		sendNotification,
-		...(organizers.length ? { organizers } : {}),
+		organizers,
 		...(responseDeadline ? { responseDeadline: responseDeadline.toISOString() } : {}),
 	}
 	const resp = await resilientJson(() => request.post(`${API_BASE}/apps/attendance/api/appointments`, {
@@ -374,21 +374,28 @@ export async function syncOrgCalendarViaAPI(request) {
 }
 
 /**
+ * Every permission key at its permissive default. Specs that restrict
+ * permissions should spread this and override only the keys they are
+ * actually about.
+ */
+export const PERMISSIVE_PERMISSIONS = Object.freeze({
+	manage_appointments: [],
+	checkin: [],
+	see_response_overview: [],
+	see_response_counts: [],
+	see_comments: [],
+	create_appointments: [],
+	respond_for_others: [],
+})
+
+/**
  * Reset admin settings to permissive defaults
  */
 export async function resetAdminSettings(request) {
 	return saveAdminSettings(request, {
 		whitelistedGroups: [],
 		whitelistedTeams: [],
-		permissions: {
-			manage_appointments: [],
-			checkin: [],
-			see_response_overview: [],
-			see_response_counts: [],
-			see_comments: [],
-			create_appointments: [],
-			respond_for_others: [],
-		},
+		permissions: { ...PERMISSIVE_PERMISSIONS },
 		reminders: { enabled: false, days_before: 1, frequency_days: 1 },
 	})
 }
@@ -399,12 +406,13 @@ export async function resetAdminSettings(request) {
  * is not seen by its siblings until they restart — a graceful restart makes
  * permission-sensitive assertions deterministic.
  */
-export function reloadWebWorkers() {
+export async function reloadWebWorkers() {
 	execSync(
 		'docker exec nextcloud-e2e-test-server_attendance apachectl graceful',
 		{ stdio: 'pipe' },
 	)
-	execSync('sleep 1', { stdio: 'pipe' })
+	// Give Apache a moment to cycle workers.
+	await new Promise((resolve) => setTimeout(resolve, 1000))
 }
 
 /**

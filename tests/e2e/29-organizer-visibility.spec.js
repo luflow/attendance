@@ -7,6 +7,7 @@ import {
 	createAppointmentViaAPI,
 	respondToAppointmentViaAPI,
 	deleteAllAppointments,
+	PERMISSIVE_PERMISSIONS,
 } from './fixtures/nextcloud.js'
 
 /**
@@ -29,41 +30,39 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 			whitelistedGroups: [],
 			whitelistedTeams: [],
 			permissions: {
+				...PERMISSIVE_PERMISSIONS,
 				manage_appointments: ['admin'],
-				checkin: [],
 				see_response_overview: ['admin'],
 				see_response_counts: ['admin'],
 				see_comments: ['admin'],
 			},
 			reminders: { enabled: false },
 		})
-		reloadWebWorkers()
+		await reloadWebWorkers()
 
-		const organized = await createAppointmentViaAPI(request, {
-			name: ORGANIZED,
-			daysFromNow: 3,
-			organizers: ['user1'],
-		})
-		const other = await createAppointmentViaAPI(request, {
-			name: OTHER,
-			daysFromNow: 4,
-		})
-		await respondToAppointmentViaAPI(request, organized.id, {
-			response: 'yes',
-			username: 'test',
-			password: 'test',
-		})
-		await respondToAppointmentViaAPI(request, other.id, {
-			response: 'yes',
-			username: 'test',
-			password: 'test',
-		})
+		const [organized, other] = await Promise.all([
+			createAppointmentViaAPI(request, {
+				name: ORGANIZED,
+				daysFromNow: 3,
+				organizers: ['user1'],
+			}),
+			createAppointmentViaAPI(request, {
+				name: OTHER,
+				daysFromNow: 4,
+			}),
+		])
+		await Promise.all([organized, other].map((apt) =>
+			respondToAppointmentViaAPI(request, apt.id, {
+				response: 'yes',
+				username: 'test',
+				password: 'test',
+			})))
 	})
 
 	test.afterAll(async ({ request }) => {
 		await deleteAllAppointments(request)
 		await resetAdminSettings(request)
-		reloadWebWorkers()
+		await reloadWebWorkers()
 	})
 
 	test('organizer gets bar and breakdown on their own appointment only', async ({ page, loginAsUser, attendanceApp }) => {
@@ -105,10 +104,10 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 		await attendanceApp()
 		await page.waitForLoadState('networkidle')
 
-		await expect(page.locator('[data-test="appointment-card"]', { hasText: ORGANIZED })).toBeVisible()
+		const organizedCard = page.locator('[data-test="appointment-card"]', { hasText: ORGANIZED })
+		await expect(organizedCard).toBeVisible()
 		await expect(page.locator('[data-test="response-bar"]')).toHaveCount(0)
 
-		const organizedCard = page.locator('[data-test="appointment-card"]', { hasText: ORGANIZED })
 		await organizedCard.locator('[data-test="button-show-details"]').click()
 		await page.waitForLoadState('networkidle')
 		await expect(page.locator('[data-test="response-summary"]')).toHaveCount(0)
