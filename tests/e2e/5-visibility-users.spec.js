@@ -1,4 +1,4 @@
-import { test, expect, login, resetAdminSettings, deleteAllAppointments } from './fixtures/nextcloud.js'
+import { deleteAllAppointments, expect, login, resetAdminSettings, restrictPermissionToGroup, test } from './fixtures/nextcloud.js'
 
 // Helper function to create an appointment with visibility settings
 async function createAppointmentWithVisibility(page, { name, description, daysFromNow = 2, durationHours = 1, visibleUsers = [] }) {
@@ -79,16 +79,9 @@ test.describe('Attendance App - User Visibility Filtering', () => {
 		await page.goto('/settings/admin/attendance')
 		await page.waitForLoadState('networkidle')
 
-		// Configure manage_appointments permission to admin only
-		const managePermissionSelect = page.locator('[data-test="select-manage-appointments-roles"]')
-		await managePermissionSelect.getByRole('combobox').click()
-		const adminOption = page.getByRole('option', { name: 'admin' })
-		await adminOption.waitFor({ state: 'visible' })
-		await adminOption.click()
-
-		// Save settings
-		await page.locator('[data-test="button-save-settings"]').click()
-		await page.waitForLoadState('networkidle')
+		// Configure manage_appointments permission to admin only; the page
+		// auto-saves, so the helper waits for the settings POST
+		await restrictPermissionToGroup(page, 'manage_appointments', 'admin')
 
 		await page.close()
 	})
@@ -105,9 +98,9 @@ test.describe('Attendance App - User Visibility Filtering', () => {
 			description: 'This appointment should only be visible to test1',
 			daysFromNow: 2,
 			durationHours: 1,
-			visibleUsers: ['test1']
+			visibleUsers: ['test1'],
 		})
-		
+
 		// Verify appointment appears for admin (creator can always see)
 		await expect(page.getByText('Private Meeting - Test1 Only').first()).toBeVisible()
 	})
@@ -118,9 +111,9 @@ test.describe('Attendance App - User Visibility Filtering', () => {
 			description: 'Everyone can see this appointment',
 			daysFromNow: 3,
 			durationHours: 1,
-			visibleUsers: [] // Empty = visible to all
+			visibleUsers: [], // Empty = visible to all
 		})
-		
+
 		// Verify appointment appears
 		await expect(page.getByText('Public Team Meeting').first()).toBeVisible()
 	})
@@ -131,9 +124,9 @@ test.describe('Attendance App - User Visibility Filtering', () => {
 			description: 'Only test1 and test2 can see this',
 			daysFromNow: 4,
 			durationHours: 1,
-			visibleUsers: ['test1', 'test2']
+			visibleUsers: ['test1', 'test2'],
 		})
-		
+
 		// Verify appointment appears
 		await expect(page.getByText('Selective Access Meeting').first()).toBeVisible()
 	})
@@ -143,7 +136,7 @@ test.describe('Attendance App - User Visibility Filtering', () => {
 		await loginAsUser('test1', 'test1')
 		await attendanceApp()
 		await page.waitForLoadState('networkidle')
-		
+
 		// Should see: "Private Meeting - Test1 Only", "Public Team Meeting", "Selective Access Meeting"
 		await expect(page.getByText('Private Meeting - Test1 Only').first()).toBeVisible()
 		await expect(page.getByText('Public Team Meeting').first()).toBeVisible()
@@ -152,23 +145,23 @@ test.describe('Attendance App - User Visibility Filtering', () => {
 
 	test('unauthorized user should not see restricted appointments', async ({ page, loginAsUser, attendanceApp, browser, baseURL }) => {
 		// Create an appointment that's NOT visible to test3
-		
+
 		// First, as admin, create an appointment visible only to test1
 		await loginAsUser('admin', 'admin')
 		await attendanceApp()
 		await page.waitForLoadState('networkidle')
-		
+
 		await createAppointmentWithVisibility(page, {
 			name: 'Test1 Only Meeting',
 			description: 'Only test1 can see this',
 			daysFromNow: 5,
 			durationHours: 1,
-			visibleUsers: ['test1']
+			visibleUsers: ['test1'],
 		})
-		
+
 		// Verify admin sees it (managers see all)
 		await expect(page.getByText('Test1 Only Meeting').first()).toBeVisible()
-		
+
 		// Now login as regular test user and verify they DON'T see it
 		// (test user doesn't have manage_appointments permission after beforeAll setup)
 		await loginAsUser('test', 'test')

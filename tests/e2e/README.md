@@ -243,16 +243,16 @@ All interactive elements in the app have `data-test` attributes for reliable tes
 - `button-bulk-confirm` - Confirm bulk action
 
 ### Admin Settings
+
+The page auto-saves; there is no save button. Wait for the POST to
+`/api/admin/settings` after a change instead.
+
 - `admin-settings` - Admin settings container
 - `select-whitelisted-groups` - Whitelisted groups selector
-- `select-manage-appointments-roles` - Manage appointments permission selector
-- `select-checkin-roles` - Check-in permission selector
-- `select-see-response-overview-roles` - See response overview permission selector
-- `select-see-comments-roles` - See comments permission selector
+- `permission-<name>` - Permission row (e.g. `permission-manage_appointments`) with `permission-<name>-mode-all|groups|nobody` radios and a `permission-<name>-groups` group selector (visible in "Specific groups" mode)
 - `switch-reminders-enabled` - Enable reminders switch
 - `input-reminder-days` - Reminder days input
 - `input-reminder-frequency` - Reminder frequency input
-- `button-save-settings` - Save settings button
 
 ### Widget (Dashboard)
 - `widget-container` - Widget container

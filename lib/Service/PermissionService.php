@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\Attendance\Service;
 
 use OCA\Attendance\Db\Appointment;
+use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IUserManager;
@@ -12,12 +13,22 @@ use OCP\IUserSession;
 
 class PermissionService {
 	private IConfig $config;
+	private IAppConfig $appConfig;
 	private IGroupManager $groupManager;
 	private IUserSession $userSession;
 	private IUserManager $userManager;
 	private GuestService $guestService;
 	/** @var array<string, list<string>> per-request cache for getUsersWith() */
 	private array $usersWithCache = [];
+	/**
+	 * Per-request caches: hasPermission() runs per appointment/response in
+	 * list endpoints, so the JSON decode and mode lookup must not repeat.
+	 *
+	 * @var array<string, list<string>>
+	 */
+	private array $rolesCache = [];
+	/** @var array<string, string> */
+	private array $modeCache = [];
 
 	public const PERMISSION_MANAGE_APPOINTMENTS = 'manage_appointments';
 	public const PERMISSION_CHECKIN = 'checkin';
@@ -28,6 +39,23 @@ class PermissionService {
 	public const PERMISSION_CREATE_APPOINTMENTS = 'create_appointments';
 	public const PERMISSION_RESPOND_FOR_OTHERS = 'respond_for_others';
 
+	public const MODE_ALL = 'all';
+	public const MODE_GROUPS = 'groups';
+	public const MODE_NOBODY = 'nobody';
+
+	public const MODES = [self::MODE_ALL, self::MODE_GROUPS, self::MODE_NOBODY];
+
+	public const ALL_PERMISSIONS = [
+		self::PERMISSION_MANAGE_APPOINTMENTS,
+		self::PERMISSION_CHECKIN,
+		self::PERMISSION_SEE_RESPONSE_OVERVIEW,
+		self::PERMISSION_SEE_RESPONSE_COUNTS,
+		self::PERMISSION_SEE_COMMENTS,
+		self::PERMISSION_SELF_CHECKIN,
+		self::PERMISSION_CREATE_APPOINTMENTS,
+		self::PERMISSION_RESPOND_FOR_OTHERS,
+	];
+
 	private const GUEST_BLOCKED_PERMISSIONS = [
 		self::PERMISSION_MANAGE_APPOINTMENTS,
 		self::PERMISSION_CHECKIN,
@@ -36,24 +64,27 @@ class PermissionService {
 	];
 
 	/**
-	 * Permissions that grant NOBODY when no groups are configured. All other
-	 * permissions default to "everyone" on empty config. Additive permissions
-	 * (rights on top of manage_appointments) belong here — otherwise an
-	 * upgrade would silently grant them to all users.
+	 * Permissions that default to "nobody" while no mode is stored — the
+	 * additive ones, which must never open up on their own. Everything else
+	 * defaults to "all". This is the live default policy: it also decides the
+	 * starting mode of any permission added in a future release, and it is
+	 * what an empty group list meant before modes were explicit.
 	 */
-	private const CLOSED_WHEN_UNCONFIGURED = [
+	private const DEFAULT_NOBODY = [
 		self::PERMISSION_CREATE_APPOINTMENTS,
 		self::PERMISSION_RESPOND_FOR_OTHERS,
 	];
 
 	public function __construct(
 		IConfig $config,
+		IAppConfig $appConfig,
 		IGroupManager $groupManager,
 		IUserSession $userSession,
 		IUserManager $userManager,
 		GuestService $guestService,
 	) {
 		$this->config = $config;
+		$this->appConfig = $appConfig;
 		$this->groupManager = $groupManager;
 		$this->userSession = $userSession;
 		$this->userManager = $userManager;
@@ -62,21 +93,84 @@ class PermissionService {
 
 	/**
 	 * Get roles that have a specific permission
+	 *
+	 * @return list<string>
 	 */
 	public function getRolesForPermission(string $permission): array {
-		$configKey = 'permission_' . $permission;
-		$rolesJson = $this->config->getAppValue('attendance', $configKey, '[]');
-		$roles = json_decode($rolesJson, true) ?: [];
+		if (isset($this->rolesCache[$permission])) {
+			return $this->rolesCache[$permission];
+		}
 
-		return $roles;
+		$rolesJson = $this->config->getAppValue('attendance', 'permission_' . $permission, '[]');
+		$roles = json_decode($rolesJson, true);
+		if (!is_array($roles)) {
+			return $this->rolesCache[$permission] = [];
+		}
+
+		return $this->rolesCache[$permission] = array_values(array_filter($roles, 'is_string'));
 	}
 
 	/**
 	 * Set roles that have a specific permission
+	 *
+	 * @param list<string> $roles
 	 */
 	public function setRolesForPermission(string $permission, array $roles): void {
 		$configKey = 'permission_' . $permission;
-		$this->config->setAppValue('attendance', $configKey, json_encode($roles));
+		$this->config->setAppValue('attendance', $configKey, json_encode($roles, JSON_THROW_ON_ERROR));
+		$this->rolesCache[$permission] = $roles;
+		unset($this->usersWithCache[$permission]);
+	}
+
+	/**
+	 * Get the access mode for a permission. With no mode stored, derive it
+	 * from the group list and the default policy — the same semantics the
+	 * pre-mode storage had, and what a brand-new permission starts with.
+	 *
+	 * The mode keys are new and live on the typed IAppConfig API; the group
+	 * lists predate it and stay on IConfig so older app versions keep
+	 * reading them after a downgrade.
+	 */
+	public function getModeForPermission(string $permission): string {
+		if (isset($this->modeCache[$permission])) {
+			return $this->modeCache[$permission];
+		}
+
+		$mode = $this->appConfig->getValueString('attendance', 'permission_' . $permission . '_mode');
+		if (!in_array($mode, self::MODES, true)) {
+			$mode = $this->impliedModeFor($permission, $this->getRolesForPermission($permission));
+		}
+
+		return $this->modeCache[$permission] = $mode;
+	}
+
+	/**
+	 * The mode a bare group list implies: configured groups, otherwise the
+	 * default policy for the permission.
+	 *
+	 * @param list<string> $roles
+	 */
+	private function impliedModeFor(string $permission, array $roles): string {
+		if (!empty($roles)) {
+			return self::MODE_GROUPS;
+		}
+		return in_array($permission, self::DEFAULT_NOBODY, true)
+			? self::MODE_NOBODY
+			: self::MODE_ALL;
+	}
+
+	/**
+	 * Set mode and groups for a permission in one go.
+	 *
+	 * @param list<string> $groups
+	 */
+	public function setPermission(string $permission, string $mode, array $groups): void {
+		if (!in_array($mode, self::MODES, true)) {
+			throw new \InvalidArgumentException('Invalid permission mode: ' . $mode);
+		}
+		$this->appConfig->setValueString('attendance', 'permission_' . $permission . '_mode', $mode);
+		$this->modeCache[$permission] = $mode;
+		$this->setRolesForPermission($permission, $groups);
 	}
 
 	/**
@@ -91,10 +185,12 @@ class PermissionService {
 			return false;
 		}
 
-		$allowedRoles = $this->getRolesForPermission($permission);
-
-		if (empty($allowedRoles)) {
-			return !in_array($permission, self::CLOSED_WHEN_UNCONFIGURED, true);
+		$mode = $this->getModeForPermission($permission);
+		if ($mode === self::MODE_ALL) {
+			return true;
+		}
+		if ($mode === self::MODE_NOBODY) {
+			return false;
 		}
 
 		// Get user object and their groups
@@ -105,7 +201,7 @@ class PermissionService {
 
 		$userGroups = $this->groupManager->getUserGroupIds($user);
 
-		return !empty(array_intersect($allowedRoles, $userGroups));
+		return !empty(array_intersect($this->getRolesForPermission($permission), $userGroups));
 	}
 
 	/**
@@ -138,52 +234,49 @@ class PermissionService {
 	}
 
 	/**
-	 * Get all permission settings
+	 * Get all permission settings as explicit mode + groups pairs
+	 *
+	 * @return array<string, array{mode: string, groups: list<string>}>
 	 */
 	public function getAllPermissionSettings(): array {
-		return [
-			self::PERMISSION_MANAGE_APPOINTMENTS => $this->getRolesForPermission(self::PERMISSION_MANAGE_APPOINTMENTS),
-			self::PERMISSION_CHECKIN => $this->getRolesForPermission(self::PERMISSION_CHECKIN),
-			self::PERMISSION_SEE_RESPONSE_OVERVIEW => $this->getRolesForPermission(self::PERMISSION_SEE_RESPONSE_OVERVIEW),
-			self::PERMISSION_SEE_RESPONSE_COUNTS => $this->getRolesForPermission(self::PERMISSION_SEE_RESPONSE_COUNTS),
-			self::PERMISSION_SEE_COMMENTS => $this->getRolesForPermission(self::PERMISSION_SEE_COMMENTS),
-			self::PERMISSION_SELF_CHECKIN => $this->getRolesForPermission(self::PERMISSION_SELF_CHECKIN),
-			self::PERMISSION_CREATE_APPOINTMENTS => $this->getRolesForPermission(self::PERMISSION_CREATE_APPOINTMENTS),
-			self::PERMISSION_RESPOND_FOR_OTHERS => $this->getRolesForPermission(self::PERMISSION_RESPOND_FOR_OTHERS),
-		];
+		$settings = [];
+		foreach (self::ALL_PERMISSIONS as $permission) {
+			$settings[$permission] = [
+				'mode' => $this->getModeForPermission($permission),
+				'groups' => $this->getRolesForPermission($permission),
+			];
+		}
+		return $settings;
 	}
 
 	/**
-	 * Set all permission settings
+	 * Set all permission settings. Accepts the explicit shape
+	 * `{mode: string, groups: list<string>}` per permission, and — for
+	 * older clients — a bare group list, interpreted with the legacy
+	 * empty-list semantics.
+	 *
+	 * @param array<string, array{mode: string, groups?: list<string>}|list<string>> $permissions
 	 */
 	public function setAllPermissionSettings(array $permissions): void {
-		// Map of uppercase constant names to actual permission values
-		$permissionMap = [
-			'PERMISSION_MANAGE_APPOINTMENTS' => self::PERMISSION_MANAGE_APPOINTMENTS,
-			'PERMISSION_CHECKIN' => self::PERMISSION_CHECKIN,
-			'PERMISSION_SEE_RESPONSE_OVERVIEW' => self::PERMISSION_SEE_RESPONSE_OVERVIEW,
-			'PERMISSION_SEE_RESPONSE_COUNTS' => self::PERMISSION_SEE_RESPONSE_COUNTS,
-			'PERMISSION_SEE_COMMENTS' => self::PERMISSION_SEE_COMMENTS,
-			'PERMISSION_SELF_CHECKIN' => self::PERMISSION_SELF_CHECKIN,
-			'PERMISSION_CREATE_APPOINTMENTS' => self::PERMISSION_CREATE_APPOINTMENTS,
-			'PERMISSION_RESPOND_FOR_OTHERS' => self::PERMISSION_RESPOND_FOR_OTHERS,
-		];
+		foreach ($permissions as $permission => $value) {
+			// Older clients send uppercase constant names ("PERMISSION_CHECKIN")
+			$permissionValue = str_starts_with($permission, 'PERMISSION_')
+				? strtolower(substr($permission, strlen('PERMISSION_')))
+				: $permission;
 
-		foreach ($permissions as $permission => $roles) {
-			// Convert uppercase constant name to actual value if needed
-			$permissionValue = $permissionMap[$permission] ?? $permission;
+			if (!in_array($permissionValue, self::ALL_PERMISSIONS, true)) {
+				continue;
+			}
 
-			if (in_array($permissionValue, [
-				self::PERMISSION_MANAGE_APPOINTMENTS,
-				self::PERMISSION_CHECKIN,
-				self::PERMISSION_SEE_RESPONSE_OVERVIEW,
-				self::PERMISSION_SEE_RESPONSE_COUNTS,
-				self::PERMISSION_SEE_COMMENTS,
-				self::PERMISSION_SELF_CHECKIN,
-				self::PERMISSION_CREATE_APPOINTMENTS,
-				self::PERMISSION_RESPOND_FOR_OTHERS,
-			])) {
-				$this->setRolesForPermission($permissionValue, $roles);
+			if (isset($value['mode'])) {
+				$this->setPermission($permissionValue, $value['mode'], $value['groups'] ?? []);
+			} else {
+				$groups = array_values(array_filter($value, 'is_string'));
+				$this->setPermission(
+					$permissionValue,
+					$this->impliedModeFor($permissionValue, $groups),
+					$groups,
+				);
 			}
 		}
 	}
@@ -289,8 +382,7 @@ class PermissionService {
 	/**
 	 * Check if user can set or clear responses on behalf of other users.
 	 * Deliberately NOT granted to managers or organizers automatically —
-	 * only members of the explicitly configured groups get it, and with no
-	 * groups configured nobody does (CLOSED_WHEN_UNCONFIGURED).
+	 * only the configured mode/groups decide, defaulting to nobody.
 	 */
 	public function canRespondForOthers(string $userId): bool {
 		return $this->hasPermission($userId, self::PERMISSION_RESPOND_FOR_OTHERS);
@@ -304,13 +396,12 @@ class PermissionService {
 	}
 
 	/**
-	 * Get all user IDs that have the given permission. When no roles are
-	 * configured for a permission, every existing user is considered to have
-	 * it (matches hasPermission()'s "empty roles = allow all" semantics).
+	 * Get all user IDs that have the given permission, following the
+	 * permission's mode (all users, configured groups, or nobody).
 	 *
-	 * Cached per request — on a large instance the unconfigured-permission
-	 * branch walks every user via userManager->search(''), so the per-event
-	 * audit-notification listener must not pay that cost N times.
+	 * Cached per request — on a large instance the "all" mode walks every
+	 * user via userManager->search(''), so the per-event audit-notification
+	 * listener must not pay that cost N times.
 	 *
 	 * @return list<string>
 	 */
@@ -319,13 +410,17 @@ class PermissionService {
 			return $this->usersWithCache[$permission];
 		}
 
-		$allowedRoles = $this->getRolesForPermission($permission);
+		$mode = $this->getModeForPermission($permission);
+		if ($mode === self::MODE_NOBODY) {
+			return $this->usersWithCache[$permission] = [];
+		}
+
 		$guestBlocked = in_array($permission, self::GUEST_BLOCKED_PERMISSIONS, true);
 		$userIds = [];
 
-		$candidates = empty($allowedRoles)
+		$candidates = $mode === self::MODE_ALL
 			? $this->userManager->search('')
-			: $this->collectGroupMembers($allowedRoles);
+			: $this->collectGroupMembers($this->getRolesForPermission($permission));
 
 		foreach ($candidates as $user) {
 			$uid = $user->getUID();

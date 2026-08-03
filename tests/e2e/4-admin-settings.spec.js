@@ -1,4 +1,4 @@
-import { test, expect, resetAdminSettings, deleteAllAppointments } from './fixtures/nextcloud.js'
+import { deleteAllAppointments, expect, resetAdminSettings, restrictPermissionToGroup, test, waitForSettingsSave } from './fixtures/nextcloud.js'
 
 /**
  * Admin Settings E2E Tests
@@ -7,6 +7,10 @@ import { test, expect, resetAdminSettings, deleteAllAppointments } from './fixtu
  * 1. Configuring permissions to restrict features to admin group only
  * 2. Verifying regular users (test/test) cannot access restricted features
  * 3. Verifying admin users retain access to all features
+ *
+ * The settings page auto-saves: every change posts a partial payload to the
+ * admin settings endpoint, so the tests wait for that POST instead of
+ * clicking a save button.
  *
  * Tests cover:
  * - Manage Appointments permission (create/edit/delete buttons)
@@ -31,24 +35,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.goto('/settings/admin/attendance')
 			await page.waitForLoadState('networkidle')
 
-			// Find and configure "Manage Appointments" permission to admin only
-			const managePermissionSelect = page.locator('[data-test="select-manage-appointments-roles"]')
-			await expect(managePermissionSelect).toBeVisible()
-
-			// Click on the combobox to open dropdown
-			await managePermissionSelect.getByRole('combobox').click()
-			const adminOption = page.getByRole('option', { name: 'admin' })
-			await adminOption.waitFor({ state: 'visible' })
-
-			// Select admin option from dropdown
-			await adminOption.click()
-
-			// Save settings
-			const saveButton = page.locator('[data-test="button-save-settings"]')
-			await saveButton.click()
-
-			// Verify success message or settings saved
-			await page.waitForLoadState('networkidle')
+			await restrictPermissionToGroup(page, 'manage_appointments', 'admin')
 
 			// Now login as regular test user
 			await loginAsUser('test', 'test')
@@ -99,17 +86,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.goto('/settings/admin/attendance')
 			await page.waitForLoadState('networkidle')
 
-			const checkinPermissionSelect = page.locator('[data-test="select-checkin-roles"]')
-			await expect(checkinPermissionSelect).toBeVisible()
-
-			await checkinPermissionSelect.getByRole('combobox').click()
-			const adminOption = page.getByRole('option', { name: 'admin' })
-			await adminOption.waitFor({ state: 'visible' })
-
-			await adminOption.click()
-
-			const saveButton = page.locator('[data-test="button-save-settings"]')
-			await saveButton.click()
+			await restrictPermissionToGroup(page, 'checkin', 'admin')
 
 			// Login as test user
 			await loginAsUser('test', 'test')
@@ -149,17 +126,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.goto('/settings/admin/attendance')
 			await page.waitForLoadState('networkidle')
 
-			const responseOverviewSelect = page.locator('[data-test="select-see-response-overview-roles"]')
-			await expect(responseOverviewSelect).toBeVisible()
-
-			await responseOverviewSelect.getByRole('combobox').click()
-			const adminOption = page.getByRole('option', { name: 'admin' })
-			await adminOption.waitFor({ state: 'visible' })
-
-			await adminOption.click()
-
-			const saveButton = page.locator('[data-test="button-save-settings"]')
-			await saveButton.click()
+			await restrictPermissionToGroup(page, 'see_response_overview', 'admin')
 
 			// Create appointment as admin
 			await attendanceApp()
@@ -218,17 +185,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.goto('/settings/admin/attendance')
 			await page.waitForLoadState('networkidle')
 
-			const seeCommentsSelect = page.locator('[data-test="select-see-comments-roles"]')
-			await expect(seeCommentsSelect).toBeVisible()
-
-			await seeCommentsSelect.getByRole('combobox').click()
-			const adminOption = page.getByRole('option', { name: 'admin' })
-			await adminOption.waitFor({ state: 'visible' })
-
-			await adminOption.click()
-
-			const saveButton = page.locator('[data-test="button-save-settings"]')
-			await saveButton.click()
+			await restrictPermissionToGroup(page, 'see_comments', 'admin')
 
 			// Navigate to app and verify settings applied
 			await attendanceApp()
@@ -249,17 +206,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.goto('/settings/admin/attendance')
 			await page.waitForLoadState('networkidle')
 
-			const countsSelect = page.locator('[data-test="select-see-response-counts-roles"]')
-			await expect(countsSelect).toBeVisible()
-
-			await countsSelect.getByRole('combobox').click()
-			const adminOption = page.getByRole('option', { name: 'admin' })
-			await adminOption.waitFor({ state: 'visible' })
-			await adminOption.click()
-
-			const saveButton = page.locator('[data-test="button-save-settings"]')
-			await saveButton.click()
-			await page.waitForLoadState('networkidle')
+			await restrictPermissionToGroup(page, 'see_response_counts', 'admin')
 
 			// Test user now sees no bar at all
 			await loginAsUser('test', 'test')
@@ -272,6 +219,29 @@ test.describe('Attendance App - Admin Settings', () => {
 			await attendanceApp()
 			await page.waitForLoadState('networkidle')
 			await expect(page.locator('[data-test="response-bar"]').first()).toBeVisible()
+		})
+
+		test('should deny a permission to everyone via the nobody mode', async ({ page, loginAsUser, attendanceApp }) => {
+			// Login as admin and set check-in access to nobody
+			await loginAsUser('admin', 'admin')
+			await page.goto('/settings/admin/attendance')
+			await page.waitForLoadState('networkidle')
+
+			const row = page.locator('[data-test="permission-checkin"]')
+			await expect(row).toBeVisible()
+			const saved = waitForSettingsSave(page)
+			await row.getByText('Nobody', { exact: true }).click()
+			await saved
+
+			// Even the admin loses the check-in entry point now
+			await attendanceApp()
+			await page.waitForLoadState('networkidle')
+
+			const actionsButton = page.getByRole('button', { name: 'Actions' }).first()
+			await actionsButton.click()
+			await page.waitForLoadState('networkidle')
+			await expect(page.locator('[data-test="action-start-checkin"]')).not.toBeVisible()
+			await page.keyboard.press('Escape')
 		})
 	})
 
@@ -290,15 +260,10 @@ test.describe('Attendance App - Admin Settings', () => {
 			const adminOption = page.getByRole('option', { name: 'admin' })
 			await adminOption.waitFor({ state: 'visible' })
 
-			// Select 'admin' group
+			// Select 'admin' group and wait for the auto-save
+			const saved = waitForSettingsSave(page)
 			await adminOption.click()
-
-			// Save settings
-			const saveButton = page.locator('[data-test="button-save-settings"]')
-			await saveButton.click()
-
-			// Verify settings were saved (could check for success message)
-			await page.waitForLoadState('networkidle')
+			await saved
 		})
 	})
 
@@ -326,15 +291,13 @@ test.describe('Attendance App - Admin Settings', () => {
 			await expect(reminderDaysInput).toBeVisible()
 			await reminderDaysInput.fill('3')
 
-			// Configure reminder frequency using spinbutton role
+			// Configure reminder frequency using spinbutton role; the two edits
+			// collapse into one debounced auto-save
 			const reminderFrequencyInput = page.getByRole('spinbutton', { name: 'Reminder frequency (days)' })
 			await expect(reminderFrequencyInput).toBeVisible()
+			const saved = waitForSettingsSave(page)
 			await reminderFrequencyInput.fill('2')
-
-			// Save settings
-			const saveButton = page.locator('[data-test="button-save-settings"]')
-			await saveButton.click()
-			await page.waitForLoadState('networkidle')
+			await saved
 
 			// Verify settings persisted by reloading page
 			await page.reload()
@@ -390,13 +353,16 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.goto('/settings/admin/attendance')
 			await page.waitForLoadState('networkidle')
 
-			// Test all permission select fields
+			// Permission selects only render in "Specific groups" mode
+			const permissionNames = ['manage_appointments', 'checkin', 'see_response_overview', 'see_comments']
+			for (const permission of permissionNames) {
+				const row = page.locator(`[data-test="permission-${permission}"]`)
+				await row.getByText('Specific groups', { exact: true }).click()
+			}
+
 			const selectFields = [
 				'select-whitelisted-groups',
-				'select-manage-appointments-roles',
-				'select-checkin-roles',
-				'select-see-response-overview-roles',
-				'select-see-comments-roles',
+				...permissionNames.map((permission) => `permission-${permission}-groups`),
 			]
 
 			for (const fieldTestId of selectFields) {
@@ -426,8 +392,11 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.goto('/settings/admin/attendance')
 			await page.waitForLoadState('networkidle')
 
-			// Find the manage appointments permission selector
-			const manageSelect = page.locator('[data-test="select-manage-appointments-roles"]')
+			// Switch the manage row to specific groups to reveal the select
+			const row = page.locator('[data-test="permission-manage_appointments"]')
+			await row.getByText('Specific groups', { exact: true }).click()
+
+			const manageSelect = page.locator('[data-test="permission-manage_appointments-groups"]')
 			await expect(manageSelect).toBeVisible()
 
 			// Select admin group
@@ -446,6 +415,7 @@ test.describe('Attendance App - Admin Settings', () => {
 			const hasTestGroup = await testOption.isVisible().catch(() => false)
 
 			if (hasTestGroup) {
+				const saved = waitForSettingsSave(page)
 				await testOption.click()
 
 				// Verify both tags are visible
@@ -453,16 +423,14 @@ test.describe('Attendance App - Admin Settings', () => {
 				const testTag = manageSelect.locator('.vs__selected').filter({ hasText: 'test' })
 				await expect(testTag).toBeVisible()
 
-				// Save and reload to verify persistence
-				const saveButton = page.locator('[data-test="button-save-settings"]')
-				await saveButton.click()
-				await page.waitForLoadState('networkidle')
+				// Wait for the auto-save, then reload to verify persistence
+				await saved
 
 				await page.reload()
 				await page.waitForLoadState('networkidle')
 
 				// Verify both groups are still selected after reload
-				const reloadedSelect = page.locator('[data-test="select-manage-appointments-roles"]')
+				const reloadedSelect = page.locator('[data-test="permission-manage_appointments-groups"]')
 				const reloadedAdminTag = reloadedSelect.locator('.vs__selected').filter({ hasText: 'admin' })
 				const reloadedTestTag = reloadedSelect.locator('.vs__selected').filter({ hasText: 'test' })
 				await expect(reloadedAdminTag).toBeVisible()
@@ -476,8 +444,11 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.goto('/settings/admin/attendance')
 			await page.waitForLoadState('networkidle')
 
-			// Find the checkin roles selector
-			const checkinSelect = page.locator('[data-test="select-checkin-roles"]')
+			// Switch the check-in row to specific groups to reveal the select
+			const row = page.locator('[data-test="permission-checkin"]')
+			await row.getByText('Specific groups', { exact: true }).click()
+
+			const checkinSelect = page.locator('[data-test="permission-checkin-groups"]')
 			await expect(checkinSelect).toBeVisible()
 
 			// Select admin group first
@@ -512,27 +483,23 @@ test.describe('Attendance App - Admin Settings', () => {
 	})
 
 	test.describe('Settings Persistence', () => {
-		test('should persist all settings across page reloads', async ({ page, loginAsUser }) => {
+		test('should persist the selected mode across page reloads', async ({ page, loginAsUser }) => {
 			// Login as admin
 			await loginAsUser('admin', 'admin')
 			await page.goto('/settings/admin/attendance')
 			await page.waitForLoadState('networkidle')
 
-			// Configure multiple settings
-			const managePermissionSelect = page.locator('[data-test="select-manage-appointments-roles"]')
-			await expect(managePermissionSelect).toBeVisible()
-
-			// Save settings
-			const saveButton = page.locator('[data-test="button-save-settings"]')
-			await saveButton.click()
-			await page.waitForLoadState('networkidle')
+			await restrictPermissionToGroup(page, 'manage_appointments', 'admin')
 
 			// Reload page
 			await page.reload()
 			await page.waitForLoadState('networkidle')
 
-			// Verify settings are still there
+			// The row comes back in "Specific groups" mode with the select visible
+			const managePermissionSelect = page.locator('[data-test="permission-manage_appointments-groups"]')
 			await expect(managePermissionSelect).toBeVisible()
+			const adminTag = managePermissionSelect.locator('.vs__selected').filter({ hasText: 'admin' })
+			await expect(adminTag).toBeVisible()
 		})
 	})
 })

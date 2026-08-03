@@ -182,13 +182,16 @@ class AdminController extends Controller {
 	/**
 	 * Save admin settings
 	 *
-	 * @param list<string> $whitelistedGroups Group IDs allowed to use the app
-	 * @param list<string> $whitelistedTeams Team IDs allowed to use the app
-	 * @param array<string, list<string>> $permissions Permission name to group IDs mapping
-	 * @param array{enabled?: bool, reminderDays?: int, reminderFrequency?: int, reminderTarget?: string} $reminders Reminder settings
-	 * @param array{enabled?: bool} $calendarSync Calendar sync settings
-	 * @param array{enabled?: bool, calendarUri?: string} $orgCalendar Organization calendar settings (target calendar for automatic event creation)
-	 * @param array{enabled?: bool, visibility?: string} $audit Audit log settings (master switch + read visibility)
+	 * All parameters are optional so the settings UI can auto-save partial
+	 * payloads; omitted settings stay untouched.
+	 *
+	 * @param ?list<string> $whitelistedGroups Group IDs allowed to use the app
+	 * @param ?list<string> $whitelistedTeams Team IDs allowed to use the app
+	 * @param ?array<string, array{mode: string, groups: list<string>}> $permissions Permission name to access mode (all|groups|nobody) and group IDs
+	 * @param ?array{enabled?: bool, reminderDays?: int, reminderFrequency?: int, reminderTarget?: string} $reminders Reminder settings
+	 * @param ?array{enabled?: bool} $calendarSync Calendar sync settings
+	 * @param ?array{enabled?: bool, calendarUri?: string} $orgCalendar Organization calendar settings (target calendar for automatic event creation)
+	 * @param ?array{enabled?: bool, visibility?: string} $audit Audit log settings (master switch + read visibility)
 	 * @param ?string $displayOrder Display order for appointments: chronological, name, or group
 	 * @param ?bool $pushEnabled Whether push notifications are enabled
 	 * @param ?bool $mobileAppBannerEnabled Whether the mobile app promotion banner is enabled
@@ -199,13 +202,13 @@ class AdminController extends Controller {
 	#[NoCSRFRequired]
 	#[OpenAPI(OpenAPI::SCOPE_ADMINISTRATION)]
 	public function saveSettings(
-		array $whitelistedGroups = [],
-		array $whitelistedTeams = [],
-		array $permissions = [],
-		array $reminders = [],
-		array $calendarSync = [],
-		array $orgCalendar = [],
-		array $audit = [],
+		?array $whitelistedGroups = null,
+		?array $whitelistedTeams = null,
+		?array $permissions = null,
+		?array $reminders = null,
+		?array $calendarSync = null,
+		?array $orgCalendar = null,
+		?array $audit = null,
 		?string $displayOrder = null,
 		?bool $pushEnabled = null,
 		?bool $mobileAppBannerEnabled = null,
@@ -224,11 +227,14 @@ class AdminController extends Controller {
 		}
 
 		try {
-			$this->configService->setWhitelistedGroups($whitelistedGroups);
-			$this->configService->setWhitelistedTeams($whitelistedTeams);
+			if ($whitelistedGroups !== null) {
+				$this->configService->setWhitelistedGroups($whitelistedGroups);
+			}
+			if ($whitelistedTeams !== null) {
+				$this->configService->setWhitelistedTeams($whitelistedTeams);
+			}
 
-			// Save permissions
-			if (isset($permissions) && is_array($permissions)) {
+			if ($permissions !== null) {
 				$this->permissionService->setAllPermissionSettings($permissions);
 			}
 
@@ -255,7 +261,9 @@ class AdminController extends Controller {
 			}
 
 			// Save organization calendar settings (backfills on enable/re-point)
-			$this->orgCalendarSyncService->applySettings($orgCalendar, $user->getUID());
+			if ($orgCalendar !== null) {
+				$this->orgCalendarSyncService->applySettings($orgCalendar, $user->getUID());
+			}
 
 			// Save audit log settings
 			if (isset($audit['enabled'])) {

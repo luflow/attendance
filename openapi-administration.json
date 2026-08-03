@@ -301,13 +301,28 @@
                     }
                 }
             },
+            "PermissionSetting": {
+                "type": "object",
+                "required": [
+                    "mode",
+                    "groups"
+                ],
+                "properties": {
+                    "mode": {
+                        "type": "string"
+                    },
+                    "groups": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
             "PermissionSettings": {
                 "type": "object",
                 "additionalProperties": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
+                    "$ref": "#/components/schemas/PermissionSetting"
                 }
             },
             "TeamOption": {
@@ -505,7 +520,7 @@
             "post": {
                 "operationId": "admin-save-settings",
                 "summary": "Save admin settings",
-                "description": "This endpoint requires admin access",
+                "description": "All parameters are optional so the settings UI can auto-save partial payloads; omitted settings stay untouched.\nThis endpoint requires admin access",
                 "tags": [
                     "admin"
                 ],
@@ -526,7 +541,8 @@
                                 "properties": {
                                     "whitelistedGroups": {
                                         "type": "array",
-                                        "default": [],
+                                        "nullable": true,
+                                        "default": null,
                                         "description": "Group IDs allowed to use the app",
                                         "items": {
                                             "type": "string"
@@ -534,7 +550,8 @@
                                     },
                                     "whitelistedTeams": {
                                         "type": "array",
-                                        "default": [],
+                                        "nullable": true,
+                                        "default": null,
                                         "description": "Team IDs allowed to use the app",
                                         "items": {
                                             "type": "string"
@@ -542,18 +559,32 @@
                                     },
                                     "permissions": {
                                         "type": "object",
-                                        "default": {},
-                                        "description": "Permission name to group IDs mapping",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Permission name to access mode (all|groups|nobody) and group IDs",
                                         "additionalProperties": {
-                                            "type": "array",
-                                            "items": {
-                                                "type": "string"
+                                            "type": "object",
+                                            "required": [
+                                                "mode",
+                                                "groups"
+                                            ],
+                                            "properties": {
+                                                "mode": {
+                                                    "type": "string"
+                                                },
+                                                "groups": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                }
                                             }
                                         }
                                     },
                                     "reminders": {
                                         "type": "object",
-                                        "default": {},
+                                        "nullable": true,
+                                        "default": null,
                                         "description": "Reminder settings",
                                         "properties": {
                                             "enabled": {
@@ -574,7 +605,8 @@
                                     },
                                     "calendarSync": {
                                         "type": "object",
-                                        "default": {},
+                                        "nullable": true,
+                                        "default": null,
                                         "description": "Calendar sync settings",
                                         "properties": {
                                             "enabled": {
@@ -584,7 +616,8 @@
                                     },
                                     "orgCalendar": {
                                         "type": "object",
-                                        "default": {},
+                                        "nullable": true,
+                                        "default": null,
                                         "description": "Organization calendar settings (target calendar for automatic event creation)",
                                         "properties": {
                                             "enabled": {
@@ -597,7 +630,8 @@
                                     },
                                     "audit": {
                                         "type": "object",
-                                        "default": {},
+                                        "nullable": true,
+                                        "default": null,
                                         "description": "Audit log settings (master switch + read visibility)",
                                         "properties": {
                                             "enabled": {

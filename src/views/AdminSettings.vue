@@ -1,23 +1,53 @@
 <template>
 	<div id="attendance-admin-settings" data-test="admin-settings">
 		<NcSettingsSection :name="t('attendance', 'Attendance')"
-			:description="t('attendance', 'Configure attendance management and reminders')" />
+			:description="t('attendance', 'Configure attendance management and reminders. Changes are saved automatically.')">
+			<nav class="anchor-nav" :aria-label="t('attendance', 'Settings sections')">
+				<a v-for="section in navSections"
+					:key="section.id"
+					:href="`#${section.id}`"
+					class="anchor-nav__link"
+					@click.prevent="scrollToSection(section.id)">
+					{{ section.label }}
+				</a>
+			</nav>
+		</NcSettingsSection>
 
 		<div v-if="loadingData" class="loading-section">
 			<NcLoadingIcon :size="32" />
-			<p>{{ t('attendance', 'Loading settings\u00A0…') }}</p>
+			<p>{{ t('attendance', 'Loading settings …') }}</p>
 		</div>
 
 		<template v-else>
+			<NcSettingsSection id="permissions"
+				:name="t('attendance', 'Permissions')"
+				:description="t('attendance', 'Control who can do what. Every permission is either open to all users, limited to specific groups, or granted to nobody.')">
+				<div v-for="group in permissionGroups" :key="group.key" class="permission-group">
+					<h4 class="permission-group__title">
+						{{ group.label }}
+					</h4>
+					<PermissionRow v-for="row in group.rows"
+						:key="row.name"
+						:modelValue="permissions[row.name]"
+						:title="row.title"
+						:hint="row.hint"
+						:implication="row.implication"
+						:warningWhenAll="row.warningWhenAll"
+						:options="availableGroups"
+						:dataTest="`permission-${row.name}`"
+						@update:modelValue="onPermissionChange(row.name, $event)" />
+				</div>
+			</NcSettingsSection>
+
 			<!-- TRANSLATORS: Admin settings section title. The "Response summary" is the main feature of this app - it shows attendance statistics on the appointment detail page, counting users by their Nextcloud group membership. Groups selected here will have their own sections in the summary; users not in these groups appear under "Others". -->
-			<NcSettingsSection :name="t('attendance', 'Response summary groups')"
+			<NcSettingsSection id="response-summary"
+				:name="t('attendance', 'Response summary groups')"
 				:description="t('attendance', 'Select which groups to include in response summaries. Users outside these groups will appear under Others. Leave empty to include all groups.')"
 				data-test="section-tracking-groups">
 				<GroupSelect
 					v-model="selectedGroups"
 					:options="availableGroups"
-					:placeholder="t('attendance', 'Select groups\u00A0…')"
-					:disabled="loading"
+					:placeholder="t('attendance', 'Select groups …')"
 					data-test="select-whitelisted-groups" />
 				<p class="hint-text">
 					{{ n('attendance', '%n group selected', '%n groups selected', selectedGroups.length, { n: selectedGroups.length }) }}
@@ -32,9 +62,8 @@
 				<NcSelect
 					v-model="selectedTeams"
 					:options="teamSearchResults"
-					:placeholder="t('attendance', 'Search and select teams\u00A0…')"
+					:placeholder="t('attendance', 'Search and select teams …')"
 					:multiple="true"
-					:disabled="loading"
 					:loading="isSearchingTeams"
 					:filterable="false"
 					label="label"
@@ -59,196 +88,65 @@
 				</p>
 			</NcSettingsSection>
 
-			<NcSettingsSection :name="t('attendance', 'Permissions')"
-				:description="t('attendance', 'Configure which groups can perform specific actions. Users must belong to at least one of the selected groups to access the feature. If no group is selected, all users have access to the feature.')">
-				<div class="subsection">
-					<h4>{{ t('attendance', 'Manage appointments') }}</h4>
-					<p class="subsection-hint">
-						{{ t('attendance', 'Groups that can create, update, and delete appointments') }}
-					</p>
-					<GroupSelect
-						v-model="selectedManageAppointmentsRoles"
-						:options="availableGroups"
-						:placeholder="t('attendance', 'Select groups\u00A0…')"
-						:disabled="loading"
-						data-test="select-manage-appointments-roles" />
-					<p class="hint-text">
-						{{ n('attendance', '%n group selected', '%n groups selected', selectedManageAppointmentsRoles.length, { n: selectedManageAppointmentsRoles.length }) }}
-					</p>
+			<NcSettingsSection id="self-checkin"
+				:name="t('attendance', 'Self-check-in')"
+				:description="t('attendance', 'Attendees check themselves in via QR code or NFC tag. One code works for all appointments — the app matches by time.')">
+				<!-- Wrapper div: scoped attrs don't reach the NcInputField root,
+				     so the spacing lives on an own template element. -->
+				<div class="self-checkin-window-field">
+					<NcInputField
+						v-model.number="selfCheckinWindowMinutes"
+						type="number"
+						:label="t('attendance', 'Check-in window (minutes before start)')"
+						:helperText="t('attendance', 'How many minutes before an appointment starts attendees can check in. The window always closes when the appointment ends.')"
+						data-test="input-self-checkin-window"
+						:inputProps="{ min: 0, max: 1440 }" />
 				</div>
 
-				<div class="subsection">
-					<h4>{{ t('attendance', 'Create own appointments') }}</h4>
+				<div class="self-checkin-qr">
+					<h6>{{ t('attendance', 'QR code') }}</h6>
 					<p class="subsection-hint">
-						{{ t('attendance', 'Groups that can create appointments and manage them as organizers, in addition to the groups above. If no group is selected, only the groups above can create appointments.') }}
+						{{ t('attendance', 'Print this QR code and put it up at the entrance.') }}
 					</p>
-					<GroupSelect
-						v-model="selectedCreateAppointmentsRoles"
-						:options="availableGroups"
-						:placeholder="t('attendance', 'Select groups …')"
-						:disabled="loading"
-						data-test="select-create-appointments-roles" />
-					<p class="hint-text">
-						{{ n('attendance', '%n group selected', '%n groups selected', selectedCreateAppointmentsRoles.length, { n: selectedCreateAppointmentsRoles.length }) }}
-					</p>
-				</div>
-
-				<div class="subsection">
-					<h4>{{ t('attendance', 'Check-in access') }}</h4>
-					<p class="subsection-hint">
-						{{ t('attendance', 'Groups that can access the check-in interface and execute check-ins') }}
-					</p>
-					<GroupSelect
-						v-model="selectedCheckinRoles"
-						:options="availableGroups"
-						:placeholder="t('attendance', 'Select groups\u00A0…')"
-						:disabled="loading"
-						data-test="select-checkin-roles" />
-					<p class="hint-text">
-						{{ n('attendance', '%n group selected', '%n groups selected', selectedCheckinRoles.length, { n: selectedCheckinRoles.length }) }}
-					</p>
-				</div>
-
-				<div class="subsection">
-					<h4>{{ t('attendance', 'See response & check-in summary') }}</h4>
-					<p class="subsection-hint">
-						{{ t('attendance', 'Groups that can see the response summary and check-in summary') }}
-					</p>
-					<GroupSelect
-						v-model="selectedSeeResponseOverviewRoles"
-						:options="availableGroups"
-						:placeholder="t('attendance', 'Select groups\u00A0…')"
-						:disabled="loading"
-						data-test="select-see-response-overview-roles" />
-					<p class="hint-text">
-						{{ n('attendance', '%n group selected', '%n groups selected', selectedSeeResponseOverviewRoles.length, { n: selectedSeeResponseOverviewRoles.length }) }}
-					</p>
-				</div>
-
-				<div class="subsection">
-					<h4>{{ t('attendance', 'See response counts') }}</h4>
-					<p class="subsection-hint">
-						{{ t('attendance', 'Groups that can see how many people answered yes, no or maybe — without any names. If no group is selected, everyone can see the counts. Groups with the full summary above always see the counts.') }}
-					</p>
-					<GroupSelect
-						v-model="selectedSeeResponseCountsRoles"
-						:options="availableGroups"
-						:placeholder="t('attendance', 'Select groups …')"
-						:disabled="loading"
-						data-test="select-see-response-counts-roles" />
-					<p class="hint-text">
-						{{ n('attendance', '%n group selected', '%n groups selected', selectedSeeResponseCountsRoles.length, { n: selectedSeeResponseCountsRoles.length }) }}
-					</p>
-				</div>
-
-				<div class="subsection">
-					<h4>{{ t('attendance', 'See comments') }}</h4>
-					<p class="subsection-hint">
-						{{ t('attendance', 'Groups that can see comments in the response overview') }}
-					</p>
-					<GroupSelect
-						v-model="selectedSeeCommentsRoles"
-						:options="availableGroups"
-						:placeholder="t('attendance', 'Select groups\u00A0…')"
-						:disabled="loading"
-						data-test="select-see-comments-roles" />
-					<p class="hint-text">
-						{{ n('attendance', '%n group selected', '%n groups selected', selectedSeeCommentsRoles.length, { n: selectedSeeCommentsRoles.length }) }}
-					</p>
-				</div>
-
-				<div class="subsection">
-					<h4>{{ t('attendance', 'Can set responses for other users') }}</h4>
-					<p class="subsection-hint">
-						{{ t('attendance', 'Groups that can record or clear an answer on behalf of another person in the response summary. Not granted automatically to managers — if no group is selected, nobody has this permission.') }}
-					</p>
-					<GroupSelect
-						v-model="selectedRespondForOthersRoles"
-						:options="availableGroups"
-						:placeholder="t('attendance', 'Select groups …')"
-						:disabled="loading"
-						data-test="select-respond-for-others-roles" />
-					<p class="hint-text">
-						{{ n('attendance', '%n group selected', '%n groups selected', selectedRespondForOthersRoles.length, { n: selectedRespondForOthersRoles.length }) }}
-					</p>
-				</div>
-
-				<div class="subsection">
-					<h4>{{ t('attendance', 'Self-check-in') }}</h4>
-					<p class="subsection-hint">
-						{{ t('attendance', 'Groups that can self-check-in via NFC sticker or deep link') }}
-					</p>
-					<GroupSelect
-						v-model="selectedSelfCheckinRoles"
-						:options="availableGroups"
-						:placeholder="t('attendance', 'Select groups …')"
-						:disabled="loading"
-						data-test="select-self-checkin-roles" />
-					<p class="hint-text">
-						{{ n('attendance', '%n group selected', '%n groups selected', selectedSelfCheckinRoles.length, { n: selectedSelfCheckinRoles.length }) }}
-					</p>
-
-					<!-- Wrapper div: scoped attrs don't reach the NcInputField root,
-					     so the spacing lives on an own template element. -->
-					<div class="self-checkin-window-field">
-						<NcInputField
-							v-model.number="selfCheckinWindowMinutes"
-							type="number"
-							:label="t('attendance', 'Check-in window (minutes before start)')"
-							:helperText="t('attendance', 'How many minutes before an appointment starts attendees can check in. The window always closes when the appointment ends.')"
-							data-test="input-self-checkin-window"
-							:inputProps="{ min: 0, max: 1440 }" />
+					<img v-if="qrDataUrl"
+						:src="qrDataUrl"
+						:alt="t('attendance', 'Self-check-in QR code')"
+						class="self-checkin-qr__image"
+						data-test="self-checkin-qr">
+					<div class="self-checkin-qr__actions">
+						<NcButton variant="secondary" @click="downloadQrCode">
+							<template #icon>
+								<Download :size="20" />
+							</template>
+							{{ t('attendance', 'Download QR code') }}
+						</NcButton>
 					</div>
 
-					<div class="self-checkin-qr">
-						<h5>{{ t('attendance', 'Set up self-check-in') }}</h5>
-						<p class="subsection-hint">
-							{{ t('attendance', 'One code works for all appointments — the app matches by time.') }}
-						</p>
-
-						<h6>{{ t('attendance', 'QR code') }}</h6>
-						<p class="subsection-hint">
-							{{ t('attendance', 'Print this QR code and put it up at the entrance.') }}
-						</p>
-						<img v-if="qrDataUrl"
-							:src="qrDataUrl"
-							:alt="t('attendance', 'Self-check-in QR code')"
-							class="self-checkin-qr__image"
-							data-test="self-checkin-qr">
-						<div class="self-checkin-qr__actions">
-							<NcButton variant="secondary" @click="downloadQrCode">
-								<template #icon>
-									<Download :size="20" />
-								</template>
-								{{ t('attendance', 'Download QR code') }}
-							</NcButton>
-						</div>
-
-						<h6>{{ t('attendance', 'NFC tag') }}</h6>
-						<p class="subsection-hint">
-							{{ t('attendance', 'Write the check-in URL to NFC tags and stick them at the entrance.') }}
-						</p>
-						<div class="self-checkin-qr__actions">
-							<NcButton variant="secondary" @click="copySelfCheckinUrl">
-								<template #icon>
-									<ContentCopy :size="20" />
-								</template>
-								{{ t('attendance', 'Copy URL for NFC tags') }}
-							</NcButton>
-						</div>
-						<p class="hint-text">
-							{{ t('attendance', 'NFC tag shopping advice: use NXP NTAG213 tags (or newer) of at least 25 mm, and on-metal tags for metal surfaces. Avoid MIFARE Classic tags — they do not work with iPhones.') }}
-						</p>
-						<p class="hint-text">
-							<a class="self-checkin-qr__app-link" href="#mobile-apps">
-								{{ t('attendance', 'You can also write NFC tags directly with the Attendance mobile app.') }}
-							</a>
-						</p>
+					<h6>{{ t('attendance', 'NFC tag') }}</h6>
+					<p class="subsection-hint">
+						{{ t('attendance', 'Write the check-in URL to NFC tags and stick them at the entrance.') }}
+					</p>
+					<div class="self-checkin-qr__actions">
+						<NcButton variant="secondary" @click="copySelfCheckinUrl">
+							<template #icon>
+								<ContentCopy :size="20" />
+							</template>
+							{{ t('attendance', 'Copy URL for NFC tags') }}
+						</NcButton>
 					</div>
+					<p class="hint-text">
+						{{ t('attendance', 'NFC tag shopping advice: use NXP NTAG213 tags (or newer) of at least 25 mm, and on-metal tags for metal surfaces. Avoid MIFARE Classic tags — they do not work with iPhones.') }}
+					</p>
+					<p class="hint-text">
+						<a class="self-checkin-qr__app-link" href="#mobile-apps" @click.prevent="scrollToSection('mobile-apps')">
+							{{ t('attendance', 'You can also write NFC tags directly with the Attendance mobile app.') }}
+						</a>
+					</p>
 				</div>
 			</NcSettingsSection>
 
-			<NcSettingsSection :name="t('attendance', 'Appointment reminders')"
+			<NcSettingsSection id="reminders"
+				:name="t('attendance', 'Appointment reminders')"
 				:description="reminderSectionDescription">
 				<NcNoteCard v-if="!notificationsAppEnabled" type="warning">
 					<p>{{ t('attendance', 'The Notifications app is not enabled. Please enable it to use appointment reminders.') }}</p>
@@ -368,223 +266,124 @@
 				</template>
 			</NcSettingsSection>
 
-			<div id="calendar-sync">
-				<NcSettingsSection
-					:name="t('attendance', 'Calendar sync')"
-					:description="t('attendance', 'Automatically update attendance appointments when their linked calendar events are modified.')">
+			<NcSettingsSection id="calendar-sync"
+				:name="t('attendance', 'Calendar sync')"
+				:description="t('attendance', 'Automatically update attendance appointments when their linked calendar events are modified.')">
+				<NcCheckboxRadioSwitch
+					v-model="calendarSyncEnabled"
+					type="switch"
+					data-test="switch-calendar-sync-enabled">
+					{{ t('attendance', 'Enable automatic calendar sync') }}
+				</NcCheckboxRadioSwitch>
+				<p class="hint-text">
+					{{ t('attendance', 'When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time).') }}
+				</p>
+			</NcSettingsSection>
+
+			<NcSettingsSection id="org-calendar"
+				:name="t('attendance', 'Organization calendar')"
+				:description="t('attendance', 'Automatically create and update events in a shared calendar for every appointment, so everyone can see them in the Calendar app.')">
+				<NcNoteCard v-if="!calendarAvailable" type="warning">
+					<p>{{ t('attendance', 'The Calendar app is not enabled. Enable it to use the organization calendar.') }}</p>
+				</NcNoteCard>
+
+				<template v-else>
 					<NcCheckboxRadioSwitch
-						v-model="calendarSyncEnabled"
+						v-model="orgCalendarEnabled"
 						type="switch"
-						data-test="switch-calendar-sync-enabled">
-						{{ t('attendance', 'Enable automatic calendar sync') }}
+						data-test="switch-org-calendar-enabled">
+						{{ t('attendance', 'Create calendar events for appointments') }}
 					</NcCheckboxRadioSwitch>
-					<p class="hint-text">
-						{{ t('attendance', 'When enabled, changes to calendar events will automatically update linked attendance appointments (title, description, date/time).') }}
-					</p>
-				</NcSettingsSection>
-			</div>
 
-			<div id="org-calendar">
-				<NcSettingsSection
-					:name="t('attendance', 'Organization calendar')"
-					:description="t('attendance', 'Automatically create and update events in a shared calendar for every appointment, so everyone can see them in the Calendar app.')">
-					<NcNoteCard v-if="!calendarAvailable" type="warning">
-						<p>{{ t('attendance', 'The Calendar app is not enabled. Enable it to use the organization calendar.') }}</p>
-					</NcNoteCard>
+					<div v-if="orgCalendarEnabled" class="subsection">
+						<h4>{{ t('attendance', 'Target calendar') }}</h4>
+						<NcNoteCard v-if="!orgCalendarOptions.length" type="warning">
+							<p>{{ t('attendance', 'No writable calendar found. Create one in the Calendar app first.') }}</p>
+						</NcNoteCard>
+						<NcSelect v-else
+							v-model="selectedOrgCalendar"
+							:options="orgCalendarOptions"
+							label="displayName"
+							:placeholder="t('attendance', 'Select a calendar …')"
+							data-test="select-org-calendar" />
+						<p class="hint-text">
+							{{ t('attendance', 'Share the selected calendar with your groups in the Calendar app so everyone can see the events.') }}
+						</p>
+						<p class="hint-text">
+							{{ t('attendance', 'When you select a calendar, all upcoming appointments are transferred to it. Past appointments are not transferred.') }}
+						</p>
+						<p class="hint-text">
+							{{ t('attendance', 'Events are created for all appointments, regardless of their visibility restrictions. Changing the target calendar does not move events that were already created.') }}
+						</p>
+						<p v-if="orgCalendarUserId" class="hint-text">
+							{{ t('attendance', 'Events are written using the account of {user}.', { user: orgCalendarUserId }) }}
+						</p>
+						<NcButton
+							v-if="selectedOrgCalendar"
+							variant="tertiary"
+							:disabled="syncingOrgCalendar"
+							data-test="button-sync-org-calendar"
+							@click="syncOrgCalendar">
+							<template #icon>
+								<NcLoadingIcon v-if="syncingOrgCalendar" :size="20" />
+								<CalendarSyncIcon v-else :size="20" />
+							</template>
+							{{ t('attendance', 'Sync upcoming appointments now') }}
+						</NcButton>
+						<p class="hint-text">
+							{{ t('attendance', 'Creates or updates the calendar events for all upcoming appointments. This also runs automatically when you enable the feature or change the calendar.') }}
+						</p>
+					</div>
+				</template>
+			</NcSettingsSection>
 
-					<template v-else>
-						<NcCheckboxRadioSwitch
-							v-model="orgCalendarEnabled"
-							type="switch"
-							:disabled="loading"
-							data-test="switch-org-calendar-enabled">
-							{{ t('attendance', 'Create calendar events for appointments') }}
+			<NcSettingsSection id="audit-log"
+				:name="t('attendance', 'Audit log')"
+				:description="t('attendance', 'Records who responded what and when, and surfaces a timeline on every appointment. Also drives the response-change push notifications that managers can opt into in their personal settings.')">
+				<NcCheckboxRadioSwitch v-model="auditLogEnabled"
+					type="switch"
+					data-test="switch-audit-log-enabled">
+					{{ t('attendance', 'Enable audit log') }}
+				</NcCheckboxRadioSwitch>
+				<p class="hint-text">
+					{{ t('attendance', 'Disabling stops new events from being recorded and silences response notifications. Existing entries are kept and reappear once you re-enable.') }}
+				</p>
+
+				<template v-if="auditLogEnabled">
+					<div class="subsection">
+						<h4>{{ t('attendance', 'Who can see the audit log?') }}</h4>
+						<NcCheckboxRadioSwitch v-model="auditLogVisibility"
+							value="managers"
+							name="audit_log_visibility"
+							type="radio"
+							data-test="radio-audit-visibility-managers">
+							{{ t('attendance', 'Only users who can manage appointments') }}
 						</NcCheckboxRadioSwitch>
-
-						<div v-if="orgCalendarEnabled" class="subsection">
-							<h4>{{ t('attendance', 'Target calendar') }}</h4>
-							<NcNoteCard v-if="!orgCalendarOptions.length" type="warning">
-								<p>{{ t('attendance', 'No writable calendar found. Create one in the Calendar app first.') }}</p>
-							</NcNoteCard>
-							<NcSelect v-else
-								v-model="selectedOrgCalendar"
-								:options="orgCalendarOptions"
-								label="displayName"
-								:placeholder="t('attendance', 'Select a calendar …')"
-								:disabled="loading"
-								data-test="select-org-calendar" />
-							<p class="hint-text">
-								{{ t('attendance', 'Share the selected calendar with your groups in the Calendar app so everyone can see the events.') }}
-							</p>
-							<p class="hint-text">
-								{{ t('attendance', 'When you select a calendar, all upcoming appointments are transferred to it. Past appointments are not transferred.') }}
-							</p>
-							<p class="hint-text">
-								{{ t('attendance', 'Events are created for all appointments, regardless of their visibility restrictions. Changing the target calendar does not move events that were already created.') }}
-							</p>
-							<p v-if="orgCalendarUserId" class="hint-text">
-								{{ t('attendance', 'Events are written using the account of {user}.', { user: orgCalendarUserId }) }}
-							</p>
-							<NcButton
-								v-if="selectedOrgCalendar"
-								variant="tertiary"
-								:disabled="syncingOrgCalendar"
-								data-test="button-sync-org-calendar"
-								@click="syncOrgCalendar">
-								<template #icon>
-									<NcLoadingIcon v-if="syncingOrgCalendar" :size="20" />
-									<CalendarSyncIcon v-else :size="20" />
-								</template>
-								{{ t('attendance', 'Sync upcoming appointments now') }}
-							</NcButton>
-							<p class="hint-text">
-								{{ t('attendance', 'Creates or updates the calendar events for all upcoming appointments. This also runs automatically when you enable the feature or change the calendar.') }}
-							</p>
-						</div>
-					</template>
-				</NcSettingsSection>
-			</div>
-
-			<div id="audit-log">
-				<NcSettingsSection :name="t('attendance', 'Audit log')"
-					:description="t('attendance', 'Records who responded what and when, and surfaces a timeline on every appointment. Also drives the response-change push notifications that managers can opt into in their personal settings.')">
-					<NcCheckboxRadioSwitch v-model="auditLogEnabled"
-						type="switch"
-						:disabled="loading"
-						data-test="switch-audit-log-enabled">
-						{{ t('attendance', 'Enable audit log') }}
-					</NcCheckboxRadioSwitch>
-					<p class="hint-text">
-						{{ t('attendance', 'Disabling stops new events from being recorded and silences response notifications. Existing entries are kept and reappear once you re-enable.') }}
-					</p>
-
-					<template v-if="auditLogEnabled">
-						<div class="subsection">
-							<h4>{{ t('attendance', 'Who can see the audit log?') }}</h4>
-							<NcCheckboxRadioSwitch v-model="auditLogVisibility"
-								value="managers"
-								name="audit_log_visibility"
-								type="radio"
-								:disabled="loading"
-								data-test="radio-audit-visibility-managers">
-								{{ t('attendance', 'Only users who can manage appointments') }}
-							</NcCheckboxRadioSwitch>
-							<NcCheckboxRadioSwitch v-model="auditLogVisibility"
-								value="all_with_response_overview"
-								name="audit_log_visibility"
-								type="radio"
-								:disabled="loading"
-								data-test="radio-audit-visibility-overview">
-								{{ t('attendance', 'Everyone who can see the response overview') }}
-							</NcCheckboxRadioSwitch>
-						</div>
-					</template>
-				</NcSettingsSection>
-			</div>
+						<NcCheckboxRadioSwitch v-model="auditLogVisibility"
+							value="all_with_response_overview"
+							name="audit_log_visibility"
+							type="radio"
+							data-test="radio-audit-visibility-overview">
+							{{ t('attendance', 'Everyone who can see the response overview') }}
+						</NcCheckboxRadioSwitch>
+					</div>
+				</template>
+			</NcSettingsSection>
 
 			<!-- TRANSLATORS: Admin settings section title for the scheduling feature: managers give people who answered "yes" a place in the appointment ("schedule someone in"). German: the feature/noun is "Planung", the per-person action is "einplanen" and a scheduled person is "eingeplant" — not "planen"/"geplant". The description and the "Enable scheduling" switch below use the same meaning. -->
-			<NcSettingsSection :name="t('attendance', 'Scheduling')"
+			<NcSettingsSection id="scheduling"
+				:name="t('attendance', 'Scheduling')"
 				:description="t('attendance', 'Let managers mark yes-responders as scheduled for an appointment. When off, no scheduling controls are shown anywhere.')">
 				<NcCheckboxRadioSwitch v-model="bookingEnabled"
 					type="switch"
-					:disabled="loading"
 					data-test="switch-booking-enabled">
 					<!-- TRANSLATORS: Switch label — turns the scheduling feature on (German: "Planung aktivieren"). -->
 					{{ t('attendance', 'Enable scheduling') }}
 				</NcCheckboxRadioSwitch>
 			</NcSettingsSection>
 
-			<div id="mobile-apps">
-				<NcSettingsSection :name="t('attendance', 'Mobile apps')"
-					:description="t('attendance', 'Share these links with your colleagues to install the Attendance mobile app.')">
-					<div class="mobile-app-links">
-						<div v-for="store in mobileAppStores" :key="store.id" class="mobile-app-link">
-							<label class="mobile-app-link__label">
-								<component :is="store.icon" :size="20" />
-								{{ store.label }}
-							</label>
-							<div class="mobile-app-link__row">
-								<code class="mobile-app-link__url" :data-test="`input-${store.id}-store-url`">{{ store.url }}</code>
-								<NcButton variant="secondary"
-									:aria-label="t('attendance', 'Copy URL')"
-									:data-test="`button-copy-${store.id}-url`"
-									@click="copyStoreUrl(store.url)">
-									<template #icon>
-										<ContentCopy :size="20" />
-									</template>
-									{{ t('attendance', 'Copy') }}
-								</NcButton>
-								<NcButton variant="tertiary"
-									:href="store.url"
-									target="_blank"
-									rel="noopener"
-									:data-test="`button-open-${store.id}-url`">
-									<template #icon>
-										<OpenInNew :size="20" />
-									</template>
-									<!-- TRANSLATORS: Verb (imperative) — button that opens the app-store link in a new browser tab. -->
-									{{ t('attendance', 'Open') }}
-								</NcButton>
-							</div>
-						</div>
-					</div>
-
-					<div class="subsection">
-						<h4>{{ t('attendance', 'Mobile App promotion banner') }}</h4>
-						<p class="subsection-hint">
-							{{ t('attendance', 'Show a banner at the top of the web app advertising the mobile apps. Users can dismiss the banner, and users who already have a push device connected will not see it.') }}
-						</p>
-						<NcCheckboxRadioSwitch
-							v-model="mobileAppBannerEnabled"
-							type="switch"
-							:disabled="loading"
-							data-test="switch-mobile-app-banner-enabled">
-							{{ t('attendance', 'Show promotion banner') }}
-						</NcCheckboxRadioSwitch>
-					</div>
-
-					<div class="subsection">
-						<h4>{{ t('attendance', 'Push notifications') }}</h4>
-						<p class="subsection-hint">
-							{{ t('attendance', 'Enable push notifications for the mobile app.') }}
-						</p>
-						<NcCheckboxRadioSwitch
-							v-model="pushEnabled"
-							type="switch"
-							:disabled="loading"
-							data-test="switch-push-enabled">
-							{{ t('attendance', 'Enable push notifications') }}
-						</NcCheckboxRadioSwitch>
-
-						<template v-if="pushEnabled">
-							<div class="push-device-status">
-								<NcNoteCard v-if="pushDeviceCount === 0" type="warning">
-									<p>{{ t('attendance', 'No push device registered for your account. Connect the Attendance mobile app to receive push notifications.') }}</p>
-								</NcNoteCard>
-								<template v-else>
-									<p class="push-device-info">
-										<CellphoneCheck :size="20" />
-										{{ n('attendance', '{count} device registered for push notifications', '{count} devices registered for push notifications', pushDeviceCount, { count: pushDeviceCount }) }}
-									</p>
-									<NcButton
-										variant="secondary"
-										:disabled="sendingTestReminder"
-										class="test-reminder-button"
-										data-test="button-test-push"
-										@click="sendTestReminder">
-										<template #icon>
-											<BellRingIcon :size="20" />
-										</template>
-										{{ t('attendance', 'Send test notification') }}
-									</NcButton>
-								</template>
-							</div>
-						</template>
-					</div>
-				</NcSettingsSection>
-			</div>
-
-			<NcSettingsSection :name="t('attendance', 'Display options')"
+			<NcSettingsSection id="display-options"
+				:name="t('attendance', 'Display options')"
 				:description="t('attendance', 'Choose how appointments are displayed across the app.')">
 				<NcCheckboxRadioSwitch
 					v-model="displayOrder"
@@ -610,7 +409,95 @@
 				</NcCheckboxRadioSwitch>
 			</NcSettingsSection>
 
-			<NcSettingsSection :name="t('attendance', 'Guest invitation')"
+			<NcSettingsSection id="mobile-apps"
+				:name="t('attendance', 'Mobile apps')"
+				:description="t('attendance', 'Share these links with your colleagues to install the Attendance mobile app.')">
+				<div class="mobile-app-links">
+					<div v-for="store in mobileAppStores" :key="store.id" class="mobile-app-link">
+						<label class="mobile-app-link__label">
+							<component :is="store.icon" :size="20" />
+							{{ store.label }}
+						</label>
+						<div class="mobile-app-link__row">
+							<code class="mobile-app-link__url" :data-test="`input-${store.id}-store-url`">{{ store.url }}</code>
+							<NcButton variant="secondary"
+								:aria-label="t('attendance', 'Copy URL')"
+								:data-test="`button-copy-${store.id}-url`"
+								@click="copyStoreUrl(store.url)">
+								<template #icon>
+									<ContentCopy :size="20" />
+								</template>
+								{{ t('attendance', 'Copy') }}
+							</NcButton>
+							<NcButton variant="tertiary"
+								:href="store.url"
+								target="_blank"
+								rel="noopener"
+								:data-test="`button-open-${store.id}-url`">
+								<template #icon>
+									<OpenInNew :size="20" />
+								</template>
+								<!-- TRANSLATORS: Verb (imperative) — button that opens the app-store link in a new browser tab. -->
+								{{ t('attendance', 'Open') }}
+							</NcButton>
+						</div>
+					</div>
+				</div>
+
+				<div class="subsection">
+					<h4>{{ t('attendance', 'Mobile App promotion banner') }}</h4>
+					<p class="subsection-hint">
+						{{ t('attendance', 'Show a banner at the top of the web app advertising the mobile apps. Users can dismiss the banner, and users who already have a push device connected will not see it.') }}
+					</p>
+					<NcCheckboxRadioSwitch
+						v-model="mobileAppBannerEnabled"
+						type="switch"
+						data-test="switch-mobile-app-banner-enabled">
+						{{ t('attendance', 'Show promotion banner') }}
+					</NcCheckboxRadioSwitch>
+				</div>
+
+				<div class="subsection">
+					<h4>{{ t('attendance', 'Push notifications') }}</h4>
+					<p class="subsection-hint">
+						{{ t('attendance', 'Enable push notifications for the mobile app.') }}
+					</p>
+					<NcCheckboxRadioSwitch
+						v-model="pushEnabled"
+						type="switch"
+						data-test="switch-push-enabled">
+						{{ t('attendance', 'Enable push notifications') }}
+					</NcCheckboxRadioSwitch>
+
+					<template v-if="pushEnabled">
+						<div class="push-device-status">
+							<NcNoteCard v-if="pushDeviceCount === 0" type="warning">
+								<p>{{ t('attendance', 'No push device registered for your account. Connect the Attendance mobile app to receive push notifications.') }}</p>
+							</NcNoteCard>
+							<template v-else>
+								<p class="push-device-info">
+									<CellphoneCheck :size="20" />
+									{{ n('attendance', '{count} device registered for push notifications', '{count} devices registered for push notifications', pushDeviceCount, { count: pushDeviceCount }) }}
+								</p>
+								<NcButton
+									variant="secondary"
+									:disabled="sendingTestReminder"
+									class="test-reminder-button"
+									data-test="button-test-push"
+									@click="sendTestReminder">
+									<template #icon>
+										<BellRingIcon :size="20" />
+									</template>
+									{{ t('attendance', 'Send test notification') }}
+								</NcButton>
+							</template>
+						</div>
+					</template>
+				</div>
+			</NcSettingsSection>
+
+			<NcSettingsSection id="guests"
+				:name="t('attendance', 'Guest invitation')"
 				:description="t('attendance', 'Invite people without a Nextcloud account by integrating with the Nextcloud Guests app.')"
 				data-test="section-guests-warning">
 				<template v-if="guestsHintVariant === 'install'">
@@ -677,19 +564,6 @@
 					</div>
 				</template>
 			</NcSettingsSection>
-
-			<NcSettingsSection>
-				<NcButton
-					variant="primary"
-					:disabled="loading"
-					data-test="button-save-settings"
-					@click="saveSettings">
-					<template #icon>
-						<NcLoadingIcon v-if="loading" />
-					</template>
-					{{ t('attendance', 'Save') }}
-				</NcButton>
-			</NcSettingsSection>
 		</template>
 	</div>
 </template>
@@ -708,7 +582,7 @@ import {
 	NcSettingsSection,
 } from '@nextcloud/vue'
 import QRCode from 'qrcode'
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import AccountStar from 'vue-material-design-icons/AccountStar.vue'
 import AppleIcon from 'vue-material-design-icons/Apple.vue'
 import BellRingIcon from 'vue-material-design-icons/BellRing.vue'
@@ -718,6 +592,7 @@ import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
 import Download from 'vue-material-design-icons/Download.vue'
 import GoogleIcon from 'vue-material-design-icons/Google.vue'
 import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
+import PermissionRow from '../components/admin/PermissionRow.vue'
 import GroupSelect from '../components/common/GroupSelect.vue'
 import { copyToClipboard } from '../utils/clipboard.js'
 import { formatDate, formatDateTimeMedium } from '../utils/datetime.js'
@@ -728,6 +603,89 @@ const mobileAppStores = [
 	{ id: 'google', icon: GoogleIcon, url: GOOGLE_STORE_URL, label: t('attendance', 'Google Play (Android)') },
 ]
 
+const navSections = [
+	{ id: 'permissions', label: t('attendance', 'Permissions') },
+	{ id: 'response-summary', label: t('attendance', 'Response summary') },
+	{ id: 'self-checkin', label: t('attendance', 'Self-check-in') },
+	{ id: 'reminders', label: t('attendance', 'Appointment reminders') },
+	{ id: 'calendar-sync', label: t('attendance', 'Calendar sync') },
+	{ id: 'org-calendar', label: t('attendance', 'Organization calendar') },
+	{ id: 'audit-log', label: t('attendance', 'Audit log') },
+	{ id: 'scheduling', label: t('attendance', 'Scheduling') },
+	{ id: 'display-options', label: t('attendance', 'Display options') },
+	{ id: 'mobile-apps', label: t('attendance', 'Mobile apps') },
+	{ id: 'guests', label: t('attendance', 'Guest invitation') },
+]
+
+const permissionGroups = [
+	{
+		key: 'appointments',
+		label: t('attendance', 'Appointments'),
+		rows: [
+			{
+				name: 'manage_appointments',
+				title: t('attendance', 'Manage appointments'),
+				hint: t('attendance', 'Create, edit and delete any appointment and manage its responses.'),
+				warningWhenAll: t('attendance', 'Every user can create, edit and delete all appointments.'),
+			},
+			{
+				name: 'create_appointments',
+				title: t('attendance', 'Create own appointments'),
+				hint: t('attendance', 'Create appointments and manage them as organizer.'),
+				implication: t('attendance', 'Users who can manage appointments can always create appointments.'),
+			},
+		],
+	},
+	{
+		key: 'responses',
+		label: t('attendance', 'Responses'),
+		rows: [
+			{
+				name: 'see_response_overview',
+				title: t('attendance', 'See response & check-in summary'),
+				hint: t('attendance', 'See the full response and check-in summary, including names.'),
+				implication: t('attendance', 'Organizers always see the summary of their own appointments.'),
+			},
+			{
+				name: 'see_response_counts',
+				title: t('attendance', 'See response counts'),
+				hint: t('attendance', 'See how many people answered yes, no or maybe — without any names.'),
+				implication: t('attendance', 'Users who see the full summary always see the counts.'),
+			},
+			{
+				name: 'see_comments',
+				title: t('attendance', 'See comments'),
+				hint: t('attendance', 'See comments in the response overview.'),
+			},
+			{
+				name: 'respond_for_others',
+				title: t('attendance', 'Set responses for other users'),
+				hint: t('attendance', 'Record or clear an answer on behalf of another person.'),
+				implication: t('attendance', 'Not granted automatically to users who can manage appointments.'),
+			},
+		],
+	},
+	{
+		key: 'checkin',
+		label: t('attendance', 'Check-in'),
+		rows: [
+			{
+				name: 'checkin',
+				title: t('attendance', 'Check-in access'),
+				hint: t('attendance', 'Access the check-in interface and check in attendees.'),
+			},
+			{
+				name: 'self_checkin',
+				title: t('attendance', 'Self-check-in'),
+				hint: t('attendance', 'Check in themselves via QR code, NFC tag or deep link.'),
+				implication: t('attendance', 'Set up QR codes and NFC tags in the Self-check-in section.'),
+			},
+		],
+	},
+]
+
+const PERMISSION_NAMES = permissionGroups.flatMap((group) => group.rows.map((row) => row.name))
+
 // State
 const availableGroups = ref([])
 const selectedGroups = ref([])
@@ -735,14 +693,7 @@ const selectedTeams = ref([])
 const teamSearchResults = ref([])
 const isSearchingTeams = ref(false)
 const teamsAvailable = ref(false)
-const selectedManageAppointmentsRoles = ref([])
-const selectedCreateAppointmentsRoles = ref([])
-const selectedCheckinRoles = ref([])
-const selectedSeeResponseOverviewRoles = ref([])
-const selectedSeeResponseCountsRoles = ref([])
-const selectedSeeCommentsRoles = ref([])
-const selectedRespondForOthersRoles = ref([])
-const selectedSelfCheckinRoles = ref([])
+const permissions = ref(Object.fromEntries(PERMISSION_NAMES.map((name) => [name, { mode: 'all', groups: [] }])))
 const selfCheckinWindowMinutes = ref(30)
 const qrDataUrl = ref(null)
 const selfCheckinUrl = window.location.origin + generateUrl('/apps/attendance/self-checkin')
@@ -766,7 +717,6 @@ const mobileAppBannerEnabled = ref(true)
 const bookingEnabled = ref(false)
 const displayOrder = ref('name_first')
 const pushDeviceCount = ref(0)
-const loading = ref(false)
 const loadingData = ref(true)
 const sendingTestReminder = ref(false)
 const syncingOrgCalendar = ref(false)
@@ -848,9 +798,113 @@ const reminderPreviewDates = computed(() => {
 	return dates
 })
 
+// Auto-save
+// Every mutation posts a partial payload; the backend leaves omitted settings
+// untouched. Saves are debounced per key so rapid edits collapse into one.
+let suppressSaves = true
+const saveTimers = {}
+
+function queueSave(key, payloadFactory, delay = 0) {
+	if (suppressSaves) return
+	clearTimeout(saveTimers[key])
+	saveTimers[key] = setTimeout(async () => {
+		delete saveTimers[key]
+		const payload = payloadFactory()
+		if (!payload) return
+		try {
+			await axios.post(generateUrl('/apps/attendance/api/admin/settings'), payload)
+			showSuccess(window.t('attendance', 'Settings saved'))
+		} catch (error) {
+			console.error('Error saving settings:', error)
+			showError(window.t('attendance', 'Failed to save settings'))
+		}
+	}, delay)
+}
+
+function autoSave(source, key, payloadFactory, delay = 0) {
+	watch(source, () => queueSave(key, payloadFactory, delay), { deep: true })
+}
+
+const SELECT_DEBOUNCE = 800
+
+autoSave(
+	selectedGroups,
+	'whitelistedGroups',
+	() => ({ whitelistedGroups: selectedGroups.value.map((g) => g.id) }),
+	SELECT_DEBOUNCE,
+)
+autoSave(
+	selectedTeams,
+	'whitelistedTeams',
+	() => ({ whitelistedTeams: selectedTeams.value.map((team) => team.id) }),
+	SELECT_DEBOUNCE,
+)
+// Per permission, not the whole map: the backend leaves omitted permissions
+// untouched, so concurrent admins and stale local state cannot overwrite
+// settings the user never edited.
+function onPermissionChange(name, value) {
+	permissions.value[name] = value
+	queueSave(`permission:${name}`, () => ({
+		permissions: {
+			[name]: {
+				mode: permissions.value[name].mode,
+				groups: permissions.value[name].groups.map((g) => g.id),
+			},
+		},
+	}), SELECT_DEBOUNCE)
+}
+autoSave(selfCheckinWindowMinutes, 'selfCheckinWindowMinutes', () => {
+	if (!Number.isFinite(selfCheckinWindowMinutes.value)) return null
+	return { selfCheckinWindowMinutes: selfCheckinWindowMinutes.value }
+}, SELECT_DEBOUNCE)
+autoSave([remindersEnabled, reminderDays, reminderFrequency, reminderTarget], 'reminders', () => {
+	const reminders = {
+		enabled: remindersEnabled.value,
+		reminderTarget: reminderTarget.value,
+	}
+	if (Number.isFinite(reminderDays.value)) reminders.reminderDays = reminderDays.value
+	if (Number.isFinite(reminderFrequency.value)) reminders.reminderFrequency = reminderFrequency.value
+	return { reminders }
+}, SELECT_DEBOUNCE)
+autoSave(
+	calendarSyncEnabled,
+	'calendarSync',
+	() => ({ calendarSync: { enabled: calendarSyncEnabled.value } }),
+)
+// Debounced although these are discrete clicks: saving triggers the calendar
+// backfill server-side, so enable + calendar pick should collapse into one run.
+autoSave([orgCalendarEnabled, selectedOrgCalendar], 'orgCalendar', () => ({
+	orgCalendar: {
+		enabled: orgCalendarEnabled.value,
+		...(selectedOrgCalendar.value?.uri ? { calendarUri: selectedOrgCalendar.value.uri } : {}),
+	},
+}), SELECT_DEBOUNCE)
+autoSave(
+	[auditLogEnabled, auditLogVisibility],
+	'audit',
+	() => ({ audit: { enabled: auditLogEnabled.value, visibility: auditLogVisibility.value } }),
+)
+autoSave(displayOrder, 'displayOrder', () => ({ displayOrder: displayOrder.value }))
+autoSave(pushEnabled, 'pushEnabled', () => ({ pushEnabled: pushEnabled.value }))
+autoSave(
+	mobileAppBannerEnabled,
+	'mobileAppBannerEnabled',
+	() => ({ mobileAppBannerEnabled: mobileAppBannerEnabled.value }),
+)
+autoSave(bookingEnabled, 'bookingEnabled', () => ({ bookingEnabled: bookingEnabled.value }))
+
 // Methods
+function scrollToSection(id) {
+	const element = document.getElementById(id)
+	if (element) {
+		element.scrollIntoView({ behavior: 'smooth' })
+		window.history.replaceState(null, '', `#${id}`)
+	}
+}
+
 async function loadSettings() {
 	loadingData.value = true
+	suppressSaves = true
 
 	try {
 		const [settingsRes, capabilitiesRes] = await Promise.all([
@@ -862,10 +916,13 @@ async function loadSettings() {
 		const caps = capabilitiesRes.data
 
 		availableGroups.value = groups
-		// Convert selected IDs to selected group objects for NcSelect, preserving database order
-		selectedGroups.value = config.whitelistedGroups
-			.map((id) => groups.find((group) => group.id === id))
+		// Convert stored IDs to group objects for NcSelect, preserving database order
+		const groupsById = new Map(groups.map((group) => [group.id, group]))
+		const toGroupObjects = (ids) => (ids || [])
+			.map((id) => groupsById.get(id))
 			.filter((group) => group !== undefined)
+
+		selectedGroups.value = toGroupObjects(config.whitelistedGroups)
 
 		// Load teams settings
 		teamsAvailable.value = caps.teamsAvailable || false
@@ -875,32 +932,16 @@ async function loadSettings() {
 			teamSearchResults.value = [...config.whitelistedTeams]
 		}
 
-		// Load permission settings, preserving database order
+		// Load permission settings
 		if (config.permissions) {
-			selectedManageAppointmentsRoles.value = config.permissions.manage_appointments
-				.map((id) => groups.find((group) => group.id === id))
-				.filter((group) => group !== undefined)
-			selectedCheckinRoles.value = config.permissions.checkin
-				.map((id) => groups.find((group) => group.id === id))
-				.filter((group) => group !== undefined)
-			selectedSeeResponseOverviewRoles.value = (config.permissions.see_response_overview || [])
-				.map((id) => groups.find((group) => group.id === id))
-				.filter((group) => group !== undefined)
-			selectedSeeResponseCountsRoles.value = (config.permissions.see_response_counts || [])
-				.map((id) => groups.find((group) => group.id === id))
-				.filter((group) => group !== undefined)
-			selectedSeeCommentsRoles.value = (config.permissions.see_comments || [])
-				.map((id) => groups.find((group) => group.id === id))
-				.filter((group) => group !== undefined)
-			selectedSelfCheckinRoles.value = (config.permissions.self_checkin || [])
-				.map((id) => groups.find((group) => group.id === id))
-				.filter((group) => group !== undefined)
-			selectedRespondForOthersRoles.value = (config.permissions.respond_for_others || [])
-				.map((id) => groups.find((group) => group.id === id))
-				.filter((group) => group !== undefined)
-			selectedCreateAppointmentsRoles.value = (config.permissions.create_appointments || [])
-				.map((id) => groups.find((group) => group.id === id))
-				.filter((group) => group !== undefined)
+			for (const name of PERMISSION_NAMES) {
+				const setting = config.permissions[name]
+				if (!setting) continue
+				permissions.value[name] = {
+					mode: setting.mode,
+					groups: toGroupObjects(setting.groups),
+				}
+			}
 		}
 
 		selfCheckinWindowMinutes.value = config.selfCheckinWindowMinutes ?? 30
@@ -958,6 +999,9 @@ async function loadSettings() {
 		showError(window.t('attendance', 'Failed to load settings'))
 	} finally {
 		loadingData.value = false
+		// Let the watchers flush the load mutations before arming auto-save
+		await nextTick()
+		suppressSaves = false
 	}
 }
 
@@ -987,59 +1031,6 @@ async function searchTeams(query) {
 		console.error('Error searching teams:', error)
 	} finally {
 		isSearchingTeams.value = false
-	}
-}
-
-async function saveSettings() {
-	loading.value = true
-
-	try {
-		await axios.post(
-			generateUrl('/apps/attendance/api/admin/settings'),
-			{
-				whitelistedGroups: selectedGroups.value.map((g) => g.id),
-				whitelistedTeams: selectedTeams.value.map((t) => t.id),
-				permissions: {
-					PERMISSION_MANAGE_APPOINTMENTS: selectedManageAppointmentsRoles.value.map((g) => g.id),
-					PERMISSION_CHECKIN: selectedCheckinRoles.value.map((g) => g.id),
-					PERMISSION_SEE_RESPONSE_OVERVIEW: selectedSeeResponseOverviewRoles.value.map((g) => g.id),
-					PERMISSION_SEE_RESPONSE_COUNTS: selectedSeeResponseCountsRoles.value.map((g) => g.id),
-					PERMISSION_SEE_COMMENTS: selectedSeeCommentsRoles.value.map((g) => g.id),
-					PERMISSION_SELF_CHECKIN: selectedSelfCheckinRoles.value.map((g) => g.id),
-					PERMISSION_CREATE_APPOINTMENTS: selectedCreateAppointmentsRoles.value.map((g) => g.id),
-					PERMISSION_RESPOND_FOR_OTHERS: selectedRespondForOthersRoles.value.map((g) => g.id),
-				},
-				reminders: {
-					enabled: remindersEnabled.value,
-					reminderDays: reminderDays.value,
-					reminderFrequency: reminderFrequency.value,
-					reminderTarget: reminderTarget.value,
-				},
-				calendarSync: {
-					enabled: calendarSyncEnabled.value,
-				},
-				orgCalendar: {
-					enabled: orgCalendarEnabled.value,
-					...(selectedOrgCalendar.value?.uri ? { calendarUri: selectedOrgCalendar.value.uri } : {}),
-				},
-				audit: {
-					enabled: auditLogEnabled.value,
-					visibility: auditLogVisibility.value,
-				},
-				displayOrder: displayOrder.value,
-				pushEnabled: pushEnabled.value,
-				mobileAppBannerEnabled: mobileAppBannerEnabled.value,
-				bookingEnabled: bookingEnabled.value,
-				selfCheckinWindowMinutes: selfCheckinWindowMinutes.value,
-			},
-		)
-
-		showSuccess(window.t('attendance', 'Settings saved'))
-	} catch (error) {
-		console.error('Error saving settings:', error)
-		showError(window.t('attendance', 'Failed to save settings'))
-	} finally {
-		loading.value = false
 	}
 }
 
@@ -1118,10 +1109,7 @@ onMounted(async () => {
 	// Handle hash navigation after content is loaded
 	await nextTick()
 	if (window.location.hash) {
-		const element = document.querySelector(window.location.hash)
-		if (element) {
-			element.scrollIntoView({ behavior: 'smooth' })
-		}
+		scrollToSection(window.location.hash.slice(1))
 	}
 })
 </script>
@@ -1130,6 +1118,28 @@ onMounted(async () => {
 #attendance-admin-settings {
 	padding: 20px;
 	max-width: 900px;
+}
+
+.anchor-nav {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 12px;
+}
+
+.anchor-nav__link {
+	padding: 6px 14px;
+	border-radius: var(--border-radius-pill);
+	background-color: var(--color-background-dark);
+	color: var(--color-main-text);
+	font-size: 13px;
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+.anchor-nav__link:hover,
+.anchor-nav__link:focus {
+	background-color: var(--color-primary-element-light);
 }
 
 .loading-section {
@@ -1145,6 +1155,22 @@ onMounted(async () => {
 	margin-top: 8px;
 	color: var(--color-text-maxcontrast);
 	font-size: 13px;
+}
+
+.permission-group {
+	margin-bottom: 32px;
+}
+
+.permission-group:last-child {
+	margin-bottom: 0;
+}
+
+.permission-group__title {
+	margin: 0 0 4px 0;
+	padding-bottom: 6px;
+	border-bottom: 1px solid var(--color-border-dark);
+	font-size: 16px;
+	font-weight: 700;
 }
 
 .guests-warning-actions {
@@ -1217,17 +1243,12 @@ onMounted(async () => {
 .self-checkin-window-field {
 	max-width: 400px;
 	/* The floating label sits above the input border, so it needs extra
-	   room to not collide with the group hint text above. */
-	margin-top: 24px;
+	   room to not collide with the section description above. */
+	margin-top: 12px;
 }
 
 .self-checkin-qr {
 	margin-top: 20px;
-
-	h5 {
-		font-weight: 600;
-		margin-bottom: 4px;
-	}
 
 	h6 {
 		font-weight: 600;

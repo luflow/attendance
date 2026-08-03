@@ -197,29 +197,6 @@ class ConfigService {
 	}
 
 	/**
-	 * Get a permission setting (list of group IDs that have the permission).
-	 *
-	 * @param string $permission The permission name
-	 * @return array<string> List of group IDs
-	 */
-	public function getPermissionRoles(string $permission): array {
-		$configKey = 'permission_' . $permission;
-		$rolesJson = $this->config->getAppValue(self::APP_ID, $configKey, '[]');
-		return json_decode($rolesJson, true) ?: [];
-	}
-
-	/**
-	 * Set a permission setting.
-	 *
-	 * @param string $permission The permission name
-	 * @param array<string> $roles List of group IDs
-	 */
-	public function setPermissionRoles(string $permission, array $roles): void {
-		$configKey = 'permission_' . $permission;
-		$this->config->setAppValue(self::APP_ID, $configKey, json_encode($roles));
-	}
-
-	/**
 	 * Check if calendar sync is enabled.
 	 * When enabled, changes to linked calendar events will automatically
 	 * update the corresponding attendance appointments.
