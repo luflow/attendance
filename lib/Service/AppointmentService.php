@@ -705,7 +705,7 @@ class AppointmentService {
 	 * The summary tier the viewer gets on this appointment: the full overview,
 	 * the aggregate counts, or nothing.
 	 *
-	 * @param array{canSeeResponses: bool, canSeeResponseCounts: bool, canSeeComments: bool} $myPermissions
+	 * @param array{isOrganizer: bool, canEdit: bool, canSeeResponses: bool, canSeeResponseCounts: bool, canSeeComments: bool, canSeeAuditLog: bool} $myPermissions
 	 */
 	private function buildResponseSummaryFor(array $myPermissions, int $appointmentId): ?array {
 		if ($myPermissions['canSeeResponses']) {

@@ -99,9 +99,11 @@ class ResponseSummaryService {
 	 */
 	public function getResponseCounts(int $appointmentId): array {
 		$appointment = $this->appointmentMapper->find($appointmentId);
+		/** @var list<\OCA\Attendance\Db\AttendanceResponse> $responses */
 		$responses = $this->responseMapper->findByAppointment($appointmentId);
 
 		$counts = $this->initializeSummary();
+		/** @var array<string, true> $respondedUserIds */
 		$respondedUserIds = [];
 		foreach ($responses as $response) {
 			$value = $response->getResponse();
