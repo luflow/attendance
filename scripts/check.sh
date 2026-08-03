@@ -1,14 +1,10 @@
 #!/usr/bin/env bash
 #
-# Every gate this repo has, in one command. Run it before handing work back —
-# CI (.github/workflows/tests.yml) runs the same set, so a green run here means
-# a green run there, minus the e2e suite which needs Docker.
+# Every gate this repo has, mirroring .github/workflows/tests.yml. All of them
+# run even if an earlier one fails.
 #
-#   ./scripts/check.sh            # everything except e2e
-#   ./scripts/check.sh --e2e      # also run the Playwright suite (needs Docker)
-#
-# Every gate runs even if an earlier one fails, so one invocation gives you the
-# full picture instead of a first-failure-only trickle.
+#   ./scripts/check.sh          # everything except e2e
+#   ./scripts/check.sh --e2e    # plus the Playwright suite (needs Docker)
 
 set -uo pipefail
 cd "$(dirname "$0")/.."
@@ -46,8 +42,7 @@ run "psalm"         composer --quiet psalm
 run "phpunit"       composer --quiet test:unit
 run "vite build"    npm run --silent build
 
-# The OpenAPI specs are generated from the controller annotations, so a stale
-# spec means the documented API and the real one have drifted apart.
+# Generated from the controller annotations — a stale spec means drift.
 printf '\n\033[1m==> openapi spec is up to date\033[0m\n'
 if composer --quiet openapi >/dev/null 2>&1 && git diff --quiet -- openapi.json openapi-administration.json openapi-full.json; then
 	printf '\033[32m    ok\033[0m\n'

@@ -101,13 +101,11 @@ jobs:
       - name: Run php-cs-fixer
         run: composer cs:check
 
-      # psalm-baseline.xml carries the known backlog. Fix new findings in the
-      # code — do not regenerate the baseline to silence them.
+      # psalm-baseline.xml is the known backlog — fix new findings, don't rebaseline.
       - name: Run psalm
         run: composer psalm
 
-      # The specs are generated from the controller annotations, so a stale
-      # spec means the documented API and the real one have drifted apart.
+      # Generated from the controller annotations — a stale spec means drift.
       - name: Check the OpenAPI specs are up to date
         run: |
           composer openapi

@@ -203,6 +203,18 @@ is updated, so:
   the mobile client may still send/expect — schedule a deprecation cycle
   instead.
 
+## Comments: short and meaningful, no bloat
+
+Comment the **why**, never the what. If the code already says it, the comment is
+noise. A useful comment is usually **one line**; two is the ceiling, and only for
+something a reader would otherwise get wrong or "fix" back.
+
+- No restating the next statement in prose.
+- No paragraph-length explanations of a one-line change — that belongs in the
+  commit message or the PR, where it stays out of the way.
+- No banner or section-divider comments, no scaffolding like `// Step 1:`.
+- Deleting a comment that has gone stale beats updating it.
+
 ## Avoid
 - NO coauthoring of commits with "claude"!
 - No hardcoded admin checks - use PermissionService

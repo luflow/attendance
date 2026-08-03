@@ -101,9 +101,7 @@ class Appointment extends Entity implements JsonSerializable {
 		return [
 			'id' => $this->getId(),
 			'name' => $this->getName(),
-			// The column is nullable, but AttendanceAppointmentData promises a
-			// string — coerce here so old rows with a NULL description do not
-			// hand clients a null they were never told to expect.
+			// Nullable column, but AttendanceAppointmentData promises a string.
 			'description' => $this->getDescription() ?? '',
 			'startDatetime' => $this->formatDatetimeToUtc($this->getStartDatetime()),
 			'endDatetime' => $this->formatDatetimeToUtc($this->getEndDatetime()),
