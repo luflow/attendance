@@ -35,13 +35,6 @@
 			</template>
 		</div>
 
-		<div
-			v-if="item.description"
-			class="appointment-description clickable"
-			@click="$emit('openDetail', item.id)">
-			{{ strippedDescription }}
-		</div>
-
 		<ResponseEditor
 			compact
 			class="response-section"
@@ -58,7 +51,6 @@ import { computed } from 'vue'
 import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
 import ResponseEditor from '../appointment/ResponseEditor.vue'
 import { formatDateTime } from '../../utils/datetime.js'
-import { stripMarkdown } from '../../utils/markdown.js'
 
 const props = defineProps({
 	item: {
@@ -78,8 +70,6 @@ const props = defineProps({
 const emit = defineEmits(['respond', 'openCheckin', 'openDetail'])
 
 const formattedDate = computed(() => formatDateTime(props.item.subText))
-
-const strippedDescription = computed(() => stripMarkdown(props.item.description))
 </script>
 
 <style scoped lang="scss">
@@ -142,24 +132,6 @@ const strippedDescription = computed(() => stripMarkdown(props.item.description)
 
         .appointment-name {
             flex: 1;
-        }
-    }
-}
-
-.appointment-description {
-    font-size: 12px;
-    color: var(--color-text-light);
-    margin-bottom: 8px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-
-    &.clickable {
-        cursor: pointer;
-
-        &:hover {
-            text-decoration: underline;
-            color: var(--color-text-maxcontrast);
         }
     }
 }
