@@ -3,7 +3,7 @@
     "info": {
         "title": "attendance-full",
         "version": "0.0.1",
-        "description": "Collect replies, check people in and see attendance by group – now with a companion app for iOS and Android",
+        "description": "Collect RSVPs, check people in and see attendance by group – for rehearsals, trainings and meetings, all on your own server",
         "license": {
             "name": "AGPL-3.0-or-later"
         }

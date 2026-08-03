@@ -4,22 +4,11 @@
 	<id>attendance</id>
 	<name>Attendance</name>
 	<name lang="de">Anwesenheit</name>
-	<summary>Collect replies, check people in and see attendance by group – now with a companion app for iOS and Android</summary>
-	<summary lang="de">Zu- und Absagen einsammeln, Anwesenheit abhaken, nach Gruppen auswerten – jetzt mit App für iOS und Android</summary>
-	<description><![CDATA[Know who is coming – to every rehearsal, training session and meeting. Attendance collects replies up front, records who actually turned up, and breaks every response down by your Nextcloud groups. Everything runs on your own server.
+	<summary>Collect RSVPs, check people in and see attendance by group – for rehearsals, trainings and meetings, all on your own server</summary>
+	<summary lang="de">Zu- und Absagen einsammeln, Anwesenheit abhaken, nach Gruppen auswerten – für Proben, Trainings und Sitzungen auf deinem Server</summary>
+	<description><![CDATA[Know who is coming – to every rehearsal, training session and meeting. Attendance collects RSVPs up front, records who actually turned up at check-in, and breaks every response down by your Nextcloud groups. Made for choirs, orchestras, sports clubs, volunteer crews, congregations and every other group that needs to know not just how many are coming, but who.
 
-## New: the companion app for iOS and Android
-
-Attendance now has a mobile app. It talks to your own Nextcloud and adds the two things a browser cannot do:
-
-- **Self-check-in by QR code or NFC:** print one QR code for the whole instance or stick an NFC tag next to the door. People scan or tap as they arrive and the attendance list fills itself. Every self-check-in is logged with its source.
-- **Push notifications:** new appointments and reminders reach the phone straight away, without anyone opening Nextcloud first.
-
-It also puts your appointments, replies and comments on your phone and holds several Nextcloud accounts in one app.
-
-[App Store](https://apps.apple.com/app/id6759988681) · [Google Play](https://play.google.com/store/apps/details?id=de.krautnerds.attendance) · [What the app does](https://anwesenheit.app/mobile)
-
-The mobile app is free for the first 30 days per Nextcloud instance, then one yearly subscription covers the whole instance. **This Nextcloud app stays free and open source**, and everything listed below works without the mobile app.
+Free, open source, and every reply, attendance list and comment stays on your own server.
 
 ## Collecting replies
 
@@ -51,21 +40,21 @@ The mobile app is free for the first 30 days per Nextcloud instance, then one ye
 - **Calendar subscription:** a personal iCal feed for Google Calendar, Apple Calendar, Outlook or Thunderbird
 - **Permissions:** six group-based permissions decide who may manage appointments, check people in, see summaries and read comments
 
-Made for choirs, orchestras, sports clubs, volunteer crews, congregations and every other group that needs to know not just how many are coming, but who.]]></description>
-	<description lang="de"><![CDATA[Wissen, wer kommt – zu jeder Probe, jedem Training, jeder Sitzung. Anwesenheit sammelt vorab Zu- und Absagen ein, hält fest, wer wirklich da war, und schlüsselt jede Antwort nach deinen Nextcloud-Gruppen auf. Alles läuft auf deinem eigenen Server.
+## Optional: a mobile app for iOS and Android
 
-## Neu: die Begleit-App für iOS und Android
+Everything above works entirely in the browser. If you want more, there is a companion app that talks to your own Nextcloud and adds the two things a browser cannot do:
 
-Anwesenheit hat jetzt eine mobile App. Sie spricht mit deiner eigenen Nextcloud und bringt die beiden Dinge mit, die im Browser nicht gehen:
+- **Self-check-in by QR code or NFC:** people scan a printed QR code or tap an NFC tag as they arrive, and the attendance list fills itself
+- **Push notifications:** new appointments and reminders reach the phone straight away
 
-- **Self-Check-in per QR-Code oder NFC:** einen QR-Code für die ganze Instanz ausdrucken oder einen NFC-Tag neben die Tür kleben. Alle scannen oder tippen beim Ankommen, und die Anwesenheitsliste füllt sich von selbst. Jeder Self-Check-in landet mit seiner Quelle im Aktivitätsverlauf.
-- **Push-Benachrichtigungen:** neue Termine und Erinnerungen kommen sofort aufs Handy, ohne dass jemand erst Nextcloud öffnen muss.
+It also puts your appointments, replies and comments in your pocket and holds several Nextcloud accounts in one app. The mobile app is free for 30 days per Nextcloud instance, then one yearly subscription covers the whole instance – this Nextcloud app stays free and open source, with or without it.
 
-Dazu hast du deine Termine, Antworten und Kommentare unterwegs dabei und kannst mehrere Nextcloud-Konten in einer App verbinden.
+[App Store](https://apps.apple.com/app/id6759988681) · [Google Play](https://play.google.com/store/apps/details?id=de.krautnerds.attendance) · [What the app does](https://anwesenheit.app/mobile)
 
-[App Store](https://apps.apple.com/app/id6759988681) · [Google Play](https://play.google.com/store/apps/details?id=de.krautnerds.attendance) · [Was kann die App?](https://anwesenheit.app/de/mobile)
+Documentation, use cases and roadmap: [anwesenheit.app](https://anwesenheit.app)]]></description>
+	<description lang="de"><![CDATA[Wissen, wer kommt – zu jeder Probe, jedem Training, jeder Sitzung. Anwesenheit sammelt vorab Zu- und Absagen ein, hält beim Check-in fest, wer wirklich da war, und schlüsselt jede Antwort nach deinen Nextcloud-Gruppen auf. Gemacht für Chöre, Orchester, Sportvereine, Feuerwehren, Gemeinden und jede andere Gruppe, die nicht nur wissen muss, wie viele kommen, sondern wer.
 
-Die mobile App ist die ersten 30 Tage pro Nextcloud-Instanz gratis, danach deckt ein Jahresabo die ganze Instanz ab. **Diese Nextcloud-App bleibt kostenlos und Open Source**, und alles Folgende funktioniert auch ohne die mobile App.
+Kostenlos, Open Source – und jede Antwort, Anwesenheitsliste und jeder Kommentar bleibt auf deinem eigenen Server.
 
 ## Antworten einsammeln
 
@@ -97,11 +86,25 @@ Die mobile App ist die ersten 30 Tage pro Nextcloud-Instanz gratis, danach deckt
 - **Kalender-Abo:** ein persönlicher iCal-Feed für Google Kalender, Apple Kalender, Outlook oder Thunderbird
 - **Berechtigungen:** sechs gruppenbasierte Rechte steuern, wer Termine verwaltet, eincheckt, Auswertungen sieht und Kommentare liest
 
-Gemacht für Chöre, Orchester, Sportvereine, Feuerwehren, Gemeinden und jede andere Gruppe, die nicht nur wissen muss, wie viele kommen, sondern wer.]]></description>
+## Optional: die mobile App für iOS und Android
+
+Alles oben funktioniert komplett im Browser. Wer mehr möchte: Die Begleit-App spricht mit deiner eigenen Nextcloud und bringt die beiden Dinge mit, die im Browser nicht gehen:
+
+- **Self-Check-in per QR-Code oder NFC:** beim Ankommen einen ausgedruckten QR-Code scannen oder einen NFC-Tag antippen – die Anwesenheitsliste füllt sich von selbst
+- **Push-Benachrichtigungen:** neue Termine und Erinnerungen kommen sofort aufs Handy
+
+Dazu hast du Termine, Antworten und Kommentare unterwegs dabei und kannst mehrere Nextcloud-Konten in einer App verbinden. Die mobile App ist 30 Tage pro Nextcloud-Instanz gratis, danach deckt ein Jahresabo die ganze Instanz ab – diese Nextcloud-App bleibt kostenlos und Open Source, mit oder ohne mobile App.
+
+[App Store](https://apps.apple.com/app/id6759988681) · [Google Play](https://play.google.com/store/apps/details?id=de.krautnerds.attendance) · [Was kann die App?](https://anwesenheit.app/de/mobile)
+
+Dokumentation, Einsatzbeispiele und Roadmap: [anwesenheit.app](https://anwesenheit.app/de)]]></description>
 	<version>1.43.0</version>
 	<licence>AGPL-3.0-or-later</licence>
 	<author mail="florian@krautnerds.de" homepage="https://krautnerds.de">Florian Ludwig</author>
 	<namespace>Attendance</namespace>
+	<documentation>
+		<user>https://anwesenheit.app/docs</user>
+	</documentation>
 	<category>dashboard</category>
 	<category>organization</category>
 	<website>https://anwesenheit.app</website>
