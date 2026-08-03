@@ -7,10 +7,11 @@
 				data-test="appointment-title-link"
 				@click.prevent="emit('openDetail', appointment.id)">
 				<div class="list-card__headline-row">
+					<!-- The chevron rides inside the h3, glued to the last word,
+					     so it can never wrap onto a line of its own. -->
 					<h3 data-test="appointment-title" :class="{ 'title-cancelled': isCancelled }">
-						{{ titleText }}
+						{{ titleHead }} <span class="list-card__title-tail">{{ titleTail }}<ChevronRightIcon :size="20" class="list-card__chevron" /></span>
 					</h3>
-					<ChevronRightIcon :size="20" class="list-card__chevron" />
 					<AppointmentStatusChips :appointment="appointment" />
 				</div>
 				<AppointmentMeta :appointment="appointment" :dateText="subtitleText" />
@@ -128,6 +129,18 @@ const {
 
 const detailUrl = computed(() => appointmentDetailUrl(props.appointment.id))
 
+// Split the title before its last word so that word and the chevron can share
+// a no-wrap span — the arrow always keeps at least one word next to it.
+const titleParts = computed(() => {
+	const text = (titleText.value || '').trim()
+	const lastSpace = text.lastIndexOf(' ')
+	return lastSpace === -1
+		? { head: '', tail: text }
+		: { head: text.slice(0, lastSpace), tail: text.slice(lastSpace + 1) }
+})
+const titleHead = computed(() => titleParts.value.head)
+const titleTail = computed(() => titleParts.value.tail)
+
 // One line of plain text — the full markdown lives on the detail page. The
 // slice keeps the ~20 regex passes of stripMarkdown() off long descriptions;
 // nothing beyond the first line is ever shown.
@@ -195,12 +208,18 @@ const stateLabel = computed(() => (isCancelled.value
             font-weight: 700;
             color: var(--color-main-text);
             text-wrap: pretty;
+            min-width: 0;
         }
+    }
+
+    &__title-tail {
+        white-space: nowrap;
     }
 
     &__chevron {
         display: inline-flex;
-        margin-left: -4px;
+        vertical-align: -4px;
+        margin-left: 2px;
         color: var(--color-text-maxcontrast);
         transition: transform 0.15s ease;
     }

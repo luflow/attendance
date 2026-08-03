@@ -2,33 +2,37 @@
 	<div class="response-editor" :class="{ 'response-editor--compact': compact }">
 		<div class="response-editor__buttons" :class="{ 'has-response': userResponse }">
 			<slot name="label" />
-			<NcButton
-				v-for="option in options"
-				:key="option.value"
-				:class="{ active: userResponse === option.value }"
-				:variant="option.variant"
-				:size="buttonSize"
-				:disabled="responseCooldown"
-				:data-test="`response-${option.value}`"
-				@click="handleResponse(option.value)">
-				<template #icon>
-					<component :is="option.icon" :size="compact ? 15 : 16" />
-				</template>
-				{{ option.label }}
-			</NcButton>
-			<NcButton
-				v-if="userResponse"
-				class="comment-toggle"
-				:class="{ 'comment-active': commentExpanded }"
-				variant="tertiary"
-				:size="buttonSize"
-				:title="t('attendance', 'Comment (optional)')"
-				data-test="button-toggle-comment"
-				@click="toggleComment">
-				<template #icon>
-					<CommentIcon :size="compact ? 17 : 20" />
-				</template>
-			</NcButton>
+			<div class="response-editor__options">
+				<NcButton
+					v-for="option in options"
+					:key="option.value"
+					:class="{ active: userResponse === option.value }"
+					:variant="option.variant"
+					:size="buttonSize"
+					:disabled="responseCooldown"
+					:data-test="`response-${option.value}`"
+					@click="handleResponse(option.value)">
+					<!-- Compact rows (widget, list card) stay text-only so the
+					     whole group fits narrow screens on a single line. -->
+					<template v-if="!compact" #icon>
+						<component :is="option.icon" :size="16" />
+					</template>
+					{{ option.label }}
+				</NcButton>
+				<NcButton
+					v-if="userResponse"
+					class="comment-toggle"
+					:class="{ 'comment-active': commentExpanded }"
+					variant="tertiary"
+					:size="buttonSize"
+					:title="t('attendance', 'Comment (optional)')"
+					data-test="button-toggle-comment"
+					@click="toggleComment">
+					<template #icon>
+						<CommentIcon :size="compact ? 17 : 20" />
+					</template>
+				</NcButton>
+			</div>
 		</div>
 
 		<div v-if="commentExpanded" class="response-editor__comment">
@@ -182,6 +186,15 @@ onBeforeUnmount(reset)
         align-items: center;
         gap: 10px;
         flex-wrap: wrap;
+
+        // The label may wrap onto its own line, but the answer buttons and the
+        // comment toggle always stay together as one unit.
+        .response-editor__options {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: nowrap;
+        }
 
         // With a response given, the options not taken step back visually.
         &.has-response {
