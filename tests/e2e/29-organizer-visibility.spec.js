@@ -62,8 +62,8 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 	})
 
 	/**
-	 * Land every viewer on the full list: non-managers default to the
-	 * Unanswered view, which is empty for users who already responded.
+	 * Land every viewer on the full list: the default view is role-dependent
+	 * and scoped, so neither default is guaranteed to hold both fixtures.
 	 */
 	async function openAllAppointments(page) {
 		await page.locator('[data-test="nav-all"]').click()

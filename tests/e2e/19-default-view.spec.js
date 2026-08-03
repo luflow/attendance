@@ -34,7 +34,7 @@ test.describe('Default landing view — role-aware', () => {
 			},
 			reminders: { enabled: false },
 		})
-		// One open appointment addressed to "test" so the Unanswered list isn't
+		// One open appointment addressed to "test" so the landing list isn't
 		// empty for the non-admin case.
 		await createAppointmentViaAPI(request, {
 			name: 'Default View Unanswered For Test',
@@ -60,13 +60,16 @@ test.describe('Default landing view — role-aware', () => {
 		await expect(page.locator('[data-test="page-heading"]')).toHaveText('All appointments')
 	})
 
-	test('regular user lands on "Unanswered"', async ({ page, loginAsUser, attendanceApp }) => {
+	// Landing in "Unanswered" meant an empty list as the first thing you see
+	// once everything was answered, so non-managers start in "Upcoming" — which
+	// is also what the bare app URL maps to.
+	test('regular user lands on "Upcoming appointments"', async ({ page, loginAsUser, attendanceApp }) => {
 		await loginAsUser('test', 'test')
 		await landOnAttendance(page, attendanceApp)
 		await page.reload()
 		await page.waitForLoadState('networkidle')
 
-		await expect(page.locator('[data-test="page-heading"]')).toHaveText('Unanswered')
+		await expect(page.locator('[data-test="page-heading"]')).toHaveText('Upcoming appointments')
 	})
 })
 

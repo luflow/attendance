@@ -114,7 +114,7 @@ OC.L10N.register(
     "By connecting, you agree to our [Terms of Service](terms) and acknowledge our [Privacy Policy](privacy)." : "Durch die Anmeldung stimmst du unseren [Nutzungsbedingungen](terms) zu und bestätigst, dass unsere [Datenschutzrichtlinie](privacy) zur Kenntnis genommen haben.",
     "Current plan" : "Aktueller Plan",
     "Expired" : "Abgelaufen",
-    "See plans" : "Siehe Pläne",
+    "See plans" : "Pläne anzeigen",
     "No subscription plans available at this time." : "Derzeit sind keine Abonnementpläne verfügbar.",
     "No previous purchases found." : "Keine vorherigen Käufe gefunden.",
     "Purchase failed. Please try again." : "Kauf fehlgeschlagen. Bitte erneut versuchen.",
