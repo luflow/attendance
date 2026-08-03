@@ -20,7 +20,6 @@ OC.L10N.register(
     "OK" : "OK",
     "About" : "Acerca",
     "All languages" : "Todos los idiomas",
-    "App developer" : "Desarrollador de la aplicación",
     "Common" : "Común",
     "Default" : "Por defecto",
     "Language" : "Idioma",

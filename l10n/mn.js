@@ -126,6 +126,7 @@ OC.L10N.register(
     "2 hours before" : "2 цагийн өмнө",
     "No reminders" : "Сануулга байхгүй",
     "Thank you for your response!" : "Хариултад баярлалаа!",
+    "Manager" : "Менежер",
     "Automatic" : "Автомат",
     "name" : "нэр",
     "time" : "удаа"

@@ -26,7 +26,6 @@ OC.L10N.register(
     "Something went wrong" : "Có lỗi đã xảy ra",
     "About" : "Giới thiệu",
     "All languages" : "Tất cả ngôn ngữ",
-    "App developer" : "Nhà phát triển ứng dụng",
     "Create" : "Tạo",
     "Done" : "Hoàn tất",
     "Email" : "Thư điện tử",
@@ -104,6 +103,7 @@ OC.L10N.register(
     "30 minutes before" : "Trước 30 phút",
     "1 hour before" : "Trước 1 tiếng",
     "2 hours before" : "Trước 2 tiếng",
+    "Manager" : "Giám đốc",
     "Automatic" : "Tự động"
 },
 "nplurals=1; plural=0;");

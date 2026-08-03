@@ -15,7 +15,6 @@ OC.L10N.register(
     "OK" : "OK",
     "About" : "Aangaande",
     "All languages" : "Alle tale",
-    "App developer" : "Toepontwikkelaar",
     "Language" : "Taal",
     "Send" : "Stuur",
     "Export" : "Voer uit",

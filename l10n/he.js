@@ -27,7 +27,6 @@ OC.L10N.register(
     "Something went wrong" : "משהו השתבש",
     "About" : "אודות",
     "All languages" : "כל השפות",
-    "App developer" : "מפתח היישומון",
     "Common" : "משותף",
     "Create" : "יצירה",
     "Default" : "ברירת מחדל",

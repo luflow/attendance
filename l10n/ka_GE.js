@@ -19,7 +19,6 @@ OC.L10N.register(
     "OK" : "OK",
     "About" : "ჩვენს შესახებ",
     "All languages" : "ყველა ენა",
-    "App developer" : "აპლიკაციის დეველოპერი",
     "Common" : "ჩვეული",
     "Default" : "საწყისი პარამეტრები",
     "Done" : "დასრულდა",

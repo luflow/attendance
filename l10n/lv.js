@@ -23,7 +23,6 @@ OC.L10N.register(
     "Privacy Policy" : "Privātuma pamatnostādnes",
     "OK" : "Labi",
     "All languages" : "Visas valodas",
-    "App developer" : "Lietotnes izstrādātājs",
     "Display name" : "Attēlojamais vārds",
     "Done" : "Pabeigts",
     "Email" : "E-pasts",

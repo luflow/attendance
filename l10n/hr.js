@@ -31,7 +31,6 @@ OC.L10N.register(
     "OK" : "OK",
     "About" : "Informacije",
     "All languages" : "Svi jezici",
-    "App developer" : "Razvojni programer aplikacije",
     "Create" : "Stvori",
     "Default" : "Zadano",
     "Display name" : "Naziv za prikaz",
@@ -137,6 +136,7 @@ OC.L10N.register(
     "2 hours before" : "2 sata prije",
     "No reminders" : "Nema podsjetnika",
     "Thank you for your response!" : "Hvala na odgovoru!",
+    "Manager" : "Voditelj",
     "Automatic" : "Automatsko",
     "name" : "naziv",
     "time" : "put"

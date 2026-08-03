@@ -29,7 +29,6 @@ OC.L10N.register(
     "Something went wrong" : "Ddoe at àpidu un'errore",
     "About" : "In contu de",
     "All languages" : "Totu is limbas",
-    "App developer" : "Isvilupu de s'aplicatzione",
     "Create" : "Crea",
     "Default" : "Predefinidu",
     "Display name" : "Ammustra nùmene",

@@ -35,7 +35,6 @@ OC.L10N.register(
     "OK" : "OK",
     "About" : "Относно",
     "All languages" : "Всички езици",
-    "App developer" : "Разработчик на приложение",
     "Common" : "Познато",
     "Create" : "Създаване",
     "Default" : "По подразбиране",

@@ -20,7 +20,6 @@ OC.L10N.register(
     "OK" : "OK",
     "About" : "Rreth",
     "All languages" : "Të gjitha gjuhët",
-    "App developer" : "Zhvillues aplikacionesh",
     "Common" : "E përbashkët",
     "Create" : "Krijo",
     "Default" : "Paraprake",

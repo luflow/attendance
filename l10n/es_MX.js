@@ -27,7 +27,6 @@ OC.L10N.register(
     "OK" : "OK",
     "About" : "Acerca",
     "All languages" : "Todos los idiomas",
-    "App developer" : "Desarrollador de la aplicación",
     "Common" : "Común",
     "Create" : "Crear",
     "Default" : "Por omisión",
@@ -123,6 +122,7 @@ OC.L10N.register(
     "30 minutes before" : "30 minutos antes",
     "1 hour before" : "1 hora antes",
     "2 hours before" : "2 horas antes",
+    "Manager" : "Administrador",
     "Automatic" : "Automático",
     "name" : "nombre",
     "time" : "vez"

@@ -103,6 +103,7 @@ OC.L10N.register(
     "All users" : "All users",
     "No users found" : "No users found",
     "Confirm" : "Confirm",
+    "Manager" : "Manager",
     "Automatic" : "Automatic",
     "time" : "time",
     "Guests" : "Guests"

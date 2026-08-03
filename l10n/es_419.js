@@ -18,7 +18,6 @@ OC.L10N.register(
     "OK" : "OK",
     "About" : "Acerca",
     "All languages" : "Todos los idiomas",
-    "App developer" : "Desarrollador de la aplicación",
     "Language" : "Idioma",
     "Send" : "Enviar",
     "Sign in" : "Autenticar",

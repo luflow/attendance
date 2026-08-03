@@ -15,7 +15,6 @@ OC.L10N.register(
     "Subscribe" : "Tanysgrifio",
     "OK" : "OK",
     "About" : "Ynglyn â",
-    "App developer" : "Datblygwr apiau",
     "Email" : "E-bost",
     "Language" : "Iaith",
     "Send" : "Anfon",

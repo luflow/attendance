@@ -21,7 +21,6 @@ OC.L10N.register(
     "Subscription" : "Suscripción",
     "OK" : "OK",
     "All languages" : "Todos los idiomas",
-    "App developer" : "Desarrollador de la aplicación",
     "Common" : "Común",
     "Done" : "Terminado",
     "Email" : "Correo electrónico",

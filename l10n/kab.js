@@ -150,6 +150,7 @@ OC.L10N.register(
     "Confirm" : "Sergeg",
     "Your response:" : "Tiririt-ik⋅im:",
     "Web" : "Web",
+    "Manager" : "Asefrak",
     "Automatic" : "Awurman",
     "name" : "isem",
     "description" : "aglam",

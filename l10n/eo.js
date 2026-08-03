@@ -19,7 +19,6 @@ OC.L10N.register(
     "Expired" : "Senvalidiĝis",
     "OK" : "OK",
     "All languages" : "Ĉiuj lingvoj",
-    "App developer" : "Aplikaĵa programisto",
     "Display name" : "Vidiga nomo",
     "Done" : "Farita",
     "Email" : "Retpoŝtadreso",

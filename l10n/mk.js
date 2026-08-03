@@ -125,6 +125,7 @@ OC.L10N.register(
     "2 hours before" : "2 часа пред",
     "No reminders" : "Нема потсетници",
     "Thank you for your response!" : "Благодариме на вашиот одговор.",
+    "Manager" : "Менаџер",
     "Historic" : "Историја",
     "Automatic" : "Автоматски",
     "description" : "опис",

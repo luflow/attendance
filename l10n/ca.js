@@ -36,7 +36,6 @@ OC.L10N.register(
     "Something went wrong" : "Alguna cosa ha anat malament",
     "About" : "Quant a",
     "All languages" : "Totes les llengües",
-    "App developer" : "Desenvolupador d'aplicacions",
     "Common" : "Comú",
     "Create" : "Crea",
     "Default" : "Per defecte",

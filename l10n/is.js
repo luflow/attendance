@@ -24,7 +24,6 @@ OC.L10N.register(
     "Something went wrong" : "Eitthvað fór úrskeiðis",
     "About" : "Um",
     "All languages" : "Öll tungumál",
-    "App developer" : "Umsjónarmaður forrits",
     "Common" : "Algengt",
     "Create" : "Búa til",
     "Default" : "Sjálfgefið",
@@ -129,6 +128,7 @@ OC.L10N.register(
     "1 hour before" : "1 klukkustund fyrir ",
     "2 hours before" : "2 klukkustundum fyrir",
     "No reminders" : "Engar áminningar",
+    "Manager" : "Stjórnandi",
     "Automatic" : "Sjálfvirkt",
     "name" : "heiti",
     "time" : "sinni"
