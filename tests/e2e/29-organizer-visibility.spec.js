@@ -43,24 +43,37 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 		})
 		await reloadWebWorkers()
 
-		const [organized, other] = await Promise.all([
-			createAppointmentViaAPI(request, {
-				name: ORGANIZED,
-				daysFromNow: 3,
-				organizers: ['test3'],
-			}),
-			createAppointmentViaAPI(request, {
-				name: OTHER,
-				daysFromNow: 4,
-			}),
-		])
-		await Promise.all([organized, other].map((apt) =>
-			respondToAppointmentViaAPI(request, apt.id, {
+		const organized = await createAppointmentViaAPI(request, {
+			name: ORGANIZED,
+			daysFromNow: 3,
+			organizers: ['test3'],
+		})
+		const other = await createAppointmentViaAPI(request, {
+			name: OTHER,
+			daysFromNow: 4,
+		})
+		for (const apt of [organized, other]) {
+			await respondToAppointmentViaAPI(request, apt.id, {
 				response: 'yes',
 				username: 'test',
 				password: 'test',
-			})))
+			})
+		}
 	})
+
+	/**
+	 * Land every viewer on the full list: non-managers default to the
+	 * Unanswered view, which is empty for users who already responded.
+	 */
+	async function openAllAppointments(page) {
+		await page.locator('[data-test="nav-all"]').click()
+		await page.waitForLoadState('networkidle')
+	}
+
+	// .first(): resilientJson may replay a create POST that actually
+	// succeeded under load, leaving a duplicate card with the same name.
+	const cardFor = (page, name) =>
+		page.locator('[data-test="appointment-card"]', { hasText: name }).first()
 
 	test.afterAll(async ({ request }) => {
 		await deleteAllAppointments(request)
@@ -72,9 +85,10 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 		await loginAsUser('test3', 'test3')
 		await attendanceApp()
 		await page.waitForLoadState('networkidle')
+		await openAllAppointments(page)
 
-		const organizedCard = page.locator('[data-test="appointment-card"]', { hasText: ORGANIZED })
-		const otherCard = page.locator('[data-test="appointment-card"]', { hasText: OTHER })
+		const organizedCard = cardFor(page, ORGANIZED)
+		const otherCard = cardFor(page, OTHER)
 		await expect(organizedCard).toBeVisible()
 		await expect(otherCard).toBeVisible()
 
@@ -93,9 +107,10 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 		await loginAsUser('test3', 'test3')
 		await attendanceApp()
 		await page.waitForLoadState('networkidle')
+		await openAllAppointments(page)
 
 		// No bar on B means no "Show details" link either — go via the title.
-		const otherCard = page.locator('[data-test="appointment-card"]', { hasText: OTHER })
+		const otherCard = cardFor(page, OTHER)
 		await otherCard.locator('[data-test="appointment-title-link"]').click()
 		await page.waitForLoadState('networkidle')
 
@@ -107,8 +122,9 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 		await loginAsUser('test', 'test')
 		await attendanceApp()
 		await page.waitForLoadState('networkidle')
+		await openAllAppointments(page)
 
-		const organizedCard = page.locator('[data-test="appointment-card"]', { hasText: ORGANIZED })
+		const organizedCard = cardFor(page, ORGANIZED)
 		await expect(organizedCard).toBeVisible()
 		await expect(page.locator('[data-test="response-bar"]')).toHaveCount(0)
 
@@ -122,9 +138,10 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 		await loginAsUser('admin', 'admin')
 		await attendanceApp()
 		await page.waitForLoadState('networkidle')
+		await openAllAppointments(page)
 
-		const organizedCard = page.locator('[data-test="appointment-card"]', { hasText: ORGANIZED })
-		const otherCard = page.locator('[data-test="appointment-card"]', { hasText: OTHER })
+		const organizedCard = cardFor(page, ORGANIZED)
+		const otherCard = cardFor(page, OTHER)
 		await expect(organizedCard.locator('[data-test="response-bar"]')).toBeVisible()
 		await expect(otherCard.locator('[data-test="response-bar"]')).toBeVisible()
 	})
