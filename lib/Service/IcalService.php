@@ -94,7 +94,6 @@ class IcalService {
 			return null;
 		}
 
-		// Update last used timestamp
 		$icalToken->setLastUsedAt(gmdate('Y-m-d H:i:s'));
 		$this->icalTokenMapper->update($icalToken);
 

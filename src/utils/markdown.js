@@ -72,9 +72,7 @@ export function stripMarkdown(text) {
 		.replace(/^>\s*/gm, '')
 		// Remove horizontal rules
 		.replace(/^[-*_]{3,}\s*$/gm, '')
-		// Remove unordered list markers
 		.replace(/^[\s]*[-*+]\s+/gm, '')
-		// Remove ordered list markers
 		.replace(/^[\s]*\d+\.\s+/gm, '')
 		// Remove task list markers
 		.replace(/\[[ xX]\]\s*/g, '')
@@ -82,6 +80,5 @@ export function stripMarkdown(text) {
 		.replace(/<[^>]+>/g, '')
 		// Normalize whitespace (multiple spaces/newlines to single space)
 		.replace(/\s+/g, ' ')
-		// Trim
 		.trim()
 }

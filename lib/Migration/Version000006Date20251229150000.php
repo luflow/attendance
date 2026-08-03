@@ -22,7 +22,6 @@ class Version000006Date20251229150000 extends SimpleMigrationStep {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
 
-		// Create att_attachments table
 		if (!$schema->hasTable('att_attachments')) {
 			$table = $schema->createTable('att_attachments');
 

@@ -5,11 +5,10 @@ import AppointmentWidget from './views/Widget.vue'
 import './dashboard.css'
 
 document.addEventListener('DOMContentLoaded', () => {
-	OCA.Dashboard.register('attendance-vue-widget', (el, { widget }) => {
+	OCA.Dashboard.register('attendance-vue-widget', (el) => {
 		try {
-			const app = createApp(AppointmentWidget, {
-				title: widget.title,
-			})
+			// No props: widget.title would fall through onto the root div as a tooltip.
+			const app = createApp(AppointmentWidget)
 
 			// Make translation functions available globally
 			app.config.globalProperties.t = translate

@@ -87,8 +87,28 @@ class QuickResponseController extends Controller {
 			return $errorResponse;
 		}
 
-		// Get appointment details
+		// Validation rejected a missing appointment, but via a separate lookup.
 		$appointment = $this->tokenService->getAppointment($appointmentId);
+		if ($appointment === null) {
+			$this->initialStateService->provideInitialState(
+				Application::APP_ID,
+				'quick-response-data',
+				[
+					'error' => true,
+					'errorMessage' => $this->l->t('This appointment no longer exists.'),
+				]
+			);
+
+			$errorResponse = new TemplateResponse(
+				Application::APP_ID,
+				'quickresponse',
+				[],
+				'guest'
+			);
+			$errorResponse->throttle();
+			return $errorResponse;
+		}
+
 		$appointmentData = $appointment->jsonSerialize();
 
 		$data = [
@@ -232,7 +252,9 @@ class QuickResponseController extends Controller {
 	 * appointment context with a "closed" banner instead of throttling
 	 * the user (the link is legitimate, the user is just late).
 	 *
-	 * @return array{error: bool, closed?: bool, errorMessage?: string}
+	 * `cancelled` is the same, for an appointment called off after the fact.
+	 *
+	 * @return array{error: bool, closed?: bool, cancelled?: bool, errorMessage?: string}
 	 */
 	private function validateQuickResponse(
 		int $appointmentId,
@@ -248,7 +270,6 @@ class QuickResponseController extends Controller {
 			];
 		}
 
-		// Verify token
 		if (!$this->tokenService->verifyToken($token, $userId, $appointmentId, $response)) {
 			return [
 				'error' => true,

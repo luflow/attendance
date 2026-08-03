@@ -3103,6 +3103,24 @@
                                 }
                             }
                         }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -5151,15 +5169,11 @@
                                     "items": {
                                         "type": "object",
                                         "required": [
-                                            "id",
                                             "uri",
                                             "displayName",
                                             "color"
                                         ],
                                         "properties": {
-                                            "id": {
-                                                "type": "string"
-                                            },
                                             "uri": {
                                                 "type": "string"
                                             },

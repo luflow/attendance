@@ -12,8 +12,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setId(int $id)
  * @method string getName()
  * @method void setName(string $name)
- * @method string getDescription()
- * @method void setDescription(string $description)
+ * @method string|null getDescription()
+ * @method void setDescription(?string $description)
  * @method string getStartDatetime()
  * @method void setStartDatetime(string $startDatetime)
  * @method string getEndDatetime()
@@ -24,8 +24,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setCreatedAt(string $createdAt)
  * @method string getUpdatedAt()
  * @method void setUpdatedAt(string $updatedAt)
- * @method bool getIsActive()
- * @method void setIsActive(bool $isActive)
+ * @method int getIsActive()
+ * @method void setIsActive(int $isActive)
  * @method string getVisibleUsers()
  * @method void setVisibleUsers(string $visibleUsers)
  * @method string getVisibleGroups()
@@ -101,7 +101,8 @@ class Appointment extends Entity implements JsonSerializable {
 		return [
 			'id' => $this->getId(),
 			'name' => $this->getName(),
-			'description' => $this->getDescription(),
+			// Nullable column, but AttendanceAppointmentData promises a string.
+			'description' => $this->getDescription() ?? '',
 			'startDatetime' => $this->formatDatetimeToUtc($this->getStartDatetime()),
 			'endDatetime' => $this->formatDatetimeToUtc($this->getEndDatetime()),
 			'createdBy' => $this->getCreatedBy(),

@@ -115,7 +115,6 @@ class ExportService {
 			return strcmp($a['displayName'], $b['displayName']);
 		});
 
-		// Generate ODS content
 		$odsContent = $this->generateOdsContent($appointments, $users, $appointmentResponses, $includeComments);
 
 		// Create the Attendance folder
@@ -191,23 +190,20 @@ class ExportService {
 		$zip = new \ZipArchive();
 		$result = $zip->open($tempFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
 		if ($result !== true) {
-			throw new \Exception('Failed to create ODS file. ZipArchive error code: ' . $result);
+			throw new \Exception('Failed to create ODS file. ZipArchive error code: ' . (int)$result);
 		}
 
 		// Add mimetype (must be first and uncompressed)
 		$zip->addFromString('mimetype', 'application/vnd.oasis.opendocument.spreadsheet');
 		$zip->setCompressionName('mimetype', \ZipArchive::CM_STORE);
 
-		// Add META-INF/manifest.xml
 		$zip->addFromString('META-INF/manifest.xml', $this->getManifestXml());
 
 		// Add content.xml with the table
 		$zip->addFromString('content.xml', $this->getContentXml($appointments, $users, $appointmentResponses, $includeComments));
 
-		// Add styles.xml
 		$zip->addFromString('styles.xml', $this->getStylesXml());
 
-		// Add meta.xml
 		$zip->addFromString('meta.xml', $this->getMetaXml());
 
 		$zip->close();

@@ -255,7 +255,6 @@ const filteredAllUsers = computed(() => {
 			|| user.userId.toLowerCase().includes(query))
 	}
 
-	// Filter by selected group
 	if (selectedGroup.value) {
 		filtered = filtered.filter((user) => user.groups && user.groups.includes(selectedGroup.value.id))
 	}

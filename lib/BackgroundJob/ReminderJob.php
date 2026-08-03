@@ -227,7 +227,6 @@ class ReminderJob extends TimedJob {
 
 					$this->notificationManager->notify($notification);
 
-					// Log the reminder
 					$reminderLog = new ReminderLog();
 					$reminderLog->setAppointmentId($appointment->getId());
 					$reminderLog->setUserId($userId);

@@ -16,8 +16,8 @@ jobs:
         uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
         id: versions
         with:
-          fallbackNode: '^20'
-          fallbackNpm: '^10'
+          fallbackNode: '^24'
+          fallbackNpm: '^11'
 
       - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
         uses: actions/setup-node@v5
@@ -58,6 +58,59 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
+
+  static_analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Read package.json node and npm engines version
+        uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
+        id: versions
+        with:
+          fallbackNode: '^24'
+          fallbackNpm: '^11'
+
+      - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ steps.versions.outputs.nodeVersion }}
+
+      - name: Set up npm ${{ steps.versions.outputs.npmVersion }}
+        run: npm i -g 'npm@${{ steps.versions.outputs.npmVersion }}'
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          coverage: none
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Install composer dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run eslint
+        run: npm run lint
+
+      - name: Run stylelint
+        run: npm run stylelint
+
+      - name: Run php-cs-fixer
+        run: composer cs:check
+
+      # psalm-baseline.xml is the known backlog — fix new findings, don't rebaseline.
+      - name: Run psalm
+        run: composer psalm
+
+      # Generated from the controller annotations — a stale spec means drift.
+      - name: Check the OpenAPI specs are up to date
+        run: |
+          composer openapi
+          git diff --exit-code -- openapi.json openapi-administration.json openapi-full.json \
+            || { echo "::error::OpenAPI specs are stale — run 'composer openapi' and commit the result"; exit 1; }
 
   php_tests:
     runs-on: ubuntu-latest

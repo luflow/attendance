@@ -1,5 +1,37 @@
 # Attendance App - Windsurf Rules
 
+## Before you hand work back: run `./scripts/check.sh`
+
+One command, every gate this repo has. **A change is not finished until it
+passes.** CI (`.github/workflows/tests.yml`) runs the same set, so green here
+means green there — minus the e2e suite, which needs Docker and is opt-in via
+`./scripts/check.sh --e2e`.
+
+It covers eslint, stylelint, php-cs-fixer, psalm, PHPUnit, the vite build, and
+a check that the generated OpenAPI specs still match the controllers. Every
+gate runs even when an earlier one fails, so one invocation gives you the whole
+picture. It needs `npm ci` and `composer install` to have run first.
+
+Rules that keep the repo clean over time:
+
+- **Never silence a gate to make it pass.** No `eslint-disable`, no
+  `@psalm-suppress`, no `stylelint-disable`, no deleting an assertion. If a
+  rule genuinely does not apply, say so in the change description and let a
+  human decide.
+- **`psalm-baseline.xml` is the known backlog, not a dumping ground.** New
+  findings get fixed in the code. Do not run `psalm --set-baseline` to make
+  your own errors disappear — that hides them and rewrites 1300 unrelated
+  entries. Entries only ever leave the baseline by being fixed.
+- **Do not run `psalm --alter`.** Its suggestions are led by deleting
+  "unused" methods (this app is DI-driven, so psalm cannot see most call
+  sites) and by making classes `final` (PHPUnit cannot mock final classes, so
+  it breaks the test suite).
+- **`composer openapi` after any controller change**, and commit the
+  regenerated specs with it.
+- If you touch a dependency, say in the commit message what you deliberately
+  held back and why. The PHP 8.1 floor in `appinfo/info.xml` currently pins
+  doctrine/dbal, PHPUnit and `nextcloud/ocp` below their latest versions.
+
 ## Code Style & Conventions
 
 ### Vue.js Frontend
@@ -170,6 +202,18 @@ is updated, so:
 - Migrations may add nullable columns freely, but **do not remove columns**
   the mobile client may still send/expect — schedule a deprecation cycle
   instead.
+
+## Comments: short and meaningful, no bloat
+
+Comment the **why**, never the what. If the code already says it, the comment is
+noise. A useful comment is usually **one line**; two is the ceiling, and only for
+something a reader would otherwise get wrong or "fix" back.
+
+- No restating the next statement in prose.
+- No paragraph-length explanations of a one-line change — that belongs in the
+  commit message or the PR, where it stays out of the way.
+- No banner or section-divider comments, no scaffolding like `// Step 1:`.
+- Deleting a comment that has gone stale beats updating it.
 
 ## Avoid
 - NO coauthoring of commits with "claude"!

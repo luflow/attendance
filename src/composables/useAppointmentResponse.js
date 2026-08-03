@@ -47,8 +47,10 @@ export function useResponseCooldown(currentResponse, cooldownMs = 800) {
  * Create a response handler for a specific appointment.
  *
  * @param {object} options - Configuration options
- * @param {Function} options.onSuccess - Callback after successful response
- * @param {Function} options.onError - Callback after failed response
+ * @param {(data: object) => void} options.onSuccess - Called with the response
+ *   payload after a response or comment was saved.
+ * @param {(error: Error) => void} options.onError - Called with the error after a
+ *   response or comment failed to save.
  * @return {object} Response handling functions and state
  */
 export function useAppointmentResponse(options = {}) {
@@ -197,11 +199,11 @@ export function useAppointmentResponse(options = {}) {
 	/**
 	 * Create a debounced comment input handler.
 	 *
-	 * @param {Function} getCommentText - Function to get current comment text
-	 * @param {Function} getCurrentResponse - Function to get current response
+	 * @param {() => string} getCommentText - Getter for the current comment text
+	 * @param {() => string} getCurrentResponse - Getter for the current response
 	 * @param {number} appointmentId - The appointment ID
 	 * @param {number} delay - Debounce delay in ms (default: 500)
-	 * @return {Function} Input event handler
+	 * @return {() => void} Input event handler
 	 */
 	const createCommentInputHandler = (getCommentText, getCurrentResponse, appointmentId, delay = 500) => {
 		return () => {
@@ -350,8 +352,8 @@ export function useMultiAppointmentResponse(options = {}) {
 	 * Handle comment input with debouncing.
 	 *
 	 * @param {number} appointmentId - The appointment ID
-	 * @param {Function} getCommentText - Getter function for comment text
-	 * @param {Function} getCurrentResponse - Getter function for current response
+	 * @param {() => string} getCommentText - Getter for the current comment text
+	 * @param {() => string} getCurrentResponse - Getter for the current response
 	 * @param {number} delay - Debounce delay in milliseconds
 	 */
 	const onCommentInput = (appointmentId, getCommentText, getCurrentResponse, delay = 500) => {

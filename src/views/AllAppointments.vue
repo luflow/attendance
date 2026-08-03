@@ -679,7 +679,7 @@ onMounted(async () => {
 }
 
 .banner-action {
-	margin-left: auto;
+	margin-inline-start: auto;
 	font-weight: normal;
 	white-space: nowrap;
 	opacity: 0.85;
@@ -695,7 +695,7 @@ onMounted(async () => {
 	&.pending {
 		background: #ff8c00;
 		color: white;
-		border-left: 4px solid #ff6600;
+		border-inline-start: 4px solid #ff6600;
 
 		&.clickable {
 			cursor: pointer;

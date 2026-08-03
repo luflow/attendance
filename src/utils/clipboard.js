@@ -4,7 +4,7 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
  * Copy text to the clipboard and show a toast.
  *
  * @param {string} text - The text to copy.
- * @param {object} [options]
+ * @param {object} [options] - Toast messages to show. Both are optional.
  * @param {string} [options.successMessage] - Toast shown on success. Omit to skip.
  * @param {string} [options.errorMessage] - Toast shown on failure. Omit to skip.
  * @return {Promise<boolean>} Whether the copy succeeded.

@@ -248,7 +248,7 @@ watch(() => props.appointmentId, async (newId, oldId) => {
 	border-radius: var(--border-radius-large);
 	background: #ff8c00;
 	color: white;
-	border-left: 4px solid #ff6600;
+	border-inline-start: 4px solid #ff6600;
 	font-weight: 600;
 	margin-bottom: 20px;
 	cursor: pointer;
@@ -263,7 +263,7 @@ watch(() => props.appointmentId, async (newId, oldId) => {
 }
 
 .banner-action {
-	margin-left: auto;
+	margin-inline-start: auto;
 	font-weight: normal;
 	white-space: nowrap;
 	opacity: 0.85;

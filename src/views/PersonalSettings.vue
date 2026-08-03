@@ -138,7 +138,6 @@ import Refresh from 'vue-material-design-icons/Refresh.vue'
 import { useIcalFeed } from '../composables/useIcalFeed.js'
 import { formatDateTime } from '../utils/datetime.js'
 
-// iCal feed
 const { feedUrl, webcalUrl, googleCalendarUrl, lastUsedAt, loading: icalLoading, loadToken, regenerateToken, copyToClipboard } = useIcalFeed()
 const showRegenerateConfirm = ref(false)
 
@@ -269,7 +268,7 @@ onMounted(() => {
 }
 
 .last-used-label {
-	margin-right: 4px;
+	margin-inline-end: 4px;
 }
 
 .security-warning {

@@ -93,7 +93,7 @@ const props = defineProps({
 	},
 	canSeeComments: {
 		type: Boolean,
-		default: true,
+		default: false,
 	},
 	canManageAppointments: {
 		type: Boolean,
