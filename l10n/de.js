@@ -773,6 +773,8 @@ OC.L10N.register(
     "_%n person on this server pays for a personal license — one organization license covers everyone and costs less_::_%n people on this server pay for personal licenses — one organization license covers everyone and costs less_" : ["%n Person auf diesem Server zahlt für eine persönliche Lizenz — eine Organisationslizenz deckt alle ab und kostet weniger","%n Personen auf diesem Server zahlen für persönliche Lizenzen — eine Organisationslizenz deckt alle ab und kostet weniger"],
     "{actor} answered {response} for {subject}" : "{actor} hat für {subject} mit {response} geantwortet",
     "{actor} changed the response of {subject} from {from} to {to}" : "{actor} hat die Antwort von {subject} von {from} auf {to} geändert",
-    "{actor} removed the response of {subject}" : "{actor} hat die Antwort von {subject} entfernt"
+    "{actor} removed the response of {subject}" : "{actor} hat die Antwort von {subject} entfernt",
+    "Groups that can see how many people answered yes, no or maybe — without any names. If no group is selected, everyone can see the counts. Groups with the full summary above always see the counts." : "Gruppen, die sehen können, wie viele Personen mit Ja, Nein oder Vielleicht geantwortet haben — ohne Namen. Wenn keine Gruppe ausgewählt ist, sehen alle die Zahlen. Gruppen mit der vollständigen Übersicht oben sehen die Zahlen immer.",
+    "See response counts" : "Antwort-Zahlen sehen"
 },
 "nplurals=2; plural=(n != 1);");
