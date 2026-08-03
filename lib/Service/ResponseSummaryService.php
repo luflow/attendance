@@ -102,6 +102,7 @@ class ResponseSummaryService {
 		/** @var list<\OCA\Attendance\Db\AttendanceResponse> $responses */
 		$responses = $this->responseMapper->findByAppointment($appointmentId);
 
+		/** @var array{yes: int, no: int, maybe: int, no_response: int} $counts */
 		$counts = $this->initializeSummary();
 		/** @var array<string, true> $respondedUserIds */
 		$respondedUserIds = [];

@@ -20,7 +20,7 @@ test.describe('Attendance App - Create appointment permission (sequential)', () 
 
 	test.beforeAll(async ({ request }) => {
 		await createGroupViaOCS(request, 'creators')
-		await addUserToGroupViaOCS(request, 'user1', 'creators')
+		await addUserToGroupViaOCS(request, 'test3', 'creators')
 		// Managers: admin only. Creators: the creators group only. The plain
 		// test user holds neither role.
 		await saveAdminSettings(request, {
@@ -51,7 +51,7 @@ test.describe('Attendance App - Create appointment permission (sequential)', () 
 	})
 
 	test('creator without manage rights sees the button and reaches the form', async ({ page, loginAsUser, attendanceApp }) => {
-		await loginAsUser('user1', 'user1')
+		await loginAsUser('test3', 'test3')
 		await attendanceApp()
 		await page.waitForLoadState('networkidle')
 

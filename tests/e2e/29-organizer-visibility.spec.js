@@ -24,7 +24,7 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 	const OTHER = 'Organizer Visibility B'
 
 	test.beforeAll(async ({ request }) => {
-		// Every response-visibility tier is admin-only; user1's only grant is
+		// Every response-visibility tier is admin-only; test3's only grant is
 		// being organizer of appointment A.
 		await saveAdminSettings(request, {
 			whitelistedGroups: [],
@@ -44,7 +44,7 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 			createAppointmentViaAPI(request, {
 				name: ORGANIZED,
 				daysFromNow: 3,
-				organizers: ['user1'],
+				organizers: ['test3'],
 			}),
 			createAppointmentViaAPI(request, {
 				name: OTHER,
@@ -66,7 +66,7 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 	})
 
 	test('organizer gets bar and breakdown on their own appointment only', async ({ page, loginAsUser, attendanceApp }) => {
-		await loginAsUser('user1', 'user1')
+		await loginAsUser('test3', 'test3')
 		await attendanceApp()
 		await page.waitForLoadState('networkidle')
 
@@ -87,7 +87,7 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 	})
 
 	test('organizer sees no summary on appointments they do not organize', async ({ page, loginAsUser, attendanceApp }) => {
-		await loginAsUser('user1', 'user1')
+		await loginAsUser('test3', 'test3')
 		await attendanceApp()
 		await page.waitForLoadState('networkidle')
 
