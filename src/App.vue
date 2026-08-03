@@ -349,6 +349,11 @@ t('attendance', 'Active filters')
 t('attendance', 'Check-in failed. Please try again.')
 t('attendance', 'No results match the active filters.')
 
+t('attendance', 'No connection')
+t('attendance', 'The server cannot be reached. Check your internet connection and try again.')
+t('attendance', 'No connection — showing saved data')
+t('attendance', 'Last updated {time}')
+
 t('attendance', 'Subscribe')
 t('attendance', 'Subscription')
 t('attendance', 'Active')
