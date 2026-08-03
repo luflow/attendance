@@ -44,6 +44,26 @@ test.describe('Attendance App - Basic Navigation', () => {
 		await expect(page.locator('[data-test="button-create-appointment"]')).toBeVisible()
 		await expect(page.locator('[data-test="button-export"]')).toBeVisible()
 	})
+
+	test('should not clip the create appointment button on a short viewport', async ({ page, loginAsUser, attendanceApp }) => {
+		await loginAsUser('admin', 'admin')
+		await attendanceApp()
+
+		await page.waitForLoadState('networkidle')
+		await expect(page.locator('[data-test="button-create-appointment"]')).toBeVisible()
+
+		// A short viewport makes the navigation overflow; the primary action
+		// used to get squeezed by flexbox instead of the list scrolling.
+		await page.setViewportSize({ width: 1280, height: 400 })
+
+		await expect.poll(async () => await page.locator('[data-test="button-create-appointment"]').evaluate((button) => {
+			let clipper = button.parentElement
+			while (clipper && getComputedStyle(clipper).overflowY === 'visible') {
+				clipper = clipper.parentElement
+			}
+			return Math.round(clipper.getBoundingClientRect().bottom - button.getBoundingClientRect().bottom)
+		})).toBeGreaterThanOrEqual(0)
+	})
 })
 
 test.describe('Attendance App - User Permissions', () => {

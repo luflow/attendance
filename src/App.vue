@@ -857,6 +857,12 @@ onMounted(async () => {
     margin: 0 auto;
 }
 
+/* The body slot is a scroll container, so flexbox happily shrinks it to nothing
+   once the navigation overflows — which clips the "Create appointment" button. */
+:deep(.app-navigation__body) {
+    flex-shrink: 0;
+}
+
 /* Style for appointment navigation items - only for nested items */
 :deep(.app-navigation-entry__children .app-navigation-entry__name) {
     white-space: pre-line !important;
