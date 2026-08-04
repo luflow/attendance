@@ -20,7 +20,7 @@
 								tabindex="0"
 								role="img"
 								data-test="appointment-category"
-								:aria-label="categoryName"><component :is="categoryIconComponent(categoryIcon)" :size="15" /><span class="list-card__category-tooltip" role="tooltip">{{ categoryName }}</span></span><ChevronRightIcon :size="20" class="list-card__chevron" /></span>
+								:aria-label="categoryName"><component :is="categoryIconComponent(categoryIcon)" :size="18" /><span class="list-card__category-tooltip" role="tooltip">{{ categoryName }}</span></span><ChevronRightIcon :size="20" class="list-card__chevron" /></span>
 						</h3>
 						<AppointmentStatusChips :appointment="appointment" />
 					</div>
@@ -284,7 +284,7 @@ const stateLabel = computed(() => (isCancelled.value
         position: relative;
         display: inline-flex;
         align-items: center;
-        vertical-align: -3px;
+        vertical-align: -4px;
         margin-inline-start: 4px;
         color: var(--color-text-maxcontrast);
         cursor: default;

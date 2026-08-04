@@ -10,7 +10,7 @@
 						v-if="categoryName"
 						class="appointment-category"
 						data-test="appointment-category">
-						<component :is="categoryIconComponent(categoryIcon)" :size="16" />
+						<component :is="categoryIconComponent(categoryIcon)" :size="18" />
 						<span>{{ categoryName }}</span>
 					</div>
 					<AppointmentStatusChips :appointment="appointment" />
