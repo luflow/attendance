@@ -9,25 +9,16 @@
 					<AppointmentStatusChips :appointment="appointment" />
 				</div>
 				<AppointmentMeta :appointment="appointment" :dateText="subtitleText" />
-				<div v-if="appointment.location" class="appointment-location" data-test="appointment-location">
-					<a
-						:href="osmLocationUrl"
-						target="_blank"
-						rel="noopener noreferrer"
-						class="appointment-location__link">
-						<MapMarkerIcon :size="16" />
-						<span>{{ appointment.location }}</span>
-					</a>
-					<a
-						:href="googleMapsLocationUrl"
-						target="_blank"
-						rel="noopener noreferrer"
-						class="appointment-location__secondary"
-						:aria-label="t('attendance', 'Open in Google Maps')"
-						:title="t('attendance', 'Open in Google Maps')">
-						<GoogleMapsIcon :size="15" />
-					</a>
-				</div>
+				<a
+					v-if="appointment.location"
+					:href="osmLocationUrl"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="appointment-location"
+					data-test="appointment-location">
+					<MapMarkerIcon :size="16" />
+					<span>{{ appointment.location }}</span>
+				</a>
 			</div>
 			<AppointmentActionsMenu
 				:appointment="appointment"
@@ -162,7 +153,6 @@ import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcChip } from '@nextcloud/vue'
 import { computed } from 'vue'
 import CalendarRemoveIcon from 'vue-material-design-icons/CalendarRemove.vue'
-import GoogleMapsIcon from 'vue-material-design-icons/GoogleMaps.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
 import MapMarkerIcon from 'vue-material-design-icons/MapMarkerOutline.vue'
 import Paperclip from 'vue-material-design-icons/Paperclip.vue'
@@ -175,7 +165,7 @@ import ResponseEditor from './ResponseEditor.vue'
 import ResponseSummary from './ResponseSummary.vue'
 import { useAppointmentCard } from '../../composables/useAppointmentCard.js'
 import { useAppointmentLifecycle } from '../../composables/useAppointmentLifecycle.js'
-import { finalScheduleStatus, formatCancelledLabel, formatClosedLabel, googleMapsUrl, openStreetMapUrl } from '../../utils/appointment.js'
+import { finalScheduleStatus, formatCancelledLabel, formatClosedLabel, openStreetMapUrl } from '../../utils/appointment.js'
 import { formatTime } from '../../utils/datetime.js'
 import { renderMarkdown, sanitizeHtml } from '../../utils/markdown.js'
 import { getResponseText } from '../../utils/response.js'
@@ -200,7 +190,6 @@ const emit = defineEmits([
 ])
 
 const osmLocationUrl = computed(() => openStreetMapUrl(props.appointment.location))
-const googleMapsLocationUrl = computed(() => googleMapsUrl(props.appointment.location))
 
 // NB: pass a getter, never bind it to a name — every top-level binding in
 // <script setup> is exposed to the template, and a local `appointment` would
@@ -319,34 +308,15 @@ const renderedDescription = computed(() => {
         .appointment-location {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             margin-top: 4px;
+            color: var(--color-text-maxcontrast);
             font-size: 15px;
 
-            &__link {
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                color: var(--color-text-maxcontrast);
-
-                &:hover,
-                &:focus-visible {
-                    color: var(--color-main-text);
-                    text-decoration: underline;
-                }
-            }
-
-            &__secondary {
-                display: inline-flex;
-                align-items: center;
-                color: var(--color-text-maxcontrast);
-                opacity: 0.7;
-
-                &:hover,
-                &:focus-visible {
-                    opacity: 1;
-                    color: var(--color-main-text);
-                }
+            &:hover,
+            &:focus-visible {
+                color: var(--color-main-text);
+                text-decoration: underline;
             }
         }
     }

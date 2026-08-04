@@ -23,16 +23,6 @@ export function openStreetMapUrl(location) {
 }
 
 /**
- * Google Maps search URL for a free-text location.
- *
- * @param {string} location The location text.
- * @return {string} Absolute URL.
- */
-export function googleMapsUrl(location) {
-	return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`
-}
-
-/**
  * Deeplink that opens the appointment's source event in the Calendar app.
  *
  * @param {object} appointment The appointment payload.

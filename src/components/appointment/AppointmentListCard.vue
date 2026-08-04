@@ -15,27 +15,17 @@
 					<AppointmentStatusChips :appointment="appointment" />
 				</div>
 				<AppointmentMeta :appointment="appointment" :dateText="subtitleText" />
-				<span v-if="appointment.location" class="list-card__location" data-test="appointment-location">
-					<span
-						class="list-card__location-link"
-						role="link"
-						tabindex="0"
-						:title="t('attendance', 'Open in OpenStreetMap')"
-						@click.stop="openMapsLink(osmLocationUrl)"
-						@keydown.enter.stop="openMapsLink(osmLocationUrl)">
-						<MapMarkerIcon :size="15" />
-						<span class="list-card__location-text">{{ appointment.location }}</span>
-					</span>
-					<span
-						class="list-card__location-secondary"
-						role="link"
-						tabindex="0"
-						:aria-label="t('attendance', 'Open in Google Maps')"
-						:title="t('attendance', 'Open in Google Maps')"
-						@click.stop="openMapsLink(googleMapsLocationUrl)"
-						@keydown.enter.stop="openMapsLink(googleMapsLocationUrl)">
-						<GoogleMapsIcon :size="14" />
-					</span>
+				<span
+					v-if="appointment.location"
+					class="list-card__location"
+					role="link"
+					tabindex="0"
+					data-test="appointment-location"
+					:title="t('attendance', 'Open in OpenStreetMap')"
+					@click.stop="openMapsLink(osmLocationUrl)"
+					@keydown.enter.stop="openMapsLink(osmLocationUrl)">
+					<MapMarkerIcon :size="15" />
+					<span class="list-card__location-text">{{ appointment.location }}</span>
 				</span>
 			</a>
 			<AppointmentActionsMenu
@@ -113,7 +103,6 @@
 <script setup>
 import { computed } from 'vue'
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
-import GoogleMapsIcon from 'vue-material-design-icons/GoogleMaps.vue'
 import MapMarkerIcon from 'vue-material-design-icons/MapMarkerOutline.vue'
 import AppointmentActionsMenu from './AppointmentActionsMenu.vue'
 import AppointmentMeta from './AppointmentMeta.vue'
@@ -123,7 +112,7 @@ import ResponseDot from './ResponseDot.vue'
 import ResponseEditor from './ResponseEditor.vue'
 import ShowDetailsLink from './ShowDetailsLink.vue'
 import { useAppointmentCard } from '../../composables/useAppointmentCard.js'
-import { appointmentDetailUrl, formatCancelledLabel, formatClosedLabel, googleMapsUrl, openStreetMapUrl } from '../../utils/appointment.js'
+import { appointmentDetailUrl, formatCancelledLabel, formatClosedLabel, openStreetMapUrl } from '../../utils/appointment.js'
 import { stripMarkdown } from '../../utils/markdown.js'
 import { getResponseText, responseSegments } from '../../utils/response.js'
 
@@ -157,11 +146,10 @@ const {
 
 const detailUrl = computed(() => appointmentDetailUrl(props.appointment.id))
 const osmLocationUrl = computed(() => openStreetMapUrl(props.appointment.location))
-const googleMapsLocationUrl = computed(() => googleMapsUrl(props.appointment.location))
 
-// The location links live inside the card's outer <a> (which handles the
-// card click itself), so a real nested <a> would be invalid HTML — open the
-// URL directly instead and stop the click from also triggering the card.
+// The location lives inside the card's outer <a> (which handles the card
+// click itself), so a real nested <a> would be invalid HTML — open the URL
+// directly instead and stop the click from also triggering the card.
 function openMapsLink(url) {
 	window.open(url, '_blank', 'noopener,noreferrer')
 }
@@ -261,16 +249,9 @@ const stateLabel = computed(() => (isCancelled.value
     &__location {
         display: flex;
         align-items: center;
-        gap: 6px;
-        min-width: 0;
-        font-size: 15px;
-    }
-
-    &__location-link {
-        display: flex;
-        align-items: center;
         gap: 4px;
         min-width: 0;
+        font-size: 15px;
         color: var(--color-text-maxcontrast);
         cursor: pointer;
 
@@ -278,20 +259,6 @@ const stateLabel = computed(() => (isCancelled.value
         &:focus-visible {
             color: var(--color-main-text);
             text-decoration: underline;
-        }
-    }
-
-    &__location-secondary {
-        display: inline-flex;
-        align-items: center;
-        color: var(--color-text-maxcontrast);
-        opacity: 0.7;
-        cursor: pointer;
-
-        &:hover,
-        &:focus-visible {
-            opacity: 1;
-            color: var(--color-main-text);
         }
     }
 
