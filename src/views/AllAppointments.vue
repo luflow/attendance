@@ -132,6 +132,9 @@
 									wide
 									variant="tertiary"
 									@click="toggleCategoryFilter(category.id)">
+									<template #icon>
+										<component :is="categoryIconComponent(category.icon)" :size="18" />
+									</template>
 									<span class="filter-bar__option">
 										{{ category.name }}
 										<CheckIcon v-if="selectedCategoryIds.includes(category.id)" :size="18" />
@@ -172,7 +175,11 @@
 					v-for="category in selectedCategoryChips"
 					:key="category.id"
 					:text="t('attendance', 'Category: {category}', { category: category.name })"
-					@close="toggleCategoryFilter(category.id)" />
+					@close="toggleCategoryFilter(category.id)">
+					<template #icon>
+						<component :is="categoryIconComponent(category.icon)" :size="16" />
+					</template>
+				</NcChip>
 			</div>
 		</div>
 
@@ -242,6 +249,7 @@ import SingleAppointmentExportDialog from '../components/SingleAppointmentExport
 import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
 import { useCategories } from '../composables/useCategories.js'
 import { usePermissions } from '../composables/usePermissions.js'
+import { categoryIconComponent } from '../utils/categoryIcons.js'
 
 const props = defineProps({
 	showPast: {

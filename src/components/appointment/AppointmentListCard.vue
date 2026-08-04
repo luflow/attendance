@@ -8,10 +8,16 @@
 					data-test="appointment-title-link"
 					@click.prevent="emit('openDetail', appointment.id)">
 					<div class="list-card__headline-row">
-						<!-- The chevron rides inside the h3, glued to the last word,
-						     so it can never wrap onto a line of its own. -->
+						<!-- The category icon and chevron ride inside the h3, glued to
+						     the last word, so neither can wrap onto a line of its own. -->
 						<h3 data-test="appointment-title" :class="{ 'title-cancelled': isCancelled }">
-							{{ titleHead }} <span class="list-card__title-tail">{{ titleTail }}<ChevronRightIcon :size="20" class="list-card__chevron" /></span>
+							{{ titleHead }} <span class="list-card__title-tail">{{ titleTail }}<span
+								v-if="categoryName"
+								class="list-card__category-inline"
+								role="img"
+								data-test="appointment-category"
+								:aria-label="categoryName"
+								:title="categoryName"><component :is="categoryIconComponent(categoryIcon)" :size="15" /></span><ChevronRightIcon :size="20" class="list-card__chevron" /></span>
 						</h3>
 						<AppointmentStatusChips :appointment="appointment" />
 					</div>
@@ -27,24 +33,6 @@
 					<MapMarkerIcon :size="15" />
 					<span class="list-card__location-text">{{ appointment.location }}</span>
 				</a>
-				<NcPopover
-					v-if="categoryName"
-					v-bind="HOVER_TOOLTIP"
-					class="list-card__category">
-					<template #trigger>
-						<span
-							class="list-card__category-trigger"
-							tabindex="0"
-							role="img"
-							data-test="appointment-category"
-							:aria-label="categoryName">
-							<component :is="categoryIconComponent(categoryIcon)" :size="15" />
-						</span>
-					</template>
-					<div class="meta-tooltip">
-						<span>{{ categoryName }}</span>
-					</div>
-				</NcPopover>
 			</div>
 			<AppointmentActionsMenu
 				:appointment="appointment"
@@ -119,7 +107,6 @@
 </template>
 
 <script setup>
-import { NcPopover } from '@nextcloud/vue'
 import { computed } from 'vue'
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
 import MapMarkerIcon from 'vue-material-design-icons/MapMarkerOutline.vue'
@@ -135,7 +122,6 @@ import { appointmentDetailUrl, formatCancelledLabel, formatClosedLabel } from '.
 import { categoryIconComponent } from '../../utils/categoryIcons.js'
 import { stripMarkdown } from '../../utils/markdown.js'
 import { getResponseText, responseSegments } from '../../utils/response.js'
-import { HOVER_TOOLTIP } from '../../utils/tooltip.js'
 
 const props = defineProps({
 	appointment: {
@@ -291,21 +277,11 @@ const stateLabel = computed(() => (isCancelled.value
         text-overflow: ellipsis;
     }
 
-    &__category {
+    &__category-inline {
         display: inline-flex;
-        align-self: flex-start;
-    }
-
-    &__category-trigger {
-        display: inline-flex;
-        align-items: center;
+        vertical-align: -3px;
+        margin-inline-start: 4px;
         color: var(--color-text-maxcontrast);
-        cursor: default;
-
-        &:hover,
-        &:focus-visible {
-            color: var(--color-main-text);
-        }
     }
 
     &__chevron {

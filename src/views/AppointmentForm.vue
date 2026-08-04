@@ -149,7 +149,20 @@
 						:multiple="false"
 						:clearable="true"
 						:placeholder="t('attendance', 'Select a category …')"
-						data-test="input-appointment-category" />
+						data-test="input-appointment-category">
+						<template #option="option">
+							<span class="category-option">
+								<component :is="categoryIconComponent(option.icon)" :size="16" />
+								<span>{{ option.name }}</span>
+							</span>
+						</template>
+						<template #selected-option="option">
+							<span class="category-option">
+								<component :is="categoryIconComponent(option.icon)" :size="16" />
+								<span>{{ option.name }}</span>
+							</span>
+						</template>
+					</NcSelect>
 				</div>
 			</div>
 
@@ -526,6 +539,7 @@ import CalendarEventPicker from '../components/calendar/CalendarEventPicker.vue'
 import MarkdownEditor from '../components/common/MarkdownEditor.vue'
 import { useCategories } from '../composables/useCategories.js'
 import { usePermissions } from '../composables/usePermissions.js'
+import { categoryIconComponent } from '../utils/categoryIcons.js'
 import { formatGroupLabel } from '../utils/groups.js'
 
 import '@nextcloud/dialogs/style.css'
@@ -1761,6 +1775,12 @@ onBeforeUnmount(() => {
         font-size: 14px;
         color: var(--color-main-text);
     }
+}
+
+.category-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .attachment-list {
