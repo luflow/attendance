@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+## 1.45.0 – 2026-08-04
+
+### Added
+
+- **A place for each appointment**: a free-text location, shown on the cards and in the exports, suggesting the places you used before. Tap it to open the place on OpenStreetMap, or Google Maps from the detail page. Calendar subscriptions and the organization calendar carry it as the event location
+- **Categories for appointments**: admins manage a list of categories, each with a name and an icon. Assign one per appointment and it shows as a badge next to the title. Deleting a category keeps its appointments, they only lose the badge
+- **Filter by place and category** in the appointment list
+
+### Fixed
+
+- **Upgrading to 1.44.0 could leave a server in maintenance mode**: the permission migration could fail mid-upgrade and abort the whole Nextcloud update. Upgrading to 1.45.0 completes it
+- Audit history showed internal names instead of the translated location, category and organizers fields
+- Restored German translations that the last Transifex sync dropped
+
 ## 1.44.0 – 2026-08-03
 
 ### Added
