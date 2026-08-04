@@ -6,6 +6,13 @@
 					<h3 data-test="appointment-title" :class="{ 'title-cancelled': isCancelled }">
 						{{ titleText }}
 					</h3>
+					<div
+						v-if="categoryName"
+						class="appointment-category"
+						data-test="appointment-category">
+						<component :is="categoryIconComponent(categoryIcon)" :size="16" />
+						<span>{{ categoryName }}</span>
+					</div>
 					<AppointmentStatusChips :appointment="appointment" />
 				</div>
 				<AppointmentMeta :appointment="appointment" :dateText="subtitleText" />
@@ -19,13 +26,6 @@
 					<MapMarkerIcon :size="16" />
 					<span>{{ appointment.location }}</span>
 				</a>
-				<div
-					v-if="categoryName"
-					class="appointment-category"
-					data-test="appointment-category">
-					<component :is="categoryIconComponent(categoryIcon)" :size="16" />
-					<span>{{ categoryName }}</span>
-				</div>
 			</div>
 			<AppointmentActionsMenu
 				:appointment="appointment"
@@ -300,8 +300,9 @@ const renderedDescription = computed(() => {
             align-items: center;
             gap: 8px;
             flex-wrap: wrap;
-            // The chips sit next to the heading, not inside it, so the row sets
-            // the size they inherit and the h3 overrides it for itself.
+            // The chips and category badge sit next to the heading, not inside
+            // it, so the row sets the size they inherit and the h3 overrides
+            // it for itself.
             font-size: 13px;
             margin-bottom: 4px;
         }
@@ -312,6 +313,13 @@ const renderedDescription = computed(() => {
             font-weight: 700;
             color: var(--color-main-text);
             text-wrap: pretty;
+        }
+
+        .appointment-category {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--color-text-maxcontrast);
         }
 
         .appointment-location {
@@ -327,15 +335,6 @@ const renderedDescription = computed(() => {
                 color: var(--color-main-text);
                 text-decoration: underline;
             }
-        }
-
-        .appointment-category {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 4px;
-            color: var(--color-text-maxcontrast);
-            font-size: 15px;
         }
     }
 }

@@ -115,7 +115,6 @@ const organizedByLabel = computed(() => {
 <style scoped lang="scss">
 .appointment-meta {
     font-size: 15px;
-    font-weight: 500;
     color: var(--color-text-maxcontrast);
 
     &__tail {
