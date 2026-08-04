@@ -10,19 +10,17 @@ use OCP\DB\Types;
 use OCP\IDBConnection;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
+use OCP\Server;
 
 /**
  * Migration to add checkin_source column to att_responses.
  * Tracks how a check-in happened: 'manual' (admin) or 'nfc' (self-check-in).
  * Backfills existing check-ins as 'manual' since that was the only option before.
+ *
+ * No constructor DI: MigrationService falls back to `new $class()` without
+ * arguments when service resolution fails during an upgrade.
  */
 class Version000009Date20260307120000 extends SimpleMigrationStep {
-	private IDBConnection $db;
-
-	public function __construct(IDBConnection $db) {
-		$this->db = $db;
-	}
-
 	/**
 	 * @param IOutput $output
 	 * @param Closure $schemaClosure The `\Closure` returns a `ISchemaWrapper`
@@ -53,7 +51,7 @@ class Version000009Date20260307120000 extends SimpleMigrationStep {
 	 * Backfill existing check-ins as 'manual' since that was the only method before this migration.
 	 */
 	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
-		$qb = $this->db->getQueryBuilder();
+		$qb = Server::get(IDBConnection::class)->getQueryBuilder();
 
 		$qb->update('att_responses')
 			->set('checkin_source', $qb->createNamedParameter('manual'))
