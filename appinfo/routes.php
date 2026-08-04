@@ -21,6 +21,7 @@ return [
 		['name' => 'appointment#bulkCreate', 'url' => '/api/appointments/bulk', 'verb' => 'POST'],
 		['name' => 'appointment#navigation', 'url' => '/api/appointments/navigation', 'verb' => 'GET'],
 		['name' => 'appointment#widget', 'url' => '/api/appointments/widget', 'verb' => 'GET'],
+		['name' => 'appointment#locationSuggestions', 'url' => '/api/appointments/locations', 'verb' => 'GET'],
 		['name' => 'appointment#show', 'url' => '/api/appointments/{id}', 'verb' => 'GET'],
 		['name' => 'appointment#create', 'url' => '/api/appointments', 'verb' => 'POST'],
 		['name' => 'appointment#update', 'url' => '/api/appointments/{id}', 'verb' => 'PUT'],
@@ -71,7 +72,6 @@ return [
 
 		// Search
 		['name' => 'appointment#searchUsersGroupsTeams', 'url' => '/api/search/users-groups-teams', 'verb' => 'GET'],
-		['name' => 'appointment#locationSuggestions', 'url' => '/api/appointments/locations', 'verb' => 'GET'],
 
 		// Guest accounts (via the Nextcloud Guests app)
 		['name' => 'appointment#createGuest', 'url' => '/api/guests', 'verb' => 'POST'],
