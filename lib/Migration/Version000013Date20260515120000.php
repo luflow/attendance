@@ -11,17 +11,17 @@ use OCP\DB\Types;
 use OCP\IDBConnection;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
-use OCP\Server;
 
 /**
  * Adds the att_audit_event table for append-only audit events and backfills
  * legacy response/check-in rows so existing data shows up in the new timeline.
- *
- * No constructor DI: MigrationService falls back to `new $class()` without
- * arguments when service resolution fails during an upgrade.
  */
 class Version000013Date20260515120000 extends SimpleMigrationStep {
-	private ?IDBConnection $connection = null;
+	private IDBConnection $connection;
+
+	public function __construct(IDBConnection $connection) {
+		$this->connection = $connection;
+	}
 
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		/** @var ISchemaWrapper $schema */
@@ -69,7 +69,7 @@ class Version000013Date20260515120000 extends SimpleMigrationStep {
 	}
 
 	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
-		$qb = $this->connection()->getQueryBuilder();
+		$qb = $this->connection->getQueryBuilder();
 		$qb->select($qb->func()->count('*', 'cnt'))
 			->from('att_audit_event');
 		$result = $qb->executeQuery();
@@ -81,19 +81,19 @@ class Version000013Date20260515120000 extends SimpleMigrationStep {
 			return;
 		}
 
-		$this->connection()->beginTransaction();
+		$this->connection->beginTransaction();
 		try {
 			$this->backfillResponses($output);
 			$this->backfillCheckins($output);
-			$this->connection()->commit();
+			$this->connection->commit();
 		} catch (\Throwable $e) {
-			$this->connection()->rollBack();
+			$this->connection->rollBack();
 			throw $e;
 		}
 	}
 
 	private function backfillResponses(IOutput $output): void {
-		$select = $this->connection()->getQueryBuilder();
+		$select = $this->connection->getQueryBuilder();
 		$select->select('appointment_id', 'user_id', 'response', 'comment', 'responded_at')
 			->from('att_responses')
 			->where($select->expr()->isNotNull('response'))
@@ -121,7 +121,7 @@ class Version000013Date20260515120000 extends SimpleMigrationStep {
 	}
 
 	private function backfillCheckins(IOutput $output): void {
-		$select = $this->connection()->getQueryBuilder();
+		$select = $this->connection->getQueryBuilder();
 		$select->select('appointment_id', 'user_id', 'checkin_state', 'checkin_comment', 'checkin_by', 'checkin_at')
 			->from('att_responses')
 			->where($select->expr()->isNotNull('checkin_state'))
@@ -157,7 +157,7 @@ class Version000013Date20260515120000 extends SimpleMigrationStep {
 		string $source,
 		string $createdAt,
 	): void {
-		$insert = $this->connection()->getQueryBuilder();
+		$insert = $this->connection->getQueryBuilder();
 		$insert->insert('att_audit_event')
 			->values([
 				'appointment_id' => $insert->createNamedParameter($appointmentId, \OCP\DB\QueryBuilder\IQueryBuilder::PARAM_INT),
@@ -169,9 +169,5 @@ class Version000013Date20260515120000 extends SimpleMigrationStep {
 				'created_at' => $insert->createNamedParameter($createdAt),
 			]);
 		$insert->executeStatement();
-	}
-
-	private function connection(): IDBConnection {
-		return $this->connection ??= Server::get(IDBConnection::class);
 	}
 }

@@ -107,21 +107,18 @@ Follow these Nextcloud translation guidelines (see https://docs.nextcloud.com/se
 
 A failed migration aborts the whole server upgrade and strands the instance
 in maintenance mode — a 1.44.0 migration crashed a production system this
-way. Every step in `lib/Migration/` follows these rules:
+way. Every step in `lib/Migration/` follows these rules, which match how
+first-party apps (spreed, mail, forms, deck) structure theirs:
 
-- **No constructor.** When DI resolution fails mid-upgrade, Nextcloud's
-  `MigrationService` falls back to `new $class()` **without arguments**; a
-  required constructor parameter then dies with an `ArgumentCountError`.
-  Resolve core services lazily inside the step instead:
-  `\OCP\Server::get(IDBConnection::class)` (see `Version000017` for the
-  lazy-getter shape).
-- **Core services only** (`IDBConnection`, `IAppConfig`, `IConfig`, …).
-  Never call app services (`lib/Service/`), mappers, or entities from a
-  migration: migrations also run at install and on multi-version jumps
-  (1.40 → 1.50), where today's service logic no longer matches the state
-  the step was written for. Copy the values a step needs (permission lists,
-  defaults, config keys) into the migration as literals — a frozen snapshot,
-  like `Version000018` — even though that duplicates a service constant.
+- **Constructor DI of core services only** (`IDBConnection`, `IAppConfig`,
+  `IConfig`, `LoggerInterface`, …) — the ecosystem-standard shape. Never
+  inject or call app services (`lib/Service/`), mappers, or entities from a
+  migration: their DI chain can fail in the half-loaded upgrade context, and
+  migrations also run at install and on multi-version jumps (1.40 → 1.50),
+  where today's service logic no longer matches the state the step was
+  written for. Copy the values a step needs (permission lists, defaults,
+  config keys) into the migration as literals — a frozen snapshot, like
+  `Version000018` — even though that duplicates a service constant.
 - **Schema changes only in `changeSchema()`** via the `ISchemaWrapper` from
   `$schemaClosure()`; data backfills go in `postSchemaChange()`.
 - **Idempotent by construction.** After a failed update, `app:enable`
@@ -130,7 +127,7 @@ way. Every step in `lib/Migration/` follows these rules:
   re-writing the same value).
 - **Executed migrations are frozen.** Never change what a shipped step
   *does* — new behavior means a new `Version...` file. Only repairs that
-  keep an old step executable (like removing constructor DI) may touch it.
+  keep an old step executable may touch it.
 
 ### Permissions & Security
 - Use `PermissionService` for all permission checks (not directly `isAdmin()`)

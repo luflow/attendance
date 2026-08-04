@@ -10,32 +10,32 @@ use OCP\DB\ISchemaWrapper;
 use OCP\IDBConnection;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
-use OCP\Server;
 
 /**
  * Backfills appointment.created and appointment.closed audit events for
  * appointments that already exist when the timeline-lifecycle feature ships.
  * Idempotent: only inserts rows that are not already present (matched by
  * appointment_id + verb).
- *
- * No constructor DI: MigrationService falls back to `new $class()` without
- * arguments when service resolution fails during an upgrade.
  */
 class Version000014Date20260516120000 extends SimpleMigrationStep {
-	private ?IDBConnection $connection = null;
+	private IDBConnection $connection;
+
+	public function __construct(IDBConnection $connection) {
+		$this->connection = $connection;
+	}
 
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		return null;
 	}
 
 	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
-		$this->connection()->beginTransaction();
+		$this->connection->beginTransaction();
 		try {
 			$this->backfillCreated($output);
 			$this->backfillClosed($output);
-			$this->connection()->commit();
+			$this->connection->commit();
 		} catch (\Throwable $e) {
-			$this->connection()->rollBack();
+			$this->connection->rollBack();
 			throw $e;
 		}
 	}
@@ -43,7 +43,7 @@ class Version000014Date20260516120000 extends SimpleMigrationStep {
 	private function backfillCreated(IOutput $output): void {
 		$existing = $this->existingAppointmentIds(Verb::APPOINTMENT_CREATED);
 
-		$select = $this->connection()->getQueryBuilder();
+		$select = $this->connection->getQueryBuilder();
 		$select->select('id', 'created_by', 'created_at')
 			->from('att_appointments');
 		$cursor = $select->executeQuery();
@@ -70,7 +70,7 @@ class Version000014Date20260516120000 extends SimpleMigrationStep {
 	private function backfillClosed(IOutput $output): void {
 		$existing = $this->existingAppointmentIds(Verb::APPOINTMENT_CLOSED);
 
-		$select = $this->connection()->getQueryBuilder();
+		$select = $this->connection->getQueryBuilder();
 		$select->select('id', 'closed_at')
 			->from('att_appointments')
 			->where($select->expr()->isNotNull('closed_at'));
@@ -101,7 +101,7 @@ class Version000014Date20260516120000 extends SimpleMigrationStep {
 	 * @return array<int, true>
 	 */
 	private function existingAppointmentIds(string $verb): array {
-		$qb = $this->connection()->getQueryBuilder();
+		$qb = $this->connection->getQueryBuilder();
 		$qb->select('appointment_id')
 			->from('att_audit_event')
 			->where($qb->expr()->eq('verb', $qb->createNamedParameter($verb)));
@@ -121,7 +121,7 @@ class Version000014Date20260516120000 extends SimpleMigrationStep {
 		string $source,
 		string $createdAt,
 	): void {
-		$insert = $this->connection()->getQueryBuilder();
+		$insert = $this->connection->getQueryBuilder();
 		$insert->insert('att_audit_event')
 			->values([
 				'appointment_id' => $insert->createNamedParameter($appointmentId, \OCP\DB\QueryBuilder\IQueryBuilder::PARAM_INT),
@@ -133,9 +133,5 @@ class Version000014Date20260516120000 extends SimpleMigrationStep {
 				'created_at' => $insert->createNamedParameter($createdAt),
 			]);
 		$insert->executeStatement();
-	}
-
-	private function connection(): IDBConnection {
-		return $this->connection ??= Server::get(IDBConnection::class);
 	}
 }
