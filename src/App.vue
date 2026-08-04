@@ -519,6 +519,7 @@ t('attendance', 'Write NFC tag')
 t('attendance', 'Write email')
 t('attendance', 'year')
 t('attendance', "You can book directly through me — no App Store purchase needed, and you'll get a proper invoice. Just send me an email!")
+// TRANSLATORS: "the store" is the same app/subscription store referred to elsewhere as "App Store" — keep the term consistent with that.
 t('attendance', 'You are covered by your organization. You can cancel your personal subscription in the store.')
 t('attendance', 'You can only assign guests to groups you administer. Ask a server admin to grant you sub-admin rights if you need this.')
 // TRANSLATORS: Hint under the mobile app's response-bar setting for users

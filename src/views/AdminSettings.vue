@@ -301,6 +301,7 @@
 						v-model="orgCalendarEnabled"
 						type="switch"
 						data-test="switch-org-calendar-enabled">
+						<!-- TRANSLATORS: Switch label for the organization calendar sync feature described below. Use the same word for a synced calendar entry here and in the two related strings "Creates or updates the calendar events for all upcoming appointments…" and "Events are created for all appointments…" further down — they describe the same feature and should read consistently. -->
 						{{ t('attendance', 'Create calendar events for appointments') }}
 					</NcCheckboxRadioSwitch>
 
@@ -322,6 +323,7 @@
 							{{ t('attendance', 'When you select a calendar, all upcoming appointments are transferred to it. Past appointments are not transferred.') }}
 						</p>
 						<p class="hint-text">
+							<!-- TRANSLATORS: Same calendar-sync feature as "Create calendar events for appointments" above — use the same word for a synced calendar entry in both. -->
 							{{ t('attendance', 'Events are created for all appointments, regardless of their visibility restrictions. Changing the target calendar does not move events that were already created.') }}
 						</p>
 						<p v-if="orgCalendarUserId" class="hint-text">
@@ -341,6 +343,7 @@
 							{{ t('attendance', 'Sync upcoming appointments now') }}
 						</NcButton>
 						<p class="hint-text">
+							<!-- TRANSLATORS: Describes the manual "Sync upcoming appointments now" button above — same calendar-sync feature as "Create calendar events for appointments" further up, use the same word for a synced calendar entry. -->
 							{{ t('attendance', 'Creates or updates the calendar events for all upcoming appointments. This also runs automatically when you enable the feature or change the calendar.') }}
 						</p>
 					</div>
@@ -383,7 +386,7 @@
 			<!-- TRANSLATORS: Admin settings section title for the scheduling feature: managers give people who answered "yes" a place in the appointment ("schedule someone in"). German: the feature/noun is "Planung", the per-person action is "einplanen" and a scheduled person is "eingeplant" — not "planen"/"geplant". The description and the "Enable scheduling" switch below use the same meaning. -->
 			<NcSettingsSection id="scheduling"
 				:name="t('attendance', 'Scheduling')"
-				:description="t('attendance', 'Let managers mark yes-responders as scheduled for an appointment. When off, no scheduling controls are shown anywhere.')">
+				:description="schedulingSectionDescription">
 				<NcCheckboxRadioSwitch v-model="bookingEnabled"
 					type="switch"
 					data-test="switch-booking-enabled">
@@ -768,6 +771,11 @@ const orgCalendarOptions = computed(() => {
 const guestsAdminUrl = computed(() => generateUrl('/settings/admin/guests'))
 const guestsAppStoreUrl = 'https://apps.nextcloud.com/apps/guests'
 const guestsWhitelistOccCommand = 'occ config:app:set guests whitelist --value=$(occ config:app:get guests whitelist),attendance'
+
+const schedulingSectionDescription = computed(() => {
+	// TRANSLATORS: Describes what the "Scheduling" switch below does — it's a capability being toggled on/off for managers ("this becomes possible"), not an instruction telling managers what to do.
+	return t('attendance', 'Let managers mark yes-responders as scheduled for an appointment. When off, no scheduling controls are shown anywhere.')
+})
 
 const reminderSectionDescription = computed(() => {
 	// TRANSLATORS: {groupsSection} and {teamsSection} are replaced with the translated headings of two settings sections on this page ("Response summary groups" and "Response summary teams") — translate those headings identically so admins find the sections referenced here.
