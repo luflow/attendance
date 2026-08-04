@@ -215,7 +215,8 @@
                     "sendNotification",
                     "closedAt",
                     "cancelledAt",
-                    "responseDeadline"
+                    "responseDeadline",
+                    "location"
                 ],
                 "properties": {
                     "id": {
@@ -302,6 +303,10 @@
                     "responseDeadline": {
                         "type": "string",
                         "nullable": true
+                    },
+                    "location": {
+                        "type": "string",
+                        "nullable": true
                     }
                 }
             },
@@ -329,6 +334,7 @@
                     "closedAt",
                     "cancelledAt",
                     "responseDeadline",
+                    "location",
                     "userResponse",
                     "attachments",
                     "myPermissions"
@@ -432,6 +438,10 @@
                         "nullable": true
                     },
                     "responseDeadline": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "location": {
                         "type": "string",
                         "nullable": true
                     },
@@ -614,6 +624,9 @@
                     },
                     "responseDeadline": {
                         "type": "string"
+                    },
+                    "location": {
+                        "type": "string"
                     }
                 }
             },
@@ -636,7 +649,8 @@
                     "selfCheckin",
                     "organizers",
                     "respondOnBehalf",
-                    "responseCounts"
+                    "responseCounts",
+                    "locationsAvailable"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -688,6 +702,9 @@
                         "type": "boolean"
                     },
                     "responseCounts": {
+                        "type": "boolean"
+                    },
+                    "locationsAvailable": {
                         "type": "boolean"
                     }
                 }
@@ -1126,6 +1143,7 @@
                     "closedAt",
                     "cancelledAt",
                     "responseDeadline",
+                    "location",
                     "alreadyCheckedIn",
                     "checkinState",
                     "checkinAt"
@@ -1207,6 +1225,10 @@
                         "nullable": true
                     },
                     "responseDeadline": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "location": {
                         "type": "string",
                         "nullable": true
                     },
@@ -1622,6 +1644,12 @@
                                         "items": {
                                             "type": "string"
                                         }
+                                    },
+                                    "location": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Free-text location"
                                     }
                                 }
                             }
@@ -2220,6 +2248,12 @@
                                         "items": {
                                             "type": "string"
                                         }
+                                    },
+                                    "location": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Free-text location, applied identically to every affected sibling when scope is future/all"
                                     }
                                 }
                             }
@@ -4902,6 +4936,71 @@
                                             "type": "string"
                                         }
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/attendance/api/appointments/locations": {
+            "get": {
+                "operationId": "appointment-location-suggestions",
+                "summary": "Get previously-used appointment locations for autocomplete, restricted to appointments the requesting user may see",
+                "tags": [
+                    "appointment"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }

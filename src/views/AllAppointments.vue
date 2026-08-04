@@ -72,6 +72,45 @@
 						</ul>
 					</template>
 				</NcPopover>
+				<NcPopover v-if="capabilities.locationsAvailable && availableLocations.length">
+					<template #trigger>
+						<NcButton
+							:variant="selectedLocations.length ? 'secondary' : 'tertiary'"
+							data-test="filter-location">
+							<template #icon>
+								<MapMarkerIcon :size="20" />
+							</template>
+							{{ t('attendance', 'Location') }}
+						</NcButton>
+					</template>
+					<template #default>
+						<ul class="filter-bar__options" role="menu">
+							<li v-for="location in availableLocations" :key="location" role="presentation">
+								<NcButton
+									role="menuitemcheckbox"
+									:aria-checked="selectedLocations.includes(location)"
+									alignment="start"
+									wide
+									variant="tertiary"
+									@click="toggleLocationFilter(location)">
+									<span class="filter-bar__option">
+										{{ location }}
+										<CheckIcon v-if="selectedLocations.includes(location)" :size="18" />
+									</span>
+								</NcButton>
+							</li>
+							<li v-if="selectedLocations.length" role="presentation" class="filter-bar__reset">
+								<NcButton
+									alignment="start"
+									wide
+									variant="tertiary"
+									@click="selectedLocations = []">
+									{{ t('attendance', 'Reset filter') }}
+								</NcButton>
+							</li>
+						</ul>
+					</template>
+				</NcPopover>
 			</div>
 			<div v-if="hasActiveFilters" class="filter-bar__active">
 				<span class="filter-bar__active-label">{{ t('attendance', 'Active filters:') }}</span>
@@ -85,6 +124,11 @@
 					:key="filter.id"
 					:text="`${filter.label}: ${filter.value.label}`"
 					@close="setFilter(filter.id, null)" />
+				<NcChip
+					v-for="location in selectedLocations"
+					:key="location"
+					:text="t('attendance', 'Location: {location}', { location })"
+					@close="toggleLocationFilter(location)" />
 			</div>
 		</div>
 
@@ -145,6 +189,7 @@ import AccountIcon from 'vue-material-design-icons/Account.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
 import CheckCircleIcon from 'vue-material-design-icons/CheckCircle.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
+import MapMarkerIcon from 'vue-material-design-icons/MapMarkerOutline.vue'
 import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
 import AppointmentListCard from '../components/appointment/AppointmentListCard.vue'
 import DeleteAppointmentDialog from '../components/appointment/DeleteAppointmentDialog.vue'
@@ -290,6 +335,30 @@ const filterDefs = computed(() => [
 
 const filterValues = ref(loadStoredFilterValues())
 
+// Location is a separate, multi-select axis (several previously-used
+// locations at once) — the shared filterDefs/filterValues above are
+// single-select-per-group, so this stays independent rather than forcing a
+// checkbox mode into that radio-style popover.
+const LOCATION_FILTER_STORAGE_KEY = 'attendance:list-filters:locations'
+const selectedLocations = ref(loadStoredLocationFilter())
+
+function loadStoredLocationFilter() {
+	try {
+		const parsed = JSON.parse(window.localStorage.getItem(LOCATION_FILTER_STORAGE_KEY) || '[]')
+		return Array.isArray(parsed) ? parsed.filter((v) => typeof v === 'string') : []
+	} catch {
+		return []
+	}
+}
+
+const availableLocations = computed(() => [...new Set(appointments.value.map((a) => a.location).filter(Boolean))].sort())
+
+function toggleLocationFilter(location) {
+	selectedLocations.value = selectedLocations.value.includes(location)
+		? selectedLocations.value.filter((l) => l !== location)
+		: [...selectedLocations.value, location]
+}
+
 function loadStoredFilterValues() {
 	try {
 		const parsed = JSON.parse(window.localStorage.getItem(FILTER_STORAGE_KEY) || '{}')
@@ -348,7 +417,23 @@ watch(filterValues, (next) => {
 	}, 300)
 }, { deep: true })
 
-const hasActiveFilters = computed(() => Boolean(props.searchQuery.trim() || activeFilters.value.length))
+let locationPersistTimer = null
+let lastPersistedLocationsJson = JSON.stringify(selectedLocations.value)
+watch(selectedLocations, (next) => {
+	const json = JSON.stringify(next)
+	if (json === lastPersistedLocationsJson) return
+	clearTimeout(locationPersistTimer)
+	locationPersistTimer = setTimeout(() => {
+		try {
+			window.localStorage.setItem(LOCATION_FILTER_STORAGE_KEY, json)
+			lastPersistedLocationsJson = json
+		} catch {
+			// Storage may be unavailable (private mode, quota).
+		}
+	}, 300)
+}, { deep: true })
+
+const hasActiveFilters = computed(() => Boolean(props.searchQuery.trim() || activeFilters.value.length || selectedLocations.value.length))
 
 const visibleAppointments = computed(() => {
 	const query = props.searchQuery.trim().toLowerCase()
@@ -370,6 +455,7 @@ const visibleAppointments = computed(() => {
 			if (response === RESPONSE.NONE && userResponse !== null) return false
 			if (response !== RESPONSE.NONE && userResponse !== response) return false
 		}
+		if (selectedLocations.value.length && !selectedLocations.value.includes(appointment.location)) return false
 		return true
 	})
 })

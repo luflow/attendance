@@ -177,6 +177,8 @@
       <code><![CDATA[$id]]></code>
       <code><![CDATA[$id]]></code>
       <code><![CDATA[$includeComments]]></code>
+      <code><![CDATA[$location]]></code>
+      <code><![CDATA[$location]]></code>
       <code><![CDATA[$name]]></code>
       <code><![CDATA[$name]]></code>
       <code><![CDATA[$notScheduledOut]]></code>
@@ -397,6 +399,7 @@
       <code><![CDATA[$description]]></code>
       <code><![CDATA[$endDatetime]]></code>
       <code><![CDATA[$isActive]]></code>
+      <code><![CDATA[$location]]></code>
       <code><![CDATA[$name]]></code>
       <code><![CDATA[$organizers]]></code>
       <code><![CDATA[$responseDeadline]]></code>
@@ -425,6 +428,7 @@
       <code><![CDATA[$description]]></code>
       <code><![CDATA[$endDatetime]]></code>
       <code><![CDATA[$isActive]]></code>
+      <code><![CDATA[$location]]></code>
       <code><![CDATA[$name]]></code>
       <code><![CDATA[$organizers]]></code>
       <code><![CDATA[$responseDeadline]]></code>
@@ -1102,6 +1106,17 @@
       <code><![CDATA[Version000018Date20260803120000]]></code>
     </UnusedClass>
   </file>
+  <file src="lib/Migration/Version000019Date20260804120000.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[Version000019Date20260804120000]]></code>
+    </ClassMustBeFinal>
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[Version000019Date20260804120000]]></code>
+    </UnusedClass>
+  </file>
   <file src="lib/Notification/Notifier.php">
     <ClassMustBeFinal>
       <code><![CDATA[Notifier]]></code>
@@ -1449,6 +1464,7 @@
       <code><![CDATA[$description]]></code>
       <code><![CDATA[$dtend]]></code>
       <code><![CDATA[$dtstart]]></code>
+      <code><![CDATA[$location]]></code>
       <code><![CDATA[$object]]></code>
       <code><![CDATA[$objects]]></code>
       <code><![CDATA[$resultCalendarUri]]></code>
@@ -1460,7 +1476,7 @@
     </MixedAssignment>
     <MixedReturnTypeCoercion>
       <code><![CDATA[$events]]></code>
-      <code><![CDATA[list<array{id: string, uid: string, uri: ?string, summary: string, description: string, dtstart: string, dtend: string, isAllDay: bool}>]]></code>
+      <code><![CDATA[list<array{id: string, uid: string, uri: ?string, summary: string, description: string, location: string, dtstart: string, dtend: string, isAllDay: bool}>]]></code>
     </MixedReturnTypeCoercion>
     <PossiblyFalseOperand>
       <code><![CDATA[strtotime($a['dtstart'])]]></code>
@@ -1628,6 +1644,7 @@
       <code><![CDATA[$b->getStartDatetime()]]></code>
       <code><![CDATA[$b['displayName']]]></code>
       <code><![CDATA[$checkinValue]]></code>
+      <code><![CDATA[$location]]></code>
       <code><![CDATA[$response->getComment()]]></code>
       <code><![CDATA[$rsvpValue]]></code>
       <code><![CDATA[$user['displayName']]]></code>
@@ -1660,6 +1677,7 @@
       <code><![CDATA[$checkinValue]]></code>
       <code><![CDATA[$existingFile]]></code>
       <code><![CDATA[$file]]></code>
+      <code><![CDATA[$location]]></code>
       <code><![CDATA[$respUserId]]></code>
       <code><![CDATA[$response]]></code>
       <code><![CDATA[$response]]></code>
@@ -1675,6 +1693,7 @@
       <code><![CDATA[getComment]]></code>
       <code><![CDATA[getComment]]></code>
       <code><![CDATA[getId]]></code>
+      <code><![CDATA[getLocation]]></code>
       <code><![CDATA[getName]]></code>
       <code><![CDATA[getResponse]]></code>
       <code><![CDATA[getStartDatetime]]></code>

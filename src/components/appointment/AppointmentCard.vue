@@ -57,6 +57,11 @@
 			</NcButton>
 		</div>
 
+		<div v-if="appointment.location" class="appointment-location" data-test="appointment-location">
+			<MapMarkerIcon :size="16" />
+			<span>{{ appointment.location }}</span>
+		</div>
+
 		<!-- eslint-disable vue/no-v-html -- sanitized with DOMPurify -->
 		<div
 			v-if="appointment.description"
@@ -144,6 +149,7 @@ import { NcButton, NcChip } from '@nextcloud/vue'
 import { computed } from 'vue'
 import CalendarRemoveIcon from 'vue-material-design-icons/CalendarRemove.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
+import MapMarkerIcon from 'vue-material-design-icons/MapMarkerOutline.vue'
 import Paperclip from 'vue-material-design-icons/Paperclip.vue'
 import AppointmentActionsMenu from './AppointmentActionsMenu.vue'
 import AppointmentMeta from './AppointmentMeta.vue'
@@ -387,6 +393,14 @@ const renderedDescription = computed(() => {
             background-color: var(--color-background-hover);
         }
     }
+}
+
+.appointment-location {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-text-maxcontrast);
+    margin-bottom: 15px;
 }
 
 .appointment-description {

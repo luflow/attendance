@@ -71,6 +71,7 @@ return [
 
 		// Search
 		['name' => 'appointment#searchUsersGroupsTeams', 'url' => '/api/search/users-groups-teams', 'verb' => 'GET'],
+		['name' => 'appointment#locationSuggestions', 'url' => '/api/appointments/locations', 'verb' => 'GET'],
 
 		// Guest accounts (via the Nextcloud Guests app)
 		['name' => 'appointment#createGuest', 'url' => '/api/guests', 'verb' => 'POST'],

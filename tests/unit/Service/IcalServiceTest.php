@@ -153,4 +153,16 @@ class IcalServiceTest extends TestCase {
 		// COLOR is deliberately not used (Google ignores it in subscribed feeds).
 		$this->assertStringNotContainsString('COLOR', $out);
 	}
+
+	public function testLocationEmittedWhenSet(): void {
+		$appointment = $this->appointment();
+		$appointment->setLocation('Club house');
+		$out = $this->generate($appointment, null);
+		$this->assertStringContainsString('LOCATION:Club house', $out);
+	}
+
+	public function testNoLocationPropertyEmittedWhenNotSet(): void {
+		$out = $this->generate($this->appointment(), null);
+		$this->assertStringNotContainsString('LOCATION:', $out);
+	}
 }
