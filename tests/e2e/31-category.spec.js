@@ -56,7 +56,10 @@ test.describe('Attendance App - Categories', () => {
 		await starOption.click()
 		await expect(starOption).toHaveAttribute('aria-pressed', 'true')
 		await page.keyboard.press('Escape')
-		const editField = section.getByRole('textbox', { name: 'Category name' })
+		// exact: true — "New category name" (the add-category field, still on
+		// screen) contains "Category name" as a substring and would otherwise
+		// match too.
+		const editField = section.getByRole('textbox', { name: 'Category name', exact: true })
 		await editField.fill(renamedName)
 		await section.getByRole('button', { name: 'Save', exact: true }).click()
 
