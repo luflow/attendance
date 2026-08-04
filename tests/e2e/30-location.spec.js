@@ -128,7 +128,7 @@ test.describe('Attendance App - Location field', () => {
 		await expect(cards.filter({ hasText: 'Filter Room B Meeting' }).first()).toBeVisible()
 
 		await page.locator('[data-test="filter-location"]').click()
-		await page.getByRole('menuitemcheckbox', { name: 'Room A' }).click()
+		await page.getByRole('menuitemcheckbox', { name: 'Room A', exact: true }).click()
 
 		await expect(cards.filter({ hasText: 'Filter Room A Meeting' }).first()).toBeVisible()
 		await expect(cards.filter({ hasText: 'Filter Room B Meeting' })).toHaveCount(0)
