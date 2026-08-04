@@ -22,11 +22,14 @@ export function useCategories() {
 		state.loading = true
 		try {
 			const response = await axios.get(generateUrl('/apps/attendance/api/categories'))
-			state.items = response.data
+			// Mutate in place rather than reassigning — callers destructure
+			// `categories` once and hold that array reference; replacing
+			// state.items with a new array would orphan them from future updates.
+			state.items.splice(0, state.items.length, ...response.data)
 			state.loaded = true
 		} catch (error) {
 			console.error('Failed to load categories:', error)
-			state.items = []
+			state.items.splice(0, state.items.length)
 		} finally {
 			state.loading = false
 		}
