@@ -8,29 +8,20 @@
 					data-test="appointment-title-link"
 					@click.prevent="emit('openDetail', appointment.id)">
 					<div class="list-card__headline-row">
-						<!-- The chevron rides inside the h3, glued to the last word,
-						     so it can never wrap onto a line of its own. -->
+						<!-- The category icon and chevron ride inside the h3, glued to
+						     the last word, so neither can wrap onto a line of its own.
+						     A CSS-only tooltip, not NcPopover — nested this deep in the
+						     no-wrap text flow, NcPopover's floating-ui trigger never
+						     actually opened on hover. -->
 						<h3 data-test="appointment-title" :class="{ 'title-cancelled': isCancelled }">
-							{{ titleHead }} <span class="list-card__title-tail">{{ titleTail }}<ChevronRightIcon :size="20" class="list-card__chevron" /></span>
+							{{ titleHead }} <span class="list-card__title-tail">{{ titleTail }}<span
+								v-if="categoryName"
+								class="list-card__category-inline"
+								tabindex="0"
+								role="img"
+								data-test="appointment-category"
+								:aria-label="categoryName"><component :is="categoryIconComponent(categoryIcon)" :size="15" /><span class="list-card__category-tooltip" role="tooltip">{{ categoryName }}</span></span><ChevronRightIcon :size="20" class="list-card__chevron" /></span>
 						</h3>
-						<NcPopover
-							v-if="categoryName"
-							v-bind="HOVER_TOOLTIP"
-							class="list-card__category-inline">
-							<template #trigger>
-								<span
-									class="list-card__category-trigger"
-									tabindex="0"
-									role="img"
-									data-test="appointment-category"
-									:aria-label="categoryName">
-									<component :is="categoryIconComponent(categoryIcon)" :size="15" />
-								</span>
-							</template>
-							<div class="meta-tooltip">
-								<span>{{ categoryName }}</span>
-							</div>
-						</NcPopover>
 						<AppointmentStatusChips :appointment="appointment" />
 					</div>
 					<AppointmentMeta :appointment="appointment" :dateText="subtitleText" />
@@ -119,7 +110,6 @@
 </template>
 
 <script setup>
-import { NcPopover } from '@nextcloud/vue'
 import { computed } from 'vue'
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
 import MapMarkerIcon from 'vue-material-design-icons/MapMarkerOutline.vue'
@@ -135,7 +125,6 @@ import { appointmentDetailUrl, formatCancelledLabel, formatClosedLabel } from '.
 import { categoryIconComponent } from '../../utils/categoryIcons.js'
 import { stripMarkdown } from '../../utils/markdown.js'
 import { getResponseText, responseSegments } from '../../utils/response.js'
-import { HOVER_TOOLTIP } from '../../utils/tooltip.js'
 
 const props = defineProps({
 	appointment: {
@@ -292,13 +281,11 @@ const stateLabel = computed(() => (isCancelled.value
     }
 
     &__category-inline {
-        display: inline-flex;
-        align-self: flex-start;
-    }
-
-    &__category-trigger {
+        position: relative;
         display: inline-flex;
         align-items: center;
+        vertical-align: -3px;
+        margin-inline-start: 4px;
         color: var(--color-text-maxcontrast);
         cursor: default;
 
@@ -306,6 +293,34 @@ const stateLabel = computed(() => (isCancelled.value
         &:focus-visible {
             color: var(--color-main-text);
         }
+
+        &:hover .list-card__category-tooltip,
+        &:focus-visible .list-card__category-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+    }
+
+    &__category-tooltip {
+        position: absolute;
+        bottom: 100%;
+        inset-inline-start: 50%;
+        transform: translateX(-50%);
+        margin-bottom: 6px;
+        padding: 4px 8px;
+        border-radius: var(--border-radius);
+        background: var(--color-main-background);
+        border: 1px solid var(--color-border-dark);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+        font-size: 13px;
+        font-weight: normal;
+        color: var(--color-main-text);
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.15s ease;
+        pointer-events: none;
+        z-index: 10;
     }
 
     &__chevron {
