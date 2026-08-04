@@ -57,11 +57,12 @@ class CategoryController extends Controller {
 	 * Create a category
 	 *
 	 * @param string $name Category name, must be unique
+	 * @param string $icon Icon key, must be one of CategoryService::ICONS
 	 * @return DataResponse<Http::STATUS_CREATED, AttendanceCategoryData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	#[NoCSRFRequired]
 	#[OpenAPI(OpenAPI::SCOPE_ADMINISTRATION)]
-	public function create(string $name): DataResponse {
+	public function create(string $name, string $icon): DataResponse {
 		$user = $this->userSession->getUser();
 		if ($user === null) {
 			return new DataResponse(['error' => 'User not authenticated'], Http::STATUS_UNAUTHORIZED);
@@ -71,22 +72,23 @@ class CategoryController extends Controller {
 		}
 
 		try {
-			return new DataResponse($this->categoryService->create($name), Http::STATUS_CREATED);
+			return new DataResponse($this->categoryService->create($name, $icon), Http::STATUS_CREATED);
 		} catch (\InvalidArgumentException $e) {
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
 		}
 	}
 
 	/**
-	 * Rename a category
+	 * Rename a category or change its icon
 	 *
 	 * @param int $id Category ID
 	 * @param string $name New category name, must be unique
+	 * @param string $icon Icon key, must be one of CategoryService::ICONS
 	 * @return DataResponse<Http::STATUS_OK, AttendanceCategoryData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
 	#[NoCSRFRequired]
 	#[OpenAPI(OpenAPI::SCOPE_ADMINISTRATION)]
-	public function update(int $id, string $name): DataResponse {
+	public function update(int $id, string $name, string $icon): DataResponse {
 		$user = $this->userSession->getUser();
 		if ($user === null) {
 			return new DataResponse(['error' => 'User not authenticated'], Http::STATUS_UNAUTHORIZED);
@@ -96,7 +98,7 @@ class CategoryController extends Controller {
 		}
 
 		try {
-			return new DataResponse($this->categoryService->update($id, $name));
+			return new DataResponse($this->categoryService->update($id, $name, $icon));
 		} catch (DoesNotExistException $e) {
 			return new DataResponse(['error' => 'Category not found'], Http::STATUS_NOT_FOUND);
 		} catch (\InvalidArgumentException $e) {

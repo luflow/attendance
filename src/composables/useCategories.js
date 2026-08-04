@@ -36,14 +36,14 @@ export function useCategories() {
 
 	/**
 	 * @param {?number} categoryId The appointment's category id.
-	 * @return {?string} The category's current name, or null when unset or
-	 *         the category has since been deleted.
+	 * @return {?object} The category ({ id, name, icon }), or null when unset
+	 *         or the category has since been deleted.
 	 */
-	const getCategoryName = (categoryId) => {
+	const getCategory = (categoryId) => {
 		if (categoryId === null || categoryId === undefined) {
 			return null
 		}
-		return state.items.find((category) => category.id === categoryId)?.name ?? null
+		return state.items.find((category) => category.id === categoryId) ?? null
 	}
 
 	return {
@@ -51,6 +51,6 @@ export function useCategories() {
 		loading: readonly(state.loading),
 		loaded: readonly(state.loaded),
 		loadCategories,
-		getCategoryName,
+		getCategory,
 	}
 }

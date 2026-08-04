@@ -733,7 +733,8 @@
                 "type": "object",
                 "required": [
                     "id",
-                    "name"
+                    "name",
+                    "icon"
                 ],
                 "properties": {
                     "id": {
@@ -741,6 +742,9 @@
                         "format": "int64"
                     },
                     "name": {
+                        "type": "string"
+                    },
+                    "icon": {
                         "type": "string"
                     }
                 }
@@ -6852,12 +6856,17 @@
                             "schema": {
                                 "type": "object",
                                 "required": [
-                                    "name"
+                                    "name",
+                                    "icon"
                                 ],
                                 "properties": {
                                     "name": {
                                         "type": "string",
                                         "description": "Category name, must be unique"
+                                    },
+                                    "icon": {
+                                        "type": "string",
+                                        "description": "Icon key, must be one of CategoryService::ICONS"
                                     }
                                 }
                             }
@@ -6965,7 +6974,7 @@
         "/index.php/apps/attendance/api/admin/categories/{id}": {
             "put": {
                 "operationId": "category-update",
-                "summary": "Rename a category",
+                "summary": "Rename a category or change its icon",
                 "description": "This endpoint requires admin access",
                 "tags": [
                     "category"
@@ -6985,12 +6994,17 @@
                             "schema": {
                                 "type": "object",
                                 "required": [
-                                    "name"
+                                    "name",
+                                    "icon"
                                 ],
                                 "properties": {
                                     "name": {
                                         "type": "string",
                                         "description": "New category name, must be unique"
+                                    },
+                                    "icon": {
+                                        "type": "string",
+                                        "description": "Icon key, must be one of CategoryService::ICONS"
                                     }
                                 }
                             }

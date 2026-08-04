@@ -23,7 +23,7 @@
 					v-if="categoryName"
 					class="appointment-category"
 					data-test="appointment-category">
-					<TagIcon :size="16" />
+					<component :is="categoryIconComponent(categoryIcon)" :size="16" />
 					<span>{{ categoryName }}</span>
 				</div>
 			</div>
@@ -163,7 +163,6 @@ import CalendarRemoveIcon from 'vue-material-design-icons/CalendarRemove.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
 import MapMarkerIcon from 'vue-material-design-icons/MapMarkerOutline.vue'
 import Paperclip from 'vue-material-design-icons/Paperclip.vue'
-import TagIcon from 'vue-material-design-icons/TagOutline.vue'
 import AppointmentActionsMenu from './AppointmentActionsMenu.vue'
 import AppointmentMeta from './AppointmentMeta.vue'
 import AppointmentStatusChips from './AppointmentStatusChips.vue'
@@ -174,6 +173,7 @@ import ResponseSummary from './ResponseSummary.vue'
 import { useAppointmentCard } from '../../composables/useAppointmentCard.js'
 import { useAppointmentLifecycle } from '../../composables/useAppointmentLifecycle.js'
 import { finalScheduleStatus, formatCancelledLabel, formatClosedLabel } from '../../utils/appointment.js'
+import { categoryIconComponent } from '../../utils/categoryIcons.js'
 import { formatTime } from '../../utils/datetime.js'
 import { renderMarkdown, sanitizeHtml } from '../../utils/markdown.js'
 import { getResponseText } from '../../utils/response.js'
@@ -213,6 +213,7 @@ const {
 	subtitleText,
 	osmLocationUrl,
 	categoryName,
+	categoryIcon,
 } = useAppointmentCard(() => props.appointment)
 
 // The banners offer the reverse of the menu's destructive actions, so they

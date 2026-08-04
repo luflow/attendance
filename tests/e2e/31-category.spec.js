@@ -31,6 +31,11 @@ test.describe('Attendance App - Categories', () => {
 		await expect(section).toBeVisible()
 
 		const createName = uniqueName('Rehearsal')
+		await section.locator('[data-test="input-new-category-icon"]').click()
+		const microphoneOption = page.locator('[data-test="category-icon-option-microphone"]')
+		await microphoneOption.click()
+		await expect(microphoneOption).toHaveAttribute('aria-pressed', 'true')
+		await page.keyboard.press('Escape')
 		await page.getByRole('textbox', { name: 'New category name' }).fill(createName)
 		await section.locator('[data-test="button-add-category"]').click()
 
@@ -39,6 +44,11 @@ test.describe('Attendance App - Categories', () => {
 
 		const renamedName = uniqueName('Concert')
 		await item.locator('[data-test="button-edit-category"]').click()
+		await item.locator('[data-test="input-edit-category-icon"]').click()
+		const starOption = page.locator('[data-test="category-icon-option-star"]')
+		await starOption.click()
+		await expect(starOption).toHaveAttribute('aria-pressed', 'true')
+		await page.keyboard.press('Escape')
 		const editField = item.getByRole('textbox', { name: 'Category name' })
 		await editField.fill(renamedName)
 		await item.getByRole('button', { name: 'Save', exact: true }).click()

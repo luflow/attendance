@@ -524,6 +524,7 @@ import RecurrenceSelector from '../components/appointment/RecurrenceSelector.vue
 import SeriesActionDialog from '../components/appointment/SeriesActionDialog.vue'
 import CalendarEventPicker from '../components/calendar/CalendarEventPicker.vue'
 import MarkdownEditor from '../components/common/MarkdownEditor.vue'
+import { useCategories } from '../composables/useCategories.js'
 import { usePermissions } from '../composables/usePermissions.js'
 import { formatGroupLabel } from '../utils/groups.js'
 
@@ -631,16 +632,7 @@ async function loadLocationSuggestions() {
 }
 
 const categoriesAvailable = computed(() => capabilities.categoriesAvailable === true)
-const categories = ref([])
-async function loadCategories() {
-	try {
-		const response = await axios.get(generateUrl('/apps/attendance/api/categories'))
-		categories.value = response.data
-	} catch {
-		// The picker stays usable (just empty) without the list.
-		categories.value = []
-	}
-}
+const { categories, loadCategories } = useCategories()
 
 // Calendar import only ever gives us a category by name (the source event's
 // CATEGORIES text) — categories are admin-managed, so we resolve it against
@@ -649,7 +641,7 @@ function findCategoryIdByName(name) {
 	if (!name) {
 		return null
 	}
-	const match = categories.value.find((category) => category.name === name)
+	const match = categories.find((category) => category.name === name)
 	return match ? match.id : null
 }
 // Organizer list as loaded in edit mode — updates omit the field when it is

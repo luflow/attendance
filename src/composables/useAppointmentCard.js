@@ -20,7 +20,7 @@ import { usePermissions } from './usePermissions.js'
  */
 export function useAppointmentCard(appointmentSource) {
 	const { capabilities, config, permissions } = usePermissions()
-	const { getCategoryName, loadCategories } = useCategories()
+	const { getCategory, loadCategories } = useCategories()
 	loadCategories()
 
 	const appointment = computed(() => (typeof appointmentSource === 'function'
@@ -53,7 +53,9 @@ export function useAppointmentCard(appointmentSource) {
 	const subtitleText = computed(() => (dateFirst.value ? appointment.value.name : dateRange.value))
 
 	const osmLocationUrl = computed(() => openStreetMapUrl(appointment.value.location))
-	const categoryName = computed(() => getCategoryName(appointment.value.categoryId))
+	const category = computed(() => getCategory(appointment.value.categoryId))
+	const categoryName = computed(() => category.value?.name ?? null)
+	const categoryIcon = computed(() => category.value?.icon ?? null)
 
 	return {
 		capabilities,
@@ -69,5 +71,6 @@ export function useAppointmentCard(appointmentSource) {
 		subtitleText,
 		osmLocationUrl,
 		categoryName,
+		categoryIcon,
 	}
 }

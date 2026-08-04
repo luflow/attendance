@@ -38,7 +38,7 @@
 							role="img"
 							data-test="appointment-category"
 							:aria-label="categoryName">
-							<TagIcon :size="15" />
+							<component :is="categoryIconComponent(categoryIcon)" :size="15" />
 						</span>
 					</template>
 					<div class="meta-tooltip">
@@ -123,7 +123,6 @@ import { NcPopover } from '@nextcloud/vue'
 import { computed } from 'vue'
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
 import MapMarkerIcon from 'vue-material-design-icons/MapMarkerOutline.vue'
-import TagIcon from 'vue-material-design-icons/TagOutline.vue'
 import AppointmentActionsMenu from './AppointmentActionsMenu.vue'
 import AppointmentMeta from './AppointmentMeta.vue'
 import AppointmentStatusChips from './AppointmentStatusChips.vue'
@@ -133,6 +132,7 @@ import ResponseEditor from './ResponseEditor.vue'
 import ShowDetailsLink from './ShowDetailsLink.vue'
 import { useAppointmentCard } from '../../composables/useAppointmentCard.js'
 import { appointmentDetailUrl, formatCancelledLabel, formatClosedLabel } from '../../utils/appointment.js'
+import { categoryIconComponent } from '../../utils/categoryIcons.js'
 import { stripMarkdown } from '../../utils/markdown.js'
 import { getResponseText, responseSegments } from '../../utils/response.js'
 import { HOVER_TOOLTIP } from '../../utils/tooltip.js'
@@ -165,6 +165,7 @@ const {
 	subtitleText,
 	osmLocationUrl,
 	categoryName,
+	categoryIcon,
 } = useAppointmentCard(() => props.appointment)
 
 const detailUrl = computed(() => appointmentDetailUrl(props.appointment.id))

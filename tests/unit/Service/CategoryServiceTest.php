@@ -27,10 +27,11 @@ class CategoryServiceTest extends TestCase {
 		$this->service = new CategoryService($this->categoryMapper, $this->appointmentMapper);
 	}
 
-	private function category(int $id, string $name): Category {
+	private function category(int $id, string $name, string $icon = 'tag'): Category {
 		$category = new Category();
 		$category->setId($id);
 		$category->setName($name);
+		$category->setIcon($icon);
 		return $category;
 	}
 
@@ -47,14 +48,15 @@ class CategoryServiceTest extends TestCase {
 		$this->categoryMapper->expects($this->once())->method('insert')
 			->willReturnCallback(fn (Category $c) => $c);
 
-		$created = $this->service->create('  Rehearsal  ');
+		$created = $this->service->create('  Rehearsal  ', 'microphone');
 
 		$this->assertEquals('Rehearsal', $created->getName());
+		$this->assertEquals('microphone', $created->getIcon());
 	}
 
 	public function testCreateRejectsEmptyName(): void {
 		$this->expectException(\InvalidArgumentException::class);
-		$this->service->create('   ');
+		$this->service->create('   ', 'tag');
 	}
 
 	public function testCreateRejectsDuplicateName(): void {
@@ -62,7 +64,15 @@ class CategoryServiceTest extends TestCase {
 			->willReturn($this->category(1, 'Rehearsal'));
 
 		$this->expectException(\InvalidArgumentException::class);
-		$this->service->create('Rehearsal');
+		$this->service->create('Rehearsal', 'tag');
+	}
+
+	public function testCreateRejectsUnknownIcon(): void {
+		$this->categoryMapper->method('findByName')->with('Rehearsal')
+			->willThrowException(new DoesNotExistException('not found'));
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->service->create('Rehearsal', 'not-a-real-icon');
 	}
 
 	public function testUpdateRenamesWhenNameIsFree(): void {
@@ -73,9 +83,10 @@ class CategoryServiceTest extends TestCase {
 		$this->categoryMapper->expects($this->once())->method('update')
 			->willReturnCallback(fn (Category $c) => $c);
 
-		$updated = $this->service->update(1, 'New name');
+		$updated = $this->service->update(1, 'New name', 'star');
 
 		$this->assertEquals('New name', $updated->getName());
+		$this->assertEquals('star', $updated->getIcon());
 	}
 
 	public function testUpdateAllowsKeepingItsOwnName(): void {
@@ -86,7 +97,7 @@ class CategoryServiceTest extends TestCase {
 		$this->categoryMapper->expects($this->once())->method('update')
 			->willReturnCallback(fn (Category $c) => $c);
 
-		$updated = $this->service->update(1, 'Rehearsal');
+		$updated = $this->service->update(1, 'Rehearsal', 'tag');
 
 		$this->assertEquals('Rehearsal', $updated->getName());
 	}
@@ -98,7 +109,16 @@ class CategoryServiceTest extends TestCase {
 		$this->categoryMapper->method('findByName')->with('Social event')->willReturn($other);
 
 		$this->expectException(\InvalidArgumentException::class);
-		$this->service->update(1, 'Social event');
+		$this->service->update(1, 'Social event', 'tag');
+	}
+
+	public function testUpdateRejectsUnknownIcon(): void {
+		$existing = $this->category(1, 'Rehearsal');
+		$this->categoryMapper->method('find')->with(1)->willReturn($existing);
+		$this->categoryMapper->method('findByName')->with('Rehearsal')->willReturn($existing);
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->service->update(1, 'Rehearsal', 'not-a-real-icon');
 	}
 
 	public function testUpdateThrowsWhenCategoryMissing(): void {
@@ -106,7 +126,7 @@ class CategoryServiceTest extends TestCase {
 			->willThrowException(new DoesNotExistException('not found'));
 
 		$this->expectException(DoesNotExistException::class);
-		$this->service->update(99, 'Anything');
+		$this->service->update(99, 'Anything', 'tag');
 	}
 
 	public function testDeleteClearsCategoryFromAppointmentsThenDeletes(): void {

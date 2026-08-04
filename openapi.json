@@ -561,7 +561,8 @@
                 "type": "object",
                 "required": [
                     "id",
-                    "name"
+                    "name",
+                    "icon"
                 ],
                 "properties": {
                     "id": {
@@ -569,6 +570,9 @@
                         "format": "int64"
                     },
                     "name": {
+                        "type": "string"
+                    },
+                    "icon": {
                         "type": "string"
                     }
                 }

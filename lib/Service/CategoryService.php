@@ -10,10 +10,42 @@ use OCA\Attendance\Db\CategoryMapper;
 use OCP\AppFramework\Db\DoesNotExistException;
 
 /**
- * Admin-managed category list. Categories carry a name only — no color; the
- * frontend badges use the Nextcloud/Flutter theme accent instead.
+ * Admin-managed category list. Categories carry a name and an icon chosen
+ * from a fixed, curated set — no color; the frontend badges use the
+ * Nextcloud/Flutter theme accent instead. The icon set is intentionally
+ * small and explicitly mapped to a matching icon on both platforms (web:
+ * vue-material-design-icons, Flutter: Icons.*), so a chosen icon is
+ * guaranteed to exist everywhere without shipping a new icon-font dependency.
  */
 class CategoryService {
+	/**
+	 * @var list<string>
+	 */
+	public const ICONS = [
+		'tag',
+		'music-note',
+		'microphone',
+		'calendar',
+		'group',
+		'star',
+		'flag',
+		'heart',
+		'coffee',
+		'basketball',
+		'soccer',
+		'book',
+		'car',
+		'school',
+		'cake',
+		'trophy',
+		'cocktail',
+		'home',
+		'camera',
+		'theater',
+		'airplane',
+		'palette',
+	];
+
 	private CategoryMapper $categoryMapper;
 	private AppointmentMapper $appointmentMapper;
 
@@ -30,23 +62,26 @@ class CategoryService {
 	}
 
 	/**
-	 * @throws \InvalidArgumentException When the name is empty or already taken
+	 * @throws \InvalidArgumentException When the name is empty, already taken, or the icon is not in CategoryService::ICONS
 	 */
-	public function create(string $name): Category {
+	public function create(string $name, string $icon): Category {
 		$name = $this->validateName($name);
+		$icon = $this->validateIcon($icon);
 
 		$category = new Category();
 		$category->setName($name);
+		$category->setIcon($icon);
 		return $this->categoryMapper->insert($category);
 	}
 
 	/**
 	 * @throws DoesNotExistException When the category does not exist
-	 * @throws \InvalidArgumentException When the name is empty or already taken
+	 * @throws \InvalidArgumentException When the name is empty, already taken, or the icon is not in CategoryService::ICONS
 	 */
-	public function update(int $id, string $name): Category {
+	public function update(int $id, string $name, string $icon): Category {
 		$category = $this->categoryMapper->find($id);
 		$category->setName($this->validateName($name, $id));
+		$category->setIcon($this->validateIcon($icon));
 		return $this->categoryMapper->update($category);
 	}
 
@@ -82,5 +117,16 @@ class CategoryService {
 		}
 
 		return $name;
+	}
+
+	/**
+	 * @throws \InvalidArgumentException When the icon is not in CategoryService::ICONS
+	 */
+	private function validateIcon(string $icon): string {
+		if (!in_array($icon, self::ICONS, true)) {
+			throw new \InvalidArgumentException('Unknown category icon.');
+		}
+
+		return $icon;
 	}
 }

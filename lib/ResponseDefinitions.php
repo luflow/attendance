@@ -147,6 +147,7 @@ namespace OCA\Attendance;
  * @psalm-type AttendanceCategoryData = array{
  *   id: int,
  *   name: string,
+ *   icon: string,
  * }
  * @psalm-type AttendanceGroupOption = array{id: string, displayName: string}
  * @psalm-type AttendanceTeamOption = array{id: string, displayName: string}

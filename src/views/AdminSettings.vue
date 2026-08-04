@@ -79,15 +79,16 @@
 					<ul v-if="categories.length > 0" class="category-list">
 						<li v-for="category in categories" :key="category.id" class="category-list__item">
 							<template v-if="editingCategoryId === category.id">
+								<CategoryIconPicker v-model="editingCategory.icon" data-test="input-edit-category-icon" />
 								<NcInputField
-									v-model="editingCategoryName"
+									v-model="editingCategory.name"
 									:label="t('attendance', 'Category name')"
 									:labelOutside="true"
 									class="category-list__edit-field"
 									@keydown.enter="saveEditingCategory"
 									@keydown.escape="cancelEditingCategory" />
 								<NcButton variant="primary"
-									:disabled="!editingCategoryName.trim() || savingCategoryEdit"
+									:disabled="!editingCategory.name.trim() || savingCategoryEdit"
 									@click="saveEditingCategory">
 									{{ t('attendance', 'Save') }}
 								</NcButton>
@@ -96,6 +97,7 @@
 								</NcButton>
 							</template>
 							<template v-else>
+								<component :is="categoryIconComponent(category.icon)" :size="18" class="category-list__icon" />
 								<span class="category-list__name">{{ category.name }}</span>
 								<NcButton variant="tertiary"
 									:aria-label="t('attendance', 'Rename category')"
@@ -121,15 +123,17 @@
 					</p>
 
 					<div class="category-add">
+						<CategoryIconPicker v-model="newCategory.icon" data-test="input-new-category-icon" />
 						<NcInputField
-							v-model="newCategoryName"
+							v-model="newCategory.name"
 							:label="t('attendance', 'New category name')"
 							:labelOutside="true"
 							:placeholder="t('attendance', 'e.g. Rehearsal')"
+							class="category-add__name-field"
 							data-test="input-new-category"
 							@keydown.enter="createCategory" />
 						<NcButton variant="primary"
-							:disabled="!newCategoryName.trim() || creatingCategory"
+							:disabled="!newCategory.name.trim() || creatingCategory"
 							data-test="button-add-category"
 							@click="createCategory">
 							{{ t('attendance', 'Add category') }}
@@ -682,7 +686,7 @@ import {
 	NcSettingsSection,
 } from '@nextcloud/vue'
 import QRCode from 'qrcode'
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import AccountStar from 'vue-material-design-icons/AccountStar.vue'
 import AppleIcon from 'vue-material-design-icons/Apple.vue'
 import BellRingIcon from 'vue-material-design-icons/BellRing.vue'
@@ -694,9 +698,11 @@ import GoogleIcon from 'vue-material-design-icons/Google.vue'
 import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import TrashCan from 'vue-material-design-icons/TrashCan.vue'
+import CategoryIconPicker from '../components/admin/CategoryIconPicker.vue'
 import PermissionRow from '../components/admin/PermissionRow.vue'
 import SectionLink from '../components/admin/SectionLink.vue'
 import GroupSelect from '../components/common/GroupSelect.vue'
+import { categoryIconComponent, DEFAULT_CATEGORY_ICON } from '../utils/categoryIcons.js'
 import { copyToClipboard } from '../utils/clipboard.js'
 import { formatDate, formatDateTimeMedium } from '../utils/datetime.js'
 import { APPLE_STORE_URL, GOOGLE_STORE_URL } from '../utils/mobileApp.js'
@@ -729,10 +735,10 @@ function sectionLink(sectionId) {
 
 const categories = ref([])
 const categoriesLoading = ref(true)
-const newCategoryName = ref('')
+const newCategory = reactive({ name: '', icon: DEFAULT_CATEGORY_ICON })
 const creatingCategory = ref(false)
 const editingCategoryId = ref(null)
-const editingCategoryName = ref('')
+const editingCategory = reactive({ name: '', icon: DEFAULT_CATEGORY_ICON })
 const savingCategoryEdit = ref(false)
 const categoryToDelete = ref(null)
 
@@ -754,16 +760,16 @@ async function loadCategories() {
 }
 
 async function createCategory() {
-	const name = newCategoryName.value.trim()
+	const name = newCategory.name.trim()
 	if (!name || creatingCategory.value) {
 		return
 	}
 	creatingCategory.value = true
 	try {
-		const response = await axios.post(generateUrl('/apps/attendance/api/admin/categories'), { name })
+		const response = await axios.post(generateUrl('/apps/attendance/api/admin/categories'), { name, icon: newCategory.icon })
 		categories.value.push(response.data)
 		sortCategories()
-		newCategoryName.value = ''
+		Object.assign(newCategory, { name: '', icon: DEFAULT_CATEGORY_ICON })
 	} catch (error) {
 		showError(error.response?.data?.error || t('attendance', 'Could not create category'))
 	} finally {
@@ -773,16 +779,16 @@ async function createCategory() {
 
 function startEditingCategory(category) {
 	editingCategoryId.value = category.id
-	editingCategoryName.value = category.name
+	Object.assign(editingCategory, { name: category.name, icon: category.icon })
 }
 
 function cancelEditingCategory() {
 	editingCategoryId.value = null
-	editingCategoryName.value = ''
+	editingCategory.name = ''
 }
 
 async function saveEditingCategory() {
-	const name = editingCategoryName.value.trim()
+	const name = editingCategory.name.trim()
 	if (!name || editingCategoryId.value === null || savingCategoryEdit.value) {
 		return
 	}
@@ -790,7 +796,7 @@ async function saveEditingCategory() {
 	try {
 		const response = await axios.put(
 			generateUrl(`/apps/attendance/api/admin/categories/${editingCategoryId.value}`),
-			{ name },
+			{ name, icon: editingCategory.icon },
 		)
 		const index = categories.value.findIndex((category) => category.id === editingCategoryId.value)
 		if (index !== -1) {
@@ -1390,6 +1396,11 @@ onMounted(async () => {
 	padding: 6px 0;
 }
 
+.category-list__icon {
+	flex-shrink: 0;
+	color: var(--color-text-maxcontrast);
+}
+
 .category-list__name {
 	flex: 1;
 	min-width: 0;
@@ -1409,7 +1420,7 @@ onMounted(async () => {
 	gap: 8px;
 }
 
-.category-add > *:first-child {
+.category-add__name-field {
 	flex: 1;
 }
 

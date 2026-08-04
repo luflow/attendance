@@ -289,6 +289,8 @@
       <code><![CDATA[CategoryController]]></code>
     </ClassMustBeFinal>
     <PossiblyUnusedParam>
+      <code><![CDATA[$icon]]></code>
+      <code><![CDATA[$icon]]></code>
       <code><![CDATA[$id]]></code>
       <code><![CDATA[$name]]></code>
       <code><![CDATA[$name]]></code>
@@ -665,9 +667,11 @@
       <code><![CDATA[public function jsonSerialize(): array {]]></code>
     </MissingOverrideAttribute>
     <MissingPropertyType>
+      <code><![CDATA[$icon]]></code>
       <code><![CDATA[$name]]></code>
     </MissingPropertyType>
     <PossiblyUnusedProperty>
+      <code><![CDATA[$icon]]></code>
       <code><![CDATA[$name]]></code>
     </PossiblyUnusedProperty>
     <PropertyNotSetInConstructor>

@@ -11,9 +11,10 @@ use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
 /**
- * Adds the att_categories table (admin-managed, name only — no color) and a
- * nullable category_id column on att_appointments. Both additive, so older
- * mobile clients keep working.
+ * Adds the att_categories table (admin-managed, name + a fixed-set icon key —
+ * no color, badges use the Nextcloud/Flutter theme accent) and a nullable
+ * category_id column on att_appointments. Both additive, so older mobile
+ * clients keep working.
  */
 class Version000020Date20260804140000 extends SimpleMigrationStep {
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
@@ -28,6 +29,11 @@ class Version000020Date20260804140000 extends SimpleMigrationStep {
 			$table->addColumn('name', Types::STRING, [
 				'notnull' => true,
 				'length' => 255,
+			]);
+			$table->addColumn('icon', Types::STRING, [
+				'notnull' => true,
+				'length' => 32,
+				'default' => 'tag',
 			]);
 
 			$table->setPrimaryKey(['id']);
