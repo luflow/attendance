@@ -165,7 +165,7 @@ import ResponseEditor from './ResponseEditor.vue'
 import ResponseSummary from './ResponseSummary.vue'
 import { useAppointmentCard } from '../../composables/useAppointmentCard.js'
 import { useAppointmentLifecycle } from '../../composables/useAppointmentLifecycle.js'
-import { finalScheduleStatus, formatCancelledLabel, formatClosedLabel, openStreetMapUrl } from '../../utils/appointment.js'
+import { finalScheduleStatus, formatCancelledLabel, formatClosedLabel } from '../../utils/appointment.js'
 import { formatTime } from '../../utils/datetime.js'
 import { renderMarkdown, sanitizeHtml } from '../../utils/markdown.js'
 import { getResponseText } from '../../utils/response.js'
@@ -189,8 +189,6 @@ const emit = defineEmits([
 	'refreshAppointment',
 ])
 
-const osmLocationUrl = computed(() => openStreetMapUrl(props.appointment.location))
-
 // NB: pass a getter, never bind it to a name — every top-level binding in
 // <script setup> is exposed to the template, and a local `appointment` would
 // shadow `props.appointment` there with the function itself.
@@ -205,6 +203,7 @@ const {
 	canSeeAuditLog,
 	titleText,
 	subtitleText,
+	osmLocationUrl,
 } = useAppointmentCard(() => props.appointment)
 
 // The banners offer the reverse of the menu's destructive actions, so they

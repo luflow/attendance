@@ -1,33 +1,33 @@
 <template>
 	<div class="list-card" data-test="appointment-card">
 		<div class="list-card__header" :class="{ 'list-card__header--cancelled': isCancelled }">
-			<a
-				:href="detailUrl"
-				class="list-card__headline"
-				data-test="appointment-title-link"
-				@click.prevent="emit('openDetail', appointment.id)">
-				<div class="list-card__headline-row">
-					<!-- The chevron rides inside the h3, glued to the last word,
-					     so it can never wrap onto a line of its own. -->
-					<h3 data-test="appointment-title" :class="{ 'title-cancelled': isCancelled }">
-						{{ titleHead }} <span class="list-card__title-tail">{{ titleTail }}<ChevronRightIcon :size="20" class="list-card__chevron" /></span>
-					</h3>
-					<AppointmentStatusChips :appointment="appointment" />
-				</div>
-				<AppointmentMeta :appointment="appointment" :dateText="subtitleText" />
-				<span
+			<div class="list-card__headline-wrap">
+				<a
+					:href="detailUrl"
+					class="list-card__headline"
+					data-test="appointment-title-link"
+					@click.prevent="emit('openDetail', appointment.id)">
+					<div class="list-card__headline-row">
+						<!-- The chevron rides inside the h3, glued to the last word,
+						     so it can never wrap onto a line of its own. -->
+						<h3 data-test="appointment-title" :class="{ 'title-cancelled': isCancelled }">
+							{{ titleHead }} <span class="list-card__title-tail">{{ titleTail }}<ChevronRightIcon :size="20" class="list-card__chevron" /></span>
+						</h3>
+						<AppointmentStatusChips :appointment="appointment" />
+					</div>
+					<AppointmentMeta :appointment="appointment" :dateText="subtitleText" />
+				</a>
+				<a
 					v-if="appointment.location"
+					:href="osmLocationUrl"
+					target="_blank"
+					rel="noopener noreferrer"
 					class="list-card__location"
-					role="link"
-					tabindex="0"
-					data-test="appointment-location"
-					:title="t('attendance', 'Open in OpenStreetMap')"
-					@click.stop="openMapsLink(osmLocationUrl)"
-					@keydown.enter.stop="openMapsLink(osmLocationUrl)">
+					data-test="appointment-location">
 					<MapMarkerIcon :size="15" />
 					<span class="list-card__location-text">{{ appointment.location }}</span>
-				</span>
-			</a>
+				</a>
+			</div>
 			<AppointmentActionsMenu
 				:appointment="appointment"
 				:canSeeAuditLog="canSeeAuditLog"
@@ -112,7 +112,7 @@ import ResponseDot from './ResponseDot.vue'
 import ResponseEditor from './ResponseEditor.vue'
 import ShowDetailsLink from './ShowDetailsLink.vue'
 import { useAppointmentCard } from '../../composables/useAppointmentCard.js'
-import { appointmentDetailUrl, formatCancelledLabel, formatClosedLabel, openStreetMapUrl } from '../../utils/appointment.js'
+import { appointmentDetailUrl, formatCancelledLabel, formatClosedLabel } from '../../utils/appointment.js'
 import { stripMarkdown } from '../../utils/markdown.js'
 import { getResponseText, responseSegments } from '../../utils/response.js'
 
@@ -142,17 +142,10 @@ const {
 	canSeeAuditLog,
 	titleText,
 	subtitleText,
+	osmLocationUrl,
 } = useAppointmentCard(() => props.appointment)
 
 const detailUrl = computed(() => appointmentDetailUrl(props.appointment.id))
-const osmLocationUrl = computed(() => openStreetMapUrl(props.appointment.location))
-
-// The location lives inside the card's outer <a> (which handles the card
-// click itself), so a real nested <a> would be invalid HTML — open the URL
-// directly instead and stop the click from also triggering the card.
-function openMapsLink(url) {
-	window.open(url, '_blank', 'noopener,noreferrer')
-}
 
 // Split the title before its last word so that word and the chevron can share
 // a no-wrap span — the arrow always keeps at least one word next to it.
@@ -208,8 +201,15 @@ const stateLabel = computed(() => (isCancelled.value
         }
     }
 
-    &__headline {
+    &__headline-wrap {
         flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    &__headline {
         min-width: 0;
         display: flex;
         flex-direction: column;
@@ -253,7 +253,6 @@ const stateLabel = computed(() => (isCancelled.value
         min-width: 0;
         font-size: 15px;
         color: var(--color-text-maxcontrast);
-        cursor: pointer;
 
         &:hover,
         &:focus-visible {
