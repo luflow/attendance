@@ -799,6 +799,23 @@
     "Location: {location}" : "Ort: {location}",
     "Search or add a location …" : "Ort suchen oder hinzufügen …",
     "Apple Maps" : "Apple Karten",
-    "Google Maps" : "Google Maps"
+    "Google Maps" : "Google Maps",
+    "Add category" : "Kategorie hinzufügen",
+    "Categories" : "Kategorien",
+    "Category" : "Kategorie",
+    "Category name" : "Kategoriename",
+    "Category: {category}" : "Kategorie: {category}",
+    "Could not create category" : "Kategorie konnte nicht erstellt werden",
+    "Could not delete category" : "Kategorie konnte nicht gelöscht werden",
+    "Could not load categories" : "Kategorien konnten nicht geladen werden",
+    "Could not rename category" : "Kategorie konnte nicht umbenannt werden",
+    "Define categories appointments can be classified under. Categories have no color of their own — badges use your Nextcloud theme color." : "Lege Kategorien fest, denen Termine zugeordnet werden können. Kategorien haben keine eigene Farbe — Badges verwenden die Themenfarbe deiner Nextcloud.",
+    "Delete category" : "Kategorie löschen",
+    "Do you want to delete the category \"{name}\"? Appointments using it keep their other data but lose the category." : "Soll die Kategorie „{name}“ gelöscht werden? Termine, die sie verwenden, behalten ihre übrigen Daten, verlieren aber die Kategorie.",
+    "New category name" : "Name der neuen Kategorie",
+    "No categories yet." : "Noch keine Kategorien.",
+    "Rename category" : "Kategorie umbenennen",
+    "e.g. Rehearsal" : "z. B. Probe",
+    "Select a category …" : "Kategorie auswählen …"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

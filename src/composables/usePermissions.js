@@ -25,6 +25,7 @@ const state = reactive({
 		scheduledFilter: false,
 		organizers: false,
 		locationsAvailable: false,
+		categoriesAvailable: false,
 	},
 	config: {
 		displayOrder: 'name_first',
@@ -86,6 +87,7 @@ export function usePermissions() {
 			state.capabilities.scheduledFilter = capabilitiesRes.data.scheduledFilter === true
 			state.capabilities.organizers = capabilitiesRes.data.organizers === true
 			state.capabilities.locationsAvailable = capabilitiesRes.data.locationsAvailable === true
+			state.capabilities.categoriesAvailable = capabilitiesRes.data.categoriesAvailable === true
 
 			state.config.displayOrder = configRes.data.displayOrder || 'name_first'
 			state.config.mobileAppBannerEnabled = configRes.data.mobileAppBannerEnabled !== false
@@ -114,6 +116,7 @@ export function usePermissions() {
 			state.capabilities.scheduledFilter = false
 			state.capabilities.organizers = false
 			state.capabilities.locationsAvailable = false
+			state.capabilities.categoriesAvailable = false
 			state.config.displayOrder = 'name_first'
 			state.config.mobileAppBannerEnabled = true
 			state.config.hasPushDevice = false

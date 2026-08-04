@@ -10,6 +10,7 @@
 import { computed, unref } from 'vue'
 import { openStreetMapUrl } from '../utils/appointment.js'
 import { formatDateRange } from '../utils/datetime.js'
+import { useCategories } from './useCategories.js'
 import { usePermissions } from './usePermissions.js'
 
 /**
@@ -19,6 +20,8 @@ import { usePermissions } from './usePermissions.js'
  */
 export function useAppointmentCard(appointmentSource) {
 	const { capabilities, config, permissions } = usePermissions()
+	const { getCategoryName, loadCategories } = useCategories()
+	loadCategories()
 
 	const appointment = computed(() => (typeof appointmentSource === 'function'
 		? appointmentSource()
@@ -50,6 +53,7 @@ export function useAppointmentCard(appointmentSource) {
 	const subtitleText = computed(() => (dateFirst.value ? appointment.value.name : dateRange.value))
 
 	const osmLocationUrl = computed(() => openStreetMapUrl(appointment.value.location))
+	const categoryName = computed(() => getCategoryName(appointment.value.categoryId))
 
 	return {
 		capabilities,
@@ -64,5 +68,6 @@ export function useAppointmentCard(appointmentSource) {
 		titleText,
 		subtitleText,
 		osmLocationUrl,
+		categoryName,
 	}
 }

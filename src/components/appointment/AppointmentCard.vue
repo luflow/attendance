@@ -19,6 +19,13 @@
 					<MapMarkerIcon :size="16" />
 					<span>{{ appointment.location }}</span>
 				</a>
+				<div
+					v-if="categoryName"
+					class="appointment-category"
+					data-test="appointment-category">
+					<TagIcon :size="16" />
+					<span>{{ categoryName }}</span>
+				</div>
 			</div>
 			<AppointmentActionsMenu
 				:appointment="appointment"
@@ -156,6 +163,7 @@ import CalendarRemoveIcon from 'vue-material-design-icons/CalendarRemove.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
 import MapMarkerIcon from 'vue-material-design-icons/MapMarkerOutline.vue'
 import Paperclip from 'vue-material-design-icons/Paperclip.vue'
+import TagIcon from 'vue-material-design-icons/TagOutline.vue'
 import AppointmentActionsMenu from './AppointmentActionsMenu.vue'
 import AppointmentMeta from './AppointmentMeta.vue'
 import AppointmentStatusChips from './AppointmentStatusChips.vue'
@@ -204,6 +212,7 @@ const {
 	titleText,
 	subtitleText,
 	osmLocationUrl,
+	categoryName,
 } = useAppointmentCard(() => props.appointment)
 
 // The banners offer the reverse of the menu's destructive actions, so they
@@ -317,6 +326,15 @@ const renderedDescription = computed(() => {
                 color: var(--color-main-text);
                 text-decoration: underline;
             }
+        }
+
+        .appointment-category {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+            color: var(--color-text-maxcontrast);
+            font-size: 15px;
         }
     }
 }

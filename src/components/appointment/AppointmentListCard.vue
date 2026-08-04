@@ -27,6 +27,24 @@
 					<MapMarkerIcon :size="15" />
 					<span class="list-card__location-text">{{ appointment.location }}</span>
 				</a>
+				<NcPopover
+					v-if="categoryName"
+					v-bind="HOVER_TOOLTIP"
+					class="list-card__category">
+					<template #trigger>
+						<span
+							class="list-card__category-trigger"
+							tabindex="0"
+							role="img"
+							data-test="appointment-category"
+							:aria-label="categoryName">
+							<TagIcon :size="15" />
+						</span>
+					</template>
+					<div class="meta-tooltip">
+						<span>{{ categoryName }}</span>
+					</div>
+				</NcPopover>
 			</div>
 			<AppointmentActionsMenu
 				:appointment="appointment"
@@ -101,9 +119,11 @@
 </template>
 
 <script setup>
+import { NcPopover } from '@nextcloud/vue'
 import { computed } from 'vue'
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
 import MapMarkerIcon from 'vue-material-design-icons/MapMarkerOutline.vue'
+import TagIcon from 'vue-material-design-icons/TagOutline.vue'
 import AppointmentActionsMenu from './AppointmentActionsMenu.vue'
 import AppointmentMeta from './AppointmentMeta.vue'
 import AppointmentStatusChips from './AppointmentStatusChips.vue'
@@ -115,6 +135,7 @@ import { useAppointmentCard } from '../../composables/useAppointmentCard.js'
 import { appointmentDetailUrl, formatCancelledLabel, formatClosedLabel } from '../../utils/appointment.js'
 import { stripMarkdown } from '../../utils/markdown.js'
 import { getResponseText, responseSegments } from '../../utils/response.js'
+import { HOVER_TOOLTIP } from '../../utils/tooltip.js'
 
 const props = defineProps({
 	appointment: {
@@ -143,6 +164,7 @@ const {
 	titleText,
 	subtitleText,
 	osmLocationUrl,
+	categoryName,
 } = useAppointmentCard(() => props.appointment)
 
 const detailUrl = computed(() => appointmentDetailUrl(props.appointment.id))
@@ -266,6 +288,23 @@ const stateLabel = computed(() => (isCancelled.value
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    &__category {
+        display: inline-flex;
+        align-self: flex-start;
+    }
+
+    &__category-trigger {
+        display: inline-flex;
+        align-items: center;
+        color: var(--color-text-maxcontrast);
+        cursor: default;
+
+        &:hover,
+        &:focus-visible {
+            color: var(--color-main-text);
+        }
     }
 
     &__chevron {

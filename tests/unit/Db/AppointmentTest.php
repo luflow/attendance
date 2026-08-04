@@ -67,6 +67,7 @@ class AppointmentTest extends TestCase {
 		$this->appointment->setUpdatedAt('2024-01-01 09:00:00');
 		$this->appointment->setIsActive(true);
 		$this->appointment->setLocation('Club house');
+		$this->appointment->setCategoryId(7);
 
 		$json = $this->appointment->jsonSerialize();
 
@@ -76,6 +77,7 @@ class AppointmentTest extends TestCase {
 		$this->assertEquals('admin', $json['createdBy']);
 		$this->assertEquals(1, $json['isActive']);
 		$this->assertEquals('Club house', $json['location']);
+		$this->assertEquals(7, $json['categoryId']);
 
 		// Check datetime formatting to UTC ISO 8601
 		$this->assertStringContainsString('2024-01-15T10:00:00Z', $json['startDatetime']);

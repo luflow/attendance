@@ -44,7 +44,8 @@
                     "closedAt",
                     "cancelledAt",
                     "responseDeadline",
-                    "location"
+                    "location",
+                    "categoryId"
                 ],
                 "properties": {
                     "id": {
@@ -135,6 +136,11 @@
                     "location": {
                         "type": "string",
                         "nullable": true
+                    },
+                    "categoryId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "nullable": true
                     }
                 }
             },
@@ -163,6 +169,7 @@
                     "cancelledAt",
                     "responseDeadline",
                     "location",
+                    "categoryId",
                     "userResponse",
                     "attachments",
                     "myPermissions"
@@ -271,6 +278,11 @@
                     },
                     "location": {
                         "type": "string",
+                        "nullable": true
+                    },
+                    "categoryId": {
+                        "type": "integer",
+                        "format": "int64",
                         "nullable": true
                     },
                     "userResponse": {
@@ -455,6 +467,10 @@
                     },
                     "location": {
                         "type": "string"
+                    },
+                    "categoryId": {
+                        "type": "integer",
+                        "format": "int64"
                     }
                 }
             },
@@ -478,7 +494,8 @@
                     "organizers",
                     "respondOnBehalf",
                     "responseCounts",
-                    "locationsAvailable"
+                    "locationsAvailable",
+                    "categoriesAvailable"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -534,6 +551,25 @@
                     },
                     "locationsAvailable": {
                         "type": "boolean"
+                    },
+                    "categoriesAvailable": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "CategoryData": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "name": {
+                        "type": "string"
                     }
                 }
             },
@@ -914,6 +950,7 @@
                     "cancelledAt",
                     "responseDeadline",
                     "location",
+                    "categoryId",
                     "alreadyCheckedIn",
                     "checkinState",
                     "checkinAt"
@@ -1000,6 +1037,11 @@
                     },
                     "location": {
                         "type": "string",
+                        "nullable": true
+                    },
+                    "categoryId": {
+                        "type": "integer",
+                        "format": "int64",
                         "nullable": true
                     },
                     "alreadyCheckedIn": {
@@ -1370,6 +1412,13 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Free-text location"
+                                    },
+                                    "categoryId": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Category ID"
                                     }
                                 }
                             }
@@ -2039,6 +2088,13 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Free-text location, applied identically to every affected sibling when scope is future/all"
+                                    },
+                                    "categoryId": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Category, applied identically to every affected sibling when scope is future/all"
                                     }
                                 }
                             }
@@ -4210,6 +4266,72 @@
                                             "type": "string"
                                         }
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/attendance/api/categories": {
+            "get": {
+                "operationId": "category-index",
+                "summary": "List all categories, alphabetically",
+                "description": "Available to any logged-in user — appointments' category picker and the appointment list filter both need the full list, not just admins.",
+                "tags": [
+                    "category"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/CategoryData"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }

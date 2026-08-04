@@ -68,6 +68,92 @@
 				</p>
 			</NcSettingsSection>
 
+			<NcSettingsSection id="categories"
+				:name="t('attendance', 'Categories')"
+				:description="t('attendance', 'Define categories appointments can be classified under. Categories have no color of their own — badges use your Nextcloud theme color.')"
+				data-test="section-categories">
+				<div v-if="categoriesLoading" class="loading-section">
+					<NcLoadingIcon :size="24" />
+				</div>
+				<template v-else>
+					<ul v-if="categories.length > 0" class="category-list">
+						<li v-for="category in categories" :key="category.id" class="category-list__item">
+							<template v-if="editingCategoryId === category.id">
+								<NcInputField
+									v-model="editingCategoryName"
+									:label="t('attendance', 'Category name')"
+									:labelOutside="true"
+									class="category-list__edit-field"
+									@keydown.enter="saveEditingCategory"
+									@keydown.escape="cancelEditingCategory" />
+								<NcButton variant="primary"
+									:disabled="!editingCategoryName.trim() || savingCategoryEdit"
+									@click="saveEditingCategory">
+									{{ t('attendance', 'Save') }}
+								</NcButton>
+								<NcButton variant="tertiary" @click="cancelEditingCategory">
+									{{ t('attendance', 'Cancel') }}
+								</NcButton>
+							</template>
+							<template v-else>
+								<span class="category-list__name">{{ category.name }}</span>
+								<NcButton variant="tertiary"
+									:aria-label="t('attendance', 'Rename category')"
+									data-test="button-edit-category"
+									@click="startEditingCategory(category)">
+									<template #icon>
+										<Pencil :size="18" />
+									</template>
+								</NcButton>
+								<NcButton variant="tertiary"
+									:aria-label="t('attendance', 'Delete category')"
+									data-test="button-delete-category"
+									@click="confirmDeleteCategory(category)">
+									<template #icon>
+										<TrashCan :size="18" />
+									</template>
+								</NcButton>
+							</template>
+						</li>
+					</ul>
+					<p v-else class="hint-text">
+						{{ t('attendance', 'No categories yet.') }}
+					</p>
+
+					<div class="category-add">
+						<NcInputField
+							v-model="newCategoryName"
+							:label="t('attendance', 'New category name')"
+							:labelOutside="true"
+							:placeholder="t('attendance', 'e.g. Rehearsal')"
+							data-test="input-new-category"
+							@keydown.enter="createCategory" />
+						<NcButton variant="primary"
+							:disabled="!newCategoryName.trim() || creatingCategory"
+							data-test="button-add-category"
+							@click="createCategory">
+							{{ t('attendance', 'Add category') }}
+						</NcButton>
+					</div>
+				</template>
+			</NcSettingsSection>
+
+			<NcDialog v-if="categoryToDelete"
+				:name="t('attendance', 'Delete category')"
+				@closing="categoryToDelete = null">
+				<p>
+					{{ t('attendance', 'Do you want to delete the category "{name}"? Appointments using it keep their other data but lose the category.', { name: categoryToDelete.name }) }}
+				</p>
+				<template #actions>
+					<NcButton variant="tertiary" @click="categoryToDelete = null">
+						{{ t('attendance', 'Cancel') }}
+					</NcButton>
+					<NcButton variant="error" @click="deleteCategory">
+						{{ t('attendance', 'Delete') }}
+					</NcButton>
+				</template>
+			</NcDialog>
+
 			<NcSettingsSection id="permissions"
 				:name="t('attendance', 'Permissions')"
 				:description="t('attendance', 'Control who can do what. Every permission is either open to all users, limited to specific groups, or granted to nobody.')">
@@ -588,6 +674,7 @@ import { generateUrl } from '@nextcloud/router'
 import {
 	NcButton,
 	NcCheckboxRadioSwitch,
+	NcDialog,
 	NcInputField,
 	NcLoadingIcon,
 	NcNoteCard,
@@ -605,6 +692,8 @@ import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
 import Download from 'vue-material-design-icons/Download.vue'
 import GoogleIcon from 'vue-material-design-icons/Google.vue'
 import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
+import Pencil from 'vue-material-design-icons/Pencil.vue'
+import TrashCan from 'vue-material-design-icons/TrashCan.vue'
 import PermissionRow from '../components/admin/PermissionRow.vue'
 import SectionLink from '../components/admin/SectionLink.vue'
 import GroupSelect from '../components/common/GroupSelect.vue'
@@ -619,6 +708,7 @@ const mobileAppStores = [
 
 const navSections = [
 	{ id: 'response-summary', label: t('attendance', 'Response summary') },
+	{ id: 'categories', label: t('attendance', 'Categories') },
 	{ id: 'permissions', label: t('attendance', 'Permissions') },
 	{ id: 'self-checkin', label: t('attendance', 'Self-check-in') },
 	{ id: 'reminders', label: t('attendance', 'Appointment reminders') },
@@ -635,6 +725,103 @@ const navSections = [
 // name a section differently than the chip that jumps to the same place.
 function sectionLink(sectionId) {
 	return { sectionId, label: navSections.find((section) => section.id === sectionId).label }
+}
+
+const categories = ref([])
+const categoriesLoading = ref(true)
+const newCategoryName = ref('')
+const creatingCategory = ref(false)
+const editingCategoryId = ref(null)
+const editingCategoryName = ref('')
+const savingCategoryEdit = ref(false)
+const categoryToDelete = ref(null)
+
+function sortCategories() {
+	categories.value.sort((a, b) => a.name.localeCompare(b.name))
+}
+
+async function loadCategories() {
+	categoriesLoading.value = true
+	try {
+		const response = await axios.get(generateUrl('/apps/attendance/api/categories'))
+		categories.value = response.data
+	} catch (error) {
+		console.error('Failed to load categories:', error)
+		showError(t('attendance', 'Could not load categories'))
+	} finally {
+		categoriesLoading.value = false
+	}
+}
+
+async function createCategory() {
+	const name = newCategoryName.value.trim()
+	if (!name || creatingCategory.value) {
+		return
+	}
+	creatingCategory.value = true
+	try {
+		const response = await axios.post(generateUrl('/apps/attendance/api/admin/categories'), { name })
+		categories.value.push(response.data)
+		sortCategories()
+		newCategoryName.value = ''
+	} catch (error) {
+		showError(error.response?.data?.error || t('attendance', 'Could not create category'))
+	} finally {
+		creatingCategory.value = false
+	}
+}
+
+function startEditingCategory(category) {
+	editingCategoryId.value = category.id
+	editingCategoryName.value = category.name
+}
+
+function cancelEditingCategory() {
+	editingCategoryId.value = null
+	editingCategoryName.value = ''
+}
+
+async function saveEditingCategory() {
+	const name = editingCategoryName.value.trim()
+	if (!name || editingCategoryId.value === null || savingCategoryEdit.value) {
+		return
+	}
+	savingCategoryEdit.value = true
+	try {
+		const response = await axios.put(
+			generateUrl(`/apps/attendance/api/admin/categories/${editingCategoryId.value}`),
+			{ name },
+		)
+		const index = categories.value.findIndex((category) => category.id === editingCategoryId.value)
+		if (index !== -1) {
+			categories.value.splice(index, 1, response.data)
+		}
+		sortCategories()
+		cancelEditingCategory()
+	} catch (error) {
+		showError(error.response?.data?.error || t('attendance', 'Could not rename category'))
+	} finally {
+		savingCategoryEdit.value = false
+	}
+}
+
+function confirmDeleteCategory(category) {
+	categoryToDelete.value = category
+}
+
+async function deleteCategory() {
+	const category = categoryToDelete.value
+	if (!category) {
+		return
+	}
+	try {
+		await axios.delete(generateUrl(`/apps/attendance/api/admin/categories/${category.id}`))
+		categories.value = categories.value.filter((c) => c.id !== category.id)
+	} catch {
+		showError(t('attendance', 'Could not delete category'))
+	} finally {
+		categoryToDelete.value = null
+	}
 }
 
 const permissionGroups = [
@@ -1134,7 +1321,7 @@ async function sendTestReminder() {
 // Lifecycle
 onMounted(async () => {
 	generateQrCode()
-	await loadSettings()
+	await Promise.all([loadSettings(), loadCategories()])
 
 	// Handle hash navigation after content is loaded
 	await nextTick()
@@ -1185,6 +1372,45 @@ onMounted(async () => {
 	margin-top: 8px;
 	color: var(--color-text-maxcontrast);
 	font-size: 13px;
+}
+
+.category-list {
+	list-style: none;
+	margin: 0 0 16px 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.category-list__item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 0;
+}
+
+.category-list__name {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.category-list__edit-field {
+	flex: 1;
+	min-width: 0;
+}
+
+.category-add {
+	display: flex;
+	align-items: flex-end;
+	gap: 8px;
+}
+
+.category-add > *:first-child {
+	flex: 1;
 }
 
 .permission-group {

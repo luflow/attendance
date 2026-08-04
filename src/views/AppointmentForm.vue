@@ -137,6 +137,20 @@
 						:placeholder="t('attendance', 'Search or add a location\u00A0…')"
 						data-test="input-appointment-location" />
 				</div>
+
+				<div v-if="categoriesAvailable" class="form-field">
+					<label for="appointment-category">{{ t('attendance', 'Category') }}</label>
+					<NcSelect
+						id="appointment-category"
+						v-model="formData.categoryId"
+						:options="categories"
+						:reduce="(category) => category.id"
+						label="name"
+						:multiple="false"
+						:clearable="true"
+						:placeholder="t('attendance', 'Select a category …')"
+						data-test="input-appointment-category" />
+				</div>
 			</div>
 
 			<div class="form-section">
@@ -549,6 +563,7 @@ const formData = reactive({
 	name: '',
 	description: '',
 	location: '',
+	categoryId: null,
 	startDatetime: '',
 	endDatetime: '',
 	visibleUsers: [],
@@ -613,6 +628,29 @@ async function loadLocationSuggestions() {
 		// Suggestions are a convenience; the field stays usable without them.
 		locationSuggestions.value = []
 	}
+}
+
+const categoriesAvailable = computed(() => capabilities.categoriesAvailable === true)
+const categories = ref([])
+async function loadCategories() {
+	try {
+		const response = await axios.get(generateUrl('/apps/attendance/api/categories'))
+		categories.value = response.data
+	} catch {
+		// The picker stays usable (just empty) without the list.
+		categories.value = []
+	}
+}
+
+// Calendar import only ever gives us a category by name (the source event's
+// CATEGORIES text) — categories are admin-managed, so we resolve it against
+// the known list rather than creating one on the fly. No match → unset.
+function findCategoryIdByName(name) {
+	if (!name) {
+		return null
+	}
+	const match = categories.value.find((category) => category.name === name)
+	return match ? match.id : null
 }
 // Organizer list as loaded in edit mode — updates omit the field when it is
 // unchanged so the server skips re-validating every organizer on plain edits.
@@ -928,6 +966,7 @@ async function loadAppointment() {
 			: appointment.name
 		formData.description = appointment.description || ''
 		formData.location = appointment.location || ''
+		formData.categoryId = appointment.categoryId ?? null
 
 		// For copy mode, leave dates empty
 		if (props.mode === 'copy') {
@@ -1260,6 +1299,7 @@ function handleCalendarEventSelect(eventData) {
 	formData.name = eventData.name
 	formData.description = eventData.description
 	formData.location = eventData.location || ''
+	formData.categoryId = findCategoryIdByName(eventData.category)
 	formData.startDatetime = formatDateTimeForInput(eventData.startDatetime)
 	formData.endDatetime = formatDateTimeForInput(eventData.endDatetime)
 	calendarReference.value = {
@@ -1284,6 +1324,10 @@ async function handleBulkImport(eventDataList) {
 				endDatetime: toServerTimezone(eventData.endDatetime),
 				calendarUri: eventData.calendarUri,
 				calendarEventUid: eventData.calendarEventUid,
+			}
+			const categoryId = findCategoryIdByName(eventData.category)
+			if (categoryId !== null) {
+				item.categoryId = categoryId
 			}
 			const deadline = resolveDeadlineFor(formatDateTimeForInput(eventData.startDatetime))
 			if (deadline) {
@@ -1346,6 +1390,9 @@ async function handleRecurringCreate() {
 				visibleUsers: formData.visibleUsers || [],
 				visibleGroups: formData.visibleGroups || [],
 				visibleTeams: formData.visibleTeams || [],
+			}
+			if (formData.categoryId) {
+				item.categoryId = formData.categoryId
 			}
 			const occurrenceDeadline = resolveDeadlineFor(formatDateTimeForInput(startDt))
 			if (occurrenceDeadline) {
@@ -1468,6 +1515,7 @@ async function saveAppointment(scope = 'single') {
 				name: formData.name,
 				description: formData.description,
 				location: formData.location || '',
+				categoryId: formData.categoryId || null,
 				startDatetime: startDatetimeWithTz,
 				endDatetime: endDatetimeWithTz,
 				visibleUsers: formData.visibleUsers || [],
@@ -1497,6 +1545,7 @@ async function saveAppointment(scope = 'single') {
 				name: formData.name,
 				description: formData.description,
 				location: formData.location || '',
+				categoryId: formData.categoryId || null,
 				startDatetime: startDatetimeWithTz,
 				endDatetime: endDatetimeWithTz,
 				visibleUsers: formData.visibleUsers || [],
@@ -1533,7 +1582,7 @@ async function saveAppointment(scope = 'single') {
 }
 
 onMounted(async () => {
-	await Promise.all([loadTrackingGroups(), loadPermissions(), loadLocationSuggestions()])
+	await Promise.all([loadTrackingGroups(), loadPermissions(), loadLocationSuggestions(), loadCategories()])
 	if (props.mode === 'edit' || props.mode === 'copy') {
 		await loadAppointment()
 	} else {

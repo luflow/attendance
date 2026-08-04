@@ -58,6 +58,13 @@ return [
 		['name' => 'admin#sendTestReminder', 'url' => '/api/admin/test-reminder', 'verb' => 'POST'],
 		['name' => 'admin#syncOrgCalendar', 'url' => '/api/admin/org-calendar/sync', 'verb' => 'POST'],
 
+		// Categories (admin-managed list; GET is available to any user for the
+		// appointment-form picker and the list filter)
+		['name' => 'category#index', 'url' => '/api/categories', 'verb' => 'GET'],
+		['name' => 'category#create', 'url' => '/api/admin/categories', 'verb' => 'POST'],
+		['name' => 'category#update', 'url' => '/api/admin/categories/{id}', 'verb' => 'PUT'],
+		['name' => 'category#destroy', 'url' => '/api/admin/categories/{id}', 'verb' => 'DELETE'],
+
 		// User data
 		['name' => 'appointment#getPermissions', 'url' => '/api/user/permissions', 'verb' => 'GET'],
 		['name' => 'appointment#getUserConfig', 'url' => '/api/user/config', 'verb' => 'GET'],

@@ -151,7 +151,7 @@ class CalendarService {
 	 * For recurring events, this returns one entry per occurrence in the time range.
 	 *
 	 * @param array $searchResult
-	 * @return list<array{id: string, uid: string, uri: ?string, summary: string, description: string, location: string, dtstart: string, dtend: string, isAllDay: bool}>
+	 * @return list<array{id: string, uid: string, uri: ?string, summary: string, description: string, location: string, category: string, dtstart: string, dtend: string, isAllDay: bool}>
 	 */
 	private function parseCalendarObject(array $searchResult): array {
 		// The search result contains objects array with event properties directly
@@ -165,6 +165,11 @@ class CalendarService {
 			$summary = $this->extractProperty($object, 'SUMMARY');
 			$description = $this->extractProperty($object, 'DESCRIPTION');
 			$location = $this->extractProperty($object, 'LOCATION');
+			// CATEGORIES may carry a comma-separated list; we only support one
+			// category per appointment, so the first entry wins. Matching it to
+			// an existing admin-defined category (or not) happens client-side.
+			$categories = $this->extractProperty($object, 'CATEGORIES');
+			$category = $categories !== null ? trim(explode(',', $categories)[0]) : null;
 			$dtstart = $this->extractPropertyRaw($object, 'DTSTART');
 			$dtend = $this->extractPropertyRaw($object, 'DTEND');
 
@@ -186,6 +191,7 @@ class CalendarService {
 				'summary' => $summary ?? '',
 				'description' => $description ?? '',
 				'location' => $location ?? '',
+				'category' => $category ?? '',
 				'dtstart' => $formattedStart,
 				'dtend' => $dtend ? $this->formatDateTime($dtend, $isAllDay) : $formattedStart,
 				'isAllDay' => $isAllDay,

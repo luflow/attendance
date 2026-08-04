@@ -9,12 +9,15 @@ use OCA\Attendance\Db\AppointmentAttachmentMapper;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
+use OCA\Attendance\Db\Category;
+use OCA\Attendance\Db\CategoryMapper;
 use OCA\Attendance\Db\IcalTokenMapper;
 use OCA\Attendance\Service\BookingService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\IcalService;
 use OCA\Attendance\Service\NotificationService;
 use OCA\Attendance\Service\VisibilityService;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -25,12 +28,14 @@ use PHPUnit\Framework\TestCase;
 class IcalServiceTest extends TestCase {
 	private ConfigService $configService;
 	private AppointmentAttachmentMapper $attachmentMapper;
+	private CategoryMapper $categoryMapper;
 	private IcalService $service;
 
 	protected function setUp(): void {
 		$this->configService = $this->createMock(ConfigService::class);
 		$this->attachmentMapper = $this->createMock(AppointmentAttachmentMapper::class);
 		$this->attachmentMapper->method('findByAppointment')->willReturn([]);
+		$this->categoryMapper = $this->createMock(CategoryMapper::class);
 
 		$urlGenerator = $this->createMock(IURLGenerator::class);
 		$urlGenerator->method('getAbsoluteURL')->willReturn('https://example.test/');
@@ -55,6 +60,7 @@ class IcalServiceTest extends TestCase {
 			$urlGenerator,
 			$this->createMock(IL10NFactory::class),
 			$this->createMock(IConfig::class),
+			$this->categoryMapper,
 		);
 	}
 
@@ -164,5 +170,34 @@ class IcalServiceTest extends TestCase {
 	public function testNoLocationPropertyEmittedWhenNotSet(): void {
 		$out = $this->generate($this->appointment(), null);
 		$this->assertStringNotContainsString('LOCATION:', $out);
+	}
+
+	public function testCategoriesEmittedWhenSet(): void {
+		$category = new Category();
+		$category->setId(5);
+		$category->setName('Rehearsal');
+		$this->categoryMapper->method('find')->with(5)->willReturn($category);
+
+		$appointment = $this->appointment();
+		$appointment->setCategoryId(5);
+		$out = $this->generate($appointment, null);
+
+		$this->assertStringContainsString('CATEGORIES:Rehearsal', $out);
+	}
+
+	public function testNoCategoriesPropertyEmittedWhenNotSet(): void {
+		$out = $this->generate($this->appointment(), null);
+		$this->assertStringNotContainsString('CATEGORIES:', $out);
+	}
+
+	public function testNoCategoriesPropertyEmittedWhenCategoryDeleted(): void {
+		$this->categoryMapper->method('find')->with(5)
+			->willThrowException(new DoesNotExistException('not found'));
+
+		$appointment = $this->appointment();
+		$appointment->setCategoryId(5);
+		$out = $this->generate($appointment, null);
+
+		$this->assertStringNotContainsString('CATEGORIES:', $out);
 	}
 }

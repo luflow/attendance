@@ -72,6 +72,7 @@ import AccountStarIcon from 'vue-material-design-icons/AccountStar.vue'
 import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
 import RepeatIcon from 'vue-material-design-icons/Repeat.vue'
 import { calendarDeepLink } from '../../utils/appointment.js'
+import { HOVER_TOOLTIP as TOOLTIP } from '../../utils/tooltip.js'
 
 const props = defineProps({
 	appointment: {
@@ -83,16 +84,6 @@ const props = defineProps({
 		default: '',
 	},
 })
-
-// popperTriggers keeps the tooltip open while the pointer is over it — without
-// it the calendar tooltip closes the moment you move towards its link, so the
-// link is unreachable. The hide delay bridges the gap between icon and popper.
-const TOOLTIP = {
-	triggers: ['hover', 'focus'],
-	popperTriggers: ['hover'],
-	delay: { show: 100, hide: 300 },
-	popupRole: 'tooltip',
-}
 
 const calendarLink = computed(() => calendarDeepLink(props.appointment))
 

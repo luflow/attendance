@@ -7,6 +7,8 @@ namespace OCA\Attendance\Tests\Unit\Service;
 use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponseMapper;
+use OCA\Attendance\Db\Category;
+use OCA\Attendance\Db\CategoryMapper;
 use OCA\Attendance\Service\CalendarService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\IcalService;
@@ -134,6 +136,9 @@ class OrgCalendarSyncServiceTest extends TestCase {
 	/** @var IURLGenerator|MockObject */
 	private $urlGenerator;
 
+	/** @var CategoryMapper|MockObject */
+	private $categoryMapper;
+
 	private FakeCalDavBackend $backend;
 	private TestableOrgCalendarSyncService $service;
 
@@ -144,6 +149,7 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->configService = $this->createMock(ConfigService::class);
 		$this->icalService = $this->createMock(IcalService::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
+		$this->categoryMapper = $this->createMock(CategoryMapper::class);
 		$this->backend = new FakeCalDavBackend();
 
 		$this->icalService->method('escapeIcalText')->willReturnArgument(0);
@@ -177,6 +183,7 @@ class OrgCalendarSyncServiceTest extends TestCase {
 			$l10nFactory,
 			$config,
 			$this->createMock(LoggerInterface::class),
+			$this->categoryMapper,
 		);
 		$this->service->fakeBackend = $this->backend;
 	}
@@ -400,6 +407,39 @@ class OrgCalendarSyncServiceTest extends TestCase {
 
 		$this->assertTrue($this->service->syncAppointment($appointment));
 		$this->assertStringNotContainsString('LOCATION:', $this->backend->updated[0][2]);
+	}
+
+	public function testCategoriesEmittedWhenSet(): void {
+		$category = new Category();
+		$category->setId(5);
+		$category->setName('Rehearsal');
+		$this->categoryMapper->method('find')->with(5)->willReturn($category);
+
+		$this->configureEnabled();
+		$appointment = $this->buildAppointment();
+		$appointment->setCategoryId(5);
+
+		$this->assertTrue($this->service->syncAppointment($appointment));
+		$this->assertStringContainsString('CATEGORIES:Rehearsal', $this->backend->created[0][2]);
+	}
+
+	public function testPatchRemovesCategoriesWhenNotSet(): void {
+		$this->configureEnabled();
+		$appointment = $this->buildAppointment();
+		$appointment->setCalendarUri('org-events-owner-uri');
+		$appointment->setCalendarEventUid('attendance-org-5@cloud.example.com');
+		$this->backend->existingObjects['attendance-org-5@cloud.example.com.ics'] = [
+			'calendardata' => "BEGIN:VCALENDAR\r\n"
+				. "BEGIN:VEVENT\r\n"
+				. "UID:attendance-org-5@cloud.example.com\r\n"
+				. "SUMMARY:Rehearsal\r\n"
+				. "CATEGORIES:Old category\r\n"
+				. "END:VEVENT\r\n"
+				. "END:VCALENDAR\r\n",
+		];
+
+		$this->assertTrue($this->service->syncAppointment($appointment));
+		$this->assertStringNotContainsString('CATEGORIES:', $this->backend->updated[0][2]);
 	}
 
 	public function testResponseSummaryIsAppendedBehindMarker(): void {

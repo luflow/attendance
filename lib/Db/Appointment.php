@@ -51,6 +51,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setResponseDeadline(?string $responseDeadline)
  * @method string|null getLocation()
  * @method void setLocation(?string $location)
+ * @method int|null getCategoryId()
+ * @method void setCategoryId(?int $categoryId)
  */
 class Appointment extends Entity implements JsonSerializable {
 	use DatetimeFormatTrait;
@@ -75,6 +77,7 @@ class Appointment extends Entity implements JsonSerializable {
 	protected $cancelledAt = null;
 	protected $responseDeadline = null;
 	protected $location = null;
+	protected $categoryId = null;
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -99,6 +102,7 @@ class Appointment extends Entity implements JsonSerializable {
 		$this->addType('cancelledAt', 'string');
 		$this->addType('responseDeadline', 'string');
 		$this->addType('location', 'string');
+		$this->addType('categoryId', 'integer');
 	}
 
 	public function jsonSerialize(): array {
@@ -126,6 +130,7 @@ class Appointment extends Entity implements JsonSerializable {
 			'cancelledAt' => $this->formatDatetimeToUtc($this->getCancelledAt()),
 			'responseDeadline' => $this->formatDatetimeToUtc($this->getResponseDeadline()),
 			'location' => $this->getLocation(),
+			'categoryId' => $this->getCategoryId(),
 		];
 	}
 
