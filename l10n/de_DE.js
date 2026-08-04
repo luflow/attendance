@@ -818,6 +818,10 @@ OC.L10N.register(
     "No categories yet." : "Noch keine Kategorien.",
     "Rename category" : "Kategorie umbenennen",
     "e.g. Rehearsal" : "z. B. Probe",
-    "Select a category …" : "Kategorie auswählen …"
+    "Select a category …" : "Kategorie auswählen …",
+    "Choose icon" : "Icon auswählen",
+    "category" : "Kategorie",
+    "location" : "Ort",
+    "organizers" : "Organisatoren"
 },
 "nplurals=2; plural=(n != 1);");
