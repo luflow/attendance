@@ -403,6 +403,22 @@ class AppointmentMapper extends QBMapper {
 	}
 
 	/**
+	 * Clear a deleted category from every appointment that referenced it, so
+	 * no appointment is left pointing at a category that no longer exists.
+	 */
+	public function clearCategory(int $categoryId): void {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->update($this->getTableName())
+			->set('category_id', $qb->createNamedParameter(null))
+			->where(
+				$qb->expr()->eq('category_id', $qb->createNamedParameter($categoryId, IQueryBuilder::PARAM_INT))
+			);
+
+		$qb->executeStatement();
+	}
+
+	/**
 	 * Find appointments with flexible filtering for export functionality
 	 *
 	 * @param array|null $appointmentIds Specific appointment IDs to export (null for all)

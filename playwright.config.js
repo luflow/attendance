@@ -53,6 +53,7 @@ export default defineConfig({
 				'14-close-inquiry.spec.js',
 				'22-response-rescind.spec.js',
 				'24-close-nav-resort.spec.js',
+				'30-location.spec.js',
 				'checkin.spec.js',
 			],
 			fullyParallel: false, // tests within a file stay sequential
@@ -88,6 +89,10 @@ export default defineConfig({
 				'28-create-permission.spec.js',
 				// Restricts every response-visibility tier to admin.
 				'29-organizer-visibility.spec.js',
+				// Its afterAll wipes every appointment instance-wide, colliding with
+				// the parallel project's other files (2-appointment, 3-voting,
+				// 30-location, ...) mid-run.
+				'31-category.spec.js',
 			],
 			fullyParallel: false,
 			workers: 1,

@@ -100,6 +100,15 @@ const FIELD_LABELS = {
 	// TRANSLATORS: Appointment field in the audit-log change list — the deadline
 	// after which responses are no longer accepted.
 	deadline: () => t('attendance', 'response deadline'),
+	// TRANSLATORS: Appointment field in the audit-log change list — who is
+	// listed as organizing the appointment.
+	organizers: () => t('attendance', 'organizers'),
+	// TRANSLATORS: Appointment field in the audit-log change list — the
+	// appointment's location (a free-text place/address).
+	location: () => t('attendance', 'location'),
+	// TRANSLATORS: Appointment field in the audit-log change list — the
+	// admin-managed category the appointment is classified under.
+	category: () => t('attendance', 'category'),
 }
 
 function fieldLabel(key) {

@@ -7,6 +7,8 @@ namespace OCA\Attendance\Service;
 use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponseMapper;
+use OCA\Attendance\Db\CategoryMapper;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -67,6 +69,7 @@ class OrgCalendarSyncService {
 		private IL10NFactory $l10nFactory,
 		private IConfig $config,
 		private LoggerInterface $logger,
+		private CategoryMapper $categoryMapper,
 	) {
 	}
 
@@ -387,6 +390,7 @@ class OrgCalendarSyncService {
 
 		$description = $this->buildDescription($appointment);
 		$location = $appointment->getLocation();
+		$categoryName = $this->resolveCategoryName($appointment->getCategoryId());
 
 		return [
 			'DTSTAMP' => 'DTSTAMP:' . $lastModified->format('Ymd\THis\Z'),
@@ -400,8 +404,26 @@ class OrgCalendarSyncService {
 			'LOCATION' => $location !== null
 				? 'LOCATION:' . $this->icalService->escapeIcalText($location)
 				: null,
+			'CATEGORIES' => $categoryName !== null
+				? 'CATEGORIES:' . $this->icalService->escapeIcalText($categoryName)
+				: null,
 			'STATUS' => 'STATUS:' . ($appointment->isCancelled() ? 'CANCELLED' : 'CONFIRMED'),
 		];
+	}
+
+	/**
+	 * Resolves a category id to its current name, dropping ids for categories
+	 * that have since been deleted rather than erroring the sync.
+	 */
+	private function resolveCategoryName(?int $categoryId): ?string {
+		if ($categoryId === null) {
+			return null;
+		}
+		try {
+			return $this->categoryMapper->find($categoryId)->getName();
+		} catch (DoesNotExistException) {
+			return null;
+		}
 	}
 
 	/**

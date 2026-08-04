@@ -8,6 +8,7 @@ use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
+use OCA\Attendance\Db\CategoryMapper;
 use OCA\Attendance\Db\DatetimeFormatTrait;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -39,6 +40,7 @@ class AppointmentService {
 	private BookingService $bookingService;
 	private PermissionService $permissionService;
 	private OrgCalendarSyncService $orgCalendarSyncService;
+	private CategoryMapper $categoryMapper;
 	/** @var array<string, bool> per-request cache for isOrganizerAnywhere() */
 	private array $organizerAnywhereCache = [];
 
@@ -59,6 +61,7 @@ class AppointmentService {
 		BookingService $bookingService,
 		PermissionService $permissionService,
 		OrgCalendarSyncService $orgCalendarSyncService,
+		CategoryMapper $categoryMapper,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -76,6 +79,7 @@ class AppointmentService {
 		$this->bookingService = $bookingService;
 		$this->permissionService = $permissionService;
 		$this->orgCalendarSyncService = $orgCalendarSyncService;
+		$this->categoryMapper = $categoryMapper;
 	}
 
 	/**
@@ -98,6 +102,7 @@ class AppointmentService {
 		?string $responseDeadline = null,
 		?array $organizers = null,
 		?string $location = null,
+		?int $categoryId = null,
 	): Appointment {
 		$this->validateDateRange($startDatetime, $endDatetime);
 
@@ -121,6 +126,7 @@ class AppointmentService {
 		$appointment->setVisibleGroups(empty($visibleGroups) ? null : json_encode($visibleGroups));
 		$appointment->setVisibleTeams(empty($visibleTeams) ? null : json_encode($visibleTeams));
 		$appointment->setLocation($this->normalizeLocation($location));
+		$appointment->setCategoryId($this->normalizeCategoryId($categoryId));
 		$appointment->setCalendarUri($calendarUri);
 		$appointment->setCalendarEventUid($calendarEventUid);
 		$appointment->setSeriesId($seriesId);
@@ -171,6 +177,7 @@ class AppointmentService {
 		?DeadlineUpdate $deadlineUpdate = null,
 		?array $organizers = null,
 		?string $location = null,
+		?int $categoryId = null,
 	): Appointment {
 		$appointment = $this->appointmentMapper->find($id);
 
@@ -190,6 +197,7 @@ class AppointmentService {
 		$appointment->setVisibleGroups(empty($visibleGroups) ? null : json_encode($visibleGroups));
 		$appointment->setVisibleTeams(empty($visibleTeams) ? null : json_encode($visibleTeams));
 		$appointment->setLocation($this->normalizeLocation($location));
+		$appointment->setCategoryId($this->normalizeCategoryId($categoryId));
 
 		if ($organizers !== null) {
 			$this->applyOrganizerChange(
@@ -226,6 +234,22 @@ class AppointmentService {
 	 */
 	private function normalizeLocation(?string $location): ?string {
 		return $location !== null && $location !== '' ? $location : null;
+	}
+
+	/**
+	 * A category id that no longer exists (deleted between page load and
+	 * submit) is dropped rather than rejected — same leniency as an unknown
+	 * organizer.
+	 */
+	private function normalizeCategoryId(?int $categoryId): ?int {
+		if ($categoryId === null) {
+			return null;
+		}
+		try {
+			return $this->categoryMapper->find($categoryId)->getId();
+		} catch (DoesNotExistException) {
+			return null;
+		}
 	}
 
 	/**
@@ -301,6 +325,9 @@ class AppointmentService {
 		}
 		if ($before->getLocation() !== $after->getLocation()) {
 			$fields[] = 'location';
+		}
+		if ($before->getCategoryId() !== $after->getCategoryId()) {
+			$fields[] = 'category';
 		}
 
 		return $fields;
@@ -451,6 +478,7 @@ class AppointmentService {
 	 * @param ?DeadlineUpdate $deadlineUpdate Deadline change instruction.
 	 * @param ?list<string> $organizers New organizer list, or null to leave unchanged
 	 * @param ?string $location Location, applied identically to every affected sibling
+	 * @param ?int $categoryId Category, applied identically to every affected sibling
 	 * @return list<Appointment> Updated appointments
 	 */
 	public function updateSeriesAppointments(
@@ -467,6 +495,7 @@ class AppointmentService {
 		?DeadlineUpdate $deadlineUpdate = null,
 		?array $organizers = null,
 		?string $location = null,
+		?int $categoryId = null,
 	): array {
 		$deadlineUpdate ??= DeadlineUpdate::unchanged();
 		$reference = $this->appointmentMapper->find($referenceId);
@@ -479,7 +508,7 @@ class AppointmentService {
 			$updated = $this->updateAppointment(
 				$referenceId, $name, $description, $startDatetime, $endDatetime,
 				$userId, $visibleUsers, $visibleGroups, $visibleTeams,
-				$deadlineUpdate, $organizers, $location,
+				$deadlineUpdate, $organizers, $location, $categoryId,
 			);
 			return [$updated];
 		}
@@ -490,7 +519,7 @@ class AppointmentService {
 			$updated = $this->updateAppointment(
 				$referenceId, $name, $description, $startDatetime, $endDatetime,
 				$userId, $visibleUsers, $visibleGroups, $visibleTeams,
-				$deadlineUpdate, $organizers, $location,
+				$deadlineUpdate, $organizers, $location, $categoryId,
 			);
 			return [$updated];
 		}
@@ -527,6 +556,7 @@ class AppointmentService {
 		$visibleGroupsJson = empty($visibleGroups) ? null : json_encode($visibleGroups);
 		$visibleTeamsJson = empty($visibleTeams) ? null : json_encode($visibleTeams);
 		$locationValue = $this->normalizeLocation($location);
+		$categoryIdValue = $this->normalizeCategoryId($categoryId);
 
 		// Per-sibling deadline rule. Three cases by $deadlineUpdate:
 		//   set     → sibling_start + (new_deadline - new_start)
@@ -546,6 +576,7 @@ class AppointmentService {
 			$sibling->setName($name);
 			$sibling->setDescription($descriptionClean);
 			$sibling->setLocation($locationValue);
+			$sibling->setCategoryId($categoryIdValue);
 
 			// Apply time deltas
 			$siblingStart = new \DateTime($sibling->getStartDatetime(), new \DateTimeZone('UTC'));

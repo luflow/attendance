@@ -182,6 +182,7 @@ class AppointmentController extends Controller {
 	 * @param ?string $responseDeadline Optional response deadline (ISO 8601). Cron auto-closes the inquiry once passed.
 	 * @param list<string> $organizers User IDs to set as organizers; empty defaults to the creator
 	 * @param ?string $location Free-text location
+	 * @param ?int $categoryId Category ID
 	 * @return DataResponse<Http::STATUS_CREATED, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
@@ -202,6 +203,7 @@ class AppointmentController extends Controller {
 		?string $responseDeadline = null,
 		array $organizers = [],
 		?string $location = null,
+		?int $categoryId = null,
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -232,6 +234,7 @@ class AppointmentController extends Controller {
 				$responseDeadline,
 				$organizers === [] ? null : $organizers,
 				$location,
+				$categoryId,
 			);
 
 			$this->addAttachmentsToAppointment($appointment->getId(), $attachments, $user->getUID());
@@ -290,6 +293,7 @@ class AppointmentController extends Controller {
 					$data['responseDeadline'] ?? null,
 					$organizers === [] ? null : $organizers,
 					$data['location'] ?? null,
+					$data['categoryId'] ?? null,
 				);
 				$createdIds[] = $appointment->getId();
 				if ($firstAppointment === null) {
@@ -344,6 +348,7 @@ class AppointmentController extends Controller {
 	 * @param ?string $responseDeadline Optional response deadline (ISO 8601). Empty string clears it; null leaves unchanged.
 	 * @param ?list<string> $organizers New organizer list, or null to leave unchanged. Organizers may add anyone but remove only themselves; managers may change freely.
 	 * @param ?string $location Free-text location, applied identically to every affected sibling when scope is future/all
+	 * @param ?int $categoryId Category, applied identically to every affected sibling when scope is future/all
 	 * @return DataResponse<Http::STATUS_OK, AttendanceAppointmentData|list<AttendanceAppointmentData>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
@@ -363,6 +368,7 @@ class AppointmentController extends Controller {
 		?string $responseDeadline = null,
 		?array $organizers = null,
 		?string $location = null,
+		?int $categoryId = null,
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -381,7 +387,7 @@ class AppointmentController extends Controller {
 				$updatedAppointments = $this->appointmentService->updateSeriesAppointments(
 					$id, $scope, $name, $description, $startDatetime, $endDatetime,
 					$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
-					$deadlineUpdate, $organizers, $location,
+					$deadlineUpdate, $organizers, $location, $categoryId,
 				);
 
 				// Sync attachments across all affected appointments
@@ -397,7 +403,7 @@ class AppointmentController extends Controller {
 				$updatedAppointments = $this->appointmentService->updateSeriesAppointments(
 					$id, 'single', $name, $description, $startDatetime, $endDatetime,
 					$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
-					$deadlineUpdate, $organizers, $location,
+					$deadlineUpdate, $organizers, $location, $categoryId,
 				);
 				$this->syncAttachments($id, $attachments, $user->getUID());
 				return new DataResponse($updatedAppointments[0]);
@@ -406,7 +412,7 @@ class AppointmentController extends Controller {
 			$appointment = $this->appointmentService->updateAppointment(
 				$id, $name, $description, $startDatetime, $endDatetime,
 				$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
-				$deadlineUpdate, $organizers, $location,
+				$deadlineUpdate, $organizers, $location, $categoryId,
 			);
 
 			$this->syncAttachments($id, $attachments, $user->getUID());
@@ -956,6 +962,10 @@ class AppointmentController extends Controller {
 			// GET /appointments/locations for suggestions. Mobile clients hide
 			// the location field/filter when this is false.
 			'locationsAvailable' => true,
+			// Server supports admin-managed categories (GET /categories,
+			// categoryId on appointments). Mobile clients hide the category
+			// picker/badge/filter when this is false.
+			'categoriesAvailable' => true,
 		]);
 	}
 

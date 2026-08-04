@@ -153,6 +153,8 @@
       <code><![CDATA[$attachments]]></code>
       <code><![CDATA[$calendarEventUid]]></code>
       <code><![CDATA[$calendarUri]]></code>
+      <code><![CDATA[$categoryId]]></code>
+      <code><![CDATA[$categoryId]]></code>
       <code><![CDATA[$comment]]></code>
       <code><![CDATA[$comment]]></code>
       <code><![CDATA[$description]]></code>
@@ -282,6 +284,26 @@
       <code><![CDATA[CalendarController]]></code>
     </UnusedClass>
   </file>
+  <file src="lib/Controller/CategoryController.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[CategoryController]]></code>
+    </ClassMustBeFinal>
+    <PossiblyUnusedParam>
+      <code><![CDATA[$icon]]></code>
+      <code><![CDATA[$icon]]></code>
+      <code><![CDATA[$id]]></code>
+      <code><![CDATA[$name]]></code>
+      <code><![CDATA[$name]]></code>
+    </PossiblyUnusedParam>
+    <UndefinedDocblockClass>
+      <code><![CDATA[DataResponse<Http::STATUS_OK, list<AttendanceCategoryData>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>]]></code>
+      <code><![CDATA[DataResponse<Http::STATUS_CREATED, AttendanceCategoryData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>]]></code>
+      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceCategoryData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
+    </UndefinedDocblockClass>
+    <UnusedClass>
+      <code><![CDATA[CategoryController]]></code>
+    </UnusedClass>
+  </file>
   <file src="lib/Controller/IcalController.php">
     <ClassMustBeFinal>
       <code><![CDATA[IcalController]]></code>
@@ -393,6 +415,7 @@
       <code><![CDATA[$calendarEventUid]]></code>
       <code><![CDATA[$calendarUri]]></code>
       <code><![CDATA[$cancelledAt]]></code>
+      <code><![CDATA[$categoryId]]></code>
       <code><![CDATA[$closedAt]]></code>
       <code><![CDATA[$createdAt]]></code>
       <code><![CDATA[$createdBy]]></code>
@@ -422,6 +445,7 @@
       <code><![CDATA[$calendarEventUid]]></code>
       <code><![CDATA[$calendarUri]]></code>
       <code><![CDATA[$cancelledAt]]></code>
+      <code><![CDATA[$categoryId]]></code>
       <code><![CDATA[$closedAt]]></code>
       <code><![CDATA[$createdAt]]></code>
       <code><![CDATA[$createdBy]]></code>
@@ -634,6 +658,33 @@
     <RedundantFunctionCall>
       <code><![CDATA[array_values]]></code>
     </RedundantFunctionCall>
+  </file>
+  <file src="lib/Db/Category.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[Category]]></code>
+    </ClassMustBeFinal>
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function jsonSerialize(): array {]]></code>
+    </MissingOverrideAttribute>
+    <MissingPropertyType>
+      <code><![CDATA[$icon]]></code>
+      <code><![CDATA[$name]]></code>
+    </MissingPropertyType>
+    <PossiblyUnusedProperty>
+      <code><![CDATA[$icon]]></code>
+      <code><![CDATA[$name]]></code>
+    </PossiblyUnusedProperty>
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[Category]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+  <file src="lib/Db/CategoryMapper.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[CategoryMapper]]></code>
+    </ClassMustBeFinal>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
   </file>
   <file src="lib/Db/DatetimeFormatTrait.php">
     <RiskyTruthyFalsyComparison>
@@ -1117,6 +1168,17 @@
       <code><![CDATA[Version000019Date20260804120000]]></code>
     </UnusedClass>
   </file>
+  <file src="lib/Migration/Version000020Date20260804140000.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[Version000020Date20260804140000]]></code>
+    </ClassMustBeFinal>
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[Version000020Date20260804140000]]></code>
+    </UnusedClass>
+  </file>
   <file src="lib/Notification/Notifier.php">
     <ClassMustBeFinal>
       <code><![CDATA[Notifier]]></code>
@@ -1453,6 +1515,7 @@
     <MixedArgument>
       <code><![CDATA[$a['dtstart']]]></code>
       <code><![CDATA[$b['dtstart']]]></code>
+      <code><![CDATA[$categories]]></code>
       <code><![CDATA[$object]]></code>
       <code><![CDATA[$uid]]></code>
     </MixedArgument>
@@ -1461,6 +1524,7 @@
       <code><![CDATA[$b['dtstart']]]></code>
     </MixedArrayAccess>
     <MixedAssignment>
+      <code><![CDATA[$categories]]></code>
       <code><![CDATA[$description]]></code>
       <code><![CDATA[$dtend]]></code>
       <code><![CDATA[$dtstart]]></code>
@@ -1476,7 +1540,7 @@
     </MixedAssignment>
     <MixedReturnTypeCoercion>
       <code><![CDATA[$events]]></code>
-      <code><![CDATA[list<array{id: string, uid: string, uri: ?string, summary: string, description: string, location: string, dtstart: string, dtend: string, isAllDay: bool}>]]></code>
+      <code><![CDATA[list<array{id: string, uid: string, uri: ?string, summary: string, description: string, location: string, category: string, dtstart: string, dtend: string, isAllDay: bool}>]]></code>
     </MixedReturnTypeCoercion>
     <PossiblyFalseOperand>
       <code><![CDATA[strtotime($a['dtstart'])]]></code>
@@ -1487,6 +1551,17 @@
     </PossiblyNullOperand>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Service/CategoryService.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[CategoryService]]></code>
+    </ClassMustBeFinal>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+      <code><![CDATA[create]]></code>
+      <code><![CDATA[getAll]]></code>
+      <code><![CDATA[update]]></code>
     </PossiblyUnusedMethod>
   </file>
   <file src="lib/Service/CheckinService.php">

@@ -111,6 +111,48 @@
 						</ul>
 					</template>
 				</NcPopover>
+				<NcPopover v-if="capabilities.categoriesAvailable && availableCategories.length">
+					<template #trigger>
+						<NcButton
+							:variant="selectedCategoryIds.length ? 'secondary' : 'tertiary'"
+							data-test="filter-category">
+							<template #icon>
+								<TagIcon :size="20" />
+							</template>
+							{{ t('attendance', 'Category') }}
+						</NcButton>
+					</template>
+					<template #default>
+						<ul class="filter-bar__options" role="menu">
+							<li v-for="category in availableCategories" :key="category.id" role="presentation">
+								<NcButton
+									role="menuitemcheckbox"
+									:aria-checked="selectedCategoryIds.includes(category.id)"
+									alignment="start"
+									wide
+									variant="tertiary"
+									@click="toggleCategoryFilter(category.id)">
+									<template #icon>
+										<component :is="categoryIconComponent(category.icon)" :size="18" />
+									</template>
+									<span class="filter-bar__option">
+										{{ category.name }}
+										<CheckIcon v-if="selectedCategoryIds.includes(category.id)" :size="18" />
+									</span>
+								</NcButton>
+							</li>
+							<li v-if="selectedCategoryIds.length" role="presentation" class="filter-bar__reset">
+								<NcButton
+									alignment="start"
+									wide
+									variant="tertiary"
+									@click="selectedCategoryIds = []">
+									{{ t('attendance', 'Reset filter') }}
+								</NcButton>
+							</li>
+						</ul>
+					</template>
+				</NcPopover>
 			</div>
 			<div v-if="hasActiveFilters" class="filter-bar__active">
 				<span class="filter-bar__active-label">{{ t('attendance', 'Active filters:') }}</span>
@@ -129,6 +171,15 @@
 					:key="location"
 					:text="t('attendance', 'Location: {location}', { location })"
 					@close="toggleLocationFilter(location)" />
+				<NcChip
+					v-for="category in selectedCategoryChips"
+					:key="category.id"
+					:text="t('attendance', 'Category: {category}', { category: category.name })"
+					@close="toggleCategoryFilter(category.id)">
+					<template #icon>
+						<component :is="categoryIconComponent(category.icon)" :size="16" />
+					</template>
+				</NcChip>
 			</div>
 		</div>
 
@@ -191,11 +242,14 @@ import CheckCircleIcon from 'vue-material-design-icons/CheckCircle.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
 import MapMarkerIcon from 'vue-material-design-icons/MapMarkerOutline.vue'
 import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
+import TagIcon from 'vue-material-design-icons/TagOutline.vue'
 import AppointmentListCard from '../components/appointment/AppointmentListCard.vue'
 import DeleteAppointmentDialog from '../components/appointment/DeleteAppointmentDialog.vue'
 import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
 import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
+import { useCategories } from '../composables/useCategories.js'
 import { usePermissions } from '../composables/usePermissions.js'
+import { categoryIconComponent } from '../utils/categoryIcons.js'
 
 const props = defineProps({
 	showPast: {
@@ -271,6 +325,8 @@ const STATUS = Object.freeze({ OPEN: 'open', CLOSED: 'closed', CANCELLED: 'cance
 const AUDIENCE = Object.freeze({ ME: 'me', ME_SCHEDULED: 'me-scheduled', ME_BOOKED: 'me-booked' })
 
 const { permissions, capabilities, loadPermissions } = usePermissions()
+const { categories, loadCategories } = useCategories()
+loadCategories()
 
 const filterDefs = computed(() => [
 	{
@@ -359,6 +415,37 @@ function toggleLocationFilter(location) {
 		: [...selectedLocations.value, location]
 }
 
+// Same independent multi-select axis as location, but keyed by categoryId
+// (categories are admin-managed, so the value is a stable id, not text).
+const CATEGORY_FILTER_STORAGE_KEY = 'attendance:list-filters:categories'
+const selectedCategoryIds = ref(loadStoredCategoryFilter())
+
+function loadStoredCategoryFilter() {
+	try {
+		const parsed = JSON.parse(window.localStorage.getItem(CATEGORY_FILTER_STORAGE_KEY) || '[]')
+		return Array.isArray(parsed) ? parsed.filter((v) => typeof v === 'number') : []
+	} catch {
+		return []
+	}
+}
+
+const availableCategories = computed(() => {
+	const usedIds = new Set(appointments.value.map((a) => a.categoryId).filter((id) => id !== null && id !== undefined))
+	return categories.filter((category) => usedIds.has(category.id))
+})
+
+// Stale ids (category deleted after being stored/selected) are dropped
+// rather than shown as an unresolvable chip.
+const selectedCategoryChips = computed(() => selectedCategoryIds.value
+	.map((id) => categories.find((category) => category.id === id))
+	.filter(Boolean))
+
+function toggleCategoryFilter(categoryId) {
+	selectedCategoryIds.value = selectedCategoryIds.value.includes(categoryId)
+		? selectedCategoryIds.value.filter((id) => id !== categoryId)
+		: [...selectedCategoryIds.value, categoryId]
+}
+
 function loadStoredFilterValues() {
 	try {
 		const parsed = JSON.parse(window.localStorage.getItem(FILTER_STORAGE_KEY) || '{}')
@@ -431,7 +518,10 @@ watch(filterValues, persistFilterValues, { deep: true })
 const persistSelectedLocations = debouncedLocalStorageWriter(LOCATION_FILTER_STORAGE_KEY, selectedLocations.value)
 watch(selectedLocations, persistSelectedLocations, { deep: true })
 
-const hasActiveFilters = computed(() => Boolean(props.searchQuery.trim() || activeFilters.value.length || selectedLocations.value.length))
+const persistSelectedCategoryIds = debouncedLocalStorageWriter(CATEGORY_FILTER_STORAGE_KEY, selectedCategoryIds.value)
+watch(selectedCategoryIds, persistSelectedCategoryIds, { deep: true })
+
+const hasActiveFilters = computed(() => Boolean(props.searchQuery.trim() || activeFilters.value.length || selectedLocations.value.length || selectedCategoryIds.value.length))
 
 const visibleAppointments = computed(() => {
 	const query = props.searchQuery.trim().toLowerCase()
@@ -454,6 +544,7 @@ const visibleAppointments = computed(() => {
 			if (response !== RESPONSE.NONE && userResponse !== response) return false
 		}
 		if (selectedLocations.value.length && !selectedLocations.value.includes(appointment.location)) return false
+		if (selectedCategoryIds.value.length && !selectedCategoryIds.value.includes(appointment.categoryId)) return false
 		return true
 	})
 })
@@ -639,6 +730,7 @@ onBeforeUnmount(() => {
 	}
 	persistFilterValues.cancel()
 	persistSelectedLocations.cancel()
+	persistSelectedCategoryIds.cancel()
 })
 
 function triggerConfetti() {

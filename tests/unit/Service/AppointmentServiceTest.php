@@ -9,6 +9,8 @@ use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
+use OCA\Attendance\Db\Category;
+use OCA\Attendance\Db\CategoryMapper;
 use OCA\Attendance\Service\AppointmentService;
 use OCA\Attendance\Service\AttachmentService;
 use OCA\Attendance\Service\AuditEventService;
@@ -77,6 +79,9 @@ class AppointmentServiceTest extends TestCase {
 	/** @var OrgCalendarSyncService|MockObject */
 	private $orgCalendarSyncService;
 
+	/** @var CategoryMapper|MockObject */
+	private $categoryMapper;
+
 	private AppointmentService $service;
 
 	protected function setUp(): void {
@@ -96,6 +101,7 @@ class AppointmentServiceTest extends TestCase {
 		$this->bookingService = $this->createMock(BookingService::class);
 		$this->permissionService = $this->createMock(PermissionService::class);
 		$this->orgCalendarSyncService = $this->createMock(OrgCalendarSyncService::class);
+		$this->categoryMapper = $this->createMock(CategoryMapper::class);
 
 		$this->service = new AppointmentService(
 			$this->appointmentMapper,
@@ -114,6 +120,7 @@ class AppointmentServiceTest extends TestCase {
 			$this->bookingService,
 			$this->permissionService,
 			$this->orgCalendarSyncService,
+			$this->categoryMapper,
 		);
 	}
 
@@ -273,6 +280,76 @@ class AppointmentServiceTest extends TestCase {
 			null,
 			null,
 			'',
+		);
+	}
+
+	public function testCreateAppointmentStoresCategoryWhenItExists(): void {
+		$category = new Category();
+		$category->setId(5);
+		$category->setName('Rehearsal');
+		$this->categoryMapper->method('find')->with(5)->willReturn($category);
+
+		$this->appointmentMapper->expects($this->once())
+			->method('insert')
+			->with($this->callback(fn (Appointment $appointment) => $appointment->getCategoryId() === 5))
+			->willReturnCallback(function (Appointment $appointment) {
+				$appointment->setId(1);
+				return $appointment;
+			});
+
+		$result = $this->service->createAppointment(
+			'Team Meeting',
+			'Weekly sync',
+			'2024-01-15T10:00:00Z',
+			'2024-01-15T11:00:00Z',
+			'admin',
+			[],
+			[],
+			[],
+			false,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			5,
+		);
+
+		$this->assertSame(5, $result->getCategoryId());
+	}
+
+	public function testCreateAppointmentDropsCategoryIdWhenCategoryNoLongerExists(): void {
+		$this->categoryMapper->method('find')->with(5)
+			->willThrowException(new DoesNotExistException('not found'));
+
+		$this->appointmentMapper->expects($this->once())
+			->method('insert')
+			->with($this->callback(fn (Appointment $appointment) => $appointment->getCategoryId() === null))
+			->willReturnCallback(function (Appointment $appointment) {
+				$appointment->setId(1);
+				return $appointment;
+			});
+
+		$this->service->createAppointment(
+			'Team Meeting',
+			'Weekly sync',
+			'2024-01-15T10:00:00Z',
+			'2024-01-15T11:00:00Z',
+			'admin',
+			[],
+			[],
+			[],
+			false,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			5,
 		);
 	}
 

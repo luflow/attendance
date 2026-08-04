@@ -312,6 +312,7 @@ function importSelected() {
 		name: event.summary || '',
 		description: event.description || '',
 		location: event.location || '',
+		category: event.category || '',
 		startDatetime: event.dtstart,
 		endDatetime: event.dtend,
 		calendarUri: selectedCalendar.value.uri,

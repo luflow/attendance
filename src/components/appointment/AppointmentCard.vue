@@ -6,6 +6,13 @@
 					<h3 data-test="appointment-title" :class="{ 'title-cancelled': isCancelled }">
 						{{ titleText }}
 					</h3>
+					<div
+						v-if="categoryName"
+						class="appointment-category"
+						data-test="appointment-category">
+						<component :is="categoryIconComponent(categoryIcon)" :size="18" />
+						<span>{{ categoryName }}</span>
+					</div>
 					<AppointmentStatusChips :appointment="appointment" />
 				</div>
 				<AppointmentMeta :appointment="appointment" :dateText="subtitleText" />
@@ -166,6 +173,7 @@ import ResponseSummary from './ResponseSummary.vue'
 import { useAppointmentCard } from '../../composables/useAppointmentCard.js'
 import { useAppointmentLifecycle } from '../../composables/useAppointmentLifecycle.js'
 import { finalScheduleStatus, formatCancelledLabel, formatClosedLabel } from '../../utils/appointment.js'
+import { categoryIconComponent } from '../../utils/categoryIcons.js'
 import { formatTime } from '../../utils/datetime.js'
 import { renderMarkdown, sanitizeHtml } from '../../utils/markdown.js'
 import { getResponseText } from '../../utils/response.js'
@@ -204,6 +212,8 @@ const {
 	titleText,
 	subtitleText,
 	osmLocationUrl,
+	categoryName,
+	categoryIcon,
 } = useAppointmentCard(() => props.appointment)
 
 // The banners offer the reverse of the menu's destructive actions, so they
@@ -290,8 +300,9 @@ const renderedDescription = computed(() => {
             align-items: center;
             gap: 8px;
             flex-wrap: wrap;
-            // The chips sit next to the heading, not inside it, so the row sets
-            // the size they inherit and the h3 overrides it for itself.
+            // The chips and category badge sit next to the heading, not inside
+            // it, so the row sets the size they inherit and the h3 overrides
+            // it for itself.
             font-size: 13px;
             margin-bottom: 4px;
         }
@@ -302,6 +313,13 @@ const renderedDescription = computed(() => {
             font-weight: 700;
             color: var(--color-main-text);
             text-wrap: pretty;
+        }
+
+        .appointment-category {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: var(--color-text-maxcontrast);
         }
 
         .appointment-location {

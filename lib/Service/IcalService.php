@@ -8,8 +8,10 @@ use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentAttachmentMapper;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponseMapper;
+use OCA\Attendance\Db\CategoryMapper;
 use OCA\Attendance\Db\IcalToken;
 use OCA\Attendance\Db\IcalTokenMapper;
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IConfig;
 use OCP\IURLGenerator;
 use OCP\L10N\IFactory as IL10NFactory;
@@ -30,6 +32,7 @@ class IcalService {
 	private IURLGenerator $urlGenerator;
 	private IL10NFactory $l10nFactory;
 	private IConfig $config;
+	private CategoryMapper $categoryMapper;
 
 	private const TOKEN_LENGTH = 64;
 	private const TOKEN_CHARS = 'abcdef0123456789';
@@ -46,6 +49,7 @@ class IcalService {
 		IURLGenerator $urlGenerator,
 		IL10NFactory $l10nFactory,
 		IConfig $config,
+		CategoryMapper $categoryMapper,
 	) {
 		$this->icalTokenMapper = $icalTokenMapper;
 		$this->appointmentMapper = $appointmentMapper;
@@ -58,6 +62,7 @@ class IcalService {
 		$this->urlGenerator = $urlGenerator;
 		$this->l10nFactory = $l10nFactory;
 		$this->config = $config;
+		$this->categoryMapper = $categoryMapper;
 	}
 
 	/**
@@ -354,6 +359,10 @@ class IcalService {
 		if ($location !== null) {
 			$output .= 'LOCATION:' . $this->escapeIcalText($location) . "\r\n";
 		}
+		$categoryName = $this->resolveCategoryName($appointment->getCategoryId());
+		if ($categoryName !== null) {
+			$output .= 'CATEGORIES:' . $this->escapeIcalText($categoryName) . "\r\n";
+		}
 		$output .= 'URL:' . $appointmentUrl . "\r\n";
 		$output .= 'STATUS:' . $status . "\r\n";
 		$output .= 'TRANSP:' . $transp . "\r\n";
@@ -377,6 +386,21 @@ class IcalService {
 		$output .= "END:VEVENT\r\n";
 
 		return $output;
+	}
+
+	/**
+	 * Resolves a category id to its current name, dropping ids for categories
+	 * that have since been deleted rather than erroring the whole feed.
+	 */
+	private function resolveCategoryName(?int $categoryId): ?string {
+		if ($categoryId === null) {
+			return null;
+		}
+		try {
+			return $this->categoryMapper->find($categoryId)->getName();
+		} catch (DoesNotExistException) {
+			return null;
+		}
 	}
 
 	/**

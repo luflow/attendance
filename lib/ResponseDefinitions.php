@@ -28,6 +28,7 @@ namespace OCA\Attendance;
  *   cancelledAt: ?string,
  *   responseDeadline: ?string,
  *   location: ?string,
+ *   categoryId: ?int,
  * }
  * @psalm-type AttendanceMyPermissions = array{
  *   isOrganizer: bool,
@@ -107,6 +108,7 @@ namespace OCA\Attendance;
  *   cancelledAt: ?string,
  *   responseDeadline: ?string,
  *   location: ?string,
+ *   categoryId: ?int,
  *   userResponse: AttendanceResponseData|null,
  *   responseSummary?: array<string, mixed>,
  *   attachments: list<array<string, mixed>>,
@@ -140,6 +142,12 @@ namespace OCA\Attendance;
  *   calendarEventUid?: string,
  *   responseDeadline?: string,
  *   location?: string,
+ *   categoryId?: int,
+ * }
+ * @psalm-type AttendanceCategoryData = array{
+ *   id: int,
+ *   name: string,
+ *   icon: string,
  * }
  * @psalm-type AttendanceGroupOption = array{id: string, displayName: string}
  * @psalm-type AttendanceTeamOption = array{id: string, displayName: string}
@@ -174,6 +182,7 @@ namespace OCA\Attendance;
  *   respondOnBehalf: bool,
  *   responseCounts: bool,
  *   locationsAvailable: bool,
+ *   categoriesAvailable: bool,
  * }
  * @psalm-type AttendanceAuditUserRef = array{
  *   userId: string,
@@ -266,6 +275,7 @@ namespace OCA\Attendance;
  *   cancelledAt: ?string,
  *   responseDeadline: ?string,
  *   location: ?string,
+ *   categoryId: ?int,
  *   alreadyCheckedIn: bool,
  *   checkinState: ?string,
  *   checkinAt: ?string,

@@ -8,10 +8,19 @@
 					data-test="appointment-title-link"
 					@click.prevent="emit('openDetail', appointment.id)">
 					<div class="list-card__headline-row">
-						<!-- The chevron rides inside the h3, glued to the last word,
-						     so it can never wrap onto a line of its own. -->
+						<!-- The category icon and chevron ride inside the h3, glued to
+						     the last word, so neither can wrap onto a line of its own.
+						     A CSS-only tooltip, not NcPopover — nested this deep in the
+						     no-wrap text flow, NcPopover's floating-ui trigger never
+						     actually opened on hover. -->
 						<h3 data-test="appointment-title" :class="{ 'title-cancelled': isCancelled }">
-							{{ titleHead }} <span class="list-card__title-tail">{{ titleTail }}<ChevronRightIcon :size="20" class="list-card__chevron" /></span>
+							{{ titleHead }} <span class="list-card__title-tail">{{ titleTail }}<span
+								v-if="categoryName"
+								class="list-card__category-inline"
+								tabindex="0"
+								role="img"
+								data-test="appointment-category"
+								:aria-label="categoryName"><component :is="categoryIconComponent(categoryIcon)" :size="18" /><span class="list-card__category-tooltip" role="tooltip">{{ categoryName }}</span></span><ChevronRightIcon :size="20" class="list-card__chevron" /></span>
 						</h3>
 						<AppointmentStatusChips :appointment="appointment" />
 					</div>
@@ -113,6 +122,7 @@ import ResponseEditor from './ResponseEditor.vue'
 import ShowDetailsLink from './ShowDetailsLink.vue'
 import { useAppointmentCard } from '../../composables/useAppointmentCard.js'
 import { appointmentDetailUrl, formatCancelledLabel, formatClosedLabel } from '../../utils/appointment.js'
+import { categoryIconComponent } from '../../utils/categoryIcons.js'
 import { stripMarkdown } from '../../utils/markdown.js'
 import { getResponseText, responseSegments } from '../../utils/response.js'
 
@@ -143,6 +153,8 @@ const {
 	titleText,
 	subtitleText,
 	osmLocationUrl,
+	categoryName,
+	categoryIcon,
 } = useAppointmentCard(() => props.appointment)
 
 const detailUrl = computed(() => appointmentDetailUrl(props.appointment.id))
@@ -266,6 +278,54 @@ const stateLabel = computed(() => (isCancelled.value
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+    }
+
+    &__category-inline {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        vertical-align: -4px;
+        // Curated icons draw their glyph flush to very different edges of
+        // their viewBox (e.g. account-group touches x=0, music-note doesn't
+        // start until x=6), so a small margin reads as "touching the title"
+        // for some icons and not others. This is generous enough to give
+        // even the flush-left ones a real gap.
+        margin-inline-start: 7px;
+        color: var(--color-text-maxcontrast);
+        cursor: default;
+
+        &:hover,
+        &:focus-visible {
+            color: var(--color-main-text);
+        }
+
+        &:hover .list-card__category-tooltip,
+        &:focus-visible .list-card__category-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+    }
+
+    &__category-tooltip {
+        position: absolute;
+        bottom: 100%;
+        inset-inline-start: 50%;
+        transform: translateX(-50%);
+        margin-bottom: 6px;
+        padding: 4px 8px;
+        border-radius: var(--border-radius);
+        background: var(--color-main-background);
+        border: 1px solid var(--color-border-dark);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+        font-size: 13px;
+        font-weight: normal;
+        color: var(--color-main-text);
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.15s ease;
+        pointer-events: none;
+        z-index: 10;
     }
 
     &__chevron {
