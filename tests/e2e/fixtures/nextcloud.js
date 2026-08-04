@@ -145,6 +145,7 @@ export async function createAppointmentViaAPI(request, {
 	sendNotification = false,
 	responseDeadline,
 	location,
+	categoryId,
 	username = 'admin',
 	password = 'admin',
 } = {}) {
@@ -163,6 +164,7 @@ export async function createAppointmentViaAPI(request, {
 		organizers,
 		...(responseDeadline ? { responseDeadline: responseDeadline.toISOString() } : {}),
 		...(location !== undefined ? { location } : {}),
+		...(categoryId !== undefined ? { categoryId } : {}),
 	}
 	const resp = await resilientJson(() => request.post(`${API_BASE}/apps/attendance/api/appointments`, {
 		headers: authHeaders(username, password),
@@ -354,6 +356,37 @@ export async function saveAdminSettings(request, settings = {}) {
 	const resp = await resilientJson(() => request.post(`${API_BASE}/apps/attendance/api/admin/settings`, {
 		headers: authHeaders('admin', 'admin'),
 		data: settings,
+	}))
+	return resp.json()
+}
+
+/**
+ * Create a category via the admin REST API. Returns the created category
+ * ({ id, name }).
+ */
+export async function createCategoryViaAPI(request, name, { username = 'admin', password = 'admin' } = {}) {
+	const resp = await resilientJson(() => request.post(`${API_BASE}/apps/attendance/api/admin/categories`, {
+		headers: authHeaders(username, password),
+		data: { name },
+	}))
+	return resp.json()
+}
+
+/**
+ * Delete a category via the admin REST API.
+ */
+export async function deleteCategoryViaAPI(request, id, { username = 'admin', password = 'admin' } = {}) {
+	await resilientJson(() => request.delete(`${API_BASE}/apps/attendance/api/admin/categories/${id}`, {
+		headers: authHeaders(username, password),
+	}))
+}
+
+/**
+ * List categories via the REST API (available to any logged-in user).
+ */
+export async function listCategoriesViaAPI(request, { username = 'admin', password = 'admin' } = {}) {
+	const resp = await resilientJson(() => request.get(`${API_BASE}/apps/attendance/api/categories`, {
+		headers: authHeaders(username, password),
 	}))
 	return resp.json()
 }
