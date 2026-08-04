@@ -97,6 +97,7 @@ class AppointmentService {
 		?int $seriesPosition = null,
 		?string $responseDeadline = null,
 		?array $organizers = null,
+		?string $location = null,
 	): Appointment {
 		$this->validateDateRange($startDatetime, $endDatetime);
 
@@ -119,6 +120,7 @@ class AppointmentService {
 		$appointment->setVisibleUsers(empty($visibleUsers) ? null : json_encode($visibleUsers));
 		$appointment->setVisibleGroups(empty($visibleGroups) ? null : json_encode($visibleGroups));
 		$appointment->setVisibleTeams(empty($visibleTeams) ? null : json_encode($visibleTeams));
+		$appointment->setLocation($this->normalizeLocation($location));
 		$appointment->setCalendarUri($calendarUri);
 		$appointment->setCalendarEventUid($calendarEventUid);
 		$appointment->setSeriesId($seriesId);
@@ -168,6 +170,7 @@ class AppointmentService {
 		array $visibleTeams = [],
 		?DeadlineUpdate $deadlineUpdate = null,
 		?array $organizers = null,
+		?string $location = null,
 	): Appointment {
 		$appointment = $this->appointmentMapper->find($id);
 
@@ -186,6 +189,7 @@ class AppointmentService {
 		$appointment->setVisibleUsers(empty($visibleUsers) ? null : json_encode($visibleUsers));
 		$appointment->setVisibleGroups(empty($visibleGroups) ? null : json_encode($visibleGroups));
 		$appointment->setVisibleTeams(empty($visibleTeams) ? null : json_encode($visibleTeams));
+		$appointment->setLocation($this->normalizeLocation($location));
 
 		if ($organizers !== null) {
 			$this->applyOrganizerChange(
@@ -215,6 +219,13 @@ class AppointmentService {
 		$this->orgCalendarSyncService->syncAppointment($updated);
 
 		return $updated;
+	}
+
+	/**
+	 * An empty string means "no location" the same as null does.
+	 */
+	private function normalizeLocation(?string $location): ?string {
+		return $location !== null && $location !== '' ? $location : null;
 	}
 
 	/**
@@ -287,6 +298,9 @@ class AppointmentService {
 		}
 		if ($before->getOrganizersList() !== $after->getOrganizersList()) {
 			$fields[] = 'organizers';
+		}
+		if ($before->getLocation() !== $after->getLocation()) {
+			$fields[] = 'location';
 		}
 
 		return $fields;
@@ -436,6 +450,7 @@ class AppointmentService {
 	 * @param list<string> $visibleTeams Team IDs
 	 * @param ?DeadlineUpdate $deadlineUpdate Deadline change instruction.
 	 * @param ?list<string> $organizers New organizer list, or null to leave unchanged
+	 * @param ?string $location Location, applied identically to every affected sibling
 	 * @return list<Appointment> Updated appointments
 	 */
 	public function updateSeriesAppointments(
@@ -451,6 +466,7 @@ class AppointmentService {
 		array $visibleTeams = [],
 		?DeadlineUpdate $deadlineUpdate = null,
 		?array $organizers = null,
+		?string $location = null,
 	): array {
 		$deadlineUpdate ??= DeadlineUpdate::unchanged();
 		$reference = $this->appointmentMapper->find($referenceId);
@@ -463,7 +479,7 @@ class AppointmentService {
 			$updated = $this->updateAppointment(
 				$referenceId, $name, $description, $startDatetime, $endDatetime,
 				$userId, $visibleUsers, $visibleGroups, $visibleTeams,
-				$deadlineUpdate, $organizers,
+				$deadlineUpdate, $organizers, $location,
 			);
 			return [$updated];
 		}
@@ -474,7 +490,7 @@ class AppointmentService {
 			$updated = $this->updateAppointment(
 				$referenceId, $name, $description, $startDatetime, $endDatetime,
 				$userId, $visibleUsers, $visibleGroups, $visibleTeams,
-				$deadlineUpdate, $organizers,
+				$deadlineUpdate, $organizers, $location,
 			);
 			return [$updated];
 		}
@@ -510,6 +526,7 @@ class AppointmentService {
 		$visibleUsersJson = empty($visibleUsers) ? null : json_encode($visibleUsers);
 		$visibleGroupsJson = empty($visibleGroups) ? null : json_encode($visibleGroups);
 		$visibleTeamsJson = empty($visibleTeams) ? null : json_encode($visibleTeams);
+		$locationValue = $this->normalizeLocation($location);
 
 		// Per-sibling deadline rule. Three cases by $deadlineUpdate:
 		//   set     → sibling_start + (new_deadline - new_start)
@@ -528,6 +545,7 @@ class AppointmentService {
 
 			$sibling->setName($name);
 			$sibling->setDescription($descriptionClean);
+			$sibling->setLocation($locationValue);
 
 			// Apply time deltas
 			$siblingStart = new \DateTime($sibling->getStartDatetime(), new \DateTimeZone('UTC'));
@@ -799,6 +817,35 @@ class AppointmentService {
 	 */
 	public function getAppointmentsByCreator(string $userId): array {
 		return $this->appointmentMapper->findByCreatedBy($userId);
+	}
+
+	/**
+	 * Distinct, previously-used locations for autocomplete suggestions,
+	 * restricted to appointments the user may see, most recent first.
+	 *
+	 * @return list<string>
+	 */
+	public function getLocationSuggestions(string $userId, int $limit = 20): array {
+		// A manager sees every appointment (canUserSeeAppointment's own admin
+		// bypass), so skip the per-appointment check entirely for them.
+		$isManager = $this->permissionService->canManageAppointments($userId);
+
+		$suggestions = [];
+		foreach ($this->appointmentMapper->findWithLocation() as $appointment) {
+			if (!$isManager && !$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
+				continue;
+			}
+			$location = $appointment->getLocation();
+			if ($location === null || in_array($location, $suggestions, true)) {
+				continue;
+			}
+			$suggestions[] = $location;
+			if (count($suggestions) >= $limit) {
+				break;
+			}
+		}
+
+		return $suggestions;
 	}
 
 	/**

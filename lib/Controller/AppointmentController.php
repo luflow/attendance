@@ -181,6 +181,7 @@ class AppointmentController extends Controller {
 	 * @param list<int> $attachments File IDs to attach to the appointment
 	 * @param ?string $responseDeadline Optional response deadline (ISO 8601). Cron auto-closes the inquiry once passed.
 	 * @param list<string> $organizers User IDs to set as organizers; empty defaults to the creator
+	 * @param ?string $location Free-text location
 	 * @return DataResponse<Http::STATUS_CREATED, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
@@ -200,6 +201,7 @@ class AppointmentController extends Controller {
 		array $attachments = [],
 		?string $responseDeadline = null,
 		array $organizers = [],
+		?string $location = null,
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -229,6 +231,7 @@ class AppointmentController extends Controller {
 				null,
 				$responseDeadline,
 				$organizers === [] ? null : $organizers,
+				$location,
 			);
 
 			$this->addAttachmentsToAppointment($appointment->getId(), $attachments, $user->getUID());
@@ -286,6 +289,7 @@ class AppointmentController extends Controller {
 					$index,
 					$data['responseDeadline'] ?? null,
 					$organizers === [] ? null : $organizers,
+					$data['location'] ?? null,
 				);
 				$createdIds[] = $appointment->getId();
 				if ($firstAppointment === null) {
@@ -339,6 +343,7 @@ class AppointmentController extends Controller {
 	 * @param string $scope Series update scope: single, future, or all
 	 * @param ?string $responseDeadline Optional response deadline (ISO 8601). Empty string clears it; null leaves unchanged.
 	 * @param ?list<string> $organizers New organizer list, or null to leave unchanged. Organizers may add anyone but remove only themselves; managers may change freely.
+	 * @param ?string $location Free-text location, applied identically to every affected sibling when scope is future/all
 	 * @return DataResponse<Http::STATUS_OK, AttendanceAppointmentData|list<AttendanceAppointmentData>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
@@ -357,6 +362,7 @@ class AppointmentController extends Controller {
 		string $scope = 'single',
 		?string $responseDeadline = null,
 		?array $organizers = null,
+		?string $location = null,
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -375,7 +381,7 @@ class AppointmentController extends Controller {
 				$updatedAppointments = $this->appointmentService->updateSeriesAppointments(
 					$id, $scope, $name, $description, $startDatetime, $endDatetime,
 					$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
-					$deadlineUpdate, $organizers,
+					$deadlineUpdate, $organizers, $location,
 				);
 
 				// Sync attachments across all affected appointments
@@ -391,7 +397,7 @@ class AppointmentController extends Controller {
 				$updatedAppointments = $this->appointmentService->updateSeriesAppointments(
 					$id, 'single', $name, $description, $startDatetime, $endDatetime,
 					$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
-					$deadlineUpdate, $organizers,
+					$deadlineUpdate, $organizers, $location,
 				);
 				$this->syncAttachments($id, $attachments, $user->getUID());
 				return new DataResponse($updatedAppointments[0]);
@@ -400,7 +406,7 @@ class AppointmentController extends Controller {
 			$appointment = $this->appointmentService->updateAppointment(
 				$id, $name, $description, $startDatetime, $endDatetime,
 				$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
-				$deadlineUpdate, $organizers,
+				$deadlineUpdate, $organizers, $location,
 			);
 
 			$this->syncAttachments($id, $attachments, $user->getUID());
@@ -946,6 +952,10 @@ class AppointmentController extends Controller {
 			// the yes/no/maybe bar whenever a summary arrives; on older servers
 			// without this flag a summary always carries the full overview.
 			'responseCounts' => true,
+			// Server supports a free-text location field per appointment plus
+			// GET /appointments/locations for suggestions. Mobile clients hide
+			// the location field/filter when this is false.
+			'locationsAvailable' => true,
 		]);
 	}
 
@@ -1160,6 +1170,24 @@ class AppointmentController extends Controller {
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 400);
 		}
+	}
+
+	/**
+	 * Get previously-used appointment locations for autocomplete, restricted
+	 * to appointments the requesting user may see
+	 *
+	 * @return DataResponse<Http::STATUS_OK, list<string>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function locationSuggestions(): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		return new DataResponse($this->appointmentService->getLocationSuggestions($user->getUID()));
 	}
 
 	/**

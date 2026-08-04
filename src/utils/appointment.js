@@ -13,6 +13,16 @@ export function appointmentDetailUrl(appointmentId) {
 }
 
 /**
+ * OpenStreetMap search URL for a free-text location.
+ *
+ * @param {string} location The location text.
+ * @return {string} Absolute URL.
+ */
+export function openStreetMapUrl(location) {
+	return `https://www.openstreetmap.org/search?query=${encodeURIComponent(location)}`
+}
+
+/**
  * Deeplink that opens the appointment's source event in the Calendar app.
  *
  * @param {object} appointment The appointment payload.

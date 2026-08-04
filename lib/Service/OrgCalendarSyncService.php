@@ -148,7 +148,7 @@ class OrgCalendarSyncService {
 			$existing = $backend->getCalendarObject($calendarId, $objectUri);
 			if ($existing !== null) {
 				// Patch only the properties the app models so anything added in
-				// the Calendar app (alarms, location, attendees, …) survives.
+				// the Calendar app (alarms, attendees, categories, …) survives.
 				$existingIcs = $this->extractCalendarData($existing);
 				$ics = $existingIcs !== null
 					? $this->patchIcs($existingIcs, $appointment)
@@ -299,10 +299,10 @@ class OrgCalendarSyncService {
 
 	/**
 	 * Patch an existing VCALENDAR document: replace only the properties the
-	 * app models (times, summary, description, status) inside the first
-	 * VEVENT and leave every other line untouched — alarms, location,
-	 * attendees, categories and custom properties added in the Calendar app
-	 * survive app-side edits (issue #70, phase 2).
+	 * app models (times, summary, description, location, status) inside the
+	 * first VEVENT and leave every other line untouched — alarms, attendees,
+	 * categories and custom properties added in the Calendar app survive
+	 * app-side edits (issue #70, phase 2).
 	 *
 	 * Hand-rolled on purpose: Sabre VObject only exists at Nextcloud runtime,
 	 * and this transform has to stay unit-testable. Properties inside nested
@@ -386,6 +386,7 @@ class OrgCalendarSyncService {
 		$lastModified = new \DateTime($appointment->getUpdatedAt() ?: 'now', $utc);
 
 		$description = $this->buildDescription($appointment);
+		$location = $appointment->getLocation();
 
 		return [
 			'DTSTAMP' => 'DTSTAMP:' . $lastModified->format('Ymd\THis\Z'),
@@ -395,6 +396,9 @@ class OrgCalendarSyncService {
 			'SUMMARY' => 'SUMMARY:' . $this->icalService->escapeIcalText($appointment->getName()),
 			'DESCRIPTION' => $description !== ''
 				? 'DESCRIPTION:' . $this->icalService->escapeIcalText($description)
+				: null,
+			'LOCATION' => $location !== null
+				? 'LOCATION:' . $this->icalService->escapeIcalText($location)
 				: null,
 			'STATUS' => 'STATUS:' . ($appointment->isCancelled() ? 'CANCELLED' : 'CONFIRMED'),
 		];

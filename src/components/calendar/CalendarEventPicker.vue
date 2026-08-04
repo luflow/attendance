@@ -311,6 +311,7 @@ function importSelected() {
 	const eventDataList = selected.map((event) => ({
 		name: event.summary || '',
 		description: event.description || '',
+		location: event.location || '',
 		startDatetime: event.dtstart,
 		endDatetime: event.dtend,
 		calendarUri: selectedCalendar.value.uri,

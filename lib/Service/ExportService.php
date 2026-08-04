@@ -370,11 +370,13 @@ class ExportService {
 
 		foreach ($appointments as $appointment) {
 			$startDate = date('Y-m-d', strtotime($appointment->getStartDatetime()));
+			$location = $appointment->getLocation();
+			$dateLabel = $location !== null ? $startDate . ' · ' . $this->escapeXml($location) : $startDate;
 
-			// Add date merged cell spanning correct number of columns
+			// Add date (+ location, when set) merged cell spanning correct number of columns
 			$xml .= '
 					<table:table-cell table:style-name="ce2" office:value-type="string" table:number-columns-spanned="' . $columnsPerAppointment . '">
-						<text:p>' . $startDate . '</text:p>
+						<text:p>' . $dateLabel . '</text:p>
 					</table:table-cell>';
 
 			// Add covered cells for the spanned columns

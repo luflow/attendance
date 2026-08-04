@@ -211,7 +211,8 @@
                     "selfCheckin",
                     "organizers",
                     "respondOnBehalf",
-                    "responseCounts"
+                    "responseCounts",
+                    "locationsAvailable"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -263,6 +264,9 @@
                         "type": "boolean"
                     },
                     "responseCounts": {
+                        "type": "boolean"
+                    },
+                    "locationsAvailable": {
                         "type": "boolean"
                     }
                 }

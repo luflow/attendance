@@ -1,21 +1,33 @@
 <template>
 	<div class="list-card" data-test="appointment-card">
 		<div class="list-card__header" :class="{ 'list-card__header--cancelled': isCancelled }">
-			<a
-				:href="detailUrl"
-				class="list-card__headline"
-				data-test="appointment-title-link"
-				@click.prevent="emit('openDetail', appointment.id)">
-				<div class="list-card__headline-row">
-					<!-- The chevron rides inside the h3, glued to the last word,
-					     so it can never wrap onto a line of its own. -->
-					<h3 data-test="appointment-title" :class="{ 'title-cancelled': isCancelled }">
-						{{ titleHead }} <span class="list-card__title-tail">{{ titleTail }}<ChevronRightIcon :size="20" class="list-card__chevron" /></span>
-					</h3>
-					<AppointmentStatusChips :appointment="appointment" />
-				</div>
-				<AppointmentMeta :appointment="appointment" :dateText="subtitleText" />
-			</a>
+			<div class="list-card__headline-wrap">
+				<a
+					:href="detailUrl"
+					class="list-card__headline"
+					data-test="appointment-title-link"
+					@click.prevent="emit('openDetail', appointment.id)">
+					<div class="list-card__headline-row">
+						<!-- The chevron rides inside the h3, glued to the last word,
+						     so it can never wrap onto a line of its own. -->
+						<h3 data-test="appointment-title" :class="{ 'title-cancelled': isCancelled }">
+							{{ titleHead }} <span class="list-card__title-tail">{{ titleTail }}<ChevronRightIcon :size="20" class="list-card__chevron" /></span>
+						</h3>
+						<AppointmentStatusChips :appointment="appointment" />
+					</div>
+					<AppointmentMeta :appointment="appointment" :dateText="subtitleText" />
+				</a>
+				<a
+					v-if="appointment.location"
+					:href="osmLocationUrl"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="list-card__location"
+					data-test="appointment-location">
+					<MapMarkerIcon :size="15" />
+					<span class="list-card__location-text">{{ appointment.location }}</span>
+				</a>
+			</div>
 			<AppointmentActionsMenu
 				:appointment="appointment"
 				:canSeeAuditLog="canSeeAuditLog"
@@ -91,6 +103,7 @@
 <script setup>
 import { computed } from 'vue'
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
+import MapMarkerIcon from 'vue-material-design-icons/MapMarkerOutline.vue'
 import AppointmentActionsMenu from './AppointmentActionsMenu.vue'
 import AppointmentMeta from './AppointmentMeta.vue'
 import AppointmentStatusChips from './AppointmentStatusChips.vue'
@@ -129,6 +142,7 @@ const {
 	canSeeAuditLog,
 	titleText,
 	subtitleText,
+	osmLocationUrl,
 } = useAppointmentCard(() => props.appointment)
 
 const detailUrl = computed(() => appointmentDetailUrl(props.appointment.id))
@@ -187,8 +201,15 @@ const stateLabel = computed(() => (isCancelled.value
         }
     }
 
-    &__headline {
+    &__headline-wrap {
         flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    &__headline {
         min-width: 0;
         display: flex;
         flex-direction: column;
@@ -223,6 +244,28 @@ const stateLabel = computed(() => (isCancelled.value
 
     &__title-tail {
         white-space: nowrap;
+    }
+
+    &__location {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        min-width: 0;
+        font-size: 15px;
+        color: var(--color-text-maxcontrast);
+
+        &:hover,
+        &:focus-visible {
+            color: var(--color-main-text);
+            text-decoration: underline;
+        }
+    }
+
+    &__location-text {
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     &__chevron {

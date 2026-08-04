@@ -216,6 +216,162 @@ class AppointmentServiceTest extends TestCase {
 		);
 	}
 
+	public function testCreateAppointmentStoresLocation(): void {
+		$this->appointmentMapper->expects($this->once())
+			->method('insert')
+			->with($this->callback(fn (Appointment $appointment) => $appointment->getLocation() === 'Club house'))
+			->willReturnCallback(function (Appointment $appointment) {
+				$appointment->setId(1);
+				return $appointment;
+			});
+
+		$result = $this->service->createAppointment(
+			'Team Meeting',
+			'Weekly sync',
+			'2024-01-15T10:00:00Z',
+			'2024-01-15T11:00:00Z',
+			'admin',
+			[],
+			[],
+			[],
+			false,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			'Club house',
+		);
+
+		$this->assertSame('Club house', $result->getLocation());
+	}
+
+	public function testCreateAppointmentTreatsEmptyLocationAsNull(): void {
+		$this->appointmentMapper->expects($this->once())
+			->method('insert')
+			->with($this->callback(fn (Appointment $appointment) => $appointment->getLocation() === null))
+			->willReturnCallback(function (Appointment $appointment) {
+				$appointment->setId(1);
+				return $appointment;
+			});
+
+		$this->service->createAppointment(
+			'Team Meeting',
+			'Weekly sync',
+			'2024-01-15T10:00:00Z',
+			'2024-01-15T11:00:00Z',
+			'admin',
+			[],
+			[],
+			[],
+			false,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			'',
+		);
+	}
+
+	public function testUpdateAppointmentStoresLocationAndRecordsAudit(): void {
+		$appointment = new Appointment();
+		$appointment->setId(3);
+		$appointment->setName('Same');
+		$appointment->setDescription('Same');
+		$appointment->setStartDatetime('2026-01-01 10:00:00');
+		$appointment->setEndDatetime('2026-01-01 11:00:00');
+		$appointment->setLocation(null);
+
+		$this->appointmentMapper->expects($this->once())->method('find')->willReturn($appointment);
+		$this->appointmentMapper->expects($this->once())->method('update')->willReturnArgument(0);
+
+		$this->auditEventService->expects($this->once())
+			->method('recordAppointmentUpdate')
+			->with(3, ['location']);
+
+		$updated = $this->service->updateAppointment(
+			3,
+			'Same',
+			'Same',
+			'2026-01-01T10:00:00Z',
+			'2026-01-01T11:00:00Z',
+			'admin',
+			[],
+			[],
+			[],
+			null,
+			null,
+			'Club house',
+		);
+
+		$this->assertSame('Club house', $updated->getLocation());
+	}
+
+	public function testUpdateSeriesAppointmentsAppliesLocationToAllSiblings(): void {
+		$reference = new Appointment();
+		$reference->setId(10);
+		$reference->setSeriesId('series-1');
+		$reference->setSeriesPosition(0);
+		$reference->setStartDatetime('2026-01-01 10:00:00');
+		$reference->setEndDatetime('2026-01-01 11:00:00');
+
+		$sibling = new Appointment();
+		$sibling->setId(11);
+		$sibling->setSeriesId('series-1');
+		$sibling->setSeriesPosition(1);
+		$sibling->setStartDatetime('2026-01-08 10:00:00');
+		$sibling->setEndDatetime('2026-01-08 11:00:00');
+
+		$this->appointmentMapper->method('find')->with(10)->willReturn($reference);
+		$this->appointmentMapper->method('findBySeriesId')->with('series-1')->willReturn([$reference, $sibling]);
+		$this->appointmentMapper->method('update')->willReturnArgument(0);
+		$this->permissionService->method('canManageAppointments')->willReturn(true);
+
+		$updated = $this->service->updateSeriesAppointments(
+			10,
+			'all',
+			'Rehearsal',
+			'',
+			'2026-01-01T10:00:00Z',
+			'2026-01-01T11:00:00Z',
+			'admin',
+			[],
+			[],
+			[],
+			null,
+			null,
+			'Concert hall',
+		);
+
+		$this->assertCount(2, $updated);
+		foreach ($updated as $appointment) {
+			$this->assertSame('Concert hall', $appointment->getLocation());
+		}
+	}
+
+	public function testGetLocationSuggestionsFiltersByVisibilityAndDedupes(): void {
+		$visible = $this->createAppointment(1, 'A');
+		$visible->setLocation('Club house');
+		$alsoVisible = $this->createAppointment(2, 'B');
+		$alsoVisible->setLocation('Club house');
+		$notVisible = $this->createAppointment(3, 'C');
+		$notVisible->setLocation('Secret room');
+
+		$this->appointmentMapper->expects($this->once())
+			->method('findWithLocation')
+			->willReturn([$visible, $alsoVisible, $notVisible]);
+
+		$this->visibilityService->method('canUserSeeAppointment')
+			->willReturnCallback(fn (Appointment $appointment) => $appointment->getId() !== 3);
+
+		$result = $this->service->getLocationSuggestions('user1');
+
+		$this->assertSame(['Club house'], $result);
+	}
+
 	public function testUpdateAppointmentSkipsAuditWhenNothingChanged(): void {
 		$appointment = new Appointment();
 		$appointment->setId(3);

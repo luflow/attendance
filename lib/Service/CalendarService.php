@@ -151,7 +151,7 @@ class CalendarService {
 	 * For recurring events, this returns one entry per occurrence in the time range.
 	 *
 	 * @param array $searchResult
-	 * @return list<array{id: string, uid: string, uri: ?string, summary: string, description: string, dtstart: string, dtend: string, isAllDay: bool}>
+	 * @return list<array{id: string, uid: string, uri: ?string, summary: string, description: string, location: string, dtstart: string, dtend: string, isAllDay: bool}>
 	 */
 	private function parseCalendarObject(array $searchResult): array {
 		// The search result contains objects array with event properties directly
@@ -164,6 +164,7 @@ class CalendarService {
 			$uid = $this->extractProperty($object, 'UID');
 			$summary = $this->extractProperty($object, 'SUMMARY');
 			$description = $this->extractProperty($object, 'DESCRIPTION');
+			$location = $this->extractProperty($object, 'LOCATION');
 			$dtstart = $this->extractPropertyRaw($object, 'DTSTART');
 			$dtend = $this->extractPropertyRaw($object, 'DTEND');
 
@@ -184,6 +185,7 @@ class CalendarService {
 				'uri' => $uri,
 				'summary' => $summary ?? '',
 				'description' => $description ?? '',
+				'location' => $location ?? '',
 				'dtstart' => $formattedStart,
 				'dtend' => $dtend ? $this->formatDateTime($dtend, $isAllDay) : $formattedStart,
 				'isAllDay' => $isAllDay,

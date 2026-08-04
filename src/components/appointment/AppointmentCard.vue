@@ -9,6 +9,16 @@
 					<AppointmentStatusChips :appointment="appointment" />
 				</div>
 				<AppointmentMeta :appointment="appointment" :dateText="subtitleText" />
+				<a
+					v-if="appointment.location"
+					:href="osmLocationUrl"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="appointment-location"
+					data-test="appointment-location">
+					<MapMarkerIcon :size="16" />
+					<span>{{ appointment.location }}</span>
+				</a>
 			</div>
 			<AppointmentActionsMenu
 				:appointment="appointment"
@@ -144,6 +154,7 @@ import { NcButton, NcChip } from '@nextcloud/vue'
 import { computed } from 'vue'
 import CalendarRemoveIcon from 'vue-material-design-icons/CalendarRemove.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
+import MapMarkerIcon from 'vue-material-design-icons/MapMarkerOutline.vue'
 import Paperclip from 'vue-material-design-icons/Paperclip.vue'
 import AppointmentActionsMenu from './AppointmentActionsMenu.vue'
 import AppointmentMeta from './AppointmentMeta.vue'
@@ -192,6 +203,7 @@ const {
 	canSeeAuditLog,
 	titleText,
 	subtitleText,
+	osmLocationUrl,
 } = useAppointmentCard(() => props.appointment)
 
 // The banners offer the reverse of the menu's destructive actions, so they
@@ -292,6 +304,20 @@ const renderedDescription = computed(() => {
             text-wrap: pretty;
         }
 
+        .appointment-location {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+            color: var(--color-text-maxcontrast);
+            font-size: 15px;
+
+            &:hover,
+            &:focus-visible {
+                color: var(--color-main-text);
+                text-decoration: underline;
+            }
+        }
     }
 }
 

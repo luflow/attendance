@@ -8,6 +8,7 @@
  */
 
 import { computed, unref } from 'vue'
+import { openStreetMapUrl } from '../utils/appointment.js'
 import { formatDateRange } from '../utils/datetime.js'
 import { usePermissions } from './usePermissions.js'
 
@@ -48,6 +49,8 @@ export function useAppointmentCard(appointmentSource) {
 	const titleText = computed(() => (dateFirst.value ? dateRange.value : appointment.value.name))
 	const subtitleText = computed(() => (dateFirst.value ? appointment.value.name : dateRange.value))
 
+	const osmLocationUrl = computed(() => openStreetMapUrl(appointment.value.location))
+
 	return {
 		capabilities,
 		isClosed,
@@ -60,5 +63,6 @@ export function useAppointmentCard(appointmentSource) {
 		canSeeAuditLog,
 		titleText,
 		subtitleText,
+		osmLocationUrl,
 	}
 }

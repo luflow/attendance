@@ -350,6 +350,10 @@ class IcalService {
 		$output .= 'DTEND:' . $endDt->format('Ymd\THis\Z') . "\r\n";
 		$output .= 'SUMMARY:' . $this->escapeIcalText($summary) . "\r\n";
 		$output .= 'DESCRIPTION:' . $this->escapeIcalText($description) . "\r\n";
+		$location = $appointment->getLocation();
+		if ($location !== null) {
+			$output .= 'LOCATION:' . $this->escapeIcalText($location) . "\r\n";
+		}
 		$output .= 'URL:' . $appointmentUrl . "\r\n";
 		$output .= 'STATUS:' . $status . "\r\n";
 		$output .= 'TRANSP:' . $transp . "\r\n";

@@ -124,6 +124,19 @@
 					"
 					data-test="input-appointment-description"
 					minHeight="150px" />
+
+				<div v-if="locationsAvailable" class="form-field">
+					<label for="appointment-location">{{ t('attendance', 'Location') }}</label>
+					<NcSelect
+						id="appointment-location"
+						v-model="formData.location"
+						:options="locationSuggestions"
+						:taggable="true"
+						:multiple="false"
+						:clearable="true"
+						:placeholder="t('attendance', 'Search or add a location\u00A0…')"
+						data-test="input-appointment-location" />
+				</div>
 			</div>
 
 			<div class="form-section">
@@ -535,6 +548,7 @@ const saving = ref(false)
 const formData = reactive({
 	name: '',
 	description: '',
+	location: '',
 	startDatetime: '',
 	endDatetime: '',
 	visibleUsers: [],
@@ -588,6 +602,18 @@ const organizerItems = ref([])
 const organizerSearchResults = ref([])
 const isSearchingOrganizers = ref(false)
 const organizersAvailable = computed(() => capabilities.organizers === true)
+
+const locationsAvailable = computed(() => capabilities.locationsAvailable === true)
+const locationSuggestions = ref([])
+async function loadLocationSuggestions() {
+	try {
+		const response = await axios.get(generateUrl('/apps/attendance/api/appointments/locations'))
+		locationSuggestions.value = response.data
+	} catch {
+		// Suggestions are a convenience; the field stays usable without them.
+		locationSuggestions.value = []
+	}
+}
 // Organizer list as loaded in edit mode — updates omit the field when it is
 // unchanged so the server skips re-validating every organizer on plain edits.
 const initialOrganizerIds = ref(null)
@@ -901,6 +927,7 @@ async function loadAppointment() {
 			? `${appointment.name} (${t('attendance', 'Copy')})`
 			: appointment.name
 		formData.description = appointment.description || ''
+		formData.location = appointment.location || ''
 
 		// For copy mode, leave dates empty
 		if (props.mode === 'copy') {
@@ -1232,6 +1259,7 @@ function toServerTimezone(datetime) {
 function handleCalendarEventSelect(eventData) {
 	formData.name = eventData.name
 	formData.description = eventData.description
+	formData.location = eventData.location || ''
 	formData.startDatetime = formatDateTimeForInput(eventData.startDatetime)
 	formData.endDatetime = formatDateTimeForInput(eventData.endDatetime)
 	calendarReference.value = {
@@ -1251,6 +1279,7 @@ async function handleBulkImport(eventDataList) {
 			const item = {
 				name: eventData.name,
 				description: eventData.description,
+				location: eventData.location || '',
 				startDatetime: toServerTimezone(eventData.startDatetime),
 				endDatetime: toServerTimezone(eventData.endDatetime),
 				calendarUri: eventData.calendarUri,
@@ -1311,6 +1340,7 @@ async function handleRecurringCreate() {
 			const item = {
 				name: formData.name,
 				description: formData.description,
+				location: formData.location || '',
 				startDatetime: startDt,
 				endDatetime: endDt,
 				visibleUsers: formData.visibleUsers || [],
@@ -1437,6 +1467,7 @@ async function saveAppointment(scope = 'single') {
 			const updatePayload = {
 				name: formData.name,
 				description: formData.description,
+				location: formData.location || '',
 				startDatetime: startDatetimeWithTz,
 				endDatetime: endDatetimeWithTz,
 				visibleUsers: formData.visibleUsers || [],
@@ -1465,6 +1496,7 @@ async function saveAppointment(scope = 'single') {
 			const createPayload = {
 				name: formData.name,
 				description: formData.description,
+				location: formData.location || '',
 				startDatetime: startDatetimeWithTz,
 				endDatetime: endDatetimeWithTz,
 				visibleUsers: formData.visibleUsers || [],
@@ -1501,7 +1533,7 @@ async function saveAppointment(scope = 'single') {
 }
 
 onMounted(async () => {
-	await Promise.all([loadTrackingGroups(), loadPermissions()])
+	await Promise.all([loadTrackingGroups(), loadPermissions(), loadLocationSuggestions()])
 	if (props.mode === 'edit' || props.mode === 'copy') {
 		await loadAppointment()
 	} else {

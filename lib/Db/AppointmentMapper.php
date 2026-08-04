@@ -376,6 +376,33 @@ class AppointmentMapper extends QBMapper {
 	}
 
 	/**
+	 * Find active appointments that have a location set, most recent first.
+	 * Feeds the location-suggestion endpoint; visibility is filtered by the
+	 * caller since it depends on the requesting user. Bounded well above the
+	 * suggestion count the caller dedupes down to, so a long-running instance
+	 * with years of history never triggers an unbounded table scan.
+	 *
+	 * @return array<Appointment>
+	 */
+	public function findWithLocation(int $limit = 300): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->andX(
+					$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
+					$qb->expr()->isNotNull('location'),
+					$qb->expr()->neq('location', $qb->createNamedParameter(''))
+				)
+			)
+			->orderBy('start_datetime', 'DESC')
+			->setMaxResults($limit);
+
+		return $this->findEntities($qb);
+	}
+
+	/**
 	 * Find appointments with flexible filtering for export functionality
 	 *
 	 * @param array|null $appointmentIds Specific appointment IDs to export (null for all)

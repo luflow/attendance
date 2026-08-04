@@ -324,6 +324,7 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->configureEnabled();
 		$appointment = $this->buildAppointment();
 		$appointment->setName('New title');
+		$appointment->setLocation('New venue');
 		$appointment->setCalendarUri('org-events-owner-uri');
 		$appointment->setCalendarEventUid('attendance-org-5@cloud.example.com');
 		$this->backend->existingObjects['attendance-org-5@cloud.example.com.ics'] = [
@@ -349,8 +350,10 @@ class OrgCalendarSyncServiceTest extends TestCase {
 
 		$this->assertStringContainsString('SUMMARY:New title', $ics);
 		$this->assertStringContainsString('DTSTART:20260901T180000Z', $ics);
+		// LOCATION is app-managed: the old value is replaced, not preserved
+		$this->assertStringContainsString('LOCATION:New venue', $ics);
+		$this->assertStringNotContainsString('LOCATION:Club house', $ics);
 		// Properties the app does not model survive the patch
-		$this->assertStringContainsString('LOCATION:Club house', $ics);
 		$this->assertStringContainsString('TRIGGER:-PT15M', $ics);
 		// The VALARM's DESCRIPTION is a nested property and must stay untouched
 		$this->assertStringContainsString('DESCRIPTION:Old title', $ics);
@@ -378,6 +381,25 @@ class OrgCalendarSyncServiceTest extends TestCase {
 
 		$this->assertTrue($this->service->syncAppointment($appointment));
 		$this->assertStringNotContainsString('DESCRIPTION:', $this->backend->updated[0][2]);
+	}
+
+	public function testPatchRemovesLocationWhenNotSet(): void {
+		$this->configureEnabled();
+		$appointment = $this->buildAppointment();
+		$appointment->setCalendarUri('org-events-owner-uri');
+		$appointment->setCalendarEventUid('attendance-org-5@cloud.example.com');
+		$this->backend->existingObjects['attendance-org-5@cloud.example.com.ics'] = [
+			'calendardata' => "BEGIN:VCALENDAR\r\n"
+				. "BEGIN:VEVENT\r\n"
+				. "UID:attendance-org-5@cloud.example.com\r\n"
+				. "SUMMARY:Rehearsal\r\n"
+				. "LOCATION:Club house\r\n"
+				. "END:VEVENT\r\n"
+				. "END:VCALENDAR\r\n",
+		];
+
+		$this->assertTrue($this->service->syncAppointment($appointment));
+		$this->assertStringNotContainsString('LOCATION:', $this->backend->updated[0][2]);
 	}
 
 	public function testResponseSummaryIsAppendedBehindMarker(): void {
