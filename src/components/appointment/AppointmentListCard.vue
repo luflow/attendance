@@ -285,7 +285,12 @@ const stateLabel = computed(() => (isCancelled.value
         display: inline-flex;
         align-items: center;
         vertical-align: -4px;
-        margin-inline-start: 4px;
+        // Curated icons draw their glyph flush to very different edges of
+        // their viewBox (e.g. account-group touches x=0, music-note doesn't
+        // start until x=6), so a small margin reads as "touching the title"
+        // for some icons and not others. This is generous enough to give
+        // even the flush-left ones a real gap.
+        margin-inline-start: 7px;
         color: var(--color-text-maxcontrast);
         cursor: default;
 
