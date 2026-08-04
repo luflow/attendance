@@ -423,13 +423,13 @@ function loadStoredCategoryFilter() {
 
 const availableCategories = computed(() => {
 	const usedIds = new Set(appointments.value.map((a) => a.categoryId).filter((id) => id !== null && id !== undefined))
-	return categories.value.filter((category) => usedIds.has(category.id))
+	return categories.filter((category) => usedIds.has(category.id))
 })
 
 // Stale ids (category deleted after being stored/selected) are dropped
 // rather than shown as an unresolvable chip.
 const selectedCategoryChips = computed(() => selectedCategoryIds.value
-	.map((id) => categories.value.find((category) => category.id === id))
+	.map((id) => categories.find((category) => category.id === id))
 	.filter(Boolean))
 
 function toggleCategoryFilter(categoryId) {
