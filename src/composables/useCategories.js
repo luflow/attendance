@@ -29,7 +29,7 @@ export function useCategories() {
 			state.loaded = true
 		} catch (error) {
 			console.error('Failed to load categories:', error)
-			state.items.splice(0, state.items.length)
+			state.items.length = 0
 		} finally {
 			state.loading = false
 		}
