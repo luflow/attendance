@@ -1,4 +1,4 @@
-import { createAppointmentViaAPI, createCategoryViaAPI, deleteAllAppointments, deleteCategoryViaAPI, expect, listAppointmentsViaAPI, test } from './fixtures/nextcloud.js'
+import { createAppointmentViaAPI, createCategoryViaAPI, deleteCategoryViaAPI, expect, forceWipeAllAppointments, listAppointmentsViaAPI, test } from './fixtures/nextcloud.js'
 
 // Mirrors the storage key in src/views/AllAppointments.vue.
 const CATEGORY_FILTER_STORAGE_KEY = 'attendance:list-filters:categories'
@@ -11,7 +11,10 @@ test.describe('Attendance App - Categories', () => {
 	const createdCategoryIds = []
 
 	test.afterAll(async ({ request }) => {
-		await deleteAllAppointments(request)
+		// This file lives in the sequential-admin project (workers: 1), so a
+		// hard wipe is safe here — unlike deleteAllAppointments, it also
+		// clears the upcoming appointments these tests create.
+		await forceWipeAllAppointments(request)
 		for (const id of createdCategoryIds) {
 			await deleteCategoryViaAPI(request, id)
 		}
@@ -44,14 +47,18 @@ test.describe('Attendance App - Categories', () => {
 
 		const renamedName = uniqueName('Concert')
 		await item.locator('[data-test="button-edit-category"]').click()
-		await item.locator('[data-test="input-edit-category-icon"]').click()
+		// From here on, target `section` rather than `item`: editing swaps the
+		// name into an <input>'s value, which isn't text content, so `item`
+		// (still filtered by the old hasText name) stops matching anything.
+		// Only one row can be in edit mode at a time, so these stay unambiguous.
+		await section.locator('[data-test="input-edit-category-icon"]').click()
 		const starOption = page.locator('[data-test="category-icon-option-star"]')
 		await starOption.click()
 		await expect(starOption).toHaveAttribute('aria-pressed', 'true')
 		await page.keyboard.press('Escape')
-		const editField = item.getByRole('textbox', { name: 'Category name' })
+		const editField = section.getByRole('textbox', { name: 'Category name' })
 		await editField.fill(renamedName)
-		await item.getByRole('button', { name: 'Save', exact: true }).click()
+		await section.getByRole('button', { name: 'Save', exact: true }).click()
 
 		const renamedItem = section.locator('.category-list__item').filter({ hasText: renamedName })
 		await expect(renamedItem).toBeVisible()
@@ -145,8 +152,12 @@ test.describe('Attendance App - Categories', () => {
 	test('deleting a category clears it from appointments that used it', async ({ page, request }) => {
 		const category = await createCategoryViaAPI(request, uniqueName('Workshop'))
 
+		// Unique per run: a retry would otherwise create a second appointment
+		// with the same fixed name, and .first() below could pick up the
+		// stale one left over from the failed attempt.
+		const targetName = uniqueName('Category Deletion Target')
 		const appointment = await createAppointmentViaAPI(request, {
-			name: 'Category Deletion Target',
+			name: targetName,
 			daysFromNow: 6,
 			categoryId: category.id,
 		})
@@ -155,7 +166,7 @@ test.describe('Attendance App - Categories', () => {
 		await page.reload()
 		await page.waitForLoadState('networkidle')
 
-		const card = page.locator('[data-test="appointment-card"]').filter({ hasText: 'Category Deletion Target' }).first()
+		const card = page.locator('[data-test="appointment-card"]').filter({ hasText: targetName }).first()
 		await expect(card.locator('[data-test="appointment-category"]')).toHaveAttribute('aria-label', category.name)
 
 		await page.goto('/settings/admin/attendance')
@@ -173,11 +184,14 @@ test.describe('Attendance App - Categories', () => {
 		await page.goto('/apps/attendance')
 		await page.waitForLoadState('networkidle')
 
-		const clearedCard = page.locator('[data-test="appointment-card"]').filter({ hasText: 'Category Deletion Target' }).first()
+		const clearedCard = page.locator('[data-test="appointment-card"]').filter({ hasText: targetName }).first()
 		await expect(clearedCard).toBeVisible()
 		await expect(clearedCard.locator('[data-test="appointment-category"]')).toHaveCount(0)
 
-		const [refetched] = (await listAppointmentsViaAPI(request)).filter((a) => a.id === appointment.id)
+		// listAppointmentsViaAPI defaults to the past partition — this
+		// appointment is upcoming (daysFromNow: 6), so it only shows up when
+		// asked for upcoming appointments explicitly.
+		const [refetched] = (await listAppointmentsViaAPI(request, { showPast: false })).filter((a) => a.id === appointment.id)
 		expect(refetched.categoryId).toBeNull()
 	})
 
