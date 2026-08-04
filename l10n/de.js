@@ -799,6 +799,8 @@ OC.L10N.register(
     "Users who see the detailed summary always see the counts." : "Benutzer mit der detaillierten Übersicht sehen die Zahlen immer.",
     "Location" : "Ort",
     "Location: {location}" : "Ort: {location}",
-    "Search or add a location …" : "Ort suchen oder hinzufügen …"
+    "Search or add a location …" : "Ort suchen oder hinzufügen …",
+    "Apple Maps" : "Apple Karten",
+    "Google Maps" : "Google Maps"
 },
 "nplurals=2; plural=(n != 1);");

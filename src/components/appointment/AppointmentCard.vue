@@ -9,6 +9,10 @@
 					<AppointmentStatusChips :appointment="appointment" />
 				</div>
 				<AppointmentMeta :appointment="appointment" :dateText="subtitleText" />
+				<div v-if="appointment.location" class="appointment-location" data-test="appointment-location">
+					<MapMarkerIcon :size="16" />
+					<span>{{ appointment.location }}</span>
+				</div>
 			</div>
 			<AppointmentActionsMenu
 				:appointment="appointment"
@@ -55,11 +59,6 @@
 				@click="toggleClosed">
 				{{ t("attendance", "Reopen") }}
 			</NcButton>
-		</div>
-
-		<div v-if="appointment.location" class="appointment-location" data-test="appointment-location">
-			<MapMarkerIcon :size="16" />
-			<span>{{ appointment.location }}</span>
 		</div>
 
 		<!-- eslint-disable vue/no-v-html -- sanitized with DOMPurify -->
@@ -298,6 +297,14 @@ const renderedDescription = computed(() => {
             text-wrap: pretty;
         }
 
+        .appointment-location {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+            color: var(--color-text-maxcontrast);
+            font-size: 14px;
+        }
     }
 }
 
@@ -393,14 +400,6 @@ const renderedDescription = computed(() => {
             background-color: var(--color-background-hover);
         }
     }
-}
-
-.appointment-location {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--color-text-maxcontrast);
-    margin-bottom: 15px;
 }
 
 .appointment-description {
