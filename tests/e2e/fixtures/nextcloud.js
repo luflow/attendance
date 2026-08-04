@@ -144,6 +144,7 @@ export async function createAppointmentViaAPI(request, {
 	organizers = [],
 	sendNotification = false,
 	responseDeadline,
+	location,
 	username = 'admin',
 	password = 'admin',
 } = {}) {
@@ -161,6 +162,7 @@ export async function createAppointmentViaAPI(request, {
 		sendNotification,
 		organizers,
 		...(responseDeadline ? { responseDeadline: responseDeadline.toISOString() } : {}),
+		...(location !== undefined ? { location } : {}),
 	}
 	const resp = await resilientJson(() => request.post(`${API_BASE}/apps/attendance/api/appointments`, {
 		headers: authHeaders(username, password),

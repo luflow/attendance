@@ -15,7 +15,7 @@
 					<AppointmentStatusChips :appointment="appointment" />
 				</div>
 				<AppointmentMeta :appointment="appointment" :dateText="subtitleText" />
-				<span v-if="appointment.location" class="list-card__location">
+				<span v-if="appointment.location" class="list-card__location" data-test="appointment-location">
 					<MapMarkerIcon :size="13" />
 					<span class="list-card__location-text">{{ appointment.location }}</span>
 				</span>
