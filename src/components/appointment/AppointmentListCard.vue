@@ -16,7 +16,7 @@
 				</div>
 				<AppointmentMeta :appointment="appointment" :dateText="subtitleText" />
 				<span v-if="appointment.location" class="list-card__location" data-test="appointment-location">
-					<MapMarkerIcon :size="13" />
+					<MapMarkerIcon :size="15" />
 					<span class="list-card__location-text">{{ appointment.location }}</span>
 				</span>
 			</a>
@@ -235,7 +235,7 @@ const stateLabel = computed(() => (isCancelled.value
         align-items: center;
         gap: 4px;
         min-width: 0;
-        font-size: 12.5px;
+        font-size: 15px;
         color: var(--color-text-maxcontrast);
     }
 

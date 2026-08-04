@@ -303,7 +303,7 @@ const renderedDescription = computed(() => {
             gap: 6px;
             margin-top: 4px;
             color: var(--color-text-maxcontrast);
-            font-size: 14px;
+            font-size: 15px;
         }
     }
 }
