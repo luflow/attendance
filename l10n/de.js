@@ -811,7 +811,6 @@ OC.L10N.register(
     "Could not delete category" : "Kategorie konnte nicht gelöscht werden",
     "Could not load categories" : "Kategorien konnten nicht geladen werden",
     "Could not rename category" : "Kategorie konnte nicht umbenannt werden",
-    "Define categories appointments can be classified under. Categories have no color of their own — badges use your Nextcloud theme color." : "Lege Kategorien fest, denen Termine zugeordnet werden können. Kategorien haben keine eigene Farbe — Badges verwenden die Themenfarbe deiner Nextcloud.",
     "Delete category" : "Kategorie löschen",
     "Do you want to delete the category \"{name}\"? Appointments using it keep their other data but lose the category." : "Soll die Kategorie „{name}“ gelöscht werden? Termine, die sie verwenden, behalten ihre übrigen Daten, verlieren aber die Kategorie.",
     "New category name" : "Name der neuen Kategorie",
@@ -822,6 +821,9 @@ OC.L10N.register(
     "Choose icon" : "Icon auswählen",
     "category" : "Kategorie",
     "location" : "Ort",
-    "organizers" : "Organisatoren"
+    "organizers" : "Organisatoren",
+    "Define categories appointments can be classified under. Each one gets an icon, shown wherever the category appears." : "Lege Kategorien fest, denen Termine zugeordnet werden können. Jede erhält ein Icon, das überall angezeigt wird, wo die Kategorie erscheint.",
+    "No categories yet — create some in the admin settings." : "Noch keine Kategorien — leg welche in den Administrationseinstellungen an.",
+    "No matching categories" : "Keine passenden Kategorien"
 },
 "nplurals=2; plural=(n != 1);");

@@ -150,6 +150,11 @@
 						:clearable="true"
 						:placeholder="t('attendance', 'Select a category …')"
 						data-test="input-appointment-category">
+						<template #no-options>
+							{{ categories.length === 0
+								? t('attendance', 'No categories yet — create some in the admin settings.')
+								: t('attendance', 'No matching categories') }}
+						</template>
 						<template #option="option">
 							<span class="category-option">
 								<component :is="categoryIconComponent(option.icon)" :size="16" />

@@ -70,7 +70,7 @@
 
 			<NcSettingsSection id="categories"
 				:name="t('attendance', 'Categories')"
-				:description="t('attendance', 'Define categories appointments can be classified under. Categories have no color of their own — badges use your Nextcloud theme color.')"
+				:description="t('attendance', 'Define categories appointments can be classified under. Each one gets an icon, shown wherever the category appears.')"
 				data-test="section-categories">
 				<div v-if="categoriesLoading" class="loading-section">
 					<NcLoadingIcon :size="24" />
