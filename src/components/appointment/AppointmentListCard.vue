@@ -15,6 +15,10 @@
 					<AppointmentStatusChips :appointment="appointment" />
 				</div>
 				<AppointmentMeta :appointment="appointment" :dateText="subtitleText" />
+				<span v-if="appointment.location" class="list-card__location">
+					<MapMarkerIcon :size="13" />
+					<span class="list-card__location-text">{{ appointment.location }}</span>
+				</span>
 			</a>
 			<AppointmentActionsMenu
 				:appointment="appointment"
@@ -91,6 +95,7 @@
 <script setup>
 import { computed } from 'vue'
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
+import MapMarkerIcon from 'vue-material-design-icons/MapMarkerOutline.vue'
 import AppointmentActionsMenu from './AppointmentActionsMenu.vue'
 import AppointmentMeta from './AppointmentMeta.vue'
 import AppointmentStatusChips from './AppointmentStatusChips.vue'
@@ -223,6 +228,22 @@ const stateLabel = computed(() => (isCancelled.value
 
     &__title-tail {
         white-space: nowrap;
+    }
+
+    &__location {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        min-width: 0;
+        font-size: 12.5px;
+        color: var(--color-text-maxcontrast);
+    }
+
+    &__location-text {
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     &__chevron {

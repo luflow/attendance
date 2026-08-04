@@ -120,7 +120,7 @@ class AppointmentService {
 		$appointment->setVisibleUsers(empty($visibleUsers) ? null : json_encode($visibleUsers));
 		$appointment->setVisibleGroups(empty($visibleGroups) ? null : json_encode($visibleGroups));
 		$appointment->setVisibleTeams(empty($visibleTeams) ? null : json_encode($visibleTeams));
-		$appointment->setLocation($location !== null && $location !== '' ? $location : null);
+		$appointment->setLocation($this->normalizeLocation($location));
 		$appointment->setCalendarUri($calendarUri);
 		$appointment->setCalendarEventUid($calendarEventUid);
 		$appointment->setSeriesId($seriesId);
@@ -189,7 +189,7 @@ class AppointmentService {
 		$appointment->setVisibleUsers(empty($visibleUsers) ? null : json_encode($visibleUsers));
 		$appointment->setVisibleGroups(empty($visibleGroups) ? null : json_encode($visibleGroups));
 		$appointment->setVisibleTeams(empty($visibleTeams) ? null : json_encode($visibleTeams));
-		$appointment->setLocation($location !== null && $location !== '' ? $location : null);
+		$appointment->setLocation($this->normalizeLocation($location));
 
 		if ($organizers !== null) {
 			$this->applyOrganizerChange(
@@ -219,6 +219,13 @@ class AppointmentService {
 		$this->orgCalendarSyncService->syncAppointment($updated);
 
 		return $updated;
+	}
+
+	/**
+	 * An empty string means "no location" the same as null does.
+	 */
+	private function normalizeLocation(?string $location): ?string {
+		return $location !== null && $location !== '' ? $location : null;
 	}
 
 	/**
@@ -519,7 +526,7 @@ class AppointmentService {
 		$visibleUsersJson = empty($visibleUsers) ? null : json_encode($visibleUsers);
 		$visibleGroupsJson = empty($visibleGroups) ? null : json_encode($visibleGroups);
 		$visibleTeamsJson = empty($visibleTeams) ? null : json_encode($visibleTeams);
-		$locationValue = $location !== null && $location !== '' ? $location : null;
+		$locationValue = $this->normalizeLocation($location);
 
 		// Per-sibling deadline rule. Three cases by $deadlineUpdate:
 		//   set     → sibling_start + (new_deadline - new_start)
@@ -819,22 +826,26 @@ class AppointmentService {
 	 * @return list<string>
 	 */
 	public function getLocationSuggestions(string $userId, int $limit = 20): array {
+		// A manager sees every appointment (canUserSeeAppointment's own admin
+		// bypass), so skip the per-appointment check entirely for them.
+		$isManager = $this->permissionService->canManageAppointments($userId);
+
 		$suggestions = [];
 		foreach ($this->appointmentMapper->findWithLocation() as $appointment) {
-			if (!$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
+			if (!$isManager && !$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
 				continue;
 			}
 			$location = $appointment->getLocation();
-			if ($location === null || isset($suggestions[$location])) {
+			if ($location === null || in_array($location, $suggestions, true)) {
 				continue;
 			}
-			$suggestions[$location] = true;
+			$suggestions[] = $location;
 			if (count($suggestions) >= $limit) {
 				break;
 			}
 		}
 
-		return array_keys($suggestions);
+		return $suggestions;
 	}
 
 	/**

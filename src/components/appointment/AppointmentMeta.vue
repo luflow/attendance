@@ -61,25 +61,6 @@
 					<span>{{ organizedByLabel }}</span>
 				</div>
 			</NcPopover>
-
-			<NcPopover
-				v-if="appointment.location"
-				v-bind="TOOLTIP"
-				class="appointment-meta__popover">
-				<template #trigger>
-					<span
-						class="appointment-meta__icon"
-						tabindex="0"
-						role="img"
-						data-test="location-info"
-						:aria-label="appointment.location">
-						<MapMarkerIcon :size="15" />
-					</span>
-				</template>
-				<div class="meta-tooltip">
-					<span>{{ appointment.location }}</span>
-				</div>
-			</NcPopover>
 		</span></span>
 	</span>
 </template>
@@ -89,7 +70,6 @@ import { NcPopover } from '@nextcloud/vue'
 import { computed } from 'vue'
 import AccountStarIcon from 'vue-material-design-icons/AccountStar.vue'
 import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
-import MapMarkerIcon from 'vue-material-design-icons/MapMarkerOutline.vue'
 import RepeatIcon from 'vue-material-design-icons/Repeat.vue'
 import { calendarDeepLink } from '../../utils/appointment.js'
 

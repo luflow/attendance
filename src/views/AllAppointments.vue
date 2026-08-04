@@ -401,37 +401,35 @@ function setFilter(id, opt) {
 	filterValues.value = next
 }
 
-let persistTimer = null
-let lastPersistedJson = JSON.stringify(filterValues.value)
-watch(filterValues, (next) => {
-	const json = JSON.stringify(next)
-	if (json === lastPersistedJson) return
-	clearTimeout(persistTimer)
-	persistTimer = setTimeout(() => {
-		try {
-			window.localStorage.setItem(FILTER_STORAGE_KEY, json)
-			lastPersistedJson = json
-		} catch {
-			// Storage may be unavailable (private mode, quota).
-		}
-	}, 300)
-}, { deep: true })
+// Debounced localStorage write shared by every persisted filter: skips
+// unchanged values, coalesces bursts of changes into one write, and stays
+// quiet if storage is unavailable (private mode, quota). Returns a cleanup
+// function that cancels a still-pending write, for onBeforeUnmount.
+function debouncedLocalStorageWriter(key, initialValue) {
+	let timer = null
+	let lastJson = JSON.stringify(initialValue)
+	const write = (value) => {
+		const json = JSON.stringify(value)
+		if (json === lastJson) return
+		clearTimeout(timer)
+		timer = setTimeout(() => {
+			try {
+				window.localStorage.setItem(key, json)
+				lastJson = json
+			} catch {
+				// Storage may be unavailable (private mode, quota).
+			}
+		}, 300)
+	}
+	write.cancel = () => clearTimeout(timer)
+	return write
+}
 
-let locationPersistTimer = null
-let lastPersistedLocationsJson = JSON.stringify(selectedLocations.value)
-watch(selectedLocations, (next) => {
-	const json = JSON.stringify(next)
-	if (json === lastPersistedLocationsJson) return
-	clearTimeout(locationPersistTimer)
-	locationPersistTimer = setTimeout(() => {
-		try {
-			window.localStorage.setItem(LOCATION_FILTER_STORAGE_KEY, json)
-			lastPersistedLocationsJson = json
-		} catch {
-			// Storage may be unavailable (private mode, quota).
-		}
-	}, 300)
-}, { deep: true })
+const persistFilterValues = debouncedLocalStorageWriter(FILTER_STORAGE_KEY, filterValues.value)
+watch(filterValues, persistFilterValues, { deep: true })
+
+const persistSelectedLocations = debouncedLocalStorageWriter(LOCATION_FILTER_STORAGE_KEY, selectedLocations.value)
+watch(selectedLocations, persistSelectedLocations, { deep: true })
 
 const hasActiveFilters = computed(() => Boolean(props.searchQuery.trim() || activeFilters.value.length || selectedLocations.value.length))
 
@@ -639,7 +637,8 @@ onBeforeUnmount(() => {
 		confettiCanvas.remove()
 		confettiCanvas = null
 	}
-	clearTimeout(persistTimer)
+	persistFilterValues.cancel()
+	persistSelectedLocations.cancel()
 })
 
 function triggerConfetti() {
