@@ -10,6 +10,7 @@ OC.L10N.register(
     "Color" : "Farge",
     "None" : "Ingen",
     "System" : "System",
+    "No connection" : "Ikkje samband",
     "Subscription" : "Abonnement",
     "OK" : "OK",
     "Done" : "Ferdig",

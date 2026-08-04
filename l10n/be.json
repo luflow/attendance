@@ -75,12 +75,12 @@
     "Heading 3" : "Загаловак 3",
     "Insert link" : "Уставіць спасылку",
     "Dismiss" : "Адхіліць",
+    "Permissions" : "Дазволы",
+    "Mobile apps" : "Мабільныя праграмы",
     "Settings saved" : "Налады захаваны",
     "Failed to save settings" : "Не ўдалося захаваць налады",
     "Link copied" : "Спасылка скапіявана",
-    "Permissions" : "Дазволы",
     "Preview" : "Перадпрагляд",
-    "Mobile apps" : "Мабільныя праграмы",
     "Open" : "Адкрыта",
     "Push notifications" : "Push-апавяшчэнні",
     "or" : "або",
@@ -92,6 +92,7 @@
     "Notification" : "Апавяшчэнне",
     "Continue anyway" : "Усё роўна працягнуць",
     "Confirm" : "Пацвердзіць",
+    "Manager" : "Менеджар",
     "Historic" : "Гістарычнае",
     "name" : "імя"
 },"pluralForm" :"nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);"

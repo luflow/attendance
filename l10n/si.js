@@ -37,6 +37,7 @@ OC.L10N.register(
     "Save" : "Save",
     "Back" : "ආපසු",
     "Dismiss" : "Dismiss",
+    "Responses" : "ප්‍රතිචාර",
     "Link copied" : "සබැඳිය පිටපත් කළා",
     "Preview" : "පෙරදසුන",
     "Open" : "විවෘත",

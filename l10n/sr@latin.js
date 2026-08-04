@@ -14,6 +14,7 @@ OC.L10N.register(
     "Theme" : "Tema",
     "Light" : "Svetla",
     "Dark" : "Tamna",
+    "No connection" : "Nema mrežne veze",
     "About" : "O programu",
     "Done" : "Gotovo",
     "Language" : "Jezik",
