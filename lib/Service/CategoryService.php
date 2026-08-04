@@ -44,6 +44,10 @@ class CategoryService {
 		'theater',
 		'airplane',
 		'palette',
+		'bus',
+		'cabin',
+		'voice',
+		'celebration',
 	];
 
 	private CategoryMapper $categoryMapper;
