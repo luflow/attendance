@@ -96,9 +96,11 @@ test.describe('Attendance App - Categories', () => {
 		await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 		await page.waitForLoadState('networkidle')
 
+		// Saving lands on the appointment's own detail page, not the list — the
+		// detail card renders the category as plain icon + name, not a tooltip.
 		const card = page.locator('[data-test="appointment-card"]').filter({ hasText: 'Appointment With Category' }).first()
 		await expect(card).toBeVisible()
-		await expect(card.locator('[data-test="appointment-category"]')).toHaveAttribute('aria-label', categoryA.name)
+		await expect(card.locator('[data-test="appointment-category"]')).toContainText(categoryA.name)
 
 		// Edit: switch to a different category.
 		await page.getByText('Appointment With Category').first().click()
@@ -118,7 +120,7 @@ test.describe('Attendance App - Categories', () => {
 		await page.waitForLoadState('networkidle')
 
 		const updatedCard = page.locator('[data-test="appointment-card"]').filter({ hasText: 'Appointment With Category' }).first()
-		await expect(updatedCard.locator('[data-test="appointment-category"]')).toHaveAttribute('aria-label', categoryB.name)
+		await expect(updatedCard.locator('[data-test="appointment-category"]')).toContainText(categoryB.name)
 
 		// Edit again: clear the category entirely.
 		await page.getByText('Appointment With Category').first().click()

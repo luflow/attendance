@@ -84,6 +84,7 @@
 									v-model="editingCategory.name"
 									:label="t('attendance', 'Category name')"
 									:labelOutside="true"
+									:aria-label="t('attendance', 'Category name')"
 									class="category-list__edit-field"
 									@keydown.enter="saveEditingCategory"
 									@keydown.escape="cancelEditingCategory" />
@@ -128,6 +129,7 @@
 							v-model="newCategory.name"
 							:label="t('attendance', 'New category name')"
 							:labelOutside="true"
+							:aria-label="t('attendance', 'New category name')"
 							:placeholder="t('attendance', 'e.g. Rehearsal')"
 							class="category-add__name-field"
 							data-test="input-new-category"
