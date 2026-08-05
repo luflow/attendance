@@ -50,6 +50,8 @@ OC.L10N.register(
     "Preview" : "Previsualizar",
     "Push notifications" : "Notificaciones push",
     "or" : "o",
+    "Location" : "Ubicación",
+    "Category" : "Categoría",
     "days" : "días",
     "weeks" : "semanas",
     "User" : "Usuario",

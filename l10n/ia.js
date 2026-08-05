@@ -35,6 +35,8 @@ OC.L10N.register(
     "Dismiss" : "Dimitter",
     "Settings saved" : "Configurationes salveguardate",
     "Preview" : "Previsualisar",
+    "Location" : "Loco",
+    "Category" : "Categoria",
     "minutes" : "minutas",
     "hours" : "horas",
     "days" : "dies",

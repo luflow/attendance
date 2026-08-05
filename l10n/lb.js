@@ -35,6 +35,7 @@ OC.L10N.register(
     "Import" : "Import",
     "Dismiss" : "Ofbriechen",
     "Link copied" : "Link kopéiert",
+    "Location" : "Uert",
     "minutes" : "Minutten",
     "hours" : "Stonnen",
     "days" : "Deeg",

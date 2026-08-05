@@ -51,6 +51,8 @@ OC.L10N.register(
     "Settings saved" : "Se han guardado las configuraciones ",
     "Preview" : "Previsualizar",
     "or" : "o",
+    "Location" : "Ubicación",
+    "Category" : "Categoría",
     "hours" : "horas",
     "days" : "días",
     "weeks" : "semanas",

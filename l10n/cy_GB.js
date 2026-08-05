@@ -47,6 +47,7 @@ OC.L10N.register(
     "Bold" : "Trwm",
     "Italic" : "Italig",
     "Dismiss" : "Dismiss",
+    "Appointments" : "Apwyntiadau",
     "Link copied" : "Dolen wedi'i gopïo",
     "Preview" : "Rhagolwg",
     "Open" : "Ar Agor",

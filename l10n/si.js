@@ -41,6 +41,8 @@ OC.L10N.register(
     "Link copied" : "සබැඳිය පිටපත් කළා",
     "Preview" : "පෙරදසුන",
     "Open" : "විවෘත",
+    "Location" : "ස්ථානය",
+    "Category" : "ප්‍රවර්ගය",
     "User" : "පරිශීලක",
     "Description" : "විස්තරය",
     "Confirm" : "තහවුරු කරන්න"

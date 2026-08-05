@@ -86,6 +86,8 @@ OC.L10N.register(
     "App Store" : "Tienda d'aplicaciones",
     "Dismiss" : "Escartar",
     "Permissions" : "Permisos",
+    "Appointments" : "Cites",
+    "Responses" : "Rempuestes",
     "Settings saved" : "Guardóse la configuración",
     "Failed to save settings" : "Nun se pue guardar la configuración",
     "Failed to load settings" : "Nun se pue cargar la configuración",

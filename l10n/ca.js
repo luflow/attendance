@@ -113,6 +113,8 @@ OC.L10N.register(
     "Dismiss" : "Descarta",
     "Permissions" : "Permisos",
     "Scheduling" : "Programació",
+    "Appointments" : "Cites",
+    "Responses" : "Respostes",
     "Settings saved" : "S'han desat els paràmetres",
     "Failed to save settings" : "Ha fallat desar els paràmetres",
     "Failed to load settings" : "Ha fallat carregar els paràmetres",

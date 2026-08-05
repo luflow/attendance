@@ -53,6 +53,8 @@ OC.L10N.register(
     "Preview" : "Previsualizar",
     "Open" : "Abrir",
     "or" : "o",
+    "Location" : "Ubicación",
+    "Category" : "Categoría",
     "minutes" : "minutos",
     "hours" : "horas",
     "days" : "días",

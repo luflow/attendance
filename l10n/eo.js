@@ -74,6 +74,7 @@ OC.L10N.register(
     "Open" : "Malfermi",
     "Push notifications" : "Tujaj sciigoj",
     "or" : "aŭ",
+    "Location" : "Loko",
     "minutes" : "minutoj",
     "hours" : "horojn",
     "days" : "tagojn",

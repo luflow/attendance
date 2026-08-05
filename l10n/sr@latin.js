@@ -43,6 +43,7 @@ OC.L10N.register(
     "Dismiss" : "Odbaci",
     "Link copied" : "Veza iskopirana",
     "Push notifications" : "Brza obaveštenja",
+    "Category" : "Kategorija",
     "User" : "Korisnik",
     "Description" : "Opis"
 },

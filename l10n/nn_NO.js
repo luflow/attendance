@@ -39,6 +39,8 @@ OC.L10N.register(
     "Import" : "Importer",
     "Dismiss" : "Forkast",
     "Link copied" : "Lenkje kopiert",
+    "Location" : "Stad",
+    "Category" : "Kategori",
     "days" : "dagar",
     "User" : "Bruker",
     "Description" : "Skildring"
