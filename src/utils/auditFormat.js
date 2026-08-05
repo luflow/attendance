@@ -36,15 +36,23 @@ export function formatSource(source) {
 
 // The templates below reach t() only indirectly through buildSegments(), so
 // the string extractor would miss them — register them here explicitly.
-// TRANSLATORS: Audit-log entries. {actor}/{subject} are names, {response},
-// {from}, {to} and {state} render as response chips (yes/no/maybe/…).
+// One comment per line — the extractor binds a TRANSLATORS hint only to the
+// t() call on the line directly below it.
+// TRANSLATORS: Audit-log entry. {actor} is a name, {response} renders as a yes/no/maybe chip.
 t('attendance', '{actor} answered {response}')
+// TRANSLATORS: Audit-log entry. {subject} is the person the answer was given FOR, not the thing being answered.
 t('attendance', '{actor} answered {response} for {subject}')
+// TRANSLATORS: Audit-log entry. {from}/{to} render as yes/no/maybe chips.
 t('attendance', '{actor} changed response from {from} to {to}')
+// TRANSLATORS: Audit-log entry. {subject} is the person whose answer was changed.
 t('attendance', '{actor} changed the response of {subject} from {from} to {to}')
+// TRANSLATORS: Audit-log entry. {subject} is the person checked in, {state} renders as a chip.
 t('attendance', '{actor} recorded check-in for {subject}: {state}')
+// TRANSLATORS: Audit-log entry. {state} renders as a chip.
 t('attendance', '{actor} checked themselves in: {state}')
+// TRANSLATORS: Audit-log entry. {subject} is the person whose check-in was updated.
 t('attendance', '{actor} updated check-in for {subject}: {state}')
+// TRANSLATORS: Audit-log entry. {state} renders as a chip.
 t('attendance', '{actor} updated their own check-in: {state}')
 
 const CHIP_SENTINEL = /CHIP(\d+)/g

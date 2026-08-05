@@ -248,6 +248,7 @@ class Notifier implements INotifier {
 			case 'response_submitted':
 			default:
 				$subject = $onBehalfOf !== ''
+					// TRANSLATORS: %1$s answers on behalf of person %3$s; %2$s is the answer (yes/no/maybe) and %4$s the appointment title.
 					? $l->t('%1$s answered %2$s for %3$s on "%4$s"', [
 						$actorLabel,
 						$toLabel,

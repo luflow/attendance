@@ -525,7 +525,8 @@ t('attendance', "You can book directly through me — no App Store purchase need
 t('attendance', 'You are covered by your organization. You can cancel your personal subscription in the store.')
 t('attendance', 'You can only assign guests to groups you administer. Ask a server admin to grant you sub-admin rights if you need this.')
 // TRANSLATORS: Hint under the mobile app's response-bar setting for users
-// without the global permission to see responses.
+// without the global permission to see responses. "where" means "for those
+// appointments where", not a place inside the bar.
 t('attendance', 'You only see the bar where you are allowed to see responses — through a permission or as organizer of an appointment.')
 t('attendance', 'Your 14 extra days are yours either way — this just helps me make the app worth keeping.')
 t('attendance', 'Your fair price')

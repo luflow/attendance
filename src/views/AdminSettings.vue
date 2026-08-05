@@ -82,9 +82,9 @@
 								<CategoryIconPicker v-model="editingCategory.icon" data-test="input-edit-category-icon" />
 								<NcInputField
 									v-model="editingCategory.name"
-									:label="t('attendance', 'Category name')"
+									:label="categoryNameLabel"
 									:labelOutside="true"
-									:aria-label="t('attendance', 'Category name')"
+									:aria-label="categoryNameLabel"
 									class="category-list__edit-field"
 									@keydown.enter="saveEditingCategory"
 									@keydown.escape="cancelEditingCategory" />
@@ -741,6 +741,8 @@ const newCategory = reactive({ name: '', icon: DEFAULT_CATEGORY_ICON })
 const creatingCategory = ref(false)
 const editingCategoryId = ref(null)
 const editingCategory = reactive({ name: '', icon: DEFAULT_CATEGORY_ICON })
+// TRANSLATORS: Label of the input field holding a category's name — "name" is what the field expects, not part of a compound noun.
+const categoryNameLabel = t('attendance', 'Category name')
 const savingCategoryEdit = ref(false)
 const categoryToDelete = ref(null)
 
@@ -840,6 +842,7 @@ const permissionGroups = [
 			{
 				name: 'manage_appointments',
 				title: t('attendance', 'May manage appointments'),
+				// TRANSLATORS: Permission description. "manage its responses" is a second ability alongside create/edit/delete, not a consequence of them.
 				hint: t('attendance', 'Create, edit and delete any appointment and manage its responses.'),
 				warningWhenAll: t('attendance', 'Every user can create, edit and delete all appointments.'),
 			},
@@ -865,6 +868,7 @@ const permissionGroups = [
 				name: 'see_response_counts',
 				title: t('attendance', 'May see response counts'),
 				hint: t('attendance', 'See how many people answered yes, no or maybe — without any names.'),
+				// TRANSLATORS: Note under a permission. "the counts" are the yes/no/maybe numbers; the sentence says this permission is implied by the detailed-summary one.
 				implication: t('attendance', 'Users who see the detailed summary always see the counts.'),
 			},
 			{
@@ -874,6 +878,7 @@ const permissionGroups = [
 			},
 			{
 				name: 'respond_for_others',
+				// TRANSLATORS: Permission title. "set" means recording or changing an existing answer on someone's behalf — nothing new is created.
 				title: t('attendance', 'May set responses for other users'),
 				hint: t('attendance', 'Record or clear an answer on behalf of another person.'),
 				implication: t('attendance', 'Not granted automatically to users who can manage appointments.'),
