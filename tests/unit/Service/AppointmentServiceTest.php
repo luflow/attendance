@@ -1165,6 +1165,7 @@ class AppointmentServiceTest extends TestCase {
 	}
 
 	public function testCreateAppointmentFiltersUnknownUsersAndGuestsFromOrganizers(): void {
+		$this->permissionService->method('canManageAppointments')->willReturn(true);
 		$this->userManager->method('get')
 			->willReturnCallback(function (string $uid) {
 				return $uid === 'ghost' ? null : $this->createMock(\OCP\IUser::class);
@@ -1183,6 +1184,40 @@ class AppointmentServiceTest extends TestCase {
 		);
 
 		$this->assertEquals(['alice', 'bob'], $result->getOrganizersList());
+	}
+
+	public function testCreateAppointmentAddsNonManagerCreatorToOrganizers(): void {
+		$this->permissionService->method('canManageAppointments')->willReturn(false);
+		$this->expectKnownUsers(['alice', 'bob']);
+		$this->appointmentMapper->method('insert')->willReturnCallback(function (Appointment $a) {
+			$a->setId(1);
+			return $a;
+		});
+
+		$result = $this->service->createAppointment(
+			'Meeting', '', '2024-01-15T10:00:00Z', '2024-01-15T11:00:00Z', 'bob',
+			[], [], [], false, null, null, null, null, null,
+			['alice'],
+		);
+
+		$this->assertEquals(['alice', 'bob'], $result->getOrganizersList());
+	}
+
+	public function testCreateAppointmentLeavesManagerCreatorOutOfOrganizers(): void {
+		$this->permissionService->method('canManageAppointments')->willReturn(true);
+		$this->expectKnownUsers(['alice', 'admin']);
+		$this->appointmentMapper->method('insert')->willReturnCallback(function (Appointment $a) {
+			$a->setId(1);
+			return $a;
+		});
+
+		$result = $this->service->createAppointment(
+			'Meeting', '', '2024-01-15T10:00:00Z', '2024-01-15T11:00:00Z', 'admin',
+			[], [], [], false, null, null, null, null, null,
+			['alice'],
+		);
+
+		$this->assertEquals(['alice'], $result->getOrganizersList());
 	}
 
 	private function setUpOrganizerUpdate(array $currentOrganizers, bool $actorIsManager): Appointment {
