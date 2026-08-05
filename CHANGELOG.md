@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## 1.45.1 – 2026-08-05
+
+### Fixed
+
+- Copying an appointment could leave you locked out of your own copy: whoever creates an appointment without the manage permission now always stays one of its organizers, so the copy stays editable
+- The category icon in the filter chips sat in front of the filter name and looked like it belonged to it — it now stands next to the category name
+- German translations: restored wording that the nightly Transifex sync had dropped or rewritten, made formal German use the polite form throughout, and fixed two activity-history lines that used a plural verb for a single person
+
 ## 1.45.0 – 2026-08-04
 
 ### Added
