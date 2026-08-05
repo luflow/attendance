@@ -174,11 +174,12 @@
 				<NcChip
 					v-for="category in selectedCategoryChips"
 					:key="category.id"
-					:text="t('attendance', 'Category: {category}', { category: category.name })"
 					@close="toggleCategoryFilter(category.id)">
-					<template #icon>
+					<span class="filter-bar__category-chip">
+						<span v-if="categoryChipLabel.before">{{ categoryChipLabel.before }}</span>
 						<component :is="categoryIconComponent(category.icon)" :size="16" />
-					</template>
+						<span>{{ category.name }}{{ categoryChipLabel.after }}</span>
+					</span>
 				</NcChip>
 			</div>
 		</div>
@@ -232,6 +233,7 @@
 
 <script setup>
 import axios from '@nextcloud/axios'
+import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcChip, NcPopover } from '@nextcloud/vue'
 import { create as createConfetti } from 'canvas-confetti'
@@ -439,6 +441,14 @@ const availableCategories = computed(() => {
 const selectedCategoryChips = computed(() => selectedCategoryIds.value
 	.map((id) => categories.find((category) => category.id === id))
 	.filter(Boolean))
+
+// Split the label at its placeholder so the icon sits next to the category
+// name instead of at the chip's leading edge — one msgid, translators keep
+// the ordering.
+const categoryChipLabel = computed(() => {
+	const [before = '', after = ''] = t('attendance', 'Category: {category}').split('{category}')
+	return { before: before.trim(), after: after.trim() }
+})
 
 function toggleCategoryFilter(categoryId) {
 	selectedCategoryIds.value = selectedCategoryIds.value.includes(categoryId)
@@ -849,6 +859,12 @@ onMounted(async () => {
 		flex-wrap: wrap;
 		align-items: center;
 		gap: 6px;
+	}
+
+	&__category-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
 	}
 
 	&__active-label {
