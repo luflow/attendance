@@ -66,6 +66,38 @@ ORGANIZER = "admin"
 
 SERIES_ID = "demo-rehearsal-series"
 
+# Demo categories, written into `oc_att_categories` in the same reserved ID
+# range as the appointments. Icons must be keys of CategoryService::ICONS.
+# (category key, icon, name per language)
+CATEGORIES = [
+    ("rehearsal", "microphone", {"en": "Rehearsal", "de": "Probe"}),
+    ("performance", "theater", {"en": "Performance", "de": "Auftritt"}),
+    ("weekend", "cabin", {"en": "Choir weekend", "de": "Chorwochenende"}),
+    ("party", "celebration", {"en": "Party", "de": "Fest"}),
+]
+
+# appointment key -> category key. d_unanswered stays uncategorized on
+# purpose so the design states also show the no-category card.
+CATEGORY_FOR = {
+    "r1": "rehearsal", "r2": "rehearsal", "r3": "rehearsal",
+    "r4": "rehearsal", "r5": "rehearsal",
+    "extra": "rehearsal", "dress": "rehearsal",
+    "concert": "performance", "gig": "performance",
+    "weekend": "weekend",
+    "d_maybe": "rehearsal", "d_no": "rehearsal",
+    "d_booked": "party", "d_declined": "performance",
+    "d_cancelled": "rehearsal",
+}
+
+# Only a few appointments carry a location — screenshots should show both the
+# with- and without-location card. Proper nouns stay German in both languages.
+LOCATIONS = {
+    "extra": {"en": "Parish hall St. Martin", "de": "Gemeindesaal St. Martin"},
+    "concert": {"en": "Stadtpark, Bamberg", "de": "Stadtpark, Bamberg"},
+    "weekend": {"en": "Kloster Banz, Bad Staffelstein",
+                "de": "Kloster Banz, Bad Staffelstein"},
+}
+
 # Appointment name + description per language, keyed like RESPONSES. The
 # store screenshots ship in English; `--lang de` produces the same data in
 # German for the website's /de pages (the app store itself cannot take
@@ -516,9 +548,8 @@ def build_design_appointments(now: dt.datetime, lang: str) -> list[dict]:
     """One appointment per state the redesigned card was drawn for.
 
     Kept out of the default seed so the app store screenshots keep showing the
-    plain choir list. Scheduling states only render when the instance has
-    `booking_enabled=yes` — apply_config turns it on. Names follow --lang so a
-    German design review and a German website shot use the same command.
+    plain choir list. Names follow --lang so a German design review and a
+    German website shot use the same command.
     """
     today = now.date()
     tue, sat = 1, 5
@@ -551,6 +582,29 @@ def build_design_appointments(now: dt.datetime, lang: str) -> list[dict]:
     return appts
 
 
+def category_ids() -> dict[str, int]:
+    return {key: ID_BASE + i for i, (key, _, _) in enumerate(CATEGORIES)}
+
+
+def build_category_sql(lang: str) -> list[str]:
+    """Demo categories in the reserved ID range, idempotent like the rest.
+
+    The name column is UNIQUE, so a manually created category with the same
+    name (e.g. from an earlier UI experiment) is deleted too — otherwise the
+    insert would fail.
+    """
+    names = ", ".join(q(names[lang]) for _, _, names in CATEGORIES)
+    out = [
+        f"DELETE FROM oc_att_categories WHERE id BETWEEN {ID_BASE} AND {ID_MAX};",
+        f"DELETE FROM oc_att_categories WHERE name IN ({names});",
+    ]
+    ids = category_ids()
+    for key, icon, cat_names in CATEGORIES:
+        out.append(f"INSERT INTO oc_att_categories (id, name, icon) VALUES "
+                   f"({ids[key]}, {q(cat_names[lang])}, {q(icon)});")
+    return out
+
+
 def build_sql(appts: list[dict], known_users: set[str], lang: str) -> list[str]:
     fmt = "%Y-%m-%d %H:%M:%S"
     out = [
@@ -558,15 +612,20 @@ def build_sql(appts: list[dict], known_users: set[str], lang: str) -> list[str]:
         f"DELETE FROM oc_att_responses WHERE appointment_id BETWEEN {ID_BASE} AND {ID_MAX};",
         f"DELETE FROM oc_att_appointments WHERE id BETWEEN {ID_BASE} AND {ID_MAX};",
     ]
+    out += build_category_sql(lang)
     groups = json.dumps([CONDUCTOR_GROUPS[lang]] + VOICE_GROUPS)
     organizers = json.dumps([ORGANIZER])
+    cat_ids = category_ids()
 
     for a in appts:
         created = (a["start"] - dt.timedelta(days=9)).strftime(fmt)
+        cat_key = CATEGORY_FOR.get(a["key"])
+        location = LOCATIONS.get(a["key"], {}).get(lang)
         cols = ("id, name, description, start_datetime, end_datetime, created_by, "
                 "created_at, updated_at, is_active, visible_users, visible_groups, "
                 "visible_teams, series_id, series_position, send_notification, "
-                "closed_at, response_deadline, cancelled_at, organizers")
+                "closed_at, response_deadline, cancelled_at, organizers, "
+                "location, category_id")
         vals = ", ".join([
             str(a["id"]), q(a["name"]), q(a["desc"]),
             q(a["start"].strftime(fmt)), q(a["end"].strftime(fmt)),
@@ -579,6 +638,8 @@ def build_sql(appts: list[dict], known_users: set[str], lang: str) -> list[str]:
             q(a["deadline"].strftime(fmt)) if a["deadline"] else "NULL",
             q(a["cancelled"].strftime(fmt)) if a.get("cancelled") else "NULL",
             q(organizers),
+            q(location),
+            str(cat_ids[cat_key]) if cat_key else "NULL",
         ])
         out.append(f"INSERT INTO oc_att_appointments ({cols}) VALUES ({vals});")
 
@@ -624,7 +685,8 @@ AUDIT_EVENTS = [
     ("response.submitted", "user6", "user6",
      {"response": "yes", "comment": ""}, "app", dt.timedelta(days=-7, hours=2)),
     ("appointment.updated", "admin", None,
-     {"fields": ["time", "description"]}, "app", dt.timedelta(days=-6, hours=-2)),
+     {"fields": ["time", "description", "location"]}, "app",
+     dt.timedelta(days=-6, hours=-2)),
     ("response.submitted", "bob", "bob",
      {"response": "maybe", "comment": ""}, "app", dt.timedelta(days=-5, hours=5)),
     ("response.changed", "user6", "user6",
@@ -667,8 +729,7 @@ def build_audit_sql(appts: list[dict], known_users: set[str]) -> list[str]:
     return out
 
 
-def apply_config(nc: str, known_users: set[str], lang: str,
-                 design_states: bool = False) -> None:
+def apply_config(nc: str, known_users: set[str], lang: str) -> None:
     print("configuring instance …")
     conductor = CONDUCTOR_GROUPS[lang]
     existing_groups = occ(nc, "group:list", "--output=json")
@@ -704,10 +765,19 @@ def apply_config(nc: str, known_users: set[str], lang: str,
     occ(nc, "user:setting", ORGANIZER, "core", "locale", ui_locale, check=False)
     print(f"  + {ORGANIZER}: lang={ui_lang} locale={ui_locale}")
 
-    # The "Scheduled" / "Not scheduled" states only render with the feature on.
-    if design_states:
-        occ(nc, "config:app:set", "attendance", "booking_enabled", "--value=yes")
-        print("  + booking_enabled = yes")
+    # The check-in list 403s when permission_checkin is left at mode "nobody"
+    # — there is no admin bypass, and an e2e run leaves it that way. Point it
+    # at the conductor group so the screenshot account can check people in.
+    occ(nc, "config:app:set", "attendance", "permission_checkin_mode",
+        "--value=groups")
+    occ(nc, "config:app:set", "attendance", "permission_checkin",
+        f"--value={json.dumps([conductor])}")
+    print(f"  + permission_checkin = groups {conductor}")
+
+    # The category badge on the cards, and the "Scheduled" / "Not scheduled"
+    # states, only render with their feature on.
+    occ(nc, "config:app:set", "attendance", "booking_enabled", "--value=yes")
+    print("  + booking_enabled = yes")
 
 
 def main() -> None:
@@ -748,7 +818,7 @@ def main() -> None:
 
     print(f"instance {nc}, db {db}, now (UTC) {now}, lang {args.lang}")
     if not args.no_config:
-        apply_config(nc, users, args.lang, design_states=args.design_states)
+        apply_config(nc, users, args.lang)
 
     cfg = db_config(nc)
     cmd = ["docker", "exec", "-i", db, "mysql",
@@ -761,11 +831,15 @@ def main() -> None:
     if err:
         print(err)
 
-    print(f"seeded {len(appts)} appointments (IDs {ID_BASE}-{appts[-1]['id']}):")
+    print(f"seeded {len(CATEGORIES)} categories and {len(appts)} appointments "
+          f"(IDs {ID_BASE}-{appts[-1]['id']}):")
     for a in appts:
         state = "cancelled" if a.get("cancelled") else "closed" if a["closed"] else "open"
         running = "  <- running now" if a["start"] <= now <= a["end"] else ""
-        print(f"  {a['id']}  {a['start']:%a %d %b %H:%M} UTC  {a['name']:<16} {state}{running}")
+        cat = CATEGORY_FOR.get(a["key"], "-")
+        loc = "  @ " + LOCATIONS[a["key"]][args.lang] if a["key"] in LOCATIONS else ""
+        print(f"  {a['id']}  {a['start']:%a %d %b %H:%M} UTC  {a['name']:<20} "
+              f"{state:<9} [{cat}]{running}{loc}")
 
 
 if __name__ == "__main__":

@@ -97,12 +97,12 @@ instead of hunting for a closed or cancelled example:
 | 155 | **cancelled** |
 | 156 | open, unanswered, with a response deadline |
 
-The scheduling states need `booking_enabled=yes`, which this flag turns on.
-They are **not** part of the app store set — the plain run deletes them again,
+These are **not** part of the app store set — the plain run deletes them again,
 because the shipped list screenshot should show an ordinary choir list. Re-pass
-the flag whenever you want them back.
+the flag whenever you want them back. `scheduling.jpg` is the exception: it is
+shot from IDs 153/154, so that shot needs this flag.
 
-The script also fixes four things that otherwise ruin the screenshots. Do not
+The script also fixes six things that otherwise ruin the screenshots. Do not
 skip them with `--no-config` unless you know they are already right:
 
 - **Display names.** The dev accounts have none, so the UI would show `user1`,
@@ -114,6 +114,12 @@ skip them with `--no-config` unless you know they are already right:
   one person in "Others".
 - **`lang=en` *and* `locale=en_GB`** for admin. `lang` alone leaves dates
   German ("So., 26. Juli 2026") inside an English UI.
+- **`permission_checkin`** pointed at the conductor group. There is no admin
+  bypass in `PermissionService`, so the mode an e2e run leaves behind
+  (`nobody`) makes the check-in page answer 403 — "Failed to load appointment
+  data" instead of a list.
+- **`booking_enabled=yes`**, which the "Schedule" buttons in the response
+  summary and the Scheduled / Not scheduled chips both need.
 
 ## Step 2 — Log in (the user has to do this)
 
@@ -133,13 +139,15 @@ font size; the resulting image stays the same pixel size. This is the
 "zoom out until it fits" lever.
 
 ```
-emulate  viewport: 1220x840x1.6     -> dashboard widget
-emulate  viewport: 1495x1030x1.305  -> appointment list
-emulate  viewport: 1743x1200x1.12   -> group statistics (one group expanded)
-emulate  viewport: 1788x1231x1.092  -> check-in list
+emulate  viewport: 1220x840x1.6        -> dashboard widget
+emulate  viewport: 1426x982x1.36863    -> appointment list
+emulate  viewport: 1580x1088x1.235294  -> group statistics (one group expanded)
+emulate  viewport: 1739x1197x1.1224842 -> check-in list, audit log, scheduling
 ```
 
 Those are starting points, not gospel — content length shifts with the data.
+The category icon next to the title and the location line both grow the cards,
+so a viewport that fit before will cut mid-card now.
 **Measure, do not guess.** Before each shot, check what actually fits:
 
 ```js
@@ -160,6 +168,11 @@ entries rather than through one:
 ```
 
 Pick a viewport height that lands just past one entry's `bottom`.
+
+When you derive a new pair, keep enough decimals that `width x scale` rounds to
+1952, not 1951 — Chrome truncates, and a one-pixel-narrower image in an
+otherwise uniform set is the kind of thing only the store's side-by-side view
+reveals. Verify with `sips` in Step 4 rather than trusting the arithmetic.
 
 Then take the shot as PNG and **keep it** — Step 4 needs it:
 
