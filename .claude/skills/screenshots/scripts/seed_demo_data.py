@@ -455,6 +455,18 @@ def db_config(container: str) -> dict:
         sys.exit(f"could not read DB credentials from config.php:\n{out}")
 
 
+def mysql(container: str, cfg: dict, sql: list[str]) -> None:
+    cmd = ["docker", "exec", "-i", container, "mysql",
+           f"-u{cfg['dbuser']}", f"-p{cfg['dbpassword']}", cfg["dbname"]]
+    res = subprocess.run(cmd, input="\n".join(sql), capture_output=True, text=True)
+    err = "\n".join(l for l in res.stderr.splitlines()
+                    if "Using a password" not in l).strip()
+    if res.returncode != 0:
+        sys.exit(f"seeding failed:\n{err}")
+    if err:
+        print(err)
+
+
 def instance_now(container: str) -> dt.datetime:
     """UTC clock of the instance — appointment times must line up with it."""
     out = run(["docker", "exec", container, "date", "-u", "+%Y-%m-%d %H:%M:%S"])
@@ -792,6 +804,11 @@ def main() -> None:
                    help="also seed one appointment per designed card state "
                         "(open/maybe/no, closed + scheduled, closed + not "
                         "scheduled, cancelled, unanswered with deadline)")
+    p.add_argument("--reopen-running", action="store_true",
+                   help="re-open the seeded appointment that is running right "
+                        "now (autoCloseExpired() closes it minutes after "
+                        "seeding) and exit, changing nothing else. Cheap "
+                        "enough to call in a loop while shooting.")
     p.add_argument("--lang", choices=["en", "de"], default="en",
                    help="language of the seeded data AND the admin UI. "
                         "'en' for the app store set (the store cannot take "
@@ -803,6 +820,16 @@ def main() -> None:
     names = docker_names()
     nc = args.nc_container or autodetect(names, ["stable", "nextcloud-1"], "Nextcloud")
     db = args.db_container or autodetect(names, ["database", "mysql", "mariadb"], "database")
+
+    if args.reopen_running:
+        now = instance_now(nc)
+        stamp = f"{now:%Y-%m-%d %H:%M:%S}"
+        mysql(db, db_config(nc), [
+            f"UPDATE oc_att_appointments SET closed_at = NULL "
+            f"WHERE id BETWEEN {ID_BASE} AND {ID_MAX} AND closed_at IS NOT NULL "
+            f"AND start_datetime <= '{stamp}' AND end_datetime >= '{stamp}';"
+        ])
+        return
 
     users = set(json.loads(occ(nc, "user:list", "--output=json")).keys())
     now = instance_now(nc)
@@ -820,16 +847,7 @@ def main() -> None:
     if not args.no_config:
         apply_config(nc, users, args.lang)
 
-    cfg = db_config(nc)
-    cmd = ["docker", "exec", "-i", db, "mysql",
-           f"-u{cfg['dbuser']}", f"-p{cfg['dbpassword']}", cfg["dbname"]]
-    res = subprocess.run(cmd, input="\n".join(sql), capture_output=True, text=True)
-    err = "\n".join(l for l in res.stderr.splitlines()
-                    if "Using a password" not in l).strip()
-    if res.returncode != 0:
-        sys.exit(f"seeding failed:\n{err}")
-    if err:
-        print(err)
+    mysql(db, db_config(nc), sql)
 
     print(f"seeded {len(CATEGORIES)} categories and {len(appts)} appointments "
           f"(IDs {ID_BASE}-{appts[-1]['id']}):")
