@@ -135,9 +135,15 @@ class AppointmentService {
 		$appointment->setResponseDeadline($deadlineFormatted);
 		// The creator freely chooses the initial organizer list; when the client
 		// sends nothing, the creator becomes the sole organizer.
+		$requestedOrganizers = $organizers ?? [$createdBy];
+		// Without manage permission, being an organizer is the creator's only
+		// handle on the appointment — a copy would carry only foreign organizers.
+		if (!$this->permissionService->canManageAppointments($createdBy)) {
+			$requestedOrganizers[] = $createdBy;
+		}
 		$this->applyOrganizerChange(
 			$appointment,
-			$this->normalizeOrganizers($organizers ?? [$createdBy]),
+			$this->normalizeOrganizers($requestedOrganizers),
 			$createdBy,
 			true,
 		);

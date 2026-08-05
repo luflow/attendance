@@ -626,7 +626,7 @@ const deadlineRelativeValue = computed(() => {
 
 const deadlineRelativeOffsetMs = computed(() => deadlineRelativeValue.value * UNIT_MS[deadlineRelativeUnit.value])
 
-const { capabilities, loadPermissions } = usePermissions()
+const { permissions, capabilities, loadPermissions } = usePermissions()
 
 const visibilityItems = ref([])
 const searchResults = ref([])
@@ -885,17 +885,23 @@ watch(organizerItems, (selected) => {
 	formData.organizers = selected.map((item) => item.value)
 })
 
-// Prefill the current user as organizer for new appointments — matches the
-// server default and makes the delegation visible in the form.
-function prefillCurrentUserAsOrganizer() {
+function currentUserOrganizerItem() {
 	const currentUser = window.OC?.getCurrentUser?.()
-	if (!currentUser?.uid) return
-	organizerItems.value = [{
+	if (!currentUser?.uid) return null
+	return {
 		id: `user:${currentUser.uid}`,
 		value: currentUser.uid,
 		label: currentUser.displayName || currentUser.uid,
 		type: 'user',
-	}]
+	}
+}
+
+// Prefill the current user as organizer for new appointments — matches the
+// server default and makes the delegation visible in the form.
+function prefillCurrentUserAsOrganizer() {
+	const item = currentUserOrganizerItem()
+	if (!item) return
+	organizerItems.value = [item]
 }
 
 /**
@@ -1050,6 +1056,17 @@ async function loadAppointment() {
 			label: o.label,
 			type: 'user',
 		}))
+		// Without manage permission, organizer is the copier's only handle on
+		// the new appointment; the server enforces this too, show it up front.
+		const self = currentUserOrganizerItem()
+		if (
+			props.mode === 'copy'
+			&& !permissions.canManageAppointments
+			&& self
+			&& !organizerList.some((o) => o.value === self.value)
+		) {
+			organizerList.push(self)
+		}
 		organizerItems.value = organizerList
 		organizerSearchResults.value = [...organizerList]
 		if (props.mode === 'edit') {
