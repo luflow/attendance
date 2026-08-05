@@ -178,7 +178,8 @@
 					<span class="filter-bar__category-chip">
 						<span v-if="categoryChipLabel.before">{{ categoryChipLabel.before }}</span>
 						<component :is="categoryIconComponent(category.icon)" :size="16" />
-						<span>{{ category.name }}{{ categoryChipLabel.after }}</span>
+						<span>{{ category.name }}</span>
+						<span v-if="categoryChipLabel.after">{{ categoryChipLabel.after }}</span>
 					</span>
 				</NcChip>
 			</div>
@@ -442,9 +443,8 @@ const selectedCategoryChips = computed(() => selectedCategoryIds.value
 	.map((id) => categories.find((category) => category.id === id))
 	.filter(Boolean))
 
-// Split the label at its placeholder so the icon sits next to the category
-// name instead of at the chip's leading edge — one msgid, translators keep
-// the ordering.
+// Deliberately unsubstituted: splitting the translated label at its own
+// placeholder puts the icon next to the name, in the translator's order.
 const categoryChipLabel = computed(() => {
 	const [before = '', after = ''] = t('attendance', 'Category: {category}').split('{category}')
 	return { before: before.trim(), after: after.trim() }
