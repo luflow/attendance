@@ -51,6 +51,11 @@ It is **non-destructive** — it only deletes and re-inserts IDs 101-199, a
 reserved range. Existing appointments survive. Re-running is safe and
 idempotent.
 
+The Flutter repo's `scripts/capture_screenshots.sh` calls **this same file**
+by path (`$ATTENDANCE_SERVER_REPO/.claude/skills/screenshots/scripts/seed_demo_data.py`)
+so the phone screenshots show the same choir. Moving or renaming it breaks
+that repo — adjust both sides together.
+
 Times are computed relative to the instance clock, so re-running months later
 still yields sensible data. Rehearsals land on Tuesdays, concerts on Saturdays,
 and one appointment is **running right now** (started 90 min ago) — that is what
@@ -69,11 +74,12 @@ appointment (ID 104) will flip to "Closed" between seeding and shooting.
 Re-open it immediately before each shot that needs it live:
 
 ```bash
-CFG=$(docker exec master-stable34-1 php -r 'require "/var/www/html/config/config.php"; echo $CONFIG["dbuser"],"|",$CONFIG["dbpassword"],"|",$CONFIG["dbname"];')
-DBU=${CFG%%|*}; REST=${CFG#*|}; DBP=${REST%%|*}; DBN=${REST##*|}
-docker exec -i master-database-mysql-1 mysql -u"$DBU" -p"$DBP" "$DBN" \
-  -e "UPDATE oc_att_appointments SET closed_at=NULL WHERE id=104;"
+python3 .claude/skills/screenshots/scripts/seed_demo_data.py --reopen-running
 ```
+
+That touches nothing but `closed_at` of whatever seeded appointment is running
+at this moment, so it is safe to fire repeatedly — the Flutter capture script
+runs it on a 20-second loop for the length of its build.
 
 A closed first card also changes the list geometry (no response buttons, no
 deadline line → shorter card), so re-measure the cut after re-opening.
