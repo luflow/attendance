@@ -1,12 +1,15 @@
 <template>
-	<AppBanner v-if="visible"
-		:title="t('attendance', 'Self check-in is now in the mobile app')"
-		:description="t('attendance', 'Participants scan a QR code or NFC tag and check themselves in — no clipboard, no manual list.')"
+	<div v-if="visible"
+		class="mobile-app-banner"
 		data-test="mobile-app-banner">
-		<template #icon>
-			<QrcodeScanIcon :size="28" />
-		</template>
-		<template #actions>
+		<div class="mobile-app-banner__content">
+			<QrcodeScanIcon class="mobile-app-banner__icon" :size="28" />
+			<div class="mobile-app-banner__text">
+				<strong>{{ t('attendance', 'Self check-in is now in the mobile app') }}</strong>
+				<span>{{ t('attendance', 'Participants scan a QR code or NFC tag and check themselves in — no clipboard, no manual list.') }}</span>
+			</div>
+		</div>
+		<div class="mobile-app-banner__actions">
 			<NcButton v-for="store in MOBILE_APP_STORES"
 				:key="store.id"
 				variant="secondary"
@@ -27,8 +30,8 @@
 					<CloseIcon :size="20" />
 				</template>
 			</NcButton>
-		</template>
-	</AppBanner>
+		</div>
+	</div>
 </template>
 
 <script setup>
@@ -36,7 +39,6 @@ import { NcButton } from '@nextcloud/vue'
 import { onMounted, ref } from 'vue'
 import CloseIcon from 'vue-material-design-icons/Close.vue'
 import QrcodeScanIcon from 'vue-material-design-icons/QrcodeScan.vue'
-import AppBanner from './AppBanner.vue'
 import { MOBILE_APP_STORES } from '../../utils/mobileApp.js'
 
 // Suffixed so the self-check-in announcement reaches everyone who already
@@ -62,3 +64,54 @@ onMounted(() => {
 	}
 })
 </script>
+
+<style scoped>
+.mobile-app-banner {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	padding: 10px 16px;
+	margin: 0 auto;
+	max-width: 800px;
+	background-color: var(--color-primary-element-light, var(--color-background-hover));
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius-large);
+	flex-wrap: wrap;
+}
+
+.mobile-app-banner__content {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex: 1 1 240px;
+	min-width: 0;
+}
+
+.mobile-app-banner__icon {
+	flex-shrink: 0;
+	color: var(--color-primary-element);
+}
+
+.mobile-app-banner__text {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.mobile-app-banner__text strong {
+	font-weight: 600;
+}
+
+.mobile-app-banner__text span {
+	color: var(--color-text-maxcontrast);
+	font-size: 13px;
+}
+
+.mobile-app-banner__actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+</style>

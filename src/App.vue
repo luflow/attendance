@@ -171,10 +171,6 @@
 
 		<!-- Main content area -->
 		<NcAppContent>
-			<div v-if="showOnboardingBanner" class="mobile-banner-container">
-				<OnboardingBanner @start="showOnboardingWizard = true" />
-			</div>
-
 			<div v-if="currentView !== 'checkin' && config.mobileAppBannerEnabled && !config.hasPushDevice"
 				class="mobile-banner-container">
 				<MobileAppBanner />
@@ -236,6 +232,7 @@
 				@showAuditLog="openAuditLog"
 				@openDetail="navigateToAppointment"
 				@createAppointment="createNewAppointment"
+				@startOnboarding="showOnboardingWizard = true"
 				@clearSearch="searchQuery = ''" />
 
 			<!-- Loading state while routing is determined -->
@@ -292,7 +289,6 @@ import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
 import MobileAppBanner from './components/common/MobileAppBanner.vue'
 import ExportDialog from './components/ExportDialog.vue'
 import IcalFeedModal from './components/IcalFeedModal.vue'
-import OnboardingBanner from './components/onboarding/OnboardingBanner.vue'
 import AllAppointments from './views/AllAppointments.vue'
 import AppointmentDetail from './views/AppointmentDetail.vue'
 import AppointmentForm from './views/AppointmentForm.vue'
@@ -597,10 +593,6 @@ function onSearchInput() {
 
 // Use the shared permissions composable
 const { permissions, capabilities, config, loadPermissions } = usePermissions()
-
-// The check-in view is full-screen by design and stays free of banners.
-const showOnboardingBanner = computed(() => currentView.value !== 'checkin'
-	&& config.onboarding.setupPrompt)
 
 // Cancelled appointments are only listed on the "All" view, which gives them
 // their own section — the scoped lists (here and in AllAppointments.vue) leave
