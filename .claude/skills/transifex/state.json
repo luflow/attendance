@@ -1,3 +1,9 @@
 {
- "answered_up_to": "2026-08-05T20:25:58Z"
+ "answered_up_to": "2026-08-06T11:06:27Z",
+ "answered_threads": {
+  "o:nextcloud:p:nextcloud:r:attendance:s:6aabb6e378e0a65a53d64c4a760cc553": "2026-08-06T11:06:27Z",
+  "o:nextcloud:p:nextcloud:r:attendance:s:baf548090dd0d14c45abb3024ea21678": "2026-08-06T11:06:06Z",
+  "o:nextcloud:p:nextcloud:r:attendance:s:5ec1635a3b31697266c44dee96c74a90": "2026-08-06T11:05:55Z",
+  "o:nextcloud:p:nextcloud:r:attendance:s:46d58e2a39a8294566af822ac7da7ab3": "2026-07-31T21:57:06Z"
+ }
 }
