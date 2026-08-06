@@ -126,7 +126,7 @@
 					minHeight="150px" />
 
 				<div v-if="locationsAvailable" class="form-field">
-					<!-- TRANSLATORS: The venue an appointment takes place at (room, church, address) — not a file or storage path. Also written to the LOCATION field of calendar events. -->
+					<!-- TRANSLATORS: The venue an appointment takes place at — not a file or storage path. Free text, so it can be a room, a street address or just a city. Also written to the LOCATION field of calendar events. -->
 					<label for="appointment-location">{{ t('attendance', 'Location') }}</label>
 					<NcSelect
 						id="appointment-location"

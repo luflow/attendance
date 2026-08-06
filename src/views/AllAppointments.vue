@@ -80,6 +80,7 @@
 							<template #icon>
 								<MapMarkerIcon :size="20" />
 							</template>
+							<!-- TRANSLATORS: Filter button in the appointment list, filtering by the venue an appointment takes place at — not a file or storage path. -->
 							{{ t('attendance', 'Location') }}
 						</NcButton>
 					</template>

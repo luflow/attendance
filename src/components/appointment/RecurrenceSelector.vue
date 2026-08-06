@@ -229,11 +229,19 @@ const weekdays = [
 	{ value: 'SU', label: t('attendance', 'Sun') },
 ]
 
+// Ordinal position of a weekday within a month, filled into "On the {ordinal}
+// {weekday} of each month" — one hint per line, the extractor binds only to the
+// t() directly below it.
 const ordinalLabels = [
+	// TRANSLATORS: Ordinal number in "On the 1st Monday of each month" — a position in a sequence, not a date like the first of May.
 	t('attendance', '1st'),
+	// TRANSLATORS: Ordinal number in "On the 2nd Monday of each month" — a position in a sequence, not a date.
 	t('attendance', '2nd'),
+	// TRANSLATORS: Ordinal number in "On the 3rd Monday of each month" — a position in a sequence, not a date.
 	t('attendance', '3rd'),
+	// TRANSLATORS: Ordinal number in "On the 4th Monday of each month" — a position in a sequence, not a date.
 	t('attendance', '4th'),
+	// TRANSLATORS: Ordinal number in "On the 5th Monday of each month" — a position in a sequence, not a date.
 	t('attendance', '5th'),
 ]
 
