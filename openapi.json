@@ -748,6 +748,21 @@
                     }
                 }
             },
+            "OnboardingState": {
+                "type": "object",
+                "required": [
+                    "setupPrompt",
+                    "firstAppointmentPrompt"
+                ],
+                "properties": {
+                    "setupPrompt": {
+                        "type": "boolean"
+                    },
+                    "firstAppointmentPrompt": {
+                        "type": "boolean"
+                    }
+                }
+            },
             "PushConfig": {
                 "type": "object",
                 "required": [
@@ -1137,7 +1152,8 @@
                 "required": [
                     "displayOrder",
                     "mobileAppBannerEnabled",
-                    "hasPushDevice"
+                    "hasPushDevice",
+                    "onboarding"
                 ],
                 "properties": {
                     "displayOrder": {
@@ -1148,6 +1164,9 @@
                     },
                     "hasPushDevice": {
                         "type": "boolean"
+                    },
+                    "onboarding": {
+                        "$ref": "#/components/schemas/OnboardingState"
                     }
                 }
             },

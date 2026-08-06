@@ -24,6 +24,7 @@ use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
+use OCP\IUser;
 use OCP\IUserSession;
 use OCP\Security\ISecureRandom;
 
@@ -1005,7 +1006,36 @@ class AppointmentController extends Controller {
 			'displayOrder' => $this->configService->getDisplayOrder(),
 			'mobileAppBannerEnabled' => $bannerEnabled,
 			'hasPushDevice' => $hasPushDevice,
+			'onboarding' => $this->onboardingStateFor($user),
 		]);
+	}
+
+	/**
+	 * Which empty-instance prompt this user should get, decided here rather
+	 * than reassembled from raw facts by every client.
+	 *
+	 * @return array{setupPrompt: bool, firstAppointmentPrompt: bool}
+	 */
+	private function onboardingStateFor(?IUser $user): array {
+		$none = ['setupPrompt' => false, 'firstAppointmentPrompt' => false];
+		if ($user === null) {
+			return $none;
+		}
+
+		$isAdmin = $this->permissionService->isAdmin($user->getUID());
+		$canCreate = $this->permissionService->canCreateAppointments($user->getUID());
+		if ((!$isAdmin && !$canCreate) || $this->appointmentService->hasAnyAppointment()) {
+			return $none;
+		}
+
+		// Walking the wizard hands the space over to the create prompt; from
+		// then on the wizard lives in the admin settings only.
+		$setupDone = $this->configService->isOnboardingCompleted();
+
+		return [
+			'setupPrompt' => $isAdmin && !$setupDone,
+			'firstAppointmentPrompt' => $canCreate && (!$isAdmin || $setupDone),
+		];
 	}
 
 	/**

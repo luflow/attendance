@@ -1,5 +1,7 @@
 <template>
-	<div v-if="visible" class="mobile-app-banner" data-test="mobile-app-banner">
+	<div v-if="visible"
+		class="mobile-app-banner"
+		data-test="mobile-app-banner">
 		<div class="mobile-app-banner__content">
 			<QrcodeScanIcon class="mobile-app-banner__icon" :size="28" />
 			<div class="mobile-app-banner__text">
@@ -8,25 +10,17 @@
 			</div>
 		</div>
 		<div class="mobile-app-banner__actions">
-			<NcButton variant="secondary"
-				:href="APPLE_STORE_URL"
+			<NcButton v-for="store in MOBILE_APP_STORES"
+				:key="store.id"
+				variant="secondary"
+				:href="store.url"
 				target="_blank"
 				rel="noopener"
-				data-test="mobile-app-banner-apple">
+				:data-test="`mobile-app-banner-${store.id}`">
 				<template #icon>
-					<AppleIcon :size="20" />
+					<component :is="store.icon" :size="20" />
 				</template>
-				{{ t('attendance', 'App Store') }}
-			</NcButton>
-			<NcButton variant="secondary"
-				:href="GOOGLE_STORE_URL"
-				target="_blank"
-				rel="noopener"
-				data-test="mobile-app-banner-google">
-				<template #icon>
-					<GoogleIcon :size="20" />
-				</template>
-				{{ t('attendance', 'Google Play') }}
+				{{ store.label }}
 			</NcButton>
 			<NcButton variant="tertiary"
 				:aria-label="t('attendance', 'Dismiss')"
@@ -43,11 +37,9 @@
 <script setup>
 import { NcButton } from '@nextcloud/vue'
 import { onMounted, ref } from 'vue'
-import AppleIcon from 'vue-material-design-icons/Apple.vue'
 import CloseIcon from 'vue-material-design-icons/Close.vue'
-import GoogleIcon from 'vue-material-design-icons/Google.vue'
 import QrcodeScanIcon from 'vue-material-design-icons/QrcodeScan.vue'
-import { APPLE_STORE_URL, GOOGLE_STORE_URL } from '../../utils/mobileApp.js'
+import { MOBILE_APP_STORES } from '../../utils/mobileApp.js'
 
 // Suffixed so the self-check-in announcement reaches everyone who already
 // dismissed the previous "get the app" banner. Bump again on the next relaunch.

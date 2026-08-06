@@ -209,6 +209,11 @@ namespace OCA\Attendance;
  *   displayOrder: string,
  *   mobileAppBannerEnabled: bool,
  *   hasPushDevice: bool,
+ *   onboarding: AttendanceOnboardingState,
+ * }
+ * @psalm-type AttendanceOnboardingState = array{
+ *   setupPrompt: bool,
+ *   firstAppointmentPrompt: bool,
  * }
  * @psalm-type AttendanceAdminReminderConfig = array{
  *   enabled: bool,

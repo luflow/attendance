@@ -197,6 +197,7 @@ class AdminController extends Controller {
 	 * @param ?bool $mobileAppBannerEnabled Whether the mobile app promotion banner is enabled
 	 * @param ?bool $bookingEnabled Whether the booking / planning feature is enabled
 	 * @param ?int $selfCheckinWindowMinutes Minutes before appointment start that self-check-in opens
+	 * @param ?bool $onboardingCompleted Whether the setup wizard has been walked to its end
 	 * @return DataResponse<Http::STATUS_OK, array<string, mixed>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
 	 */
 	#[NoCSRFRequired]
@@ -214,6 +215,7 @@ class AdminController extends Controller {
 		?bool $mobileAppBannerEnabled = null,
 		?bool $bookingEnabled = null,
 		?int $selfCheckinWindowMinutes = null,
+		?bool $onboardingCompleted = null,
 	): DataResponse {
 		// Get current user
 		$user = $this->userSession->getUser();
@@ -292,6 +294,10 @@ class AdminController extends Controller {
 
 			if ($selfCheckinWindowMinutes !== null) {
 				$this->configService->setSelfCheckinWindowMinutes($selfCheckinWindowMinutes);
+			}
+
+			if ($onboardingCompleted !== null) {
+				$this->configService->setOnboardingCompleted($onboardingCompleted);
 			}
 
 			return new DataResponse([]);

@@ -31,6 +31,7 @@ const state = reactive({
 		displayOrder: 'name_first',
 		mobileAppBannerEnabled: true,
 		hasPushDevice: false,
+		onboarding: { setupPrompt: false, firstAppointmentPrompt: false },
 	},
 	loading: false,
 	loaded: false,
@@ -92,6 +93,11 @@ export function usePermissions() {
 			state.config.displayOrder = configRes.data.displayOrder || 'name_first'
 			state.config.mobileAppBannerEnabled = configRes.data.mobileAppBannerEnabled !== false
 			state.config.hasPushDevice = configRes.data.hasPushDevice === true
+			// Absent on older servers, which simply means no prompt.
+			state.config.onboarding = {
+				setupPrompt: configRes.data.onboarding?.setupPrompt === true,
+				firstAppointmentPrompt: configRes.data.onboarding?.firstAppointmentPrompt === true,
+			}
 
 			state.loaded = true
 		} catch (error) {
@@ -120,6 +126,7 @@ export function usePermissions() {
 			state.config.displayOrder = 'name_first'
 			state.config.mobileAppBannerEnabled = true
 			state.config.hasPushDevice = false
+			state.config.onboarding = { setupPrompt: false, firstAppointmentPrompt: false }
 		} finally {
 			state.loading = false
 		}

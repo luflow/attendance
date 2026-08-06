@@ -954,6 +954,21 @@
                     }
                 }
             },
+            "OnboardingState": {
+                "type": "object",
+                "required": [
+                    "setupPrompt",
+                    "firstAppointmentPrompt"
+                ],
+                "properties": {
+                    "setupPrompt": {
+                        "type": "boolean"
+                    },
+                    "firstAppointmentPrompt": {
+                        "type": "boolean"
+                    }
+                }
+            },
             "PermissionSetting": {
                 "type": "object",
                 "required": [
@@ -1398,7 +1413,8 @@
                 "required": [
                     "displayOrder",
                     "mobileAppBannerEnabled",
-                    "hasPushDevice"
+                    "hasPushDevice",
+                    "onboarding"
                 ],
                 "properties": {
                     "displayOrder": {
@@ -1409,6 +1425,9 @@
                     },
                     "hasPushDevice": {
                         "type": "boolean"
+                    },
+                    "onboarding": {
+                        "$ref": "#/components/schemas/OnboardingState"
                     }
                 }
             },
@@ -6489,6 +6508,12 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Minutes before appointment start that self-check-in opens"
+                                    },
+                                    "onboardingCompleted": {
+                                        "type": "boolean",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Whether the setup wizard has been walked to its end"
                                     }
                                 }
                             }

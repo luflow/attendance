@@ -231,6 +231,8 @@
 				@navigateToUnanswered="setView('unanswered')"
 				@showAuditLog="openAuditLog"
 				@openDetail="navigateToAppointment"
+				@createAppointment="createNewAppointment"
+				@startOnboarding="showOnboardingWizard = true"
 				@clearSearch="searchQuery = ''" />
 
 			<!-- Loading state while routing is determined -->
@@ -249,6 +251,13 @@
 			:show="showExportDialog"
 			:availableAppointments="allAppointments"
 			@close="showExportDialog = false" />
+
+		<!-- Setup wizard (admins only, offered while the instance has no appointments) -->
+		<OnboardingWizard v-if="showOnboardingWizard"
+			:open="showOnboardingWizard"
+			:notificationsAppEnabled="capabilities.notificationsAppEnabled"
+			@close="showOnboardingWizard = false"
+			@saved="loadPermissions(true)" />
 	</NcContent>
 </template>
 
@@ -263,7 +272,7 @@ import {
 	NcAppNavigationSearch,
 	NcContent,
 } from '@nextcloud/vue'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue'
 import BellAlertIcon from 'vue-material-design-icons/BellAlert.vue'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import CalendarClockIcon from 'vue-material-design-icons/CalendarClock.vue'
@@ -564,6 +573,9 @@ const pastAppointments = ref([])
 const appointmentDetailScrollTarget = ref(null)
 const showIcalFeedModal = ref(false)
 const showExportDialog = ref(false)
+const showOnboardingWizard = ref(false)
+// Admin-only dialog — kept out of the boot bundle every user downloads.
+const OnboardingWizard = defineAsyncComponent(() => import('./components/onboarding/OnboardingWizard.vue'))
 
 const pastAppointmentsExpanded = ref(false)
 

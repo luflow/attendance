@@ -709,6 +709,14 @@ class AppointmentService {
 	}
 
 	/**
+	 * Whether the instance holds any appointment at all — the signal for a
+	 * fresh install, used to offer admins the setup wizard.
+	 */
+	public function hasAnyAppointment(): bool {
+		return $this->appointmentMapper->hasAny();
+	}
+
+	/**
 	 * Get a single appointment with user response and summary.
 	 *
 	 * @param bool $includeResponseSummary Attach the full response overview

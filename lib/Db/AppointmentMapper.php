@@ -51,6 +51,27 @@ class AppointmentMapper extends QBMapper {
 	}
 
 	/**
+	 * Whether the instance holds any active appointment at all. Drives the
+	 * onboarding entry point, so it must not be narrowed by visibility — a
+	 * restricted appointment still means the instance is in use.
+	 */
+	public function hasAny(): bool {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('id')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
+			->setMaxResults(1);
+
+		$result = $qb->executeQuery();
+		/** @var array<string, mixed>|false $row IResult::fetch() is declared mixed */
+		$row = $result->fetch();
+		$result->closeCursor();
+
+		return $row !== false;
+	}
+
+	/**
 	 * Whether the user is listed as organizer on at least one active
 	 * appointment. LIKE on the JSON column is good enough here: user IDs are
 	 * stored JSON-encoded in double quotes, so matching `"uid"` cannot hit a

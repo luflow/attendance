@@ -191,11 +191,34 @@
 			<div v-if="loading" class="loading">
 				{{ t('attendance', 'Loading\u00A0…') }}
 			</div>
-			<div v-else-if="visibleAppointments.length === 0 && !showUnanswered" class="empty-state">
-				{{ hasActiveFilters
-					? t('attendance', 'No appointments match the active filters.')
-					: t('attendance', 'No appointments found') }}
-			</div>
+			<NcEmptyContent v-else-if="visibleAppointments.length === 0 && !showUnanswered"
+				:name="emptyState.name"
+				:description="emptyState.description"
+				data-test="appointments-empty-state">
+				<template #icon>
+					<component :is="emptyState.icon" :size="20" />
+				</template>
+				<template v-if="showSetupPrompt || showFirstAppointmentPrompt" #action>
+					<NcButton v-if="showSetupPrompt"
+						variant="primary"
+						data-test="button-start-onboarding-empty"
+						@click="emit('startOnboarding')">
+						<template #icon>
+							<RocketLaunchIcon :size="20" />
+						</template>
+						{{ t('attendance', 'Start setup') }}
+					</NcButton>
+					<NcButton v-else
+						variant="primary"
+						data-test="button-create-first-appointment"
+						@click="emit('createAppointment')">
+						<template #icon>
+							<PlusIcon :size="20" />
+						</template>
+						{{ t('attendance', 'Create your first appointment') }}
+					</NcButton>
+				</template>
+			</NcEmptyContent>
 			<div v-else>
 				<template v-for="section in visibleSections" :key="section.key">
 					<h3 v-if="section.label" class="section-heading">
@@ -237,15 +260,19 @@
 import axios from '@nextcloud/axios'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
-import { NcButton, NcChip, NcPopover } from '@nextcloud/vue'
+import { NcButton, NcChip, NcEmptyContent, NcPopover } from '@nextcloud/vue'
 import { create as createConfetti } from 'canvas-confetti'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import AccountIcon from 'vue-material-design-icons/Account.vue'
+import CalendarBlankIcon from 'vue-material-design-icons/CalendarBlank.vue'
+import CalendarPlusIcon from 'vue-material-design-icons/CalendarPlus.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
 import CheckCircleIcon from 'vue-material-design-icons/CheckCircle.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
 import MapMarkerIcon from 'vue-material-design-icons/MapMarkerOutline.vue'
+import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
+import RocketLaunchIcon from 'vue-material-design-icons/RocketLaunch.vue'
 import TagIcon from 'vue-material-design-icons/TagOutline.vue'
 import AppointmentListCard from '../components/appointment/AppointmentListCard.vue'
 import DeleteAppointmentDialog from '../components/appointment/DeleteAppointmentDialog.vue'
@@ -289,6 +316,8 @@ const emit = defineEmits([
 	'clearSearch',
 	'showAuditLog',
 	'openDetail',
+	'createAppointment',
+	'startOnboarding',
 ])
 
 const activeSearch = computed(() => props.searchQuery.trim())
@@ -328,7 +357,7 @@ const RESPONSE = Object.freeze({ YES: 'yes', MAYBE: 'maybe', NO: 'no', NONE: 'no
 const STATUS = Object.freeze({ OPEN: 'open', CLOSED: 'closed', CANCELLED: 'cancelled' })
 const AUDIENCE = Object.freeze({ ME: 'me', ME_SCHEDULED: 'me-scheduled', ME_BOOKED: 'me-booked' })
 
-const { permissions, capabilities, loadPermissions } = usePermissions()
+const { permissions, capabilities, config, loadPermissions } = usePermissions()
 const { categories, loadCategories } = useCategories()
 loadCategories()
 
@@ -533,6 +562,34 @@ const persistSelectedCategoryIds = debouncedLocalStorageWriter(CATEGORY_FILTER_S
 watch(selectedCategoryIds, persistSelectedCategoryIds, { deep: true })
 
 const hasActiveFilters = computed(() => Boolean(props.searchQuery.trim() || activeFilters.value.length || selectedLocations.value.length || selectedCategoryIds.value.length))
+
+// The server decides who gets a prompt; the filter state is ours — an empty
+// filter result is not an empty instance.
+const showSetupPrompt = computed(() => !hasActiveFilters.value && config.onboarding.setupPrompt)
+const showFirstAppointmentPrompt = computed(() => !hasActiveFilters.value
+	&& config.onboarding.firstAppointmentPrompt)
+
+const emptyState = computed(() => {
+	if (showSetupPrompt.value) {
+		return {
+			icon: RocketLaunchIcon,
+			name: t('attendance', 'No appointments yet'),
+			description: t('attendance', 'The setup wizard walks you through permissions, reminders and check-in so the first appointment lands right.'),
+		}
+	}
+	if (showFirstAppointmentPrompt.value) {
+		return {
+			icon: CalendarPlusIcon,
+			name: t('attendance', 'No appointments yet'),
+			description: t('attendance', 'Create one and everybody can reply straight away.'),
+		}
+	}
+	return {
+		icon: CalendarBlankIcon,
+		name: t('attendance', 'No appointments found'),
+		description: hasActiveFilters.value ? t('attendance', 'No appointments match the active filters.') : '',
+	}
+})
 
 const visibleAppointments = computed(() => {
 	const query = props.searchQuery.trim().toLowerCase()
@@ -785,8 +842,7 @@ onMounted(async () => {
 	max-width: 800px;
 	margin: 0 auto;
 
-	.loading,
-	.empty-state {
+	.loading {
 		text-align: center;
 		padding: 40px;
 		color: var(--color-text-lighter);

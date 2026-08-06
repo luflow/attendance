@@ -18,3 +18,16 @@ export function formatGroupLabel(groupId, fallback = null) {
 	}
 	return fallback ?? groupId
 }
+
+/**
+ * Turn stored group ids into the objects NcSelect binds to, preserving
+ * database order and dropping ids whose group no longer exists.
+ *
+ * @param {Array<string>} ids - Stored group ids.
+ * @param {Array<{id: string, displayName: string}>} groups - Available groups.
+ * @return {Array<{id: string, displayName: string}>} The matching group objects.
+ */
+export function toGroupObjects(ids, groups) {
+	const groupsById = new Map(groups.map((group) => [group.id, group]))
+	return (ids || []).map((id) => groupsById.get(id)).filter((group) => group !== undefined)
+}
