@@ -195,11 +195,6 @@
 						data-test="onboarding-push-enabled">
 						{{ t('attendance', 'Enable push notifications') }}
 					</NcCheckboxRadioSwitch>
-					<NcCheckboxRadioSwitch v-model="mobileAppBannerEnabled"
-						type="switch"
-						data-test="onboarding-banner-enabled">
-						{{ t('attendance', 'Show promotion banner') }}
-					</NcCheckboxRadioSwitch>
 				</template>
 			</div>
 		</div>
@@ -286,7 +281,6 @@ const reminders = reactive({ enabled: false, reminderDays: 7, reminderFrequency:
 const audit = reactive({ enabled: true, visibility: 'managers' })
 const selfCheckinWindowMinutes = ref(30)
 const pushEnabled = ref(true)
-const mobileAppBannerEnabled = ref(true)
 
 // `permissions` names the rows a step edits; `extra` builds whatever else it
 // owns. Both feed the same save, so a step's rows and its payload cannot drift.
@@ -359,7 +353,6 @@ const STEPS = [
 		lead: t('attendance', 'Attendance has a mobile app for iOS and Android. It is the difference between people replying and people meaning to reply.'),
 		extra: () => ({
 			pushEnabled: pushEnabled.value,
-			mobileAppBannerEnabled: mobileAppBannerEnabled.value,
 			// Last step — from here admins get the "create your first appointment"
 			// prompt that creators without admin rights see from the start.
 			onboardingCompleted: true,
@@ -444,7 +437,6 @@ async function loadSettings() {
 		audit.visibility = config.audit.visibility || 'managers'
 		selfCheckinWindowMinutes.value = config.selfCheckinWindowMinutes ?? 30
 		pushEnabled.value = config.pushEnabled !== false
-		mobileAppBannerEnabled.value = config.mobileAppBannerEnabled !== false
 	} catch (error) {
 		console.error('Failed to load onboarding settings:', error)
 		showError(t('attendance', 'Could not load settings'))
