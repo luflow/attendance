@@ -61,6 +61,7 @@
                     "mobileAppBannerEnabled",
                     "bookingEnabled",
                     "selfCheckinWindowMinutes",
+                    "onboardingCompleted",
                     "guestsApp"
                 ],
                 "properties": {
@@ -106,6 +107,9 @@
                     "selfCheckinWindowMinutes": {
                         "type": "integer",
                         "format": "int64"
+                    },
+                    "onboardingCompleted": {
+                        "type": "boolean"
                     },
                     "guestsApp": {
                         "$ref": "#/components/schemas/GuestsAppStatus"
@@ -700,6 +704,12 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Minutes before appointment start that self-check-in opens"
+                                    },
+                                    "onboardingCompleted": {
+                                        "type": "boolean",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Whether the setup wizard has been walked to its end"
                                     }
                                 }
                             }

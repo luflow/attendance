@@ -1002,15 +1002,19 @@ class AppointmentController extends Controller {
 			: false;
 
 		$isAdmin = $user !== null && $this->permissionService->isAdmin($user->getUID());
+		// Admins are offered the setup wizard, creators the "first appointment"
+		// prompt. Nobody else acts on an empty instance, so the table hit stays
+		// off the path of every other user's app boot.
+		$actsOnEmptyInstance = $isAdmin
+			|| ($user !== null && $this->permissionService->canCreateAppointments($user->getUID()));
 
 		return new DataResponse([
 			'displayOrder' => $this->configService->getDisplayOrder(),
 			'mobileAppBannerEnabled' => $bannerEnabled,
 			'hasPushDevice' => $hasPushDevice,
 			'isAdmin' => $isAdmin,
-			// Only admins act on this, so the table hit stays off the path of
-			// every other user's app boot.
-			'hasAppointments' => $isAdmin ? $this->appointmentService->hasAnyAppointment() : true,
+			'hasAppointments' => $actsOnEmptyInstance ? $this->appointmentService->hasAnyAppointment() : true,
+			'onboardingCompleted' => $this->configService->isOnboardingCompleted(),
 		]);
 	}
 

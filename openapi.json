@@ -1139,7 +1139,8 @@
                     "mobileAppBannerEnabled",
                     "hasPushDevice",
                     "isAdmin",
-                    "hasAppointments"
+                    "hasAppointments",
+                    "onboardingCompleted"
                 ],
                 "properties": {
                     "displayOrder": {
@@ -1155,6 +1156,9 @@
                         "type": "boolean"
                     },
                     "hasAppointments": {
+                        "type": "boolean"
+                    },
+                    "onboardingCompleted": {
                         "type": "boolean"
                     }
                 }

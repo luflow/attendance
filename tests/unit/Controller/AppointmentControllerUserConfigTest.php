@@ -100,15 +100,28 @@ class AppointmentControllerUserConfigTest extends TestCase {
 		$this->assertTrue($data['hasAppointments']);
 	}
 
-	public function testNonAdminNeverPaysForTheAppointmentLookup(): void {
+	public function testCreatorWithoutAdminRightsIsToldTheInstanceIsEmpty(): void {
 		$this->signIn('alice');
 		$this->permissionService->method('isAdmin')->with('alice')->willReturn(false);
+		$this->permissionService->method('canCreateAppointments')->with('alice')->willReturn(true);
+		$this->appointmentService->method('hasAnyAppointment')->willReturn(false);
+
+		$data = $this->controller->getUserConfig()->getData();
+
+		$this->assertFalse($data['isAdmin']);
+		$this->assertFalse($data['hasAppointments']);
+	}
+
+	public function testPlainUserNeverPaysForTheAppointmentLookup(): void {
+		$this->signIn('alice');
+		$this->permissionService->method('isAdmin')->with('alice')->willReturn(false);
+		$this->permissionService->method('canCreateAppointments')->with('alice')->willReturn(false);
 		$this->appointmentService->expects($this->never())->method('hasAnyAppointment');
 
 		$data = $this->controller->getUserConfig()->getData();
 
 		$this->assertFalse($data['isAdmin']);
-		// Reported as "in use" so no client ever surfaces the admin-only wizard.
+		// Reported as "in use" so no client prompts someone who cannot create.
 		$this->assertTrue($data['hasAppointments']);
 	}
 
@@ -120,5 +133,14 @@ class AppointmentControllerUserConfigTest extends TestCase {
 
 		$this->assertFalse($data['isAdmin']);
 		$this->assertTrue($data['hasAppointments']);
+	}
+
+	public function testOnboardingCompletionIsReportedToTheClient(): void {
+		$this->signIn('admin');
+		$this->permissionService->method('isAdmin')->willReturn(true);
+		$this->appointmentService->method('hasAnyAppointment')->willReturn(false);
+		$this->configService->method('isOnboardingCompleted')->willReturn(true);
+
+		$this->assertTrue($this->controller->getUserConfig()->getData()['onboardingCompleted']);
 	}
 }

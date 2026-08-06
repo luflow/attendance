@@ -3,17 +3,19 @@
 		<div class="onboarding-banner__content">
 			<RocketLaunchIcon class="onboarding-banner__icon" :size="28" />
 			<div class="onboarding-banner__text">
-				<strong>{{ t('attendance', 'No appointments yet') }}</strong>
-				<span>{{ t('attendance', 'The setup wizard walks you through permissions, reminders and check-in so the first appointment lands right.') }}</span>
+				<strong>{{ completed ? t('attendance', 'Setup finished') : t('attendance', 'No appointments yet') }}</strong>
+				<span>{{ completed
+					? t('attendance', 'Permissions, reminders and check-in are configured. Run the wizard again any time to change them.')
+					: t('attendance', 'The setup wizard walks you through permissions, reminders and check-in so the first appointment lands right.') }}</span>
 			</div>
 		</div>
-		<NcButton variant="primary"
+		<NcButton :variant="completed ? 'secondary' : 'primary'"
 			data-test="onboarding-banner-start"
 			@click="$emit('start')">
 			<template #icon>
 				<RocketLaunchIcon :size="20" />
 			</template>
-			{{ t('attendance', 'Start setup') }}
+			{{ completed ? t('attendance', 'Review setup') : t('attendance', 'Start setup') }}
 		</NcButton>
 	</div>
 </template>
@@ -21,6 +23,13 @@
 <script setup>
 import { NcButton } from '@nextcloud/vue'
 import RocketLaunchIcon from 'vue-material-design-icons/RocketLaunch.vue'
+
+defineProps({
+	completed: {
+		type: Boolean,
+		default: false,
+	},
+})
 
 defineEmits(['start'])
 </script>

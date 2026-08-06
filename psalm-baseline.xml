@@ -1689,6 +1689,7 @@
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
       <code><![CDATA[getPushProxyServer]]></code>
+      <code><![CDATA[isOnboardingCompleted]]></code>
       <code><![CDATA[getReminderSettings]]></code>
       <code><![CDATA[isGroupAllowed]]></code>
       <code><![CDATA[isMobileAppBannerEnabled]]></code>

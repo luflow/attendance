@@ -33,6 +33,7 @@ const state = reactive({
 		hasPushDevice: false,
 		isAdmin: false,
 		hasAppointments: true,
+		onboardingCompleted: false,
 	},
 	loading: false,
 	loaded: false,
@@ -98,6 +99,7 @@ export function usePermissions() {
 			// Absent on older servers — assume appointments exist so the
 			// onboarding entry point stays hidden rather than misfiring.
 			state.config.hasAppointments = configRes.data.hasAppointments !== false
+			state.config.onboardingCompleted = configRes.data.onboardingCompleted === true
 
 			state.loaded = true
 		} catch (error) {
@@ -128,6 +130,7 @@ export function usePermissions() {
 			state.config.hasPushDevice = false
 			state.config.isAdmin = false
 			state.config.hasAppointments = true
+			state.config.onboardingCompleted = false
 		} finally {
 			state.loading = false
 		}

@@ -406,7 +406,13 @@ const STEP_PAYLOAD = {
 		permissions: permissionPayload('self_checkin'),
 		...(Number.isFinite(selfCheckinWindowMinutes.value) ? { selfCheckinWindowMinutes: selfCheckinWindowMinutes.value } : {}),
 	}),
-	mobile: () => ({ pushEnabled: pushEnabled.value, mobileAppBannerEnabled: mobileAppBannerEnabled.value }),
+	mobile: () => ({
+		pushEnabled: pushEnabled.value,
+		mobileAppBannerEnabled: mobileAppBannerEnabled.value,
+		// Last step — from here admins get the "create your first appointment"
+		// prompt that creators without admin rights see from the start.
+		onboardingCompleted: true,
+	}),
 }
 
 function permissionPayload(...names) {

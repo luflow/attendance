@@ -172,7 +172,8 @@
 		<!-- Main content area -->
 		<NcAppContent>
 			<div v-if="showOnboardingBanner" class="mobile-banner-container">
-				<OnboardingBanner @start="showOnboardingWizard = true" />
+				<OnboardingBanner :completed="config.onboardingCompleted"
+					@start="showOnboardingWizard = true" />
 			</div>
 
 			<div v-if="currentView !== 'checkin' && config.mobileAppBannerEnabled && !config.hasPushDevice"
@@ -235,6 +236,7 @@
 				@navigateToUnanswered="setView('unanswered')"
 				@showAuditLog="openAuditLog"
 				@openDetail="navigateToAppointment"
+				@createAppointment="createNewAppointment"
 				@clearSearch="searchQuery = ''" />
 
 			<!-- Loading state while routing is determined -->

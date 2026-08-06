@@ -192,9 +192,20 @@
 				{{ t('attendance', 'Loading\u00A0…') }}
 			</div>
 			<div v-else-if="visibleAppointments.length === 0 && !showUnanswered" class="empty-state">
-				{{ hasActiveFilters
-					? t('attendance', 'No appointments match the active filters.')
-					: t('attendance', 'No appointments found') }}
+				<p>
+					{{ hasActiveFilters
+						? t('attendance', 'No appointments match the active filters.')
+						: t('attendance', 'No appointments found') }}
+				</p>
+				<NcButton v-if="showFirstAppointmentPrompt"
+					variant="primary"
+					data-test="button-create-first-appointment"
+					@click="emit('createAppointment')">
+					<template #icon>
+						<PlusIcon :size="20" />
+					</template>
+					{{ t('attendance', 'Create your first appointment') }}
+				</NcButton>
 			</div>
 			<div v-else>
 				<template v-for="section in visibleSections" :key="section.key">
@@ -245,6 +256,7 @@ import CheckIcon from 'vue-material-design-icons/Check.vue'
 import CheckCircleIcon from 'vue-material-design-icons/CheckCircle.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
 import MapMarkerIcon from 'vue-material-design-icons/MapMarkerOutline.vue'
+import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
 import TagIcon from 'vue-material-design-icons/TagOutline.vue'
 import AppointmentListCard from '../components/appointment/AppointmentListCard.vue'
@@ -289,6 +301,7 @@ const emit = defineEmits([
 	'clearSearch',
 	'showAuditLog',
 	'openDetail',
+	'createAppointment',
 ])
 
 const activeSearch = computed(() => props.searchQuery.trim())
@@ -328,7 +341,7 @@ const RESPONSE = Object.freeze({ YES: 'yes', MAYBE: 'maybe', NO: 'no', NONE: 'no
 const STATUS = Object.freeze({ OPEN: 'open', CLOSED: 'closed', CANCELLED: 'cancelled' })
 const AUDIENCE = Object.freeze({ ME: 'me', ME_SCHEDULED: 'me-scheduled', ME_BOOKED: 'me-booked' })
 
-const { permissions, capabilities, loadPermissions } = usePermissions()
+const { permissions, capabilities, config, loadPermissions } = usePermissions()
 const { categories, loadCategories } = useCategories()
 loadCategories()
 
@@ -533,6 +546,14 @@ const persistSelectedCategoryIds = debouncedLocalStorageWriter(CATEGORY_FILTER_S
 watch(selectedCategoryIds, persistSelectedCategoryIds, { deep: true })
 
 const hasActiveFilters = computed(() => Boolean(props.searchQuery.trim() || activeFilters.value.length || selectedLocations.value.length || selectedCategoryIds.value.length))
+
+// Only when the instance is genuinely empty, not merely filtered down — and
+// only for the person who would fill it. Admins are pointed at the setup
+// wizard first and reach this once they have walked it.
+const showFirstAppointmentPrompt = computed(() => !hasActiveFilters.value
+	&& !config.hasAppointments
+	&& permissions.canCreateAppointments
+	&& (!config.isAdmin || config.onboardingCompleted))
 
 const visibleAppointments = computed(() => {
 	const query = props.searchQuery.trim().toLowerCase()
@@ -790,6 +811,13 @@ onMounted(async () => {
 		text-align: center;
 		padding: 40px;
 		color: var(--color-text-lighter);
+	}
+
+	.empty-state {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 16px;
 	}
 }
 

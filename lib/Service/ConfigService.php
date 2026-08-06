@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Service;
 
+use OCP\IAppConfig;
 use OCP\IConfig;
 
 /**
@@ -16,9 +17,11 @@ class ConfigService {
 	public const VALID_REMINDER_TARGETS = ['non_responders', 'maybe', 'both'];
 
 	private IConfig $config;
+	private IAppConfig $appConfig;
 
-	public function __construct(IConfig $config) {
+	public function __construct(IConfig $config, IAppConfig $appConfig) {
 		$this->config = $config;
+		$this->appConfig = $appConfig;
 	}
 
 	/**
@@ -361,6 +364,22 @@ class ConfigService {
 	 */
 	public function setMobileAppBannerEnabled(bool $enabled): void {
 		$this->config->setAppValue(self::APP_ID, 'mobile_app_banner_enabled', $enabled ? 'yes' : 'no');
+	}
+
+	/**
+	 * Whether an admin has walked the setup wizard to its end. Only decides
+	 * which empty-instance hint admins get — the wizard stays reachable from
+	 * the admin settings either way.
+	 *
+	 * A new key, so it lives on the typed IAppConfig API; the older settings
+	 * around it stay on IConfig because downgrades still have to read them.
+	 */
+	public function isOnboardingCompleted(): bool {
+		return $this->appConfig->getValueBool(self::APP_ID, 'onboarding_completed');
+	}
+
+	public function setOnboardingCompleted(bool $completed): void {
+		$this->appConfig->setValueBool(self::APP_ID, 'onboarding_completed', $completed);
 	}
 
 	/**
