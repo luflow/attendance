@@ -172,8 +172,7 @@
 		<!-- Main content area -->
 		<NcAppContent>
 			<div v-if="showOnboardingBanner" class="mobile-banner-container">
-				<OnboardingBanner :prompt="config.onboarding.setupPrompt"
-					@start="showOnboardingWizard = true" />
+				<OnboardingBanner @start="showOnboardingWizard = true" />
 			</div>
 
 			<div v-if="currentView !== 'checkin' && config.mobileAppBannerEnabled && !config.hasPushDevice"
@@ -601,7 +600,7 @@ const { permissions, capabilities, config, loadPermissions } = usePermissions()
 
 // The check-in view is full-screen by design and stays free of banners.
 const showOnboardingBanner = computed(() => currentView.value !== 'checkin'
-	&& Boolean(config.onboarding.setupPrompt))
+	&& config.onboarding.setupPrompt)
 
 // Cancelled appointments are only listed on the "All" view, which gives them
 // their own section — the scoped lists (here and in AllAppointments.vue) leave

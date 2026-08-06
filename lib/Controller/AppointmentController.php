@@ -1014,10 +1014,10 @@ class AppointmentController extends Controller {
 	 * Which empty-instance prompt this user should get, decided here rather
 	 * than reassembled from raw facts by every client.
 	 *
-	 * @return array{setupPrompt: ?string, firstAppointmentPrompt: bool}
+	 * @return array{setupPrompt: bool, firstAppointmentPrompt: bool}
 	 */
 	private function onboardingStateFor(?IUser $user): array {
-		$none = ['setupPrompt' => null, 'firstAppointmentPrompt' => false];
+		$none = ['setupPrompt' => false, 'firstAppointmentPrompt' => false];
 		if ($user === null) {
 			return $none;
 		}
@@ -1028,12 +1028,12 @@ class AppointmentController extends Controller {
 			return $none;
 		}
 
+		// Walking the wizard hands the space over to the create prompt; from
+		// then on the wizard lives in the admin settings only.
 		$setupDone = $this->configService->isOnboardingCompleted();
 
 		return [
-			// Admins keep the entry point to the wizard either way; once walked
-			// it steps back and lets the create prompt take over.
-			'setupPrompt' => $isAdmin ? ($setupDone ? 'review' : 'start') : null,
+			'setupPrompt' => $isAdmin && !$setupDone,
 			'firstAppointmentPrompt' => $canCreate && (!$isAdmin || $setupDone),
 		];
 	}

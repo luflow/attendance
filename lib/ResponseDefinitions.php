@@ -212,7 +212,7 @@ namespace OCA\Attendance;
  *   onboarding: AttendanceOnboardingState,
  * }
  * @psalm-type AttendanceOnboardingState = array{
- *   setupPrompt: ?string,
+ *   setupPrompt: bool,
  *   firstAppointmentPrompt: bool,
  * }
  * @psalm-type AttendanceAdminReminderConfig = array{

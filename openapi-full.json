@@ -962,8 +962,7 @@
                 ],
                 "properties": {
                     "setupPrompt": {
-                        "type": "string",
-                        "nullable": true
+                        "type": "boolean"
                     },
                     "firstAppointmentPrompt": {
                         "type": "boolean"

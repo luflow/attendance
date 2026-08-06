@@ -82,12 +82,12 @@ class AppointmentControllerUserConfigTest extends TestCase {
 
 		$onboarding = $this->controller->getUserConfig()->getData()['onboarding'];
 
-		$this->assertSame('start', $onboarding['setupPrompt']);
+		$this->assertTrue($onboarding['setupPrompt']);
 		// The wizard comes first; the create prompt waits until it is done.
 		$this->assertFalse($onboarding['firstAppointmentPrompt']);
 	}
 
-	public function testAdminWhoFinishedTheWizardIsSentToCreateSomething(): void {
+	public function testAdminWhoFinishedTheWizardHandsTheSpaceToTheCreatePrompt(): void {
 		$this->signIn('admin');
 		$this->permissionService->method('isAdmin')->willReturn(true);
 		$this->permissionService->method('canCreateAppointments')->willReturn(true);
@@ -96,7 +96,8 @@ class AppointmentControllerUserConfigTest extends TestCase {
 
 		$onboarding = $this->controller->getUserConfig()->getData()['onboarding'];
 
-		$this->assertSame('review', $onboarding['setupPrompt']);
+		// The banner steps aside entirely; the wizard stays in the admin settings.
+		$this->assertFalse($onboarding['setupPrompt']);
 		$this->assertTrue($onboarding['firstAppointmentPrompt']);
 	}
 
@@ -106,7 +107,7 @@ class AppointmentControllerUserConfigTest extends TestCase {
 		$this->appointmentService->method('hasAnyAppointment')->willReturn(true);
 
 		$this->assertSame(
-			['setupPrompt' => null, 'firstAppointmentPrompt' => false],
+			['setupPrompt' => false, 'firstAppointmentPrompt' => false],
 			$this->controller->getUserConfig()->getData()['onboarding'],
 		);
 	}
@@ -120,7 +121,7 @@ class AppointmentControllerUserConfigTest extends TestCase {
 		$onboarding = $this->controller->getUserConfig()->getData()['onboarding'];
 
 		// The wizard is admin-only, so there is nothing to wait for.
-		$this->assertNull($onboarding['setupPrompt']);
+		$this->assertFalse($onboarding['setupPrompt']);
 		$this->assertTrue($onboarding['firstAppointmentPrompt']);
 	}
 
@@ -131,7 +132,7 @@ class AppointmentControllerUserConfigTest extends TestCase {
 		$this->appointmentService->expects($this->never())->method('hasAnyAppointment');
 
 		$this->assertSame(
-			['setupPrompt' => null, 'firstAppointmentPrompt' => false],
+			['setupPrompt' => false, 'firstAppointmentPrompt' => false],
 			$this->controller->getUserConfig()->getData()['onboarding'],
 		);
 	}
@@ -141,7 +142,7 @@ class AppointmentControllerUserConfigTest extends TestCase {
 		$this->appointmentService->expects($this->never())->method('hasAnyAppointment');
 
 		$this->assertSame(
-			['setupPrompt' => null, 'firstAppointmentPrompt' => false],
+			['setupPrompt' => false, 'firstAppointmentPrompt' => false],
 			$this->controller->getUserConfig()->getData()['onboarding'],
 		);
 	}
