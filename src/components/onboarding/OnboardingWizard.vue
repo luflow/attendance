@@ -60,6 +60,30 @@
 						data-test="onboarding-summary-groups" />
 				</template>
 
+				<!-- Audit log -->
+				<template v-else-if="currentStep.id === 'audit'">
+					<NcCheckboxRadioSwitch v-model="audit.enabled"
+						type="switch"
+						data-test="onboarding-audit-enabled">
+						{{ t('attendance', 'Enable audit log') }}
+					</NcCheckboxRadioSwitch>
+					<p class="onboarding__hint">
+						{{ t('attendance', 'Disabling stops new events from being recorded and silences response notifications. Existing entries are kept and reappear once you re-enable.') }}
+					</p>
+
+					<div v-if="audit.enabled" class="onboarding__radio-group">
+						<label class="onboarding__radio-label">{{ t('attendance', 'Who can see the audit log?') }}</label>
+						<NcCheckboxRadioSwitch v-for="visibility in AUDIT_VISIBILITIES"
+							:key="visibility.value"
+							v-model="audit.visibility"
+							type="radio"
+							:value="visibility.value"
+							name="onboarding-audit-visibility">
+							{{ visibility.label }}
+						</NcCheckboxRadioSwitch>
+					</div>
+				</template>
+
 				<!-- Reminders -->
 				<template v-else-if="currentStep.id === 'reminders'">
 					<NcNoteCard v-if="!notificationsAppEnabled" type="warning">
@@ -225,7 +249,7 @@ import BellRingIcon from 'vue-material-design-icons/BellRing.vue'
 import CalendarMultipleIcon from 'vue-material-design-icons/CalendarMultiple.vue'
 import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
 import ClipboardCheckIcon from 'vue-material-design-icons/ClipboardCheckOutline.vue'
-import HistoryIcon from 'vue-material-design-icons/History.vue'
+import FormatListBulletedIcon from 'vue-material-design-icons/FormatListBulleted.vue'
 import LightningBoltIcon from 'vue-material-design-icons/LightningBolt.vue'
 import NfcIcon from 'vue-material-design-icons/Nfc.vue'
 import OpenInNewIcon from 'vue-material-design-icons/OpenInNew.vue'
@@ -235,7 +259,7 @@ import PermissionRow from '../admin/PermissionRow.vue'
 import GroupSelect from '../common/GroupSelect.vue'
 import { toGroupObjects } from '../../utils/groups.js'
 import { MOBILE_APP_STORES } from '../../utils/mobileApp.js'
-import { emptyPermissionState, PERMISSION_ROWS, permissionPayload, REMINDER_TARGETS } from '../../utils/permissions.js'
+import { AUDIT_VISIBILITIES, emptyPermissionState, PERMISSION_ROWS, permissionPayload, REMINDER_TARGETS } from '../../utils/permissions.js'
 
 const props = defineProps({
 	open: {
@@ -259,6 +283,7 @@ const availableGroups = ref([])
 const whitelistedGroups = ref([])
 const permissions = reactive(emptyPermissionState())
 const reminders = reactive({ enabled: false, reminderDays: 7, reminderFrequency: 0, reminderTarget: 'non_responders' })
+const audit = reactive({ enabled: true, visibility: 'managers' })
 const selfCheckinWindowMinutes = ref(30)
 const pushEnabled = ref(true)
 const mobileAppBannerEnabled = ref(true)
@@ -288,6 +313,12 @@ const STEPS = [
 		label: t('attendance', 'Responses'),
 		lead: t('attendance', 'Who gets to see the replies of everyone else? The detailed summary shows names, the counts show only how many said yes, no or maybe.'),
 		permissions: ['see_response_overview', 'see_response_counts', 'see_comments'],
+	},
+	{
+		id: 'audit',
+		label: t('attendance', 'Audit log'),
+		lead: t('attendance', 'Attendance can record every reply, change, withdrawal and check-in — who did what, when, and from where. The timeline shows up on each appointment, and it is what lets managers get a push notification when somebody changes their mind.'),
+		extra: () => ({ audit: { enabled: audit.enabled, visibility: audit.visibility } }),
 	},
 	{
 		id: 'groups',
@@ -371,9 +402,9 @@ const moreSettings = [
 		text: t('attendance', 'Invite people without a Nextcloud account by email address.'),
 	},
 	{
-		icon: HistoryIcon,
-		title: t('attendance', 'Audit log'),
-		text: t('attendance', 'Every reply, change, withdrawal and check-in with who, when and from where.'),
+		icon: FormatListBulletedIcon,
+		title: t('attendance', 'Display options'),
+		text: t('attendance', 'Whether appointment lists lead with the name or the date.'),
 	},
 ]
 
@@ -409,6 +440,8 @@ async function loadSettings() {
 		reminders.reminderDays = config.reminders.reminderDays || 7
 		reminders.reminderFrequency = config.reminders.reminderFrequency || 0
 		reminders.reminderTarget = config.reminders.reminderTarget || 'non_responders'
+		audit.enabled = config.audit.enabled !== false
+		audit.visibility = config.audit.visibility || 'managers'
 		selfCheckinWindowMinutes.value = config.selfCheckinWindowMinutes ?? 30
 		pushEnabled.value = config.pushEnabled !== false
 		mobileAppBannerEnabled.value = config.mobileAppBannerEnabled !== false

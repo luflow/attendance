@@ -73,6 +73,12 @@ export function permissionPayload(permissions, names) {
 	}]))
 }
 
+/** Matches ConfigService::VALID_AUDIT_LOG_VISIBILITIES. */
+export const AUDIT_VISIBILITIES = [
+	{ value: 'managers', label: t('attendance', 'Only users who can manage appointments') },
+	{ value: 'all_with_response_overview', label: t('attendance', 'Everyone who can see the response overview') },
+]
+
 /** Matches ConfigService::VALID_REMINDER_TARGETS. */
 export const REMINDER_TARGETS = [
 	{

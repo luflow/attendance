@@ -452,19 +452,14 @@
 				<template v-if="auditLogEnabled">
 					<div class="subsection">
 						<h4>{{ t('attendance', 'Who can see the audit log?') }}</h4>
-						<NcCheckboxRadioSwitch v-model="auditLogVisibility"
-							value="managers"
+						<NcCheckboxRadioSwitch v-for="visibility in AUDIT_VISIBILITIES"
+							:key="visibility.value"
+							v-model="auditLogVisibility"
+							:value="visibility.value"
 							name="audit_log_visibility"
 							type="radio"
-							data-test="radio-audit-visibility-managers">
-							{{ t('attendance', 'Only users who can manage appointments') }}
-						</NcCheckboxRadioSwitch>
-						<NcCheckboxRadioSwitch v-model="auditLogVisibility"
-							value="all_with_response_overview"
-							name="audit_log_visibility"
-							type="radio"
-							data-test="radio-audit-visibility-overview">
-							{{ t('attendance', 'Everyone who can see the response overview') }}
+							:data-test="`radio-audit-visibility-${visibility.value}`">
+							{{ visibility.label }}
 						</NcCheckboxRadioSwitch>
 					</div>
 				</template>
@@ -710,7 +705,7 @@ import { copyToClipboard } from '../utils/clipboard.js'
 import { formatDate, formatDateTimeMedium } from '../utils/datetime.js'
 import { toGroupObjects } from '../utils/groups.js'
 import { MOBILE_APP_STORES } from '../utils/mobileApp.js'
-import { emptyPermissionState, PERMISSION_NAMES, PERMISSION_ROWS, REMINDER_TARGETS } from '../utils/permissions.js'
+import { AUDIT_VISIBILITIES, emptyPermissionState, PERMISSION_NAMES, PERMISSION_ROWS, REMINDER_TARGETS } from '../utils/permissions.js'
 
 const navSections = [
 	{ id: 'setup-wizard', label: t('attendance', 'Setup wizard') },
