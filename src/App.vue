@@ -171,6 +171,10 @@
 
 		<!-- Main content area -->
 		<NcAppContent>
+			<div v-if="showOnboardingBanner" class="mobile-banner-container">
+				<OnboardingBanner @start="showOnboardingWizard = true" />
+			</div>
+
 			<div v-if="currentView !== 'checkin' && config.mobileAppBannerEnabled && !config.hasPushDevice"
 				class="mobile-banner-container">
 				<MobileAppBanner />
@@ -249,6 +253,12 @@
 			:show="showExportDialog"
 			:availableAppointments="allAppointments"
 			@close="showExportDialog = false" />
+
+		<!-- Setup wizard (admins only, offered while the instance has no appointments) -->
+		<OnboardingWizard
+			:open="showOnboardingWizard"
+			@close="showOnboardingWizard = false"
+			@finished="loadPermissions(true)" />
 	</NcContent>
 </template>
 
@@ -280,6 +290,8 @@ import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
 import MobileAppBanner from './components/common/MobileAppBanner.vue'
 import ExportDialog from './components/ExportDialog.vue'
 import IcalFeedModal from './components/IcalFeedModal.vue'
+import OnboardingBanner from './components/onboarding/OnboardingBanner.vue'
+import OnboardingWizard from './components/onboarding/OnboardingWizard.vue'
 import AllAppointments from './views/AllAppointments.vue'
 import AppointmentDetail from './views/AppointmentDetail.vue'
 import AppointmentForm from './views/AppointmentForm.vue'
@@ -564,6 +576,7 @@ const pastAppointments = ref([])
 const appointmentDetailScrollTarget = ref(null)
 const showIcalFeedModal = ref(false)
 const showExportDialog = ref(false)
+const showOnboardingWizard = ref(false)
 
 const pastAppointmentsExpanded = ref(false)
 
@@ -581,6 +594,12 @@ function onSearchInput() {
 
 // Use the shared permissions composable
 const { permissions, capabilities, config, loadPermissions } = usePermissions()
+
+// Offered to admins for as long as the instance holds no appointment — the
+// check-in view is full-screen by design and stays free of banners.
+const showOnboardingBanner = computed(() => currentView.value !== 'checkin'
+	&& config.isAdmin
+	&& !config.hasAppointments)
 
 // Cancelled appointments are only listed on the "All" view, which gives them
 // their own section — the scoped lists (here and in AllAppointments.vue) leave

@@ -31,6 +31,8 @@ const state = reactive({
 		displayOrder: 'name_first',
 		mobileAppBannerEnabled: true,
 		hasPushDevice: false,
+		isAdmin: false,
+		hasAppointments: true,
 	},
 	loading: false,
 	loaded: false,
@@ -92,6 +94,10 @@ export function usePermissions() {
 			state.config.displayOrder = configRes.data.displayOrder || 'name_first'
 			state.config.mobileAppBannerEnabled = configRes.data.mobileAppBannerEnabled !== false
 			state.config.hasPushDevice = configRes.data.hasPushDevice === true
+			state.config.isAdmin = configRes.data.isAdmin === true
+			// Absent on older servers — assume appointments exist so the
+			// onboarding entry point stays hidden rather than misfiring.
+			state.config.hasAppointments = configRes.data.hasAppointments !== false
 
 			state.loaded = true
 		} catch (error) {
@@ -120,6 +126,8 @@ export function usePermissions() {
 			state.config.displayOrder = 'name_first'
 			state.config.mobileAppBannerEnabled = true
 			state.config.hasPushDevice = false
+			state.config.isAdmin = false
+			state.config.hasAppointments = true
 		} finally {
 			state.loading = false
 		}

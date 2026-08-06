@@ -209,6 +209,8 @@ namespace OCA\Attendance;
  *   displayOrder: string,
  *   mobileAppBannerEnabled: bool,
  *   hasPushDevice: bool,
+ *   isAdmin: bool,
+ *   hasAppointments: bool,
  * }
  * @psalm-type AttendanceAdminReminderConfig = array{
  *   enabled: bool,

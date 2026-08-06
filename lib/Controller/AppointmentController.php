@@ -1001,10 +1001,16 @@ class AppointmentController extends Controller {
 			? $this->notificationService->hasPushDevice($user->getUID())
 			: false;
 
+		$isAdmin = $user !== null && $this->permissionService->isAdmin($user->getUID());
+
 		return new DataResponse([
 			'displayOrder' => $this->configService->getDisplayOrder(),
 			'mobileAppBannerEnabled' => $bannerEnabled,
 			'hasPushDevice' => $hasPushDevice,
+			'isAdmin' => $isAdmin,
+			// Only admins act on this, so the table hit stays off the path of
+			// every other user's app boot.
+			'hasAppointments' => $isAdmin ? $this->appointmentService->hasAnyAppointment() : true,
 		]);
 	}
 

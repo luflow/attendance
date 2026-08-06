@@ -19,6 +19,19 @@
 		</div>
 
 		<template v-else>
+			<NcSettingsSection id="setup-wizard"
+				:name="t('attendance', 'Setup wizard')"
+				:description="t('attendance', 'A guided walk through the settings that matter most on a new installation: who may create appointments, who checks attendees in, who sees the replies, and how reminders work.')">
+				<NcButton variant="primary"
+					data-test="button-start-onboarding"
+					@click="showOnboardingWizard = true">
+					<template #icon>
+						<RocketLaunchIcon :size="20" />
+					</template>
+					{{ t('attendance', 'Start setup wizard') }}
+				</NcButton>
+			</NcSettingsSection>
+
 			<!-- TRANSLATORS: Admin settings section title. The "Response summary" is the main feature of this app - it shows attendance statistics on the appointment detail page, counting users by their Nextcloud group membership. Groups selected here will have their own sections in the summary; users not in these groups appear under "Others". -->
 			<NcSettingsSection id="response-summary"
 				:name="t('attendance', 'Response summary groups')"
@@ -670,6 +683,11 @@
 				</template>
 			</NcSettingsSection>
 		</template>
+
+		<!-- Writes the same settings this page shows, so reload once it closes -->
+		<OnboardingWizard
+			:open="showOnboardingWizard"
+			@close="closeOnboardingWizard" />
 	</div>
 </template>
 
@@ -699,11 +717,13 @@ import Download from 'vue-material-design-icons/Download.vue'
 import GoogleIcon from 'vue-material-design-icons/Google.vue'
 import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
+import RocketLaunchIcon from 'vue-material-design-icons/RocketLaunch.vue'
 import TrashCan from 'vue-material-design-icons/TrashCan.vue'
 import CategoryIconPicker from '../components/admin/CategoryIconPicker.vue'
 import PermissionRow from '../components/admin/PermissionRow.vue'
 import SectionLink from '../components/admin/SectionLink.vue'
 import GroupSelect from '../components/common/GroupSelect.vue'
+import OnboardingWizard from '../components/onboarding/OnboardingWizard.vue'
 import { categoryIconComponent, DEFAULT_CATEGORY_ICON } from '../utils/categoryIcons.js'
 import { copyToClipboard } from '../utils/clipboard.js'
 import { formatDate, formatDateTimeMedium } from '../utils/datetime.js'
@@ -715,6 +735,7 @@ const mobileAppStores = [
 ]
 
 const navSections = [
+	{ id: 'setup-wizard', label: t('attendance', 'Setup wizard') },
 	{ id: 'response-summary', label: t('attendance', 'Response summary') },
 	{ id: 'categories', label: t('attendance', 'Categories') },
 	{ id: 'permissions', label: t('attendance', 'Permissions') },
@@ -944,6 +965,7 @@ const loadingData = ref(true)
 const sendingTestReminder = ref(false)
 const syncingOrgCalendar = ref(false)
 const guestsApp = ref({ enabled: false, whitelistEnabled: false, attendanceInWhitelist: false })
+const showOnboardingWizard = ref(false)
 
 // Computed
 // 'install' = Guests app missing (offer to install)
@@ -1124,6 +1146,11 @@ autoSave(
 	() => ({ mobileAppBannerEnabled: mobileAppBannerEnabled.value }),
 )
 autoSave(bookingEnabled, 'bookingEnabled', () => ({ bookingEnabled: bookingEnabled.value }))
+
+function closeOnboardingWizard() {
+	showOnboardingWizard.value = false
+	loadSettings()
+}
 
 // Methods
 function scrollToSection(id) {

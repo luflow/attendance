@@ -1398,7 +1398,9 @@
                 "required": [
                     "displayOrder",
                     "mobileAppBannerEnabled",
-                    "hasPushDevice"
+                    "hasPushDevice",
+                    "isAdmin",
+                    "hasAppointments"
                 ],
                 "properties": {
                     "displayOrder": {
@@ -1408,6 +1410,12 @@
                         "type": "boolean"
                     },
                     "hasPushDevice": {
+                        "type": "boolean"
+                    },
+                    "isAdmin": {
+                        "type": "boolean"
+                    },
+                    "hasAppointments": {
                         "type": "boolean"
                     }
                 }

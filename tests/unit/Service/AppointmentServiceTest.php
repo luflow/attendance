@@ -1346,4 +1346,20 @@ class AppointmentServiceTest extends TestCase {
 			notScheduledOut: true,
 		));
 	}
+
+	// --- onboarding entry point ---
+
+	public function testHasAnyAppointmentReportsAFreshInstance(): void {
+		$this->appointmentMapper->expects($this->once())
+			->method('hasAny')
+			->willReturn(false);
+
+		$this->assertFalse($this->service->hasAnyAppointment());
+	}
+
+	public function testHasAnyAppointmentReportsAnInstanceInUse(): void {
+		$this->appointmentMapper->method('hasAny')->willReturn(true);
+
+		$this->assertTrue($this->service->hasAnyAppointment());
+	}
 }
