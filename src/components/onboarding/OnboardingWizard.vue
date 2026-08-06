@@ -118,6 +118,30 @@
 					</p>
 				</template>
 
+				<!-- More settings -->
+				<template v-else-if="currentStep.id === 'more-settings'">
+					<ul class="onboarding__features">
+						<li v-for="feature in moreSettings" :key="feature.title">
+							<component :is="feature.icon" :size="20" class="onboarding__benefit-icon" />
+							<span>
+								<strong>{{ feature.title }}</strong>
+								<span>{{ feature.text }}</span>
+							</span>
+						</li>
+					</ul>
+					<!-- New tab, so following the link does not abandon the last step -->
+					<NcButton variant="secondary"
+						:href="adminSettingsUrl"
+						target="_blank"
+						rel="noopener"
+						data-test="onboarding-open-admin-settings">
+						<template #icon>
+							<OpenInNewIcon :size="20" />
+						</template>
+						{{ t('attendance', 'Open admin settings') }}
+					</NcButton>
+				</template>
+
 				<!-- Mobile app -->
 				<template v-else-if="currentStep.id === 'mobile'">
 					<ul class="onboarding__benefits">
@@ -196,9 +220,16 @@ import {
 	NcProgressBar,
 } from '@nextcloud/vue'
 import { computed, reactive, ref, watch } from 'vue'
+import AccountPlusIcon from 'vue-material-design-icons/AccountPlus.vue'
 import BellRingIcon from 'vue-material-design-icons/BellRing.vue'
+import CalendarMultipleIcon from 'vue-material-design-icons/CalendarMultiple.vue'
+import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
+import ClipboardCheckIcon from 'vue-material-design-icons/ClipboardCheckOutline.vue'
+import HistoryIcon from 'vue-material-design-icons/History.vue'
 import LightningBoltIcon from 'vue-material-design-icons/LightningBolt.vue'
 import NfcIcon from 'vue-material-design-icons/Nfc.vue'
+import OpenInNewIcon from 'vue-material-design-icons/OpenInNew.vue'
+import TagIcon from 'vue-material-design-icons/TagOutline.vue'
 import WifiOffIcon from 'vue-material-design-icons/WifiOff.vue'
 import PermissionRow from '../admin/PermissionRow.vue'
 import GroupSelect from '../common/GroupSelect.vue'
@@ -287,6 +318,11 @@ const STEPS = [
 			: {}),
 	},
 	{
+		id: 'more-settings',
+		label: t('attendance', 'More settings'),
+		lead: t('attendance', 'That covers the essentials. These wait for you in the admin settings, and are worth a look once your first appointments are running.'),
+	},
+	{
 		id: 'mobile',
 		label: t('attendance', 'Mobile app'),
 		lead: t('attendance', 'Attendance has a mobile app for iOS and Android. It is the difference between people replying and people meaning to reply.'),
@@ -307,6 +343,40 @@ const welcomeTopics = [
 	t('attendance', 'Automatic reminders for people who have not replied'),
 ]
 
+// Titles match the admin settings section headings so they can be found again.
+const moreSettings = [
+	{
+		icon: TagIcon,
+		title: t('attendance', 'Categories'),
+		text: t('attendance', 'Classify appointments — rehearsal, concert, sectional, board meeting — each with its own icon.'),
+	},
+	{
+		icon: CalendarSyncIcon,
+		title: t('attendance', 'Calendar sync'),
+		text: t('attendance', 'Pull events out of Nextcloud Calendar instead of typing them again, and keep them in sync afterwards.'),
+	},
+	{
+		icon: CalendarMultipleIcon,
+		title: t('attendance', 'Organization calendar'),
+		text: t('attendance', 'Write every appointment into a shared calendar, so the whole group sees it in the Calendar app.'),
+	},
+	{
+		icon: ClipboardCheckIcon,
+		title: t('attendance', 'Scheduling'),
+		text: t('attendance', 'Mark the people you actually need out of everyone who said yes, and notify exactly those.'),
+	},
+	{
+		icon: AccountPlusIcon,
+		title: t('attendance', 'Guest invitation'),
+		text: t('attendance', 'Invite people without a Nextcloud account by email address.'),
+	},
+	{
+		icon: HistoryIcon,
+		title: t('attendance', 'Audit log'),
+		text: t('attendance', 'Every reply, change, withdrawal and check-in with who, when and from where.'),
+	},
+]
+
 const mobileBenefits = [
 	{ icon: BellRingIcon, text: t('attendance', 'Push notifications for new appointments and reminders — replies arrive in minutes instead of days.') },
 	{ icon: LightningBoltIcon, text: t('attendance', 'Reply with one tap from the notification, without opening a browser or logging in again.') },
@@ -314,6 +384,7 @@ const mobileBenefits = [
 	{ icon: WifiOffIcon, text: t('attendance', 'Appointments stay readable without a connection, which matters in rehearsal rooms and gyms.') },
 ]
 
+const adminSettingsUrl = generateUrl('/settings/admin/attendance')
 const currentStep = computed(() => STEPS[stepIndex.value])
 const isLastStep = computed(() => stepIndex.value === STEPS.length - 1)
 const progressPercent = computed(() => ((stepIndex.value + 1) / STEPS.length) * 100)
@@ -460,7 +531,8 @@ watch(() => props.open, (open) => {
 }
 
 .onboarding__topics,
-.onboarding__benefits {
+.onboarding__benefits,
+.onboarding__features {
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
@@ -481,10 +553,25 @@ watch(() => props.open, (open) => {
 	color: var(--color-primary-element);
 }
 
-.onboarding__benefits li {
+.onboarding__benefits li,
+.onboarding__features li {
 	display: flex;
 	align-items: flex-start;
 	gap: 10px;
+}
+
+.onboarding__features li > span {
+	display: flex;
+	flex-direction: column;
+}
+
+.onboarding__features strong {
+	font-weight: 600;
+}
+
+.onboarding__features li > span > span {
+	color: var(--color-text-maxcontrast);
+	font-size: 13px;
 }
 
 .onboarding__benefit-icon {
