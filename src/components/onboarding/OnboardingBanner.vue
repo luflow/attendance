@@ -1,79 +1,48 @@
 <template>
-	<div class="onboarding-banner" data-test="onboarding-banner">
-		<div class="onboarding-banner__content">
-			<RocketLaunchIcon class="onboarding-banner__icon" :size="28" />
-			<div class="onboarding-banner__text">
-				<strong>{{ completed ? t('attendance', 'Setup finished') : t('attendance', 'No appointments yet') }}</strong>
-				<span>{{ completed
-					? t('attendance', 'Permissions, reminders and check-in are configured. Run the wizard again any time to change them.')
-					: t('attendance', 'The setup wizard walks you through permissions, reminders and check-in so the first appointment lands right.') }}</span>
-			</div>
-		</div>
-		<NcButton :variant="completed ? 'secondary' : 'primary'"
-			data-test="onboarding-banner-start"
-			@click="$emit('start')">
-			<template #icon>
-				<RocketLaunchIcon :size="20" />
-			</template>
-			{{ completed ? t('attendance', 'Review setup') : t('attendance', 'Start setup') }}
-		</NcButton>
-	</div>
+	<AppBanner :title="copy.title" :description="copy.description" data-test="onboarding-banner">
+		<template #icon>
+			<RocketLaunchIcon :size="28" />
+		</template>
+		<template #actions>
+			<NcButton :variant="copy.variant"
+				data-test="onboarding-banner-start"
+				@click="$emit('start')">
+				<template #icon>
+					<RocketLaunchIcon :size="20" />
+				</template>
+				{{ copy.action }}
+			</NcButton>
+		</template>
+	</AppBanner>
 </template>
 
 <script setup>
 import { NcButton } from '@nextcloud/vue'
+import { computed } from 'vue'
 import RocketLaunchIcon from 'vue-material-design-icons/RocketLaunch.vue'
+import AppBanner from '../common/AppBanner.vue'
 
-defineProps({
-	completed: {
-		type: Boolean,
-		default: false,
+const props = defineProps({
+	/** 'start' before the wizard has been walked, 'review' afterwards */
+	prompt: {
+		type: String,
+		default: 'start',
 	},
 })
 
 defineEmits(['start'])
+
+const copy = computed(() => (props.prompt === 'review'
+	? {
+			title: t('attendance', 'Setup finished'),
+			description: t('attendance', 'Permissions, reminders and check-in are configured. Run the wizard again any time to change them.'),
+			action: t('attendance', 'Review setup'),
+			variant: 'secondary',
+		}
+	: {
+			title: t('attendance', 'No appointments yet'),
+			description: t('attendance', 'The setup wizard walks you through permissions, reminders and check-in so the first appointment lands right.'),
+			action: t('attendance', 'Start setup'),
+			variant: 'primary',
+		}))
 </script>
-
-<style scoped>
-.onboarding-banner {
-	display: flex;
-	align-items: center;
-	gap: 16px;
-	padding: 10px 16px;
-	margin: 0 auto;
-	max-width: 800px;
-	background-color: var(--color-primary-element-light, var(--color-background-hover));
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius-large);
-	flex-wrap: wrap;
-}
-
-.onboarding-banner__content {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	flex: 1 1 240px;
-	min-width: 0;
-}
-
-.onboarding-banner__icon {
-	flex-shrink: 0;
-	color: var(--color-primary-element);
-}
-
-.onboarding-banner__text {
-	display: flex;
-	flex-direction: column;
-	gap: 2px;
-	min-width: 0;
-}
-
-.onboarding-banner__text strong {
-	font-weight: 600;
-}
-
-.onboarding-banner__text span {
-	color: var(--color-text-maxcontrast);
-	font-size: 13px;
-}
-</style>

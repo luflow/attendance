@@ -172,7 +172,7 @@
 		<!-- Main content area -->
 		<NcAppContent>
 			<div v-if="showOnboardingBanner" class="mobile-banner-container">
-				<OnboardingBanner :completed="config.onboardingCompleted"
+				<OnboardingBanner :prompt="config.onboarding.setupPrompt"
 					@start="showOnboardingWizard = true" />
 			</div>
 
@@ -257,10 +257,11 @@
 			@close="showExportDialog = false" />
 
 		<!-- Setup wizard (admins only, offered while the instance has no appointments) -->
-		<OnboardingWizard
+		<OnboardingWizard v-if="showOnboardingWizard"
 			:open="showOnboardingWizard"
+			:notificationsAppEnabled="capabilities.notificationsAppEnabled"
 			@close="showOnboardingWizard = false"
-			@finished="loadPermissions(true)" />
+			@saved="loadPermissions(true)" />
 	</NcContent>
 </template>
 
@@ -275,7 +276,7 @@ import {
 	NcAppNavigationSearch,
 	NcContent,
 } from '@nextcloud/vue'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue'
 import BellAlertIcon from 'vue-material-design-icons/BellAlert.vue'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import CalendarClockIcon from 'vue-material-design-icons/CalendarClock.vue'
@@ -293,7 +294,6 @@ import MobileAppBanner from './components/common/MobileAppBanner.vue'
 import ExportDialog from './components/ExportDialog.vue'
 import IcalFeedModal from './components/IcalFeedModal.vue'
 import OnboardingBanner from './components/onboarding/OnboardingBanner.vue'
-import OnboardingWizard from './components/onboarding/OnboardingWizard.vue'
 import AllAppointments from './views/AllAppointments.vue'
 import AppointmentDetail from './views/AppointmentDetail.vue'
 import AppointmentForm from './views/AppointmentForm.vue'
@@ -579,6 +579,8 @@ const appointmentDetailScrollTarget = ref(null)
 const showIcalFeedModal = ref(false)
 const showExportDialog = ref(false)
 const showOnboardingWizard = ref(false)
+// Admin-only dialog — kept out of the boot bundle every user downloads.
+const OnboardingWizard = defineAsyncComponent(() => import('./components/onboarding/OnboardingWizard.vue'))
 
 const pastAppointmentsExpanded = ref(false)
 
@@ -597,11 +599,9 @@ function onSearchInput() {
 // Use the shared permissions composable
 const { permissions, capabilities, config, loadPermissions } = usePermissions()
 
-// Offered to admins for as long as the instance holds no appointment — the
-// check-in view is full-screen by design and stays free of banners.
+// The check-in view is full-screen by design and stays free of banners.
 const showOnboardingBanner = computed(() => currentView.value !== 'checkin'
-	&& config.isAdmin
-	&& !config.hasAppointments)
+	&& Boolean(config.onboarding.setupPrompt))
 
 // Cancelled appointments are only listed on the "All" view, which gives them
 // their own section — the scoped lists (here and in AllAppointments.vue) leave

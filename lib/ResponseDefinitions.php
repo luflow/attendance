@@ -209,9 +209,11 @@ namespace OCA\Attendance;
  *   displayOrder: string,
  *   mobileAppBannerEnabled: bool,
  *   hasPushDevice: bool,
- *   isAdmin: bool,
- *   hasAppointments: bool,
- *   onboardingCompleted: bool,
+ *   onboarding: AttendanceOnboardingState,
+ * }
+ * @psalm-type AttendanceOnboardingState = array{
+ *   setupPrompt: ?string,
+ *   firstAppointmentPrompt: bool,
  * }
  * @psalm-type AttendanceAdminReminderConfig = array{
  *   enabled: bool,
@@ -249,7 +251,6 @@ namespace OCA\Attendance;
  *   mobileAppBannerEnabled: bool,
  *   bookingEnabled: bool,
  *   selfCheckinWindowMinutes: int,
- *   onboardingCompleted: bool,
  *   guestsApp: AttendanceGuestsAppStatus,
  * }
  * @psalm-type AttendanceAdminStatus = array{

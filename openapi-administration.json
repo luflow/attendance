@@ -61,7 +61,6 @@
                     "mobileAppBannerEnabled",
                     "bookingEnabled",
                     "selfCheckinWindowMinutes",
-                    "onboardingCompleted",
                     "guestsApp"
                 ],
                 "properties": {
@@ -107,9 +106,6 @@
                     "selfCheckinWindowMinutes": {
                         "type": "integer",
                         "format": "int64"
-                    },
-                    "onboardingCompleted": {
-                        "type": "boolean"
                     },
                     "guestsApp": {
                         "$ref": "#/components/schemas/GuestsAppStatus"

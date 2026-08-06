@@ -35,8 +35,6 @@ class AppointmentControllerUserConfigTest extends TestCase {
 	private $configService;
 	/** @var PermissionService|MockObject */
 	private $permissionService;
-	/** @var NotificationService|MockObject */
-	private $notificationService;
 	/** @var IUserSession|MockObject */
 	private $userSession;
 
@@ -46,7 +44,6 @@ class AppointmentControllerUserConfigTest extends TestCase {
 		$this->appointmentService = $this->createMock(AppointmentService::class);
 		$this->configService = $this->createMock(ConfigService::class);
 		$this->permissionService = $this->createMock(PermissionService::class);
-		$this->notificationService = $this->createMock(NotificationService::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 
 		$this->controller = new AppointmentController(
@@ -59,7 +56,7 @@ class AppointmentControllerUserConfigTest extends TestCase {
 			$this->configService,
 			$this->permissionService,
 			$this->createMock(ExportService::class),
-			$this->notificationService,
+			$this->createMock(NotificationService::class),
 			$this->createMock(VisibilityService::class),
 			$this->createMock(IAppManager::class),
 			$this->userSession,
@@ -83,64 +80,69 @@ class AppointmentControllerUserConfigTest extends TestCase {
 		$this->permissionService->method('isAdmin')->with('admin')->willReturn(true);
 		$this->appointmentService->method('hasAnyAppointment')->willReturn(false);
 
-		$data = $this->controller->getUserConfig()->getData();
+		$onboarding = $this->controller->getUserConfig()->getData()['onboarding'];
 
-		$this->assertTrue($data['isAdmin']);
-		$this->assertFalse($data['hasAppointments']);
+		$this->assertSame('start', $onboarding['setupPrompt']);
+		// The wizard comes first; the create prompt waits until it is done.
+		$this->assertFalse($onboarding['firstAppointmentPrompt']);
 	}
 
-	public function testAdminOnAnInstanceInUseIsNot(): void {
+	public function testAdminWhoFinishedTheWizardIsSentToCreateSomething(): void {
 		$this->signIn('admin');
-		$this->permissionService->method('isAdmin')->with('admin')->willReturn(true);
+		$this->permissionService->method('isAdmin')->willReturn(true);
+		$this->permissionService->method('canCreateAppointments')->willReturn(true);
+		$this->appointmentService->method('hasAnyAppointment')->willReturn(false);
+		$this->configService->method('isOnboardingCompleted')->willReturn(true);
+
+		$onboarding = $this->controller->getUserConfig()->getData()['onboarding'];
+
+		$this->assertSame('review', $onboarding['setupPrompt']);
+		$this->assertTrue($onboarding['firstAppointmentPrompt']);
+	}
+
+	public function testNoPromptsOnceTheInstanceIsInUse(): void {
+		$this->signIn('admin');
+		$this->permissionService->method('isAdmin')->willReturn(true);
 		$this->appointmentService->method('hasAnyAppointment')->willReturn(true);
 
-		$data = $this->controller->getUserConfig()->getData();
-
-		$this->assertTrue($data['isAdmin']);
-		$this->assertTrue($data['hasAppointments']);
+		$this->assertSame(
+			['setupPrompt' => null, 'firstAppointmentPrompt' => false],
+			$this->controller->getUserConfig()->getData()['onboarding'],
+		);
 	}
 
-	public function testCreatorWithoutAdminRightsIsToldTheInstanceIsEmpty(): void {
+	public function testCreatorWithoutAdminRightsIsSentStraightToCreating(): void {
 		$this->signIn('alice');
-		$this->permissionService->method('isAdmin')->with('alice')->willReturn(false);
+		$this->permissionService->method('isAdmin')->willReturn(false);
 		$this->permissionService->method('canCreateAppointments')->with('alice')->willReturn(true);
 		$this->appointmentService->method('hasAnyAppointment')->willReturn(false);
 
-		$data = $this->controller->getUserConfig()->getData();
+		$onboarding = $this->controller->getUserConfig()->getData()['onboarding'];
 
-		$this->assertFalse($data['isAdmin']);
-		$this->assertFalse($data['hasAppointments']);
+		// The wizard is admin-only, so there is nothing to wait for.
+		$this->assertNull($onboarding['setupPrompt']);
+		$this->assertTrue($onboarding['firstAppointmentPrompt']);
 	}
 
 	public function testPlainUserNeverPaysForTheAppointmentLookup(): void {
 		$this->signIn('alice');
-		$this->permissionService->method('isAdmin')->with('alice')->willReturn(false);
-		$this->permissionService->method('canCreateAppointments')->with('alice')->willReturn(false);
+		$this->permissionService->method('isAdmin')->willReturn(false);
+		$this->permissionService->method('canCreateAppointments')->willReturn(false);
 		$this->appointmentService->expects($this->never())->method('hasAnyAppointment');
 
-		$data = $this->controller->getUserConfig()->getData();
-
-		$this->assertFalse($data['isAdmin']);
-		// Reported as "in use" so no client prompts someone who cannot create.
-		$this->assertTrue($data['hasAppointments']);
+		$this->assertSame(
+			['setupPrompt' => null, 'firstAppointmentPrompt' => false],
+			$this->controller->getUserConfig()->getData()['onboarding'],
+		);
 	}
 
-	public function testAnonymousRequestIsNotTreatedAsAdmin(): void {
+	public function testAnonymousRequestGetsNoPrompts(): void {
 		$this->userSession->method('getUser')->willReturn(null);
 		$this->appointmentService->expects($this->never())->method('hasAnyAppointment');
 
-		$data = $this->controller->getUserConfig()->getData();
-
-		$this->assertFalse($data['isAdmin']);
-		$this->assertTrue($data['hasAppointments']);
-	}
-
-	public function testOnboardingCompletionIsReportedToTheClient(): void {
-		$this->signIn('admin');
-		$this->permissionService->method('isAdmin')->willReturn(true);
-		$this->appointmentService->method('hasAnyAppointment')->willReturn(false);
-		$this->configService->method('isOnboardingCompleted')->willReturn(true);
-
-		$this->assertTrue($this->controller->getUserConfig()->getData()['onboardingCompleted']);
+		$this->assertSame(
+			['setupPrompt' => null, 'firstAppointmentPrompt' => false],
+			$this->controller->getUserConfig()->getData()['onboarding'],
+		);
 	}
 }

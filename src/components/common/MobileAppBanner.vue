@@ -1,32 +1,23 @@
 <template>
-	<div v-if="visible" class="mobile-app-banner" data-test="mobile-app-banner">
-		<div class="mobile-app-banner__content">
-			<QrcodeScanIcon class="mobile-app-banner__icon" :size="28" />
-			<div class="mobile-app-banner__text">
-				<strong>{{ t('attendance', 'Self check-in is now in the mobile app') }}</strong>
-				<span>{{ t('attendance', 'Participants scan a QR code or NFC tag and check themselves in — no clipboard, no manual list.') }}</span>
-			</div>
-		</div>
-		<div class="mobile-app-banner__actions">
-			<NcButton variant="secondary"
-				:href="APPLE_STORE_URL"
+	<AppBanner v-if="visible"
+		:title="t('attendance', 'Self check-in is now in the mobile app')"
+		:description="t('attendance', 'Participants scan a QR code or NFC tag and check themselves in — no clipboard, no manual list.')"
+		data-test="mobile-app-banner">
+		<template #icon>
+			<QrcodeScanIcon :size="28" />
+		</template>
+		<template #actions>
+			<NcButton v-for="store in MOBILE_APP_STORES"
+				:key="store.id"
+				variant="secondary"
+				:href="store.url"
 				target="_blank"
 				rel="noopener"
-				data-test="mobile-app-banner-apple">
+				:data-test="`mobile-app-banner-${store.id}`">
 				<template #icon>
-					<AppleIcon :size="20" />
+					<component :is="store.icon" :size="20" />
 				</template>
-				{{ t('attendance', 'App Store') }}
-			</NcButton>
-			<NcButton variant="secondary"
-				:href="GOOGLE_STORE_URL"
-				target="_blank"
-				rel="noopener"
-				data-test="mobile-app-banner-google">
-				<template #icon>
-					<GoogleIcon :size="20" />
-				</template>
-				{{ t('attendance', 'Google Play') }}
+				{{ store.label }}
 			</NcButton>
 			<NcButton variant="tertiary"
 				:aria-label="t('attendance', 'Dismiss')"
@@ -36,18 +27,17 @@
 					<CloseIcon :size="20" />
 				</template>
 			</NcButton>
-		</div>
-	</div>
+		</template>
+	</AppBanner>
 </template>
 
 <script setup>
 import { NcButton } from '@nextcloud/vue'
 import { onMounted, ref } from 'vue'
-import AppleIcon from 'vue-material-design-icons/Apple.vue'
 import CloseIcon from 'vue-material-design-icons/Close.vue'
-import GoogleIcon from 'vue-material-design-icons/Google.vue'
 import QrcodeScanIcon from 'vue-material-design-icons/QrcodeScan.vue'
-import { APPLE_STORE_URL, GOOGLE_STORE_URL } from '../../utils/mobileApp.js'
+import AppBanner from './AppBanner.vue'
+import { MOBILE_APP_STORES } from '../../utils/mobileApp.js'
 
 // Suffixed so the self-check-in announcement reaches everyone who already
 // dismissed the previous "get the app" banner. Bump again on the next relaunch.
@@ -72,54 +62,3 @@ onMounted(() => {
 	}
 })
 </script>
-
-<style scoped>
-.mobile-app-banner {
-	display: flex;
-	align-items: center;
-	gap: 16px;
-	padding: 10px 16px;
-	margin: 0 auto;
-	max-width: 800px;
-	background-color: var(--color-primary-element-light, var(--color-background-hover));
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius-large);
-	flex-wrap: wrap;
-}
-
-.mobile-app-banner__content {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	flex: 1 1 240px;
-	min-width: 0;
-}
-
-.mobile-app-banner__icon {
-	flex-shrink: 0;
-	color: var(--color-primary-element);
-}
-
-.mobile-app-banner__text {
-	display: flex;
-	flex-direction: column;
-	gap: 2px;
-	min-width: 0;
-}
-
-.mobile-app-banner__text strong {
-	font-weight: 600;
-}
-
-.mobile-app-banner__text span {
-	color: var(--color-text-maxcontrast);
-	font-size: 13px;
-}
-
-.mobile-app-banner__actions {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	flex-wrap: wrap;
-}
-</style>

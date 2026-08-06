@@ -180,18 +180,18 @@
 					<h4 class="permission-group__title">
 						{{ group.label }}
 					</h4>
-					<PermissionRow v-for="row in group.rows"
-						:key="row.name"
-						:modelValue="permissions[row.name]"
-						:title="row.title"
-						:hint="row.hint"
-						:implication="row.implication"
-						:implicationLink="row.implicationLink"
-						:warningWhenAll="row.warningWhenAll"
+					<PermissionRow v-for="name in group.names"
+						:key="name"
+						:modelValue="permissions[name]"
+						:title="PERMISSION_ROWS[name].title"
+						:hint="PERMISSION_ROWS[name].hint"
+						:implication="PERMISSION_ROWS[name].implication"
+						:implicationLink="implicationLinkFor(name)"
+						:warningWhenAll="PERMISSION_ROWS[name].warningWhenAll"
 						:options="availableGroups"
-						:dataTest="`permission-${row.name}`"
+						:dataTest="`permission-${name}`"
 						@navigate="scrollToSection"
-						@update:modelValue="onPermissionChange(row.name, $event)" />
+						@update:modelValue="onPermissionChange(name, $event)" />
 				</div>
 			</NcSettingsSection>
 
@@ -299,32 +299,14 @@
 							<label class="reminder-target-label">
 								{{ t('attendance', 'Remind recipients') }}
 							</label>
-							<NcCheckboxRadioSwitch
+							<NcCheckboxRadioSwitch v-for="target in REMINDER_TARGETS"
+								:key="target.value"
 								v-model="reminderTarget"
 								type="radio"
-								value="non_responders"
+								:value="target.value"
 								name="reminder-target"
-								data-test="radio-reminder-target-non-responders">
-								<!-- TRANSLATORS: Radio option for automatic reminders — remind only people who have not responded yet. People who answered "no" are deliberately not reminded. -->
-								{{ t('attendance', 'Non-responders only') }}
-							</NcCheckboxRadioSwitch>
-							<NcCheckboxRadioSwitch
-								v-model="reminderTarget"
-								type="radio"
-								value="maybe"
-								name="reminder-target"
-								data-test="radio-reminder-target-maybe">
-								<!-- TRANSLATORS: Radio option for automatic reminders — remind only people who answered "maybe". -->
-								{{ t('attendance', 'Maybe responders only') }}
-							</NcCheckboxRadioSwitch>
-							<NcCheckboxRadioSwitch
-								v-model="reminderTarget"
-								type="radio"
-								value="both"
-								name="reminder-target"
-								data-test="radio-reminder-target-both">
-								<!-- TRANSLATORS: Radio option for automatic reminders — remind both groups: people without a response and people who answered "maybe". -->
-								{{ t('attendance', 'Both non-responders and maybe responders') }}
+								:data-test="`radio-reminder-target-${target.value}`">
+								{{ target.label }}
 							</NcCheckboxRadioSwitch>
 						</div>
 					</div>
@@ -531,10 +513,10 @@
 				:name="t('attendance', 'Mobile apps')"
 				:description="t('attendance', 'Share these links with your colleagues to install the Attendance mobile app.')">
 				<div class="mobile-app-links">
-					<div v-for="store in mobileAppStores" :key="store.id" class="mobile-app-link">
+					<div v-for="store in MOBILE_APP_STORES" :key="store.id" class="mobile-app-link">
 						<label class="mobile-app-link__label">
 							<component :is="store.icon" :size="20" />
-							{{ store.label }}
+							{{ store.longLabel }}
 						</label>
 						<div class="mobile-app-link__row">
 							<code class="mobile-app-link__url" :data-test="`input-${store.id}-store-url`">{{ store.url }}</code>
@@ -684,10 +666,12 @@
 			</NcSettingsSection>
 		</template>
 
-		<!-- Writes the same settings this page shows, so reload once it closes -->
-		<OnboardingWizard
+		<!-- Writes the same settings this page shows, so reload when it saved -->
+		<OnboardingWizard v-if="showOnboardingWizard"
 			:open="showOnboardingWizard"
-			@close="closeOnboardingWizard" />
+			:notificationsAppEnabled="notificationsAppEnabled"
+			@close="showOnboardingWizard = false"
+			@saved="loadSettings" />
 	</div>
 </template>
 
@@ -706,15 +690,13 @@ import {
 	NcSettingsSection,
 } from '@nextcloud/vue'
 import QRCode from 'qrcode'
-import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import AccountStar from 'vue-material-design-icons/AccountStar.vue'
-import AppleIcon from 'vue-material-design-icons/Apple.vue'
 import BellRingIcon from 'vue-material-design-icons/BellRing.vue'
 import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
 import CellphoneCheck from 'vue-material-design-icons/CellphoneCheck.vue'
 import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
 import Download from 'vue-material-design-icons/Download.vue'
-import GoogleIcon from 'vue-material-design-icons/Google.vue'
 import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import RocketLaunchIcon from 'vue-material-design-icons/RocketLaunch.vue'
@@ -723,16 +705,12 @@ import CategoryIconPicker from '../components/admin/CategoryIconPicker.vue'
 import PermissionRow from '../components/admin/PermissionRow.vue'
 import SectionLink from '../components/admin/SectionLink.vue'
 import GroupSelect from '../components/common/GroupSelect.vue'
-import OnboardingWizard from '../components/onboarding/OnboardingWizard.vue'
 import { categoryIconComponent, DEFAULT_CATEGORY_ICON } from '../utils/categoryIcons.js'
 import { copyToClipboard } from '../utils/clipboard.js'
 import { formatDate, formatDateTimeMedium } from '../utils/datetime.js'
-import { APPLE_STORE_URL, GOOGLE_STORE_URL } from '../utils/mobileApp.js'
-
-const mobileAppStores = [
-	{ id: 'apple', icon: AppleIcon, url: APPLE_STORE_URL, label: t('attendance', 'App Store (iOS)') },
-	{ id: 'google', icon: GoogleIcon, url: GOOGLE_STORE_URL, label: t('attendance', 'Google Play (Android)') },
-]
+import { toGroupObjects } from '../utils/groups.js'
+import { MOBILE_APP_STORES } from '../utils/mobileApp.js'
+import { emptyPermissionState, PERMISSION_NAMES, PERMISSION_ROWS, REMINDER_TARGETS } from '../utils/permissions.js'
 
 const navSections = [
 	{ id: 'setup-wizard', label: t('attendance', 'Setup wizard') },
@@ -858,77 +836,17 @@ async function deleteCategory() {
 }
 
 const permissionGroups = [
-	{
-		key: 'appointments',
-		label: t('attendance', 'Appointments'),
-		rows: [
-			{
-				name: 'manage_appointments',
-				title: t('attendance', 'May manage appointments'),
-				// TRANSLATORS: Permission description. "manage its responses" is a second ability alongside create/edit/delete, not a consequence of them.
-				hint: t('attendance', 'Create, edit and delete any appointment and manage its responses.'),
-				warningWhenAll: t('attendance', 'Every user can create, edit and delete all appointments.'),
-			},
-			{
-				name: 'create_appointments',
-				title: t('attendance', 'May create own appointments'),
-				hint: t('attendance', 'Create appointments and manage them as organizer.'),
-				implication: t('attendance', 'Users who can manage appointments can always create appointments.'),
-			},
-		],
-	},
-	{
-		key: 'responses',
-		label: t('attendance', 'Responses'),
-		rows: [
-			{
-				name: 'see_response_overview',
-				title: t('attendance', 'May see detailed response & check-in summary'),
-				hint: t('attendance', 'See the detailed summary including names — who answered what and who checked in.'),
-				implication: t('attendance', 'Organizers always see the summary of their own appointments.'),
-			},
-			{
-				name: 'see_response_counts',
-				title: t('attendance', 'May see response counts'),
-				hint: t('attendance', 'See how many people answered yes, no or maybe — without any names.'),
-				// TRANSLATORS: Note under a permission. "the counts" are the yes/no/maybe numbers; the sentence says this permission is implied by the detailed-summary one.
-				implication: t('attendance', 'Users who see the detailed summary always see the counts.'),
-			},
-			{
-				name: 'see_comments',
-				title: t('attendance', 'May see comments'),
-				hint: t('attendance', 'See comments in the response overview.'),
-			},
-			{
-				name: 'respond_for_others',
-				// TRANSLATORS: Permission title. "set" means recording or changing an existing answer on someone's behalf — nothing new is created.
-				title: t('attendance', 'May set responses for other users'),
-				hint: t('attendance', 'Record or clear an answer on behalf of another person.'),
-				implication: t('attendance', 'Not granted automatically to users who can manage appointments.'),
-			},
-		],
-	},
-	{
-		key: 'checkin',
-		label: t('attendance', 'Check-in'),
-		rows: [
-			{
-				name: 'checkin',
-				title: t('attendance', 'May check in attendees'),
-				hint: t('attendance', 'Access the check-in interface and check in attendees.'),
-			},
-			{
-				name: 'self_checkin',
-				title: t('attendance', 'May check in themselves'),
-				hint: t('attendance', 'Check in themselves via QR code, NFC tag or deep link.'),
-				implication: t('attendance', 'QR codes and NFC tags can be set up in the {section} section.'),
-				implicationLink: sectionLink('self-checkin'),
-			},
-		],
-	},
+	{ key: 'appointments', label: t('attendance', 'Appointments'), names: ['manage_appointments', 'create_appointments'] },
+	{ key: 'responses', label: t('attendance', 'Responses'), names: ['see_response_overview', 'see_response_counts', 'see_comments', 'respond_for_others'] },
+	{ key: 'checkin', label: t('attendance', 'Check-in'), names: ['checkin', 'self_checkin'] },
 ]
 
-const PERMISSION_NAMES = permissionGroups.flatMap((group) => group.rows.map((row) => row.name))
+// Only this screen can jump between sections, so the link lives here rather
+// than in the shared catalogue.
+function implicationLinkFor(name) {
+	const section = PERMISSION_ROWS[name].implicationSection
+	return section ? sectionLink(section) : null
+}
 
 // State
 const availableGroups = ref([])
@@ -937,7 +855,7 @@ const selectedTeams = ref([])
 const teamSearchResults = ref([])
 const isSearchingTeams = ref(false)
 const teamsAvailable = ref(false)
-const permissions = ref(Object.fromEntries(PERMISSION_NAMES.map((name) => [name, { mode: 'all', groups: [] }])))
+const permissions = ref(emptyPermissionState())
 const selfCheckinWindowMinutes = ref(30)
 const qrDataUrl = ref(null)
 const selfCheckinUrl = window.location.origin + generateUrl('/apps/attendance/self-checkin')
@@ -966,6 +884,8 @@ const sendingTestReminder = ref(false)
 const syncingOrgCalendar = ref(false)
 const guestsApp = ref({ enabled: false, whitelistEnabled: false, attendanceInWhitelist: false })
 const showOnboardingWizard = ref(false)
+// Only reachable from the button below — no reason to ship it with the page.
+const OnboardingWizard = defineAsyncComponent(() => import('../components/onboarding/OnboardingWizard.vue'))
 
 // Computed
 // 'install' = Guests app missing (offer to install)
@@ -1147,11 +1067,6 @@ autoSave(
 )
 autoSave(bookingEnabled, 'bookingEnabled', () => ({ bookingEnabled: bookingEnabled.value }))
 
-function closeOnboardingWizard() {
-	showOnboardingWizard.value = false
-	loadSettings()
-}
-
 // Methods
 function scrollToSection(id) {
 	const element = document.getElementById(id)
@@ -1175,13 +1090,7 @@ async function loadSettings() {
 		const caps = capabilitiesRes.data
 
 		availableGroups.value = groups
-		// Convert stored IDs to group objects for NcSelect, preserving database order
-		const groupsById = new Map(groups.map((group) => [group.id, group]))
-		const toGroupObjects = (ids) => (ids || [])
-			.map((id) => groupsById.get(id))
-			.filter((group) => group !== undefined)
-
-		selectedGroups.value = toGroupObjects(config.whitelistedGroups)
+		selectedGroups.value = toGroupObjects(config.whitelistedGroups, groups)
 
 		// Load teams settings
 		teamsAvailable.value = caps.teamsAvailable || false
@@ -1198,7 +1107,7 @@ async function loadSettings() {
 				if (!setting) continue
 				permissions.value[name] = {
 					mode: setting.mode,
-					groups: toGroupObjects(setting.groups),
+					groups: toGroupObjects(setting.groups, groups),
 				}
 			}
 		}

@@ -160,7 +160,6 @@ class AdminController extends Controller {
 					'mobileAppBannerEnabled' => $this->configService->isMobileAppBannerEnabled(),
 					'bookingEnabled' => $this->configService->isBookingEnabled(),
 					'selfCheckinWindowMinutes' => $this->configService->getSelfCheckinWindowMinutes(),
-					'onboardingCompleted' => $this->configService->isOnboardingCompleted(),
 					'guestsApp' => [
 						'enabled' => $this->guestService->isGuestsAppEnabled(),
 						'whitelistEnabled' => $this->guestService->isGuestsWhitelistEnabled(),

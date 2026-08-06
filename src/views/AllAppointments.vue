@@ -547,13 +547,10 @@ watch(selectedCategoryIds, persistSelectedCategoryIds, { deep: true })
 
 const hasActiveFilters = computed(() => Boolean(props.searchQuery.trim() || activeFilters.value.length || selectedLocations.value.length || selectedCategoryIds.value.length))
 
-// Only when the instance is genuinely empty, not merely filtered down — and
-// only for the person who would fill it. Admins are pointed at the setup
-// wizard first and reach this once they have walked it.
+// The server decides who gets the prompt; the filter state is ours — an empty
+// filter result is not an empty instance.
 const showFirstAppointmentPrompt = computed(() => !hasActiveFilters.value
-	&& !config.hasAppointments
-	&& permissions.canCreateAppointments
-	&& (!config.isAdmin || config.onboardingCompleted))
+	&& config.onboarding.firstAppointmentPrompt)
 
 const visibleAppointments = computed(() => {
 	const query = props.searchQuery.trim().toLowerCase()

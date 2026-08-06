@@ -1385,7 +1385,6 @@
       <code><![CDATA[getAppointmentsForNavigation]]></code>
       <code><![CDATA[getAppointmentsWithUserResponses]]></code>
       <code><![CDATA[getReminderTargetUserIds]]></code>
-      <code><![CDATA[hasAnyAppointment]]></code>
       <code><![CDATA[reopenAppointment]]></code>
       <code><![CDATA[submitResponse]]></code>
       <code><![CDATA[submitResponseForUser]]></code>
@@ -1689,7 +1688,6 @@
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
       <code><![CDATA[getPushProxyServer]]></code>
-      <code><![CDATA[isOnboardingCompleted]]></code>
       <code><![CDATA[getReminderSettings]]></code>
       <code><![CDATA[isGroupAllowed]]></code>
       <code><![CDATA[isMobileAppBannerEnabled]]></code>

@@ -24,6 +24,7 @@ use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
+use OCP\IUser;
 use OCP\IUserSession;
 use OCP\Security\ISecureRandom;
 
@@ -1001,21 +1002,40 @@ class AppointmentController extends Controller {
 			? $this->notificationService->hasPushDevice($user->getUID())
 			: false;
 
-		$isAdmin = $user !== null && $this->permissionService->isAdmin($user->getUID());
-		// Admins are offered the setup wizard, creators the "first appointment"
-		// prompt. Nobody else acts on an empty instance, so the table hit stays
-		// off the path of every other user's app boot.
-		$actsOnEmptyInstance = $isAdmin
-			|| ($user !== null && $this->permissionService->canCreateAppointments($user->getUID()));
-
 		return new DataResponse([
 			'displayOrder' => $this->configService->getDisplayOrder(),
 			'mobileAppBannerEnabled' => $bannerEnabled,
 			'hasPushDevice' => $hasPushDevice,
-			'isAdmin' => $isAdmin,
-			'hasAppointments' => $actsOnEmptyInstance ? $this->appointmentService->hasAnyAppointment() : true,
-			'onboardingCompleted' => $this->configService->isOnboardingCompleted(),
+			'onboarding' => $this->onboardingStateFor($user),
 		]);
+	}
+
+	/**
+	 * Which empty-instance prompt this user should get, decided here rather
+	 * than reassembled from raw facts by every client.
+	 *
+	 * @return array{setupPrompt: ?string, firstAppointmentPrompt: bool}
+	 */
+	private function onboardingStateFor(?IUser $user): array {
+		$none = ['setupPrompt' => null, 'firstAppointmentPrompt' => false];
+		if ($user === null) {
+			return $none;
+		}
+
+		$isAdmin = $this->permissionService->isAdmin($user->getUID());
+		$canCreate = $this->permissionService->canCreateAppointments($user->getUID());
+		if ((!$isAdmin && !$canCreate) || $this->appointmentService->hasAnyAppointment()) {
+			return $none;
+		}
+
+		$setupDone = $this->configService->isOnboardingCompleted();
+
+		return [
+			// Admins keep the entry point to the wizard either way; once walked
+			// it steps back and lets the create prompt take over.
+			'setupPrompt' => $isAdmin ? ($setupDone ? 'review' : 'start') : null,
+			'firstAppointmentPrompt' => $canCreate && (!$isAdmin || $setupDone),
+		];
 	}
 
 	/**

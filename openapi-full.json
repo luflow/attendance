@@ -61,7 +61,6 @@
                     "mobileAppBannerEnabled",
                     "bookingEnabled",
                     "selfCheckinWindowMinutes",
-                    "onboardingCompleted",
                     "guestsApp"
                 ],
                 "properties": {
@@ -107,9 +106,6 @@
                     "selfCheckinWindowMinutes": {
                         "type": "integer",
                         "format": "int64"
-                    },
-                    "onboardingCompleted": {
-                        "type": "boolean"
                     },
                     "guestsApp": {
                         "$ref": "#/components/schemas/GuestsAppStatus"
@@ -958,6 +954,22 @@
                     }
                 }
             },
+            "OnboardingState": {
+                "type": "object",
+                "required": [
+                    "setupPrompt",
+                    "firstAppointmentPrompt"
+                ],
+                "properties": {
+                    "setupPrompt": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "firstAppointmentPrompt": {
+                        "type": "boolean"
+                    }
+                }
+            },
             "PermissionSetting": {
                 "type": "object",
                 "required": [
@@ -1403,9 +1415,7 @@
                     "displayOrder",
                     "mobileAppBannerEnabled",
                     "hasPushDevice",
-                    "isAdmin",
-                    "hasAppointments",
-                    "onboardingCompleted"
+                    "onboarding"
                 ],
                 "properties": {
                     "displayOrder": {
@@ -1417,14 +1427,8 @@
                     "hasPushDevice": {
                         "type": "boolean"
                     },
-                    "isAdmin": {
-                        "type": "boolean"
-                    },
-                    "hasAppointments": {
-                        "type": "boolean"
-                    },
-                    "onboardingCompleted": {
-                        "type": "boolean"
+                    "onboarding": {
+                        "$ref": "#/components/schemas/OnboardingState"
                     }
                 }
             },
