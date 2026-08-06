@@ -60,6 +60,7 @@ OC.L10N.register(
     "Italic" : "Itálico",
     "App Store" : "Tienda de aplicaciones",
     "Dismiss" : "Despedir",
+    "Categories" : "Categoría",
     "Permissions" : "Permisos",
     "Responses" : "Respuestas",
     "Settings saved" : "Configuraciones guardadas",

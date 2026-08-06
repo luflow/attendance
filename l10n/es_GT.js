@@ -49,6 +49,7 @@ OC.L10N.register(
     "From" : "De",
     "To" : "Para",
     "Dismiss" : "Descartar",
+    "Categories" : "Categorías",
     "Permissions" : "Permisos",
     "Settings saved" : "Se han guardado las configuraciones ",
     "Preview" : "Previsualizar",

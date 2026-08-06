@@ -46,6 +46,7 @@ OC.L10N.register(
     "Save" : "Guardar",
     "Import" : "Importar",
     "Dismiss" : "Descartar",
+    "Categories" : "Categorías",
     "Permissions" : "Permisos",
     "Settings saved" : "Se han guardado las configuraciones ",
     "Preview" : "Previsualizar",

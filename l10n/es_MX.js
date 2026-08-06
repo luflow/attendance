@@ -93,6 +93,7 @@ OC.L10N.register(
     "Insert link" : "Insertar enlace",
     "App Store" : "Tienda de aplicaciones",
     "Dismiss" : "Descartar",
+    "Categories" : "Categorías",
     "Permissions" : "Permisos",
     "Scheduling" : "Calendarización",
     "Appointments" : "Citas",

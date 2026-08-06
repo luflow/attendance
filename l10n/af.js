@@ -48,6 +48,7 @@ OC.L10N.register(
     "Settings saved" : "Instellings gestoor",
     "Link copied" : "Skakel gekopieer",
     "Open" : "Open",
+    "Category" : "Kategorie",
     "minutes" : "minute",
     "hours" : "uur",
     "days" : "dae",
