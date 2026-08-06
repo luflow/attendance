@@ -127,9 +127,9 @@
 						<CategoryIconPicker v-model="newCategory.icon" data-test="input-new-category-icon" />
 						<NcInputField
 							v-model="newCategory.name"
-							:label="t('attendance', 'New category name')"
+							:label="newCategoryNameLabel"
 							:labelOutside="true"
-							:aria-label="t('attendance', 'New category name')"
+							:aria-label="newCategoryNameLabel"
 							:placeholder="t('attendance', 'e.g. Rehearsal')"
 							class="category-add__name-field"
 							data-test="input-new-category"
@@ -743,6 +743,8 @@ const editingCategoryId = ref(null)
 const editingCategory = reactive({ name: '', icon: DEFAULT_CATEGORY_ICON })
 // TRANSLATORS: Label of the input field holding a category's name — "name" is what the field expects, not part of a compound noun.
 const categoryNameLabel = t('attendance', 'Category name')
+// TRANSLATORS: Label of the empty input field for creating a category — the name the new category is about to get, not the name of an existing one.
+const newCategoryNameLabel = t('attendance', 'New category name')
 const savingCategoryEdit = ref(false)
 const categoryToDelete = ref(null)
 

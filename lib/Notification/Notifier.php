@@ -219,6 +219,7 @@ class Notifier implements INotifier {
 		switch ($notification->getSubject()) {
 			case 'response_changed':
 				$subject = $onBehalfOf !== ''
+					// TRANSLATORS: %1$s changes the answer on behalf of person %2$s; %3$s and %4$s are the old and the new answer (yes/no/maybe) and %5$s the appointment title.
 					? $l->t('%1$s changed the response of %2$s from %3$s to %4$s on "%5$s"', [
 						$actorLabel,
 						$onBehalfOf,
@@ -235,6 +236,7 @@ class Notifier implements INotifier {
 				break;
 			case 'response_rescinded':
 				$subject = $onBehalfOf !== ''
+					// TRANSLATORS: %1$s deletes the answer that person %2$s had given; %3$s is the appointment title.
 					? $l->t('%1$s removed the response of %2$s on "%3$s"', [
 						$actorLabel,
 						$onBehalfOf,

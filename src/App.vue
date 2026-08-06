@@ -352,6 +352,7 @@ t('attendance', 'No results match the active filters.')
 t('attendance', 'No connection')
 t('attendance', 'The server cannot be reached. Check your internet connection and try again.')
 t('attendance', 'No connection — showing saved data')
+// TRANSLATORS: Offline banner in the mobile app, telling when the cached data was fetched. {time} is a combined date and time of day, formatted in the user's locale (e.g. "6/8/2026 14:32").
 t('attendance', 'Last updated {time}')
 
 t('attendance', 'Subscribe')
@@ -370,6 +371,7 @@ t('attendance', 'Privacy Policy')
 t('attendance', 'By connecting, you agree to our [Terms of Service](terms) and acknowledge our [Privacy Policy](privacy).')
 t('attendance', 'Current plan')
 t('attendance', 'Expired')
+// TRANSLATORS: Call-to-action button opening the subscription screen; "plans" are the paid subscription tiers, not schedules or agendas.
 t('attendance', 'See plans')
 t('attendance', 'No subscription plans available at this time.')
 t('attendance', 'No previous purchases found.')
@@ -395,6 +397,7 @@ t('attendance', 'After this date, the inquiry is automatically closed and no fur
 // Transifex extracts them and the community can translate them centrally; the
 // translations are synced back into the app's own l10n files. Keep the English
 // source identical to the `.tr()` keys used in the attendance-flutter repo.
+// TRANSLATORS: Headline of the mobile app's subscription screen, above a switch between the personal and the group plans. "license" is the paid subscription, "group" the organization sharing one.
 t('attendance', 'A license for you, or for your whole group')
 t('attendance', 'A personal license works on every Nextcloud account you sign in with.')
 t('attendance', 'A personal license covers just you, so nobody else has to agree to it.')
@@ -476,6 +479,7 @@ t('attendance', 'Questions?')
 t('attendance', 'Rather book directly?')
 t('attendance', 'Scan NFC tag')
 t('attendance', 'Scan again')
+// TRANSLATORS: Call-to-action button opening the subscription screen on the group tiers; "plans" are the paid subscription tiers, not schedules or agendas.
 t('attendance', 'See group plans')
 t('attendance', 'Search by name …')
 t('attendance', 'Select the appointment you want to check into:')
@@ -531,8 +535,11 @@ t('attendance', 'You only see the bar where you are allowed to see responses —
 t('attendance', 'Your 14 extra days are yours either way — this just helps me make the app worth keeping.')
 t('attendance', 'Your fair price')
 t('attendance', 'Your free trial has ended')
+// TRANSLATORS: Nudge in the mobile app when the group outgrew its subscription tier. "plan" is the paid tier, "the next plan up" the larger one.
 t('attendance', 'Your group has grown past this plan. The next plan up covers everyone.')
+// TRANSLATORS: Same nudge with numbers — {count} is how many members the group has now, {limit} how many the current subscription tier covers.
 t('attendance', 'Your group has grown past your plan ({count} of {limit} members). The next plan up covers everyone.')
+// TRANSLATORS: Nudge shortly before the tier's limit is reached — {count} is how many members the group has now, {limit} how many the subscription tier covers.
 t('attendance', 'Your group is close to your plan limit ({count} of {limit} members).')
 t('attendance', 'You can decide this on your own')
 t('attendance', 'Your message')

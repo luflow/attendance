@@ -41,6 +41,15 @@ forever, see Step 5). Drop `--new` only when the user explicitly wants
 to revisit older threads; drop `--open` to see everything including
 settled threads.
 
+One class of thread ignores the watermark: an **open issue somebody else
+raised** stays listed (`"outstanding": true`) until `mark-answered`
+records it by string id in `answered_threads`. Without that, a batch of
+our own issue reports pushes the watermark past questions nobody has
+answered yet — that is exactly how tlend's question from 3 August and
+fbausch_t's from the 4th went missing until 6 August. A later comment on
+a signed-off thread lifts it back above its recorded date, so follow-up
+questions resurface on their own.
+
 Reading the output, keep in mind:
 
 - Entries with `"type": "issue"` carry an open/resolved **status**; plain
@@ -199,12 +208,19 @@ python3 .claude/skills/transifex/scripts/tx_feedback.py mark-answered
 
 This writes the newest comment date seen on the resource (including our
 own just-posted replies — the API is the source of truth, not the local
-clock) into `answered_up_to` in `state.json`. The next `list --new` run
-then only surfaces threads with newer activity, so nothing gets answered
-twice. Commit `state.json` together with the session's code changes so
-the watermark survives across worktrees and machines.
+clock) into `answered_up_to` in `state.json`, and signs off every thread
+holding somebody else's open issue in `answered_threads`. The next
+`list --new` run then only surfaces threads with newer activity, so
+nothing gets answered twice. Commit `state.json` together with the
+session's code changes so the watermark survives across worktrees and
+machines.
 
 Skip this step if replies are still pending (e.g. the user postponed a
 draft) — an advanced watermark would hide those threads from the next
 run. If that happens anyway, `mark-answered --date <ISO>` can move the
-watermark back explicitly.
+watermark back explicitly; it also releases every `answered_threads`
+entry recorded after that date, so winding back really does bring the
+threads back.
+
+Verify with a final `list --open --new` — it should come back empty. If
+a thread is still listed, the reply for it did not go out.

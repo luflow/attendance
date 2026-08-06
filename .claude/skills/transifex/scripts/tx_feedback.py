@@ -14,6 +14,11 @@ Commands:
   list --new                 Only threads with activity newer than the
                              answered_up_to watermark in state.json (kept
                              next to the skill). Combine with --open.
+                             A thread carrying an open issue somebody else
+                             raised ignores the watermark and stays listed
+                             until mark-answered signs it off by name —
+                             our own issue reports would otherwise push the
+                             watermark past unanswered questions.
   find TEXT                  Search the resource's source strings by key or
                              source text (case-insensitive substring) and
                              print their string ids.
@@ -26,7 +31,11 @@ Commands:
                              an existing thread, pass --language (l:de_DE).
   mark-answered              Record the newest comment date seen on the
                              resource as the answered_up_to watermark in
-                             state.json (or pass --date ISO explicitly).
+                             state.json, and sign off every thread holding
+                             an open issue of someone else's in
+                             answered_threads (or pass --date ISO
+                             explicitly, which also releases threads signed
+                             off after that point).
                              Run after all replies for a session are posted.
   resolve COMMENT_ID         Mark an issue comment as resolved. NOTE: needs
                              project-maintainer rights; translator-level
@@ -146,9 +155,16 @@ def full_string_id(string_id):
     return f'{RESOURCE}:s:{string_id.removeprefix("s:")}'
 
 
+def has_foreign_open_issue(comments, me):
+    return any(c['type'] == 'issue' and c['status'] == 'open'
+               and c['author'] != f'u:{me}' for c in comments)
+
+
 def cmd_list(args):
     threads = fetch_threads()
-    watermark = read_state().get('answered_up_to', '') if args.new else ''
+    state = read_state()
+    watermark = state.get('answered_up_to', '') if args.new else ''
+    answered_threads = state.get('answered_threads', {})
     if args.new and not watermark:
         print('state.json has no answered_up_to watermark yet — listing '
               'everything. Run mark-answered after replying.',
@@ -161,15 +177,22 @@ def cmd_list(args):
             comments and comments[-1]['author'] != f'u:{args.me}')
         if args.open and not needs_attention:
             continue
+        # Our own issue reports push the watermark past questions other
+        # people asked and nobody answered — that is how two of them were
+        # missed for days. An open issue someone else raised therefore
+        # survives the watermark until mark-answered records it by name.
+        outstanding = (has_foreign_open_issue(comments, args.me)
+                       and comments[-1]['date'] > answered_threads.get(sid, ''))
         # Watermark dates come from the same API field as the comment
         # dates, so plain string comparison of the ISO timestamps works.
-        if watermark and comments[-1]['date'] <= watermark:
+        if watermark and not outstanding and comments[-1]['date'] <= watermark:
             continue
         out.append({
             'string_id': sid,
             'string': fetch_string(sid),
             'has_open_issue': has_open_issue,
             'needs_attention': needs_attention,
+            'outstanding': outstanding,
             'comments': comments,
         })
     out.sort(key=lambda t: t['comments'][-1]['date'], reverse=True)
@@ -239,13 +262,14 @@ def cmd_reply(args):
 
 
 def cmd_mark_answered(args):
+    threads = {} if args.date else fetch_threads()
     if args.date:
         newest = args.date
     else:
         # Take the newest comment date from the API itself instead of the
         # local clock — clocks may drift, the API is the source of truth.
         newest = max(
-            (c['date'] for comments in fetch_threads().values()
+            (c['date'] for comments in threads.values()
              for c in comments), default='')
         if not newest:
             sys.exit('No comments found on the resource; pass --date '
@@ -257,9 +281,23 @@ def cmd_mark_answered(args):
                  f'({previous} -> {newest}); pass an explicit --date '
                  f'if that is really intended.')
     state['answered_up_to'] = newest
+    answered_threads = state.setdefault('answered_threads', {})
+    if args.date:
+        # Winding the watermark back has to release the threads recorded
+        # after that point too, or they stay hidden regardless.
+        for sid in [s for s, d in answered_threads.items() if d > newest]:
+            del answered_threads[sid]
+    else:
+        # Threads carrying someone else's open issue ignore the watermark,
+        # so each one has to be signed off individually. Recording the
+        # newest comment lets a follow-up question resurface the thread.
+        for sid, comments in threads.items():
+            if has_foreign_open_issue(comments, args.me):
+                answered_threads[sid] = comments[-1]['date']
     write_state(state)
     print(json.dumps({'ok': True, 'answered_up_to': newest,
-                      'previous': previous or None}))
+                      'previous': previous or None,
+                      'answered_threads': len(answered_threads)}))
 
 
 def cmd_resolve(args):
@@ -300,6 +338,9 @@ def main():
     p_mark.add_argument('--date',
                         help='explicit ISO timestamp instead of the newest '
                              'comment date from the API')
+    p_mark.add_argument('--me', default='magdeflow',
+                        help='username treated as "us" when deciding which '
+                             'open issues are someone else\'s')
     p_mark.set_defaults(func=cmd_mark_answered)
 
     p_find = sub.add_parser('find', help='search source strings by text/key')
