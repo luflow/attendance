@@ -29,7 +29,7 @@ The mobile app is free for the first 30 days per Nextcloud instance, then one ye
 
 ### Organising appointments
 - **Recurring appointments:** daily, weekly or monthly series created in one go; edit or delete this one, this and following, or all of them
-- **Calendar import:** pull events out of Nextcloud Calendar, with optional automatic sync (Nextcloud 32+)
+- **Calendar import:** pull events out of Nextcloud Calendar, with optional automatic sync
 - **Closing and deadlines:** close an inquiry by hand, on a deadline, or automatically once it starts
 - **Cancel and reactivate:** cancelling is a state of its own, separate from closing
 - **Scheduling:** mark the yes-repliers you actually need and notify exactly those people on closing (instance-wide opt-in, off by default)
@@ -50,11 +50,11 @@ The mobile app is free for the first 30 days per Nextcloud instance, then one ye
 - **Response summary groups:** choose which groups and Teams appear as sections (this also scopes the check-in list)
 - **Reminder settings:** days before the appointment and repeat frequency
 - **Self-check-in settings:** which groups may self-check-in, how wide the check-in window is, plus the instance QR code and the NFC URL
-- **Calendar sync:** keep imported appointments in step with the source event (Nextcloud 32+)
+- **Calendar sync:** keep imported appointments in step with the source event
 
 ## Requirements
 
-- Nextcloud 31 to 34 (32 or newer for calendar sync)
+- Nextcloud 32 to 34
 - PHP 8.1 or newer
 - The Notifications app enabled, for reminders and notifications
 
