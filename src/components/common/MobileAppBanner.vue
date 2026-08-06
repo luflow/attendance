@@ -1,10 +1,10 @@
 <template>
 	<div v-if="visible" class="mobile-app-banner" data-test="mobile-app-banner">
 		<div class="mobile-app-banner__content">
-			<CellphoneIcon class="mobile-app-banner__icon" :size="28" />
+			<QrcodeScanIcon class="mobile-app-banner__icon" :size="28" />
 			<div class="mobile-app-banner__text">
-				<strong>{{ t('attendance', 'Attendance is now on your phone') }}</strong>
-				<span>{{ t('attendance', 'Get the mobile app for faster access and push notifications.') }}</span>
+				<strong>{{ t('attendance', 'Self check-in is now in the mobile app') }}</strong>
+				<span>{{ t('attendance', 'Participants scan a QR code or NFC tag and check themselves in — no clipboard, no manual list.') }}</span>
 			</div>
 		</div>
 		<div class="mobile-app-banner__actions">
@@ -44,12 +44,14 @@
 import { NcButton } from '@nextcloud/vue'
 import { onMounted, ref } from 'vue'
 import AppleIcon from 'vue-material-design-icons/Apple.vue'
-import CellphoneIcon from 'vue-material-design-icons/Cellphone.vue'
 import CloseIcon from 'vue-material-design-icons/Close.vue'
 import GoogleIcon from 'vue-material-design-icons/Google.vue'
+import QrcodeScanIcon from 'vue-material-design-icons/QrcodeScan.vue'
 import { APPLE_STORE_URL, GOOGLE_STORE_URL } from '../../utils/mobileApp.js'
 
-const DISMISS_KEY = 'attendance:mobile-app-banner-dismissed'
+// Suffixed so the self-check-in announcement reaches everyone who already
+// dismissed the previous "get the app" banner. Bump again on the next relaunch.
+const DISMISS_KEY = 'attendance:mobile-app-banner-dismissed:self-checkin'
 
 const visible = ref(false)
 

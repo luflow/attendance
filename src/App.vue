@@ -460,6 +460,8 @@ t('attendance', 'Less than one euro a month')
 t('attendance', 'Most popular')
 t('attendance', 'NFC is not available.')
 t('attendance', 'Name (optional)')
+// TRANSLATORS: One-time banner in the mobile app announcing self-check-in.
+t('attendance', 'New: scan the check-in code to check yourself in')
 t('attendance', 'Next appointment')
 t('attendance', 'No appointment right now')
 t('attendance', 'Not buying for a whole group? Get a license just for you.')
