@@ -9,6 +9,7 @@ use OCA\Attendance\Service\QuickResponseTokenService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IConfig;
 use OCP\IURLGenerator;
+use OCP\IUserManager;
 use OCP\L10N\IFactory;
 use OCP\Notification\AlreadyProcessedException;
 use OCP\Notification\IAction;
@@ -22,6 +23,7 @@ class Notifier implements INotifier {
 	private QuickResponseTokenService $tokenService;
 	private IConfig $config;
 	private AttendanceResponseMapper $responseMapper;
+	private IUserManager $userManager;
 
 	public function __construct(
 		IFactory $l10nFactory,
@@ -29,12 +31,14 @@ class Notifier implements INotifier {
 		QuickResponseTokenService $tokenService,
 		IConfig $config,
 		AttendanceResponseMapper $responseMapper,
+		IUserManager $userManager,
 	) {
 		$this->l10nFactory = $l10nFactory;
 		$this->urlGenerator = $urlGenerator;
 		$this->tokenService = $tokenService;
 		$this->config = $config;
 		$this->responseMapper = $responseMapper;
+		$this->userManager = $userManager;
 	}
 
 	public function getID(): string {
@@ -212,7 +216,8 @@ class Notifier implements INotifier {
 		// in the wording when someone answered on behalf of another person.
 		$onBehalfOf = ($subject !== '' && $subject !== $actor) ? $subject : '';
 
-		$actorLabel = $actor !== '' ? $actor : $l->t('Someone');
+		$actorLabel = $actor !== '' ? $this->resolveDisplayName($actor) : $l->t('Someone');
+		$onBehalfOfLabel = $onBehalfOf !== '' ? $this->resolveDisplayName($onBehalfOf) : '';
 		$fromLabel = $this->translateResponseValue($from, $l);
 		$toLabel = $this->translateResponseValue($to, $l);
 
@@ -222,7 +227,7 @@ class Notifier implements INotifier {
 					// TRANSLATORS: %1$s changes the answer on behalf of person %2$s; %3$s and %4$s are the old and the new answer (yes/no/maybe) and %5$s the appointment title.
 					? $l->t('%1$s changed the response of %2$s from %3$s to %4$s on "%5$s"', [
 						$actorLabel,
-						$onBehalfOf,
+						$onBehalfOfLabel,
 						$fromLabel,
 						$toLabel,
 						$appointmentName,
@@ -239,7 +244,7 @@ class Notifier implements INotifier {
 					// TRANSLATORS: %1$s deletes the answer that person %2$s had given; %3$s is the appointment title.
 					? $l->t('%1$s removed the response of %2$s on "%3$s"', [
 						$actorLabel,
-						$onBehalfOf,
+						$onBehalfOfLabel,
 						$appointmentName,
 					])
 					: $l->t('%1$s took back their response on "%2$s"', [
@@ -254,7 +259,7 @@ class Notifier implements INotifier {
 					? $l->t('%1$s answered %2$s for %3$s on "%4$s"', [
 						$actorLabel,
 						$toLabel,
-						$onBehalfOf,
+						$onBehalfOfLabel,
 						$appointmentName,
 					])
 					: $l->t('%1$s answered %2$s on "%3$s"', [
@@ -270,6 +275,15 @@ class Notifier implements INotifier {
 			$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
 		));
 		return $notification;
+	}
+
+	/**
+	 * Notifications carry raw user IDs; resolving them here rather than at send
+	 * time keeps renamed accounts correct. Unknown accounts keep the ID.
+	 */
+	private function resolveDisplayName(string $userId): string {
+		$user = $this->userManager->get($userId);
+		return $user !== null ? $user->getDisplayName() : $userId;
 	}
 
 	private function translateResponseValue(string $value, \OCP\IL10N $l): string {

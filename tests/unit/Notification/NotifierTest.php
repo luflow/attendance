@@ -11,6 +11,8 @@ use OCA\Attendance\Service\QuickResponseTokenService;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
+use OCP\IUser;
+use OCP\IUserManager;
 use OCP\L10N\IFactory;
 use OCP\Notification\AlreadyProcessedException;
 use OCP\Notification\IAction;
@@ -29,6 +31,8 @@ class NotifierTest extends TestCase {
 	private $config;
 	/** @var AttendanceResponseMapper|MockObject */
 	private $responseMapper;
+	/** @var IUserManager|MockObject */
+	private $userManager;
 
 	private Notifier $notifier;
 
@@ -38,6 +42,7 @@ class NotifierTest extends TestCase {
 		$this->tokenService = $this->createMock(QuickResponseTokenService::class);
 		$this->config = $this->createMock(IConfig::class);
 		$this->responseMapper = $this->createMock(AttendanceResponseMapper::class);
+		$this->userManager = $this->createMock(IUserManager::class);
 
 		$this->config->method('getUserValue')->willReturn('');
 
@@ -53,7 +58,34 @@ class NotifierTest extends TestCase {
 			$this->tokenService,
 			$this->config,
 			$this->responseMapper,
+			$this->userManager,
 		);
+	}
+
+	/**
+	 * @param array<string, string> $displayNames uid => display name; unknown uids resolve to null
+	 */
+	private function mockUsers(array $displayNames): void {
+		$this->userManager->method('get')->willReturnCallback(
+			function (string $uid) use ($displayNames): ?IUser {
+				if (!isset($displayNames[$uid])) {
+					return null;
+				}
+				$user = $this->createMock(IUser::class);
+				$user->method('getDisplayName')->willReturn($displayNames[$uid]);
+				return $user;
+			},
+		);
+	}
+
+	private function mockResponseChangeNotification(string $subject, array $subjectParameters): INotification|MockObject {
+		$notification = $this->createMock(INotification::class);
+		$notification->method('getApp')->willReturn('attendance');
+		$notification->method('getSubject')->willReturn($subject);
+		$notification->method('getSubjectParameters')->willReturn($subjectParameters);
+		$notification->method('getUser')->willReturn('manager');
+		$notification->method('setIcon')->willReturnSelf();
+		return $notification;
 	}
 
 	private function mockReminderNotification(array $subjectParameters): INotification|MockObject {
@@ -123,5 +155,43 @@ class NotifierTest extends TestCase {
 
 		$result = $this->notifier->prepare($notification, 'de');
 		$this->assertSame($notification, $result);
+	}
+
+	public function testResponseNotificationUsesDisplayNames(): void {
+		$this->mockUsers(['alice' => 'Alice Anderson']);
+
+		$notification = $this->mockResponseChangeNotification('response_submitted', [
+			'appointmentId' => 42,
+			'appointmentName' => 'Rehearsal',
+			'actor' => 'alice',
+			'subject' => 'alice',
+			'from' => '',
+			'to' => 'yes',
+		]);
+		$notification->expects($this->once())
+			->method('setParsedSubject')
+			->with('Alice Anderson answered Yes on "Rehearsal"')
+			->willReturnSelf();
+
+		$this->notifier->prepare($notification, 'de');
+	}
+
+	public function testResponseNotificationFallsBackToUserIdForUnknownAccounts(): void {
+		$this->mockUsers(['alice' => 'Alice Anderson']);
+
+		$notification = $this->mockResponseChangeNotification('response_changed', [
+			'appointmentId' => 42,
+			'appointmentName' => 'Rehearsal',
+			'actor' => 'alice',
+			'subject' => 'ghost',
+			'from' => 'yes',
+			'to' => 'no',
+		]);
+		$notification->expects($this->once())
+			->method('setParsedSubject')
+			->with('Alice Anderson changed the response of ghost from Yes to No on "Rehearsal"')
+			->willReturnSelf();
+
+		$this->notifier->prepare($notification, 'de');
 	}
 }
