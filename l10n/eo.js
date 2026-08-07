@@ -67,6 +67,8 @@ OC.L10N.register(
     "Heading 3" : "Titolo 3",
     "Dismiss" : "Preterpasi",
     "Categories" : "Kategorioj",
+    "Close" : "Malfermi",
+    "Continue" : "Daŭrigi",
     "Settings saved" : "Agordoj konservitaj",
     "Failed to save settings" : "Konservo de agordoj malsukcesis",
     "Failed to load settings" : "Ŝargo de agordoj malsukcesis",

@@ -34,6 +34,8 @@ OC.L10N.register(
     "Save" : "Späicheren",
     "Import" : "Import",
     "Dismiss" : "Ofbriechen",
+    "Close" : "Zoumaachen",
+    "Continue" : "Weider",
     "Link copied" : "Link kopéiert",
     "Location" : "Uert",
     "minutes" : "Minutten",

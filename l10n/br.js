@@ -45,6 +45,8 @@ OC.L10N.register(
     "Present" : "Kinnig",
     "Dismiss" : "Disteurel",
     "Categories" : "Rummadoù",
+    "Close" : "Serriñ",
+    "Continue" : "Kendec'hel",
     "Settings saved" : "Stummoù enrollet",
     "Link copied" : "Liamm eilet",
     "Preview" : "Ragwell",

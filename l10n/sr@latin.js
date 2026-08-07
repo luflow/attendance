@@ -41,6 +41,8 @@ OC.L10N.register(
     "Bold" : "Podebljano",
     "Italic" : "Kurziv",
     "Dismiss" : "Odbaci",
+    "Welcome" : "Dobro došli",
+    "Close" : "Zatvori",
     "Link copied" : "Veza iskopirana",
     "Push notifications" : "Brza obaveštenja",
     "Category" : "Kategorija",
