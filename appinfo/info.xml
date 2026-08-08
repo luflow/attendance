@@ -107,6 +107,7 @@ Dokumentation, Einsatzbeispiele und Roadmap: [anwesenheit.app](https://anwesenhe
 	</documentation>
 	<category>dashboard</category>
 	<category>organization</category>
+	<category>office</category>
 	<website>https://anwesenheit.app</website>
 	<bugs>https://github.com/luflow/attendance/issues</bugs>
 	<repository type="git">https://github.com/luflow/attendance</repository>
