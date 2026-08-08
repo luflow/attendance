@@ -1,25 +1,31 @@
 ---
 name: l10n-autotranslate
-description: Keep the German l10n files in step with the code — fill every source string that has no German yet and drop entries whose source string is gone, writing into l10n/de.json, de.js, de_DE.json and de_DE.js so the app is fully German without waiting for the next Transifex sync. Use when the user wants to auto-translate missing strings to German, remove stale/orphaned translation keys, mentions "l10n-autotranslate", "alles auf Deutsch übersetzen", "fehlende Übersetzungen ergänzen", "stale strings entfernen", "translate missing strings", or after adding/renaming/removing t()/n() strings that should show up in German immediately.
+description: Keep the German l10n files in step with the code — fill every source string that has no German yet and drop entries whose source string is gone, writing into l10n/de.json, de.js, de_DE.json and de_DE.js. German is hand-maintained in this repo and never comes back from Transifex, so this is the only way new German reaches the app. Use when the user wants to auto-translate missing strings to German, remove stale/orphaned translation keys, mentions "l10n-autotranslate", "alles auf Deutsch übersetzen", "fehlende Übersetzungen ergänzen", "stale strings entfernen", "translate missing strings", or after adding/renaming/removing t()/n() strings that should show up in German immediately.
 ---
 
-# German auto-translate (stopgap for missing translations)
+# German translations (owned by this repo)
 
-Transifex is the **source of truth** for translations. The `l10n/*.js` and
-`l10n/*.json` files are generated from the Transifex `.po` files, so any string
-added with a fresh `t()` / `n()` call stays untranslated (falls back to English)
-until the next `tx pull` + convert. This skill fills that gap: it finds the
-untranslated source strings and writes German for them straight into the four
-German l10n files, for immediate local coverage.
+Transifex is the source of truth for every language **except German**. `de` and
+`de_DE` are excluded from the sync in `.tx/config` — both are mapped to a local
+directory starting with a dot, which translationtool's `findLanguages()` skips,
+so `l10n/de.*` and `l10n/de_DE.*` are never regenerated. Repeated syncs had been
+overwriting reviewed German with worse wording and broken placeholders.
 
-**Important — this is a stopgap, not the canonical path:**
+That makes this skill the **canonical path**: a string added with a fresh `t()` /
+`n()` call stays English until someone runs it. Nothing downstream will fix it
+later.
 
-- The repo's `CLAUDE.md` says translation files are managed via Transifex and
-  should not be hand-edited. This skill deliberately does, and the entries it
-  adds will be **overwritten (or re-matched) on the next Transifex sync**. That
-  is fine and expected — the point is to not ship English-looking UI in the
-  meantime.
-- Only ever touch **German** (`de` and `de_DE`). Never other locales.
+**What that means in practice:**
+
+- Entries you add are **permanent**. They are not a stopgap that the next sync
+  tidies up, so write them as the wording you want to ship. Sloppy German stays
+  sloppy.
+- Same for removals: stale keys are never cleaned up by a sync either, so
+  Step 5 is part of the job, not an optional extra.
+- Only ever touch **German** (`de` and `de_DE`). Never other locales — those
+  still come from Transifex and hand-edits there get overwritten.
+- `de` is informal (**du**), `de_DE` is formal (**Sie**). Never mix the two
+  inside one string. See Step 2.
 - Never invent or change **source** strings. If a missing string looks wrong
   (a sentence fragment, a missing placeholder, a manual plural split), fix it at
   the source per `CLAUDE.md` and the `transifex` skill instead of papering over
@@ -55,7 +61,12 @@ Write German for each missing entry into a JSON map (English key → German
 string, or → `[singular, plural]` for plurals). Follow the Nextcloud German
 conventions already used across `l10n/de.json`:
 
-- **Informal "du"** (`Öffne …`, `Scanne …`, `Wähle …`) — never "Sie".
+- **Address form differs per locale.** `de` is informal (`Öffne …`, `Scanne …`,
+  `Wähle …`), `de_DE` is formal (`Öffnen Sie …`, `Scannen Sie …`). Most strings
+  never address the user at all (`QR-Code anzeigen`, `Kategoriename`) and are
+  identical in both — write those once. Only when the German says "du" or "Sie",
+  or uses a second-person imperative, give both forms (see the map format
+  below). Getting this wrong fails `scripts/check-german-l10n.py`.
 - **Sentence case**: capitalize only the first word (and nouns/proper names).
 - **No "successfully"** wording; keep it plain.
 - **Keep placeholders byte-for-byte**: `{name}`, `{count}`, `%1$s`, `%n` must
@@ -70,15 +81,27 @@ conventions already used across `l10n/de.json`:
     print([ (k,v) for k,v in d.items() if 'checkin' in k.lower().replace('-','') ])"
   ```
 
-Save the map, e.g. to a scratch file:
+Save the map, e.g. to a scratch file. A plain value goes into both locales; an
+object gives `de` and `de_DE` their own wording:
 
 ```json
 {
   "Show QR code": "QR-Code anzeigen",
   "Write NFC tag": "NFC-Tag beschreiben",
-  "_%n attendee_::_%n attendees_": ["%n Teilnehmer", "%n Teilnehmer"]
+  "_%n attendee_::_%n attendees_": ["%n Teilnehmer", "%n Teilnehmer"],
+  "Create your first appointment": {
+    "de": "Erstelle deinen ersten Termin",
+    "de_DE": "Erstellen Sie Ihren ersten Termin"
+  },
+  "_%n day left_::_%n days left_": {
+    "de": ["Noch %n Tag für dich", "Noch %n Tage für dich"],
+    "de_DE": ["Noch %n Tag für Sie", "Noch %n Tage für Sie"]
+  }
 }
 ```
+
+Both `de` and `de_DE` must be present in an object — a half-filled one is
+rejected rather than silently copied.
 
 ## Step 3 — Apply to all four files
 
@@ -88,27 +111,35 @@ python3 .claude/skills/l10n-autotranslate/scripts/apply_translations.py MAP.json
 ```
 
 The script appends each entry to `l10n/de.json`, `l10n/de.js`,
-`l10n/de_DE.json` and `l10n/de_DE.js`, preserving the exact translationtool
-formatting (`"key" : value`, arrays as `["a","b"]`, no trailing comma on the
-last entry). It is **idempotent** — keys already present are skipped, so it is
-safe to re-run and to run in several batches. `--dry-run` previews without
-writing.
+`l10n/de_DE.json` and `l10n/de_DE.js`, resolving per-locale values on the way
+and preserving the exact translationtool formatting (`"key" : value`, arrays as
+`["a","b"]`, no trailing comma on the last entry). It is **idempotent** — keys
+already present are skipped, so it is safe to re-run and to run in several
+batches. `--dry-run` previews the rendered lines per file, which is the quickest
+way to confirm `de` and `de_DE` really got the wording you intended.
 
 ## Step 4 — Verify
 
 1. Re-run `find_untranslated.py` — `count` should be `0` (or only the strings
    you deliberately left for the source-fix path).
-2. `npm run build` must pass (never commit the `js/` / `css/` app build output —
+2. `python3 scripts/check-german-l10n.py` must pass. It is the gate that used to
+   be Transifex's job: placeholders against the source string, German quotes
+   „…“, stray whitespace, duplicate keys, `.js`/`.json` agreement, key parity
+   across the two locales, and informal address leaking into `de_DE`.
+3. `npm run build` must pass (never commit the `js/` / `css/` app build output —
    only the hand-edited `l10n/*.js|json`).
-3. Sanity-check the diff: only additive lines in the four `l10n/de*` files, no
+4. Sanity-check the diff: only additive lines in the four `l10n/de*` files, no
    reordering of existing entries.
-4. Commit on the working branch as `fix(l10n): add German for untranslated
+5. Commit on the working branch as `fix(l10n): add German for untranslated
    strings` (this repo's convention: no Claude co-author).
 
-## Step 5 — Remove stale strings (optional)
+`./scripts/check.sh` runs steps 2 and 3 along with every other gate.
+
+## Step 5 — Remove stale strings
 
 When source strings get renamed or removed, their old German entries linger in
-the l10n files. Find them:
+the l10n files. No sync prunes them any more, so this belongs to every run, not
+just the ones that add strings. Find them:
 
 ```bash
 python3 .claude/skills/l10n-autotranslate/scripts/find_stale.py
@@ -142,5 +173,6 @@ python3 .claude/skills/l10n-autotranslate/scripts/remove_stale.py /tmp/stale.jso
 
 `remove_stale.py` drops the keys from all four files, re-commas so the last
 entry never keeps a trailing comma, and is idempotent. Re-run `find_stale.py`
-(orphaned should be empty), then `npm run build` and verify `.js` and `.json`
-still agree per locale, exactly as in Step 4.
+(orphaned should be empty), then verify exactly as in Step 4 —
+`scripts/check-german-l10n.py` catches it if a removal left the two locales or
+the `.js`/`.json` pair out of step.
