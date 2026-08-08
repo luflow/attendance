@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+## 1.46.0 – 2026-08-08
+
+### Added
+
+- **Notifications when an appointment changes**: moving it, adding attendees, or bringing a cancelled one back now pushes everyone affected, with the actor's name. Series edits and edits made by dragging the event in the Calendar app notify too — a series edit aggregates into one push per person
+- **Admin setup wizard**: fresh installs guide the admin through the permission setup, prompt for the first appointment, and offer the audit log — shown in the empty list instead of a banner
+- Self check-in is now mentioned in the mobile app banner
+
+### Fixed
+
+- The loading label no longer lands on top of the spinner
+- German translations: audited against what the code means, fixed the response notifications to name an appointment, German quotes „…“ throughout. German is now owned by this repo and off the Transifex sync
+
+### Maintenance
+
+- Gate the English source strings in CI
+- Updated npm and composer dependencies
+
 ## 1.45.1 – 2026-08-05
 
 ### Fixed
