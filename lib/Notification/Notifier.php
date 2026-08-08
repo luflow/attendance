@@ -88,6 +88,7 @@ class Notifier implements INotifier {
 				$userId = $notification->getUser();
 
 				$notification->setParsedSubject(
+					// TRANSLATORS: Push notification subject reminding someone that they have not answered yet. %1$s is the appointment name, %2$s its date and time. "Response" is the recipient's own yes/no/maybe answer. Sample German: "Antwort fehlt: „Probe" am 12.09.2026 18:00".
 					$l->t('Response missing: %1$s on %2$s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
@@ -115,6 +116,7 @@ class Notifier implements INotifier {
 				$userId = $notification->getUser();
 
 				$notification->setParsedSubject(
+					// TRANSLATORS: Push notification subject announcing an appointment the recipient has just been invited to. %1$s is the appointment name, %2$s its date and time. Sample German: "Neuer Termin: „Probe" am 12.09.2026 18:00".
 					$l->t('New appointment: %1$s on %2$s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
@@ -140,6 +142,7 @@ class Notifier implements INotifier {
 				);
 
 				$notification->setParsedSubject(
+					// TRANSLATORS: Push notification subject: the appointment was called off and will not happen (German "abgesagt", not "abgebrochen"). %1$s is the appointment name, %2$s the date it would have taken place. Sample German: "Termin abgesagt: „Probe" am 12.09.2026 18:00".
 					$l->t('Appointment cancelled: %1$s on %2$s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
@@ -240,7 +243,9 @@ class Notifier implements INotifier {
 				$firstName = $parameters['firstName'] ?? '';
 
 				$notification->setParsedSubject(
-					$l->n('%1$s new appointment added (e.g. "%2$s")', '%1$s new appointments added (e.g. "%2$s")', $count, [$count, $firstName])
+					// TRANSLATORS Push notification subject: several appointments were added in one go, or a whole series just became visible to this person. %1$s is how many, %2$s is the name of one of them — the appointments may all share that name or each have their own, so %2$s is a sample and not a title for the whole batch. Keep %1$s in both forms: languages with more than two plural forms need the number in the "one" form too (Russian uses it for 21, 31, …).
+					// Sample German: "1 neuer Termin: „Probe"" / "12 neue Termine, darunter „Probe"".
+					$l->n('%1$s new appointment added: "%2$s"', '%1$s new appointments added, including "%2$s"', $count, [$count, $firstName])
 				);
 				$notification->setParsedMessage(
 					// TRANSLATORS Push notification body for several appointments added at once, shown under a subject that already gives the number and one example name. The app speaks as "we", the people organizing — not about them in the third person. The recipient answers each appointment separately, which is why this says "which ones" rather than asking for a single answer.
@@ -285,6 +290,7 @@ class Notifier implements INotifier {
 		// in the wording when someone answered on behalf of another person.
 		$onBehalfOf = ($subject !== '' && $subject !== $actor) ? $subject : '';
 
+		// TRANSLATORS: Stands in for a person's name in the response notifications below when the acting account cannot be identified. It is the grammatical subject of sentences like "Someone answered Yes on ...". Sample German: "Jemand".
 		$actorLabel = $actor !== '' ? $this->resolveDisplayName($actor) : $l->t('Someone');
 		$onBehalfOfLabel = $onBehalfOf !== '' ? $this->resolveDisplayName($onBehalfOf) : '';
 		$fromLabel = $this->translateResponseValue($from, $l);
@@ -293,7 +299,8 @@ class Notifier implements INotifier {
 		switch ($notification->getSubject()) {
 			case 'response_changed':
 				$subject = $onBehalfOf !== ''
-					// TRANSLATORS: %1$s changes the answer on behalf of person %2$s; %3$s and %4$s are the old and the new answer (yes/no/maybe) and %5$s the appointment title.
+					// TRANSLATORS: Notification to an organizer. Someone edited another person's answer for them. %1$s is the display name of whoever made the edit, %2$s the display name of the person whose answer it is, %3$s and %4$s are the old and the new answer (each already translated as Yes, No or Maybe), %5$s the appointment name.
+					// Sample German: "Anna Weber hat die Antwort von Bernd Klein auf „Probe" von Ja zu Nein geaendert".
 					? $l->t('%1$s changed the response of %2$s from %3$s to %4$s on "%5$s"', [
 						$actorLabel,
 						$onBehalfOfLabel,
@@ -301,6 +308,8 @@ class Notifier implements INotifier {
 						$toLabel,
 						$appointmentName,
 					])
+					// TRANSLATORS: Notification to an organizer. Someone edited their own answer. %1$s is their display name, %2$s and %3$s are the old and the new answer (each already translated as Yes, No or Maybe), %4$s the appointment name. "Their" is a single person of unknown gender, not a group.
+					// Sample German: "Anna Weber hat ihre Antwort auf „Probe" von Ja zu Nein geaendert".
 					: $l->t('%1$s changed their response from %2$s to %3$s on "%4$s"', [
 						$actorLabel,
 						$fromLabel,
@@ -310,12 +319,15 @@ class Notifier implements INotifier {
 				break;
 			case 'response_rescinded':
 				$subject = $onBehalfOf !== ''
-					// TRANSLATORS: %1$s deletes the answer that person %2$s had given; %3$s is the appointment title.
+					// TRANSLATORS: Notification to an organizer. Someone deleted another person's answer, leaving them unanswered again — this is not a No. %1$s is the display name of whoever deleted it, %2$s the display name of the person whose answer it was, %3$s the appointment name.
+					// Sample German: "Anna Weber hat die Antwort von Bernd Klein auf „Probe" geloescht".
 					? $l->t('%1$s removed the response of %2$s on "%3$s"', [
 						$actorLabel,
 						$onBehalfOfLabel,
 						$appointmentName,
 					])
+					// TRANSLATORS: Notification to an organizer. Someone withdrew their own answer and now counts as unanswered again — this is not a No. %1$s is their display name, %2$s the appointment name. "Their" is a single person of unknown gender, not a group.
+					// Sample German: "Anna Weber hat ihre Antwort auf „Probe" zurueckgezogen".
 					: $l->t('%1$s took back their response on "%2$s"', [
 						$actorLabel,
 						$appointmentName,
@@ -324,13 +336,16 @@ class Notifier implements INotifier {
 			case 'response_submitted':
 			default:
 				$subject = $onBehalfOf !== ''
-					// TRANSLATORS: %1$s answers on behalf of person %3$s; %2$s is the answer (yes/no/maybe) and %4$s the appointment title.
+					// TRANSLATORS: Notification to an organizer. Someone answered on another person's behalf, e.g. a manager entering an answer a member gave by phone. %1$s is the display name of whoever entered it, %2$s the answer itself (already translated as Yes, No or Maybe), %3$s the display name of the person it is for, %4$s the appointment name.
+					// Sample German: "Anna Weber hat fuer Bernd Klein mit Ja auf „Probe" geantwortet".
 					? $l->t('%1$s answered %2$s for %3$s on "%4$s"', [
 						$actorLabel,
 						$toLabel,
 						$onBehalfOfLabel,
 						$appointmentName,
 					])
+					// TRANSLATORS: Notification to an organizer that someone answered for themselves. %1$s is their display name, %2$s the answer itself (already translated as Yes, No or Maybe), %3$s the appointment name.
+					// Sample German: "Anna Weber hat mit Ja auf „Probe" geantwortet".
 					: $l->t('%1$s answered %2$s on "%3$s"', [
 						$actorLabel,
 						$toLabel,
@@ -381,13 +396,20 @@ class Notifier implements INotifier {
 		return $user !== null ? $user->getDisplayName() : $userId;
 	}
 
+	/**
+	 * The three answers, rendered for insertion into the response notification
+	 * subjects above.
+	 */
 	private function translateResponseValue(string $value, \OCP\IL10N $l): string {
 		switch ($value) {
 			case 'yes':
+				// TRANSLATORS: An attendee's answer, meaning "I will be there". Serves two purposes with one translation: it is the label of the Yes button on the notification, and it is substituted into sentences like "... answered Yes on ...". So it must work both as a standalone button and mid-sentence. Sample German: "Ja".
 				return $l->t('Yes');
 			case 'no':
+				// TRANSLATORS: An attendee's answer, meaning "I will not be there". Serves two purposes with one translation: it is the label of the No button on the notification, and it is substituted into sentences like "... answered No on ...". So it must work both as a standalone button and mid-sentence. Sample German: "Nein".
 				return $l->t('No');
 			case 'maybe':
+				// TRANSLATORS: An attendee's answer, meaning "I do not know yet". Serves two purposes with one translation: it is the label of the Maybe button on the notification, and it is substituted into sentences like "... answered Maybe on ...". So it must work both as a standalone button and mid-sentence. Sample German: "Vielleicht".
 				return $l->t('Maybe');
 			default:
 				return $value;
