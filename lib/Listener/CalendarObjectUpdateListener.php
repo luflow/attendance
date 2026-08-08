@@ -6,10 +6,12 @@ namespace OCA\Attendance\Listener;
 
 use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
+use OCA\Attendance\Service\AppointmentService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\OrgCalendarSyncService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
+use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 use Sabre\VObject\Reader;
 
@@ -23,6 +25,8 @@ class CalendarObjectUpdateListener implements IEventListener {
 	public function __construct(
 		private AppointmentMapper $appointmentMapper,
 		private ConfigService $configService,
+		private AppointmentService $appointmentService,
+		private IUserSession $userSession,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -67,8 +71,14 @@ class CalendarObjectUpdateListener implements IEventListener {
 
 	/**
 	 * Sync properties from a VEVENT to an appointment and persist.
+	 *
+	 * Dragging the event in the Calendar app is the same edit as moving the
+	 * appointment in the app, so it announces itself the same way. The wave is
+	 * driven by the actual field diff, which is what keeps the app's own
+	 * write-back through OrgCalendarSyncService from echoing back as a change.
 	 */
 	private function syncAppointmentFromVevent(Appointment $appointment, $vevent, string $fallbackSummary, string $fallbackDescription): void {
+		$before = clone $appointment;
 		$utcTimezone = new \DateTimeZone('UTC');
 
 		$summary = (string)($vevent->SUMMARY ?? '') ?: $fallbackSummary;
@@ -92,7 +102,13 @@ class CalendarObjectUpdateListener implements IEventListener {
 		}
 
 		$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
-		$this->appointmentMapper->update($appointment);
+		$updated = $this->appointmentMapper->update($appointment);
+
+		$this->appointmentService->announceAppointmentUpdate(
+			$before,
+			$updated,
+			$this->userSession->getUser()?->getUID(),
+		);
 	}
 
 	private function handleUpdate(Event $event): void {

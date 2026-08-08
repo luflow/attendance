@@ -318,12 +318,13 @@ class AppointmentController extends Controller {
 
 		// Send a single batch notification for all created appointments
 		if ($sendNotification && $firstAppointment !== null && count($createdIds) > 0) {
-			$affectedUsers = $this->appointmentService->getAffectedUsers($firstAppointment);
-			$affectedUsers = array_filter($affectedUsers, fn ($userId) => $userId !== $user->getUID());
 			$this->notificationService->sendBulkAppointmentNotifications(
 				count($createdIds),
 				$firstAppointment->getName(),
-				array_values($affectedUsers),
+				$this->appointmentService->recipientsWithout(
+					$this->appointmentService->getAffectedUsers($firstAppointment),
+					$user->getUID(),
+				),
 			);
 		}
 
@@ -526,7 +527,7 @@ class AppointmentController extends Controller {
 			return $appointment;
 		}
 
-		$updated = $this->appointmentService->uncancelAppointment($id);
+		$updated = $this->appointmentService->uncancelAppointment($id, $user->getUID());
 		return new DataResponse($updated);
 	}
 

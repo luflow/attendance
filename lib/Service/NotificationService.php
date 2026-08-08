@@ -109,17 +109,68 @@ class NotificationService {
 
 	/**
 	 * Send notifications about a new appointment to specified users
+	 *
+	 * @param list<string> $userIds Addressed attendees to notify
 	 */
 	public function sendNewAppointmentNotifications(Appointment $appointment, array $userIds): void {
+		$this->sendLifecycleWave($appointment, $userIds, 'appointment_created');
+	}
+
+	/**
+	 * Notify addressed attendees that an appointment has been cancelled (the
+	 * event will not take place). Mirrors sendNewAppointmentNotifications.
+	 *
+	 * @param Appointment $appointment The cancelled appointment
+	 * @param list<string> $userIds Addressed attendees to notify
+	 */
+	public function sendCancellationNotifications(Appointment $appointment, array $userIds): void {
+		$this->sendLifecycleWave($appointment, $userIds, 'appointment_cancelled');
+	}
+
+	/**
+	 * Notify addressed attendees that a cancelled appointment takes place after
+	 * all. The counterpart to sendCancellationNotifications — those people were
+	 * told it was off, so they need to hear that it is back on.
+	 *
+	 * @param Appointment $appointment The reactivated appointment
+	 * @param list<string> $userIds Addressed attendees to notify
+	 */
+	public function sendReactivationNotifications(Appointment $appointment, array $userIds): void {
+		$this->sendLifecycleWave($appointment, $userIds, 'appointment_reactivated');
+	}
+
+	/**
+	 * Notify addressed attendees that details of an appointment they already
+	 * know about have changed.
+	 *
+	 * @param Appointment $appointment The edited appointment, with the new values
+	 * @param list<string> $userIds Addressed attendees to notify
+	 * @param list<string> $changedFields Which of the notified fields moved, e.g. ['time', 'location']
+	 */
+	public function sendUpdateNotifications(Appointment $appointment, array $userIds, array $changedFields): void {
+		$this->sendLifecycleWave($appointment, $userIds, 'appointment_updated', ['changed' => $changedFields]);
+	}
+
+	/**
+	 * Shared body of the lifecycle waves: one notification per addressed
+	 * attendee, all carrying the appointment as their object so a client's
+	 * deep link and markAppointmentNotificationsProcessed() keep working.
+	 *
+	 * @param list<string> $userIds
+	 * @param array<string, mixed> $extraParameters Merged into the subject parameters
+	 */
+	private function sendLifecycleWave(
+		Appointment $appointment,
+		array $userIds,
+		string $subject,
+		array $extraParameters = [],
+	): void {
 		if (!$this->isNotificationsAppEnabled()) {
 			$this->logger->warning('Cannot send notifications - notifications app is not enabled');
 			return;
 		}
 
 		if (empty($userIds)) {
-			$this->logger->info('No users to notify about new appointment', [
-				'appointmentId' => $appointment->getId(),
-			]);
 			return;
 		}
 
@@ -127,6 +178,11 @@ class NotificationService {
 			'attendance.page.appointment',
 			['id' => $appointment->getId()]
 		);
+		$subjectParameters = array_merge([
+			'appointmentId' => $appointment->getId(),
+			'name' => $appointment->getName(),
+			'startDatetime' => $appointment->getStartDatetime(),
+		], $extraParameters);
 
 		$shouldFlush = $this->notificationManager->defer();
 
@@ -138,22 +194,14 @@ class NotificationService {
 					->setUser($userId)
 					->setDateTime(new \DateTime())
 					->setObject('appointment', (string)$appointment->getId())
-					->setSubject('appointment_created', [
-						'appointmentId' => $appointment->getId(),
-						'name' => $appointment->getName(),
-						'startDatetime' => $appointment->getStartDatetime(),
-					])
+					->setSubject($subject, $subjectParameters)
 					->setLink($appointmentUrl);
 
 				$this->notificationManager->notify($notification);
 				$sentCount++;
-
-				$this->logger->debug('Sent new appointment notification', [
-					'userId' => $userId,
-					'appointmentId' => $appointment->getId(),
-				]);
 			} catch (\Exception $e) {
-				$this->logger->error('Failed to send new appointment notification', [
+				$this->logger->error('Failed to send appointment notification', [
+					'subject' => $subject,
 					'userId' => $userId,
 					'appointmentId' => $appointment->getId(),
 					'error' => $e->getMessage(),
@@ -165,64 +213,12 @@ class NotificationService {
 			$this->notificationManager->flush();
 		}
 
-		$this->logger->info('Finished sending new appointment notifications', [
+		$this->logger->info('Finished sending appointment notifications', [
+			'subject' => $subject,
 			'appointmentId' => $appointment->getId(),
 			'totalUsers' => count($userIds),
 			'sentCount' => $sentCount,
 		]);
-	}
-
-	/**
-	 * Notify addressed attendees that an appointment has been cancelled (the
-	 * event will not take place). Mirrors sendNewAppointmentNotifications.
-	 *
-	 * @param Appointment $appointment The cancelled appointment
-	 * @param list<string> $userIds Addressed attendees to notify
-	 */
-	public function sendCancellationNotifications(Appointment $appointment, array $userIds): void {
-		if (!$this->isNotificationsAppEnabled()) {
-			$this->logger->warning('Cannot send notifications - notifications app is not enabled');
-			return;
-		}
-
-		if (empty($userIds)) {
-			return;
-		}
-
-		$appointmentUrl = $this->urlGenerator->linkToRouteAbsolute(
-			'attendance.page.appointment',
-			['id' => $appointment->getId()]
-		);
-
-		$shouldFlush = $this->notificationManager->defer();
-
-		foreach ($userIds as $userId) {
-			try {
-				$notification = $this->notificationManager->createNotification();
-				$notification->setApp('attendance')
-					->setUser($userId)
-					->setDateTime(new \DateTime())
-					->setObject('appointment', (string)$appointment->getId())
-					->setSubject('appointment_cancelled', [
-						'appointmentId' => $appointment->getId(),
-						'name' => $appointment->getName(),
-						'startDatetime' => $appointment->getStartDatetime(),
-					])
-					->setLink($appointmentUrl);
-
-				$this->notificationManager->notify($notification);
-			} catch (\Exception $e) {
-				$this->logger->error('Failed to send cancellation notification', [
-					'userId' => $userId,
-					'appointmentId' => $appointment->getId(),
-					'error' => $e->getMessage(),
-				]);
-			}
-		}
-
-		if ($shouldFlush) {
-			$this->notificationManager->flush();
-		}
 	}
 
 	/**
@@ -385,8 +381,43 @@ class NotificationService {
 
 	/**
 	 * Send a single notification about multiple new appointments
+	 *
+	 * @param list<string> $userIds Addressed attendees to notify
 	 */
 	public function sendBulkAppointmentNotifications(int $count, string $firstName, array $userIds): void {
+		$this->sendAggregateWave('appointments_bulk_created', [
+			'count' => $count,
+			'firstName' => $firstName,
+		], $userIds);
+	}
+
+	/**
+	 * Notify addressed attendees that appointments across a series moved. One
+	 * notification covers the whole series — see
+	 * AppointmentService::notifyAboutSeriesUpdate().
+	 *
+	 * @param int $count How many upcoming appointments in the series moved
+	 * @param string $name The series' shared appointment name
+	 * @param list<string> $changedFields Which of the notified fields moved
+	 * @param list<string> $userIds Addressed attendees to notify
+	 */
+	public function sendSeriesUpdateNotifications(int $count, string $name, array $changedFields, array $userIds): void {
+		$this->sendAggregateWave('appointments_series_updated', [
+			'count' => $count,
+			'name' => $name,
+			'changed' => $changedFields,
+		], $userIds);
+	}
+
+	/**
+	 * Shared body of the waves that speak about several appointments at once.
+	 * They carry no single appointment, so they link to the list and group
+	 * under their own object type rather than 'appointment'.
+	 *
+	 * @param array<string, mixed> $subjectParameters
+	 * @param list<string> $userIds
+	 */
+	private function sendAggregateWave(string $subject, array $subjectParameters, array $userIds): void {
 		if (!$this->isNotificationsAppEnabled()) {
 			$this->logger->warning('Cannot send notifications - notifications app is not enabled');
 			return;
@@ -408,16 +439,14 @@ class NotificationService {
 					->setUser($userId)
 					->setDateTime(new \DateTime())
 					->setObject('appointment_bulk', uniqid())
-					->setSubject('appointments_bulk_created', [
-						'count' => $count,
-						'firstName' => $firstName,
-					])
+					->setSubject($subject, $subjectParameters)
 					->setLink($appUrl);
 
 				$this->notificationManager->notify($notification);
 				$sentCount++;
 			} catch (\Exception $e) {
-				$this->logger->error('Failed to send bulk appointment notification', [
+				$this->logger->error('Failed to send aggregate appointment notification', [
+					'subject' => $subject,
 					'userId' => $userId,
 					'error' => $e->getMessage(),
 				]);
@@ -428,8 +457,8 @@ class NotificationService {
 			$this->notificationManager->flush();
 		}
 
-		$this->logger->info('Finished sending bulk appointment notifications', [
-			'count' => $count,
+		$this->logger->info('Finished sending aggregate appointment notifications', [
+			'subject' => $subject,
 			'totalUsers' => count($userIds),
 			'sentCount' => $sentCount,
 		]);

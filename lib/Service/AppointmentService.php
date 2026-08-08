@@ -24,6 +24,16 @@ use OCP\Share\IShare;
 class AppointmentService {
 	use DatetimeFormatTrait;
 
+	/**
+	 * Fields whose change alters where an attendee has to be. A renamed title
+	 * or a reworded description does not, and a moved response deadline is
+	 * what the reminder job chases anyway — editing those stays silent.
+	 *
+	 * Every field listed here needs its own sentence in Notifier::describeUpdate(),
+	 * otherwise its push degrades to the generic fallback wording.
+	 */
+	private const NOTIFIED_UPDATE_FIELDS = ['time', 'location'];
+
 	private AppointmentMapper $appointmentMapper;
 	private AttendanceResponseMapper $responseMapper;
 	private IGroupManager $groupManager;
@@ -159,9 +169,10 @@ class AppointmentService {
 		$this->orgCalendarSyncService->syncAppointment($appointment);
 
 		if ($sendNotification) {
-			$affectedUsers = $this->getAffectedUsers($appointment);
-			$affectedUsers = array_filter($affectedUsers, fn ($userId) => $userId !== $createdBy);
-			$this->notificationService->sendNewAppointmentNotifications($appointment, array_values($affectedUsers));
+			$this->notificationService->sendNewAppointmentNotifications(
+				$appointment,
+				$this->recipientsWithout($this->getAffectedUsers($appointment), $createdBy),
+			);
 		}
 
 		return $appointment;
@@ -225,14 +236,102 @@ class AppointmentService {
 
 		$updated = $this->appointmentMapper->update($appointment);
 
+		$this->notifyAboutUpdate($before, $updated, $this->commitAppointmentChange($before, $updated), $userId);
+
+		return $updated;
+	}
+
+	/**
+	 * Post-commit tail shared by the single-appointment and series edit paths:
+	 * record what moved and push it out to the organizer calendar. Notifying is
+	 * deliberately not part of it — a series aggregates into one wave instead of
+	 * one per appointment.
+	 *
+	 * @return list<string> The changed fields, as recorded for the audit trail
+	 */
+	private function commitAppointmentChange(Appointment $before, Appointment $updated): array {
 		$changedFields = $this->computeAppointmentChanges($before, $updated);
 		if ($changedFields !== []) {
-			$this->auditEventService->recordAppointmentUpdate($id, $changedFields);
+			$this->auditEventService->recordAppointmentUpdate($updated->getId(), $changedFields);
 		}
 
 		$this->orgCalendarSyncService->syncAppointment($updated);
 
-		return $updated;
+		return $changedFields;
+	}
+
+	/**
+	 * Announce an edit that happened outside updateAppointment(). The calendar
+	 * sync listener writes straight to the mapper when someone drags the linked
+	 * event in the Calendar app, and that edit is as real to an attendee as one
+	 * made in the app.
+	 *
+	 * @param string|null $actorId Excluded from the wave; null when the edit has
+	 *                             no identifiable author
+	 */
+	public function announceAppointmentUpdate(Appointment $before, Appointment $updated, ?string $actorId): void {
+		$this->notifyAboutUpdate($before, $updated, $this->computeAppointmentChanges($before, $updated), $actorId);
+	}
+
+	/**
+	 * Two waves after an edit: people who just gained access hear about the
+	 * appointment for the first time, everyone who already had it hears what
+	 * moved. Both stay quiet for an appointment that is already over or
+	 * cancelled — editing those is bookkeeping, not news.
+	 *
+	 * @param list<string> $changedFields As returned by computeAppointmentChanges()
+	 * @param string|null $actorId The editor, excluded from both waves
+	 */
+	private function notifyAboutUpdate(Appointment $before, Appointment $updated, array $changedFields, ?string $actorId): void {
+		if ($updated->isCancelled() || $updated->isPast()) {
+			return;
+		}
+
+		$notifiedChanges = array_values(array_intersect(self::NOTIFIED_UPDATE_FIELDS, $changedFields));
+		// The create-time opt-out governs who learns the appointment exists, so
+		// it governs this late arrival too.
+		$announceNewcomers = in_array('visibility', $changedFields, true) && $updated->getSendNotification();
+		// Deciding this before expanding the audience keeps a rename off the
+		// group/team expansion, which can hydrate every account on the instance.
+		if ($notifiedChanges === [] && !$announceNewcomers) {
+			return;
+		}
+
+		$addressed = $this->getAffectedUsers($updated);
+		$stillAddressed = $addressed;
+
+		if ($announceNewcomers) {
+			$previouslyAddressed = $this->getAffectedUsers($before);
+			$newcomers = $this->recipientsWithout(array_diff($addressed, $previouslyAddressed), $actorId);
+			if ($newcomers !== []) {
+				$this->notificationService->sendNewAppointmentNotifications($updated, $newcomers);
+			}
+			$stillAddressed = array_intersect($addressed, $previouslyAddressed);
+		}
+
+		if ($notifiedChanges === []) {
+			return;
+		}
+
+		$this->notificationService->sendUpdateNotifications(
+			$updated,
+			$this->recipientsWithout($stillAddressed, $actorId),
+			$notifiedChanges,
+		);
+	}
+
+	/**
+	 * Everyone in a notification audience except the person who caused it.
+	 * Public alongside getAffectedUsers(), which is what callers feed it.
+	 *
+	 * @param array<array-key, mixed> $userIds As returned by getAffectedUsers()
+	 * @return list<string>
+	 */
+	public function recipientsWithout(array $userIds, ?string $actorId): array {
+		return array_values(array_filter(
+			$userIds,
+			static fn ($userId): bool => is_string($userId) && $userId !== $actorId,
+		));
 	}
 
 	/**
@@ -422,11 +521,10 @@ class AppointmentService {
 		$this->orgCalendarSyncService->syncAppointment($updated);
 
 		// Notify addressed attendees that the appointment will not take place.
-		$affectedUsers = $this->getAffectedUsers($updated);
-		if ($actorId !== null) {
-			$affectedUsers = array_filter($affectedUsers, fn ($userId) => $userId !== $actorId);
-		}
-		$this->notificationService->sendCancellationNotifications($updated, array_values($affectedUsers));
+		$this->notificationService->sendCancellationNotifications(
+			$updated,
+			$this->recipientsWithout($this->getAffectedUsers($updated), $actorId),
+		);
 
 		return $updated;
 	}
@@ -434,10 +532,14 @@ class AppointmentService {
 	/**
 	 * Reactivate a previously cancelled appointment: clears cancelledAt. The
 	 * appointment returns to whatever state it had before (e.g. still closed if
-	 * it was closed). No notification is sent (mirrors reopen).
+	 * it was closed). Addressed attendees are notified, mirroring the cancel
+	 * wave — they were told it was off and need to hear it is back on.
 	 * Idempotent: returns the existing appointment unchanged if not cancelled.
+	 *
+	 * @param int $id The appointment ID
+	 * @param string|null $actorId The user reactivating, excluded from the notification wave
 	 */
-	public function uncancelAppointment(int $id): Appointment {
+	public function uncancelAppointment(int $id, ?string $actorId = null): Appointment {
 		$appointment = $this->appointmentMapper->find($id);
 		if (!$appointment->isCancelled()) {
 			return $appointment;
@@ -453,6 +555,11 @@ class AppointmentService {
 		);
 
 		$this->orgCalendarSyncService->syncAppointment($updated);
+
+		$this->notificationService->sendReactivationNotifications(
+			$updated,
+			$this->recipientsWithout($this->getAffectedUsers($updated), $actorId),
+		);
 
 		return $updated;
 	}
@@ -576,6 +683,8 @@ class AppointmentService {
 		}
 
 		$updated = [];
+		/** @var list<array{before: Appointment, after: Appointment, changed: list<string>}> $edits */
+		$edits = [];
 		foreach ($siblings as $sibling) {
 			$before = clone $sibling;
 
@@ -614,18 +723,83 @@ class AppointmentService {
 			}
 
 			$updatedSibling = $this->appointmentMapper->update($sibling);
-			$changedFields = $this->computeAppointmentChanges($before, $updatedSibling);
-			if ($changedFields !== []) {
-				$this->auditEventService->recordAppointmentUpdate(
-					$updatedSibling->getId(),
-					$changedFields,
-				);
-			}
-			$this->orgCalendarSyncService->syncAppointment($updatedSibling);
+			$edits[] = [
+				'before' => $before,
+				'after' => $updatedSibling,
+				'changed' => $this->commitAppointmentChange($before, $updatedSibling),
+			];
 			$updated[] = $updatedSibling;
 		}
 
+		$this->notifyAboutSeriesUpdate($edits, $userId);
+
 		return $updated;
+	}
+
+	/**
+	 * One wave for the whole series instead of one per appointment — moving a
+	 * weekly rehearsal by an hour would otherwise mean fifty pushes per person.
+	 * Appointments already over or cancelled do not count towards it.
+	 *
+	 * @param list<array{before: Appointment, after: Appointment, changed: list<string>}> $edits
+	 */
+	private function notifyAboutSeriesUpdate(array $edits, string $actorId): void {
+		$upcoming = array_values(array_filter(
+			$edits,
+			static fn (array $edit): bool => !$edit['after']->isCancelled() && !$edit['after']->isPast(),
+		));
+		if ($upcoming === []) {
+			return;
+		}
+
+		$notifiedChanges = [];
+		$movedCount = 0;
+		$visibilityMoved = false;
+		foreach ($upcoming as $edit) {
+			$changes = array_intersect(self::NOTIFIED_UPDATE_FIELDS, $edit['changed']);
+			if ($changes !== []) {
+				$movedCount++;
+				$notifiedChanges = array_unique(array_merge($notifiedChanges, $changes));
+			}
+			$visibilityMoved = $visibilityMoved || in_array('visibility', $edit['changed'], true);
+		}
+
+		$sample = $upcoming[0];
+		$announceNewcomers = $visibilityMoved && $sample['after']->getSendNotification();
+		if ($movedCount === 0 && !$announceNewcomers) {
+			return;
+		}
+
+		// A series edit writes the same visibility to every sibling, so one
+		// before/after pair describes the whole series' audience.
+		$addressed = $this->getAffectedUsers($sample['after']);
+		$stillAddressed = $addressed;
+
+		if ($announceNewcomers) {
+			$previouslyAddressed = $this->getAffectedUsers($sample['before']);
+			$newcomers = $this->recipientsWithout(array_diff($addressed, $previouslyAddressed), $actorId);
+			if ($newcomers !== []) {
+				// Newcomers gain the whole series at once, which is the shape the
+				// bulk-create wave already speaks.
+				$this->notificationService->sendBulkAppointmentNotifications(
+					count($upcoming),
+					$sample['after']->getName(),
+					$newcomers,
+				);
+			}
+			$stillAddressed = array_intersect($addressed, $previouslyAddressed);
+		}
+
+		if ($movedCount === 0) {
+			return;
+		}
+
+		$this->notificationService->sendSeriesUpdateNotifications(
+			$movedCount,
+			$sample['after']->getName(),
+			array_values($notifiedChanges),
+			$this->recipientsWithout($stillAddressed, $actorId),
+		);
 	}
 
 	/**

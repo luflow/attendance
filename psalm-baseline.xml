@@ -1270,9 +1270,6 @@
       <code><![CDATA[$userIds]]></code>
       <code><![CDATA[$userIds]]></code>
     </MixedArgument>
-    <MixedArgumentTypeCoercion>
-      <code><![CDATA[array_values($affectedUsers)]]></code>
-    </MixedArgumentTypeCoercion>
     <MixedArrayAccess>
       <code><![CDATA[$item['label']]]></code>
       <code><![CDATA[$item['shareWith']]]></code>
@@ -1925,19 +1922,10 @@
     <ClassMustBeFinal>
       <code><![CDATA[NotificationService]]></code>
     </ClassMustBeFinal>
-    <MixedArgument>
-      <code><![CDATA[$userId]]></code>
-      <code><![CDATA[$userId]]></code>
-    </MixedArgument>
-    <MixedAssignment>
-      <code><![CDATA[$userId]]></code>
-      <code><![CDATA[$userId]]></code>
-    </MixedAssignment>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
       <code><![CDATA[countPushDevices]]></code>
       <code><![CDATA[hasPushDevice]]></code>
-      <code><![CDATA[sendBulkAppointmentNotifications]]></code>
       <code><![CDATA[sendReminderToUser]]></code>
       <code><![CDATA[sendReminderToUsers]]></code>
     </PossiblyUnusedMethod>
