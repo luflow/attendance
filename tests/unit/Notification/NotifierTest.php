@@ -176,7 +176,26 @@ class NotifierTest extends TestCase {
 		$this->notifier->prepare($notification, 'de');
 	}
 
-	public function testUpdateNotificationFallsBackToTheSingleChangedAspect(): void {
+	public function testUpdateNotificationNamesTheSingleChangedAspect(): void {
+		$notification = $this->mockAppointmentNotification('appointment_updated', [
+			'appointmentId' => 42,
+			'name' => 'Rehearsal',
+			'startDatetime' => '2030-08-01 18:00:00',
+			'changed' => ['location'],
+		]);
+		$notification->expects($this->once())
+			->method('setParsedMessage')
+			->with('The location has changed.')
+			->willReturnSelf();
+
+		$this->notifier->prepare($notification, 'de');
+	}
+
+	/**
+	 * Notifications queued before a change to the notified field set still have
+	 * to render into something.
+	 */
+	public function testUpdateNotificationFallsBackForUnknownChanges(): void {
 		$notification = $this->mockAppointmentNotification('appointment_updated', [
 			'appointmentId' => 42,
 			'name' => 'Rehearsal',
@@ -185,7 +204,7 @@ class NotifierTest extends TestCase {
 		]);
 		$notification->expects($this->once())
 			->method('setParsedMessage')
-			->with('The response deadline has changed.')
+			->with('Please check the appointment.')
 			->willReturnSelf();
 
 		$this->notifier->prepare($notification, 'de');

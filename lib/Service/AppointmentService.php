@@ -25,11 +25,11 @@ class AppointmentService {
 	use DatetimeFormatTrait;
 
 	/**
-	 * Fields whose change alters what an attendee has to do or where they have
-	 * to be. A renamed title or a reworded description does not, so editing
-	 * those stays silent.
+	 * Fields whose change alters where an attendee has to be. A renamed title
+	 * or a reworded description does not, and a moved response deadline is
+	 * what the reminder job chases anyway — editing those stays silent.
 	 */
-	private const NOTIFIED_UPDATE_FIELDS = ['time', 'location', 'deadline'];
+	private const NOTIFIED_UPDATE_FIELDS = ['time', 'location'];
 
 	private AppointmentMapper $appointmentMapper;
 	private AttendanceResponseMapper $responseMapper;

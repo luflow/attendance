@@ -16,6 +16,7 @@ use OCA\Attendance\Service\AttachmentService;
 use OCA\Attendance\Service\AuditEventService;
 use OCA\Attendance\Service\BookingService;
 use OCA\Attendance\Service\ConfigService;
+use OCA\Attendance\Service\DeadlineUpdate;
 use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\NotificationService;
 use OCA\Attendance\Service\OrgCalendarSyncService;
@@ -675,6 +676,18 @@ class AppointmentServiceTest extends TestCase {
 		$this->service->updateAppointment(
 			3, 'Rehearsal reloaded', 'Bring your scores', '2030-01-01T10:00:00Z', '2030-01-01T11:00:00Z',
 			'admin', ['alice'],
+		);
+	}
+
+	public function testUpdateStaysSilentAboutAMovedResponseDeadline(): void {
+		$appointment = $this->setUpUpdateNotificationCase(['alice']);
+		$appointment->setResponseDeadline('2029-12-01 10:00:00');
+
+		$this->notificationService->expects($this->never())->method('sendUpdateNotifications');
+
+		$this->service->updateAppointment(
+			3, 'Rehearsal', '', '2030-01-01T10:00:00Z', '2030-01-01T11:00:00Z',
+			'admin', ['alice'], [], [], DeadlineUpdate::clear(),
 		);
 	}
 

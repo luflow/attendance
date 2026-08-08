@@ -343,9 +343,6 @@ class Notifier implements INotifier {
 		if ($locationChanged) {
 			return $l->t('The location has changed.');
 		}
-		if (in_array('deadline', $changedFields, true)) {
-			return $l->t('The response deadline has changed.');
-		}
 		return $l->t('Please check the appointment.');
 	}
 
