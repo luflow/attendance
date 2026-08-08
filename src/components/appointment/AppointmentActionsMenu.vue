@@ -254,7 +254,8 @@ async function remindAll(target) {
 			generateUrl(`/apps/attendance/api/appointments/${props.appointment.id}/remind`),
 			{ target },
 		)
-		showSuccess(t('attendance', '{count} reminders sent', { count: response.data.sent || 0 }))
+		const sent = response.data.sent || 0
+		showSuccess(n('attendance', '{count} reminder sent', '{count} reminders sent', sent, { count: sent }))
 	} catch (error) {
 		console.error('Failed to send reminders:', error)
 		showError(t('attendance', 'Failed to send reminders'))

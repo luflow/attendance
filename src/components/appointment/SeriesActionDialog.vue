@@ -5,9 +5,11 @@
 		@closing="$emit('cancel')">
 		<p>
 			{{
-				t(
+				n(
 					"attendance",
+					"This appointment is part of a series of {count} appointment. How would you like to apply this change?",
 					"This appointment is part of a series of {count} appointments. How would you like to apply this change?",
+					seriesCount,
 					{ count: seriesCount },
 				)
 			}}

@@ -7,9 +7,11 @@ passes.** CI (`.github/workflows/tests.yml`) runs the same set, so green here
 means green there — minus the e2e suite, which needs Docker and is opt-in via
 `./scripts/check.sh --e2e`.
 
-It covers eslint, stylelint, php-cs-fixer, psalm, PHPUnit, the vite build, and
-a check that the generated OpenAPI specs still match the controllers. Every
-gate runs even when an earlier one fails, so one invocation gives you the whole
+It covers eslint, stylelint, php-cs-fixer, psalm, PHPUnit, the vite build, the
+two l10n checks (`check-german-l10n.py` for the hand-maintained German files,
+`check-source-strings.py` for the English strings in `t()` / `n()` calls), and a
+check that the generated OpenAPI specs still match the controllers. Every gate
+runs even when an earlier one fails, so one invocation gives you the whole
 picture. It needs `npm ci` and `composer install` to have run first.
 
 Rules that keep the repo clean over time:
@@ -36,7 +38,7 @@ Rules that keep the repo clean over time:
 
 ### Vue.js Frontend
 - Use Vue 3 Composition API (`<script setup>`)
-- **Translations are handled via Transifex** - do NOT manually add translation files or .po files when building new features
+- **Translations are handled via Transifex** - do NOT manually add translation files or .po files when building new features (German is the exception, see below)
 - **Always use English keys** for `t()` calls in Vue components, never German strings
 - Use and Import mainly Nextcloud components from `@nextcloud/vue`
 - Styling with CSS in `<style scoped>`
@@ -46,6 +48,26 @@ Rules that keep the repo clean over time:
 
 ### Translation Guidelines (Nextcloud Standards)
 Translations are managed via **Transifex** and synced automatically. When adding new features, just use `t()` and `n()` with English strings - do NOT create or modify translation files manually.
+
+#### German is hand-maintained, not synced
+
+`de` and `de_DE` are the exception: they are **owned by this repo** and never
+come back from Transifex. Nightly syncs kept overwriting reviewed German with
+worse wording and broke placeholders, so `.tx/config` maps both to a local
+directory starting with a dot, which translationtool's `findLanguages()` skips.
+All other languages sync as before.
+
+- Edit `l10n/de.json`, `de.js`, `de_DE.json` and `de_DE.js` **directly** — the
+  `l10n-autotranslate` skill fills new strings.
+- Keep all four in step: `.js` and `.json` must hold the same entries, and both
+  locales the same keys.
+- `de` is informal (**du**), `de_DE` is formal (**Sie**). Never mix the two
+  inside one string.
+- `scripts/check-german-l10n.py` (part of `./scripts/check.sh`) enforces this
+  plus placeholders, German quotes „…“, stray whitespace and duplicate keys.
+- If a `fix(l10n): Update translations from Transifex` commit ever touches
+  `l10n/de*` again, the config lever stopped working — revert those four files
+  and fix `.tx/config` rather than accepting the churn.
 
 Follow these Nextcloud translation guidelines (see https://docs.nextcloud.com/server/latest/developer_manual/basics/translations.html):
 
@@ -87,6 +109,8 @@ Follow these Nextcloud translation guidelines (see https://docs.nextcloud.com/se
 - **Keep confirmation language simple** - avoid words like "really" or "all"
 - Correct: `Do you want to set {count} users to {action}?`
 - Wrong: `Do you really want to set all {count} users to {action}?`
+- This is about the wording only — the count still needs `n()` with both forms,
+  as under "Plural Forms" above.
 
 ### PHP Backend
 - Use PHP 8.0+ syntax

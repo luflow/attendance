@@ -24,7 +24,7 @@
 						@click="expanded[group.key] = !expanded[group.key]">
 						{{ expanded[group.key]
 							? t('attendance', 'Show less')
-							: t('attendance', '+{count} more', { count: group.names.length - previewLimit }) }}
+							: moreLabel(group) }}
 					</NcButton>
 				</p>
 			</div>
@@ -73,6 +73,11 @@ const expanded = ref({})
 
 function visibleNames(group) {
 	return expanded.value[group.key] ? group.names : group.names.slice(0, props.previewLimit)
+}
+
+function moreLabel(group) {
+	const hidden = group.names.length - props.previewLimit
+	return n('attendance', '+{count} more', '+{count} more', hidden, { count: hidden })
 }
 </script>
 
