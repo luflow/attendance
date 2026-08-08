@@ -11,6 +11,7 @@ const state = reactive({
 		canSeeComments: false,
 		canSelfCheckin: false,
 		canRespondForOthers: false,
+		canSeeStatistics: false,
 	},
 	capabilities: {
 		calendarAvailable: false,
@@ -26,6 +27,7 @@ const state = reactive({
 		organizers: false,
 		locationsAvailable: false,
 		categoriesAvailable: false,
+		statisticsAvailable: false,
 	},
 	config: {
 		displayOrder: 'name_first',

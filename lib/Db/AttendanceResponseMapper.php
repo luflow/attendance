@@ -6,6 +6,7 @@ namespace OCA\Attendance\Db;
 
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\QBMapper;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
 /**
@@ -67,6 +68,29 @@ class AttendanceResponseMapper extends QBMapper {
 				$qb->expr()->eq('appointment_id', $qb->createNamedParameter($appointmentId))
 			)
 			->orderBy('responded_at', 'DESC');
+
+		return $this->findEntities($qb);
+	}
+
+	/**
+	 * All responses for a set of appointments, in one query — the statistics
+	 * would otherwise run one query per appointment.
+	 *
+	 * @param list<int> $appointmentIds
+	 * @return list<AttendanceResponse>
+	 */
+	public function findByAppointmentIds(array $appointmentIds): array {
+		if ($appointmentIds === []) {
+			return [];
+		}
+
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->in('appointment_id', $qb->createNamedParameter($appointmentIds, IQueryBuilder::PARAM_INT_ARRAY))
+			);
 
 		return $this->findEntities($qb);
 	}

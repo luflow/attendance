@@ -376,6 +376,14 @@
       <code><![CDATA[SelfCheckinController]]></code>
     </UnusedClass>
   </file>
+  <file src="lib/Controller/StatisticsController.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[StatisticsController]]></code>
+    </ClassMustBeFinal>
+    <UnusedClass>
+      <code><![CDATA[StatisticsController]]></code>
+    </UnusedClass>
+  </file>
   <file src="lib/Controller/Traits/RequiresAuthTrait.php">
     <RiskyTruthyFalsyComparison>
       <code><![CDATA[!$userId]]></code>
@@ -1179,6 +1187,21 @@
       <code><![CDATA[Version000020Date20260804140000]]></code>
     </UnusedClass>
   </file>
+  <file src="lib/Migration/Version000021Date20260808120000.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[Version000021Date20260808120000]]></code>
+    </ClassMustBeFinal>
+    <DeprecatedMethod>
+      <code><![CDATA[setAppValue]]></code>
+    </DeprecatedMethod>
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {]]></code>
+      <code><![CDATA[public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {]]></code>
+    </MissingOverrideAttribute>
+    <UnusedClass>
+      <code><![CDATA[Version000021Date20260808120000]]></code>
+    </UnusedClass>
+  </file>
   <file src="lib/Notification/Notifier.php">
     <ClassMustBeFinal>
       <code><![CDATA[Notifier]]></code>
@@ -1792,6 +1815,7 @@
       <code><![CDATA[$configService]]></code>
       <code><![CDATA[$groupManager]]></code>
       <code><![CDATA[$l10n]]></code>
+      <code><![CDATA[$odsWriter]]></code>
       <code><![CDATA[$responseMapper]]></code>
       <code><![CDATA[$rootFolder]]></code>
       <code><![CDATA[$userManager]]></code>
@@ -1929,6 +1953,11 @@
       <code><![CDATA[sendReminderToUser]]></code>
       <code><![CDATA[sendReminderToUsers]]></code>
     </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Service/OdsWriter.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[OdsWriter]]></code>
+    </ClassMustBeFinal>
   </file>
   <file src="lib/Service/OrgCalendarSyncService.php">
     <ClassMustBeFinal>
@@ -2266,6 +2295,31 @@
       <code><![CDATA[__construct]]></code>
       <code><![CDATA[getOverview]]></code>
       <code><![CDATA[selfCheckin]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Service/StatisticsExportService.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[StatisticsExportService]]></code>
+    </ClassMustBeFinal>
+    <MissingDependency>
+      <code><![CDATA[$this->rootFolder]]></code>
+      <code><![CDATA[private]]></code>
+    </MissingDependency>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Service/StatisticsRangeException.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[StatisticsRangeException]]></code>
+    </ClassMustBeFinal>
+  </file>
+  <file src="lib/Service/StatisticsService.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[StatisticsService]]></code>
+    </ClassMustBeFinal>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
     </PossiblyUnusedMethod>
   </file>
   <file src="lib/Service/VisibilityService.php">

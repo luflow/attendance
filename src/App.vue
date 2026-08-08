@@ -150,6 +150,16 @@
 
 			<template #footer>
 				<NcAppNavigationItem
+					v-if="capabilities.statisticsAvailable"
+					:name="t('attendance', 'Statistics')"
+					:active="currentView === 'statistics'"
+					data-test="nav-statistics"
+					@click.prevent="setView('statistics')">
+					<template #icon>
+						<ChartLineIcon :size="20" />
+					</template>
+				</NcAppNavigationItem>
+				<NcAppNavigationItem
 					v-if="permissions.canManageAppointments"
 					:name="t('attendance', 'Export')"
 					data-test="button-export"
@@ -209,6 +219,9 @@
 				@navigateToUnanswered="setView('unanswered')"
 				@scrollTargetConsumed="appointmentDetailScrollTarget = null" />
 
+			<!-- Statistics View -->
+			<StatisticsOverview v-else-if="currentView === 'statistics'" />
+
 			<!-- All Appointments View -->
 			<AllAppointments
 				v-else-if="
@@ -238,6 +251,10 @@
 			<!-- Loading state while routing is determined -->
 			<LoadingState v-else :text="t('attendance', 'Loading …')" />
 		</NcAppContent>
+
+		<!-- NcAppSidebar has to sit next to NcAppContent to lay out correctly,
+		     so views teleport theirs in here. -->
+		<div id="attendance-sidebar-slot" />
 
 		<!-- iCal Feed Modal -->
 		<IcalFeedModal
@@ -275,6 +292,7 @@ import BellAlertIcon from 'vue-material-design-icons/BellAlert.vue'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import CalendarClockIcon from 'vue-material-design-icons/CalendarClock.vue'
 import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
+import ChartLineIcon from 'vue-material-design-icons/ChartLine.vue'
 import CheckCircle from 'vue-material-design-icons/CheckCircle.vue'
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
@@ -292,6 +310,7 @@ import AllAppointments from './views/AllAppointments.vue'
 import AppointmentDetail from './views/AppointmentDetail.vue'
 import AppointmentForm from './views/AppointmentForm.vue'
 import CheckinView from './views/Checkin.vue'
+import StatisticsOverview from './views/StatisticsOverview.vue'
 import { usePermissions } from './composables/usePermissions.js'
 import { formatDateTime } from './utils/datetime.js'
 
@@ -635,7 +654,7 @@ const allAppointments = computed(() => {
 // out of sync — it was missing "all", so opening an appointment from the All
 // view produced /apps/attendance/all/appointment/42, which works via pushState
 // but 404s the moment anyone reloads or shares the link.
-const VIEW_SEGMENT = /\/(all|past|unanswered|appointment\/\d+|checkin\/\d+|create|edit\/\d+|copy\/\d+)?$/
+const VIEW_SEGMENT = /\/(all|past|unanswered|statistics|appointment\/\d+|checkin\/\d+|create|edit\/\d+|copy\/\d+)?$/
 
 /**
  * The app's root URL, with any current view segment stripped off.
@@ -663,6 +682,8 @@ function setView(view) {
 		newUrl = baseUrl + '/unanswered'
 	} else if (view === 'all') {
 		newUrl = baseUrl + '/all'
+	} else if (view === 'statistics') {
+		newUrl = baseUrl + '/statistics'
 	} else if (view === 'current') {
 		newUrl = baseUrl
 	}
@@ -784,6 +805,7 @@ function checkRouting() {
 	const isPastRoute = path.endsWith('/past')
 	const isUnansweredRoute = path.endsWith('/unanswered')
 	const isAllRoute = path.endsWith('/all')
+	const isStatisticsRoute = path.endsWith('/statistics')
 
 	// Reset all state
 	checkinAppointmentId.value = null
@@ -810,6 +832,8 @@ function checkRouting() {
 		currentView.value = 'unanswered'
 	} else if (isAllRoute) {
 		currentView.value = 'all'
+	} else if (isStatisticsRoute) {
+		currentView.value = 'statistics'
 	} else {
 		// Default landing: managers drop into "All appointments" (their natural
 		// overview), everyone else into "Upcoming". Landing in "Unanswered"

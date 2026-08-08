@@ -213,7 +213,8 @@
                     "respondOnBehalf",
                     "responseCounts",
                     "locationsAvailable",
-                    "categoriesAvailable"
+                    "categoriesAvailable",
+                    "statisticsAvailable"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -271,6 +272,9 @@
                         "type": "boolean"
                     },
                     "categoriesAvailable": {
+                        "type": "boolean"
+                    },
+                    "statisticsAvailable": {
                         "type": "boolean"
                     }
                 }

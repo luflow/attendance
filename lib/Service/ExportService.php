@@ -20,6 +20,7 @@ class ExportService {
 	private IUserManager $userManager;
 	private IGroupManager $groupManager;
 	private ConfigService $configService;
+	private OdsWriter $odsWriter;
 	private IL10N $l10n;
 
 	public function __construct(
@@ -29,6 +30,7 @@ class ExportService {
 		IUserManager $userManager,
 		IGroupManager $groupManager,
 		ConfigService $configService,
+		OdsWriter $odsWriter,
 		IL10N $l10n,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
@@ -37,6 +39,7 @@ class ExportService {
 		$this->userManager = $userManager;
 		$this->groupManager = $groupManager;
 		$this->configService = $configService;
+		$this->odsWriter = $odsWriter;
 		$this->l10n = $l10n;
 	}
 
@@ -115,7 +118,7 @@ class ExportService {
 			return strcmp($a['displayName'], $b['displayName']);
 		});
 
-		$odsContent = $this->generateOdsContent($appointments, $users, $appointmentResponses, $includeComments);
+		$odsContent = $this->odsWriter->write($this->getTableXml($appointments, $users, $appointmentResponses, $includeComments));
 
 		// Create the Attendance folder
 		try {
@@ -167,156 +170,10 @@ class ExportService {
 	}
 
 	/**
-	 * Generate ODS file content
-	 *
-	 * @param array $appointments Array of Appointment entities
-	 * @param array $users Array of user data
-	 * @param array $appointmentResponses Map of appointment ID to user responses
-	 * @param bool $includeComments Whether to include comment columns
-	 * @return string Binary ODS content
+	 * Render the export sheet. The document around it comes from OdsWriter.
 	 */
-	private function generateOdsContent(array $appointments, array $users, array $appointmentResponses, bool $includeComments = false): string {
-		// Check if ZipArchive extension is available
-		if (!class_exists('\ZipArchive')) {
-			throw new \Exception('ZipArchive extension is not available. Please install php-zip extension.');
-		}
-
-		// Create temporary file for the ODS
-		$tempFile = tempnam(sys_get_temp_dir(), 'ods_');
-		if ($tempFile === false) {
-			throw new \Exception('Failed to create temporary file');
-		}
-
-		$zip = new \ZipArchive();
-		$result = $zip->open($tempFile, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
-		if ($result !== true) {
-			throw new \Exception('Failed to create ODS file. ZipArchive error code: ' . (int)$result);
-		}
-
-		// Add mimetype (must be first and uncompressed)
-		$zip->addFromString('mimetype', 'application/vnd.oasis.opendocument.spreadsheet');
-		$zip->setCompressionName('mimetype', \ZipArchive::CM_STORE);
-
-		$zip->addFromString('META-INF/manifest.xml', $this->getManifestXml());
-
-		// Add content.xml with the table
-		$zip->addFromString('content.xml', $this->getContentXml($appointments, $users, $appointmentResponses, $includeComments));
-
-		$zip->addFromString('styles.xml', $this->getStylesXml());
-
-		$zip->addFromString('meta.xml', $this->getMetaXml());
-
-		$zip->close();
-
-		// Read the file content
-		$content = file_get_contents($tempFile);
-		if ($content === false) {
-			throw new \Exception('Failed to read generated ODS file');
-		}
-
-		unlink($tempFile);
-
-		return $content;
-	}
-
-	/**
-	 * Get manifest.xml content
-	 */
-	private function getManifestXml(): string {
-		return '<?xml version="1.0" encoding="UTF-8"?>
-<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0" manifest:version="1.2">
-	<manifest:file-entry manifest:full-path="/" manifest:version="1.2" manifest:media-type="application/vnd.oasis.opendocument.spreadsheet"/>
-	<manifest:file-entry manifest:full-path="content.xml" manifest:media-type="text/xml"/>
-	<manifest:file-entry manifest:full-path="styles.xml" manifest:media-type="text/xml"/>
-	<manifest:file-entry manifest:full-path="meta.xml" manifest:media-type="text/xml"/>
-</manifest:manifest>';
-	}
-
-	/**
-	 * Get meta.xml content
-	 */
-	private function getMetaXml(): string {
-		$date = date('Y-m-d\TH:i:s');
-		return '<?xml version="1.0" encoding="UTF-8"?>
-<office:document-meta xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" 
-	xmlns:meta="urn:oasis:names:tc:opendocument:xmlns:meta:1.0" 
-	xmlns:dc="http://purl.org/dc/elements/1.1/" 
-	office:version="1.2">
-	<office:meta>
-		<meta:generator>Nextcloud Attendance App</meta:generator>
-		<dc:title>Attendance Export</dc:title>
-		<dc:date>' . $date . '</dc:date>
-	</office:meta>
-</office:document-meta>';
-	}
-
-	/**
-	 * Get styles.xml content
-	 */
-	private function getStylesXml(): string {
-		return '<?xml version="1.0" encoding="UTF-8"?>
-<office:document-styles xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" 
-	xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" 
-	xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" 
-	xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"
-	xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0"
-	office:version="1.2">
-	<office:font-face-decls>
-		<style:font-face style:name="Liberation Sans" svg:font-family="&apos;Liberation Sans&apos;" style:font-family-generic="swiss" style:font-pitch="variable"/>
-	</office:font-face-decls>
-	<office:styles>
-		<style:default-style style:family="table-cell">
-			<style:text-properties style:font-name="Liberation Sans" fo:font-size="11pt"/>
-		</style:default-style>
-	</office:styles>
-</office:document-styles>';
-	}
-
-	/**
-	 * Get content.xml with the table
-	 */
-	private function getContentXml(array $appointments, array $users, array $appointmentResponses, bool $includeComments = false): string {
-		$xml = '<?xml version="1.0" encoding="UTF-8"?>
-<office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" 
-	xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" 
-	xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" 
-	xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" 
-	xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" 
-	xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"
-	office:version="1.2">
-	<office:font-face-decls>
-		<style:font-face style:name="Liberation Sans" svg:font-family="&apos;Liberation Sans&apos;" style:font-family-generic="swiss" style:font-pitch="variable"/>
-	</office:font-face-decls>
-	<office:automatic-styles>
-		<style:style style:name="co1" style:family="table-column">
-			<style:table-column-properties style:column-width="3cm"/>
-		</style:style>
-		<style:style style:name="co2" style:family="table-column">
-			<style:table-column-properties style:column-width="1.7cm"/>
-		</style:style>
-		<style:style style:name="ce1" style:family="table-cell">
-			<style:table-cell-properties fo:border="0.05pt solid #000000"/>
-			<style:text-properties style:font-name="Liberation Sans" fo:font-size="11pt"/>
-		</style:style>
-		<style:style style:name="ce2" style:family="table-cell">
-			<style:table-cell-properties fo:border="0.05pt solid #000000" fo:background-color="#e0e0e0"/>
-			<style:text-properties style:font-name="Liberation Sans" fo:font-size="11pt" fo:font-weight="bold"/>
-		</style:style>
-		<style:style style:name="ce-yes" style:family="table-cell">
-			<style:table-cell-properties fo:border="0.05pt solid #000000" fo:background-color="#c6efce"/>
-			<style:text-properties style:font-name="Liberation Sans" fo:font-size="11pt"/>
-		</style:style>
-		<style:style style:name="ce-no" style:family="table-cell">
-			<style:table-cell-properties fo:border="0.05pt solid #000000" fo:background-color="#ffc7ce"/>
-			<style:text-properties style:font-name="Liberation Sans" fo:font-size="11pt"/>
-		</style:style>
-		<style:style style:name="ce-maybe" style:family="table-cell">
-			<style:table-cell-properties fo:border="0.05pt solid #000000" fo:background-color="#ffeb9c"/>
-			<style:text-properties style:font-name="Liberation Sans" fo:font-size="11pt"/>
-		</style:style>
-	</office:automatic-styles>
-	<office:body>
-		<office:spreadsheet>
+	private function getTableXml(array $appointments, array $users, array $appointmentResponses, bool $includeComments = false): string {
+		$xml = '
 			<table:table table:name="Attendance" table:print="false">';
 
 		// Calculate number of columns: 2 for Name+Group + (2 or 3 * number of appointments)
@@ -466,10 +323,7 @@ class ExportService {
 		}
 
 		$xml .= '
-			</table:table>
-		</office:spreadsheet>
-	</office:body>
-</office:document-content>';
+			</table:table>';
 
 		return $xml;
 	}

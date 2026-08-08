@@ -33,6 +33,12 @@ export const PERMISSION_ROWS = {
 		title: t('attendance', 'May see comments'),
 		hint: t('attendance', 'See comments in the response overview.'),
 	},
+	see_statistics: {
+		title: t('attendance', 'May see everyone\'s statistics'),
+		hint: t('attendance', 'See the evaluation of responses and attendance across all appointments, per person.'),
+		implication: t('attendance', 'Without this, users still see their own numbers and the group averages.'),
+		warningWhenAll: t('attendance', 'Every user can see how often each person responded and attended.'),
+	},
 	respond_for_others: {
 		// TRANSLATORS: Permission title. "set" means recording or changing an existing answer on someone's behalf — nothing new is created.
 		title: t('attendance', 'May set responses for other users'),

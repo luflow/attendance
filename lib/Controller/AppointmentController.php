@@ -903,6 +903,7 @@ class AppointmentController extends Controller {
 			'canSeeComments' => $this->permissionService->canSeeComments($user->getUID()),
 			'canSelfCheckin' => $this->permissionService->canSelfCheckin($user->getUID()),
 			'canRespondForOthers' => $this->permissionService->canRespondForOthers($user->getUID()),
+			'canSeeStatistics' => $this->permissionService->canSeeStatistics($user->getUID()),
 		]);
 	}
 
@@ -968,6 +969,10 @@ class AppointmentController extends Controller {
 			// categoryId on appointments). Mobile clients hide the category
 			// picker/badge/filter when this is false.
 			'categoriesAvailable' => true,
+			// Server supports the cross-appointment evaluation (GET
+			// /statistics, see_statistics permission). Clients hide the
+			// statistics entry point when this is false.
+			'statisticsAvailable' => true,
 		]);
 	}
 

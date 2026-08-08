@@ -38,6 +38,7 @@ class PermissionService {
 	public const PERMISSION_SELF_CHECKIN = 'self_checkin';
 	public const PERMISSION_CREATE_APPOINTMENTS = 'create_appointments';
 	public const PERMISSION_RESPOND_FOR_OTHERS = 'respond_for_others';
+	public const PERMISSION_SEE_STATISTICS = 'see_statistics';
 
 	public const MODE_ALL = 'all';
 	public const MODE_GROUPS = 'groups';
@@ -54,6 +55,7 @@ class PermissionService {
 		self::PERMISSION_SELF_CHECKIN,
 		self::PERMISSION_CREATE_APPOINTMENTS,
 		self::PERMISSION_RESPOND_FOR_OTHERS,
+		self::PERMISSION_SEE_STATISTICS,
 	];
 
 	private const GUEST_BLOCKED_PERMISSIONS = [
@@ -61,6 +63,7 @@ class PermissionService {
 		self::PERMISSION_CHECKIN,
 		self::PERMISSION_CREATE_APPOINTMENTS,
 		self::PERMISSION_RESPOND_FOR_OTHERS,
+		self::PERMISSION_SEE_STATISTICS,
 	];
 
 	/**
@@ -73,6 +76,7 @@ class PermissionService {
 	private const DEFAULT_NOBODY = [
 		self::PERMISSION_CREATE_APPOINTMENTS,
 		self::PERMISSION_RESPOND_FOR_OTHERS,
+		self::PERMISSION_SEE_STATISTICS,
 	];
 
 	public function __construct(
@@ -386,6 +390,15 @@ class PermissionService {
 	 */
 	public function canRespondForOthers(string $userId): bool {
 		return $this->hasPermission($userId, self::PERMISSION_RESPOND_FOR_OTHERS);
+	}
+
+	/**
+	 * Check if user can see the cross-appointment statistics of everyone else.
+	 * Without it a user still sees their own row and the group averages — the
+	 * permission gates other people's numbers, not the page.
+	 */
+	public function canSeeStatistics(string $userId): bool {
+		return $this->hasPermission($userId, self::PERMISSION_SEE_STATISTICS);
 	}
 
 	/**
