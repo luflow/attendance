@@ -188,9 +188,7 @@
 
 		<!-- Appointments List -->
 		<div class="appointments-list">
-			<div v-if="loading" class="loading">
-				{{ t('attendance', 'Loading\u00A0…') }}
-			</div>
+			<LoadingState v-if="loading" :text="t('attendance', 'Loading\u00A0…')" />
 			<NcEmptyContent v-else-if="visibleAppointments.length === 0 && !showUnanswered"
 				:name="emptyState.name"
 				:description="emptyState.description"
@@ -276,6 +274,7 @@ import RocketLaunchIcon from 'vue-material-design-icons/RocketLaunch.vue'
 import TagIcon from 'vue-material-design-icons/TagOutline.vue'
 import AppointmentListCard from '../components/appointment/AppointmentListCard.vue'
 import DeleteAppointmentDialog from '../components/appointment/DeleteAppointmentDialog.vue'
+import LoadingState from '../components/common/LoadingState.vue'
 import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
 import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
 import { useCategories } from '../composables/useCategories.js'
@@ -841,12 +840,6 @@ onMounted(async () => {
 .appointments-list {
 	max-width: 800px;
 	margin: 0 auto;
-
-	.loading {
-		text-align: center;
-		padding: 40px;
-		color: var(--color-text-lighter);
-	}
 }
 
 .unanswered-banner-container {

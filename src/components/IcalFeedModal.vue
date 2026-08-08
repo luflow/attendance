@@ -7,9 +7,7 @@
 				{{ t('attendance', 'Subscribe to your appointments in external calendar apps like Google Calendar, Apple Calendar, or Thunderbird.') }}
 			</p>
 
-			<div v-if="loading" class="loading-container">
-				<NcLoadingIcon :size="32" />
-			</div>
+			<LoadingState v-if="loading" />
 
 			<template v-else>
 				<div class="feed-url-section">
@@ -90,12 +88,13 @@
 </template>
 
 <script setup>
-import { NcButton, NcDialog, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
+import { NcButton, NcDialog, NcNoteCard } from '@nextcloud/vue'
 import { ref, watch } from 'vue'
 import AppleIcon from 'vue-material-design-icons/Apple.vue'
 import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
 import GoogleIcon from 'vue-material-design-icons/Google.vue'
 import Refresh from 'vue-material-design-icons/Refresh.vue'
+import LoadingState from './common/LoadingState.vue'
 import { useIcalFeed } from '../composables/useIcalFeed.js'
 import { formatDateTime } from '../utils/datetime.js'
 
@@ -141,12 +140,6 @@ async function handleRegenerate() {
 .description {
 	margin: 0 0 20px 0;
 	color: var(--color-text-maxcontrast);
-}
-
-.loading-container {
-	display: flex;
-	justify-content: center;
-	padding: 40px;
 }
 
 .feed-url-section {

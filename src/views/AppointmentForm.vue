@@ -27,14 +27,10 @@
 			</h2>
 		</div>
 
-		<div v-if="loading || bulkImporting" class="loading-state">
-			<NcLoadingIcon v-if="bulkImporting" :size="32" />
-			{{
-				bulkImporting
-					? t("attendance", "Importing appointments\u00A0…")
-					: t("attendance", "Loading\u00A0…")
-			}}
-		</div>
+		<LoadingState v-if="loading || bulkImporting"
+			:text="bulkImporting
+				? t('attendance', 'Importing appointments\u00A0…')
+				: t('attendance', 'Loading\u00A0…')" />
 
 		<form
 			v-else
@@ -542,6 +538,7 @@ import RepeatIcon from 'vue-material-design-icons/Repeat.vue'
 import RecurrenceSelector from '../components/appointment/RecurrenceSelector.vue'
 import SeriesActionDialog from '../components/appointment/SeriesActionDialog.vue'
 import CalendarEventPicker from '../components/calendar/CalendarEventPicker.vue'
+import LoadingState from '../components/common/LoadingState.vue'
 import MarkdownEditor from '../components/common/MarkdownEditor.vue'
 import { useCategories } from '../composables/useCategories.js'
 import { usePermissions } from '../composables/usePermissions.js'
@@ -1653,12 +1650,6 @@ onBeforeUnmount(() => {
     h2 {
         margin: 0;
     }
-}
-
-.loading-state {
-    text-align: center;
-    padding: 40px;
-    color: var(--color-text-lighter);
 }
 
 .appointment-form {

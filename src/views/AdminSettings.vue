@@ -13,10 +13,7 @@
 			</nav>
 		</NcSettingsSection>
 
-		<div v-if="loadingData" class="loading-section">
-			<NcLoadingIcon :size="32" />
-			<p>{{ t('attendance', 'Loading settings …') }}</p>
-		</div>
+		<LoadingState v-if="loadingData" :text="t('attendance', 'Loading settings …')" />
 
 		<template v-else>
 			<NcSettingsSection id="setup-wizard"
@@ -85,9 +82,7 @@
 				:name="t('attendance', 'Categories')"
 				:description="t('attendance', 'Define categories appointments can be classified under. Each one gets an icon, shown wherever the category appears.')"
 				data-test="section-categories">
-				<div v-if="categoriesLoading" class="loading-section">
-					<NcLoadingIcon :size="24" />
-				</div>
+				<LoadingState v-if="categoriesLoading" :size="24" />
 				<template v-else>
 					<ul v-if="categories.length > 0" class="category-list">
 						<li v-for="category in categories" :key="category.id" class="category-list__item">
@@ -700,6 +695,7 @@ import CategoryIconPicker from '../components/admin/CategoryIconPicker.vue'
 import PermissionRow from '../components/admin/PermissionRow.vue'
 import SectionLink from '../components/admin/SectionLink.vue'
 import GroupSelect from '../components/common/GroupSelect.vue'
+import LoadingState from '../components/common/LoadingState.vue'
 import { categoryIconComponent, DEFAULT_CATEGORY_ICON } from '../utils/categoryIcons.js'
 import { copyToClipboard } from '../utils/clipboard.js'
 import { formatDate, formatDateTimeMedium } from '../utils/datetime.js'
@@ -1303,15 +1299,6 @@ onMounted(async () => {
 .anchor-nav__link:hover,
 .anchor-nav__link:focus {
 	background-color: var(--color-primary-element-light);
-}
-
-.loading-section {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 12px;
-	padding: 40px;
-	color: var(--color-text-maxcontrast);
 }
 
 .hint-text {

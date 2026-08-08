@@ -4,10 +4,10 @@
 			{{ t('attendance', 'Activity history') }}
 		</h4>
 
-		<div v-if="loading" class="audit-timeline__state">
-			<NcLoadingIcon :size="20" />
-			<span>{{ t('attendance', 'Loading …') }}</span>
-		</div>
+		<LoadingState v-if="loading"
+			inline
+			:size="20"
+			:text="t('attendance', 'Loading …')" />
 
 		<NcEmptyContent v-else-if="error"
 			:name="t('attendance', 'Failed to load activity')"
@@ -63,7 +63,7 @@
 
 <script setup>
 import { translate as t } from '@nextcloud/l10n'
-import { NcButton, NcEmptyContent, NcLoadingIcon } from '@nextcloud/vue'
+import { NcButton, NcEmptyContent } from '@nextcloud/vue'
 import { computed, onMounted } from 'vue'
 import AccountCheck from 'vue-material-design-icons/AccountCheck.vue'
 import AccountSync from 'vue-material-design-icons/AccountSync.vue'
@@ -82,6 +82,7 @@ import LockOpenVariantOutline from 'vue-material-design-icons/LockOpenVariantOut
 import LockOutline from 'vue-material-design-icons/LockOutline.vue'
 import SwapHorizontal from 'vue-material-design-icons/SwapHorizontal.vue'
 import UndoVariant from 'vue-material-design-icons/UndoVariant.vue'
+import LoadingState from '../common/LoadingState.vue'
 import { useAuditLog } from '../../composables/useAuditLog.js'
 import { usePermissions } from '../../composables/usePermissions.js'
 import { formatAuditEvent, formatSource } from '../../utils/auditFormat.js'
@@ -154,13 +155,6 @@ onMounted(() => {
 	margin: 0 0 12px;
 	font-size: 1rem;
 	font-weight: 600;
-}
-
-.audit-timeline__state {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	color: var(--color-text-maxcontrast);
 }
 
 .audit-timeline__list {
