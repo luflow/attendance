@@ -120,8 +120,8 @@ class Notifier implements INotifier {
 					$l->t('New appointment: %1$s on %2$s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
-					// TRANSLATORS Push notification body for a newly created appointment, shown under a "New appointment" subject that already names it and its date. The app speaks as "we", the people organizing — not about them in the third person. "Make it" means being able to attend. Keep it to the one thing the recipient has to do, since the subject has already delivered the news.
-					$l->t('Let us know whether you can make it.')
+					// TRANSLATORS Push notification body for a newly created appointment, shown under a "New appointment" subject that already names it and its date. The app speaks as "we", the people organizing — not about them in the third person. "Make it" means being able to attend. Organizers only switch this notification on when they need answers fast, so keep the urgency of the first sentence: it is the whole reason the message was sent.
+					$l->t('We need your answer quickly. Let us know whether you can make it.')
 				);
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
 					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
