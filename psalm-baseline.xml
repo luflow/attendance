@@ -1270,9 +1270,6 @@
       <code><![CDATA[$userIds]]></code>
       <code><![CDATA[$userIds]]></code>
     </MixedArgument>
-    <MixedArgumentTypeCoercion>
-      <code><![CDATA[array_values($affectedUsers)]]></code>
-    </MixedArgumentTypeCoercion>
     <MixedArrayAccess>
       <code><![CDATA[$item['label']]]></code>
       <code><![CDATA[$item['shareWith']]]></code>

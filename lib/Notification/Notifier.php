@@ -148,6 +148,53 @@ class Notifier implements INotifier {
 				));
 
 				return $notification;
+			case 'appointment_reactivated':
+				$parameters = $notification->getSubjectParameters();
+				$appointmentName = (string)($parameters['name'] ?? 'Unknown');
+				$appointmentDate = $this->formatDateForUser(
+					(string)($parameters['startDatetime'] ?? $parameters['date'] ?? ''),
+					$notification->getUser()
+				);
+
+				$notification->setParsedSubject(
+					// TRANSLATORS Push notification subject: a cancelled appointment is back on. %1$s is the appointment name, %2$s the date.
+					$l->t('Appointment takes place after all: %1$s on %2$s', [$appointmentName, $appointmentDate])
+				);
+				$notification->setParsedMessage(
+					$l->t('The cancellation has been withdrawn. Please check your response.')
+				);
+				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
+					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
+				));
+
+				return $notification;
+			case 'appointment_updated':
+				$parameters = $notification->getSubjectParameters();
+				$appointmentName = (string)($parameters['name'] ?? 'Unknown');
+				$appointmentDate = $this->formatDateForUser(
+					(string)($parameters['startDatetime'] ?? $parameters['date'] ?? ''),
+					$notification->getUser()
+				);
+				$appointmentId = (int)($parameters['appointmentId'] ?? 0);
+				$userId = $notification->getUser();
+
+				$notification->setParsedSubject(
+					// TRANSLATORS Push notification subject: details of an appointment the person already knows about have changed. %1$s is the appointment name, %2$s its new date.
+					$l->t('Appointment changed: %1$s on %2$s', [$appointmentName, $appointmentDate])
+				);
+				$notification->setParsedMessage(
+					$this->describeUpdate((array)($parameters['changed'] ?? []), $l)
+				);
+				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
+					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
+				));
+
+				// A moved appointment is exactly when someone needs to revise their answer.
+				if ($appointmentId > 0) {
+					$this->addQuickResponseActions($notification, $l, $appointmentId, $userId);
+				}
+
+				return $notification;
 			case 'booking_confirmed':
 			case 'booking_declined':
 				$parameters = $notification->getSubjectParameters();
@@ -275,6 +322,31 @@ class Notifier implements INotifier {
 			$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
 		));
 		return $notification;
+	}
+
+	/**
+	 * One complete sentence per change instead of a joined field list, which
+	 * translators cannot reorder or inflect.
+	 *
+	 * @param array<array-key, mixed> $changedFields As stored in the subject parameters
+	 */
+	private function describeUpdate(array $changedFields, \OCP\IL10N $l): string {
+		$timeChanged = in_array('time', $changedFields, true);
+		$locationChanged = in_array('location', $changedFields, true);
+
+		if ($timeChanged && $locationChanged) {
+			return $l->t('Date and location have changed. Please check whether your response still fits.');
+		}
+		if ($timeChanged) {
+			return $l->t('The date has changed. Please check whether your response still fits.');
+		}
+		if ($locationChanged) {
+			return $l->t('The location has changed.');
+		}
+		if (in_array('deadline', $changedFields, true)) {
+			return $l->t('The response deadline has changed.');
+		}
+		return $l->t('Please check the appointment.');
 	}
 
 	/**

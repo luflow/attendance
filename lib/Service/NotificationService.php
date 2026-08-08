@@ -180,6 +180,47 @@ class NotificationService {
 	 * @param list<string> $userIds Addressed attendees to notify
 	 */
 	public function sendCancellationNotifications(Appointment $appointment, array $userIds): void {
+		$this->sendLifecycleWave($appointment, $userIds, 'appointment_cancelled');
+	}
+
+	/**
+	 * Notify addressed attendees that a cancelled appointment takes place after
+	 * all. The counterpart to sendCancellationNotifications — those people were
+	 * told it was off, so they need to hear that it is back on.
+	 *
+	 * @param Appointment $appointment The reactivated appointment
+	 * @param list<string> $userIds Addressed attendees to notify
+	 */
+	public function sendReactivationNotifications(Appointment $appointment, array $userIds): void {
+		$this->sendLifecycleWave($appointment, $userIds, 'appointment_reactivated');
+	}
+
+	/**
+	 * Notify addressed attendees that details of an appointment they already
+	 * know about have changed.
+	 *
+	 * @param Appointment $appointment The edited appointment, with the new values
+	 * @param list<string> $userIds Addressed attendees to notify
+	 * @param list<string> $changedFields Which of the notified fields moved, e.g. ['time', 'location']
+	 */
+	public function sendUpdateNotifications(Appointment $appointment, array $userIds, array $changedFields): void {
+		$this->sendLifecycleWave($appointment, $userIds, 'appointment_updated', ['changed' => $changedFields]);
+	}
+
+	/**
+	 * Shared body of the lifecycle waves: one notification per addressed
+	 * attendee, all carrying the appointment as their object so a client's
+	 * deep link and markAppointmentNotificationsProcessed() keep working.
+	 *
+	 * @param list<string> $userIds
+	 * @param array<string, mixed> $extraParameters Merged into the subject parameters
+	 */
+	private function sendLifecycleWave(
+		Appointment $appointment,
+		array $userIds,
+		string $subject,
+		array $extraParameters = [],
+	): void {
 		if (!$this->isNotificationsAppEnabled()) {
 			$this->logger->warning('Cannot send notifications - notifications app is not enabled');
 			return;
@@ -193,6 +234,11 @@ class NotificationService {
 			'attendance.page.appointment',
 			['id' => $appointment->getId()]
 		);
+		$subjectParameters = array_merge([
+			'appointmentId' => $appointment->getId(),
+			'name' => $appointment->getName(),
+			'startDatetime' => $appointment->getStartDatetime(),
+		], $extraParameters);
 
 		$shouldFlush = $this->notificationManager->defer();
 
@@ -203,16 +249,13 @@ class NotificationService {
 					->setUser($userId)
 					->setDateTime(new \DateTime())
 					->setObject('appointment', (string)$appointment->getId())
-					->setSubject('appointment_cancelled', [
-						'appointmentId' => $appointment->getId(),
-						'name' => $appointment->getName(),
-						'startDatetime' => $appointment->getStartDatetime(),
-					])
+					->setSubject($subject, $subjectParameters)
 					->setLink($appointmentUrl);
 
 				$this->notificationManager->notify($notification);
 			} catch (\Exception $e) {
-				$this->logger->error('Failed to send cancellation notification', [
+				$this->logger->error('Failed to send appointment notification', [
+					'subject' => $subject,
 					'userId' => $userId,
 					'appointmentId' => $appointment->getId(),
 					'error' => $e->getMessage(),

@@ -24,6 +24,13 @@ use OCP\Share\IShare;
 class AppointmentService {
 	use DatetimeFormatTrait;
 
+	/**
+	 * Fields whose change alters what an attendee has to do or where they have
+	 * to be. A renamed title or a reworded description does not, so editing
+	 * those stays silent.
+	 */
+	private const NOTIFIED_UPDATE_FIELDS = ['time', 'location', 'deadline'];
+
 	private AppointmentMapper $appointmentMapper;
 	private AttendanceResponseMapper $responseMapper;
 	private IGroupManager $groupManager;
@@ -232,7 +239,56 @@ class AppointmentService {
 
 		$this->orgCalendarSyncService->syncAppointment($updated);
 
+		$this->notifyAboutUpdate($before, $updated, $changedFields, $userId);
+
 		return $updated;
+	}
+
+	/**
+	 * Two waves after an edit: people who just gained access hear about the
+	 * appointment for the first time, everyone who already had it hears what
+	 * moved. Both stay quiet for an appointment that is already over or
+	 * cancelled — editing those is bookkeeping, not news.
+	 *
+	 * @param list<string> $changedFields As returned by computeAppointmentChanges()
+	 * @param string $actorId The editor, excluded from both waves
+	 */
+	private function notifyAboutUpdate(Appointment $before, Appointment $updated, array $changedFields, string $actorId): void {
+		if ($changedFields === [] || $updated->isCancelled() || $updated->getStartDatetime() < gmdate('Y-m-d H:i:s')) {
+			return;
+		}
+
+		$addressed = $this->getAffectedUsers($updated);
+		$previouslyAddressed = in_array('visibility', $changedFields, true)
+			? $this->getAffectedUsers($before)
+			: $addressed;
+
+		// The create-time opt-out governs who learns the appointment exists,
+		// so it governs this late arrival too.
+		$newlyAddressed = $this->recipientsWithout(array_diff($addressed, $previouslyAddressed), $actorId);
+		if ($newlyAddressed !== [] && $updated->getSendNotification()) {
+			$this->notificationService->sendNewAppointmentNotifications($updated, $newlyAddressed);
+		}
+
+		$notifiedChanges = array_values(array_intersect(self::NOTIFIED_UPDATE_FIELDS, $changedFields));
+		if ($notifiedChanges === []) {
+			return;
+		}
+
+		$this->notificationService->sendUpdateNotifications(
+			$updated,
+			$this->recipientsWithout(array_intersect($addressed, $previouslyAddressed), $actorId),
+			$notifiedChanges,
+		);
+	}
+
+	/**
+	 * @param array<array-key, mixed> $userIds As returned by getAffectedUsers()
+	 * @return list<string>
+	 */
+	private function recipientsWithout(array $userIds, ?string $actorId): array {
+		$recipients = array_filter($userIds, 'is_string');
+		return array_values(array_filter($recipients, fn (string $userId) => $userId !== $actorId));
 	}
 
 	/**
@@ -422,11 +478,10 @@ class AppointmentService {
 		$this->orgCalendarSyncService->syncAppointment($updated);
 
 		// Notify addressed attendees that the appointment will not take place.
-		$affectedUsers = $this->getAffectedUsers($updated);
-		if ($actorId !== null) {
-			$affectedUsers = array_filter($affectedUsers, fn ($userId) => $userId !== $actorId);
-		}
-		$this->notificationService->sendCancellationNotifications($updated, array_values($affectedUsers));
+		$this->notificationService->sendCancellationNotifications(
+			$updated,
+			$this->recipientsWithout($this->getAffectedUsers($updated), $actorId),
+		);
 
 		return $updated;
 	}
@@ -434,10 +489,14 @@ class AppointmentService {
 	/**
 	 * Reactivate a previously cancelled appointment: clears cancelledAt. The
 	 * appointment returns to whatever state it had before (e.g. still closed if
-	 * it was closed). No notification is sent (mirrors reopen).
+	 * it was closed). Addressed attendees are notified, mirroring the cancel
+	 * wave — they were told it was off and need to hear it is back on.
 	 * Idempotent: returns the existing appointment unchanged if not cancelled.
+	 *
+	 * @param int $id The appointment ID
+	 * @param string|null $actorId The user reactivating, excluded from the notification wave
 	 */
-	public function uncancelAppointment(int $id): Appointment {
+	public function uncancelAppointment(int $id, ?string $actorId = null): Appointment {
 		$appointment = $this->appointmentMapper->find($id);
 		if (!$appointment->isCancelled()) {
 			return $appointment;
@@ -453,6 +512,11 @@ class AppointmentService {
 		);
 
 		$this->orgCalendarSyncService->syncAppointment($updated);
+
+		$this->notificationService->sendReactivationNotifications(
+			$updated,
+			$this->recipientsWithout($this->getAffectedUsers($updated), $actorId),
+		);
 
 		return $updated;
 	}

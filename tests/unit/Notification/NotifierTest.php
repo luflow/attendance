@@ -88,10 +88,10 @@ class NotifierTest extends TestCase {
 		return $notification;
 	}
 
-	private function mockReminderNotification(array $subjectParameters): INotification|MockObject {
+	private function mockAppointmentNotification(string $subject, array $subjectParameters): INotification|MockObject {
 		$notification = $this->createMock(INotification::class);
 		$notification->method('getApp')->willReturn('attendance');
-		$notification->method('getSubject')->willReturn('appointment_reminder');
+		$notification->method('getSubject')->willReturn($subject);
 		$notification->method('getSubjectParameters')->willReturn($subjectParameters);
 		$notification->method('getUser')->willReturn('alice');
 		$notification->method('setParsedSubject')->willReturnSelf();
@@ -106,6 +106,10 @@ class NotifierTest extends TestCase {
 			return $action;
 		});
 		return $notification;
+	}
+
+	private function mockReminderNotification(array $subjectParameters): INotification|MockObject {
+		return $this->mockAppointmentNotification('appointment_reminder', $subjectParameters);
 	}
 
 	public function testReminderIsDismissedWhenUserAlreadyResponded(): void {
@@ -155,6 +159,65 @@ class NotifierTest extends TestCase {
 
 		$result = $this->notifier->prepare($notification, 'de');
 		$this->assertSame($notification, $result);
+	}
+
+	public function testUpdateNotificationNamesBothChangedAspects(): void {
+		$notification = $this->mockAppointmentNotification('appointment_updated', [
+			'appointmentId' => 42,
+			'name' => 'Rehearsal',
+			'startDatetime' => '2030-08-01 18:00:00',
+			'changed' => ['time', 'location'],
+		]);
+		$notification->expects($this->once())
+			->method('setParsedMessage')
+			->with('Date and location have changed. Please check whether your response still fits.')
+			->willReturnSelf();
+
+		$this->notifier->prepare($notification, 'de');
+	}
+
+	public function testUpdateNotificationFallsBackToTheSingleChangedAspect(): void {
+		$notification = $this->mockAppointmentNotification('appointment_updated', [
+			'appointmentId' => 42,
+			'name' => 'Rehearsal',
+			'startDatetime' => '2030-08-01 18:00:00',
+			'changed' => ['deadline'],
+		]);
+		$notification->expects($this->once())
+			->method('setParsedMessage')
+			->with('The response deadline has changed.')
+			->willReturnSelf();
+
+		$this->notifier->prepare($notification, 'de');
+	}
+
+	public function testUpdateNotificationReachesUsersWhoAlreadyResponded(): void {
+		$this->responseMapper->expects($this->never())
+			->method('findByAppointmentAndUser');
+
+		$notification = $this->mockAppointmentNotification('appointment_updated', [
+			'appointmentId' => 42,
+			'name' => 'Rehearsal',
+			'startDatetime' => '2030-08-01 18:00:00',
+			'changed' => ['time'],
+		]);
+
+		$result = $this->notifier->prepare($notification, 'de');
+		$this->assertSame($notification, $result);
+	}
+
+	public function testReactivationNotificationIsRendered(): void {
+		$notification = $this->mockAppointmentNotification('appointment_reactivated', [
+			'appointmentId' => 42,
+			'name' => 'Rehearsal',
+			'startDatetime' => '2030-08-01 18:00:00',
+		]);
+		$notification->expects($this->once())
+			->method('setParsedMessage')
+			->with('The cancellation has been withdrawn. Please check your response.')
+			->willReturnSelf();
+
+		$this->notifier->prepare($notification, 'de');
 	}
 
 	public function testResponseNotificationUsesDisplayNames(): void {

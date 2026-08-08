@@ -526,7 +526,7 @@ class AppointmentController extends Controller {
 			return $appointment;
 		}
 
-		$updated = $this->appointmentService->uncancelAppointment($id);
+		$updated = $this->appointmentService->uncancelAppointment($id, $user->getUID());
 		return new DataResponse($updated);
 	}
 

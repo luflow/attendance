@@ -583,6 +583,7 @@ class AppointmentServiceTest extends TestCase {
 		$appointment = new Appointment();
 		$appointment->setId(9);
 		$appointment->setCancelledAt('2026-01-01 12:00:00');
+		$appointment->setVisibleUsers(json_encode(['alice']));
 
 		$this->appointmentMapper->expects($this->once())
 			->method('find')
@@ -610,8 +611,145 @@ class AppointmentServiceTest extends TestCase {
 			->willReturn($appointment);
 		$this->appointmentMapper->expects($this->never())->method('update');
 		$this->auditEventService->expects($this->never())->method('recordAppointmentLifecycle');
+		$this->notificationService->expects($this->never())->method('sendReactivationNotifications');
 
 		$this->service->uncancelAppointment(9);
+	}
+
+	public function testUncancelAppointmentNotifiesAttendeesExceptTheActor(): void {
+		$appointment = new Appointment();
+		$appointment->setId(9);
+		$appointment->setCancelledAt('2026-01-01 12:00:00');
+		$appointment->setVisibleUsers(json_encode(['admin', 'alice']));
+
+		$this->appointmentMapper->method('find')->with(9)->willReturn($appointment);
+		$this->appointmentMapper->method('update')->willReturnArgument(0);
+
+		$this->notificationService->expects($this->once())
+			->method('sendReactivationNotifications')
+			->with($appointment, ['alice']);
+
+		$this->service->uncancelAppointment(9, 'admin');
+	}
+
+	/**
+	 * @param list<string> $visibleUsers Who the appointment addresses before the edit
+	 */
+	private function setUpUpdateNotificationCase(array $visibleUsers, bool $sendNotification = false): Appointment {
+		$appointment = new Appointment();
+		$appointment->setId(3);
+		$appointment->setName('Rehearsal');
+		$appointment->setDescription('');
+		$appointment->setStartDatetime('2030-01-01 10:00:00');
+		$appointment->setEndDatetime('2030-01-01 11:00:00');
+		$appointment->setVisibleUsers(json_encode($visibleUsers));
+		$appointment->setSendNotification($sendNotification);
+
+		$this->appointmentMapper->method('find')->with(3)->willReturn($appointment);
+		$this->appointmentMapper->method('update')->willReturnArgument(0);
+
+		return $appointment;
+	}
+
+	public function testUpdateNotifiesAddressedAttendeesAboutAMovedAppointment(): void {
+		$appointment = $this->setUpUpdateNotificationCase(['admin', 'alice']);
+
+		$this->notificationService->expects($this->once())
+			->method('sendUpdateNotifications')
+			->with($appointment, ['alice'], ['time']);
+		$this->notificationService->expects($this->never())
+			->method('sendNewAppointmentNotifications');
+
+		$this->service->updateAppointment(
+			3, 'Rehearsal', '', '2030-01-01T18:00:00Z', '2030-01-01T19:00:00Z',
+			'admin', ['admin', 'alice'],
+		);
+	}
+
+	public function testUpdateStaysSilentAboutCosmeticChanges(): void {
+		$this->setUpUpdateNotificationCase(['alice']);
+
+		$this->notificationService->expects($this->never())->method('sendUpdateNotifications');
+		$this->notificationService->expects($this->never())->method('sendNewAppointmentNotifications');
+
+		$this->service->updateAppointment(
+			3, 'Rehearsal reloaded', 'Bring your scores', '2030-01-01T10:00:00Z', '2030-01-01T11:00:00Z',
+			'admin', ['alice'],
+		);
+	}
+
+	public function testUpdateStaysSilentForAnAppointmentThatIsOver(): void {
+		$appointment = new Appointment();
+		$appointment->setId(3);
+		$appointment->setName('Rehearsal');
+		$appointment->setStartDatetime('2020-01-01 10:00:00');
+		$appointment->setEndDatetime('2020-01-01 11:00:00');
+		$appointment->setVisibleUsers(json_encode(['alice']));
+
+		$this->appointmentMapper->method('find')->with(3)->willReturn($appointment);
+		$this->appointmentMapper->method('update')->willReturnArgument(0);
+
+		$this->notificationService->expects($this->never())->method('sendUpdateNotifications');
+
+		$this->service->updateAppointment(
+			3, 'Rehearsal', '', '2020-01-01T10:00:00Z', '2020-01-01T11:00:00Z',
+			'admin', ['alice'], [], [], null, null, 'Club house',
+		);
+	}
+
+	public function testUpdateStaysSilentForACancelledAppointment(): void {
+		$appointment = $this->setUpUpdateNotificationCase(['alice']);
+		$appointment->setCancelledAt('2026-01-01 12:00:00');
+
+		$this->notificationService->expects($this->never())->method('sendUpdateNotifications');
+
+		$this->service->updateAppointment(
+			3, 'Rehearsal', '', '2030-01-01T10:00:00Z', '2030-01-01T11:00:00Z',
+			'admin', ['alice'], [], [], null, null, 'Club house',
+		);
+	}
+
+	public function testWideningVisibilityAnnouncesTheAppointmentToNewcomersOnly(): void {
+		$appointment = $this->setUpUpdateNotificationCase(['alice'], true);
+
+		$this->notificationService->expects($this->once())
+			->method('sendNewAppointmentNotifications')
+			->with($appointment, ['bob']);
+		$this->notificationService->expects($this->never())
+			->method('sendUpdateNotifications');
+
+		$this->service->updateAppointment(
+			3, 'Rehearsal', '', '2030-01-01T10:00:00Z', '2030-01-01T11:00:00Z',
+			'admin', ['alice', 'bob'],
+		);
+	}
+
+	public function testWideningVisibilityRespectsTheCreateTimeNotificationOptOut(): void {
+		$this->setUpUpdateNotificationCase(['alice'], false);
+
+		$this->notificationService->expects($this->never())
+			->method('sendNewAppointmentNotifications');
+
+		$this->service->updateAppointment(
+			3, 'Rehearsal', '', '2030-01-01T10:00:00Z', '2030-01-01T11:00:00Z',
+			'admin', ['alice', 'bob'],
+		);
+	}
+
+	public function testMovedAppointmentNotifiesOnlyPeopleWhoAlreadyHadIt(): void {
+		$appointment = $this->setUpUpdateNotificationCase(['alice'], true);
+
+		$this->notificationService->expects($this->once())
+			->method('sendNewAppointmentNotifications')
+			->with($appointment, ['bob']);
+		$this->notificationService->expects($this->once())
+			->method('sendUpdateNotifications')
+			->with($appointment, ['alice'], ['time']);
+
+		$this->service->updateAppointment(
+			3, 'Rehearsal', '', '2030-01-01T18:00:00Z', '2030-01-01T19:00:00Z',
+			'admin', ['alice', 'bob'],
+		);
 	}
 
 	public function testGetAppointment(): void {
