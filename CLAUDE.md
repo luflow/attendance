@@ -36,7 +36,7 @@ Rules that keep the repo clean over time:
 
 ### Vue.js Frontend
 - Use Vue 3 Composition API (`<script setup>`)
-- **Translations are handled via Transifex** - do NOT manually add translation files or .po files when building new features
+- **Translations are handled via Transifex** - do NOT manually add translation files or .po files when building new features (German is the exception, see below)
 - **Always use English keys** for `t()` calls in Vue components, never German strings
 - Use and Import mainly Nextcloud components from `@nextcloud/vue`
 - Styling with CSS in `<style scoped>`
@@ -46,6 +46,26 @@ Rules that keep the repo clean over time:
 
 ### Translation Guidelines (Nextcloud Standards)
 Translations are managed via **Transifex** and synced automatically. When adding new features, just use `t()` and `n()` with English strings - do NOT create or modify translation files manually.
+
+#### German is hand-maintained, not synced
+
+`de` and `de_DE` are the exception: they are **owned by this repo** and never
+come back from Transifex. Nightly syncs kept overwriting reviewed German with
+worse wording and broke placeholders, so `.tx/config` maps both to a local
+directory starting with a dot, which translationtool's `findLanguages()` skips.
+All other languages sync as before.
+
+- Edit `l10n/de.json`, `de.js`, `de_DE.json` and `de_DE.js` **directly** — the
+  `l10n-autotranslate` skill fills new strings.
+- Keep all four in step: `.js` and `.json` must hold the same entries, and both
+  locales the same keys.
+- `de` is informal (**du**), `de_DE` is formal (**Sie**). Never mix the two
+  inside one string.
+- `scripts/check-german-l10n.py` (part of `./scripts/check.sh`) enforces this
+  plus placeholders, German quotes „…“, stray whitespace and duplicate keys.
+- If a `fix(l10n): Update translations from Transifex` commit ever touches
+  `l10n/de*` again, the config lever stopped working — revert those four files
+  and fix `.tx/config` rather than accepting the churn.
 
 Follow these Nextcloud translation guidelines (see https://docs.nextcloud.com/server/latest/developer_manual/basics/translations.html):
 
