@@ -7,9 +7,11 @@ passes.** CI (`.github/workflows/tests.yml`) runs the same set, so green here
 means green there — minus the e2e suite, which needs Docker and is opt-in via
 `./scripts/check.sh --e2e`.
 
-It covers eslint, stylelint, php-cs-fixer, psalm, PHPUnit, the vite build, and
-a check that the generated OpenAPI specs still match the controllers. Every
-gate runs even when an earlier one fails, so one invocation gives you the whole
+It covers eslint, stylelint, php-cs-fixer, psalm, PHPUnit, the vite build, the
+two l10n checks (`check-german-l10n.py` for the hand-maintained German files,
+`check-source-strings.py` for the English strings in `t()` / `n()` calls), and a
+check that the generated OpenAPI specs still match the controllers. Every gate
+runs even when an earlier one fails, so one invocation gives you the whole
 picture. It needs `npm ci` and `composer install` to have run first.
 
 Rules that keep the repo clean over time:
@@ -107,6 +109,8 @@ Follow these Nextcloud translation guidelines (see https://docs.nextcloud.com/se
 - **Keep confirmation language simple** - avoid words like "really" or "all"
 - Correct: `Do you want to set {count} users to {action}?`
 - Wrong: `Do you really want to set all {count} users to {action}?`
+- This is about the wording only — the count still needs `n()` with both forms,
+  as under "Plural Forms" above.
 
 ### PHP Backend
 - Use PHP 8.0+ syntax

@@ -44,6 +44,8 @@ run "vite build"    npm run --silent build
 
 # German is hand-maintained (see .tx/config), so no upstream sync catches these.
 run "german l10n"   python3 scripts/check-german-l10n.py
+# A bad source string reaches 80 languages before anyone notices.
+run "source strings" python3 scripts/check-source-strings.py
 
 # Generated from the controller annotations — a stale spec means drift.
 printf '\n\033[1m==> openapi spec is up to date\033[0m\n'
