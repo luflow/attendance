@@ -152,7 +152,7 @@ class Notifier implements INotifier {
 				$parameters = $notification->getSubjectParameters();
 				$appointmentName = (string)($parameters['name'] ?? 'Unknown');
 				$appointmentDate = $this->formatDateForUser(
-					(string)($parameters['startDatetime'] ?? $parameters['date'] ?? ''),
+					(string)($parameters['startDatetime'] ?? ''),
 					$notification->getUser()
 				);
 
@@ -172,7 +172,7 @@ class Notifier implements INotifier {
 				$parameters = $notification->getSubjectParameters();
 				$appointmentName = (string)($parameters['name'] ?? 'Unknown');
 				$appointmentDate = $this->formatDateForUser(
-					(string)($parameters['startDatetime'] ?? $parameters['date'] ?? ''),
+					(string)($parameters['startDatetime'] ?? ''),
 					$notification->getUser()
 				);
 				$appointmentId = (int)($parameters['appointmentId'] ?? 0);

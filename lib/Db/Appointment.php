@@ -163,6 +163,14 @@ class Appointment extends Entity implements JsonSerializable {
 	}
 
 	/**
+	 * Over, i.e. past its end — the same cut AppointmentMapper::findPast()
+	 * makes in SQL. An appointment that is currently running is not past.
+	 */
+	public function isPast(): bool {
+		return $this->getEndDatetime() < gmdate('Y-m-d H:i:s');
+	}
+
+	/**
 	 * Parse JSON field to array, return empty array if null or invalid
 	 */
 	private function parseJsonField(?string $field): array {

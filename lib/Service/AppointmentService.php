@@ -28,6 +28,9 @@ class AppointmentService {
 	 * Fields whose change alters where an attendee has to be. A renamed title
 	 * or a reworded description does not, and a moved response deadline is
 	 * what the reminder job chases anyway — editing those stays silent.
+	 *
+	 * Every field listed here needs its own sentence in Notifier::describeUpdate(),
+	 * otherwise its push degrades to the generic fallback wording.
 	 */
 	private const NOTIFIED_UPDATE_FIELDS = ['time', 'location'];
 
@@ -166,9 +169,10 @@ class AppointmentService {
 		$this->orgCalendarSyncService->syncAppointment($appointment);
 
 		if ($sendNotification) {
-			$affectedUsers = $this->getAffectedUsers($appointment);
-			$affectedUsers = array_filter($affectedUsers, fn ($userId) => $userId !== $createdBy);
-			$this->notificationService->sendNewAppointmentNotifications($appointment, array_values($affectedUsers));
+			$this->notificationService->sendNewAppointmentNotifications(
+				$appointment,
+				$this->recipientsWithout($this->getAffectedUsers($appointment), $createdBy),
+			);
 		}
 
 		return $appointment;
@@ -254,30 +258,39 @@ class AppointmentService {
 	 * @param string $actorId The editor, excluded from both waves
 	 */
 	private function notifyAboutUpdate(Appointment $before, Appointment $updated, array $changedFields, string $actorId): void {
-		if ($changedFields === [] || $updated->isCancelled() || $updated->getStartDatetime() < gmdate('Y-m-d H:i:s')) {
+		if ($updated->isCancelled() || $updated->isPast()) {
+			return;
+		}
+
+		$notifiedChanges = array_values(array_intersect(self::NOTIFIED_UPDATE_FIELDS, $changedFields));
+		// The create-time opt-out governs who learns the appointment exists, so
+		// it governs this late arrival too.
+		$announceNewcomers = in_array('visibility', $changedFields, true) && $updated->getSendNotification();
+		// Deciding this before expanding the audience keeps a rename off the
+		// group/team expansion, which can hydrate every account on the instance.
+		if ($notifiedChanges === [] && !$announceNewcomers) {
 			return;
 		}
 
 		$addressed = $this->getAffectedUsers($updated);
-		$previouslyAddressed = in_array('visibility', $changedFields, true)
-			? $this->getAffectedUsers($before)
-			: $addressed;
+		$stillAddressed = $addressed;
 
-		// The create-time opt-out governs who learns the appointment exists,
-		// so it governs this late arrival too.
-		$newlyAddressed = $this->recipientsWithout(array_diff($addressed, $previouslyAddressed), $actorId);
-		if ($newlyAddressed !== [] && $updated->getSendNotification()) {
-			$this->notificationService->sendNewAppointmentNotifications($updated, $newlyAddressed);
+		if ($announceNewcomers) {
+			$previouslyAddressed = $this->getAffectedUsers($before);
+			$newcomers = $this->recipientsWithout(array_diff($addressed, $previouslyAddressed), $actorId);
+			if ($newcomers !== []) {
+				$this->notificationService->sendNewAppointmentNotifications($updated, $newcomers);
+			}
+			$stillAddressed = array_intersect($addressed, $previouslyAddressed);
 		}
 
-		$notifiedChanges = array_values(array_intersect(self::NOTIFIED_UPDATE_FIELDS, $changedFields));
 		if ($notifiedChanges === []) {
 			return;
 		}
 
 		$this->notificationService->sendUpdateNotifications(
 			$updated,
-			$this->recipientsWithout(array_intersect($addressed, $previouslyAddressed), $actorId),
+			$this->recipientsWithout($stillAddressed, $actorId),
 			$notifiedChanges,
 		);
 	}
@@ -287,8 +300,10 @@ class AppointmentService {
 	 * @return list<string>
 	 */
 	private function recipientsWithout(array $userIds, ?string $actorId): array {
-		$recipients = array_filter($userIds, 'is_string');
-		return array_values(array_filter($recipients, fn (string $userId) => $userId !== $actorId));
+		return array_values(array_filter(
+			$userIds,
+			static fn ($userId): bool => is_string($userId) && $userId !== $actorId,
+		));
 	}
 
 	/**

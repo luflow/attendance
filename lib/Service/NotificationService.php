@@ -109,67 +109,11 @@ class NotificationService {
 
 	/**
 	 * Send notifications about a new appointment to specified users
+	 *
+	 * @param list<string> $userIds Addressed attendees to notify
 	 */
 	public function sendNewAppointmentNotifications(Appointment $appointment, array $userIds): void {
-		if (!$this->isNotificationsAppEnabled()) {
-			$this->logger->warning('Cannot send notifications - notifications app is not enabled');
-			return;
-		}
-
-		if (empty($userIds)) {
-			$this->logger->info('No users to notify about new appointment', [
-				'appointmentId' => $appointment->getId(),
-			]);
-			return;
-		}
-
-		$appointmentUrl = $this->urlGenerator->linkToRouteAbsolute(
-			'attendance.page.appointment',
-			['id' => $appointment->getId()]
-		);
-
-		$shouldFlush = $this->notificationManager->defer();
-
-		$sentCount = 0;
-		foreach ($userIds as $userId) {
-			try {
-				$notification = $this->notificationManager->createNotification();
-				$notification->setApp('attendance')
-					->setUser($userId)
-					->setDateTime(new \DateTime())
-					->setObject('appointment', (string)$appointment->getId())
-					->setSubject('appointment_created', [
-						'appointmentId' => $appointment->getId(),
-						'name' => $appointment->getName(),
-						'startDatetime' => $appointment->getStartDatetime(),
-					])
-					->setLink($appointmentUrl);
-
-				$this->notificationManager->notify($notification);
-				$sentCount++;
-
-				$this->logger->debug('Sent new appointment notification', [
-					'userId' => $userId,
-					'appointmentId' => $appointment->getId(),
-				]);
-			} catch (\Exception $e) {
-				$this->logger->error('Failed to send new appointment notification', [
-					'userId' => $userId,
-					'appointmentId' => $appointment->getId(),
-					'error' => $e->getMessage(),
-				]);
-			}
-		}
-
-		if ($shouldFlush) {
-			$this->notificationManager->flush();
-		}
-
-		$this->logger->info('Finished sending new appointment notifications', [
-			'appointmentId' => $appointment->getId(),
-			'totalUsers' => count($userIds),
-			'sentCount' => $sentCount,
-		]);
+		$this->sendLifecycleWave($appointment, $userIds, 'appointment_created');
 	}
 
 	/**
@@ -242,6 +186,7 @@ class NotificationService {
 
 		$shouldFlush = $this->notificationManager->defer();
 
+		$sentCount = 0;
 		foreach ($userIds as $userId) {
 			try {
 				$notification = $this->notificationManager->createNotification();
@@ -253,6 +198,7 @@ class NotificationService {
 					->setLink($appointmentUrl);
 
 				$this->notificationManager->notify($notification);
+				$sentCount++;
 			} catch (\Exception $e) {
 				$this->logger->error('Failed to send appointment notification', [
 					'subject' => $subject,
@@ -266,6 +212,13 @@ class NotificationService {
 		if ($shouldFlush) {
 			$this->notificationManager->flush();
 		}
+
+		$this->logger->info('Finished sending appointment notifications', [
+			'subject' => $subject,
+			'appointmentId' => $appointment->getId(),
+			'totalUsers' => count($userIds),
+			'sentCount' => $sentCount,
+		]);
 	}
 
 	/**

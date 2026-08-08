@@ -691,16 +691,30 @@ class AppointmentServiceTest extends TestCase {
 		);
 	}
 
-	public function testUpdateStaysSilentForAnAppointmentThatIsOver(): void {
+	public function testCosmeticUpdateNeverExpandsTheAudience(): void {
 		$appointment = new Appointment();
 		$appointment->setId(3);
 		$appointment->setName('Rehearsal');
-		$appointment->setStartDatetime('2020-01-01 10:00:00');
-		$appointment->setEndDatetime('2020-01-01 11:00:00');
-		$appointment->setVisibleUsers(json_encode(['alice']));
+		$appointment->setDescription('');
+		$appointment->setStartDatetime('2030-01-01 10:00:00');
+		$appointment->setEndDatetime('2030-01-01 11:00:00');
 
 		$this->appointmentMapper->method('find')->with(3)->willReturn($appointment);
 		$this->appointmentMapper->method('update')->willReturnArgument(0);
+
+		// Unrestricted visibility resolves through the whitelist, which hydrates
+		// every account on the instance — a rename must not pay for that.
+		$this->configService->expects($this->never())->method('getWhitelistedGroups');
+		$this->userManager->expects($this->never())->method('search');
+
+		$this->service->updateAppointment(
+			3, 'Rehearsal reloaded', 'Bring your scores', '2030-01-01T10:00:00Z', '2030-01-01T11:00:00Z',
+			'admin',
+		);
+	}
+
+	public function testUpdateStaysSilentForAnAppointmentThatIsOver(): void {
+		$this->setUpUpdateNotificationCase(['alice']);
 
 		$this->notificationService->expects($this->never())->method('sendUpdateNotifications');
 
