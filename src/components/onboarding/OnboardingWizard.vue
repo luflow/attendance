@@ -13,10 +13,7 @@
 				<NcProgressBar :value="progressPercent" size="medium" />
 			</div>
 
-			<div v-if="loading" class="onboarding__loading">
-				<NcLoadingIcon :size="32" />
-				<p>{{ t('attendance', 'Loading settings …') }}</p>
-			</div>
+			<LoadingState v-if="loading" :text="t('attendance', 'Loading settings …')" />
 
 			<div v-else class="onboarding__body">
 				<p v-if="currentStep.lead" class="onboarding__lead">
@@ -252,6 +249,7 @@ import TagIcon from 'vue-material-design-icons/TagOutline.vue'
 import WifiOffIcon from 'vue-material-design-icons/WifiOff.vue'
 import PermissionRow from '../admin/PermissionRow.vue'
 import GroupSelect from '../common/GroupSelect.vue'
+import LoadingState from '../common/LoadingState.vue'
 import { toGroupObjects } from '../../utils/groups.js'
 import { MOBILE_APP_STORES } from '../../utils/mobileApp.js'
 import { AUDIT_VISIBILITIES, emptyPermissionState, PERMISSION_ROWS, permissionPayload, REMINDER_TARGETS } from '../../utils/permissions.js'
@@ -530,14 +528,6 @@ watch(() => props.open, (open) => {
 	font-weight: 600;
 	font-size: 17px;
 	margin-bottom: 4px;
-}
-
-.onboarding__loading {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 12px;
-	padding: 40px 0;
 }
 
 .onboarding__body {

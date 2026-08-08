@@ -236,9 +236,7 @@
 				@clearSearch="searchQuery = ''" />
 
 			<!-- Loading state while routing is determined -->
-			<div v-else class="loading-state">
-				<div class="loading-spinner" />
-			</div>
+			<LoadingState v-else :text="t('attendance', 'Loading …')" />
 		</NcAppContent>
 
 		<!-- iCal Feed Modal -->
@@ -286,6 +284,7 @@ import HelpCircle from 'vue-material-design-icons/HelpCircle.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
 import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
+import LoadingState from './components/common/LoadingState.vue'
 import MobileAppBanner from './components/common/MobileAppBanner.vue'
 import ExportDialog from './components/ExportDialog.vue'
 import IcalFeedModal from './components/IcalFeedModal.vue'
@@ -856,31 +855,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.loading-state {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 200px;
-}
-
-.loading-spinner {
-    width: 32px;
-    height: 32px;
-    border: 3px solid var(--color-loading-light);
-    border-top: 3px solid var(--color-loading-dark);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
 .mobile-banner-container {
     padding: 20px 20px 0;
     max-width: 1200px;

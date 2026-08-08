@@ -2,9 +2,7 @@
 	<div id="attendance-personal-settings">
 		<NcSettingsSection :name="t('attendance', 'Calendar subscription')"
 			:description="t('attendance', 'Subscribe to your appointments in external calendar apps like Google Calendar, Apple Calendar, or Thunderbird.')">
-			<div v-if="icalLoading" class="loading-section">
-				<NcLoadingIcon :size="32" />
-			</div>
+			<LoadingState v-if="icalLoading" />
 
 			<template v-else>
 				<div class="quick-subscribe-section">
@@ -80,10 +78,7 @@
 
 		<NcSettingsSection :name="t('attendance', 'Calendar reminders')"
 			:description="t('attendance', 'Configure reminders for appointments you accepted or tentatively accepted in your calendar subscription (iCal feed). You can select multiple reminder times.')">
-			<div v-if="settingsLoading" class="loading-section">
-				<NcLoadingIcon :size="32" />
-				<p>{{ t('attendance', 'Loading settings\u00A0\u2026') }}</p>
-			</div>
+			<LoadingState v-if="settingsLoading" :text="t('attendance', 'Loading settings\u00A0\u2026')" />
 
 			<div v-else>
 				<div class="setting-row">
@@ -125,7 +120,6 @@ import {
 	NcButton,
 	NcCheckboxRadioSwitch,
 	NcDialog,
-	NcLoadingIcon,
 	NcNoteCard,
 	NcSelect,
 	NcSettingsSection,
@@ -135,6 +129,7 @@ import AppleIcon from 'vue-material-design-icons/Apple.vue'
 import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
 import GoogleIcon from 'vue-material-design-icons/Google.vue'
 import Refresh from 'vue-material-design-icons/Refresh.vue'
+import LoadingState from '../components/common/LoadingState.vue'
 import { useIcalFeed } from '../composables/useIcalFeed.js'
 import { formatDateTime } from '../utils/datetime.js'
 
@@ -214,13 +209,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.loading-section {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-	padding: 20px 0;
-}
-
 .feed-url-section {
 	margin-bottom: 16px;
 }

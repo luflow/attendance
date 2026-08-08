@@ -8,9 +8,7 @@
 			<span>{{ n('attendance', '%n appointment awaiting your response', '%n appointments awaiting your response', unansweredCount) }}</span>
 			<span class="banner-action">{{ t('attendance', 'View all') }} →</span>
 		</div>
-		<div v-if="loading" class="loading-state" data-test="loading-state">
-			{{ t('attendance', 'Loading\u00A0…') }}
-		</div>
+		<LoadingState v-if="loading" :text="t('attendance', 'Loading\u00A0…')" data-test="loading-state" />
 		<div v-else-if="error" class="error-state" data-test="error-state">
 			<p>{{ error }}</p>
 			<NcButton data-test="button-back" @click="goBack">
@@ -59,6 +57,7 @@ import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
 import AppointmentCard from '../components/appointment/AppointmentCard.vue'
 import AuditTimeline from '../components/appointment/AuditTimeline.vue'
 import DeleteAppointmentDialog from '../components/appointment/DeleteAppointmentDialog.vue'
+import LoadingState from '../components/common/LoadingState.vue'
 import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
 import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
 import { usePermissions } from '../composables/usePermissions.js'
@@ -275,12 +274,6 @@ watch(() => props.appointmentId, async (newId, oldId) => {
 	font-weight: normal;
 	white-space: nowrap;
 	opacity: 0.85;
-}
-
-.loading-state {
-	text-align: center;
-	padding: 40px;
-	color: var(--color-text-lighter);
 }
 
 .error-state {

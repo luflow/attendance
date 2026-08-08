@@ -9,10 +9,7 @@
 
 			<!-- Calendar Selection Step -->
 			<template v-if="!selectedCalendar">
-				<div v-if="loadingCalendars" class="loading-container">
-					<NcLoadingIcon :size="32" />
-					<span class="loading-text">{{ t('attendance', 'Loading calendars …') }}</span>
-				</div>
+				<LoadingState v-if="loadingCalendars" :text="t('attendance', 'Loading calendars …')" />
 
 				<template v-else-if="calendars.length > 0">
 					<label class="section-label">{{ t('attendance', 'Select calendar') }}</label>
@@ -72,10 +69,7 @@
 						@update:modelValue="onToDateChange" />
 				</div>
 
-				<div v-if="loadingEvents" class="loading-container">
-					<NcLoadingIcon :size="32" />
-					<span class="loading-text">{{ t('attendance', 'Loading events …') }}</span>
-				</div>
+				<LoadingState v-if="loadingEvents" :text="t('attendance', 'Loading events …')" />
 
 				<template v-else-if="events.length > 0">
 					<div class="event-list-header">
@@ -135,11 +129,12 @@
 
 <script setup>
 import { translatePlural as n, translate as t } from '@nextcloud/l10n'
-import { NcButton, NcCheckboxRadioSwitch, NcDateTimePickerNative, NcDialog, NcLoadingIcon, NcTextField } from '@nextcloud/vue'
+import { NcButton, NcCheckboxRadioSwitch, NcDateTimePickerNative, NcDialog, NcTextField } from '@nextcloud/vue'
 import { computed, ref, watch } from 'vue'
 import ArrowLeft from 'vue-material-design-icons/ArrowLeft.vue'
 import CalendarBlankOutline from 'vue-material-design-icons/CalendarBlankOutline.vue'
 import ChevronRight from 'vue-material-design-icons/ChevronRight.vue'
+import LoadingState from '../common/LoadingState.vue'
 import { useCalendarEvents } from '../../composables/useCalendarEvents.js'
 import { formatDateRange } from '../../utils/datetime.js'
 
@@ -337,19 +332,6 @@ function importSelected() {
 
 .description {
 	margin: 0 0 20px 0;
-	color: var(--color-text-maxcontrast);
-}
-
-.loading-container {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	padding: 40px;
-	gap: 12px;
-}
-
-.loading-text {
 	color: var(--color-text-maxcontrast);
 }
 

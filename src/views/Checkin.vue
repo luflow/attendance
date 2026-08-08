@@ -2,10 +2,7 @@
 	<div class="checkin-view" data-test="checkin-view">
 		<CheckinHeader @back="goBack" />
 
-		<div v-if="loading" class="loading-container">
-			<NcLoadingIcon />
-			<p>{{ t('attendance', 'Loading appointment data\u00A0…') }}</p>
-		</div>
+		<LoadingState v-if="loading" :text="t('attendance', 'Loading appointment data\u00A0…')" />
 
 		<div v-else-if="error" class="error-container">
 			<NcEmptyContent :title="t('attendance', 'Error loading appointment')">
@@ -160,7 +157,7 @@
 <script setup>
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { NcButton, NcDialog, NcEmptyContent, NcLoadingIcon, NcNoteCard, NcRadioGroup, NcRadioGroupButton } from '@nextcloud/vue'
+import { NcButton, NcDialog, NcEmptyContent, NcNoteCard, NcRadioGroup, NcRadioGroupButton } from '@nextcloud/vue'
 import { computed, onMounted, reactive, ref } from 'vue'
 import AccountSearchIcon from 'vue-material-design-icons/AccountSearch.vue'
 import AlertIcon from 'vue-material-design-icons/Alert.vue'
@@ -172,6 +169,7 @@ import CheckinControls from '../components/checkin/CheckinControls.vue'
 import CheckinHeader from '../components/checkin/CheckinHeader.vue'
 import CheckinStatus from '../components/checkin/CheckinStatus.vue'
 import CheckinUserItem from '../components/checkin/CheckinUserItem.vue'
+import LoadingState from '../components/common/LoadingState.vue'
 import { usePermissions } from '../composables/usePermissions.js'
 import { formatDateRange } from '../utils/datetime.js'
 
@@ -402,7 +400,6 @@ onMounted(async () => {
 	margin: 0 auto;
 }
 
-.loading-container,
 .error-container {
 	display: flex;
 	flex-direction: column;
