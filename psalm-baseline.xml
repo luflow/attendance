@@ -1922,17 +1922,10 @@
     <ClassMustBeFinal>
       <code><![CDATA[NotificationService]]></code>
     </ClassMustBeFinal>
-    <MixedArgument>
-      <code><![CDATA[$userId]]></code>
-    </MixedArgument>
-    <MixedAssignment>
-      <code><![CDATA[$userId]]></code>
-    </MixedAssignment>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
       <code><![CDATA[countPushDevices]]></code>
       <code><![CDATA[hasPushDevice]]></code>
-      <code><![CDATA[sendBulkAppointmentNotifications]]></code>
       <code><![CDATA[sendReminderToUser]]></code>
       <code><![CDATA[sendReminderToUsers]]></code>
     </PossiblyUnusedMethod>

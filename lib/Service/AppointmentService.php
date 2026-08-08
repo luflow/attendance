@@ -236,16 +236,41 @@ class AppointmentService {
 
 		$updated = $this->appointmentMapper->update($appointment);
 
+		$this->notifyAboutUpdate($before, $updated, $this->commitAppointmentChange($before, $updated), $userId);
+
+		return $updated;
+	}
+
+	/**
+	 * Post-commit tail shared by the single-appointment and series edit paths:
+	 * record what moved and push it out to the organizer calendar. Notifying is
+	 * deliberately not part of it — a series aggregates into one wave instead of
+	 * one per appointment.
+	 *
+	 * @return list<string> The changed fields, as recorded for the audit trail
+	 */
+	private function commitAppointmentChange(Appointment $before, Appointment $updated): array {
 		$changedFields = $this->computeAppointmentChanges($before, $updated);
 		if ($changedFields !== []) {
-			$this->auditEventService->recordAppointmentUpdate($id, $changedFields);
+			$this->auditEventService->recordAppointmentUpdate($updated->getId(), $changedFields);
 		}
 
 		$this->orgCalendarSyncService->syncAppointment($updated);
 
-		$this->notifyAboutUpdate($before, $updated, $changedFields, $userId);
+		return $changedFields;
+	}
 
-		return $updated;
+	/**
+	 * Announce an edit that happened outside updateAppointment(). The calendar
+	 * sync listener writes straight to the mapper when someone drags the linked
+	 * event in the Calendar app, and that edit is as real to an attendee as one
+	 * made in the app.
+	 *
+	 * @param string|null $actorId Excluded from the wave; null when the edit has
+	 *                             no identifiable author
+	 */
+	public function announceAppointmentUpdate(Appointment $before, Appointment $updated, ?string $actorId): void {
+		$this->notifyAboutUpdate($before, $updated, $this->computeAppointmentChanges($before, $updated), $actorId);
 	}
 
 	/**
@@ -255,9 +280,9 @@ class AppointmentService {
 	 * cancelled — editing those is bookkeeping, not news.
 	 *
 	 * @param list<string> $changedFields As returned by computeAppointmentChanges()
-	 * @param string $actorId The editor, excluded from both waves
+	 * @param string|null $actorId The editor, excluded from both waves
 	 */
-	private function notifyAboutUpdate(Appointment $before, Appointment $updated, array $changedFields, string $actorId): void {
+	private function notifyAboutUpdate(Appointment $before, Appointment $updated, array $changedFields, ?string $actorId): void {
 		if ($updated->isCancelled() || $updated->isPast()) {
 			return;
 		}
@@ -296,10 +321,13 @@ class AppointmentService {
 	}
 
 	/**
+	 * Everyone in a notification audience except the person who caused it.
+	 * Public alongside getAffectedUsers(), which is what callers feed it.
+	 *
 	 * @param array<array-key, mixed> $userIds As returned by getAffectedUsers()
 	 * @return list<string>
 	 */
-	private function recipientsWithout(array $userIds, ?string $actorId): array {
+	public function recipientsWithout(array $userIds, ?string $actorId): array {
 		return array_values(array_filter(
 			$userIds,
 			static fn ($userId): bool => is_string($userId) && $userId !== $actorId,
@@ -655,6 +683,8 @@ class AppointmentService {
 		}
 
 		$updated = [];
+		/** @var list<array{before: Appointment, after: Appointment, changed: list<string>}> $edits */
+		$edits = [];
 		foreach ($siblings as $sibling) {
 			$before = clone $sibling;
 
@@ -693,18 +723,83 @@ class AppointmentService {
 			}
 
 			$updatedSibling = $this->appointmentMapper->update($sibling);
-			$changedFields = $this->computeAppointmentChanges($before, $updatedSibling);
-			if ($changedFields !== []) {
-				$this->auditEventService->recordAppointmentUpdate(
-					$updatedSibling->getId(),
-					$changedFields,
-				);
-			}
-			$this->orgCalendarSyncService->syncAppointment($updatedSibling);
+			$edits[] = [
+				'before' => $before,
+				'after' => $updatedSibling,
+				'changed' => $this->commitAppointmentChange($before, $updatedSibling),
+			];
 			$updated[] = $updatedSibling;
 		}
 
+		$this->notifyAboutSeriesUpdate($edits, $userId);
+
 		return $updated;
+	}
+
+	/**
+	 * One wave for the whole series instead of one per appointment — moving a
+	 * weekly rehearsal by an hour would otherwise mean fifty pushes per person.
+	 * Appointments already over or cancelled do not count towards it.
+	 *
+	 * @param list<array{before: Appointment, after: Appointment, changed: list<string>}> $edits
+	 */
+	private function notifyAboutSeriesUpdate(array $edits, string $actorId): void {
+		$upcoming = array_values(array_filter(
+			$edits,
+			static fn (array $edit): bool => !$edit['after']->isCancelled() && !$edit['after']->isPast(),
+		));
+		if ($upcoming === []) {
+			return;
+		}
+
+		$notifiedChanges = [];
+		$movedCount = 0;
+		$visibilityMoved = false;
+		foreach ($upcoming as $edit) {
+			$changes = array_intersect(self::NOTIFIED_UPDATE_FIELDS, $edit['changed']);
+			if ($changes !== []) {
+				$movedCount++;
+				$notifiedChanges = array_unique(array_merge($notifiedChanges, $changes));
+			}
+			$visibilityMoved = $visibilityMoved || in_array('visibility', $edit['changed'], true);
+		}
+
+		$sample = $upcoming[0];
+		$announceNewcomers = $visibilityMoved && $sample['after']->getSendNotification();
+		if ($movedCount === 0 && !$announceNewcomers) {
+			return;
+		}
+
+		// A series edit writes the same visibility to every sibling, so one
+		// before/after pair describes the whole series' audience.
+		$addressed = $this->getAffectedUsers($sample['after']);
+		$stillAddressed = $addressed;
+
+		if ($announceNewcomers) {
+			$previouslyAddressed = $this->getAffectedUsers($sample['before']);
+			$newcomers = $this->recipientsWithout(array_diff($addressed, $previouslyAddressed), $actorId);
+			if ($newcomers !== []) {
+				// Newcomers gain the whole series at once, which is the shape the
+				// bulk-create wave already speaks.
+				$this->notificationService->sendBulkAppointmentNotifications(
+					count($upcoming),
+					$sample['after']->getName(),
+					$newcomers,
+				);
+			}
+			$stillAddressed = array_intersect($addressed, $previouslyAddressed);
+		}
+
+		if ($movedCount === 0) {
+			return;
+		}
+
+		$this->notificationService->sendSeriesUpdateNotifications(
+			$movedCount,
+			$sample['after']->getName(),
+			array_values($notifiedChanges),
+			$this->recipientsWithout($stillAddressed, $actorId),
+		);
 	}
 
 	/**

@@ -713,6 +713,91 @@ class AppointmentServiceTest extends TestCase {
 		);
 	}
 
+	/**
+	 * @param list<string> $visibleUsers Who the series addresses before the edit
+	 * @return list<Appointment> reference first, then the sibling
+	 */
+	private function setUpSeriesNotificationCase(array $visibleUsers, bool $sendNotification = false): array {
+		$siblings = [];
+		foreach ([[20, '2030-01-01'], [21, '2030-01-08']] as $index => [$id, $day]) {
+			$sibling = new Appointment();
+			$sibling->setId($id);
+			$sibling->setName('Rehearsal');
+			$sibling->setDescription('');
+			$sibling->setSeriesId('series-1');
+			$sibling->setSeriesPosition($index);
+			$sibling->setStartDatetime($day . ' 10:00:00');
+			$sibling->setEndDatetime($day . ' 11:00:00');
+			$sibling->setVisibleUsers(json_encode($visibleUsers));
+			$sibling->setSendNotification($sendNotification);
+			$siblings[] = $sibling;
+		}
+
+		$this->appointmentMapper->method('find')->with(20)->willReturn($siblings[0]);
+		$this->appointmentMapper->method('findBySeriesId')->with('series-1')->willReturn($siblings);
+		$this->appointmentMapper->method('update')->willReturnArgument(0);
+		$this->permissionService->method('canManageAppointments')->willReturn(true);
+
+		return $siblings;
+	}
+
+	public function testMovedSeriesSendsOneWaveForTheWholeSeries(): void {
+		$this->setUpSeriesNotificationCase(['admin', 'alice']);
+
+		$this->notificationService->expects($this->once())
+			->method('sendSeriesUpdateNotifications')
+			->with(2, 'Rehearsal', ['time'], ['alice']);
+		$this->notificationService->expects($this->never())->method('sendUpdateNotifications');
+
+		$this->service->updateSeriesAppointments(
+			20, 'all', 'Rehearsal', '', '2030-01-01T18:00:00Z', '2030-01-01T19:00:00Z',
+			'admin', ['admin', 'alice'],
+		);
+	}
+
+	public function testSeriesWaveCountsOnlyTheAppointmentsStillAhead(): void {
+		$siblings = $this->setUpSeriesNotificationCase(['alice']);
+		// The reference keeps its time, so the whole series shifts by zero and
+		// this sibling stays in the past.
+		$siblings[1]->setStartDatetime('2020-01-08 10:00:00');
+		$siblings[1]->setEndDatetime('2020-01-08 11:00:00');
+
+		$this->notificationService->expects($this->once())
+			->method('sendSeriesUpdateNotifications')
+			->with(1, 'Rehearsal', ['location'], ['alice']);
+
+		$this->service->updateSeriesAppointments(
+			20, 'all', 'Rehearsal', '', '2030-01-01T10:00:00Z', '2030-01-01T11:00:00Z',
+			'admin', ['alice'], [], [], null, null, 'Concert hall',
+		);
+	}
+
+	public function testSeriesStaysSilentAboutCosmeticChanges(): void {
+		$this->setUpSeriesNotificationCase(['alice']);
+
+		$this->notificationService->expects($this->never())->method('sendSeriesUpdateNotifications');
+		$this->notificationService->expects($this->never())->method('sendBulkAppointmentNotifications');
+
+		$this->service->updateSeriesAppointments(
+			20, 'all', 'Rehearsal reloaded', 'Bring your scores', '2030-01-01T10:00:00Z', '2030-01-01T11:00:00Z',
+			'admin', ['alice'],
+		);
+	}
+
+	public function testWideningSeriesVisibilityAnnouncesTheSeriesToNewcomers(): void {
+		$this->setUpSeriesNotificationCase(['alice'], true);
+
+		$this->notificationService->expects($this->once())
+			->method('sendBulkAppointmentNotifications')
+			->with(2, 'Rehearsal', ['bob']);
+		$this->notificationService->expects($this->never())->method('sendSeriesUpdateNotifications');
+
+		$this->service->updateSeriesAppointments(
+			20, 'all', 'Rehearsal', '', '2030-01-01T10:00:00Z', '2030-01-01T11:00:00Z',
+			'admin', ['alice', 'bob'],
+		);
+	}
+
 	public function testUpdateStaysSilentForAnAppointmentThatIsOver(): void {
 		$this->setUpUpdateNotificationCase(['alice']);
 

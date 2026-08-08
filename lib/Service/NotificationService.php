@@ -381,8 +381,43 @@ class NotificationService {
 
 	/**
 	 * Send a single notification about multiple new appointments
+	 *
+	 * @param list<string> $userIds Addressed attendees to notify
 	 */
 	public function sendBulkAppointmentNotifications(int $count, string $firstName, array $userIds): void {
+		$this->sendAggregateWave('appointments_bulk_created', [
+			'count' => $count,
+			'firstName' => $firstName,
+		], $userIds);
+	}
+
+	/**
+	 * Notify addressed attendees that appointments across a series moved. One
+	 * notification covers the whole series — see
+	 * AppointmentService::notifyAboutSeriesUpdate().
+	 *
+	 * @param int $count How many upcoming appointments in the series moved
+	 * @param string $name The series' shared appointment name
+	 * @param list<string> $changedFields Which of the notified fields moved
+	 * @param list<string> $userIds Addressed attendees to notify
+	 */
+	public function sendSeriesUpdateNotifications(int $count, string $name, array $changedFields, array $userIds): void {
+		$this->sendAggregateWave('appointments_series_updated', [
+			'count' => $count,
+			'name' => $name,
+			'changed' => $changedFields,
+		], $userIds);
+	}
+
+	/**
+	 * Shared body of the waves that speak about several appointments at once.
+	 * They carry no single appointment, so they link to the list and group
+	 * under their own object type rather than 'appointment'.
+	 *
+	 * @param array<string, mixed> $subjectParameters
+	 * @param list<string> $userIds
+	 */
+	private function sendAggregateWave(string $subject, array $subjectParameters, array $userIds): void {
 		if (!$this->isNotificationsAppEnabled()) {
 			$this->logger->warning('Cannot send notifications - notifications app is not enabled');
 			return;
@@ -404,16 +439,14 @@ class NotificationService {
 					->setUser($userId)
 					->setDateTime(new \DateTime())
 					->setObject('appointment_bulk', uniqid())
-					->setSubject('appointments_bulk_created', [
-						'count' => $count,
-						'firstName' => $firstName,
-					])
+					->setSubject($subject, $subjectParameters)
 					->setLink($appUrl);
 
 				$this->notificationManager->notify($notification);
 				$sentCount++;
 			} catch (\Exception $e) {
-				$this->logger->error('Failed to send bulk appointment notification', [
+				$this->logger->error('Failed to send aggregate appointment notification', [
+					'subject' => $subject,
 					'userId' => $userId,
 					'error' => $e->getMessage(),
 				]);
@@ -424,8 +457,8 @@ class NotificationService {
 			$this->notificationManager->flush();
 		}
 
-		$this->logger->info('Finished sending bulk appointment notifications', [
-			'count' => $count,
+		$this->logger->info('Finished sending aggregate appointment notifications', [
+			'subject' => $subject,
 			'totalUsers' => count($userIds),
 			'sentCount' => $sentCount,
 		]);

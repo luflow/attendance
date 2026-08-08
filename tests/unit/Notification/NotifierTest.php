@@ -50,6 +50,10 @@ class NotifierTest extends TestCase {
 		$l->method('t')->willReturnCallback(
 			static fn (string $text, array $params = []): string => vsprintf($text, $params),
 		);
+		$l->method('n')->willReturnCallback(
+			static fn (string $one, string $many, int $count, array $params = []): string
+				=> vsprintf($count === 1 ? $one : $many, $params),
+		);
 		$this->l10nFactory->method('get')->willReturn($l);
 
 		$this->notifier = new Notifier(
@@ -223,6 +227,24 @@ class NotifierTest extends TestCase {
 
 		$result = $this->notifier->prepare($notification, 'de');
 		$this->assertSame($notification, $result);
+	}
+
+	public function testSeriesUpdateNotificationCountsAndDescribes(): void {
+		$notification = $this->mockAppointmentNotification('appointments_series_updated', [
+			'count' => 12,
+			'name' => 'Rehearsal',
+			'changed' => ['time'],
+		]);
+		$notification->expects($this->once())
+			->method('setParsedSubject')
+			->with('12 appointments changed in "Rehearsal"')
+			->willReturnSelf();
+		$notification->expects($this->once())
+			->method('setParsedMessage')
+			->with('The date has changed. Please check whether your response still fits.')
+			->willReturnSelf();
+
+		$this->notifier->prepare($notification, 'de');
 	}
 
 	public function testReactivationNotificationIsRendered(): void {

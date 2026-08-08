@@ -246,6 +246,23 @@ class Notifier implements INotifier {
 				));
 
 				return $notification;
+			case 'appointments_series_updated':
+				$parameters = $notification->getSubjectParameters();
+				$count = (int)($parameters['count'] ?? 0);
+				$seriesName = (string)($parameters['name'] ?? '');
+
+				$notification->setParsedSubject(
+					// TRANSLATORS Push notification subject: several appointments of a recurring series moved at once. %1$s is how many, %2$s the name they share.
+					$l->n('%1$s appointment changed in "%2$s"', '%1$s appointments changed in "%2$s"', $count, [$count, $seriesName])
+				);
+				$notification->setParsedMessage(
+					$this->describeUpdate((array)($parameters['changed'] ?? []), $l)
+				);
+				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
+					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
+				));
+
+				return $notification;
 			default:
 				throw new UnknownNotificationException();
 		}
