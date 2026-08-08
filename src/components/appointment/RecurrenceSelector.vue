@@ -97,9 +97,8 @@
 							class="count-input"
 							data-test="input-count"
 							:inputProps="{ min: 1, max: 52 }" />
-						<span class="end-label">{{
-							t("attendance", "occurrences")
-						}}</span>
+						<!-- TRANSLATORS: Unit after a number in "Ends after [5] occurrences" — how many times the appointment repeats. -->
+						<span class="end-label">{{ t("attendance", "occurrences") }}</span>
 					</div>
 					<div class="end-option">
 						<NcCheckboxRadioSwitch
@@ -220,12 +219,19 @@ const frequencyOptions = [
 ]
 
 const weekdays = [
+	// TRANSLATORS: Weekday toggle in the weekly-recurrence picker — the short form of Montag, as used in a calendar header.
 	{ value: 'MO', label: t('attendance', 'Mon') },
+	// TRANSLATORS: Weekday toggle in the weekly-recurrence picker — the short form of Dienstag, as used in a calendar header.
 	{ value: 'TU', label: t('attendance', 'Tue') },
+	// TRANSLATORS: Weekday toggle in the weekly-recurrence picker — the short form of Mittwoch, as used in a calendar header.
 	{ value: 'WE', label: t('attendance', 'Wed') },
+	// TRANSLATORS: Weekday toggle in the weekly-recurrence picker — the short form of Donnerstag, as used in a calendar header.
 	{ value: 'TH', label: t('attendance', 'Thu') },
+	// TRANSLATORS: Weekday toggle in the weekly-recurrence picker — the short form of Freitag, as used in a calendar header.
 	{ value: 'FR', label: t('attendance', 'Fri') },
+	// TRANSLATORS: Weekday toggle in the weekly-recurrence picker — the short form of Samstag, as used in a calendar header.
 	{ value: 'SA', label: t('attendance', 'Sat') },
+	// TRANSLATORS: Weekday toggle in the weekly-recurrence picker — the short form of Sonntag, as used in a calendar header.
 	{ value: 'SU', label: t('attendance', 'Sun') },
 ]
 

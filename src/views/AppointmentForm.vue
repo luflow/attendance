@@ -350,6 +350,7 @@
 					<template #icon>
 						<Plus :size="20" />
 					</template>
+					<!-- TRANSLATORS: Button opening the Nextcloud file picker to attach files. "Files" is the name of the Nextcloud Files app (German "Dateien"), not files in general. -->
 					{{ t("attendance", "Add from Files") }}
 				</NcButton>
 			</div>

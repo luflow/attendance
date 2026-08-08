@@ -306,6 +306,7 @@ async function checkinUser(userId, response, reloadData = true) {
 
 function confirmBulkCheckin(response) {
 	const userCount = filteredAllUsers.value.length
+	// TRANSLATORS: "attending" / "not attending" are substituted into "Do you want to set {count} users to {action}?", so they must fit mid-sentence after "to" and stay lowercase. They describe presence, not a yes/no answer.
 	const actionText = response === 'yes' ? t('attendance', 'attending') : t('attendance', 'not attending')
 
 	confirmMessage.value = n('attendance', 'Do you want to set {count} user to {action}?', 'Do you want to set {count} users to {action}?', userCount, { count: userCount, action: actionText })

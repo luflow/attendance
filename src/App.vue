@@ -317,6 +317,7 @@ t('attendance', 'Are you sure you want to log out?')
 t('attendance', 'Reset to server color')
 t('attendance', 'Appearance')
 t('attendance', 'Background style')
+// TRANSLATORS: Background style option in the mobile app's appearance settings — a colour gradient (German "Farbverlauf"), not a mathematical gradient.
 t('attendance', 'Gradient')
 t('attendance', 'Color')
 t('attendance', 'Tiled')
@@ -350,6 +351,7 @@ t('attendance', 'Ask an administrator to allow your account under Administration
 
 t('attendance', 'Checked in')
 t('attendance', 'Not checked in')
+// TRANSLATORS: Status badge on an appointment that is running right now — it started and has not ended yet.
 t('attendance', 'Happening now')
 t('attendance', 'Error loading data')
 t('attendance', 'Reset failed')
@@ -368,6 +370,7 @@ t('attendance', 'Subscription')
 t('attendance', 'Active')
 t('attendance', 'Active app users')
 t('attendance', 'Manage Subscription')
+// TRANSLATORS: Subscription status — the free trial period is running. German "Testphase", the same word as in "Your free trial has ended".
 t('attendance', 'Trial')
 t('attendance', 'days remaining')
 t('attendance', 'Restore Purchases')
@@ -420,6 +423,7 @@ t('attendance', 'Attendees scan this code with the Attendance app to check in. O
 t('attendance', 'Basic')
 // TRANSLATORS: Shown on an appointment that was called off; {when} is the date of the cancellation (German "Abgesagt am {when}", not "Abgebrochen").
 t('attendance', 'Cancelled on {when}')
+// TRANSLATORS: Button that performs the check-in — a verb (German "Einchecken"). The audit-log label "Check-in" is the noun and reads differently.
 t('attendance', 'Check in')
 t('attendance', 'Check-in failed')
 t('attendance', 'Check-in opens at {time}')
@@ -456,6 +460,7 @@ t('attendance', 'I need an invoice')
 t('attendance', "I'm missing a feature")
 t('attendance', "I'm still evaluating")
 t('attendance', 'Invite guest')
+// TRANSLATORS: Reason for buying directly instead of through the app store: the buyer is a registered club or society (German "Verein") needing a proper invoice. Not an assignment.
 t('attendance', 'Invoice/association')
 t('attendance', "It's not my decision alone")
 t('attendance', 'Just for me')
@@ -479,6 +484,7 @@ t('attendance', 'One license covers everyone on your server.')
 // TRANSLATORS: Subscription status shown for a license that covers one person
 // rather than the whole Nextcloud instance.
 t('attendance', 'Personal license')
+// TRANSLATORS: Setting for the check-in button in the mobile app. The button does the scanning (camera or NFC); it is not itself scanned.
 t('attendance', 'Pick how the check-in button scans, or ask each time.')
 t('attendance', 'Point your camera at the check-in code, or hold your phone to the NFC tag.')
 t('attendance', 'Point your camera at the check-in code.')

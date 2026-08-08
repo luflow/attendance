@@ -16,6 +16,7 @@
 				<span>{{ n('attendance', '%n appointment awaiting your response', '%n appointments awaiting your response', appointments.length) }}</span>
 			</div>
 			<div v-else class="unanswered-banner complete">
+				<!-- TRANSLATORS: Empty state when nothing is left to answer. "responded to" means an answer was given, NOT that the person attended. -->
 				<span>{{ t('attendance', 'Hurray! You responded to all appointments.') }}</span>
 				<NcButton
 					@click="goToUpcoming">
