@@ -28,12 +28,17 @@ import find_untranslated as F  # noqa: E402  shared extraction + SKIP_DIRS
 
 SRC_EXTS = ('.vue', '.js', '.ts', '.mjs', '.php')
 
+# Dependency trees are not Transifex's scope: an English literal that only
+# appears in vendor/ must not keep a dead key alive. They also carry fixtures
+# that are deliberately not UTF-8.
+SKIP_DIRS = F.SKIP_DIRS | {'vendor', 'vendor-bin'}
+
 
 def source_blob(root):
     """Concatenation of every scannable source file (Transifex's scope)."""
     parts = []
     for dirpath, dirs, files in os.walk(root):
-        dirs[:] = [d for d in dirs if d not in F.SKIP_DIRS]
+        dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
         for f in files:
             if f.endswith(SRC_EXTS):
                 parts.append(open(os.path.join(dirpath, f), encoding='utf-8')
