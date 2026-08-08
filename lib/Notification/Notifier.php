@@ -92,7 +92,7 @@ class Notifier implements INotifier {
 					$l->t('Response missing: %1$s on %2$s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
-					// TRANSLATORS Push notification body for a reminder, shown under a "Response missing" subject that already names the appointment and its date. The app speaks as "we", the people organizing — not about them in the third person. People who cannot come tend to stay silent rather than answer, which leaves the planning guessing, hence the second sentence.
+					// TRANSLATORS Push notification body for a reminder, shown under a "Response missing" subject that already names the appointment and its date. The app speaks as "we", the people organizing — not about them in the third person. People who cannot come tend to stay silent rather than answer, which leaves the planning guessing, hence the second sentence. Sample German: "Wir warten noch auf dich. Ein Nein hilft uns genauso wie ein Ja.".
 					$l->t('We are still waiting. A no helps just as much as a yes.')
 				);
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
@@ -120,7 +120,7 @@ class Notifier implements INotifier {
 					$l->t('New appointment: %1$s on %2$s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
-					// TRANSLATORS Push notification body for a newly created appointment, shown under a "New appointment" subject that already names it and its date. The app speaks as "we", the people organizing — not about them in the third person. "Make it" means being able to attend. Organizers only switch this notification on when they need answers fast, so keep the urgency of the first sentence: it is the whole reason the message was sent.
+					// TRANSLATORS Push notification body for a newly created appointment, shown under a "New appointment" subject that already names it and its date. The app speaks as "we", the people organizing — not about them in the third person. "Make it" means being able to attend. Organizers only switch this notification on when they need answers fast, so keep the urgency of the first sentence: it is the whole reason the message was sent. Sample German: "Wir brauchen schnell deine Rückmeldung. Bist du dabei?".
 					$l->t('We need your answer quickly. Let us know whether you can make it.')
 				);
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
@@ -146,7 +146,7 @@ class Notifier implements INotifier {
 					$l->t('Appointment cancelled: %1$s on %2$s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
-					// TRANSLATORS Push notification body for a called-off appointment (German "abgesagt", not "abgebrochen"), shown under an "Appointment cancelled" subject that already names it and its date. The second half is the useful part: nothing is left to do and the slot in the calendar is free again.
+					// TRANSLATORS Push notification body for a called-off appointment (German "abgesagt", not "abgebrochen"), shown under an "Appointment cancelled" subject that already names it and its date. The second half is the useful part: nothing is left to do and the slot in the calendar is free again. Sample German: "Der Termin fällt aus, du hast die Zeit wieder frei.".
 					$l->t('It will not take place, so the time is yours again.')
 				);
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
@@ -167,7 +167,7 @@ class Notifier implements INotifier {
 					$l->t('Appointment takes place after all: %1$s on %2$s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
-					// TRANSLATORS Push notification body, shown under the "takes place after all" subject, which already names the appointment and its date. The app speaks as "we", the people organizing. The second sentence is the point: someone who was told it was off has likely booked that slot for something else, so their old yes/no/maybe answer may no longer hold.
+					// TRANSLATORS Push notification body, shown under the "takes place after all" subject, which already names the appointment and its date. The app speaks as "we", the people organizing. The second sentence is the point: someone who was told it was off has likely booked that slot for something else, so their old yes/no/maybe answer may no longer hold. Sample German: "Wir haben die Absage zurückgenommen. Falls du inzwischen etwas anderes vorhast, ändere bitte deine Antwort.".
 					$l->t('We have withdrawn the cancellation. If you have made other plans since, please update your response.')
 				);
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
@@ -216,7 +216,7 @@ class Notifier implements INotifier {
 						$l->t('You are scheduled for %1$s on %2$s', [$appointmentName, $appointmentDate])
 					);
 					$notification->setParsedMessage(
-						// TRANSLATORS Push notification body, personal and friendly, shown under a subject that already says the person is scheduled (German "eingeplant", not "geplant") and names the appointment. More people volunteer than there are places, so the news is that this person got one and is expected to turn up.
+						// TRANSLATORS Push notification body, personal and friendly, shown under a subject that already says the person is scheduled (German "eingeplant", not "geplant") and names the appointment. More people volunteer than there are places, so the news is that this person got one and is expected to turn up. Sample German: "Du bist dabei — bitte halte dir den Termin frei. Danke für deine Antwort.".
 						$l->t('You have a place, so please plan to be there. Thanks for answering.')
 					);
 				} else {
@@ -225,7 +225,7 @@ class Notifier implements INotifier {
 						$l->t('You are not scheduled for %1$s on %2$s', [$appointmentName, $appointmentDate])
 					);
 					$notification->setParsedMessage(
-						// TRANSLATORS Push notification body, personal and friendly, shown under a subject that already says the person is not scheduled (German "nicht eingeplant", not "nicht geplant"). The app speaks as "we", the people organizing. The delicate one: being turned down reads as a judgement unless the reason is named, so keep the explanation that there were simply more volunteers than places.
+						// TRANSLATORS Push notification body, personal and friendly, shown under a subject that already says the person is not scheduled (German "nicht eingeplant", not "nicht geplant"). The app speaks as "we", the people organizing. The delicate one: being turned down reads as a judgement unless the reason is named, so keep the explanation that there were simply more volunteers than places. Sample German: "Diesmal hatten wir mehr Zusagen als Plätze. Danke für deine Antwort.".
 						$l->t('We had more volunteers than places this time. Thanks for answering.')
 					);
 				}
@@ -248,7 +248,7 @@ class Notifier implements INotifier {
 					$l->n('%1$s new "%2$s" appointment added', '%1$s new "%2$s" appointments added', $count, [$count, $firstName])
 				);
 				$notification->setParsedMessage(
-					// TRANSLATORS Push notification body for several appointments added at once, shown under a subject that already gives the number and one example name. The app speaks as "we", the people organizing — not about them in the third person. The recipient answers each appointment separately, which is why this says "which ones" rather than asking for a single answer.
+					// TRANSLATORS Push notification body for several appointments added at once, shown under a subject that already gives the number and one example name. The app speaks as "we", the people organizing — not about them in the third person. The recipient answers each appointment separately, which is why this says "which ones" rather than asking for a single answer. Sample German: "Sag uns bitte, bei welchen Terminen du dabei bist.".
 					$l->t('Let us know which ones you can make.')
 				);
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
@@ -262,7 +262,7 @@ class Notifier implements INotifier {
 				$seriesName = (string)($parameters['name'] ?? '');
 
 				$notification->setParsedSubject(
-					// TRANSLATORS Push notification subject: several appointments of a recurring series moved at once. %1$s is how many, %2$s the name they share.
+					// TRANSLATORS Push notification subject: several appointments of a recurring series moved at once. %1$s is how many, %2$s the name they share. Sample German: "1 Termin der Reihe „Probe" geändert" / "12 Termine der Reihe „Probe" geändert".
 					$l->n('%1$s appointment changed in "%2$s"', '%1$s appointments changed in "%2$s"', $count, [$count, $seriesName])
 				);
 				$notification->setParsedMessage(

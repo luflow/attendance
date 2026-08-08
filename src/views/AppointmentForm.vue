@@ -305,7 +305,7 @@
 				v-if="notificationsAppEnabled && (mode === 'create' || mode === 'copy')"
 				class="form-section">
 				<h3>{{ t("attendance", "Notification") }}</h3>
-				<!-- TRANSLATORS: Hint under the notification toggle when creating an appointment. It tells the organizer what the people on the other end actually get: a notification on their devices that pushes for a quick answer. The last sentence is guidance on when to use it, so that the urgent wording of that notification stays true — routine appointments are better left unnotified. -->
+				<!-- TRANSLATORS: Hint under the notification toggle when creating an appointment. It tells the organizer what the people on the other end actually get: a notification on their devices that pushes for a quick answer. The last sentence is guidance on when to use it, so that the urgent wording of that notification stays true — routine appointments are better left unnotified. Sample German: "Benachrichtigt alle, die diesen Termin sehen können, und bittet um sofortige Antwort. Nutze das, wenn du schnell Rückmeldungen brauchst." -->
 				<p class="hint-text">
 					{{
 						t(
