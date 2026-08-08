@@ -62,7 +62,9 @@ def check_locale(loc, findings):
                 findings.append(f'{loc}: literal "..." instead of "…" in {key[:60]!r}')
             if '…' in s and re.search(r'(?<![\s ])…', s):
                 findings.append(f'{loc}: missing non-breaking space before "…" in {key[:60]!r}')
-            if '"' in s and '"' not in source:
+            # German quotes even where the English source uses "…" — the source's
+            # typography is not German typography.
+            if '"' in s:
                 findings.append(f'{loc}: straight quotes (use „…“) in {key[:60]!r} -> {s!r}')
 
             want = sorted(PLACEHOLDER.findall(source))
