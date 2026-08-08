@@ -243,9 +243,9 @@ class Notifier implements INotifier {
 				$firstName = $parameters['firstName'] ?? '';
 
 				$notification->setParsedSubject(
-					// TRANSLATORS Push notification subject: several appointments were added in one go, or a whole series just became visible to this person. %1$s is how many, %2$s is the name of one of them — the appointments may all share that name or each have their own, so %2$s is a sample and not a title for the whole batch. Keep %1$s in both forms: languages with more than two plural forms need the number in the "one" form too (Russian uses it for 21, 31, …).
-					// Sample German: "1 neuer Termin: „Probe"" / "12 neue Termine, darunter „Probe"".
-					$l->n('%1$s new appointment added: "%2$s"', '%1$s new appointments added, including "%2$s"', $count, [$count, $firstName])
+					// TRANSLATORS Push notification subject: a recurring appointment was set up, or a whole series just became visible to this person. %1$s is how many dates there are, %2$s the name they all share — every appointment in the batch carries that same name, so it is the title of the whole thing rather than one example. Keep %1$s in both forms: languages with more than two plural forms need the number in the "one" form too (Russian uses it for 21, 31, …).
+					// Sample German: "1 neuer Termin „Probe" hinzugefuegt" / "12 neue Termine „Probe" hinzugefuegt".
+					$l->n('%1$s new "%2$s" appointment added', '%1$s new "%2$s" appointments added', $count, [$count, $firstName])
 				);
 				$notification->setParsedMessage(
 					// TRANSLATORS Push notification body for several appointments added at once, shown under a subject that already gives the number and one example name. The app speaks as "we", the people organizing — not about them in the third person. The recipient answers each appointment separately, which is why this says "which ones" rather than asking for a single answer.
