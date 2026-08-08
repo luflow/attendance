@@ -8,6 +8,7 @@
 				<template #icon>
 					<ShareVariantIcon :size="20" />
 				</template>
+				<!-- TRANSLATORS: Menu action that copies the appointment link so it can be passed on — a verb ("share the link"), not a noun for the link itself. -->
 				{{ t("attendance", "Share link") }}
 			</NcActionButton>
 			<NcActionButton

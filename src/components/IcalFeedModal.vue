@@ -48,6 +48,7 @@
 				</div>
 
 				<div v-if="lastUsedAt" class="last-used-info">
+					<!-- TRANSLATORS: Label before a timestamp saying when a calendar app last fetched this iCal feed — the feed being polled, not a person opening something. -->
 					<span class="last-used-label">{{ t('attendance', 'Last accessed') }}:</span>
 					<span class="last-used-date">{{ formatDateTime(lastUsedAt) }}</span>
 				</div>
