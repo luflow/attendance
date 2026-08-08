@@ -161,6 +161,7 @@ class Notifier implements INotifier {
 					$l->t('Appointment takes place after all: %1$s on %2$s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
+					// TRANSLATORS Push notification body, shown under the "takes place after all" subject. The organizer had cancelled this appointment and has now reinstated it, so it is happening as originally planned. "Your response" is the recipient's own yes/no/maybe answer, which they may want to revisit now that the appointment is back on.
 					$l->t('The cancellation has been withdrawn. Please check your response.')
 				);
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
@@ -352,14 +353,18 @@ class Notifier implements INotifier {
 		$locationChanged = in_array('location', $changedFields, true);
 
 		if ($timeChanged && $locationChanged) {
+			// TRANSLATORS Push notification body for an edited appointment, shown under an "Appointment changed" or "N appointments changed" subject. Both when it takes place and where it takes place were edited. "Date" covers the day and the time of day, not a response deadline. "Your response" is the recipient's own yes/no/maybe answer: they are asked to check whether the answer they already gave still holds for the new date and place.
 			return $l->t('Date and location have changed. Please check whether your response still fits.');
 		}
 		if ($timeChanged) {
+			// TRANSLATORS Push notification body for an edited appointment, shown under an "Appointment changed" or "N appointments changed" subject. The appointment was moved to a different day or time of day — this is not about a response deadline. "Your response" is the recipient's own yes/no/maybe answer, which they are asked to re-check against the new date.
 			return $l->t('The date has changed. Please check whether your response still fits.');
 		}
 		if ($locationChanged) {
+			// TRANSLATORS Push notification body for an edited appointment, shown under an "Appointment changed" or "N appointments changed" subject. Only the place where the appointment happens was edited; the date and time are unchanged, which is why this sentence does not ask the recipient to re-check their answer.
 			return $l->t('The location has changed.');
 		}
+		// TRANSLATORS Push notification body for an edited appointment, used when the notification does not name which detail was edited. Keep it as an unspecific nudge to open the appointment and look at it.
 		return $l->t('Please check the appointment.');
 	}
 
