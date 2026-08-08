@@ -91,7 +91,8 @@ class Notifier implements INotifier {
 					$l->t('Response missing: %1$s on %2$s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
-					$l->t('Please respond to the upcoming appointment!')
+					// TRANSLATORS Push notification body for a reminder, shown under a "Response missing" subject that already names the appointment and its date. People who cannot come tend to stay silent rather than answer, which leaves the organizer guessing — hence the second sentence.
+					$l->t('The organizer is still waiting. A no helps just as much as a yes.')
 				);
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
 					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
@@ -117,7 +118,8 @@ class Notifier implements INotifier {
 					$l->t('New appointment: %1$s on %2$s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
-					$l->t('A new appointment has been created. Please respond soon.')
+					// TRANSLATORS Push notification body for a newly created appointment, shown under a "New appointment" subject that already names it and its date. "Make it" means being able to attend. Keep it to the one thing the recipient has to do, since the subject has already delivered the news.
+					$l->t('Please let the organizer know whether you can make it.')
 				);
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
 					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
@@ -141,7 +143,8 @@ class Notifier implements INotifier {
 					$l->t('Appointment cancelled: %1$s on %2$s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
-					$l->t('This appointment will not take place.')
+					// TRANSLATORS Push notification body for a called-off appointment (German "abgesagt", not "abgebrochen"), shown under an "Appointment cancelled" subject that already names it and its date. The second half is the useful part: nothing is left to do and the slot in the calendar is free again.
+					$l->t('It will not take place, so the time is yours again.')
 				);
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
 					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
@@ -161,8 +164,8 @@ class Notifier implements INotifier {
 					$l->t('Appointment takes place after all: %1$s on %2$s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
-					// TRANSLATORS Push notification body, shown under the "takes place after all" subject, which already names the appointment and its date. The organizer had cancelled this appointment and has now reinstated it. The second sentence is the point of the message: after hearing it was cancelled, the recipient may well have booked something else for that slot, so they are asked to correct their yes/no/maybe answer if it no longer holds. Keep the reassuring, slightly relieved tone.
-					$l->t('The cancellation has been withdrawn and this appointment is going ahead as planned. If you have made other plans in the meantime, please update your response.')
+					// TRANSLATORS Push notification body, shown under the "takes place after all" subject, which already names the appointment and its date. The organizer had cancelled it and has now reinstated it. The second sentence is the point: someone who was told it was off has likely booked that slot for something else, so their old yes/no/maybe answer may no longer hold.
+					$l->t('The cancellation has been withdrawn. If you have made other plans since, please update your response.')
 				);
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
 					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
@@ -210,8 +213,8 @@ class Notifier implements INotifier {
 						$l->t('You are scheduled for %1$s on %2$s', [$appointmentName, $appointmentDate])
 					);
 					$notification->setParsedMessage(
-						// TRANSLATORS Push notification body, personal and friendly — confirms the person got a place in the appointment (German "eingeplant", not "geplant") and thanks them for responding.
-						$l->t('You are scheduled for this appointment. Thank you for your response!')
+						// TRANSLATORS Push notification body, personal and friendly, shown under a subject that already says the person is scheduled (German "eingeplant", not "geplant") and names the appointment. More people volunteer than there are places, so the news is that this person got one and is expected to turn up.
+						$l->t('You have a place, so please plan to be there. Thanks for answering.')
 					);
 				} else {
 					$notification->setParsedSubject(
@@ -219,8 +222,8 @@ class Notifier implements INotifier {
 						$l->t('You are not scheduled for %1$s on %2$s', [$appointmentName, $appointmentDate])
 					);
 					$notification->setParsedMessage(
-						// TRANSLATORS Push notification body, personal and friendly — gently tells the person they are not part of this appointment this time and thanks them for responding.
-						$l->t('Unfortunately, you are not part of this appointment this time. Thank you for your response!')
+						// TRANSLATORS Push notification body, personal and friendly, shown under a subject that already says the person is not scheduled (German "nicht eingeplant", not "nicht geplant"). The delicate one: being turned down reads as a judgement unless the reason is named, so keep the explanation that there were simply more volunteers than places.
+						$l->t('There were more volunteers than places this time. Thanks for answering.')
 					);
 				}
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
@@ -240,7 +243,8 @@ class Notifier implements INotifier {
 					$l->n('%1$s new appointment added (e.g. "%2$s")', '%1$s new appointments added (e.g. "%2$s")', $count, [$count, $firstName])
 				);
 				$notification->setParsedMessage(
-					$l->t('Please check the new appointments and respond.')
+					// TRANSLATORS Push notification body for several appointments added at once, shown under a subject that already gives the number and one example name. The recipient answers each appointment separately, which is why this says "which ones" rather than asking for a single answer.
+					$l->t('Please let the organizer know which ones you can make.')
 				);
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
 					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
