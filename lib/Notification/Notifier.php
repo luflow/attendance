@@ -161,8 +161,8 @@ class Notifier implements INotifier {
 					$l->t('Appointment takes place after all: %1$s on %2$s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
-					// TRANSLATORS Push notification body, shown under the "takes place after all" subject. The organizer had cancelled this appointment and has now reinstated it, so it is happening as originally planned. "Your response" is the recipient's own yes/no/maybe answer, which they may want to revisit now that the appointment is back on.
-					$l->t('The cancellation has been withdrawn. Please check your response.')
+					// TRANSLATORS Push notification body, shown under the "takes place after all" subject, which already names the appointment and its date. The organizer had cancelled this appointment and has now reinstated it. The second sentence is the point of the message: after hearing it was cancelled, the recipient may well have booked something else for that slot, so they are asked to correct their yes/no/maybe answer if it no longer holds. Keep the reassuring, slightly relieved tone.
+					$l->t('The cancellation has been withdrawn and this appointment is going ahead as planned. If you have made other plans in the meantime, please update your response.')
 				);
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
 					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
