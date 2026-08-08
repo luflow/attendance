@@ -34,7 +34,7 @@
     "canvas-confetti": "^1.9.4",
     "date-fns": "^4.4.0",
     "date-fns-tz": "^3.2.0",
-    "dompurify": "^3.4.12",
+    "dompurify": "^3.4.13",
     "easymde": "^2.21.0",
     "marked": "^18.0.7",
     "qrcode": "^1.5.4",
