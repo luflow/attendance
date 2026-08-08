@@ -78,6 +78,8 @@ OC.L10N.register(
     "Insert link" : "Уставіць спасылку",
     "Dismiss" : "Адхіліць",
     "Categories" : "Катэгорыі",
+    "Close" : "Закрыць",
+    "Continue" : "Працягнуць",
     "Permissions" : "Дазволы",
     "Mobile apps" : "Мабільныя праграмы",
     "Category name" : "Назва катэгорыі",

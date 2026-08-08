@@ -37,6 +37,8 @@ OC.L10N.register(
     "Back" : "Geri",
     "Dismiss" : "Rədd et",
     "Categories" : "Kateqoriyalar",
+    "Close" : "Bağla",
+    "Continue" : "Davam et",
     "Settings saved" : "Parametrlər yaddaşa verildi",
     "Link copied" : "Link kopyalandı",
     "Location" : "Yerləşdiyiniz ünvan",
