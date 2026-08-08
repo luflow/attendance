@@ -255,7 +255,7 @@ class NotifierTest extends TestCase {
 		]);
 		$notification->expects($this->once())
 			->method('setParsedMessage')
-			->with('The cancellation has been withdrawn. If you have made other plans since, please update your response.')
+			->with('We have withdrawn the cancellation. If you have made other plans since, please update your response.')
 			->willReturnSelf();
 
 		$this->notifier->prepare($notification, 'de');

@@ -91,8 +91,8 @@ class Notifier implements INotifier {
 					$l->t('Response missing: %1$s on %2$s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
-					// TRANSLATORS Push notification body for a reminder, shown under a "Response missing" subject that already names the appointment and its date. People who cannot come tend to stay silent rather than answer, which leaves the organizer guessing — hence the second sentence.
-					$l->t('The organizer is still waiting. A no helps just as much as a yes.')
+					// TRANSLATORS Push notification body for a reminder, shown under a "Response missing" subject that already names the appointment and its date. The app speaks as "we", the people organizing — not about them in the third person. People who cannot come tend to stay silent rather than answer, which leaves the planning guessing, hence the second sentence.
+					$l->t('We are still waiting. A no helps just as much as a yes.')
 				);
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
 					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
@@ -118,8 +118,8 @@ class Notifier implements INotifier {
 					$l->t('New appointment: %1$s on %2$s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
-					// TRANSLATORS Push notification body for a newly created appointment, shown under a "New appointment" subject that already names it and its date. "Make it" means being able to attend. Keep it to the one thing the recipient has to do, since the subject has already delivered the news.
-					$l->t('Please let the organizer know whether you can make it.')
+					// TRANSLATORS Push notification body for a newly created appointment, shown under a "New appointment" subject that already names it and its date. The app speaks as "we", the people organizing — not about them in the third person. "Make it" means being able to attend. Keep it to the one thing the recipient has to do, since the subject has already delivered the news.
+					$l->t('Let us know whether you can make it.')
 				);
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
 					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
@@ -164,8 +164,8 @@ class Notifier implements INotifier {
 					$l->t('Appointment takes place after all: %1$s on %2$s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
-					// TRANSLATORS Push notification body, shown under the "takes place after all" subject, which already names the appointment and its date. The organizer had cancelled it and has now reinstated it. The second sentence is the point: someone who was told it was off has likely booked that slot for something else, so their old yes/no/maybe answer may no longer hold.
-					$l->t('The cancellation has been withdrawn. If you have made other plans since, please update your response.')
+					// TRANSLATORS Push notification body, shown under the "takes place after all" subject, which already names the appointment and its date. The app speaks as "we", the people organizing. The second sentence is the point: someone who was told it was off has likely booked that slot for something else, so their old yes/no/maybe answer may no longer hold.
+					$l->t('We have withdrawn the cancellation. If you have made other plans since, please update your response.')
 				);
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
 					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
@@ -222,8 +222,8 @@ class Notifier implements INotifier {
 						$l->t('You are not scheduled for %1$s on %2$s', [$appointmentName, $appointmentDate])
 					);
 					$notification->setParsedMessage(
-						// TRANSLATORS Push notification body, personal and friendly, shown under a subject that already says the person is not scheduled (German "nicht eingeplant", not "nicht geplant"). The delicate one: being turned down reads as a judgement unless the reason is named, so keep the explanation that there were simply more volunteers than places.
-						$l->t('There were more volunteers than places this time. Thanks for answering.')
+						// TRANSLATORS Push notification body, personal and friendly, shown under a subject that already says the person is not scheduled (German "nicht eingeplant", not "nicht geplant"). The app speaks as "we", the people organizing. The delicate one: being turned down reads as a judgement unless the reason is named, so keep the explanation that there were simply more volunteers than places.
+						$l->t('We had more volunteers than places this time. Thanks for answering.')
 					);
 				}
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
@@ -243,8 +243,8 @@ class Notifier implements INotifier {
 					$l->n('%1$s new appointment added (e.g. "%2$s")', '%1$s new appointments added (e.g. "%2$s")', $count, [$count, $firstName])
 				);
 				$notification->setParsedMessage(
-					// TRANSLATORS Push notification body for several appointments added at once, shown under a subject that already gives the number and one example name. The recipient answers each appointment separately, which is why this says "which ones" rather than asking for a single answer.
-					$l->t('Please let the organizer know which ones you can make.')
+					// TRANSLATORS Push notification body for several appointments added at once, shown under a subject that already gives the number and one example name. The app speaks as "we", the people organizing — not about them in the third person. The recipient answers each appointment separately, which is why this says "which ones" rather than asking for a single answer.
+					$l->t('Let us know which ones you can make.')
 				);
 				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
 					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
