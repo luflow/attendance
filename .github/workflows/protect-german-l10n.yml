@@ -1,0 +1,58 @@
+name: Protect German translations
+
+# German is hand-maintained in this repo (see CLAUDE.md). The nightly Transifex
+# bot cannot be told to leave a language alone: it runs `rm -f l10n/*.js
+# l10n/*.json` and then rebuilds only what `convert-po-files` produces, so any
+# attempt to exclude de/de_DE from the pull deletes them instead. This restores
+# the four German files whenever a bot commit touched them.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'l10n/de.js'
+      - 'l10n/de.json'
+      - 'l10n/de_DE.js'
+      - 'l10n/de_DE.json'
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    # Only the sync bot is reverted; humans editing German is the intended path.
+    if: github.event.head_commit.author.email == 'bot@nextcloud.com'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+
+      - name: Restore the German files from before the sync
+        id: restore
+        run: |
+          set -euo pipefail
+          FILES="l10n/de.js l10n/de.json l10n/de_DE.js l10n/de_DE.json"
+          # HEAD~1 is the state before the bot commit — the reviewed German.
+          git checkout HEAD~1 -- $FILES
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "German is unchanged, nothing to restore."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git diff --cached --stat
+          fi
+
+      - name: Commit and push
+        if: steps.restore.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix(l10n): restore the hand-maintained German files
+
+          The Transifex sync deletes and regenerates every l10n file, which
+          overwrites or drops the German this repo maintains itself. Restored
+          from the commit before the sync.'
+          git push
