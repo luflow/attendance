@@ -2,7 +2,10 @@ import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
 import { reactive, readonly } from 'vue'
 
-const state = reactive({
+// Every reset path derives from this, so a flag added to the shape cannot be
+// forgotten in one of them. The success path stays explicit: the fields have
+// genuinely different fallbacks (notificationsAppEnabled defaults to on).
+const DEFAULTS = {
 	permissions: {
 		canManageAppointments: false,
 		canCreateAppointments: false,
@@ -35,6 +38,12 @@ const state = reactive({
 		hasPushDevice: false,
 		onboarding: { setupPrompt: false, firstAppointmentPrompt: false },
 	},
+}
+
+const state = reactive({
+	permissions: { ...DEFAULTS.permissions },
+	capabilities: { ...DEFAULTS.capabilities },
+	config: { ...DEFAULTS.config, onboarding: { ...DEFAULTS.config.onboarding } },
 	loading: false,
 	loaded: false,
 	error: null,
@@ -77,6 +86,7 @@ export function usePermissions() {
 			state.permissions.canSeeComments = permissionsRes.data.canSeeComments || false
 			state.permissions.canSelfCheckin = permissionsRes.data.canSelfCheckin || false
 			state.permissions.canRespondForOthers = permissionsRes.data.canRespondForOthers === true
+			state.permissions.canSeeStatistics = permissionsRes.data.canSeeStatistics === true
 
 			state.capabilities.calendarAvailable = capabilitiesRes.data.calendarAvailable || false
 			state.capabilities.calendarSyncEnabled = capabilitiesRes.data.calendarSyncEnabled || false
@@ -91,6 +101,7 @@ export function usePermissions() {
 			state.capabilities.organizers = capabilitiesRes.data.organizers === true
 			state.capabilities.locationsAvailable = capabilitiesRes.data.locationsAvailable === true
 			state.capabilities.categoriesAvailable = capabilitiesRes.data.categoriesAvailable === true
+			state.capabilities.statisticsAvailable = capabilitiesRes.data.statisticsAvailable === true
 
 			state.config.displayOrder = configRes.data.displayOrder || 'name_first'
 			state.config.mobileAppBannerEnabled = configRes.data.mobileAppBannerEnabled !== false
@@ -106,29 +117,9 @@ export function usePermissions() {
 			console.error('Failed to load permissions:', error)
 			state.error = error
 
-			state.permissions.canManageAppointments = false
-			state.permissions.canCreateAppointments = false
-			state.permissions.canCheckin = false
-			state.permissions.canSeeResponseOverview = false
-			state.permissions.canSeeComments = false
-			state.permissions.canSelfCheckin = false
-			state.permissions.canRespondForOthers = false
-			state.capabilities.calendarAvailable = false
-			state.capabilities.calendarSyncEnabled = false
-			state.capabilities.teamsAvailable = false
-			state.capabilities.calendarSyncAvailable = false
-			state.capabilities.notificationsAppEnabled = false
-			state.capabilities.auditLog = false
-			state.capabilities.cancelling = false
-			state.capabilities.bookingEnabled = false
-			state.capabilities.scheduledFilter = false
-			state.capabilities.organizers = false
-			state.capabilities.locationsAvailable = false
-			state.capabilities.categoriesAvailable = false
-			state.config.displayOrder = 'name_first'
-			state.config.mobileAppBannerEnabled = true
-			state.config.hasPushDevice = false
-			state.config.onboarding = { setupPrompt: false, firstAppointmentPrompt: false }
+			Object.assign(state.permissions, DEFAULTS.permissions)
+			Object.assign(state.capabilities, DEFAULTS.capabilities)
+			Object.assign(state.config, DEFAULTS.config, { onboarding: { ...DEFAULTS.config.onboarding } })
 		} finally {
 			state.loading = false
 		}
@@ -144,13 +135,7 @@ export function usePermissions() {
 		state.loaded = false
 		state.loading = false
 		state.error = null
-		state.permissions.canManageAppointments = false
-		state.permissions.canCreateAppointments = false
-		state.permissions.canCheckin = false
-		state.permissions.canSeeResponseOverview = false
-		state.permissions.canSeeComments = false
-		state.permissions.canSelfCheckin = false
-		state.permissions.canRespondForOthers = false
+		Object.assign(state.permissions, DEFAULTS.permissions)
 	}
 
 	return {

@@ -18,11 +18,16 @@ const YEAR = new Date().getFullYear()
 /**
  * Grant or revoke see_statistics instance-wide.
  *
+ * Sends the whitelists too: omitted settings stay untouched, so a whitelist an
+ * earlier sequential spec left behind would silently narrow the audience.
+ *
  * @param {import('@playwright/test').APIRequestContext} request - Playwright request context.
  * @param {string} mode - One of 'all', 'groups', 'nobody'.
  */
 async function setStatisticsPermission(request, mode) {
 	await saveAdminSettings(request, {
+		whitelistedGroups: [],
+		whitelistedTeams: [],
 		permissions: { ...PERMISSIVE_PERMISSIONS, see_statistics: { mode, groups: [] } },
 	})
 	await reloadWebWorkers()
@@ -32,6 +37,8 @@ test.describe('Attendance App - Statistics', () => {
 	let categoryId = null
 
 	test.beforeAll(async ({ request }) => {
+		await resetAdminSettings(request)
+		await reloadWebWorkers()
 		await forceWipeAllAppointments(request)
 
 		const category = await createCategoryViaAPI(request, `Rehearsal ${Math.random().toString(36).slice(2, 8)}`)
@@ -63,6 +70,18 @@ test.describe('Attendance App - Statistics', () => {
 		await reloadWebWorkers()
 	})
 
+	test('is reachable from the navigation', async ({ page, request, loginAsUser, attendanceApp }) => {
+		await setStatisticsPermission(request, 'all')
+		await loginAsUser('admin', 'admin')
+		await attendanceApp()
+
+		// Covers the capability reaching the client: the entry is gated on
+		// capabilities.statisticsAvailable, which a server-only flag never sets.
+		await page.locator('[data-test="nav-statistics"]').click()
+		await expect(page).toHaveURL(/\/statistics/)
+		await expect(page.locator('[data-test="statistics-table"]')).toBeVisible()
+	})
+
 	test('shows the evaluation with group sections and a totals row', async ({ page, request, loginAsUser }) => {
 		await setStatisticsPermission(request, 'all')
 		await loginAsUser('admin', 'admin')
@@ -78,6 +97,10 @@ test.describe('Attendance App - Statistics', () => {
 		const summary = page.locator('[data-test="statistics-summary"]')
 		await expect(summary).toContainText('2 appointments')
 		await expect(summary).toContainText('1 of 2')
+
+		// Person rows live inside their section, so an empty section list looks
+		// exactly like an empty audience — assert the sections first.
+		await expect(page.locator('[data-test^="statistics-section-"]')).not.toHaveCount(0)
 
 		const adminRow = page.locator('[data-test="statistics-person-row"]').filter({ hasText: 'admin' })
 		await expect(adminRow).toHaveCount(1)
@@ -100,7 +123,7 @@ test.describe('Attendance App - Statistics', () => {
 		await page.goto(`/apps/attendance/statistics?period=${YEAR}`)
 		await page.waitForLoadState('networkidle')
 
-		await page.locator('[data-test="statistics-person-row"]').first().click()
+		await page.locator('[data-test="statistics-person-row"]').filter({ hasText: 'admin' }).click()
 
 		const sidebar = page.locator('[data-test="statistics-person-sidebar"]')
 		await expect(sidebar).toBeVisible()
