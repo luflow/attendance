@@ -461,6 +461,9 @@ function writeUrlState() {
     flex-wrap: wrap;
     gap: 16px;
     margin-inline-start: auto;
+    /* Nested flex rows squeeze each button down to its longest word, which
+       breaks "Ohne Gruppierung" in two. The row wraps instead. */
+    white-space: nowrap;
 }
 
 .statistics__options {
