@@ -925,6 +925,12 @@ OC.L10N.register(
     "_%n person_::_%n people_" : ["%n Person","%n Personen"],
     "_The evaluation handles up to %n appointment at a time. Please choose a shorter period._::_The evaluation handles up to %n appointments at a time. Please choose a shorter period._" : ["Die Auswertung verarbeitet höchstens %n Termin auf einmal. Bitte einen kürzeren Zeitraum wählen.","Die Auswertung verarbeitet höchstens %n Termine auf einmal. Bitte einen kürzeren Zeitraum wählen."],
     "Without this, users only see their own numbers." : "Ohne diese Berechtigung sind nur die eigenen Zahlen sichtbar.",
-    "You were not invited to any appointment in this period" : "Sie waren in diesem Zeitraum zu keinem Termin eingeladen"
+    "You were not invited to any appointment in this period" : "Sie waren in diesem Zeitraum zu keinem Termin eingeladen",
+    "Grouping" : "Gruppierung",
+    "Grouped" : "Gruppiert",
+    "Ungrouped" : "Ohne Gruppierung",
+    "Detail" : "Detailgrad",
+    "Compact" : "Kompakt",
+    "Full" : "Vollständig"
 },
 "nplurals=2; plural=(n != 1);");

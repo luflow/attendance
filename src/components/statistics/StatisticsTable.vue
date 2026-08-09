@@ -15,7 +15,7 @@
 								:size="16" />
 						</button>
 					</th>
-					<th v-for="column in COLUMNS" :key="column.key" scope="col">
+					<th v-for="column in columns" :key="column.key" scope="col">
 						<button
 							type="button"
 							class="statistics-table__sort"
@@ -37,32 +37,35 @@
 					<th scope="row">
 						{{ t("attendance", "Your numbers") }}
 					</th>
-					<td v-for="column in COLUMNS" :key="column.key">
+					<td v-for="column in columns" :key="column.key">
 						{{ cell(ownPerson, column) }}
 					</td>
 				</tr>
 				<tr v-else>
-					<td :colspan="COLUMNS.length + 1">
+					<td :colspan="columns.length + 1">
 						{{ t("attendance", "You were not invited to any appointment in this period") }}
 					</td>
 				</tr>
 			</tbody>
 
-			<tbody v-for="section in sections" :key="section.id">
-				<tr class="statistics-table__section" :data-test="`statistics-section-${section.id}`">
+			<tbody v-for="body in bodies" :key="body.id">
+				<tr
+					v-if="body.section"
+					class="statistics-table__section"
+					:data-test="`statistics-section-${body.section.id}`">
 					<th scope="row">
-						{{ section.displayName }}
+						{{ body.section.displayName }}
 						<span class="statistics-table__count">
-							{{ n("attendance", "%n person", "%n people", section.personCount) }}
+							{{ n("attendance", "%n person", "%n people", body.section.personCount) }}
 						</span>
 					</th>
-					<td v-for="column in COLUMNS" :key="column.key">
-						{{ cell(section, column) }}
+					<td v-for="column in columns" :key="column.key">
+						{{ cell(body.section, column) }}
 					</td>
 				</tr>
 				<tr
-					v-for="person in peopleIn(section.id)"
-					:key="`${section.id}-${person.userId}`"
+					v-for="person in body.people"
+					:key="`${body.id}-${person.userId}`"
 					:class="{
 						'statistics-table__person': selectable,
 						'statistics-table__person--self': person.userId === ownUserId,
@@ -77,7 +80,7 @@
 							{{ t("attendance", "Guest") }}
 						</span>
 					</th>
-					<td v-for="column in COLUMNS" :key="column.key">
+					<td v-for="column in columns" :key="column.key">
 						{{ cell(person, column) }}
 					</td>
 				</tr>
@@ -88,7 +91,7 @@
 					<th scope="row">
 						{{ t("attendance", "Total") }}
 					</th>
-					<td v-for="column in COLUMNS" :key="column.key">
+					<td v-for="column in columns" :key="column.key">
 						{{ cell(totals, column) }}
 					</td>
 				</tr>
@@ -99,7 +102,7 @@
 
 <script setup>
 import { translatePlural as n, translate as t } from '@nextcloud/l10n'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import MenuDownIcon from 'vue-material-design-icons/MenuDown.vue'
 import MenuUpIcon from 'vue-material-design-icons/MenuUp.vue'
 
@@ -109,19 +112,23 @@ const props = defineProps({
 	totals: { type: Object, required: true },
 	reduced: { type: Boolean, default: false },
 	selectable: { type: Boolean, default: false },
+	grouped: { type: Boolean, required: true },
+	detail: { type: String, default: 'compact' },
 	ownUserId: { type: String, default: '' },
 	search: { type: String, default: '' },
 })
 
 const emit = defineEmits(['selectPerson'])
 
+// `compact` marks the columns that answer the question at a glance: who was
+// asked, what they said, whether they came.
 const COLUMNS = [
 	{ key: 'targetCount', label: t('attendance', 'Appointments') },
-	{ key: 'yes', label: t('attendance', 'Yes') },
-	{ key: 'no', label: t('attendance', 'No') },
-	{ key: 'maybe', label: t('attendance', 'Maybe') },
+	{ key: 'yes', label: t('attendance', 'Yes'), compact: true },
+	{ key: 'no', label: t('attendance', 'No'), compact: true },
+	{ key: 'maybe', label: t('attendance', 'Maybe'), compact: true },
 	{ key: 'noResponse', label: t('attendance', 'No response') },
-	{ key: 'present', label: t('attendance', 'Present') },
+	{ key: 'present', label: t('attendance', 'Present'), compact: true },
 	{ key: 'absent', label: t('attendance', 'Absent') },
 	{ key: 'notRecorded', label: t('attendance', 'Not recorded') },
 	{
@@ -129,13 +136,23 @@ const COLUMNS = [
 		label: t('attendance', 'No-show'),
 		hint: t('attendance', 'Said yes but was recorded as absent'),
 	},
-	{ key: 'responseRate', label: t('attendance', 'Response rate'), rate: true },
+	{ key: 'responseRate', label: t('attendance', 'Response rate'), rate: true, compact: true },
 	{ key: 'acceptRate', label: t('attendance', 'Acceptance rate'), rate: true },
-	{ key: 'attendanceRate', label: t('attendance', 'Attendance rate'), rate: true },
+	{ key: 'attendanceRate', label: t('attendance', 'Attendance rate'), rate: true, compact: true },
 ]
 
 const sortKey = ref('displayName')
 const sortAsc = ref(true)
+
+const columns = computed(() => (props.detail === 'full' ? COLUMNS : COLUMNS.filter((column) => column.compact)))
+
+// A column the compact view drops takes its sort with it, arrow and all.
+watch(columns, (visible) => {
+	if (sortKey.value !== 'displayName' && !visible.some((column) => column.key === sortKey.value)) {
+		sortKey.value = 'displayName'
+		sortAsc.value = true
+	}
+})
 
 const sortIcon = computed(() => (sortAsc.value ? MenuUpIcon : MenuDownIcon))
 
@@ -161,16 +178,23 @@ const visiblePeople = computed(() => {
 	})
 })
 
-/**
- * @param {string} sectionId - Section to list.
- * @return {Array<object>} People shown under that section.
- */
-function peopleIn(sectionId) {
+// One `tbody` per rendered block: a section with its people when grouped, a
+// single unheaded block otherwise. Ungrouped lists each person once, so it is
+// also the only view whose rows add up to the totals.
+const bodies = computed(() => {
 	if (props.reduced) {
 		return []
 	}
-	return visiblePeople.value.filter((person) => person.sections.includes(sectionId))
-}
+	if (!props.grouped) {
+		return [{ id: 'all', section: null, people: visiblePeople.value }]
+	}
+
+	return props.sections.map((section) => ({
+		id: section.id,
+		section,
+		people: visiblePeople.value.filter((person) => person.sections.includes(section.id)),
+	}))
+})
 
 /**
  * @param {string} key - Column key.

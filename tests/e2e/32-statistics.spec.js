@@ -108,6 +108,33 @@ test.describe('Attendance App - Statistics', () => {
 		await expect(adminRow).toHaveClass(/statistics-table__person--self/)
 	})
 
+	test('switches between grouped and flat, compact and full', async ({ page, request, loginAsUser }) => {
+		await setStatisticsPermission(request, 'all')
+		await loginAsUser('admin', 'admin')
+
+		await page.goto(`/apps/attendance/statistics?period=${YEAR}`)
+		await page.waitForLoadState('networkidle')
+
+		// Grouped and compact by default: sections present, and the columns the
+		// full view adds are not.
+		await expect(page.locator('[data-test^="statistics-section-"]')).not.toHaveCount(0)
+		await expect(page.locator('[data-test="statistics-sort-noShow"]')).toHaveCount(0)
+		await expect(page.locator('[data-test="statistics-sort-yes"]')).toBeVisible()
+
+		await page.locator('[data-test="statistics-detail"]').getByText('Full', { exact: true }).click()
+		await expect(page.locator('[data-test="statistics-sort-noShow"]')).toBeVisible()
+
+		await page.locator('[data-test="statistics-grouping"]').getByText('Ungrouped', { exact: true }).click()
+		await expect(page.locator('[data-test^="statistics-section-"]')).toHaveCount(0)
+		// The people survive the regrouping — each listed once now.
+		await expect(page.locator('[data-test="statistics-person-row"]').filter({ hasText: 'admin' })).toHaveCount(1)
+		await expect(page.locator('[data-test="statistics-totals"]')).toBeVisible()
+
+		// Both choices are linkable, so a shared URL opens the same view.
+		await expect(page).toHaveURL(/grouping=flat/)
+		await expect(page).toHaveURL(/detail=full/)
+	})
+
 	test('narrows the evaluation to the selected category', async ({ page, request, loginAsUser }) => {
 		await setStatisticsPermission(request, 'all')
 		await loginAsUser('admin', 'admin')

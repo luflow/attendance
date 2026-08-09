@@ -53,7 +53,16 @@
 				</div>
 			</template>
 
-			<div v-if="capabilities.teamsAvailable" class="statistics__filter">
+			<NcRadioGroup
+				v-if="!reduced"
+				v-model="grouping"
+				:label="t('attendance', 'Grouping')"
+				data-test="statistics-grouping">
+				<NcRadioGroupButton :label="t('attendance', 'Grouped')" value="grouped" />
+				<NcRadioGroupButton :label="t('attendance', 'Ungrouped')" value="flat" />
+			</NcRadioGroup>
+
+			<div v-if="grouped && capabilities.teamsAvailable" class="statistics__filter">
 				<label for="statistics-group-by">{{ t("attendance", "Group by") }}</label>
 				<select id="statistics-group-by" v-model="groupBy" data-test="statistics-group-by">
 					<option value="groups">
@@ -64,6 +73,14 @@
 					</option>
 				</select>
 			</div>
+
+			<NcRadioGroup
+				v-model="detail"
+				:label="t('attendance', 'Detail')"
+				data-test="statistics-detail">
+				<NcRadioGroupButton :label="t('attendance', 'Compact')" value="compact" />
+				<NcRadioGroupButton :label="t('attendance', 'Full')" value="full" />
+			</NcRadioGroup>
 
 			<NcPopover v-if="capabilities.categoriesAvailable && categories.length">
 				<template #trigger>
@@ -161,7 +178,8 @@
 			<StatisticsCharts
 				v-if="!reduced"
 				:statistics="statistics"
-				:groupBy="statistics.groupBy" />
+				:groupBy="statistics.groupBy"
+				:grouped="grouped" />
 
 			<StatisticsTable
 				:sections="statistics.sections"
@@ -169,11 +187,13 @@
 				:totals="statistics.totals"
 				:reduced="reduced"
 				:selectable="canDrillDown"
+				:grouped="grouped"
+				:detail="detail"
 				:ownUserId="ownUserId"
 				:search="search"
 				@selectPerson="selectedPerson = $event" />
 
-			<p v-if="!reduced" class="statistics__footnote">
+			<p v-if="!reduced && grouped" class="statistics__footnote">
 				{{ t("attendance", "People in several groups are counted in each of them. The total row counts every person once.") }}
 			</p>
 		</template>
@@ -192,7 +212,7 @@ import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translatePlural as n, translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
-import { NcButton, NcEmptyContent, NcPopover, NcTextField } from '@nextcloud/vue'
+import { NcButton, NcEmptyContent, NcPopover, NcRadioGroup, NcRadioGroupButton, NcTextField } from '@nextcloud/vue'
 import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import ChartLineIcon from 'vue-material-design-icons/ChartLine.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
@@ -230,6 +250,13 @@ const customTo = ref(initial.to)
 const selectedCategoryIds = ref(initial.categoryIds)
 const includeUncategorized = ref(initial.includeUncategorized)
 const groupBy = ref(initial.groupBy)
+const grouping = ref(initial.grouping)
+const detail = ref(initial.detail)
+
+// Both switches only pick what is drawn from an answer the server already sent,
+// so they must stay out of `query` — flipping one is not worth an evaluation.
+const grouped = computed(() => grouping.value === 'grouped')
+watch([grouping, detail], writeUrlState)
 
 const reduced = computed(() => !permissions.canSeeStatistics)
 
@@ -353,6 +380,8 @@ function readUrlState() {
 			.filter((id) => Number.isInteger(id) && id > 0),
 		includeUncategorized: params.get('uncategorized') === '1',
 		groupBy: params.get('groupBy') === 'teams' ? 'teams' : 'groups',
+		grouping: params.get('grouping') === 'flat' ? 'flat' : 'grouped',
+		detail: params.get('detail') === 'full' ? 'full' : 'compact',
 	}
 }
 
@@ -372,6 +401,8 @@ function writeUrlState() {
 	}
 	if (includeUncategorized.value) params.set('uncategorized', '1')
 	if (groupBy.value === 'teams') params.set('groupBy', 'teams')
+	if (!grouped.value) params.set('grouping', 'flat')
+	if (detail.value === 'full') params.set('detail', 'full')
 
 	window.history.replaceState(
 		window.history.state,
