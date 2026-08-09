@@ -53,15 +53,6 @@
 				</div>
 			</template>
 
-			<NcRadioGroup
-				v-if="!reduced"
-				v-model="grouping"
-				:label="t('attendance', 'Grouping')"
-				data-test="statistics-grouping">
-				<NcRadioGroupButton :label="t('attendance', 'Grouped')" value="grouped" />
-				<NcRadioGroupButton :label="t('attendance', 'Ungrouped')" value="flat" />
-			</NcRadioGroup>
-
 			<div v-if="grouped && capabilities.teamsAvailable" class="statistics__filter">
 				<label for="statistics-group-by">{{ t("attendance", "Group by") }}</label>
 				<select id="statistics-group-by" v-model="groupBy" data-test="statistics-group-by">
@@ -73,14 +64,6 @@
 					</option>
 				</select>
 			</div>
-
-			<NcRadioGroup
-				v-model="detail"
-				:label="t('attendance', 'Detail')"
-				data-test="statistics-detail">
-				<NcRadioGroupButton :label="t('attendance', 'Compact')" value="compact" />
-				<NcRadioGroupButton :label="t('attendance', 'Full')" value="full" />
-			</NcRadioGroup>
 
 			<NcPopover v-if="capabilities.categoriesAvailable && categories.length">
 				<template #trigger>
@@ -122,13 +105,6 @@
 					</ul>
 				</template>
 			</NcPopover>
-
-			<NcTextField
-				v-if="!reduced"
-				v-model="search"
-				:label="t('attendance', 'Search people')"
-				class="statistics__search"
-				data-test="statistics-search" />
 
 			<NcButton
 				v-if="!reduced"
@@ -180,6 +156,34 @@
 				:statistics="statistics"
 				:groupBy="statistics.groupBy"
 				:grouped="grouped" />
+
+			<div class="statistics__table-controls">
+				<NcTextField
+					v-if="!reduced"
+					v-model="search"
+					:label="t('attendance', 'Search people')"
+					class="statistics__search"
+					data-test="statistics-search" />
+
+				<div class="statistics__view-switches">
+					<NcRadioGroup
+						v-if="!reduced"
+						v-model="grouping"
+						:label="t('attendance', 'Grouping')"
+						data-test="statistics-grouping">
+						<NcRadioGroupButton :label="t('attendance', 'Grouped')" value="grouped" />
+						<NcRadioGroupButton :label="t('attendance', 'Ungrouped')" value="flat" />
+					</NcRadioGroup>
+
+					<NcRadioGroup
+						v-model="detail"
+						:label="t('attendance', 'Detail')"
+						data-test="statistics-detail">
+						<NcRadioGroupButton :label="t('attendance', 'Compact')" value="compact" />
+						<NcRadioGroupButton :label="t('attendance', 'Full')" value="full" />
+					</NcRadioGroup>
+				</div>
+			</div>
 
 			<StatisticsTable
 				:sections="statistics.sections"
@@ -440,6 +444,23 @@ function writeUrlState() {
 
 .statistics__search {
     max-width: 220px;
+}
+
+/* Everything that only redraws the table sits with the table, not with the
+   filters — those re-query the server. */
+.statistics__table-controls {
+    align-items: flex-end;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.statistics__view-switches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-inline-start: auto;
 }
 
 .statistics__options {
