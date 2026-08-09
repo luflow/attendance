@@ -281,7 +281,10 @@ function cell(row, column) {
     font-weight: bold;
 }
 
-.statistics-table__person {
+/* On the cells as well as the row: the row's value only reaches them by
+   inheritance, which any `th`/`td` rule from the server theme outranks. */
+.statistics-table__person,
+.statistics-table__person > * {
     cursor: pointer;
 }
 

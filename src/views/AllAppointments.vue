@@ -1,7 +1,8 @@
 <template>
 	<div class="attendance-container">
-		<!-- Unanswered reminder banner (shown on upcoming view when there are unanswered appointments) -->
-		<div v-if="!showUnanswered && !showPast && !showAll && !loading && unansweredCount > 0" class="unanswered-banner-container">
+		<!-- Not on the unanswered view, which has its own banner below, and not on
+			past appointments, where nothing is left to answer. -->
+		<div v-if="!showUnanswered && !showPast && !loading && unansweredCount > 0" class="unanswered-banner-container">
 			<div class="unanswered-banner pending clickable" role="button" @click="emit('navigateToUnanswered')">
 				<ProgressQuestion :size="20" />
 				<span>{{ n('attendance', '%n appointment awaiting your response', '%n appointments awaiting your response', unansweredCount) }}</span>
@@ -833,8 +834,8 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .attendance-container {
-	// No padding at the top: the heading's own margin clears the navigation
-	// toggle, and the two would otherwise add up.
+	// No padding at the top: the app content already clears the navigation
+	// toggle for every view (App.vue).
 	padding: 0 20px 20px;
 	max-width: 1200px;
 	margin: 0 auto;

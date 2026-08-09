@@ -106,6 +106,8 @@ test.describe('Attendance App - Statistics', () => {
 		await expect(adminRow).toHaveCount(1)
 		// The viewer's own row is highlighted so it can be found in a long table.
 		await expect(adminRow).toHaveClass(/statistics-table__person--self/)
+		// A row that opens the sidebar has to look like it does.
+		await expect(adminRow.locator('th')).toHaveCSS('cursor', 'pointer')
 	})
 
 	test('switches between grouped and flat, compact and full', async ({ page, request, loginAsUser }) => {

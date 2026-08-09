@@ -886,7 +886,7 @@ onMounted(async () => {
 
 <style scoped>
 .mobile-banner-container {
-    padding: 20px 20px 0;
+    padding: 0 20px;
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -906,14 +906,21 @@ onMounted(async () => {
 </style>
 
 <style>
-/* One size for every view's main heading, and room above it for the navigation
-   toggle, which floats over the top-left corner of the content whenever the
-   navigation is collapsed. Views set their own width and inline margin. */
+/* Room for the navigation toggle, which floats over the top-left corner of the
+   content whenever the navigation is collapsed. Every view starts below it —
+   the views themselves carry no top padding, whether they open with a heading,
+   a banner or a row of buttons. */
+.app-content-wrapper {
+    padding-top: var(--default-clickable-area, 44px);
+}
+
+/* One size for every view's main heading. Views set their own width and
+   inline margin. */
 .page-heading {
     color: var(--color-main-text);
     font-size: 1.4em;
     font-weight: 600;
-    margin-block: var(--default-clickable-area, 44px) 12px;
+    margin-block: 0 12px;
 }
 
 /* Keep textarea placeholder visible in comment sections */

@@ -237,7 +237,7 @@ watch(() => props.appointmentId, async (newId, oldId) => {
 // at the same 800px, so a card is the same width on both pages. Capping the
 // frame itself would subtract its padding from the card.
 .appointment-detail {
-	padding: 20px;
+	padding: 0 20px 20px;
 	max-width: 1200px;
 	margin: 0 auto;
 
