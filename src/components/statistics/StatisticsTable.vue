@@ -11,7 +11,7 @@
 							{{ t("attendance", "Name") }}
 							<component
 								:is="sortIcon"
-								v-if="sortKey === 'displayName'"
+								v-if="activeSort.key === 'displayName'"
 								:size="16" />
 						</button>
 					</th>
@@ -25,7 +25,7 @@
 							{{ column.label }}
 							<component
 								:is="sortIcon"
-								v-if="sortKey === column.key"
+								v-if="activeSort.key === column.key"
 								:size="16" />
 						</button>
 					</th>
@@ -102,7 +102,7 @@
 
 <script setup>
 import { translatePlural as n, translate as t } from '@nextcloud/l10n'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import MenuDownIcon from 'vue-material-design-icons/MenuDown.vue'
 import MenuUpIcon from 'vue-material-design-icons/MenuUp.vue'
 
@@ -113,7 +113,11 @@ const props = defineProps({
 	reduced: { type: Boolean, default: false },
 	selectable: { type: Boolean, default: false },
 	grouped: { type: Boolean, required: true },
-	detail: { type: String, default: 'compact' },
+	detail: {
+		type: String,
+		default: 'compact',
+		validator: (value) => ['compact', 'full'].includes(value),
+	},
 	ownUserId: { type: String, default: '' },
 	search: { type: String, default: '' },
 })
@@ -146,15 +150,15 @@ const sortAsc = ref(true)
 
 const columns = computed(() => (props.detail === 'full' ? COLUMNS : COLUMNS.filter((column) => column.compact)))
 
-// A column the compact view drops takes its sort with it, arrow and all.
-watch(columns, (visible) => {
-	if (sortKey.value !== 'displayName' && !visible.some((column) => column.key === sortKey.value)) {
-		sortKey.value = 'displayName'
-		sortAsc.value = true
-	}
+// A column the compact view drops takes its sort with it, arrow and all. Derived
+// rather than reset, so no render can fall between the two.
+const activeSort = computed(() => {
+	const shown = sortKey.value === 'displayName'
+		|| columns.value.some((column) => column.key === sortKey.value)
+	return shown ? { key: sortKey.value, asc: sortAsc.value } : { key: 'displayName', asc: true }
 })
 
-const sortIcon = computed(() => (sortAsc.value ? MenuUpIcon : MenuDownIcon))
+const sortIcon = computed(() => (activeSort.value.asc ? MenuUpIcon : MenuDownIcon))
 
 const ownPerson = computed(() => props.people.find((person) => person.userId === props.ownUserId) ?? null)
 
@@ -164,14 +168,16 @@ const visiblePeople = computed(() => {
 		? [...props.people]
 		: props.people.filter((person) => person.displayName.toLowerCase().includes(needle))
 
+	const { key, asc } = activeSort.value
+	const direction = asc ? 1 : -1
+
 	return matching.sort((a, b) => {
-		const direction = sortAsc.value ? 1 : -1
-		if (sortKey.value === 'displayName') {
+		if (key === 'displayName') {
 			return direction * a.displayName.localeCompare(b.displayName)
 		}
 		// Rates are null without a basis; those rows belong at the end either way.
-		const left = a[sortKey.value]
-		const right = b[sortKey.value]
+		const left = a[key]
+		const right = b[key]
 		if (left === null) return 1
 		if (right === null) return -1
 		return direction * (left - right)

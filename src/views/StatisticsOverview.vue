@@ -405,6 +405,8 @@ function writeUrlState() {
 	}
 	if (includeUncategorized.value) params.set('uncategorized', '1')
 	if (groupBy.value === 'teams') params.set('groupBy', 'teams')
+
+	// Below here: linkable, but not part of `query` — see the note on `grouped`.
 	if (!grouped.value) params.set('grouping', 'flat')
 	if (detail.value === 'full') params.set('detail', 'full')
 
