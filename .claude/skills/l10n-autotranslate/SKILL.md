@@ -6,10 +6,21 @@ description: Keep the German l10n files in step with the code — fill every sou
 # German translations (owned by this repo)
 
 Transifex is the source of truth for every language **except German**. `de` and
-`de_DE` are excluded from the sync in `.tx/config` — both are mapped to a local
-directory starting with a dot, which translationtool's `findLanguages()` skips,
-so `l10n/de.*` and `l10n/de_DE.*` are never regenerated. Repeated syncs had been
-overwriting reviewed German with worse wording and broken placeholders.
+`de_DE` are owned by this repo, because repeated syncs kept overwriting reviewed
+German with worse wording and broken placeholders.
+
+They are not excluded from the sync — **they cannot be.**
+`handleAppsTranslations.sh` runs `rm -f l10n/*.js l10n/*.json` and then rebuilds
+only what `convert-po-files` produces, so a language the pull skips is *deleted*,
+not preserved. A `lang_map` entry pointing de/de_DE at a dot-directory was tried
+and wiped all four files on the next nightly run. Do not try that again;
+`.tx/config` carries a warning.
+
+What protects German is `.github/workflows/protect-german-l10n.yml`: when a
+commit by the Transifex bot touches any of the four files on `main`, it restores
+them from the preceding commit and pushes. German therefore survives each sync,
+but only *after* it — expect one restore commit behind every nightly run that
+touched it.
 
 That makes this skill the **canonical path**: a string added with a fresh `t()` /
 `n()` call stays English until someone runs it. Nothing downstream will fix it
