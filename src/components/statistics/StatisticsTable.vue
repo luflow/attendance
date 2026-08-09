@@ -221,6 +221,12 @@ function cell(row, column) {
     text-align: start;
 }
 
+/* Names are the one variable-width column; without a floor the numeric columns
+   squeeze it until "Christina Vogel" has less room than "Nicht erfasst". */
+.statistics-table__name {
+    min-width: 12rem;
+}
+
 .statistics-table thead th {
     position: sticky;
     top: 0;
@@ -229,11 +235,17 @@ function cell(row, column) {
 }
 
 .statistics-table__sort {
+    align-items: center;
     background: none;
     border: none;
     color: var(--color-main-text);
     cursor: pointer;
+    /* Inline-flex, so the sort arrow sits beside the label instead of being
+       pushed onto a second line — and so the cell's text-align still places
+       the whole button. */
+    display: inline-flex;
     font-weight: bold;
+    gap: 2px;
     padding: 0;
 }
 

@@ -1,9 +1,9 @@
 <template>
-	<div class="statistics-charts">
+	<div ref="root" class="statistics-charts">
 		<section v-if="timelineData" class="statistics-charts__chart">
 			<h3>{{ t("attendance", "Over time") }}</h3>
 			<div class="statistics-charts__canvas">
-				<Line :data="timelineData" :options="chartOptions" />
+				<Line :data="timelineData" :options="timelineOptions" />
 			</div>
 		</section>
 
@@ -16,14 +16,14 @@
 				}}
 			</h3>
 			<div class="statistics-charts__canvas">
-				<Bar :data="sectionData" :options="chartOptions" />
+				<Bar :data="sectionData" :options="sectionOptions" />
 			</div>
 		</section>
 
 		<section v-if="categoryData" class="statistics-charts__chart">
 			<h3>{{ t("attendance", "By category") }}</h3>
 			<div class="statistics-charts__canvas">
-				<Bar :data="categoryData" :options="chartOptions" />
+				<Bar :data="categoryData" :options="categoryOptions" />
 			</div>
 		</section>
 	</div>
@@ -43,7 +43,7 @@ import {
 	PointElement,
 	Tooltip,
 } from 'chart.js'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { Bar, Line } from 'vue-chartjs'
 import { useChartTheme, withAlpha } from '../../composables/useChartTheme.js'
 import { formatDate } from '../../utils/datetime.js'
@@ -67,7 +67,15 @@ Chart.register(
 	Legend,
 )
 
-const { colors } = useChartTheme()
+const root = ref(null)
+const { colors } = useChartTheme(root)
+
+// Long group names have to give way to their neighbours; the full name stays in
+// the tooltip, which reads the data label rather than the tick.
+const TICK_MAX_CHARS = 16
+
+const LINE_STYLE = { tension: 0.3, borderWidth: 2, pointRadius: 3, pointHoverRadius: 5 }
+const BAR_STYLE = { borderRadius: 4, borderSkipped: false, maxBarThickness: 48, categoryPercentage: 0.7 }
 
 const percent = (rate) => (rate === null || rate === undefined ? null : Math.round(rate * 1000) / 10)
 
@@ -83,18 +91,18 @@ const timelineData = computed(() => {
 			{
 				label: t('attendance', 'Acceptance rate'),
 				data: points.map((point) => percent(rate(point.yes, point.targetCount))),
+				...LINE_STYLE,
 				borderColor: colors.accent,
-				backgroundColor: withAlpha(colors.accent, 0.2),
-				tension: 0.3,
+				backgroundColor: colors.accent,
 			},
 			{
 				label: t('attendance', 'Attendance rate'),
 				data: points.map((point) => (point.attendanceRecorded
 					? percent(rate(point.present, point.targetCount))
 					: null)),
-				borderColor: colors.success,
-				backgroundColor: withAlpha(colors.success, 0.2),
-				tension: 0.3,
+				...LINE_STYLE,
+				borderColor: colors.present,
+				backgroundColor: colors.present,
 				spanGaps: false,
 			},
 		],
@@ -104,7 +112,9 @@ const timelineData = computed(() => {
 const sectionData = computed(() => buildBars(props.statistics.sections ?? []))
 const categoryData = computed(() => buildBars(props.statistics.byCategory ?? []))
 
-const chartOptions = computed(() => baseOptions())
+const timelineOptions = computed(() => baseOptions())
+const sectionOptions = computed(() => baseOptions(sectionData.value?.labels))
+const categoryOptions = computed(() => baseOptions(categoryData.value?.labels))
 
 /**
  * @param {number} part - Numerator.
@@ -130,27 +140,48 @@ function buildBars(entries) {
 			{
 				label: t('attendance', 'Acceptance rate'),
 				data: entries.map((entry) => percent(entry.acceptRate)),
+				...BAR_STYLE,
 				backgroundColor: colors.accent,
 			},
 			{
 				label: t('attendance', 'Attendance rate'),
 				data: entries.map((entry) => percent(entry.attendanceRate)),
-				backgroundColor: colors.success,
+				...BAR_STYLE,
+				backgroundColor: colors.present,
 			},
 		],
 	}
 }
 
 /**
+ * @param {string} label - Full axis label.
+ * @return {string} The label, shortened to fit one tick.
+ */
+function truncate(label) {
+	return label.length > TICK_MAX_CHARS ? `${label.slice(0, TICK_MAX_CHARS - 1)}…` : label
+}
+
+/**
+ * @param {Array<string>} [labels] - Bar labels; omitted for the date axis of the timeline.
  * @return {object} chart.js options in the current theme.
  */
-function baseOptions() {
+function baseOptions(labels = null) {
 	return {
 		responsive: true,
 		maintainAspectRatio: false,
 		interaction: { intersect: false, mode: 'index' },
+		layout: { padding: { top: 4, right: 4 } },
 		plugins: {
-			legend: { labels: { color: colors.text } },
+			legend: {
+				labels: {
+					color: colors.text,
+					boxHeight: 12,
+					boxWidth: 12,
+					padding: 16,
+					pointStyle: 'rectRounded',
+					usePointStyle: true,
+				},
+			},
 			tooltip: {
 				callbacks: {
 					label: (context) => `${context.dataset.label}: ${context.parsed.y ?? '–'} %`,
@@ -159,22 +190,34 @@ function baseOptions() {
 		},
 		scales: {
 			x: {
-				ticks: { color: colors.text, autoSkip: true, maxRotation: 0 },
-				grid: { color: withAlpha(colors.border, 0.5) },
+				// chart.js' autoSkip drops labels that do not fit, leaving bars
+				// nobody can name — the bar charts shorten instead. Only dates
+				// may be thinned out.
+				ticks: labels === null
+					? { color: colors.text, autoSkip: true, maxRotation: 0 }
+					: { color: colors.text, autoSkip: false, callback: (value) => truncate(labels[value] ?? '') },
+				grid: { display: false },
+				border: { color: withAlpha(colors.border, 0.5) },
 			},
 			y: {
 				min: 0,
 				max: 100,
-				ticks: { color: colors.text, callback: (value) => `${value} %` },
+				ticks: { color: colors.text, padding: 4, stepSize: 25, callback: (value) => `${value} %` },
 				grid: { color: withAlpha(colors.border, 0.5) },
+				border: { display: false },
 			},
 		},
 	}
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+@use "../../styles/shared.scss";
+
 .statistics-charts {
+    // chart.js needs a value it can read, and a scoped style cannot write
+    // `:root` — Vue would rewrite it to `:root[data-v-…]`.
+    --statistics-color-present: #{shared.$color-yes};
     display: grid;
     gap: 24px;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -183,14 +226,16 @@ function baseOptions() {
 
 .statistics-charts__chart h3 {
     font-size: 1rem;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
 
 .statistics-charts__canvas {
     background-color: var(--color-main-background);
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius-large);
-    height: 260px;
-    padding: 12px;
+    // Room for the legend, the axis labels and a plot area that still has a
+    // readable shape once the other two have taken their share.
+    height: 280px;
+    padding: 12px 16px;
 }
 </style>
