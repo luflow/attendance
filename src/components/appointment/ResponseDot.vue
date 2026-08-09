@@ -4,27 +4,39 @@
 		:size="18"
 		class="response-dot"
 		:class="`response-dot--${getResponseVariant(response)}`"
-		:title="getResponseText(response)" />
+		:title="title" />
 </template>
 
 <script setup>
+import { translate as t } from '@nextcloud/l10n'
 import { computed } from 'vue'
 import CheckCircle from 'vue-material-design-icons/CheckCircle.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
 import HelpCircle from 'vue-material-design-icons/HelpCircle.vue'
+import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
 import { getResponseIcon, getResponseText, getResponseVariant } from '../../utils/response.js'
 
 const props = defineProps({
+	// Null where a list also holds people who never answered, as the statistics
+	// drill-down does — the response overview only lists actual answers.
 	response: {
 		type: String,
-		required: true,
+		default: null,
+	},
+	// Overrides the tooltip where the value is not an answer: a check-in state
+	// reads "Present", not "Yes".
+	label: {
+		type: String,
+		default: null,
 	},
 })
 
 // The same glyphs the answer buttons and the sidebar use, resolved through the
 // shared helper so all three stay in step.
-const ICONS = { CheckCircle, HelpCircle, CloseCircle }
+const ICONS = { CheckCircle, HelpCircle, CloseCircle, ProgressQuestion }
 const icon = computed(() => ICONS[getResponseIcon(props.response)] ?? HelpCircle)
+const title = computed(() => props.label
+	?? (props.response ? getResponseText(props.response) : t('attendance', 'No response')))
 </script>
 
 <style scoped lang="scss">

@@ -38,8 +38,8 @@ class StatisticsController extends Controller {
 	/**
 	 * Evaluate responses and attendance across appointments
 	 *
-	 * Users without the see_statistics permission get their own row plus the
-	 * group and overall averages, and no chart series.
+	 * Users without the see_statistics permission get their own row and nothing
+	 * else: no other people, no sections, no totals and no chart series.
 	 *
 	 * @param ?string $startDate Start of the range (Y-m-d, inclusive)
 	 * @param ?string $endDate End of the range (Y-m-d, inclusive)
@@ -105,10 +105,22 @@ class StatisticsController extends Controller {
 			return new DataResponse(['error' => 'Insufficient permissions'], Http::STATUS_FORBIDDEN);
 		}
 
+		// The drill-down names what somebody answered per appointment, which is
+		// what the response overview governs — the aggregate row is not enough.
+		if (!$this->permissionService->canManageAppointments($user->getUID())
+			&& !$this->permissionService->canSeeResponseOverview($user->getUID())) {
+			return new DataResponse(['error' => 'Insufficient permissions'], Http::STATUS_FORBIDDEN);
+		}
+
 		$filter = $this->filterFrom($startDate, $endDate, $categoryIds, $includeUncategorized);
 
+		// Own comments are the viewer's own words; anyone else's follow the same
+		// permission that governs them in the response overview.
+		$withComments = $targetUserId === $user->getUID()
+			|| $this->permissionService->canSeeComments($user->getUID());
+
 		try {
-			return new DataResponse($this->statisticsService->getPersonDetail($filter, $targetUserId));
+			return new DataResponse($this->statisticsService->getPersonDetail($filter, $targetUserId, $withComments));
 		} catch (StatisticsRangeException $e) {
 			return $this->tooManyAppointments($e);
 		}

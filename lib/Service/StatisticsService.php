@@ -29,7 +29,7 @@ use OCP\IUserManager;
  * @psalm-type StatsSection = array{id: string, displayName: string, personCount: int, targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float}
  * @psalm-type StatsTimelinePoint = array{appointmentId: int, name: string, startDatetime: ?string, targetCount: int, yes: int, present: int, attendanceRecorded: bool}
  * @psalm-type StatsCategory = array{categoryId: ?int, displayName: string, appointmentCount: int, targetCount: int, yes: int, present: int, attendanceBase: int, acceptRate: ?float, attendanceRate: ?float}
- * @psalm-type StatsPersonDetail = array{userId: string, displayName: string, isGuest: bool, entries: list<array{appointmentId: int, name: string, startDatetime: ?string, response: ?string, checkinState: ?string, attendanceRecorded: bool}>}
+ * @psalm-type StatsPersonDetail = array{userId: string, displayName: string, isGuest: bool, entries: list<array{appointmentId: int, name: string, startDatetime: ?string, response: ?string, checkinState: ?string, attendanceRecorded: bool, comment: ?string}>}
  * @psalm-type StatsCategoryTally = array{categoryId: ?int, appointmentCount: int, tally: StatisticsTally}
  */
 class StatisticsService {
@@ -126,13 +126,14 @@ class StatisticsService {
 	/**
 	 * One person's appointments in the filtered range, for the drill-down.
 	 *
+	 * @param bool $withComments Whether the viewer may read this person's comments
 	 * @return StatsPersonDetail
 	 * @throws StatisticsRangeException
 	 */
-	public function getPersonDetail(StatisticsFilter $filter, string $userId): array {
+	public function getPersonDetail(StatisticsFilter $filter, string $userId, bool $withComments = false): array {
 		$appointments = $this->loadAppointments($filter);
 		$appointmentIds = $this->idsOf($appointments);
-		$responses = $this->indexResponses($appointmentIds, $userId);
+		$responses = $this->indexResponses($appointmentIds, $userId, $withComments);
 		$checkedIn = $this->appointmentsWithCheckins($appointmentIds);
 		$user = $this->userManager->get($userId);
 
@@ -151,6 +152,7 @@ class StatisticsService {
 				'response' => $answer !== null ? $this->responseValue($answer['response']) : null,
 				'checkinState' => $answer !== null ? $this->checkinState($answer['checkinState']) : null,
 				'attendanceRecorded' => $this->hasEnded($appointment) && isset($checkedIn[$appointmentId]),
+				'comment' => $answer['comment'] ?? null,
 			];
 		}
 
@@ -270,14 +272,15 @@ class StatisticsService {
 
 	/**
 	 * @param list<int> $appointmentIds
-	 * @return array<int, array<string, array{response: ?string, checkinState: ?string}>> appointmentId → userId → answer
+	 * @return array<int, array<string, array{response: ?string, checkinState: ?string, comment: ?string}>> appointmentId → userId → answer
 	 */
-	private function indexResponses(array $appointmentIds, ?string $userId = null): array {
+	private function indexResponses(array $appointmentIds, ?string $userId = null, bool $withComments = false): array {
 		$indexed = [];
-		foreach ($this->responseMapper->findStatisticsRows($appointmentIds, $userId) as $row) {
+		foreach ($this->responseMapper->findStatisticsRows($appointmentIds, $userId, $withComments) as $row) {
 			$indexed[$row['appointmentId']][$row['userId']] = [
 				'response' => $row['response'],
 				'checkinState' => $row['checkinState'],
+				'comment' => $row['comment'],
 			];
 		}
 

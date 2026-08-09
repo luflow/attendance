@@ -73,16 +73,17 @@ class AttendanceResponseMapper extends QBMapper {
 	}
 
 	/**
-	 * The four columns the statistics evaluate, for a set of appointments, in
+	 * The few columns the statistics evaluate, for a set of appointments, in
 	 * one query. Deliberately not entities: at the 1000-appointment cap this
 	 * can be hundreds of thousands of rows, and hydrating all 15 columns of
 	 * each costs far more than the evaluation itself.
 	 *
 	 * @param list<int> $appointmentIds
 	 * @param ?string $userId Restrict to one person, for the drill-down
-	 * @return list<array{appointmentId: int, userId: string, response: ?string, checkinState: ?string}>
+	 * @param bool $withComments Read the comment column too — only the drill-down can afford to, it being one person's rows
+	 * @return list<array{appointmentId: int, userId: string, response: ?string, checkinState: ?string, comment: ?string}>
 	 */
-	public function findStatisticsRows(array $appointmentIds, ?string $userId = null): array {
+	public function findStatisticsRows(array $appointmentIds, ?string $userId = null, bool $withComments = false): array {
 		if ($appointmentIds === []) {
 			return [];
 		}
@@ -93,6 +94,10 @@ class AttendanceResponseMapper extends QBMapper {
 			->where(
 				$qb->expr()->in('appointment_id', $qb->createNamedParameter($appointmentIds, IQueryBuilder::PARAM_INT_ARRAY))
 			);
+
+		if ($withComments) {
+			$qb->addSelect('comment');
+		}
 
 		if ($userId !== null) {
 			$qb->andWhere($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
@@ -108,6 +113,7 @@ class AttendanceResponseMapper extends QBMapper {
 				'userId' => (string)$row['user_id'],
 				'response' => $row['response'] !== null ? (string)$row['response'] : null,
 				'checkinState' => $row['checkin_state'] !== null ? (string)$row['checkin_state'] : null,
+				'comment' => isset($row['comment']) ? (string)$row['comment'] : null,
 			];
 		}
 		$result->closeCursor();

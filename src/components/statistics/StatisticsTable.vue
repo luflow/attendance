@@ -63,12 +63,14 @@
 				<tr
 					v-for="person in peopleIn(section.id)"
 					:key="`${section.id}-${person.userId}`"
-					class="statistics-table__person"
-					:class="{ 'statistics-table__person--self': person.userId === ownUserId }"
+					:class="{
+						'statistics-table__person': selectable,
+						'statistics-table__person--self': person.userId === ownUserId,
+					}"
 					data-test="statistics-person-row"
-					tabindex="0"
-					@click="emit('selectPerson', person)"
-					@keydown.enter="emit('selectPerson', person)">
+					:tabindex="selectable ? 0 : undefined"
+					@click="selectable && emit('selectPerson', person)"
+					@keydown.enter="selectable && emit('selectPerson', person)">
 					<th scope="row">
 						{{ person.displayName }}
 						<span v-if="person.isGuest" class="statistics-table__badge">
@@ -106,6 +108,7 @@ const props = defineProps({
 	people: { type: Array, required: true },
 	totals: { type: Object, required: true },
 	reduced: { type: Boolean, default: false },
+	selectable: { type: Boolean, default: false },
 	ownUserId: { type: String, default: '' },
 	search: { type: String, default: '' },
 })

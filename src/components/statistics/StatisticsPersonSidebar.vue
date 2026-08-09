@@ -17,22 +17,22 @@
 		<ul v-else class="person-detail">
 			<li v-for="entry in entries" :key="entry.appointmentId" class="person-detail__item">
 				<div class="person-detail__head">
-					<span class="person-detail__date">{{ formatDate(entry.startDatetime) }}</span>
-					<span class="person-detail__name">{{ entry.name }}</span>
+					<div class="person-detail__answer">
+						<ResponseDot :response="entry.response" />
+						<strong>{{ entry.name }}</strong>
+						<span class="person-detail__date">{{ formatDate(entry.startDatetime) }}</span>
+					</div>
+					<div v-if="entry.checkinState" class="person-detail__checkin">
+						<span>{{ t("attendance", "Checked in?") }}</span>
+						<ResponseDot :response="entry.checkinState" :label="checkinLabel(entry.checkinState)" />
+					</div>
 				</div>
-				<div class="person-detail__states">
-					<NcChip
-						:text="responseLabel(entry.response)"
-						:variant="getResponseVariant(entry.response)"
-						noClose />
-					<NcChip
-						v-if="entry.attendanceRecorded"
-						:text="checkinLabel(entry.checkinState)"
-						:variant="getResponseVariant(entry.checkinState)"
-						noClose />
-					<span v-if="isReversal(entry)" class="person-detail__note">
-						{{ t("attendance", "Said no but attended") }}
-					</span>
+				<div v-if="isReversal(entry)" class="person-detail__note">
+					{{ t("attendance", "Said no but attended") }}
+				</div>
+				<div v-if="entry.comment && entry.comment.trim()" class="person-detail__comment">
+					<CommentIcon :size="13" />
+					<span>{{ entry.comment }}</span>
 				</div>
 			</li>
 		</ul>
@@ -43,12 +43,13 @@
 import axios from '@nextcloud/axios'
 import { translatePlural as n, translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
-import { NcAppSidebar, NcChip, NcEmptyContent } from '@nextcloud/vue'
+import { NcAppSidebar, NcEmptyContent } from '@nextcloud/vue'
 import { computed, ref, watch } from 'vue'
 import CalendarBlankIcon from 'vue-material-design-icons/CalendarBlank.vue'
+import CommentIcon from 'vue-material-design-icons/Comment.vue'
+import ResponseDot from '../appointment/ResponseDot.vue'
 import LoadingState from '../common/LoadingState.vue'
 import { formatDate } from '../../utils/datetime.js'
-import { getResponseText, getResponseVariant } from '../../utils/response.js'
 
 const props = defineProps({
 	person: { type: Object, required: true },
@@ -101,21 +102,11 @@ function isReversal(entry) {
 }
 
 /**
- * @param {?string} value - Stored response.
- * @return {string} Human-readable answer.
- */
-function responseLabel(value) {
-	return value ? getResponseText(value) : t('attendance', 'No response')
-}
-
-/**
- * @param {?string} value - Stored check-in state.
+ * @param {string} value - Stored check-in state.
  * @return {string} Human-readable attendance.
  */
 function checkinLabel(value) {
-	if (value === 'yes') return t('attendance', 'Present')
-	if (value === 'no') return t('attendance', 'Absent')
-	return t('attendance', 'Not recorded')
+	return value === 'yes' ? t('attendance', 'Present') : t('attendance', 'Absent')
 }
 </script>
 
@@ -130,8 +121,22 @@ function checkinLabel(value) {
 }
 
 .person-detail__head {
+    align-items: center;
     display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+.person-detail__answer {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
     gap: 8px;
+}
+
+.person-detail__answer strong {
+    font-size: 14px;
 }
 
 .person-detail__date {
@@ -139,19 +144,25 @@ function checkinLabel(value) {
     white-space: nowrap;
 }
 
-.person-detail__name {
-    font-weight: bold;
-}
-
-.person-detail__states {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 4px;
-}
-
-.person-detail__note {
+.person-detail__checkin {
+    align-items: center;
     color: var(--color-text-maxcontrast);
-    font-size: 0.85rem;
+    display: flex;
+    font-size: 13px;
+    gap: 5px;
+}
+
+.person-detail__note,
+.person-detail__comment {
+    color: var(--color-text-maxcontrast);
+    font-size: 13px;
+    padding-top: 5px;
+}
+
+.person-detail__comment {
+    align-items: flex-start;
+    display: flex;
+    font-style: italic;
+    gap: 8px;
 }
 </style>

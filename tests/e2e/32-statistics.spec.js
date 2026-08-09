@@ -56,7 +56,7 @@ test.describe('Attendance App - Statistics', () => {
 			daysFromNow: -3,
 		})
 
-		await respondToAppointmentViaAPI(request, recorded.id, { response: 'yes' })
+		await respondToAppointmentViaAPI(request, recorded.id, { response: 'yes', comment: 'Bringing the sheet music' })
 		await checkinUserViaAPI(request, recorded.id, 'admin', { response: 'yes' })
 		await respondToAppointmentViaAPI(request, unrecorded.id, { response: 'yes' })
 	})
@@ -130,6 +130,35 @@ test.describe('Attendance App - Statistics', () => {
 		const sidebar = page.locator('[data-test="statistics-person-sidebar"]')
 		await expect(sidebar).toBeVisible()
 		await expect(sidebar).toContainText('Statistics recorded')
+		// Same shape as the appointment detail page: the answer is an icon, the
+		// check-in a labelled one, and the comment comes along.
+		await expect(sidebar.locator('.response-dot')).not.toHaveCount(0)
+		await expect(sidebar).toContainText('Checked in?')
+		await expect(sidebar).toContainText('Bringing the sheet music')
+	})
+
+	test('does not open the drill-down without the response overview', async ({ page, request, loginAsUser }) => {
+		await saveAdminSettings(request, {
+			whitelistedGroups: [],
+			whitelistedTeams: [],
+			permissions: {
+				...PERMISSIVE_PERMISSIONS,
+				see_statistics: { mode: 'all', groups: [] },
+				manage_appointments: { mode: 'nobody', groups: [] },
+				see_response_overview: { mode: 'nobody', groups: [] },
+			},
+		})
+		await reloadWebWorkers()
+		await loginAsUser('admin', 'admin')
+
+		await page.goto(`/apps/attendance/statistics?period=${YEAR}`)
+		await page.waitForLoadState('networkidle')
+
+		const adminRow = page.locator('[data-test="statistics-person-row"]').filter({ hasText: 'admin' })
+		await expect(adminRow).toHaveCount(1)
+		await adminRow.click()
+
+		await expect(page.locator('[data-test="statistics-person-sidebar"]')).toHaveCount(0)
 	})
 
 	test('without the permission only the own row is shown', async ({ page, request, loginAsUser }) => {

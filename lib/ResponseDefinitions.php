@@ -411,6 +411,7 @@ namespace OCA\Attendance;
  *   response: ?string,
  *   checkinState: ?string,
  *   attendanceRecorded: bool,
+ *   comment: ?string,
  * }
  * @psalm-type AttendanceStatisticsPersonDetail = array{
  *   userId: string,

@@ -276,6 +276,25 @@ class StatisticsServiceTest extends TestCase {
 		$this->assertTrue($detail['entries'][0]['attendanceRecorded']);
 	}
 
+	public function testPersonDetailWithholdsCommentsUnlessAsked(): void {
+		$this->givenUsers(['alice' => 'Alice']);
+		$this->givenUnrestrictedVisibility();
+		$this->givenGroupSections();
+
+		$this->appointmentMapper->method('findForStatistics')->willReturn([
+			$this->appointment(1, '2026-05-01 18:00:00', '2026-05-01 20:00:00'),
+		]);
+		$this->givenResponses([
+			$this->response(1, 'alice', 'yes', 'yes', 'On my way'),
+		]);
+
+		$withheld = $this->service->getPersonDetail($this->filter(), 'alice');
+		$this->assertNull($withheld['entries'][0]['comment']);
+
+		$granted = $this->service->getPersonDetail($this->filter(), 'alice', true);
+		$this->assertSame('On my way', $granted['entries'][0]['comment']);
+	}
+
 	/**
 	 * The target set is resolved per appointment rather than per candidate, so
 	 * it has to keep agreeing with the shared audience rule.
@@ -385,12 +404,13 @@ class StatisticsServiceTest extends TestCase {
 	/**
 	 * @return array{appointmentId: int, userId: string, response: ?string, checkinState: ?string}
 	 */
-	private function response(int $appointmentId, string $userId, string $answer, string $checkinState): array {
+	private function response(int $appointmentId, string $userId, string $answer, string $checkinState, ?string $comment = null): array {
 		return [
 			'appointmentId' => $appointmentId,
 			'userId' => $userId,
 			'response' => $answer,
 			'checkinState' => $checkinState === '' ? null : $checkinState,
+			'comment' => $comment,
 		];
 	}
 
@@ -398,15 +418,22 @@ class StatisticsServiceTest extends TestCase {
 	 * Stubs both response queries from one row set, so a test never has to keep
 	 * the rows and the "was anyone checked in" flags in step by hand.
 	 *
-	 * @param list<array{appointmentId: int, userId: string, response: ?string, checkinState: ?string}> $rows
+	 * @param list<array{appointmentId: int, userId: string, response: ?string, checkinState: ?string, comment: ?string}> $rows
 	 */
 	private function givenResponses(array $rows): void {
 		$this->responseMapper->method('findStatisticsRows')->willReturnCallback(
-			static function (array $ids, ?string $userId = null) use ($rows): array {
-				return array_values(array_filter(
+			// Mirrors the mapper: without $withComments the column is not even
+			// selected, so no caller can read a comment it did not ask for.
+			static function (array $ids, ?string $userId = null, bool $withComments = false) use ($rows): array {
+				$matching = array_filter(
 					$rows,
 					static fn (array $row): bool => in_array($row['appointmentId'], $ids, true)
 						&& ($userId === null || $row['userId'] === $userId),
+				);
+
+				return array_values(array_map(
+					static fn (array $row): array => [...$row, 'comment' => $withComments ? $row['comment'] : null],
+					$matching,
 				));
 			},
 		);

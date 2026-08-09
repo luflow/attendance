@@ -1391,7 +1391,8 @@
                     "startDatetime",
                     "response",
                     "checkinState",
-                    "attendanceRecorded"
+                    "attendanceRecorded",
+                    "comment"
                 ],
                 "properties": {
                     "appointmentId": {
@@ -1415,6 +1416,10 @@
                     },
                     "attendanceRecorded": {
                         "type": "boolean"
+                    },
+                    "comment": {
+                        "type": "string",
+                        "nullable": true
                     }
                 }
             },
@@ -5631,7 +5636,7 @@
             "get": {
                 "operationId": "statistics-index",
                 "summary": "Evaluate responses and attendance across appointments",
-                "description": "Users without the see_statistics permission get their own row plus the group and overall averages, and no chart series.",
+                "description": "Users without the see_statistics permission get their own row and nothing else: no other people, no sections, no totals and no chart series.",
                 "tags": [
                     "statistics"
                 ],
