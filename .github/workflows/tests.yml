@@ -16,7 +16,7 @@ jobs:
         uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
         id: versions
         with:
-          fallbackNode: '^24'
+          fallbackNode: '^24.12'
           fallbackNpm: '^11'
 
       - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
@@ -69,7 +69,7 @@ jobs:
         uses: skjnldsv/read-package-engines-version-actions@06d6baf7d8f41934ab630e97d9e6c0bc9c9ac5e4 # v3
         id: versions
         with:
-          fallbackNode: '^24'
+          fallbackNode: '^24.12'
           fallbackNpm: '^11'
 
       - name: Set up node ${{ steps.versions.outputs.nodeVersion }}
