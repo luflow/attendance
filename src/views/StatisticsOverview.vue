@@ -53,7 +53,7 @@
 				</div>
 			</template>
 
-			<div v-if="grouped && capabilities.teamsAvailable" class="statistics__filter">
+			<div v-if="capabilities.teamsAvailable" class="statistics__filter">
 				<label for="statistics-group-by">{{ t("attendance", "Group by") }}</label>
 				<select id="statistics-group-by" v-model="groupBy" data-test="statistics-group-by">
 					<option value="groups">
@@ -154,8 +154,7 @@
 			<StatisticsCharts
 				v-if="!reduced"
 				:statistics="statistics"
-				:groupBy="statistics.groupBy"
-				:grouped="grouped" />
+				:groupBy="statistics.groupBy" />
 
 			<div class="statistics__table-controls">
 				<NcTextField

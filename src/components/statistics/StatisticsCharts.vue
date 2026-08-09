@@ -7,7 +7,7 @@
 			</div>
 		</section>
 
-		<section v-if="grouped && sectionData" class="statistics-charts__chart">
+		<section v-if="sectionData" class="statistics-charts__chart">
 			<h3>
 				{{
 					groupBy === "teams"
@@ -51,7 +51,6 @@ import { formatDate } from '../../utils/datetime.js'
 const props = defineProps({
 	statistics: { type: Object, required: true },
 	groupBy: { type: String, default: 'groups' },
-	grouped: { type: Boolean, required: true },
 })
 
 // Only what these three charts draw — registering chart.js' full `registerables`
