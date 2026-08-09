@@ -15,6 +15,9 @@
 								:size="16" />
 						</button>
 					</th>
+					<th v-if="!grouped" scope="col" class="statistics-table__sections">
+						{{ sectionColumnLabel }}
+					</th>
 					<th v-for="column in columns" :key="column.key" scope="col">
 						<button
 							type="button"
@@ -37,12 +40,15 @@
 					<th scope="row">
 						{{ t("attendance", "Your numbers") }}
 					</th>
+					<td v-if="!grouped" class="statistics-table__sections">
+						{{ sectionsOf(ownPerson) }}
+					</td>
 					<td v-for="column in columns" :key="column.key">
 						{{ cell(ownPerson, column) }}
 					</td>
 				</tr>
 				<tr v-else>
-					<td :colspan="columns.length + 1">
+					<td :colspan="columnCount">
 						{{ t("attendance", "You were not invited to any appointment in this period") }}
 					</td>
 				</tr>
@@ -80,6 +86,9 @@
 							{{ t("attendance", "Guest") }}
 						</span>
 					</th>
+					<td v-if="!grouped" class="statistics-table__sections">
+						{{ sectionsOf(person) }}
+					</td>
 					<td v-for="column in columns" :key="column.key">
 						{{ cell(person, column) }}
 					</td>
@@ -91,6 +100,7 @@
 					<th scope="row">
 						{{ t("attendance", "Total") }}
 					</th>
+					<td v-if="!grouped" />
 					<td v-for="column in columns" :key="column.key">
 						{{ cell(totals, column) }}
 					</td>
@@ -118,6 +128,7 @@ const props = defineProps({
 		default: 'compact',
 		validator: (value) => ['compact', 'full'].includes(value),
 	},
+	groupBy: { type: String, default: 'groups' },
 	ownUserId: { type: String, default: '' },
 	search: { type: String, default: '' },
 })
@@ -160,6 +171,18 @@ const activeSort = computed(() => {
 
 const sortIcon = computed(() => (activeSort.value.asc ? MenuUpIcon : MenuDownIcon))
 
+// Ungrouped, the membership a section heading would have carried becomes a
+// column of its own — it is the one thing a flat list would otherwise lose.
+const columnCount = computed(() => columns.value.length + (props.grouped ? 1 : 2))
+
+const sectionColumnLabel = computed(() => (props.groupBy === 'teams'
+	? t('attendance', 'Teams')
+	: t('attendance', 'Groups')))
+
+const sectionNames = computed(() => {
+	return Object.fromEntries(props.sections.map((section) => [section.id, section.displayName]))
+})
+
 const ownPerson = computed(() => props.people.find((person) => person.userId === props.ownUserId) ?? null)
 
 const visiblePeople = computed(() => {
@@ -201,6 +224,14 @@ const bodies = computed(() => {
 		people: visiblePeople.value.filter((person) => person.sections.includes(section.id)),
 	}))
 })
+
+/**
+ * @param {object} person - A person row.
+ * @return {string} The sections they belong to, named.
+ */
+function sectionsOf(person) {
+	return person.sections.map((id) => sectionNames.value[id] ?? id).join(', ')
+}
 
 /**
  * @param {string} key - Column key.
@@ -249,8 +280,12 @@ function cell(row, column) {
     white-space: nowrap;
 }
 
+/* Compounded with the element: the generic `th`/`td` rule above is a class plus
+   an element, so a bare class would lose to it. */
 .statistics-table th[scope="row"],
-.statistics-table__name {
+.statistics-table th.statistics-table__name,
+.statistics-table th.statistics-table__sections,
+.statistics-table td.statistics-table__sections {
     text-align: start;
 }
 
@@ -258,6 +293,14 @@ function cell(row, column) {
    squeeze it until "Christina Vogel" has less room than "Nicht erfasst". */
 .statistics-table__name {
     min-width: 12rem;
+}
+
+/* The one other column carrying prose, and the only one allowed to wrap — a
+   person in four groups would otherwise stretch the table past the viewport. */
+.statistics-table__sections {
+    color: var(--color-text-maxcontrast);
+    max-width: 16rem;
+    white-space: normal;
 }
 
 .statistics-table thead th {

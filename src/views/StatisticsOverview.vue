@@ -193,6 +193,7 @@
 				:selectable="canDrillDown"
 				:grouped="grouped"
 				:detail="detail"
+				:groupBy="statistics.groupBy"
 				:ownUserId="ownUserId"
 				:search="search"
 				@selectPerson="selectedPerson = $event" />

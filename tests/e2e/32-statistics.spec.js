@@ -128,8 +128,10 @@ test.describe('Attendance App - Statistics', () => {
 
 		await page.locator('[data-test="statistics-grouping"]').getByText('Ungrouped', { exact: true }).click()
 		await expect(page.locator('[data-test^="statistics-section-"]')).toHaveCount(0)
-		// The people survive the regrouping — each listed once now.
+		// The people survive the regrouping — each listed once now, and the
+		// membership the section headings carried moves into a column.
 		await expect(page.locator('[data-test="statistics-person-row"]').filter({ hasText: 'admin' })).toHaveCount(1)
+		await expect(page.locator('.statistics-table__sections')).not.toHaveCount(0)
 		await expect(page.locator('[data-test="statistics-totals"]')).toBeVisible()
 
 		// Both choices are linkable, so a shared URL opens the same view.
