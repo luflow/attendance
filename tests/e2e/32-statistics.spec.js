@@ -156,8 +156,13 @@ test.describe('Attendance App - Statistics', () => {
 
 		const adminRow = page.locator('[data-test="statistics-person-row"]').filter({ hasText: 'admin' })
 		await expect(adminRow).toHaveCount(1)
-		await adminRow.click()
+		// The row carries no tabindex when it is not selectable — asserted before
+		// the click, because "the sidebar did not appear" is also true of a
+		// sidebar that simply has not rendered yet.
+		await expect(adminRow).not.toHaveAttribute('tabindex')
 
+		await adminRow.click()
+		await page.waitForLoadState('networkidle')
 		await expect(page.locator('[data-test="statistics-person-sidebar"]')).toHaveCount(0)
 	})
 
