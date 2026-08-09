@@ -41,6 +41,11 @@
 						{{ cell(ownPerson, column) }}
 					</td>
 				</tr>
+				<tr v-else>
+					<td :colspan="COLUMNS.length + 1">
+						{{ t("attendance", "You were not invited to any appointment in this period") }}
+					</td>
+				</tr>
 			</tbody>
 
 			<tbody v-for="section in sections" :key="section.id">
@@ -59,6 +64,7 @@
 					v-for="person in peopleIn(section.id)"
 					:key="`${section.id}-${person.userId}`"
 					class="statistics-table__person"
+					:class="{ 'statistics-table__person--self': person.userId === ownUserId }"
 					data-test="statistics-person-row"
 					tabindex="0"
 					@click="emit('selectPerson', person)"
@@ -75,7 +81,7 @@
 				</tr>
 			</tbody>
 
-			<tfoot>
+			<tfoot v-if="!reduced">
 				<tr data-test="statistics-totals">
 					<th scope="row">
 						{{ t("attendance", "Total") }}
@@ -236,17 +242,19 @@ function cell(row, column) {
     font-weight: bold;
 }
 
-.statistics-table__own > * {
-    background-color: var(--color-primary-element-light);
-    font-weight: bold;
-}
-
 .statistics-table__person {
     cursor: pointer;
 }
 
 .statistics-table__person:hover > * {
     background-color: var(--color-background-hover);
+}
+
+.statistics-table__own > *,
+.statistics-table__person--self > *,
+.statistics-table__person--self:hover > * {
+    background-color: var(--color-primary-element-light);
+    font-weight: bold;
 }
 
 .statistics-table__count,

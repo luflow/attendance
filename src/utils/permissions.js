@@ -42,7 +42,7 @@ export const PERMISSION_ROWS = {
 		group: 'responses',
 		title: t('attendance', 'May see everyone\'s statistics'),
 		hint: t('attendance', 'See the evaluation of responses and attendance across all appointments, per person.'),
-		implication: t('attendance', 'Without this, users still see their own numbers and the group averages.'),
+		implication: t('attendance', 'Without this, users only see their own numbers.'),
 		warningWhenAll: t('attendance', 'Every user can see how often each person responded and attended.'),
 	},
 	respond_for_others: {

@@ -21,15 +21,15 @@
 					<span class="person-detail__name">{{ entry.name }}</span>
 				</div>
 				<div class="person-detail__states">
-					<span class="person-detail__chip" :class="`person-detail__chip--${entry.response ?? 'none'}`">
-						{{ responseLabel(entry.response) }}
-					</span>
-					<span
+					<NcChip
+						:text="responseLabel(entry.response)"
+						:variant="getResponseVariant(entry.response)"
+						noClose />
+					<NcChip
 						v-if="entry.attendanceRecorded"
-						class="person-detail__chip"
-						:class="`person-detail__chip--checkin-${entry.checkinState ?? 'none'}`">
-						{{ checkinLabel(entry.checkinState) }}
-					</span>
+						:text="checkinLabel(entry.checkinState)"
+						:variant="getResponseVariant(entry.checkinState)"
+						noClose />
 					<span v-if="isReversal(entry)" class="person-detail__note">
 						{{ t("attendance", "Said no but attended") }}
 					</span>
@@ -43,12 +43,12 @@
 import axios from '@nextcloud/axios'
 import { translatePlural as n, translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
-import { NcAppSidebar, NcEmptyContent } from '@nextcloud/vue'
+import { NcAppSidebar, NcChip, NcEmptyContent } from '@nextcloud/vue'
 import { computed, ref, watch } from 'vue'
 import CalendarBlankIcon from 'vue-material-design-icons/CalendarBlank.vue'
 import LoadingState from '../common/LoadingState.vue'
 import { formatDate } from '../../utils/datetime.js'
-import { getResponseText } from '../../utils/response.js'
+import { getResponseText, getResponseVariant } from '../../utils/response.js'
 
 const props = defineProps({
 	person: { type: Object, required: true },
@@ -148,29 +148,6 @@ function checkinLabel(value) {
     flex-wrap: wrap;
     gap: 6px;
     margin-top: 4px;
-}
-
-.person-detail__chip {
-    border-radius: var(--border-radius-pill);
-    background-color: var(--color-background-dark);
-    font-size: 0.85rem;
-    padding: 1px 8px;
-}
-
-.person-detail__chip--yes,
-.person-detail__chip--checkin-yes {
-    background-color: var(--color-success);
-    color: var(--color-primary-element-text);
-}
-
-.person-detail__chip--no,
-.person-detail__chip--checkin-no {
-    background-color: var(--color-error);
-    color: var(--color-primary-element-text);
-}
-
-.person-detail__chip--maybe {
-    background-color: var(--color-warning);
 }
 
 .person-detail__note {

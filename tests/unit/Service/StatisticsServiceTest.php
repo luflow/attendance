@@ -223,7 +223,7 @@ class StatisticsServiceTest extends TestCase {
 		$this->assertSame(1, $result['totals']['targetCount']);
 	}
 
-	public function testReducedShapeKeepsOwnRowAveragesAndDropsChartSeries(): void {
+	public function testReducedShapeIsTheOwnRowAndNothingElse(): void {
 		$this->givenUsers(['alice' => 'Alice', 'bob' => 'Bob']);
 		$this->givenUnrestrictedVisibility();
 		$this->givenGroupSections();
@@ -239,7 +239,8 @@ class StatisticsServiceTest extends TestCase {
 		$result = $this->service->getStatistics($this->filter(), 'bob');
 
 		$this->assertSame(['bob'], array_column($result['people'], 'userId'));
-		$this->assertSame(2, $result['totals']['targetCount'], 'averages still cover everyone');
+		$this->assertSame([], $result['sections'], 'no group comparison without the permission');
+		$this->assertSame(1, $result['totals']['targetCount'], 'totals cover the own row alone');
 		$this->assertSame([], $result['timeline']);
 		$this->assertSame([], $result['byCategory']);
 	}

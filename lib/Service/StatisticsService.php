@@ -77,10 +77,16 @@ class StatisticsService {
 
 		$membership = $this->buildMembership(array_keys($tallies), $filter);
 
-		$sections = $this->buildSections($tallies, $membership, $filter);
+		// Without the permission the answer is the viewer's own row and nothing
+		// else: no other people, no sections, and totals over their row alone —
+		// a group average is a statement about colleagues either way.
+		$sections = $limitToUserId === null ? $this->buildSections($tallies, $membership, $filter) : [];
+		$counted = $limitToUserId === null
+			? $tallies
+			: array_intersect_key($tallies, [$limitToUserId => true]);
 
 		$totals = new StatisticsTally();
-		foreach ($tallies as $tally) {
+		foreach ($counted as $tally) {
 			$totals->add($tally);
 		}
 

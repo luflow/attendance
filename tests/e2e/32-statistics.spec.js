@@ -104,6 +104,8 @@ test.describe('Attendance App - Statistics', () => {
 
 		const adminRow = page.locator('[data-test="statistics-person-row"]').filter({ hasText: 'admin' })
 		await expect(adminRow).toHaveCount(1)
+		// The viewer's own row is highlighted so it can be found in a long table.
+		await expect(adminRow).toHaveClass(/statistics-table__person--self/)
 	})
 
 	test('narrows the evaluation to the selected category', async ({ page, request, loginAsUser }) => {
@@ -130,7 +132,7 @@ test.describe('Attendance App - Statistics', () => {
 		await expect(sidebar).toContainText('Statistics recorded')
 	})
 
-	test('without the permission only the own row and no charts are shown', async ({ page, request, loginAsUser }) => {
+	test('without the permission only the own row is shown', async ({ page, request, loginAsUser }) => {
 		await setStatisticsPermission(request, 'nobody')
 		await loginAsUser('admin', 'admin')
 
@@ -138,12 +140,13 @@ test.describe('Attendance App - Statistics', () => {
 		await page.waitForLoadState('networkidle')
 
 		await expect(page.locator('[data-test="statistics-own-row"]')).toBeVisible()
+
+		// Nothing about anybody else: no other people, no group sections, no
+		// totals row, no charts, no export.
 		await expect(page.locator('[data-test="statistics-person-row"]')).toHaveCount(0)
+		await expect(page.locator('[data-test^="statistics-section-"]')).toHaveCount(0)
+		await expect(page.locator('[data-test="statistics-totals"]')).toHaveCount(0)
 		await expect(page.locator('.statistics-charts')).toHaveCount(0)
 		await expect(page.locator('[data-test="statistics-export"]')).toHaveCount(0)
-
-		// The group and overall averages stay — they are what makes the own
-		// numbers mean anything.
-		await expect(page.locator('[data-test="statistics-totals"]')).toBeVisible()
 	})
 })

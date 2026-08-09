@@ -916,7 +916,6 @@ OC.L10N.register(
     "Failed to export statistics" : "Statistik konnte nicht exportiert werden",
     "May see everyone's statistics" : "Darf die Statistik aller sehen",
     "See the evaluation of responses and attendance across all appointments, per person." : "Die Auswertung von Antworten und Anwesenheit über alle Termine hinweg sehen, pro Person.",
-    "Without this, users still see their own numbers and the group averages." : "Ohne diese Berechtigung bleiben die eigenen Zahlen und die Gruppendurchschnitte trotzdem sichtbar.",
     "Every user can see how often each person responded and attended." : "Jeder Nutzer kann sehen, wie oft jede Person geantwortet hat und anwesend war.",
     "Who may see the evaluation across all appointments" : "Wer die Auswertung über alle Termine sieht",
     "Who gets to see the replies of everyone else? The detailed summary shows names, the counts show only how many said yes, no or maybe, and the statistics evaluate both across all appointments." : "Wer darf die Antworten der anderen sehen? Die ausführliche Übersicht zeigt Namen, die Zahlen zeigen nur, wie viele mit Ja, Nein oder Vielleicht geantwortet haben, und die Statistik wertet beides über alle Termine hinweg aus.",
@@ -924,6 +923,8 @@ OC.L10N.register(
     "_%n appointment_::_%n appointments_" : ["%n Termin","%n Termine"],
     "_%n appointment in this period_::_%n appointments in this period_" : ["%n Termin in diesem Zeitraum","%n Termine in diesem Zeitraum"],
     "_%n person_::_%n people_" : ["%n Person","%n Personen"],
-    "_The evaluation handles up to %n appointment at a time. Please choose a shorter period._::_The evaluation handles up to %n appointments at a time. Please choose a shorter period._" : ["Die Auswertung verarbeitet höchstens %n Termin auf einmal. Bitte einen kürzeren Zeitraum wählen.","Die Auswertung verarbeitet höchstens %n Termine auf einmal. Bitte einen kürzeren Zeitraum wählen."]
+    "_The evaluation handles up to %n appointment at a time. Please choose a shorter period._::_The evaluation handles up to %n appointments at a time. Please choose a shorter period._" : ["Die Auswertung verarbeitet höchstens %n Termin auf einmal. Bitte einen kürzeren Zeitraum wählen.","Die Auswertung verarbeitet höchstens %n Termine auf einmal. Bitte einen kürzeren Zeitraum wählen."],
+    "Without this, users only see their own numbers." : "Ohne diese Berechtigung sind nur die eigenen Zahlen sichtbar.",
+    "You were not invited to any appointment in this period" : "Sie waren in diesem Zeitraum zu keinem Termin eingeladen"
 },
 "nplurals=2; plural=(n != 1);");
