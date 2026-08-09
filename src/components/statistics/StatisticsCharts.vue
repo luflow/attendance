@@ -1,6 +1,7 @@
 <template>
 	<div class="statistics-charts">
 		<section v-if="timelineData" class="statistics-charts__chart">
+			<!-- TRANSLATORS: Chart title — one point per appointment, in date order, showing how the rates developed. -->
 			<h3>{{ t("attendance", "Over time") }}</h3>
 			<div class="statistics-charts__canvas">
 				<Line :data="timelineData" :options="timelineOptions" />

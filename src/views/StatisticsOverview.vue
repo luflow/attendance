@@ -6,6 +6,7 @@
 
 		<div class="statistics__filters" data-test="statistics-filters">
 			<div class="statistics__filter">
+				<!-- TRANSLATORS: Label of the select that picks the *kind* of period — year, half-year, quarter or a free range. The select beside it picks which one. -->
 				<label for="statistics-period-type">{{ t("attendance", "Period") }}</label>
 				<select
 					id="statistics-period-type"
@@ -22,12 +23,14 @@
 						{{ t("attendance", "Quarter") }}
 					</option>
 					<option value="custom">
+						<!-- TRANSLATORS: Period option — a start and end date the user types in, rather than a whole year, half-year or quarter. -->
 						{{ t("attendance", "Custom") }}
 					</option>
 				</select>
 			</div>
 
 			<div v-if="periodType !== 'custom'" class="statistics__filter">
+				<!-- TRANSLATORS: Label of the select that picks which concrete period is evaluated, e.g. "Q3 2026". The select beside it picks the kind. -->
 				<label for="statistics-period">{{ t("attendance", "Range") }}</label>
 				<select id="statistics-period" v-model="periodKey" data-test="statistics-period">
 					<option v-for="option in periodChoices" :key="option.key" :value="option.key">
@@ -98,6 +101,7 @@
 								class="statistics__option-button"
 								data-test="statistics-filter-uncategorized"
 								@click="includeUncategorized = !includeUncategorized">
+								<!-- TRANSLATORS: Filter option — also count appointments that have no category assigned at all. -->
 								{{ t("attendance", "Without category") }}
 								<CheckIcon v-if="includeUncategorized" :size="18" />
 							</button>
@@ -170,6 +174,7 @@
 						v-model="grouping"
 						:label="t('attendance', 'Grouping')"
 						data-test="statistics-grouping">
+						<!-- TRANSLATORS: Switch over the table — list people under a heading per group, or as one flat list with a group column. -->
 						<NcRadioGroupButton :label="t('attendance', 'Grouped')" value="grouped" />
 						<NcRadioGroupButton :label="t('attendance', 'Ungrouped')" value="flat" />
 					</NcRadioGroup>
@@ -178,6 +183,7 @@
 						v-model="detail"
 						:label="t('attendance', 'Detail')"
 						data-test="statistics-detail">
+						<!-- TRANSLATORS: Switch over the table, choosing how many columns it shows. "Compact" keeps the essentials, "Full" shows every column — neither says anything about the data being complete. -->
 						<NcRadioGroupButton :label="t('attendance', 'Compact')" value="compact" />
 						<NcRadioGroupButton :label="t('attendance', 'Full')" value="full" />
 					</NcRadioGroup>

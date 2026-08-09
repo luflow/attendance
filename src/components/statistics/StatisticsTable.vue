@@ -38,6 +38,7 @@
 			<tbody v-if="reduced" data-test="statistics-own-row">
 				<tr v-if="ownPerson" class="statistics-table__own">
 					<th scope="row">
+						<!-- TRANSLATORS: Row label on the one row a user without the statistics permission sees — their own counts. -->
 						{{ t("attendance", "Your numbers") }}
 					</th>
 					<td v-if="!grouped" class="statistics-table__sections">
@@ -83,6 +84,7 @@
 					<th scope="row">
 						{{ person.displayName }}
 						<span v-if="person.isGuest" class="statistics-table__badge">
+							<!-- TRANSLATORS: Badge next to a name — this person was invited by email and has no account on this server. -->
 							{{ t("attendance", "Guest") }}
 						</span>
 					</th>
@@ -98,6 +100,7 @@
 			<tfoot v-if="!reduced">
 				<tr data-test="statistics-totals">
 					<th scope="row">
+						<!-- TRANSLATORS: Label of the last table row, summing every person above it — each person counted once, even when listed under several groups. -->
 						{{ t("attendance", "Total") }}
 					</th>
 					<td v-if="!grouped" />
@@ -145,14 +148,19 @@ const COLUMNS = [
 	{ key: 'noResponse', label: t('attendance', 'No response') },
 	{ key: 'present', label: t('attendance', 'Present'), compact: true },
 	{ key: 'absent', label: t('attendance', 'Absent') },
+	// TRANSLATORS: Column header — for how many appointments nobody wrote down whether this person was there. Not the same as being absent.
 	{ key: 'notRecorded', label: t('attendance', 'Not recorded') },
 	{
 		key: 'noShow',
+		// TRANSLATORS: Column header — the person said yes and then was not there. English uses the noun "no-show"; other languages usually need a short phrase.
 		label: t('attendance', 'No-show'),
 		hint: t('attendance', 'Said yes but was recorded as absent'),
 	},
+	// TRANSLATORS: Column header — share of appointments the person answered at all, whatever the answer was.
 	{ key: 'responseRate', label: t('attendance', 'Response rate'), rate: true, compact: true },
+	// TRANSLATORS: Column header — share of appointments the person answered with yes. Sits next to "Response rate" and "Attendance rate", which count different things.
 	{ key: 'acceptRate', label: t('attendance', 'Acceptance rate'), rate: true, compact: true },
+	// TRANSLATORS: Column header — share of appointments the person was actually there for, counted only over appointments where somebody worked the check-in list.
 	{ key: 'attendanceRate', label: t('attendance', 'Attendance rate'), rate: true, compact: true },
 ]
 

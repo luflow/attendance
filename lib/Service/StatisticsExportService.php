@@ -48,6 +48,7 @@ class StatisticsExportService {
 
 		$content = $this->odsWriter->write(
 			$this->odsWriter->renderTable(
+				// TRANSLATORS Name of the spreadsheet sheet holding one row per person. The same word labels the person-count column on the other sheet.
 				$this->l10n->t('People'),
 				$this->peopleRows($statistics['people'], $statistics['totals'], $sectionNames),
 			)
@@ -94,6 +95,7 @@ class StatisticsExportService {
 	 * @return list<list<OdsCell>>
 	 */
 	private function sectionRows(array $sections, array $totals): array {
+		// TRANSLATORS "People" here is the column counting how many people are in the group, and also names the other sheet.
 		$rows = [$this->header([$this->l10n->t('Group'), $this->l10n->t('People')])];
 
 		foreach ($sections as $section) {

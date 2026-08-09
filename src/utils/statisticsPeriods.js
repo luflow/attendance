@@ -55,6 +55,7 @@ export function periodOptions(type, now = new Date()) {
 		for (let offset = 0; offset < HALVES_BACK; offset++) {
 			options.push({
 				key: `${cursorYear}-H${cursorHalf}`,
+				// TRANSLATORS: A half-year in a period picker, e.g. "H2 2026". Use whatever abbreviation your language uses for half-years, or spell it out.
 				label: t('attendance', 'H{half} {year}', { half: cursorHalf, year: cursorYear }),
 				...span(cursorYear, (cursorHalf - 1) * 6, 6),
 			})
@@ -73,6 +74,7 @@ export function periodOptions(type, now = new Date()) {
 		for (let offset = 0; offset < QUARTERS_BACK; offset++) {
 			options.push({
 				key: `${cursorYear}-Q${cursorQuarter}`,
+				// TRANSLATORS: A quarter in a period picker, e.g. "Q3 2026". Use whatever abbreviation your language uses for quarters, or spell it out.
 				label: t('attendance', 'Q{quarter} {year}', { quarter: cursorQuarter, year: cursorYear }),
 				...span(cursorYear, (cursorQuarter - 1) * 3, 3),
 			})
