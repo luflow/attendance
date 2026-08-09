@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+## 1.47.0 – 2026-08-09
+
+### Added
+
+- **Statistics across all appointments**: a new page evaluates responses and attendance per person over a period you pick — year, half-year, quarter or a free date range. It shows the response, acceptance and attendance rate per person, grouped by group or team, and charts the development over time, per group and per category. Pick a person to see every appointment they were invited to, with their answer, check-in and comment
+- **Mismatches between answer and attendance are called out**: who accepted but was recorded absent, and who declined but came anyway
+- **New permission "May see everyone's statistics"**: without it the page shows your own numbers only, so everyone keeps a personal overview. It starts at "nobody"; an install that had restricted "Manage appointments" to specific groups hands the new permission to those same groups on update
+- Export the statistics as an ODS spreadsheet into your Attendance folder in Files
+
+### Fixed
+
+- The "awaiting your response" banner was missing from the full appointment list
+- Page headings sat at different heights depending on the view, and could collide with the navigation toggle
+
 ## 1.46.0 – 2026-08-08
 
 ### Added
