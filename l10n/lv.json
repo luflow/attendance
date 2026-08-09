@@ -42,6 +42,7 @@
     "Delete" : "Izdzēst",
     "Show details" : "Rādīt informāciju",
     "No activity yet" : "Vēl nav darbību",
+    "_+{count} more_::_+{count} more_" : ["+ vēl {count}","+ vēl {count}","+ vēl {count}"],
     "Daily" : "Katru dienu",
     "Weekly" : "Katru nedēļu",
     "Monthly" : "Ikmēneša",

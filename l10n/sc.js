@@ -53,6 +53,7 @@ OC.L10N.register(
     "Show details" : "Mustra detàllios",
     "Closed" : "Serradu",
     "No activity yet" : "Ancora peruna atividade ",
+    "_+{count} more_::_+{count} more_" : ["+{count} àteru","+{count} àteros"],
     "Show less" : "Mustra prus pagu",
     "Send reminder" : "Imbia promemòria",
     "Daily" : "Ogni die",

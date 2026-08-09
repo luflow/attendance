@@ -64,6 +64,7 @@ OC.L10N.register(
     "Show details" : "Mostrar detalles",
     "Closed" : "Cerrado",
     "No activity yet" : "Aún no tiene actividad",
+    "_+{count} more_::_+{count} more_" : ["+{count} más","+{count} más","+{count} más"],
     "Show less" : "Mostrar menos",
     "Send reminder" : "Enviar recordatorio",
     "Daily" : "Diariamente",

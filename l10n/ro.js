@@ -50,6 +50,7 @@ OC.L10N.register(
     "Show details" : "Arată detaliile",
     "Closed" : "închis",
     "No activity yet" : "Momentan fără activitate",
+    "_+{count} more_::_+{count} more_" : ["+{count} în plus","+{count} în plus","+{count} în plus"],
     "Daily" : "Zilnic",
     "Weekly" : "Săptămânal",
     "Monthly" : "Lunar",

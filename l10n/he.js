@@ -57,6 +57,7 @@ OC.L10N.register(
     "Show details" : "הצגת פרטים",
     "Closed" : "סגור",
     "No activity yet" : "אין פעילות עדיין",
+    "_+{count} more_::_+{count} more_" : ["+ עוד פעם","+ עוד פעמיים","+ עוד {count} פעמים"],
     "Show less" : "להציג פחות",
     "Daily" : "יומי",
     "Weekly" : "שבועי",

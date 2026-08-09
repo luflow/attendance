@@ -72,6 +72,7 @@ OC.L10N.register(
     "Show details" : "Vis detaljer",
     "Closed" : "Lukket",
     "No activity yet" : "Ingen aktivitet enda",
+    "_+{count} more_::_+{count} more_" : ["+{count} mer","+{count} mer"],
     "Show less" : "Vis mindre",
     "Send reminder" : "Send påminnelse",
     "Daily" : "Daglig",

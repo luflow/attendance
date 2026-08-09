@@ -56,6 +56,7 @@ OC.L10N.register(
     "Show details" : "დეტალების ჩვენება",
     "Closed" : "Closed",
     "No activity yet" : "აქტივობა ჯერ არ არის",
+    "_+{count} more_::_+{count} more_" : ["+{count} more","+{count} more"],
     "Show less" : "Show less",
     "Daily" : "დღიურად",
     "Weekly" : "კვირეულად",

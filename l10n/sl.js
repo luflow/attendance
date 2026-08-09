@@ -69,6 +69,7 @@ OC.L10N.register(
     "Show details" : "Pokaži podrobnosti",
     "Closed" : "Zaprto",
     "No activity yet" : "Ni še zabeležene dejavnosti",
+    "_+{count} more_::_+{count} more_" : ["+{count} več","+{count} več","+{count} več","+{count} več"],
     "Show less" : "Pokaži manj",
     "Send reminder" : "Pošlji opomnik",
     "Daily" : "Dnevno",
