@@ -394,11 +394,20 @@ class PermissionService {
 
 	/**
 	 * Check if user can see the cross-appointment statistics of everyone else.
-	 * Without it a user still sees their own row and the group averages — the
-	 * permission gates other people's numbers, not the page.
+	 * Without it a user sees their own row and nothing more — the permission
+	 * gates other people's numbers, not the page.
 	 */
 	public function canSeeStatistics(string $userId): bool {
 		return $this->hasPermission($userId, self::PERMISSION_SEE_STATISTICS);
+	}
+
+	/**
+	 * Check if user may see who answered what, on any single appointment.
+	 * Managers get it along with everything else they can do to an appointment.
+	 */
+	public function canSeeIndividualResponses(string $userId): bool {
+		return $this->canSeeResponseOverview($userId)
+			|| $this->canManageAppointments($userId);
 	}
 
 	/**

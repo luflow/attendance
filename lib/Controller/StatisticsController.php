@@ -107,8 +107,7 @@ class StatisticsController extends Controller {
 
 		// The drill-down names what somebody answered per appointment, which is
 		// what the response overview governs — the aggregate row is not enough.
-		if (!$this->permissionService->canManageAppointments($user->getUID())
-			&& !$this->permissionService->canSeeResponseOverview($user->getUID())) {
+		if (!$this->permissionService->canSeeIndividualResponses($user->getUID())) {
 			return new DataResponse(['error' => 'Insufficient permissions'], Http::STATUS_FORBIDDEN);
 		}
 

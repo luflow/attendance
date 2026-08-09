@@ -24,7 +24,7 @@
 					</div>
 					<div v-if="entry.checkinState" class="person-detail__checkin">
 						<span>{{ t("attendance", "Checked in?") }}</span>
-						<ResponseDot :response="entry.checkinState" :label="checkinLabel(entry.checkinState)" />
+						<ResponseDot :response="entry.checkinState" kind="checkin" />
 					</div>
 				</div>
 				<div v-if="isReversal(entry)" class="person-detail__note">
@@ -101,13 +101,6 @@ function isReversal(entry) {
 	return entry.response === 'no' && entry.checkinState === 'yes'
 }
 
-/**
- * @param {string} value - Stored check-in state.
- * @return {string} Human-readable attendance.
- */
-function checkinLabel(value) {
-	return value === 'yes' ? t('attendance', 'Present') : t('attendance', 'Absent')
-}
 </script>
 
 <style scoped>

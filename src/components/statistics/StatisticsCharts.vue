@@ -1,5 +1,5 @@
 <template>
-	<div ref="root" class="statistics-charts">
+	<div class="statistics-charts">
 		<section v-if="timelineData" class="statistics-charts__chart">
 			<h3>{{ t("attendance", "Over time") }}</h3>
 			<div class="statistics-charts__canvas">
@@ -43,7 +43,7 @@ import {
 	PointElement,
 	Tooltip,
 } from 'chart.js'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { Bar, Line } from 'vue-chartjs'
 import { useChartTheme, withAlpha } from '../../composables/useChartTheme.js'
 import { formatDate } from '../../utils/datetime.js'
@@ -68,8 +68,7 @@ Chart.register(
 	Legend,
 )
 
-const root = ref(null)
-const { colors } = useChartTheme(root)
+const { colors } = useChartTheme()
 
 // Long group names have to give way to their neighbours; the full name stays in
 // the tooltip, which reads the data label rather than the tick.
@@ -192,8 +191,7 @@ function baseOptions(labels = null) {
 		scales: {
 			x: {
 				// chart.js' autoSkip drops labels that do not fit, leaving bars
-				// nobody can name — the bar charts shorten instead. Only dates
-				// may be thinned out.
+				// nobody can name — so the bar charts shorten instead.
 				ticks: labels === null
 					? { color: colors.text, autoSkip: true, maxRotation: 0 }
 					: { color: colors.text, autoSkip: false, callback: (value) => truncate(labels[value] ?? '') },
@@ -212,13 +210,18 @@ function baseOptions(labels = null) {
 }
 </script>
 
-<style scoped lang="scss">
+<!-- Unscoped: chart.js reads the signal colour off the document root, and Vue
+	rewrites `:root` to `:root[data-v-…]` inside a scoped block. -->
+<style lang="scss">
 @use "../../styles/shared.scss";
 
-.statistics-charts {
-    // chart.js needs a value it can read, and a scoped style cannot write
-    // `:root` — Vue would rewrite it to `:root[data-v-…]`.
+:root {
     --statistics-color-present: #{shared.$color-yes};
+}
+</style>
+
+<style scoped>
+.statistics-charts {
     display: grid;
     gap: 24px;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -234,8 +237,8 @@ function baseOptions(labels = null) {
     background-color: var(--color-main-background);
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius-large);
-    // Room for the legend, the axis labels and a plot area that still has a
-    // readable shape once the other two have taken their share.
+    /* Room for the legend, the axis labels and a plot area that still has a
+       readable shape once the other two have taken their share. */
     height: 280px;
     padding: 12px 16px;
 }

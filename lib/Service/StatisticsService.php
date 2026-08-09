@@ -77,25 +77,18 @@ class StatisticsService {
 
 		$membership = $this->buildMembership(array_keys($tallies), $filter);
 
-		// Without the permission the answer is the viewer's own row and nothing
-		// else: no other people, no sections, and totals over their row alone —
-		// a group average is a statement about colleagues either way.
+		// A group average is a statement about colleagues too, so it needs the
+		// same permission the individual rows do.
 		$sections = $limitToUserId === null ? $this->buildSections($tallies, $membership, $filter) : [];
-		$counted = $limitToUserId === null
-			? $tallies
-			: array_intersect_key($tallies, [$limitToUserId => true]);
 
 		$totals = new StatisticsTally();
-		foreach ($counted as $tally) {
-			$totals->add($tally);
-		}
-
 		/** @var array<string, string> $displayNames */
 		$displayNames = [];
-		foreach (array_keys($tallies) as $userId) {
+		foreach ($tallies as $userId => $tally) {
 			if ($limitToUserId !== null && $userId !== $limitToUserId) {
 				continue;
 			}
+			$totals->add($tally);
 			$displayNames[$userId] = $this->userManager->get($userId)?->getDisplayName() ?? $userId;
 		}
 		uasort($displayNames, static fn (string $a, string $b): int => strcasecmp($a, $b));
@@ -272,16 +265,19 @@ class StatisticsService {
 
 	/**
 	 * @param list<int> $appointmentIds
-	 * @return array<int, array<string, array{response: ?string, checkinState: ?string, comment: ?string}>> appointmentId → userId → answer
+	 * @return array<int, array<string, array{response: ?string, checkinState: ?string, comment?: ?string}>> appointmentId → userId → answer
 	 */
 	private function indexResponses(array $appointmentIds, ?string $userId = null, bool $withComments = false): array {
 		$indexed = [];
 		foreach ($this->responseMapper->findStatisticsRows($appointmentIds, $userId, $withComments) as $row) {
-			$indexed[$row['appointmentId']][$row['userId']] = [
+			$answer = [
 				'response' => $row['response'],
 				'checkinState' => $row['checkinState'],
-				'comment' => $row['comment'],
 			];
+			if ($withComments) {
+				$answer['comment'] = $row['comment'] ?? null;
+			}
+			$indexed[$row['appointmentId']][$row['userId']] = $answer;
 		}
 
 		return $indexed;

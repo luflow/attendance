@@ -69,7 +69,7 @@
 			</div>
 			<div v-if="response.isCheckedIn" class="response-row__checkin">
 				<span>{{ t("attendance", "Checked in?") }}</span>
-				<ResponseDot :response="response.checkinState" />
+				<ResponseDot :response="response.checkinState" kind="checkin" />
 			</div>
 		</div>
 		<div

@@ -14,7 +14,7 @@ import CheckCircle from 'vue-material-design-icons/CheckCircle.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
 import HelpCircle from 'vue-material-design-icons/HelpCircle.vue'
 import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
-import { getResponseIcon, getResponseText, getResponseVariant } from '../../utils/response.js'
+import { getCheckinText, getResponseIcon, getResponseText, getResponseVariant } from '../../utils/response.js'
 
 const props = defineProps({
 	// Null where a list also holds people who never answered, as the statistics
@@ -23,11 +23,11 @@ const props = defineProps({
 		type: String,
 		default: null,
 	},
-	// Overrides the tooltip where the value is not an answer: a check-in state
-	// reads "Present", not "Yes".
-	label: {
+	// The same yes/no glyphs serve check-in states, which are never worded as
+	// an answer — "Present", not "Yes".
+	kind: {
 		type: String,
-		default: null,
+		default: 'response',
 	},
 })
 
@@ -35,8 +35,12 @@ const props = defineProps({
 // shared helper so all three stay in step.
 const ICONS = { CheckCircle, HelpCircle, CloseCircle, ProgressQuestion }
 const icon = computed(() => ICONS[getResponseIcon(props.response)] ?? HelpCircle)
-const title = computed(() => props.label
-	?? (props.response ? getResponseText(props.response) : t('attendance', 'No response')))
+const title = computed(() => {
+	if (props.kind === 'checkin') {
+		return getCheckinText(props.response)
+	}
+	return props.response ? getResponseText(props.response) : t('attendance', 'No response')
+})
 </script>
 
 <style scoped lang="scss">

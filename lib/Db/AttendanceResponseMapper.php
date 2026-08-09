@@ -81,7 +81,7 @@ class AttendanceResponseMapper extends QBMapper {
 	 * @param list<int> $appointmentIds
 	 * @param ?string $userId Restrict to one person, for the drill-down
 	 * @param bool $withComments Read the comment column too — only the drill-down can afford to, it being one person's rows
-	 * @return list<array{appointmentId: int, userId: string, response: ?string, checkinState: ?string, comment: ?string}>
+	 * @return list<array{appointmentId: int, userId: string, response: ?string, checkinState: ?string, comment?: ?string}>
 	 */
 	public function findStatisticsRows(array $appointmentIds, ?string $userId = null, bool $withComments = false): array {
 		if ($appointmentIds === []) {
@@ -108,13 +108,16 @@ class AttendanceResponseMapper extends QBMapper {
 		$raw = $result->fetchAll();
 		$rows = [];
 		foreach ($raw as $row) {
-			$rows[] = [
+			$mapped = [
 				'appointmentId' => (int)$row['appointment_id'],
 				'userId' => (string)$row['user_id'],
 				'response' => $row['response'] !== null ? (string)$row['response'] : null,
 				'checkinState' => $row['checkin_state'] !== null ? (string)$row['checkin_state'] : null,
-				'comment' => isset($row['comment']) ? (string)$row['comment'] : null,
 			];
+			if ($withComments) {
+				$mapped['comment'] = isset($row['comment']) ? (string)$row['comment'] : null;
+			}
+			$rows[] = $mapped;
 		}
 		$result->closeCursor();
 

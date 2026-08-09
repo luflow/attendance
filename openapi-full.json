@@ -1921,7 +1921,8 @@
                     "canSeeComments",
                     "canSelfCheckin",
                     "canRespondForOthers",
-                    "canSeeStatistics"
+                    "canSeeStatistics",
+                    "canSeeIndividualResponses"
                 ],
                 "properties": {
                     "canManageAppointments": {
@@ -1949,6 +1950,9 @@
                         "type": "boolean"
                     },
                     "canSeeStatistics": {
+                        "type": "boolean"
+                    },
+                    "canSeeIndividualResponses": {
                         "type": "boolean"
                     }
                 }

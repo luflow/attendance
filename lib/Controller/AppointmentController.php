@@ -904,6 +904,7 @@ class AppointmentController extends Controller {
 			'canSelfCheckin' => $this->permissionService->canSelfCheckin($user->getUID()),
 			'canRespondForOthers' => $this->permissionService->canRespondForOthers($user->getUID()),
 			'canSeeStatistics' => $this->permissionService->canSeeStatistics($user->getUID()),
+			'canSeeIndividualResponses' => $this->permissionService->canSeeIndividualResponses($user->getUID()),
 		]);
 	}
 

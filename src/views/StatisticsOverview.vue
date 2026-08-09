@@ -262,7 +262,7 @@ const reduced = computed(() => !permissions.canSeeStatistics)
 
 // The drill-down lists what one person answered per appointment, which is the
 // response overview's disclosure — an aggregate row does not carry it.
-const canDrillDown = computed(() => permissions.canManageAppointments || permissions.canSeeResponseOverview)
+const canDrillDown = computed(() => permissions.canSeeIndividualResponses)
 
 const periodChoices = computed(() => periodOptions(periodType.value))
 
