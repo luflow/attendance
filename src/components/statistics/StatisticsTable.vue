@@ -137,7 +137,7 @@ const COLUMNS = [
 		hint: t('attendance', 'Said yes but was recorded as absent'),
 	},
 	{ key: 'responseRate', label: t('attendance', 'Response rate'), rate: true, compact: true },
-	{ key: 'acceptRate', label: t('attendance', 'Acceptance rate'), rate: true },
+	{ key: 'acceptRate', label: t('attendance', 'Acceptance rate'), rate: true, compact: true },
 	{ key: 'attendanceRate', label: t('attendance', 'Attendance rate'), rate: true, compact: true },
 ]
 
