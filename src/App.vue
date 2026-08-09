@@ -899,7 +899,7 @@ onMounted(async () => {
 }
 
 .mobile-banner-container {
-    padding: 0 20px;
+    padding: 0 20px 20px;
     max-width: 1200px;
     margin: 0 auto;
 }
