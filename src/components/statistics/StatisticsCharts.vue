@@ -172,6 +172,9 @@ function baseOptions(labels = null) {
 		layout: { padding: { top: 4, right: 4 } },
 		plugins: {
 			legend: {
+				// chart.js centres over the whole canvas, and the y-axis labels
+				// are part of that — centred reads as shifted left of the plot.
+				align: 'end',
 				labels: {
 					color: colors.text,
 					boxHeight: 12,
