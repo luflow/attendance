@@ -22,7 +22,7 @@
 					{{ t("attendance", "Import from calendar") }}
 				</NcButton>
 			</div>
-			<h2 data-test="form-title">
+			<h2 class="page-heading" data-test="form-title">
 				{{ pageTitle }}
 			</h2>
 		</div>

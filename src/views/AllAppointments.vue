@@ -833,7 +833,9 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .attendance-container {
-	padding: 20px;
+	// No padding at the top: the heading's own margin clears the navigation
+	// toggle, and the two would otherwise add up.
+	padding: 0 20px 20px;
 	max-width: 1200px;
 	margin: 0 auto;
 }
@@ -848,12 +850,11 @@ onMounted(async () => {
 	margin: 0 auto 20px;
 }
 
+// Size and top margin come from the shared rule in App.vue; only the column
+// this view centres its heading in is local.
 .page-heading {
 	max-width: 800px;
-	margin: 0 auto 12px;
-	font-size: 1.4em;
-	font-weight: 600;
-	color: var(--color-main-text);
+	margin-inline: auto;
 }
 
 .section-heading {

@@ -210,16 +210,6 @@ function baseOptions(labels = null) {
 }
 </script>
 
-<!-- Unscoped: chart.js reads the signal colour off the document root, and Vue
-	rewrites `:root` to `:root[data-v-…]` inside a scoped block. -->
-<style lang="scss">
-@use "../../styles/shared.scss";
-
-:root {
-    --statistics-color-present: #{shared.$color-yes};
-}
-</style>
-
 <style scoped>
 .statistics-charts {
     display: grid;

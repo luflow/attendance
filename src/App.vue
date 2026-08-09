@@ -906,6 +906,16 @@ onMounted(async () => {
 </style>
 
 <style>
+/* One size for every view's main heading, and room above it for the navigation
+   toggle, which floats over the top-left corner of the content whenever the
+   navigation is collapsed. Views set their own width and inline margin. */
+.page-heading {
+    color: var(--color-main-text);
+    font-size: 1.4em;
+    font-weight: 600;
+    margin-block: var(--default-clickable-area, 44px) 12px;
+}
+
 /* Keep textarea placeholder visible in comment sections */
 .comment-section .textarea__input::placeholder {
     opacity: 1 !important;
