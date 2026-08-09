@@ -51,11 +51,21 @@ Translations are managed via **Transifex** and synced automatically. When adding
 
 #### German is hand-maintained, not synced
 
-`de` and `de_DE` are the exception: they are **owned by this repo** and never
-come back from Transifex. Nightly syncs kept overwriting reviewed German with
-worse wording and broke placeholders, so `.tx/config` maps both to a local
-directory starting with a dot, which translationtool's `findLanguages()` skips.
-All other languages sync as before.
+`de` and `de_DE` are the exception: they are **owned by this repo**. Nightly
+syncs kept overwriting reviewed German with worse wording and broken
+placeholders, so the sync's version of those four files is thrown away again.
+
+**The sync cannot be told to skip a language.** `handleAppsTranslations.sh` runs
+`rm -f l10n/*.js l10n/*.json` and then rebuilds only what `convert-po-files`
+produces, so excluding a language from the pull *deletes* it. A `lang_map` entry
+pointing de/de_DE at a dot-directory was tried and wiped all four files on the
+next nightly run. Do not try that again — `.tx/config` carries a warning.
+
+What protects German is `.github/workflows/protect-german-l10n.yml`: when a
+commit by the Transifex bot touches any of the four files on `main`, it restores
+them from the commit before and pushes. German therefore survives the sync, but
+only after it — expect one restore commit behind each nightly sync that touched
+it. Everything else syncs normally.
 
 - Edit `l10n/de.json`, `de.js`, `de_DE.json` and `de_DE.js` **directly** — the
   `l10n-autotranslate` skill fills new strings.
@@ -65,9 +75,9 @@ All other languages sync as before.
   inside one string.
 - `scripts/check-german-l10n.py` (part of `./scripts/check.sh`) enforces this
   plus placeholders, German quotes „…“, stray whitespace and duplicate keys.
-- If a `fix(l10n): Update translations from Transifex` commit ever touches
-  `l10n/de*` again, the config lever stopped working — revert those four files
-  and fix `.tx/config` rather than accepting the churn.
+- If a sync commit touches `l10n/de*` and **no** restore commit follows within
+  the hour, the workflow is broken — check its run log. Never fix this in
+  `.tx/config`; see above for why that deletes the files.
 
 Follow these Nextcloud translation guidelines (see https://docs.nextcloud.com/server/latest/developer_manual/basics/translations.html):
 

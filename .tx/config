@@ -1,12 +1,13 @@
 [main]
 host = https://www.transifex.com
-# de and de_DE are maintained by hand in this repo and must not come back from
-# Transifex — repeated syncs overwrote reviewed German with worse wording and
-# broke placeholders. There is no "exclude language" option in this file, and
-# the Nextcloud bot always runs `tx pull -f -a`, so both are mapped to a local
-# directory starting with a dot: translationtool's findLanguages() skips those,
-# leaving l10n/de.* and l10n/de_DE.* untouched. Everything else still syncs.
-lang_map = hu_HU: hu, nb_NO: nb, sk_SK: sk, th_TH: th, ja_JP: ja, bg_BG: bg, cs_CZ: cs, fi_FI: fi, de: .frozen-de, de_DE: .frozen-de_DE
+# Do not try to exclude a language here. This file has no such option, the
+# Nextcloud bot always runs `tx pull -f -a`, and handleAppsTranslations.sh does
+# `rm -f l10n/*.js l10n/*.json` before converting — so any language the convert
+# step does not produce is deleted rather than left alone. Mapping de/de_DE to a
+# dot-directory to make translationtool skip them did exactly that: the nightly
+# sync wiped all four German files. German is protected in
+# .github/workflows/protect-german-l10n.yml instead.
+lang_map = hu_HU: hu, nb_NO: nb, sk_SK: sk, th_TH: th, ja_JP: ja, bg_BG: bg, cs_CZ: cs, fi_FI: fi
 
 [o:nextcloud:p:nextcloud:r:attendance]
 file_filter = translationfiles/<lang>/attendance.po
