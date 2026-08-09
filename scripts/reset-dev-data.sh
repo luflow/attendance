@@ -41,6 +41,7 @@ PERMISSIONS=(
 	manage_appointments checkin
 	see_response_overview see_response_counts see_comments
 	self_checkin create_appointments respond_for_others
+	see_statistics
 )
 
 TABLES=(
