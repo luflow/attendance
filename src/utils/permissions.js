@@ -7,50 +7,59 @@ import { translate as t } from '@nextcloud/l10n'
  */
 export const PERMISSION_ROWS = {
 	manage_appointments: {
+		group: 'appointments',
 		title: t('attendance', 'May manage appointments'),
 		// TRANSLATORS: Permission description. "manage its responses" is a second ability alongside create/edit/delete, not a consequence of them.
 		hint: t('attendance', 'Create, edit and delete any appointment and manage its responses.'),
 		warningWhenAll: t('attendance', 'Every user can create, edit and delete all appointments.'),
 	},
 	create_appointments: {
+		group: 'appointments',
 		title: t('attendance', 'May create own appointments'),
 		hint: t('attendance', 'Create appointments and manage them as organizer.'),
 		implication: t('attendance', 'Users who can manage appointments can always create appointments.'),
 	},
 	see_response_overview: {
+		group: 'responses',
 		title: t('attendance', 'May see detailed response & check-in summary'),
 		hint: t('attendance', 'See the detailed summary including names — who answered what and who checked in.'),
 		implication: t('attendance', 'Organizers always see the summary of their own appointments.'),
 		warningWhenAll: t('attendance', 'Every user can see who answered what.'),
 	},
 	see_response_counts: {
+		group: 'responses',
 		title: t('attendance', 'May see response counts'),
 		hint: t('attendance', 'See how many people answered yes, no or maybe — without any names.'),
 		// TRANSLATORS: Note under a permission. "the counts" are the yes/no/maybe numbers; the sentence says this permission is implied by the detailed-summary one.
 		implication: t('attendance', 'Users who see the detailed summary always see the counts.'),
 	},
 	see_comments: {
+		group: 'responses',
 		title: t('attendance', 'May see comments'),
 		hint: t('attendance', 'See comments in the response overview.'),
 	},
 	see_statistics: {
+		group: 'responses',
 		title: t('attendance', 'May see everyone\'s statistics'),
 		hint: t('attendance', 'See the evaluation of responses and attendance across all appointments, per person.'),
 		implication: t('attendance', 'Without this, users still see their own numbers and the group averages.'),
 		warningWhenAll: t('attendance', 'Every user can see how often each person responded and attended.'),
 	},
 	respond_for_others: {
+		group: 'responses',
 		// TRANSLATORS: Permission title. "set" means recording or changing an existing answer on someone's behalf — nothing new is created.
 		title: t('attendance', 'May set responses for other users'),
 		hint: t('attendance', 'Record or clear an answer on behalf of another person.'),
 		implication: t('attendance', 'Not granted automatically to users who can manage appointments.'),
 	},
 	checkin: {
+		group: 'checkin',
 		title: t('attendance', 'May check in attendees'),
 		hint: t('attendance', 'Access the check-in interface and check in attendees.'),
 		warningWhenAll: t('attendance', 'Every user can check in every attendee.'),
 	},
 	self_checkin: {
+		group: 'checkin',
 		title: t('attendance', 'May check in themselves'),
 		hint: t('attendance', 'Check in themselves via QR code, NFC tag or deep link.'),
 		implication: t('attendance', 'QR codes and NFC tags can be set up in the {section} section.'),
@@ -59,6 +68,27 @@ export const PERMISSION_ROWS = {
 }
 
 export const PERMISSION_NAMES = Object.keys(PERMISSION_ROWS)
+
+/**
+ * Section headings of the admin settings, in display order. Which rows land
+ * under which heading comes from the catalogue's `group`, so a permission
+ * cannot be added to the catalogue and then quietly fail to render.
+ */
+const PERMISSION_GROUPS = [
+	{ key: 'appointments', label: t('attendance', 'Appointments') },
+	{ key: 'responses', label: t('attendance', 'Responses') },
+	{ key: 'checkin', label: t('attendance', 'Check-in') },
+]
+
+/**
+ * @return {Array<{key: string, label: string, names: Array<string>}>} Sections with their rows.
+ */
+export function permissionGroups() {
+	return PERMISSION_GROUPS.map((group) => ({
+		...group,
+		names: PERMISSION_NAMES.filter((name) => PERMISSION_ROWS[name].group === group.key),
+	}))
+}
 
 /** Fresh state for the mode/groups editors, before the server values arrive. */
 export function emptyPermissionState() {

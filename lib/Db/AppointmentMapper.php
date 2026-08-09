@@ -489,6 +489,8 @@ class AppointmentMapper extends QBMapper {
 	 *
 	 * @param list<int> $categoryIds Categories to include; empty means no category filter
 	 * @param bool $includeUncategorized Also include appointments without a category
+	 * @param ?int $limit Stop after this many rows, so an over-large range is
+	 *                    detected without hydrating everything behind it
 	 * @return list<Appointment>
 	 */
 	public function findForStatistics(
@@ -496,6 +498,7 @@ class AppointmentMapper extends QBMapper {
 		?string $endDate,
 		array $categoryIds = [],
 		bool $includeUncategorized = false,
+		?int $limit = null,
 	): array {
 		$qb = $this->db->getQueryBuilder();
 
@@ -512,18 +515,22 @@ class AppointmentMapper extends QBMapper {
 			$qb->andWhere($qb->expr()->lte('start_datetime', $qb->createNamedParameter($endDate . ' 23:59:59')));
 		}
 
-		if ($categoryIds !== [] && $includeUncategorized) {
-			$qb->andWhere($qb->expr()->orX(
-				$qb->expr()->in('category_id', $qb->createNamedParameter($categoryIds, IQueryBuilder::PARAM_INT_ARRAY)),
-				$qb->expr()->isNull('category_id'),
-			));
-		} elseif ($categoryIds !== []) {
-			$qb->andWhere($qb->expr()->in('category_id', $qb->createNamedParameter($categoryIds, IQueryBuilder::PARAM_INT_ARRAY)));
-		} elseif ($includeUncategorized) {
-			$qb->andWhere($qb->expr()->isNull('category_id'));
+		$categoryFilters = [];
+		if ($categoryIds !== []) {
+			$categoryFilters[] = $qb->expr()->in('category_id', $qb->createNamedParameter($categoryIds, IQueryBuilder::PARAM_INT_ARRAY));
+		}
+		if ($includeUncategorized) {
+			$categoryFilters[] = $qb->expr()->isNull('category_id');
+		}
+		if ($categoryFilters !== []) {
+			$qb->andWhere($qb->expr()->orX(...$categoryFilters));
 		}
 
 		$qb->orderBy('start_datetime', 'ASC');
+
+		if ($limit !== null) {
+			$qb->setMaxResults($limit);
+		}
 
 		return $this->findEntities($qb);
 	}

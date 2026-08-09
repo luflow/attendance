@@ -1,7 +1,5 @@
 import { translate as t } from '@nextcloud/l10n'
 
-export const PERIOD_TYPES = ['year', 'half', 'quarter', 'custom']
-
 const YEARS_BACK = 5
 const HALVES_BACK = 6
 const QUARTERS_BACK = 8
@@ -35,7 +33,7 @@ function span(year, startMonth, monthCount) {
 /**
  * Selectable periods, newest first.
  *
- * @param {string} type - One of PERIOD_TYPES.
+ * @param {string} type - 'year', 'half' or 'quarter'.
  * @param {Date} [now] - Reference date, injectable for tests.
  * @return {Array<{key: string, label: string, from: string, to: string}>} Options.
  */
@@ -131,7 +129,7 @@ export function periodFromKey(key) {
 
 /**
  * @param {string} key - Period key.
- * @return {string} The matching entry in PERIOD_TYPES.
+ * @return {string} 'year', 'half', 'quarter' or 'custom'.
  */
 export function periodTypeForKey(key) {
 	if (/^\d{4}$/.test(key)) return 'year'

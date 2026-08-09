@@ -6,7 +6,6 @@ namespace OCA\Attendance\Service;
 
 use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
-use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Db\CategoryMapper;
 use OCP\AppFramework\Utility\ITimeFactory;
@@ -25,12 +24,13 @@ use OCP\IUserManager;
  * one check-in recorded — otherwise a person's number would depend on how
  * diligently somebody else worked the check-in list.
  *
- * @psalm-type StatsCounts = array{targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, attendedDespiteNo: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float}
- * @psalm-type StatsPerson = array{userId: string, displayName: string, isGuest: bool, sections: list<string>, targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, attendedDespiteNo: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float}
- * @psalm-type StatsSection = array{id: string, displayName: string, personCount: int, targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, attendedDespiteNo: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float}
+ * @psalm-type StatsCounts = array{targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float}
+ * @psalm-type StatsPerson = array{userId: string, displayName: string, isGuest: bool, sections: list<string>, targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float}
+ * @psalm-type StatsSection = array{id: string, displayName: string, personCount: int, targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float}
  * @psalm-type StatsTimelinePoint = array{appointmentId: int, name: string, startDatetime: ?string, targetCount: int, yes: int, present: int, attendanceRecorded: bool}
- * @psalm-type StatsCategoryTally = array{categoryId: ?int, appointmentCount: int, targetCount: int, yes: int, present: int, attendanceBase: int}
  * @psalm-type StatsCategory = array{categoryId: ?int, displayName: string, appointmentCount: int, targetCount: int, yes: int, present: int, attendanceBase: int, acceptRate: ?float, attendanceRate: ?float}
+ * @psalm-type StatsPersonDetail = array{userId: string, displayName: string, isGuest: bool, entries: list<array{appointmentId: int, name: string, startDatetime: ?string, response: ?string, checkinState: ?string, attendanceRecorded: bool}>}
+ * @psalm-type StatsCategoryTally = array{categoryId: ?int, appointmentCount: int, tally: StatisticsTally}
  */
 class StatisticsService {
 	/**
@@ -44,10 +44,10 @@ class StatisticsService {
 
 	/** @var array<string, array<string, IUser>> groupId → members */
 	private array $groupMembersCache = [];
-	/** @var ?array<string, IUser> every user, for appointments open to all without a whitelist */
-	private ?array $allUsersCache = null;
-	/** @var array<string, list<string>> userId → group IDs */
-	private array $userGroupsCache = [];
+	/** @var ?array<string, IUser> the audience of an unrestricted appointment */
+	private ?array $openAudienceCache = null;
+	/** @var ?array<array-key, true> the same audience as a lookup set */
+	private ?array $openAudienceIdsCache = null;
 
 	public function __construct(
 		private AppointmentMapper $appointmentMapper,
@@ -75,10 +75,7 @@ class StatisticsService {
 		$evaluation = $this->evaluate($appointments);
 		$tallies = $evaluation['tallies'];
 
-		$membership = [];
-		foreach (array_keys($tallies) as $userId) {
-			$membership[$userId] = $this->sectionsFor($userId, $filter);
-		}
+		$membership = $this->buildMembership(array_keys($tallies), $filter);
 
 		$sections = $this->buildSections($tallies, $membership, $filter);
 
@@ -123,30 +120,31 @@ class StatisticsService {
 	/**
 	 * One person's appointments in the filtered range, for the drill-down.
 	 *
-	 * @return array{userId: string, displayName: string, isGuest: bool, entries: list<array{appointmentId: int, name: string, startDatetime: ?string, categoryId: ?int, response: ?string, checkinState: ?string, attendanceRecorded: bool}>}
+	 * @return StatsPersonDetail
 	 * @throws StatisticsRangeException
 	 */
 	public function getPersonDetail(StatisticsFilter $filter, string $userId): array {
 		$appointments = $this->loadAppointments($filter);
-		$responses = $this->indexResponses($appointments);
+		$appointmentIds = $this->idsOf($appointments);
+		$responses = $this->indexResponses($appointmentIds, $userId);
+		$checkedIn = $this->appointmentsWithCheckins($appointmentIds);
 		$user = $this->userManager->get($userId);
 
 		$entries = [];
 		foreach ($appointments as $appointment) {
 			$appointmentId = $appointment->getId();
-			if (!in_array($userId, $this->targetUserIds($appointment), true)) {
+			if (!isset($this->targetUserIdSet($appointment)[$userId])) {
 				continue;
 			}
 
-			$response = $responses[$appointmentId][$userId] ?? null;
+			$answer = $responses[$appointmentId][$userId] ?? null;
 			$entries[] = [
 				'appointmentId' => $appointmentId,
 				'name' => $appointment->getName(),
 				'startDatetime' => $this->startOf($appointment),
-				'categoryId' => $appointment->getCategoryId(),
-				'response' => $this->responseValue($response),
-				'checkinState' => $this->checkinState($response),
-				'attendanceRecorded' => $this->countsForAttendance($appointment, $responses),
+				'response' => $answer !== null ? $this->responseValue($answer['response']) : null,
+				'checkinState' => $answer !== null ? $this->checkinState($answer['checkinState']) : null,
+				'attendanceRecorded' => $this->hasEnded($appointment) && isset($checkedIn[$appointmentId]),
 			];
 		}
 
@@ -163,11 +161,14 @@ class StatisticsService {
 	 * @throws StatisticsRangeException
 	 */
 	private function loadAppointments(StatisticsFilter $filter): array {
+		// One over the cap is enough to know the range is too wide, and stops
+		// the query hydrating everything behind it just to be refused.
 		$appointments = $this->appointmentMapper->findForStatistics(
 			$filter->startDate,
 			$filter->endDate,
 			$filter->categoryIds,
 			$filter->includeUncategorized,
+			self::MAX_APPOINTMENTS + 1,
 		);
 
 		if (count($appointments) > self::MAX_APPOINTMENTS) {
@@ -182,7 +183,9 @@ class StatisticsService {
 	 * @return array{tallies: array<string, StatisticsTally>, timeline: list<StatsTimelinePoint>, byCategory: array<int, StatsCategoryTally>, pastCount: int, attendanceRecordedCount: int}
 	 */
 	private function evaluate(array $appointments): array {
-		$responses = $this->indexResponses($appointments);
+		$appointmentIds = $this->idsOf($appointments);
+		$responses = $this->indexResponses($appointmentIds);
+		$checkedIn = $this->appointmentsWithCheckins($appointmentIds);
 
 		/** @var array<string, StatisticsTally> $tallies */
 		$tallies = [];
@@ -195,62 +198,45 @@ class StatisticsService {
 		foreach ($appointments as $appointment) {
 			$appointmentId = $appointment->getId();
 			$targets = $this->targetUserIds($appointment);
-			$countsForAttendance = $this->countsForAttendance($appointment, $responses);
+			$isPast = $this->hasEnded($appointment);
+			$countsForAttendance = $isPast && isset($checkedIn[$appointmentId]);
 
-			if ($this->hasEnded($appointment)) {
+			if ($isPast) {
 				$pastCount++;
 			}
 			if ($countsForAttendance) {
 				$attendanceRecordedCount++;
 			}
 
-			$categoryId = $appointment->getCategoryId();
-			$categoryKey = $categoryId ?? 0;
+			$perAppointment = new StatisticsTally();
+			foreach ($targets as $targetUserId) {
+				$answer = $responses[$appointmentId][$targetUserId] ?? null;
+				$response = $answer !== null ? $this->responseValue($answer['response']) : null;
+				$checkin = $answer !== null ? $this->checkinState($answer['checkinState']) : null;
+
+				$tallies[$targetUserId] ??= new StatisticsTally();
+				$tallies[$targetUserId]->record($response, $checkin, $countsForAttendance);
+				$perAppointment->record($response, $checkin, $countsForAttendance);
+			}
+
+			$categoryKey = $appointment->getCategoryId() ?? 0;
 			if (!isset($byCategory[$categoryKey])) {
 				$byCategory[$categoryKey] = [
-					'categoryId' => $categoryId,
+					'categoryId' => $appointment->getCategoryId(),
 					'appointmentCount' => 0,
-					'targetCount' => 0,
-					'yes' => 0,
-					'present' => 0,
-					'attendanceBase' => 0,
+					'tally' => new StatisticsTally(),
 				];
 			}
 			$byCategory[$categoryKey]['appointmentCount']++;
-			$byCategory[$categoryKey]['targetCount'] += count($targets);
-
-			$yesCount = 0;
-			$presentCount = 0;
-
-			foreach ($targets as $targetUserId) {
-				$response = $responses[$appointmentId][$targetUserId] ?? null;
-				$answer = $this->responseValue($response);
-				$checkin = $this->checkinState($response);
-
-				$tallies[$targetUserId] ??= new StatisticsTally();
-				$tallies[$targetUserId]->record($answer, $checkin, $countsForAttendance);
-
-				if ($answer === 'yes') {
-					$yesCount++;
-				}
-				if ($countsForAttendance && $checkin === 'yes') {
-					$presentCount++;
-				}
-			}
-
-			$byCategory[$categoryKey]['yes'] += $yesCount;
-			$byCategory[$categoryKey]['present'] += $presentCount;
-			if ($countsForAttendance) {
-				$byCategory[$categoryKey]['attendanceBase'] += count($targets);
-			}
+			$byCategory[$categoryKey]['tally']->add($perAppointment);
 
 			$timeline[] = [
 				'appointmentId' => $appointmentId,
 				'name' => $appointment->getName(),
 				'startDatetime' => $this->startOf($appointment),
-				'targetCount' => count($targets),
-				'yes' => $yesCount,
-				'present' => $presentCount,
+				'targetCount' => $perAppointment->targetCount,
+				'yes' => $perAppointment->yes,
+				'present' => $perAppointment->present,
 				'attendanceRecorded' => $countsForAttendance,
 			];
 		}
@@ -266,38 +252,56 @@ class StatisticsService {
 
 	/**
 	 * @param list<Appointment> $appointments
-	 * @return array<int, array<string, AttendanceResponse>> appointmentId → userId → response
+	 * @return list<int>
 	 */
-	private function indexResponses(array $appointments): array {
+	private function idsOf(array $appointments): array {
 		$ids = [];
 		foreach ($appointments as $appointment) {
 			$ids[] = $appointment->getId();
 		}
+		return $ids;
+	}
 
+	/**
+	 * @param list<int> $appointmentIds
+	 * @return array<int, array<string, array{response: ?string, checkinState: ?string}>> appointmentId → userId → answer
+	 */
+	private function indexResponses(array $appointmentIds, ?string $userId = null): array {
 		$indexed = [];
-		foreach ($this->responseMapper->findByAppointmentIds($ids) as $response) {
-			$indexed[$response->getAppointmentId()][$response->getUserId()] = $response;
+		foreach ($this->responseMapper->findStatisticsRows($appointmentIds, $userId) as $row) {
+			$indexed[$row['appointmentId']][$row['userId']] = [
+				'response' => $row['response'],
+				'checkinState' => $row['checkinState'],
+			];
 		}
 
 		return $indexed;
 	}
 
 	/**
-	 * Everyone the appointment was addressed to.
+	 * @param list<int> $appointmentIds
+	 * @return array<int, true> appointment IDs whose check-in list was worked
+	 */
+	private function appointmentsWithCheckins(array $appointmentIds): array {
+		return array_fill_keys($this->responseMapper->findAppointmentIdsWithCheckins($appointmentIds), true);
+	}
+
+	/**
+	 * Everyone the appointment was addressed to, keyed by user ID.
 	 *
 	 * Mirrors VisibilityService::isUserTargetAttendee(), but resolves the
 	 * audience once per appointment instead of once per candidate — over a
 	 * thousand appointments the per-user check decodes the same JSON fields
 	 * hundreds of thousands of times.
 	 *
-	 * @return list<string>
+	 * @return array<array-key, true>
 	 */
-	private function targetUserIds(Appointment $appointment): array {
-		if (!$this->visibilityService->hasRestrictedVisibility($appointment)) {
-			return array_keys($this->openAudience($appointment));
-		}
-
+	private function targetUserIdSet(Appointment $appointment): array {
 		$settings = $this->visibilityService->getVisibilitySettings($appointment);
+
+		if ($settings['users'] === [] && $settings['groups'] === [] && $settings['teams'] === []) {
+			return $this->openAudienceIdsCache ??= array_fill_keys(array_keys($this->openAudience($appointment)), true);
+		}
 
 		$userIds = [];
 		foreach ($settings['users'] as $userId) {
@@ -316,7 +320,15 @@ class StatisticsService {
 			}
 		}
 
-		return array_keys($userIds);
+		return $userIds;
+	}
+
+	/**
+	 * @return list<string>
+	 */
+	private function targetUserIds(Appointment $appointment): array {
+		// Numeric-string user IDs come back as int array keys (issue #63).
+		return array_map('strval', array_keys($this->targetUserIdSet($appointment)));
 	}
 
 	/**
@@ -327,7 +339,7 @@ class StatisticsService {
 	 * @return array<string, IUser>
 	 */
 	private function openAudience(Appointment $appointment): array {
-		return $this->allUsersCache ??= $this->visibilityService->getRelevantUsersForAppointment(
+		return $this->openAudienceCache ??= $this->visibilityService->getRelevantUsersForAppointment(
 			$appointment,
 			$this->configService->getWhitelistedGroups(),
 		);
@@ -353,51 +365,78 @@ class StatisticsService {
 	}
 
 	/**
-	 * Sections a person shows up in. People in several whitelisted groups
-	 * appear in each of them, exactly like the per-appointment summary — the
-	 * totals row is what counts everyone once.
+	 * Which sections each person shows up in. People in several whitelisted
+	 * groups appear in each of them, exactly like the per-appointment summary —
+	 * the totals row is what counts everyone once.
 	 *
-	 * @return list<string>
+	 * Resolved per section rather than per person: with a whitelist configured
+	 * the member lists are already loaded, so asking every person for their
+	 * groups would be one database round trip per person for an answer that is
+	 * a handful of lookups away.
+	 *
+	 * @param list<string> $userIds
+	 * @return array<string, list<string>> userId → section IDs
 	 */
-	private function sectionsFor(string $userId, StatisticsFilter $filter): array {
-		if ($filter->groupsByTeams()) {
-			$teams = [];
-			foreach ($this->configService->getWhitelistedTeams() as $teamId) {
-				if ($this->visibilityService->isUserInTeam($userId, $teamId)) {
-					$teams[] = $teamId;
+	private function buildMembership(array $userIds, StatisticsFilter $filter): array {
+		$membership = array_fill_keys($userIds, []);
+		$known = array_fill_keys($userIds, true);
+
+		foreach ($this->sectionMembers($filter) as $sectionId => $memberIds) {
+			foreach ($memberIds as $memberId) {
+				if (isset($known[$memberId])) {
+					$membership[$memberId][] = (string)$sectionId;
 				}
 			}
-			return $teams !== [] ? $teams : [self::SECTION_OTHERS];
 		}
 
-		$whitelisted = array_map('strtolower', $this->configService->getWhitelistedGroups());
-		$sections = [];
-		foreach ($this->userGroups($userId) as $groupId) {
-			if (GuestService::isGuestsSystemGroup($groupId)
-				&& !in_array(GuestService::GUESTS_SYSTEM_GROUP, $whitelisted, true)) {
-				continue;
+		foreach ($membership as $userId => $sections) {
+			if ($sections === []) {
+				$membership[$userId] = [self::SECTION_OTHERS];
 			}
-			if ($whitelisted !== [] && !in_array(strtolower($groupId), $whitelisted, true)) {
-				continue;
-			}
-			$sections[] = $groupId;
 		}
 
-		return $sections !== [] ? $sections : [self::SECTION_OTHERS];
+		return $membership;
 	}
 
 	/**
-	 * @return list<string>
+	 * @return array<array-key, array<array-key, string>> sectionId → member user IDs
 	 */
-	private function userGroups(string $userId): array {
-		if (isset($this->userGroupsCache[$userId])) {
-			return $this->userGroupsCache[$userId];
+	private function sectionMembers(StatisticsFilter $filter): array {
+		if ($filter->groupsByTeams()) {
+			$members = [];
+			foreach ($this->configService->getWhitelistedTeams() as $teamId) {
+				$members[$teamId] = $this->visibilityService->getTeamMembers($teamId);
+			}
+			return $members;
 		}
 
-		$user = $this->userManager->get($userId);
-		return $this->userGroupsCache[$userId] = $user !== null
-			? array_map('strval', $this->groupManager->getUserGroupIds($user))
-			: [];
+		$whitelisted = $this->configService->getWhitelistedGroups();
+		if ($whitelisted !== []) {
+			$members = [];
+			foreach ($whitelisted as $groupId) {
+				$members[$groupId] = array_keys($this->groupMembers($groupId));
+			}
+			return $members;
+		}
+
+		// No whitelist: every group is a section, so the group list has to come
+		// from the people themselves. The Guests app's system group is hidden —
+		// it would otherwise lump every guest into one section.
+		$members = [];
+		foreach (array_keys($this->openAudienceCache ?? []) as $userId) {
+			$user = $this->userManager->get($userId);
+			if ($user === null) {
+				continue;
+			}
+			foreach ($this->groupManager->getUserGroupIds($user) as $groupId) {
+				if (GuestService::isGuestsSystemGroup($groupId)) {
+					continue;
+				}
+				$members[$groupId][] = $userId;
+			}
+		}
+
+		return $members;
 	}
 
 	/**
@@ -489,44 +528,25 @@ class StatisticsService {
 		$series = [];
 		foreach ($byCategory as $entry) {
 			$categoryId = $entry['categoryId'];
+			$tally = $entry['tally'];
 			$series[] = [
 				'categoryId' => $categoryId,
 				'displayName' => $categoryId !== null
 					? ($names[$categoryId] ?? (string)$categoryId)
 					: $this->l10n->t('Without category'),
 				'appointmentCount' => $entry['appointmentCount'],
-				'targetCount' => $entry['targetCount'],
-				'yes' => $entry['yes'],
-				'present' => $entry['present'],
-				'attendanceBase' => $entry['attendanceBase'],
-				'acceptRate' => StatisticsTally::rate($entry['yes'], $entry['targetCount']),
-				'attendanceRate' => StatisticsTally::rate($entry['present'], $entry['attendanceBase']),
+				'targetCount' => $tally->targetCount,
+				'yes' => $tally->yes,
+				'present' => $tally->present,
+				'attendanceBase' => $tally->attendanceBase,
+				'acceptRate' => StatisticsTally::rate($tally->yes, $tally->targetCount),
+				'attendanceRate' => StatisticsTally::rate($tally->present, $tally->attendanceBase),
 			];
 		}
 
 		usort($series, static fn (array $a, array $b): int => strcasecmp((string)$a['displayName'], (string)$b['displayName']));
 
 		return $series;
-	}
-
-	/**
-	 * Whether the appointment contributes to attendance rates at all: it has to
-	 * be over, and somebody has to have worked the check-in list.
-	 *
-	 * @param array<int, array<string, AttendanceResponse>> $responses
-	 */
-	private function countsForAttendance(Appointment $appointment, array $responses): bool {
-		if (!$this->hasEnded($appointment)) {
-			return false;
-		}
-
-		foreach ($responses[$appointment->getId()] ?? [] as $response) {
-			if (in_array($response->getCheckinState(), ['yes', 'no'], true)) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 	private function hasEnded(Appointment $appointment): bool {
@@ -539,13 +559,11 @@ class StatisticsService {
 		return isset($serialized['startDatetime']) ? (string)$serialized['startDatetime'] : null;
 	}
 
-	private function responseValue(?AttendanceResponse $response): ?string {
-		$value = $response?->getResponse();
+	private function responseValue(?string $value): ?string {
 		return in_array($value, ['yes', 'no', 'maybe'], true) ? $value : null;
 	}
 
-	private function checkinState(?AttendanceResponse $response): ?string {
-		$state = $response?->getCheckinState();
+	private function checkinState(?string $state): ?string {
 		return in_array($state, ['yes', 'no'], true) ? $state : null;
 	}
 }

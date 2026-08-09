@@ -190,19 +190,19 @@ class ExportService {
 		// Add first header row with appointment names only
 		$xml .= '
 				<table:table-row>
-					<table:table-cell table:style-name="ce2" office:value-type="string">
+					<table:table-cell table:style-name="' . OdsWriter::STYLE_HEADER . '" office:value-type="string">
 						<text:p>Name</text:p>
 					</table:table-cell>
-					<table:table-cell table:style-name="ce2" office:value-type="string">
+					<table:table-cell table:style-name="' . OdsWriter::STYLE_HEADER . '" office:value-type="string">
 						<text:p>' . $this->l10n->t('Group') . '</text:p>
 					</table:table-cell>';
 
 		foreach ($appointments as $appointment) {
-			$appointmentName = $this->escapeXml($appointment->getName());
+			$appointmentName = $this->odsWriter->escape($appointment->getName());
 
 			// Add merged cell for appointment name spanning correct number of columns
 			$xml .= '
-					<table:table-cell table:style-name="ce2" office:value-type="string" table:number-columns-spanned="' . $columnsPerAppointment . '">
+					<table:table-cell table:style-name="' . OdsWriter::STYLE_HEADER . '" office:value-type="string" table:number-columns-spanned="' . $columnsPerAppointment . '">
 						<text:p>' . $appointmentName . '</text:p>
 					</table:table-cell>';
 
@@ -218,21 +218,21 @@ class ExportService {
 		// Add second header row with dates
 		$xml .= '
 				<table:table-row>
-					<table:table-cell table:style-name="ce2" office:value-type="string">
+					<table:table-cell table:style-name="' . OdsWriter::STYLE_HEADER . '" office:value-type="string">
 						<text:p></text:p>
 					</table:table-cell>
-					<table:table-cell table:style-name="ce2" office:value-type="string">
+					<table:table-cell table:style-name="' . OdsWriter::STYLE_HEADER . '" office:value-type="string">
 						<text:p></text:p>
 					</table:table-cell>';
 
 		foreach ($appointments as $appointment) {
 			$startDate = date('Y-m-d', strtotime($appointment->getStartDatetime()));
 			$location = $appointment->getLocation();
-			$dateLabel = $location !== null ? $startDate . ' · ' . $this->escapeXml($location) : $startDate;
+			$dateLabel = $location !== null ? $startDate . ' · ' . $this->odsWriter->escape($location) : $startDate;
 
 			// Add date (+ location, when set) merged cell spanning correct number of columns
 			$xml .= '
-					<table:table-cell table:style-name="ce2" office:value-type="string" table:number-columns-spanned="' . $columnsPerAppointment . '">
+					<table:table-cell table:style-name="' . OdsWriter::STYLE_HEADER . '" office:value-type="string" table:number-columns-spanned="' . $columnsPerAppointment . '">
 						<text:p>' . $dateLabel . '</text:p>
 					</table:table-cell>';
 
@@ -248,25 +248,25 @@ class ExportService {
 		// Add third header row with RSVP and CheckIn labels
 		$xml .= '
 				<table:table-row>
-					<table:table-cell table:style-name="ce2" office:value-type="string">
+					<table:table-cell table:style-name="' . OdsWriter::STYLE_HEADER . '" office:value-type="string">
 						<text:p></text:p>
 					</table:table-cell>
-					<table:table-cell table:style-name="ce2" office:value-type="string">
+					<table:table-cell table:style-name="' . OdsWriter::STYLE_HEADER . '" office:value-type="string">
 						<text:p></text:p>
 					</table:table-cell>';
 
 		foreach ($appointments as $appointment) {
 			$xml .= '
-					<table:table-cell table:style-name="ce2" office:value-type="string">
+					<table:table-cell table:style-name="' . OdsWriter::STYLE_HEADER . '" office:value-type="string">
 						<text:p>RSVP</text:p>
 					</table:table-cell>
-					<table:table-cell table:style-name="ce2" office:value-type="string">
+					<table:table-cell table:style-name="' . OdsWriter::STYLE_HEADER . '" office:value-type="string">
 						<text:p>CheckIn</text:p>
 					</table:table-cell>';
 
 			if ($includeComments) {
 				$xml .= '
-					<table:table-cell table:style-name="ce2" office:value-type="string">
+					<table:table-cell table:style-name="' . OdsWriter::STYLE_HEADER . '" office:value-type="string">
 						<text:p>Comment</text:p>
 					</table:table-cell>';
 			}
@@ -279,11 +279,11 @@ class ExportService {
 		foreach ($users as $user) {
 			$xml .= '
 				<table:table-row>
-					<table:table-cell table:style-name="ce1" office:value-type="string">
-						<text:p>' . $this->escapeXml($user['displayName']) . '</text:p>
+					<table:table-cell table:style-name="' . OdsWriter::STYLE_CELL . '" office:value-type="string">
+						<text:p>' . $this->odsWriter->escape($user['displayName']) . '</text:p>
 					</table:table-cell>
-					<table:table-cell table:style-name="ce1" office:value-type="string">
-						<text:p>' . $this->escapeXml($user['group']) . '</text:p>
+					<table:table-cell table:style-name="' . OdsWriter::STYLE_CELL . '" office:value-type="string">
+						<text:p>' . $this->odsWriter->escape($user['group']) . '</text:p>
 					</table:table-cell>';
 
 			// Add RSVP, CheckIn, and optionally Comment data for each appointment
@@ -310,9 +310,9 @@ class ExportService {
 
 				// Comment column (if enabled)
 				if ($includeComments) {
-					$comment = $response && $response->getComment() ? $this->escapeXml($response->getComment()) : '';
+					$comment = $response && $response->getComment() ? $this->odsWriter->escape($response->getComment()) : '';
 					$xml .= '
-					<table:table-cell table:style-name="ce1" office:value-type="string">
+					<table:table-cell table:style-name="' . OdsWriter::STYLE_CELL . '" office:value-type="string">
 						<text:p>' . $comment . '</text:p>
 					</table:table-cell>';
 				}
@@ -354,21 +354,14 @@ class ExportService {
 	private function getResponseCellStyle(?string $response): string {
 		switch ($response) {
 			case 'yes':
-				return 'ce-yes';
+				return OdsWriter::STYLE_YES;
 			case 'no':
-				return 'ce-no';
+				return OdsWriter::STYLE_NO;
 			case 'maybe':
-				return 'ce-maybe';
+				return OdsWriter::STYLE_MAYBE;
 			default:
-				return 'ce1';
+				return OdsWriter::STYLE_CELL;
 		}
-	}
-
-	/**
-	 * Escape XML special characters
-	 */
-	private function escapeXml(string $text): string {
-		return htmlspecialchars($text, ENT_XML1 | ENT_QUOTES, 'UTF-8');
 	}
 
 	/**

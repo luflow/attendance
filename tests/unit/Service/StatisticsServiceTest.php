@@ -6,7 +6,6 @@ namespace OCA\Attendance\Tests\Unit\Service;
 
 use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
-use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Db\CategoryMapper;
 use OCA\Attendance\Service\ConfigService;
@@ -91,7 +90,7 @@ class StatisticsServiceTest extends TestCase {
 		$upcoming = $this->appointment(2, '2026-07-01 18:00:00', '2026-07-01 20:00:00');
 		$this->appointmentMapper->method('findForStatistics')->willReturn([$past, $upcoming]);
 
-		$this->responseMapper->method('findByAppointmentIds')->willReturn([
+		$this->givenResponses([
 			$this->response(1, 'alice', 'yes', 'yes'),
 			$this->response(1, 'bob', 'yes', 'no'),
 			$this->response(2, 'alice', 'no', ''),
@@ -125,7 +124,7 @@ class StatisticsServiceTest extends TestCase {
 		$withoutCheckin = $this->appointment(2, '2026-05-08 18:00:00', '2026-05-08 20:00:00');
 		$this->appointmentMapper->method('findForStatistics')->willReturn([$withCheckin, $withoutCheckin]);
 
-		$this->responseMapper->method('findByAppointmentIds')->willReturn([
+		$this->givenResponses([
 			$this->response(1, 'alice', 'yes', 'yes'),
 			$this->response(2, 'alice', 'yes', ''),
 		]);
@@ -147,9 +146,9 @@ class StatisticsServiceTest extends TestCase {
 
 		$this->appointmentMapper->expects($this->once())
 			->method('findForStatistics')
-			->with('2026-01-01', '2026-12-31', [7], true)
+			->with('2026-01-01', '2026-12-31', [7], true, StatisticsService::MAX_APPOINTMENTS + 1)
 			->willReturn([]);
-		$this->responseMapper->method('findByAppointmentIds')->willReturn([]);
+		$this->givenResponses([]);
 
 		$filter = StatisticsFilter::fromWire('2026-01-01', '2026-12-31', [7], true);
 		$result = $this->service->getStatistics($filter);
@@ -166,7 +165,7 @@ class StatisticsServiceTest extends TestCase {
 		$this->appointmentMapper->method('findForStatistics')->willReturn([
 			$this->appointment(1, '2026-05-01 18:00:00', '2026-05-01 20:00:00'),
 		]);
-		$this->responseMapper->method('findByAppointmentIds')->willReturn([
+		$this->givenResponses([
 			$this->response(1, 'alice', 'yes', 'yes'),
 		]);
 
@@ -189,9 +188,6 @@ class StatisticsServiceTest extends TestCase {
 		);
 
 		$appointment = $this->appointment(1, '2026-05-01 18:00:00', '2026-05-01 20:00:00');
-		$appointment->setVisibleUsers('["bob"]');
-		$appointment->setVisibleGroups('["sopranos"]');
-		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(true);
 		$this->visibilityService->method('getVisibilitySettings')->willReturn([
 			'users' => ['bob'],
 			'groups' => ['sopranos'],
@@ -199,7 +195,7 @@ class StatisticsServiceTest extends TestCase {
 		]);
 
 		$this->appointmentMapper->method('findForStatistics')->willReturn([$appointment]);
-		$this->responseMapper->method('findByAppointmentIds')->willReturn([]);
+		$this->givenResponses([]);
 
 		$result = $this->service->getStatistics($this->filter());
 
@@ -216,7 +212,7 @@ class StatisticsServiceTest extends TestCase {
 		]);
 		// The row of a deleted account survives in att_responses; it has no
 		// audience membership any more, so every rate over it would be wrong.
-		$this->responseMapper->method('findByAppointmentIds')->willReturn([
+		$this->givenResponses([
 			$this->response(1, 'alice', 'yes', 'yes'),
 			$this->response(1, 'ghost', 'yes', 'yes'),
 		]);
@@ -235,7 +231,7 @@ class StatisticsServiceTest extends TestCase {
 		$this->appointmentMapper->method('findForStatistics')->willReturn([
 			$this->appointment(1, '2026-05-01 18:00:00', '2026-05-01 20:00:00'),
 		]);
-		$this->responseMapper->method('findByAppointmentIds')->willReturn([
+		$this->givenResponses([
 			$this->response(1, 'alice', 'yes', 'yes'),
 			$this->response(1, 'bob', 'no', 'no'),
 		]);
@@ -267,7 +263,7 @@ class StatisticsServiceTest extends TestCase {
 		$this->appointmentMapper->method('findForStatistics')->willReturn([
 			$this->appointment(1, '2026-05-01 18:00:00', '2026-05-01 20:00:00'),
 		]);
-		$this->responseMapper->method('findByAppointmentIds')->willReturn([
+		$this->givenResponses([
 			$this->response(1, 'alice', 'no', 'yes'),
 		]);
 
@@ -287,11 +283,6 @@ class StatisticsServiceTest extends TestCase {
 		$this->givenUsers(['alice' => 'Alice', 'bob' => 'Bob', 'carol' => 'Carol']);
 
 		$appointment = $this->appointment(1, '2026-05-01 18:00:00', '2026-05-01 20:00:00');
-		$appointment->setVisibleUsers('["carol"]');
-		$appointment->setVisibleGroups('["sopranos"]');
-		$appointment->setVisibleTeams('["team-1"]');
-
-		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(true);
 		$this->visibilityService->method('getVisibilitySettings')->willReturn([
 			'users' => ['carol'],
 			'groups' => ['sopranos'],
@@ -301,7 +292,7 @@ class StatisticsServiceTest extends TestCase {
 		$this->givenGroups(['sopranos' => ['alice']]);
 
 		$this->appointmentMapper->method('findForStatistics')->willReturn([$appointment]);
-		$this->responseMapper->method('findByAppointmentIds')->willReturn([]);
+		$this->givenResponses([]);
 		$this->givenGroupSections();
 
 		$result = $this->service->getStatistics($this->filter());
@@ -338,7 +329,6 @@ class StatisticsServiceTest extends TestCase {
 	 * or the absence of one — resolves to.
 	 */
 	private function givenUnrestrictedVisibility(): void {
-		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(false);
 		$this->visibilityService->method('getVisibilitySettings')
 			->willReturn(['users' => [], 'groups' => [], 'teams' => []]);
 		$this->visibilityService->method('getRelevantUsersForAppointment')->willReturn($this->users);
@@ -391,14 +381,42 @@ class StatisticsServiceTest extends TestCase {
 		return $appointment;
 	}
 
-	private function response(int $appointmentId, string $userId, string $answer, string $checkinState): AttendanceResponse {
-		$response = new AttendanceResponse();
-		$response->setAppointmentId($appointmentId);
-		$response->setUserId($userId);
-		$response->setResponse($answer);
-		$response->setCheckinState($checkinState);
+	/**
+	 * @return array{appointmentId: int, userId: string, response: ?string, checkinState: ?string}
+	 */
+	private function response(int $appointmentId, string $userId, string $answer, string $checkinState): array {
+		return [
+			'appointmentId' => $appointmentId,
+			'userId' => $userId,
+			'response' => $answer,
+			'checkinState' => $checkinState === '' ? null : $checkinState,
+		];
+	}
 
-		return $response;
+	/**
+	 * Stubs both response queries from one row set, so a test never has to keep
+	 * the rows and the "was anyone checked in" flags in step by hand.
+	 *
+	 * @param list<array{appointmentId: int, userId: string, response: ?string, checkinState: ?string}> $rows
+	 */
+	private function givenResponses(array $rows): void {
+		$this->responseMapper->method('findStatisticsRows')->willReturnCallback(
+			static function (array $ids, ?string $userId = null) use ($rows): array {
+				return array_values(array_filter(
+					$rows,
+					static fn (array $row): bool => in_array($row['appointmentId'], $ids, true)
+						&& ($userId === null || $row['userId'] === $userId),
+				));
+			},
+		);
+
+		$withCheckins = [];
+		foreach ($rows as $row) {
+			if (in_array($row['checkinState'], ['yes', 'no'], true)) {
+				$withCheckins[$row['appointmentId']] = true;
+			}
+		}
+		$this->responseMapper->method('findAppointmentIdsWithCheckins')->willReturn(array_keys($withCheckins));
 	}
 
 	private function person(array $result, string $userId): array {

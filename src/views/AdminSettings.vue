@@ -701,7 +701,7 @@ import { copyToClipboard } from '../utils/clipboard.js'
 import { formatDate, formatDateTimeMedium } from '../utils/datetime.js'
 import { toGroupObjects } from '../utils/groups.js'
 import { MOBILE_APP_STORES } from '../utils/mobileApp.js'
-import { AUDIT_VISIBILITIES, emptyPermissionState, PERMISSION_NAMES, PERMISSION_ROWS, REMINDER_TARGETS } from '../utils/permissions.js'
+import { AUDIT_VISIBILITIES, permissionGroups as buildPermissionGroups, emptyPermissionState, PERMISSION_NAMES, PERMISSION_ROWS, REMINDER_TARGETS } from '../utils/permissions.js'
 
 const navSections = [
 	{ id: 'setup-wizard', label: t('attendance', 'Setup wizard') },
@@ -826,11 +826,7 @@ async function deleteCategory() {
 	}
 }
 
-const permissionGroups = [
-	{ key: 'appointments', label: t('attendance', 'Appointments'), names: ['manage_appointments', 'create_appointments'] },
-	{ key: 'responses', label: t('attendance', 'Responses'), names: ['see_response_overview', 'see_response_counts', 'see_comments', 'respond_for_others'] },
-	{ key: 'checkin', label: t('attendance', 'Check-in'), names: ['checkin', 'self_checkin'] },
-]
+const permissionGroups = buildPermissionGroups()
 
 // Only this screen can jump between sections, so the link lives here rather
 // than in the shared catalogue.

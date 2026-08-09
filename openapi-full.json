@@ -1510,7 +1510,6 @@
                     "notRecorded",
                     "attendanceBase",
                     "noShow",
-                    "attendedDespiteNo",
                     "responseRate",
                     "acceptRate",
                     "attendanceRate"
@@ -1571,10 +1570,6 @@
                         "type": "integer",
                         "format": "int64"
                     },
-                    "attendedDespiteNo": {
-                        "type": "integer",
-                        "format": "int64"
-                    },
                     "responseRate": {
                         "type": "number",
                         "format": "double",
@@ -1624,7 +1619,6 @@
                     "appointmentId",
                     "name",
                     "startDatetime",
-                    "categoryId",
                     "response",
                     "checkinState",
                     "attendanceRecorded"
@@ -1639,11 +1633,6 @@
                     },
                     "startDatetime": {
                         "type": "string",
-                        "nullable": true
-                    },
-                    "categoryId": {
-                        "type": "integer",
-                        "format": "int64",
                         "nullable": true
                     },
                     "response": {
@@ -1675,7 +1664,6 @@
                     "notRecorded",
                     "attendanceBase",
                     "noShow",
-                    "attendedDespiteNo",
                     "responseRate",
                     "acceptRate",
                     "attendanceRate"
@@ -1728,10 +1716,6 @@
                         "format": "int64"
                     },
                     "noShow": {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "attendedDespiteNo": {
                         "type": "integer",
                         "format": "int64"
                     },
@@ -1805,7 +1789,6 @@
                     "notRecorded",
                     "attendanceBase",
                     "noShow",
-                    "attendedDespiteNo",
                     "responseRate",
                     "acceptRate",
                     "attendanceRate"
@@ -1848,10 +1831,6 @@
                         "format": "int64"
                     },
                     "noShow": {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "attendedDespiteNo": {
                         "type": "integer",
                         "format": "int64"
                     },

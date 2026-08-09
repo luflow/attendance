@@ -63,13 +63,7 @@ class StatisticsController extends Controller {
 			return new DataResponse(['error' => 'User not authenticated'], Http::STATUS_UNAUTHORIZED);
 		}
 
-		$filter = StatisticsFilter::fromWire(
-			$startDate,
-			$endDate,
-			array_map('intval', $categoryIds),
-			$includeUncategorized,
-			$groupBy,
-		);
+		$filter = $this->filterFrom($startDate, $endDate, $categoryIds, $includeUncategorized, $groupBy);
 
 		$limitToUserId = $this->permissionService->canSeeStatistics($user->getUID())
 			? null
@@ -78,11 +72,7 @@ class StatisticsController extends Controller {
 		try {
 			return new DataResponse($this->statisticsService->getStatistics($filter, $limitToUserId));
 		} catch (StatisticsRangeException $e) {
-			return new DataResponse([
-				'error' => 'Too many appointments in range',
-				'found' => $e->getFound(),
-				'limit' => $e->getLimit(),
-			], Http::STATUS_BAD_REQUEST);
+			return $this->tooManyAppointments($e);
 		}
 	}
 
@@ -115,21 +105,12 @@ class StatisticsController extends Controller {
 			return new DataResponse(['error' => 'Insufficient permissions'], Http::STATUS_FORBIDDEN);
 		}
 
-		$filter = StatisticsFilter::fromWire(
-			$startDate,
-			$endDate,
-			array_map('intval', $categoryIds),
-			$includeUncategorized,
-		);
+		$filter = $this->filterFrom($startDate, $endDate, $categoryIds, $includeUncategorized);
 
 		try {
 			return new DataResponse($this->statisticsService->getPersonDetail($filter, $targetUserId));
 		} catch (StatisticsRangeException $e) {
-			return new DataResponse([
-				'error' => 'Too many appointments in range',
-				'found' => $e->getFound(),
-				'limit' => $e->getLimit(),
-			], Http::STATUS_BAD_REQUEST);
+			return $this->tooManyAppointments($e);
 		}
 	}
 
@@ -164,18 +145,42 @@ class StatisticsController extends Controller {
 			return new DataResponse(['error' => 'Insufficient permissions'], Http::STATUS_FORBIDDEN);
 		}
 
-		$filter = StatisticsFilter::fromWire(
-			$startDate,
-			$endDate,
-			array_map('intval', $categoryIds),
-			$includeUncategorized,
-			$groupBy,
-		);
+		$filter = $this->filterFrom($startDate, $endDate, $categoryIds, $includeUncategorized, $groupBy);
 
 		try {
 			return new DataResponse($this->statisticsExportService->exportToOds($user->getUID(), $filter));
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
 		}
+	}
+
+	/**
+	 * @param list<int> $categoryIds
+	 */
+	private function filterFrom(
+		?string $startDate,
+		?string $endDate,
+		array $categoryIds,
+		bool $includeUncategorized,
+		string $groupBy = StatisticsFilter::GROUP_BY_GROUPS,
+	): StatisticsFilter {
+		return StatisticsFilter::fromWire(
+			$startDate,
+			$endDate,
+			array_map('intval', $categoryIds),
+			$includeUncategorized,
+			$groupBy,
+		);
+	}
+
+	/**
+	 * @return DataResponse<Http::STATUS_BAD_REQUEST, array{error: string, found: int, limit: int}, array{}>
+	 */
+	private function tooManyAppointments(StatisticsRangeException $e): DataResponse {
+		return new DataResponse([
+			'error' => 'Too many appointments in range',
+			'found' => $e->getFound(),
+			'limit' => $e->getLimit(),
+		], Http::STATUS_BAD_REQUEST);
 	}
 }

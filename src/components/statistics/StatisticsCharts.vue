@@ -3,7 +3,7 @@
 		<section v-if="timelineData" class="statistics-charts__chart">
 			<h3>{{ t("attendance", "Over time") }}</h3>
 			<div class="statistics-charts__canvas">
-				<Line :data="timelineData" :options="lineOptions" />
+				<Line :data="timelineData" :options="chartOptions" />
 			</div>
 		</section>
 
@@ -16,14 +16,14 @@
 				}}
 			</h3>
 			<div class="statistics-charts__canvas">
-				<Bar :data="sectionData" :options="barOptions" />
+				<Bar :data="sectionData" :options="chartOptions" />
 			</div>
 		</section>
 
 		<section v-if="categoryData" class="statistics-charts__chart">
 			<h3>{{ t("attendance", "By category") }}</h3>
 			<div class="statistics-charts__canvas">
-				<Bar :data="categoryData" :options="barOptions" />
+				<Bar :data="categoryData" :options="chartOptions" />
 			</div>
 		</section>
 	</div>
@@ -46,6 +46,7 @@ import {
 import { computed } from 'vue'
 import { Bar, Line } from 'vue-chartjs'
 import { useChartTheme, withAlpha } from '../../composables/useChartTheme.js'
+import { formatDate } from '../../utils/datetime.js'
 
 const props = defineProps({
 	statistics: { type: Object, required: true },
@@ -77,7 +78,7 @@ const timelineData = computed(() => {
 	}
 
 	return {
-		labels: points.map((point) => formatDate(point.startDatetime)),
+		labels: points.map((point) => formatDate(point.startDatetime, 'short')),
 		datasets: [
 			{
 				label: t('attendance', 'Acceptance rate'),
@@ -103,8 +104,7 @@ const timelineData = computed(() => {
 const sectionData = computed(() => buildBars(props.statistics.sections ?? []))
 const categoryData = computed(() => buildBars(props.statistics.byCategory ?? []))
 
-const lineOptions = computed(() => baseOptions())
-const barOptions = computed(() => baseOptions())
+const chartOptions = computed(() => baseOptions())
 
 /**
  * @param {number} part - Numerator.
@@ -113,17 +113,6 @@ const barOptions = computed(() => baseOptions())
  */
 function rate(part, total) {
 	return total > 0 ? part / total : null
-}
-
-/**
- * @param {?string} value - An ISO timestamp.
- * @return {string} Short local date.
- */
-function formatDate(value) {
-	if (!value) {
-		return ''
-	}
-	return new Date(value).toLocaleDateString(undefined, { day: '2-digit', month: '2-digit', year: '2-digit' })
 }
 
 /**

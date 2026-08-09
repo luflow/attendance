@@ -73,26 +73,75 @@ class AttendanceResponseMapper extends QBMapper {
 	}
 
 	/**
-	 * All responses for a set of appointments, in one query — the statistics
-	 * would otherwise run one query per appointment.
+	 * The four columns the statistics evaluate, for a set of appointments, in
+	 * one query. Deliberately not entities: at the 1000-appointment cap this
+	 * can be hundreds of thousands of rows, and hydrating all 15 columns of
+	 * each costs far more than the evaluation itself.
 	 *
 	 * @param list<int> $appointmentIds
-	 * @return list<AttendanceResponse>
+	 * @param ?string $userId Restrict to one person, for the drill-down
+	 * @return list<array{appointmentId: int, userId: string, response: ?string, checkinState: ?string}>
 	 */
-	public function findByAppointmentIds(array $appointmentIds): array {
+	public function findStatisticsRows(array $appointmentIds, ?string $userId = null): array {
 		if ($appointmentIds === []) {
 			return [];
 		}
 
 		$qb = $this->db->getQueryBuilder();
-
-		$qb->select('*')
+		$qb->select('appointment_id', 'user_id', 'response', 'checkin_state')
 			->from($this->getTableName())
 			->where(
 				$qb->expr()->in('appointment_id', $qb->createNamedParameter($appointmentIds, IQueryBuilder::PARAM_INT_ARRAY))
 			);
 
-		return $this->findEntities($qb);
+		if ($userId !== null) {
+			$qb->andWhere($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
+		}
+
+		$result = $qb->executeQuery();
+		/** @var list<array<string, mixed>> $raw */
+		$raw = $result->fetchAll();
+		$rows = [];
+		foreach ($raw as $row) {
+			$rows[] = [
+				'appointmentId' => (int)$row['appointment_id'],
+				'userId' => (string)$row['user_id'],
+				'response' => $row['response'] !== null ? (string)$row['response'] : null,
+				'checkinState' => $row['checkin_state'] !== null ? (string)$row['checkin_state'] : null,
+			];
+		}
+		$result->closeCursor();
+
+		return $rows;
+	}
+
+	/**
+	 * Which of these appointments had their check-in list worked at all.
+	 *
+	 * @param list<int> $appointmentIds
+	 * @return list<int>
+	 */
+	public function findAppointmentIdsWithCheckins(array $appointmentIds): array {
+		if ($appointmentIds === []) {
+			return [];
+		}
+
+		$qb = $this->db->getQueryBuilder();
+		$qb->selectDistinct('appointment_id')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->in('appointment_id', $qb->createNamedParameter($appointmentIds, IQueryBuilder::PARAM_INT_ARRAY))
+			)
+			->andWhere(
+				$qb->expr()->in('checkin_state', $qb->createNamedParameter(['yes', 'no'], IQueryBuilder::PARAM_STR_ARRAY))
+			);
+
+		$result = $qb->executeQuery();
+		/** @var list<array<string, mixed>> $raw */
+		$raw = $result->fetchAll();
+		$result->closeCursor();
+
+		return array_map(static fn (array $row): int => (int)$row['appointment_id'], $raw);
 	}
 
 	/**

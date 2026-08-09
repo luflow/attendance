@@ -5,7 +5,6 @@ const VARIABLES = {
 	success: '--color-success',
 	text: '--color-main-text',
 	border: '--color-border',
-	background: '--color-main-background',
 }
 
 const FALLBACKS = {
@@ -13,7 +12,6 @@ const FALLBACKS = {
 	success: '#2d7b41',
 	text: '#222222',
 	border: '#dbdbdb',
-	background: '#ffffff',
 }
 
 /**

@@ -192,7 +192,7 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translatePlural as n, translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcEmptyContent, NcPopover, NcTextField } from '@nextcloud/vue'
-import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import ChartLineIcon from 'vue-material-design-icons/ChartLine.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
 import DownloadIcon from 'vue-material-design-icons/Download.vue'
@@ -252,15 +252,13 @@ const query = computed(() => ({
 	groupBy: groupBy.value,
 }))
 
-watch(query, () => {
+// Keyed on the serialized filter, not the object: `query` allocates a fresh
+// literal per evaluation, so a deep watcher would refire on every unrelated
+// re-render — and each spurious fire is a full server-side evaluation.
+watch(() => JSON.stringify(query.value), () => {
 	writeUrlState()
 	load()
-}, { deep: true })
-
-onMounted(() => {
-	writeUrlState()
-	load()
-})
+}, { immediate: true })
 
 /**
  * Fetch the evaluation for the filters currently in effect.

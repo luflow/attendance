@@ -47,6 +47,8 @@ import { NcAppSidebar, NcEmptyContent } from '@nextcloud/vue'
 import { computed, ref, watch } from 'vue'
 import CalendarBlankIcon from 'vue-material-design-icons/CalendarBlank.vue'
 import LoadingState from '../common/LoadingState.vue'
+import { formatDate } from '../../utils/datetime.js'
+import { getResponseText } from '../../utils/response.js'
 
 const props = defineProps({
 	person: { type: Object, required: true },
@@ -66,9 +68,9 @@ const subname = computed(() => n(
 ))
 
 watch(
-	() => [props.person.userId, props.query],
+	() => `${props.person.userId}:${JSON.stringify(props.query)}`,
 	() => load(),
-	{ immediate: true, deep: true },
+	{ immediate: true },
 )
 
 /**
@@ -103,10 +105,7 @@ function isReversal(entry) {
  * @return {string} Human-readable answer.
  */
 function responseLabel(value) {
-	if (value === 'yes') return t('attendance', 'Yes')
-	if (value === 'no') return t('attendance', 'No')
-	if (value === 'maybe') return t('attendance', 'Maybe')
-	return t('attendance', 'No response')
+	return value ? getResponseText(value) : t('attendance', 'No response')
 }
 
 /**
@@ -117,14 +116,6 @@ function checkinLabel(value) {
 	if (value === 'yes') return t('attendance', 'Present')
 	if (value === 'no') return t('attendance', 'Absent')
 	return t('attendance', 'Not recorded')
-}
-
-/**
- * @param {?string} value - ISO timestamp.
- * @return {string} Local date.
- */
-function formatDate(value) {
-	return value ? new Date(value).toLocaleDateString() : ''
 }
 </script>
 

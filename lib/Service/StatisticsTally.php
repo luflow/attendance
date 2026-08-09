@@ -20,7 +20,6 @@ final class StatisticsTally {
 	public int $notRecorded = 0;
 	public int $attendanceBase = 0;
 	public int $noShow = 0;
-	public int $attendedDespiteNo = 0;
 
 	/**
 	 * @param ?string $answer yes/no/maybe, or null when unanswered
@@ -45,9 +44,6 @@ final class StatisticsTally {
 
 		if ($checkin === 'yes') {
 			$this->present++;
-			if ($answer === 'no') {
-				$this->attendedDespiteNo++;
-			}
 		} elseif ($checkin === 'no') {
 			$this->absent++;
 			if ($answer === 'yes') {
@@ -69,11 +65,10 @@ final class StatisticsTally {
 		$this->notRecorded += $other->notRecorded;
 		$this->attendanceBase += $other->attendanceBase;
 		$this->noShow += $other->noShow;
-		$this->attendedDespiteNo += $other->attendedDespiteNo;
 	}
 
 	/**
-	 * @return array{targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, attendedDespiteNo: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float}
+	 * @return array{targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float}
 	 */
 	public function toArray(): array {
 		return [
@@ -87,7 +82,6 @@ final class StatisticsTally {
 			'notRecorded' => $this->notRecorded,
 			'attendanceBase' => $this->attendanceBase,
 			'noShow' => $this->noShow,
-			'attendedDespiteNo' => $this->attendedDespiteNo,
 			'responseRate' => self::rate($this->yes + $this->no + $this->maybe, $this->targetCount),
 			'acceptRate' => self::rate($this->yes, $this->targetCount),
 			'attendanceRate' => self::rate($this->present, $this->attendanceBase),
