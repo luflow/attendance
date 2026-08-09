@@ -50,6 +50,24 @@ export function getResponseText(response) {
 }
 
 /**
+ * Get the display text for a check-in state. Shares the yes/no values with a
+ * response, but never its wording — somebody is present, not "yes".
+ *
+ * @param {string} state - The check-in state (yes, no)
+ * @return {string} The translated display text
+ */
+let checkinTexts = null
+
+export function getCheckinText(state) {
+	const t = window.t || ((app, text) => text)
+	checkinTexts ??= {
+		yes: t('attendance', 'Present'),
+		no: t('attendance', 'Absent'),
+	}
+	return checkinTexts[state] || t('attendance', 'Not recorded')
+}
+
+/**
  * Get the UI variant for a response value.
  * Used for NcButton and NcChip variant props.
  *

@@ -303,8 +303,8 @@ const STEPS = [
 	{
 		id: 'responses',
 		label: t('attendance', 'Responses'),
-		lead: t('attendance', 'Who gets to see the replies of everyone else? The detailed summary shows names, the counts show only how many said yes, no or maybe.'),
-		permissions: ['see_response_overview', 'see_response_counts', 'see_comments'],
+		lead: t('attendance', 'Who gets to see the replies of everyone else? The detailed summary shows names, the counts show only how many said yes, no or maybe, and the statistics evaluate both across all appointments.'),
+		permissions: ['see_response_overview', 'see_response_counts', 'see_comments', 'see_statistics'],
 	},
 	{
 		id: 'audit',
@@ -362,6 +362,7 @@ const welcomeTopics = [
 	t('attendance', 'Who may create appointments'),
 	t('attendance', 'Who may check attendees in'),
 	t('attendance', 'Who may see the replies'),
+	t('attendance', 'Who may see the evaluation across all appointments'),
 	t('attendance', 'Automatic reminders for people who have not replied'),
 ]
 

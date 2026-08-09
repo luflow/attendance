@@ -495,7 +495,8 @@
                     "respondOnBehalf",
                     "responseCounts",
                     "locationsAvailable",
-                    "categoriesAvailable"
+                    "categoriesAvailable",
+                    "statisticsAvailable"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -553,6 +554,9 @@
                         "type": "boolean"
                     },
                     "categoriesAvailable": {
+                        "type": "boolean"
+                    },
+                    "statisticsAvailable": {
                         "type": "boolean"
                     }
                 }
@@ -1147,6 +1151,481 @@
                     }
                 }
             },
+            "Statistics": {
+                "type": "object",
+                "required": [
+                    "appointmentCount",
+                    "pastCount",
+                    "attendanceRecordedCount",
+                    "groupBy",
+                    "people",
+                    "sections",
+                    "totals",
+                    "timeline",
+                    "byCategory"
+                ],
+                "properties": {
+                    "appointmentCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "pastCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "attendanceRecordedCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "groupBy": {
+                        "type": "string"
+                    },
+                    "people": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/StatisticsPerson"
+                        }
+                    },
+                    "sections": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/StatisticsSection"
+                        }
+                    },
+                    "totals": {
+                        "$ref": "#/components/schemas/StatisticsTotals"
+                    },
+                    "timeline": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/StatisticsTimelinePoint"
+                        }
+                    },
+                    "byCategory": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/StatisticsCategory"
+                        }
+                    }
+                }
+            },
+            "StatisticsCategory": {
+                "type": "object",
+                "required": [
+                    "categoryId",
+                    "displayName",
+                    "appointmentCount",
+                    "targetCount",
+                    "yes",
+                    "present",
+                    "attendanceBase",
+                    "acceptRate",
+                    "attendanceRate"
+                ],
+                "properties": {
+                    "categoryId": {
+                        "type": "integer",
+                        "format": "int64",
+                        "nullable": true
+                    },
+                    "displayName": {
+                        "type": "string"
+                    },
+                    "appointmentCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "targetCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "yes": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "present": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "attendanceBase": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "acceptRate": {
+                        "type": "number",
+                        "format": "double",
+                        "nullable": true
+                    },
+                    "attendanceRate": {
+                        "type": "number",
+                        "format": "double",
+                        "nullable": true
+                    }
+                }
+            },
+            "StatisticsPerson": {
+                "type": "object",
+                "required": [
+                    "userId",
+                    "displayName",
+                    "isGuest",
+                    "sections",
+                    "targetCount",
+                    "yes",
+                    "no",
+                    "maybe",
+                    "noResponse",
+                    "present",
+                    "absent",
+                    "notRecorded",
+                    "attendanceBase",
+                    "noShow",
+                    "responseRate",
+                    "acceptRate",
+                    "attendanceRate"
+                ],
+                "properties": {
+                    "userId": {
+                        "type": "string"
+                    },
+                    "displayName": {
+                        "type": "string"
+                    },
+                    "isGuest": {
+                        "type": "boolean"
+                    },
+                    "sections": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "targetCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "yes": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "no": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "maybe": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "noResponse": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "present": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "absent": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "notRecorded": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "attendanceBase": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "noShow": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "responseRate": {
+                        "type": "number",
+                        "format": "double",
+                        "nullable": true
+                    },
+                    "acceptRate": {
+                        "type": "number",
+                        "format": "double",
+                        "nullable": true
+                    },
+                    "attendanceRate": {
+                        "type": "number",
+                        "format": "double",
+                        "nullable": true
+                    }
+                }
+            },
+            "StatisticsPersonDetail": {
+                "type": "object",
+                "required": [
+                    "userId",
+                    "displayName",
+                    "isGuest",
+                    "entries"
+                ],
+                "properties": {
+                    "userId": {
+                        "type": "string"
+                    },
+                    "displayName": {
+                        "type": "string"
+                    },
+                    "isGuest": {
+                        "type": "boolean"
+                    },
+                    "entries": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/StatisticsPersonEntry"
+                        }
+                    }
+                }
+            },
+            "StatisticsPersonEntry": {
+                "type": "object",
+                "required": [
+                    "appointmentId",
+                    "name",
+                    "startDatetime",
+                    "response",
+                    "checkinState",
+                    "attendanceRecorded",
+                    "comment"
+                ],
+                "properties": {
+                    "appointmentId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "startDatetime": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "response": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "checkinState": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "attendanceRecorded": {
+                        "type": "boolean"
+                    },
+                    "comment": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                }
+            },
+            "StatisticsSection": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "displayName",
+                    "personCount",
+                    "targetCount",
+                    "yes",
+                    "no",
+                    "maybe",
+                    "noResponse",
+                    "present",
+                    "absent",
+                    "notRecorded",
+                    "attendanceBase",
+                    "noShow",
+                    "responseRate",
+                    "acceptRate",
+                    "attendanceRate"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "displayName": {
+                        "type": "string"
+                    },
+                    "personCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "targetCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "yes": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "no": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "maybe": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "noResponse": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "present": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "absent": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "notRecorded": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "attendanceBase": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "noShow": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "responseRate": {
+                        "type": "number",
+                        "format": "double",
+                        "nullable": true
+                    },
+                    "acceptRate": {
+                        "type": "number",
+                        "format": "double",
+                        "nullable": true
+                    },
+                    "attendanceRate": {
+                        "type": "number",
+                        "format": "double",
+                        "nullable": true
+                    }
+                }
+            },
+            "StatisticsTimelinePoint": {
+                "type": "object",
+                "required": [
+                    "appointmentId",
+                    "name",
+                    "startDatetime",
+                    "targetCount",
+                    "yes",
+                    "present",
+                    "attendanceRecorded"
+                ],
+                "properties": {
+                    "appointmentId": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "startDatetime": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "targetCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "yes": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "present": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "attendanceRecorded": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "StatisticsTotals": {
+                "type": "object",
+                "required": [
+                    "targetCount",
+                    "yes",
+                    "no",
+                    "maybe",
+                    "noResponse",
+                    "present",
+                    "absent",
+                    "notRecorded",
+                    "attendanceBase",
+                    "noShow",
+                    "responseRate",
+                    "acceptRate",
+                    "attendanceRate"
+                ],
+                "properties": {
+                    "targetCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "yes": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "no": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "maybe": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "noResponse": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "present": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "absent": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "notRecorded": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "attendanceBase": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "noShow": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "responseRate": {
+                        "type": "number",
+                        "format": "double",
+                        "nullable": true
+                    },
+                    "acceptRate": {
+                        "type": "number",
+                        "format": "double",
+                        "nullable": true
+                    },
+                    "attendanceRate": {
+                        "type": "number",
+                        "format": "double",
+                        "nullable": true
+                    }
+                }
+            },
             "UserConfig": {
                 "type": "object",
                 "required": [
@@ -1180,7 +1659,9 @@
                     "canSeeResponseCounts",
                     "canSeeComments",
                     "canSelfCheckin",
-                    "canRespondForOthers"
+                    "canRespondForOthers",
+                    "canSeeStatistics",
+                    "canSeeIndividualResponses"
                 ],
                 "properties": {
                     "canManageAppointments": {
@@ -1205,6 +1686,12 @@
                         "type": "boolean"
                     },
                     "canRespondForOthers": {
+                        "type": "boolean"
+                    },
+                    "canSeeStatistics": {
+                        "type": "boolean"
+                    },
+                    "canSeeIndividualResponses": {
                         "type": "boolean"
                     }
                 }
@@ -5140,6 +5627,450 @@
                                     "properties": {
                                         "error": {
                                             "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/attendance/api/statistics": {
+            "get": {
+                "operationId": "statistics-index",
+                "summary": "Evaluate responses and attendance across appointments",
+                "description": "Users without the see_statistics permission get their own row and nothing else: no other people, no sections, no totals and no chart series.",
+                "tags": [
+                    "statistics"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "startDate",
+                        "in": "query",
+                        "description": "Start of the range (Y-m-d, inclusive)",
+                        "schema": {
+                            "type": "string",
+                            "nullable": true,
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "endDate",
+                        "in": "query",
+                        "description": "End of the range (Y-m-d, inclusive)",
+                        "schema": {
+                            "type": "string",
+                            "nullable": true,
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "categoryIds[]",
+                        "in": "query",
+                        "description": "Categories to include; empty means every category",
+                        "schema": {
+                            "type": "array",
+                            "default": [],
+                            "items": {
+                                "type": "integer",
+                                "format": "int64"
+                            }
+                        }
+                    },
+                    {
+                        "name": "includeUncategorized",
+                        "in": "query",
+                        "description": "Also include appointments without a category",
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    {
+                        "name": "groupBy",
+                        "in": "query",
+                        "description": "Section axis: `groups` or `teams`",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Statistics"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error",
+                                        "found",
+                                        "limit"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "found": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        },
+                                        "limit": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/attendance/api/statistics/export": {
+            "post": {
+                "operationId": "statistics-export",
+                "summary": "Export the statistics table as an ODS file",
+                "tags": [
+                    "statistics"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "startDate": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Start of the range (Y-m-d, inclusive)"
+                                    },
+                                    "endDate": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "End of the range (Y-m-d, inclusive)"
+                                    },
+                                    "categoryIds": {
+                                        "type": "array",
+                                        "default": [],
+                                        "description": "Categories to include; empty means every category",
+                                        "items": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        }
+                                    },
+                                    "includeUncategorized": {
+                                        "type": "boolean",
+                                        "default": false,
+                                        "description": "Also include appointments without a category"
+                                    },
+                                    "groupBy": {
+                                        "type": "string",
+                                        "description": "Section axis: `groups` or `teams`"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ExportResult"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/attendance/api/statistics/person/{targetUserId}": {
+            "get": {
+                "operationId": "statistics-person",
+                "summary": "List one person's appointments behind their statistics row",
+                "tags": [
+                    "statistics"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "targetUserId",
+                        "in": "path",
+                        "description": "The person to drill into",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "startDate",
+                        "in": "query",
+                        "description": "Start of the range (Y-m-d, inclusive)",
+                        "schema": {
+                            "type": "string",
+                            "nullable": true,
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "endDate",
+                        "in": "query",
+                        "description": "End of the range (Y-m-d, inclusive)",
+                        "schema": {
+                            "type": "string",
+                            "nullable": true,
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "categoryIds[]",
+                        "in": "query",
+                        "description": "Categories to include; empty means every category",
+                        "schema": {
+                            "type": "array",
+                            "default": [],
+                            "items": {
+                                "type": "integer",
+                                "format": "int64"
+                            }
+                        }
+                    },
+                    {
+                        "name": "includeUncategorized",
+                        "in": "query",
+                        "description": "Also include appointments without a category",
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StatisticsPersonDetail"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error",
+                                        "found",
+                                        "limit"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        },
+                                        "found": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        },
+                                        "limit": {
+                                            "type": "integer",
+                                            "format": "int64"
                                         }
                                     }
                                 }

@@ -1,7 +1,7 @@
 <template>
 	<NcContent appName="attendance">
 		<!-- Navigation sidebar (hidden during checkin) -->
-		<NcAppNavigation v-if="currentView !== 'checkin'">
+		<NcAppNavigation v-if="hasNavigation">
 			<template #search>
 				<NcAppNavigationSearch
 					v-model="searchQuery"
@@ -150,6 +150,16 @@
 
 			<template #footer>
 				<NcAppNavigationItem
+					v-if="capabilities.statisticsAvailable"
+					:name="t('attendance', 'Statistics')"
+					:active="currentView === 'statistics'"
+					data-test="nav-statistics"
+					@click.prevent="setView('statistics')">
+					<template #icon>
+						<ChartLineIcon :size="20" />
+					</template>
+				</NcAppNavigationItem>
+				<NcAppNavigationItem
 					v-if="permissions.canManageAppointments"
 					:name="t('attendance', 'Export')"
 					data-test="button-export"
@@ -171,73 +181,82 @@
 
 		<!-- Main content area -->
 		<NcAppContent>
-			<div v-if="currentView !== 'checkin' && config.mobileAppBannerEnabled && !config.hasPushDevice"
-				class="mobile-banner-container">
-				<MobileAppBanner />
+			<div class="attendance-content" :class="{ 'attendance-content--below-toggle': hasNavigation }">
+				<div v-if="hasNavigation && config.mobileAppBannerEnabled && !config.hasPushDevice"
+					class="mobile-banner-container">
+					<MobileAppBanner />
+				</div>
+
+				<!-- Check-in View -->
+				<CheckinView
+					v-if="currentView === 'checkin'"
+					:appointmentId="checkinAppointmentId" />
+
+				<!-- Appointment Form View (Create/Edit/Copy) -->
+				<AppointmentForm
+					v-else-if="
+						currentView === 'create'
+							|| currentView === 'edit'
+							|| currentView === 'copy'
+					"
+					:mode="currentView"
+					:appointmentId="formAppointmentId"
+					:notificationsAppEnabled="capabilities.notificationsAppEnabled"
+					:calendarAvailable="capabilities.calendarAvailable"
+					:calendarSyncEnabled="capabilities.calendarSyncEnabled"
+					@saved="handleFormSaved"
+					@cancelled="handleFormCancelled" />
+
+				<!-- Appointment Detail View -->
+				<AppointmentDetail
+					v-else-if="currentView === 'appointment'"
+					:appointmentId="appointmentDetailId"
+					:unansweredCount="unansweredAppointments.length"
+					:scrollTarget="appointmentDetailScrollTarget"
+					@responseUpdated="loadAppointments"
+					@appointmentDeleted="handleAppointmentDeleted"
+					@editAppointment="editAppointment"
+					@copyAppointment="copyAppointment"
+					@navigateToUnanswered="setView('unanswered')"
+					@scrollTargetConsumed="appointmentDetailScrollTarget = null" />
+
+				<!-- Statistics View -->
+				<StatisticsOverview v-else-if="currentView === 'statistics'" />
+
+				<!-- All Appointments View -->
+				<AllAppointments
+					v-else-if="
+						currentView === 'current'
+							|| currentView === 'past'
+							|| currentView === 'unanswered'
+							|| currentView === 'all'
+					"
+					:key="currentView"
+					:showPast="currentView === 'past'"
+					:showUnanswered="currentView === 'unanswered'"
+					:showAll="currentView === 'all'"
+					:searchQuery="searchQuery"
+					:unansweredCount="unansweredAppointments.length"
+					@responseUpdated="loadAppointments"
+					@appointmentDeleted="loadAppointments"
+					@editAppointment="editAppointment"
+					@copyAppointment="copyAppointment"
+					@navigateToUpcoming="setView('current')"
+					@navigateToUnanswered="setView('unanswered')"
+					@showAuditLog="openAuditLog"
+					@openDetail="navigateToAppointment"
+					@createAppointment="createNewAppointment"
+					@startOnboarding="showOnboardingWizard = true"
+					@clearSearch="searchQuery = ''" />
+
+				<!-- Loading state while routing is determined -->
+				<LoadingState v-else :text="t('attendance', 'Loading …')" />
 			</div>
-
-			<!-- Check-in View -->
-			<CheckinView
-				v-if="currentView === 'checkin'"
-				:appointmentId="checkinAppointmentId" />
-
-			<!-- Appointment Form View (Create/Edit/Copy) -->
-			<AppointmentForm
-				v-else-if="
-					currentView === 'create'
-						|| currentView === 'edit'
-						|| currentView === 'copy'
-				"
-				:mode="currentView"
-				:appointmentId="formAppointmentId"
-				:notificationsAppEnabled="capabilities.notificationsAppEnabled"
-				:calendarAvailable="capabilities.calendarAvailable"
-				:calendarSyncEnabled="capabilities.calendarSyncEnabled"
-				@saved="handleFormSaved"
-				@cancelled="handleFormCancelled" />
-
-			<!-- Appointment Detail View -->
-			<AppointmentDetail
-				v-else-if="currentView === 'appointment'"
-				:appointmentId="appointmentDetailId"
-				:unansweredCount="unansweredAppointments.length"
-				:scrollTarget="appointmentDetailScrollTarget"
-				@responseUpdated="loadAppointments"
-				@appointmentDeleted="handleAppointmentDeleted"
-				@editAppointment="editAppointment"
-				@copyAppointment="copyAppointment"
-				@navigateToUnanswered="setView('unanswered')"
-				@scrollTargetConsumed="appointmentDetailScrollTarget = null" />
-
-			<!-- All Appointments View -->
-			<AllAppointments
-				v-else-if="
-					currentView === 'current'
-						|| currentView === 'past'
-						|| currentView === 'unanswered'
-						|| currentView === 'all'
-				"
-				:key="currentView"
-				:showPast="currentView === 'past'"
-				:showUnanswered="currentView === 'unanswered'"
-				:showAll="currentView === 'all'"
-				:searchQuery="searchQuery"
-				:unansweredCount="unansweredAppointments.length"
-				@responseUpdated="loadAppointments"
-				@appointmentDeleted="loadAppointments"
-				@editAppointment="editAppointment"
-				@copyAppointment="copyAppointment"
-				@navigateToUpcoming="setView('current')"
-				@navigateToUnanswered="setView('unanswered')"
-				@showAuditLog="openAuditLog"
-				@openDetail="navigateToAppointment"
-				@createAppointment="createNewAppointment"
-				@startOnboarding="showOnboardingWizard = true"
-				@clearSearch="searchQuery = ''" />
-
-			<!-- Loading state while routing is determined -->
-			<LoadingState v-else :text="t('attendance', 'Loading …')" />
 		</NcAppContent>
+
+		<!-- NcAppSidebar has to sit next to NcAppContent to lay out correctly,
+		     so views teleport theirs in here. -->
+		<div id="attendance-sidebar-slot" />
 
 		<!-- iCal Feed Modal -->
 		<IcalFeedModal
@@ -275,6 +294,7 @@ import BellAlertIcon from 'vue-material-design-icons/BellAlert.vue'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import CalendarClockIcon from 'vue-material-design-icons/CalendarClock.vue'
 import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
+import ChartLineIcon from 'vue-material-design-icons/ChartLine.vue'
 import CheckCircle from 'vue-material-design-icons/CheckCircle.vue'
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
@@ -292,6 +312,7 @@ import AllAppointments from './views/AllAppointments.vue'
 import AppointmentDetail from './views/AppointmentDetail.vue'
 import AppointmentForm from './views/AppointmentForm.vue'
 import CheckinView from './views/Checkin.vue'
+import StatisticsOverview from './views/StatisticsOverview.vue'
 import { usePermissions } from './composables/usePermissions.js'
 import { formatDateTime } from './utils/datetime.js'
 
@@ -568,6 +589,10 @@ t('attendance', '{actor} checked themselves in: {state}')
 t('attendance', '{actor} updated their own check-in: {state}')
 
 const currentView = ref(null) // 'current', 'past', 'unanswered', 'appointment', 'checkin', 'create', 'edit', 'copy', or null
+
+// Check-in runs without the navigation, and so without the toggle the content
+// otherwise has to leave room for.
+const hasNavigation = computed(() => currentView.value !== 'checkin')
 const checkinAppointmentId = ref(null)
 const appointmentDetailId = ref(null)
 const formAppointmentId = ref(null) // For edit/copy modes
@@ -635,7 +660,7 @@ const allAppointments = computed(() => {
 // out of sync — it was missing "all", so opening an appointment from the All
 // view produced /apps/attendance/all/appointment/42, which works via pushState
 // but 404s the moment anyone reloads or shares the link.
-const VIEW_SEGMENT = /\/(all|past|unanswered|appointment\/\d+|checkin\/\d+|create|edit\/\d+|copy\/\d+)?$/
+const VIEW_SEGMENT = /\/(all|past|unanswered|statistics|appointment\/\d+|checkin\/\d+|create|edit\/\d+|copy\/\d+)?$/
 
 /**
  * The app's root URL, with any current view segment stripped off.
@@ -663,6 +688,8 @@ function setView(view) {
 		newUrl = baseUrl + '/unanswered'
 	} else if (view === 'all') {
 		newUrl = baseUrl + '/all'
+	} else if (view === 'statistics') {
+		newUrl = baseUrl + '/statistics'
 	} else if (view === 'current') {
 		newUrl = baseUrl
 	}
@@ -784,6 +811,7 @@ function checkRouting() {
 	const isPastRoute = path.endsWith('/past')
 	const isUnansweredRoute = path.endsWith('/unanswered')
 	const isAllRoute = path.endsWith('/all')
+	const isStatisticsRoute = path.endsWith('/statistics')
 
 	// Reset all state
 	checkinAppointmentId.value = null
@@ -810,6 +838,8 @@ function checkRouting() {
 		currentView.value = 'unanswered'
 	} else if (isAllRoute) {
 		currentView.value = 'all'
+	} else if (isStatisticsRoute) {
+		currentView.value = 'statistics'
 	} else {
 		// Default landing: managers drop into "All appointments" (their natural
 		// overview), everyone else into "Upcoming". Landing in "Unanswered"
@@ -861,8 +891,15 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Room for the navigation toggle, which floats over the top-left corner of the
+   content whenever the navigation is collapsed. Ahead of whatever the view
+   opens with — a heading, a banner or a row of buttons. */
+.attendance-content--below-toggle {
+    padding-top: var(--default-clickable-area, 44px);
+}
+
 .mobile-banner-container {
-    padding: 20px 20px 0;
+    padding: 0 20px;
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -882,6 +919,15 @@ onMounted(async () => {
 </style>
 
 <style>
+/* One size for every view's main heading. Views set their own width and
+   inline margin. */
+.page-heading {
+    color: var(--color-main-text);
+    font-size: 1.4em;
+    font-weight: 600;
+    margin-block: 0 12px;
+}
+
 /* Keep textarea placeholder visible in comment sections */
 .comment-section .textarea__input::placeholder {
     opacity: 1 !important;

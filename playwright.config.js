@@ -93,6 +93,8 @@ export default defineConfig({
 				// the parallel project's other files (2-appointment, 3-voting,
 				// 30-location, ...) mid-run.
 				'31-category.spec.js',
+				// Grants and revokes see_statistics instance-wide.
+				'32-statistics.spec.js',
 			],
 			fullyParallel: false,
 			workers: 1,

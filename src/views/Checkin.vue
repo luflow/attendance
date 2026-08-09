@@ -396,7 +396,7 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .checkin-view {
-	padding: 20px;
+	padding: 0 20px 20px;
 	max-width: 800px;
 	margin: 0 auto;
 }

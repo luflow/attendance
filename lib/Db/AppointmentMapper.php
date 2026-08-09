@@ -482,4 +482,56 @@ class AppointmentMapper extends QBMapper {
 
 		return $this->findEntities($qb);
 	}
+
+	/**
+	 * Appointments the statistics evaluate: active, not cancelled, within the
+	 * date range and matching the category filter.
+	 *
+	 * @param list<int> $categoryIds Categories to include; empty means no category filter
+	 * @param bool $includeUncategorized Also include appointments without a category
+	 * @param ?int $limit Stop after this many rows, so an over-large range is
+	 *                    detected without hydrating everything behind it
+	 * @return list<Appointment>
+	 */
+	public function findForStatistics(
+		?string $startDate,
+		?string $endDate,
+		array $categoryIds = [],
+		bool $includeUncategorized = false,
+		?int $limit = null,
+	): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->isNull('cancelled_at'));
+
+		if ($startDate !== null) {
+			$qb->andWhere($qb->expr()->gte('start_datetime', $qb->createNamedParameter($startDate . ' 00:00:00')));
+		}
+
+		if ($endDate !== null) {
+			$qb->andWhere($qb->expr()->lte('start_datetime', $qb->createNamedParameter($endDate . ' 23:59:59')));
+		}
+
+		$categoryFilters = [];
+		if ($categoryIds !== []) {
+			$categoryFilters[] = $qb->expr()->in('category_id', $qb->createNamedParameter($categoryIds, IQueryBuilder::PARAM_INT_ARRAY));
+		}
+		if ($includeUncategorized) {
+			$categoryFilters[] = $qb->expr()->isNull('category_id');
+		}
+		if ($categoryFilters !== []) {
+			$qb->andWhere($qb->expr()->orX(...$categoryFilters));
+		}
+
+		$qb->orderBy('start_datetime', 'ASC');
+
+		if ($limit !== null) {
+			$qb->setMaxResults($limit);
+		}
+
+		return $this->findEntities($qb);
+	}
 }

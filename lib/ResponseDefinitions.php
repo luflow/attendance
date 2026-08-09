@@ -162,6 +162,8 @@ namespace OCA\Attendance;
  *   canSeeComments: bool,
  *   canSelfCheckin: bool,
  *   canRespondForOthers: bool,
+ *   canSeeStatistics: bool,
+ *   canSeeIndividualResponses: bool,
  * }
  * @psalm-type AttendanceCapabilities = array{
  *   calendarAvailable: bool,
@@ -183,6 +185,7 @@ namespace OCA\Attendance;
  *   responseCounts: bool,
  *   locationsAvailable: bool,
  *   categoriesAvailable: bool,
+ *   statisticsAvailable: bool,
  * }
  * @psalm-type AttendanceAuditUserRef = array{
  *   userId: string,
@@ -318,6 +321,104 @@ namespace OCA\Attendance;
  * @psalm-type AttendanceTestReminderResult = array{
  *   sent: int,
  *   appointmentName: string,
+ * }
+ * @psalm-type AttendanceStatisticsPerson = array{
+ *   userId: string,
+ *   displayName: string,
+ *   isGuest: bool,
+ *   sections: list<string>,
+ *   targetCount: int,
+ *   yes: int,
+ *   no: int,
+ *   maybe: int,
+ *   noResponse: int,
+ *   present: int,
+ *   absent: int,
+ *   notRecorded: int,
+ *   attendanceBase: int,
+ *   noShow: int,
+ *   responseRate: ?float,
+ *   acceptRate: ?float,
+ *   attendanceRate: ?float,
+ * }
+ * @psalm-type AttendanceStatisticsTotals = array{
+ *   targetCount: int,
+ *   yes: int,
+ *   no: int,
+ *   maybe: int,
+ *   noResponse: int,
+ *   present: int,
+ *   absent: int,
+ *   notRecorded: int,
+ *   attendanceBase: int,
+ *   noShow: int,
+ *   responseRate: ?float,
+ *   acceptRate: ?float,
+ *   attendanceRate: ?float,
+ * }
+ * @psalm-type AttendanceStatisticsSection = array{
+ *   id: string,
+ *   displayName: string,
+ *   personCount: int,
+ *   targetCount: int,
+ *   yes: int,
+ *   no: int,
+ *   maybe: int,
+ *   noResponse: int,
+ *   present: int,
+ *   absent: int,
+ *   notRecorded: int,
+ *   attendanceBase: int,
+ *   noShow: int,
+ *   responseRate: ?float,
+ *   acceptRate: ?float,
+ *   attendanceRate: ?float,
+ * }
+ * @psalm-type AttendanceStatisticsTimelinePoint = array{
+ *   appointmentId: int,
+ *   name: string,
+ *   startDatetime: ?string,
+ *   targetCount: int,
+ *   yes: int,
+ *   present: int,
+ *   attendanceRecorded: bool,
+ * }
+ * @psalm-type AttendanceStatisticsCategory = array{
+ *   categoryId: ?int,
+ *   displayName: string,
+ *   appointmentCount: int,
+ *   targetCount: int,
+ *   yes: int,
+ *   present: int,
+ *   attendanceBase: int,
+ *   acceptRate: ?float,
+ *   attendanceRate: ?float,
+ * }
+ * @psalm-type AttendanceStatistics = array{
+ *   appointmentCount: int,
+ *   pastCount: int,
+ *   attendanceRecordedCount: int,
+ *   groupBy: string,
+ *   people: list<AttendanceStatisticsPerson>,
+ *   sections: list<AttendanceStatisticsSection>,
+ *   totals: AttendanceStatisticsTotals,
+ *   timeline: list<AttendanceStatisticsTimelinePoint>,
+ *   byCategory: list<AttendanceStatisticsCategory>,
+ * }
+ * @psalm-type AttendanceStatisticsPersonEntry = array{
+ *   appointmentId: int,
+ *   name: string,
+ *   startDatetime: ?string,
+ *   response: ?string,
+ *   checkinState: ?string,
+ *   attendanceRecorded: bool,
+ *   comment: ?string,
+ * }
+ * @psalm-type AttendanceStatisticsPersonDetail = array{
+ *   userId: string,
+ *   displayName: string,
+ *   isGuest: bool,
+ *   entries: list<AttendanceStatisticsPersonEntry>,
  * }
  */
 class ResponseDefinitions {

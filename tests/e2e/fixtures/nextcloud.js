@@ -417,6 +417,7 @@ export const PERMISSIVE_PERMISSIONS = Object.freeze({
 	self_checkin: { mode: 'all', groups: [] },
 	create_appointments: { mode: 'nobody', groups: [] },
 	respond_for_others: { mode: 'nobody', groups: [] },
+	see_statistics: { mode: 'nobody', groups: [] },
 })
 
 /**

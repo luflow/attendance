@@ -1,7 +1,8 @@
 <template>
 	<div class="attendance-container">
-		<!-- Unanswered reminder banner (shown on upcoming view when there are unanswered appointments) -->
-		<div v-if="!showUnanswered && !showPast && !showAll && !loading && unansweredCount > 0" class="unanswered-banner-container">
+		<!-- Not on the unanswered view, which has its own banner below, and not on
+			past appointments, where nothing is left to answer. -->
+		<div v-if="!showUnanswered && !showPast && !loading && unansweredCount > 0" class="unanswered-banner-container">
 			<div class="unanswered-banner pending clickable" role="button" @click="emit('navigateToUnanswered')">
 				<ProgressQuestion :size="20" />
 				<span>{{ n('attendance', '%n appointment awaiting your response', '%n appointments awaiting your response', unansweredCount) }}</span>
@@ -833,7 +834,9 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .attendance-container {
-	padding: 20px;
+	// No padding at the top: the app content already clears the navigation
+	// toggle for every view (App.vue).
+	padding: 0 20px 20px;
 	max-width: 1200px;
 	margin: 0 auto;
 }
@@ -848,12 +851,11 @@ onMounted(async () => {
 	margin: 0 auto 20px;
 }
 
+// Size and top margin come from the shared rule in App.vue; only the column
+// this view centres its heading in is local.
 .page-heading {
 	max-width: 800px;
-	margin: 0 auto 12px;
-	font-size: 1.4em;
-	font-weight: 600;
-	color: var(--color-main-text);
+	margin-inline: auto;
 }
 
 .section-heading {

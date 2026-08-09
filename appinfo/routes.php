@@ -10,6 +10,7 @@ return [
 		['name' => 'page#appointment', 'url' => '/appointment/{id}', 'verb' => 'GET'],
 		// Legacy shape produced by <=1.42, redirects to the canonical URL.
 		['name' => 'page#legacyAllAppointment', 'url' => '/all/appointment/{id}', 'verb' => 'GET'],
+		['name' => 'page#statistics', 'url' => '/statistics', 'verb' => 'GET'],
 		['name' => 'page#checkin', 'url' => '/checkin/{id}', 'verb' => 'GET'],
 		['name' => 'page#create', 'url' => '/create', 'verb' => 'GET'],
 		['name' => 'page#edit', 'url' => '/edit/{id}', 'verb' => 'GET'],
@@ -85,6 +86,12 @@ return [
 
 		// Export
 		['name' => 'appointment#export', 'url' => '/api/export', 'verb' => 'POST'],
+
+		// Statistics
+		// NOTE: Specific routes must come BEFORE wildcard {targetUserId} routes
+		['name' => 'statistics#index', 'url' => '/api/statistics', 'verb' => 'GET'],
+		['name' => 'statistics#export', 'url' => '/api/statistics/export', 'verb' => 'POST'],
+		['name' => 'statistics#person', 'url' => '/api/statistics/person/{targetUserId}', 'verb' => 'GET'],
 
 		// iCal feed
 		['name' => 'ical#getToken', 'url' => '/api/ical/token', 'verb' => 'GET'],
