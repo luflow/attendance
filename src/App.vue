@@ -232,9 +232,7 @@
 							|| currentView === 'all'
 					"
 					:key="currentView"
-					:showPast="currentView === 'past'"
-					:showUnanswered="currentView === 'unanswered'"
-					:showAll="currentView === 'all'"
+					:view="currentView"
 					:searchQuery="searchQuery"
 					:unansweredCount="unansweredAppointments.length"
 					@responseUpdated="loadAppointments"
