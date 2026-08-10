@@ -3,23 +3,21 @@
 import { startNextcloud, configureNextcloud, waitOnNextcloud, createSnapshot, getContainer, setupUsers } from '@nextcloud/e2e-test-server'
 
 /**
- * Start Nextcloud test server for e2e tests
- * This script is called by the Playwright webServer configuration
+ * Set the Nextcloud test server up for the e2e suite and exit once the "init"
+ * snapshot exists. Runs to completion before any test starts — see
+ * tests/e2e/README.md, "Why the server is a separate step".
  */
 async function main() {
 	try {
 		console.log('Starting Nextcloud test server...')
 		
 		// Start Nextcloud container (uses Docker)
-		// stable33 branch, mount current app
+		// stable34 branch, mount current app
 		//
-		// Still on stable33: since stable34 the shipped notifications app no longer
-		// bundles its composer dependencies, so the `git clone` install used by
-		// @nextcloud/e2e-test-server leaves a broken app and every occ call fatals on
-		// the missing vendor/autoload.php. Bump to stable34 once that is resolved:
-		// https://github.com/nextcloud/notifications/issues/3206
-		// https://github.com/nextcloud-libraries/nextcloud-e2e-test-server/issues/1059
-		const ip = await startNextcloud('stable33', true, {
+		// stable34 needs @nextcloud/e2e-test-server >= 0.5.1: the shipped notifications
+		// app stopped bundling its composer dependencies there, and only that release
+		// runs `composer install` on the apps it clones.
+		const ip = await startNextcloud('stable34', true, {
 			exposePort: 8080,
 			forceRecreate: true
 		})
@@ -49,10 +47,7 @@ async function main() {
 		console.log('  - test3 / test3 (Regular user for e2e tests)')
 		console.log('  - test4 / test4 (Regular user for e2e tests)')
 		console.log('  - test5 / test5 (Regular user for e2e tests)')
-		console.log('\nYou can now run tests with: npm run test:e2e')
-		
-		// Keep the process running
-		await new Promise(() => {})
+		console.log('\nYou can now run tests with: npm run test:e2e:run')
 	} catch (error) {
 		console.error('Failed to start Nextcloud test server:', error)
 		console.error('Make sure Docker is running!')

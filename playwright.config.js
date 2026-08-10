@@ -102,13 +102,6 @@ export default defineConfig({
 		},
 	],
 
-	// Run local dev server before starting tests
-	webServer: process.env.CI ? undefined : {
-		command: 'npm run test:e2e:server',
-		url: 'http://localhost:8080',
-		reuseExistingServer: !process.env.CI,
-		timeout: 300 * 1000,
-		stdout: 'pipe',
-		stderr: 'pipe',
-	},
+	// No `webServer` on purpose — see tests/e2e/README.md, "Why the server is a
+	// separate step".
 })

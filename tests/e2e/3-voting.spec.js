@@ -1,24 +1,33 @@
 import { test, expect, createAppointmentViaAPI, deleteAllAppointments, openCommentField, waitForRespond } from './fixtures/nextcloud.js'
 
+// The widget lists the next 10 upcoming appointments instance-wide
+// (Widget::getItems), so in the parallel project `.first()` is regularly some
+// other spec's appointment — and the target moves as they create and delete.
+// Every interaction below picks its appointment by name instead.
+function widgetItem(page, name) {
+	return page.locator('[data-test="widget-appointment-item"]').filter({ hasText: name })
+}
+
 test.describe('Attendance App - Dashboard Widget Voting', () => {
+	// A day out, so the other specs' appointments (two days and later) cannot
+	// push these three out of the widget's ten slots.
 	test.beforeAll(async ({ request }) => {
-		// Create appointments so the dashboard widget has data to display
 		await createAppointmentViaAPI(request, {
 			name: 'Widget Sprint Planning',
 			description: 'Plan next sprint goals and tasks',
-			daysFromNow: 3,
+			daysFromNow: 1,
 			durationHours: 2,
 		})
 		await createAppointmentViaAPI(request, {
 			name: 'Widget Code Review',
 			description: 'Review PRs from this week',
-			daysFromNow: 4,
+			daysFromNow: 1,
 			durationHours: 1,
 		})
 		await createAppointmentViaAPI(request, {
 			name: 'Widget Team Retro',
 			description: 'Discuss what went well and improvements',
-			daysFromNow: 5,
+			daysFromNow: 1,
 			durationHours: 1,
 		})
 	})
@@ -53,27 +62,26 @@ test.describe('Attendance App - Dashboard Widget Voting', () => {
 		await page.goto('/apps/dashboard/')
 		await page.waitForLoadState('networkidle')
 
-		const widget = page.locator('.appointment-widget-container').or(page.getByRole('heading', { name: 'Attendance' }).locator('..'))
+		const item = widgetItem(page, 'Widget Sprint Planning')
 
-		await widget.getByRole('button', { name: 'Yes', exact: true }).first().click()
+		await item.getByRole('button', { name: 'Yes', exact: true }).click()
 		await page.waitForLoadState('networkidle')
 
-		await expect(widget.getByRole('button', { name: 'Yes', exact: true }).first()).toBeVisible()
+		await expect(item.getByRole('button', { name: 'Yes', exact: true })).toBeVisible()
 	})
 
 	test('should add comment on appointment from dashboard', async ({ page }) => {
 		await page.goto('/apps/dashboard/')
 		await page.waitForLoadState('networkidle')
 
-		const widget = page.locator('.appointment-widget-container').or(page.getByRole('heading', { name: 'Attendance' }).locator('..'))
+		const item = widgetItem(page, 'Widget Code Review')
 
-		const yesButton = widget.getByRole('button', { name: 'Yes', exact: true }).first()
-		await yesButton.click()
+		await item.getByRole('button', { name: 'Yes', exact: true }).click()
 		await page.waitForLoadState('networkidle')
 
-		await openCommentField(widget.locator('[data-test="button-toggle-comment"]').first())
+		await openCommentField(item.locator('[data-test="button-toggle-comment"]'))
 
-		const commentField = widget.locator('[data-test="response-comment"]').first()
+		const commentField = item.locator('[data-test="response-comment"]')
 		await expect(commentField).toBeVisible({ timeout: 5000 })
 		const commentText = 'Great meeting, looking forward to it!'
 		await commentField.fill(commentText)
@@ -81,7 +89,7 @@ test.describe('Attendance App - Dashboard Widget Voting', () => {
 		// Comments are saved explicitly. Wait for the request itself: the button
 		// goes disabled the moment the save starts, so reloading on that signal
 		// would cancel the very request under test.
-		const saveComment = widget.locator('[data-test="button-save-comment"]').first()
+		const saveComment = item.locator('[data-test="button-save-comment"]')
 		await expect(saveComment).toBeEnabled({ timeout: 5000 })
 		const saved = waitForRespond(page)
 		await saveComment.click()
@@ -90,11 +98,11 @@ test.describe('Attendance App - Dashboard Widget Voting', () => {
 		await page.reload()
 		await page.waitForLoadState('networkidle')
 
-		const reloadedWidget = page.locator('.appointment-widget-container').or(page.getByRole('heading', { name: 'Attendance' }).locator('..'))
+		const reloadedItem = widgetItem(page, 'Widget Code Review')
 
-		await openCommentField(reloadedWidget.locator('[data-test="button-toggle-comment"]').first())
+		await openCommentField(reloadedItem.locator('[data-test="button-toggle-comment"]'))
 
-		const reloadedCommentField = reloadedWidget.locator('[data-test="response-comment"]').first()
+		const reloadedCommentField = reloadedItem.locator('[data-test="response-comment"]')
 		await expect(reloadedCommentField).toBeVisible({ timeout: 5000 })
 		await expect(reloadedCommentField).toHaveValue(commentText)
 	})
@@ -103,7 +111,7 @@ test.describe('Attendance App - Dashboard Widget Voting', () => {
 		await page.goto('/apps/dashboard/')
 		await page.waitForLoadState('networkidle')
 
-		const appointmentTitle = page.locator('[data-test="widget-appointment-title"]').first()
+		const appointmentTitle = widgetItem(page, 'Widget Team Retro').locator('[data-test="widget-appointment-title"]')
 		const titleText = await appointmentTitle.textContent()
 
 		await appointmentTitle.click()
@@ -144,36 +152,36 @@ test.describe('Attendance App - Dashboard Widget Voting', () => {
 		await page.goto('/apps/dashboard/')
 		await page.waitForLoadState('networkidle')
 
-		const widget = page.locator('.appointment-widget-container').or(page.getByRole('heading', { name: 'Attendance' }).locator('..'))
-		await widget.getByRole('button', { name: 'Maybe' }).first().click()
+		const item = widgetItem(page, 'Widget Team Retro')
+		await item.getByRole('button', { name: 'Maybe' }).click()
 		await page.waitForLoadState('networkidle')
-		await expect(widget.getByRole('button', { name: 'Maybe' }).first()).toBeVisible()
+		await expect(item.getByRole('button', { name: 'Maybe' })).toBeVisible()
 	})
 
 	test('should vote No on appointment from dashboard', async ({ page }) => {
 		await page.goto('/apps/dashboard/')
 		await page.waitForLoadState('networkidle')
 
-		const widget = page.locator('.appointment-widget-container').or(page.getByRole('heading', { name: 'Attendance' }).locator('..'))
-		await widget.getByRole('button', { name: 'No', exact: true }).first().click()
+		const item = widgetItem(page, 'Widget Sprint Planning')
+		await item.getByRole('button', { name: 'No', exact: true }).click()
 		await page.waitForLoadState('networkidle')
-		await expect(widget.getByRole('button', { name: 'No', exact: true }).first()).toBeVisible()
+		await expect(item.getByRole('button', { name: 'No', exact: true })).toBeVisible()
 	})
 
 	test('should change vote from dashboard', async ({ page }) => {
 		await page.goto('/apps/dashboard/')
 		await page.waitForLoadState('networkidle')
 
-		const widget = page.locator('.appointment-widget-container').or(page.getByRole('heading', { name: 'Attendance' }).locator('..'))
+		const item = widgetItem(page, 'Widget Sprint Planning')
 
-		await widget.getByRole('button', { name: 'Yes', exact: true }).first().click()
+		await item.getByRole('button', { name: 'Yes', exact: true }).click()
 		await page.waitForLoadState('networkidle')
 
-		await widget.getByRole('button', { name: 'No', exact: true }).first().click()
+		await item.getByRole('button', { name: 'No', exact: true }).click()
 		await page.waitForLoadState('networkidle')
 
-		await expect(widget.getByRole('button', { name: 'Yes', exact: true }).first()).toBeVisible()
-		await expect(widget.getByRole('button', { name: 'No', exact: true }).first()).toBeVisible()
+		await expect(item.getByRole('button', { name: 'Yes', exact: true })).toBeVisible()
+		await expect(item.getByRole('button', { name: 'No', exact: true })).toBeVisible()
 	})
 })
 

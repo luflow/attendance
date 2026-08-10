@@ -1,8 +1,6 @@
 <template>
 	<div class="attendance-container">
-		<!-- Not on the unanswered view, which has its own banner below, and not on
-			past appointments, where nothing is left to answer. -->
-		<div v-if="!showUnanswered && !showPast && !loading && unansweredCount > 0" class="unanswered-banner-container">
+		<div v-if="viewDef.showsAwaitingBanner && !loading && unansweredCount > 0" class="unanswered-banner-container">
 			<div class="unanswered-banner pending clickable" role="button" @click="emit('navigateToUnanswered')">
 				<ProgressQuestion :size="20" />
 				<span>{{ n('attendance', '%n appointment awaiting your response', '%n appointments awaiting your response', unansweredCount) }}</span>
@@ -10,8 +8,7 @@
 			</div>
 		</div>
 
-		<!-- Unanswered Banner (only shown on unanswered view after loading) -->
-		<div v-if="showUnanswered && !loading" class="unanswered-banner-container">
+		<div v-if="viewDef.celebratesEmpty && !loading" class="unanswered-banner-container">
 			<div v-if="appointments.length > 0" class="unanswered-banner pending">
 				<ProgressQuestion :size="20" />
 				<span>{{ n('attendance', '%n appointment awaiting your response', '%n appointments awaiting your response', appointments.length) }}</span>
@@ -26,12 +23,12 @@
 			</div>
 		</div>
 
-		<h2 v-if="!unansweredIsEmpty" class="page-heading" data-test="page-heading">
+		<h2 v-if="!showCelebration" class="page-heading" data-test="page-heading">
 			{{ pageHeading }}
 		</h2>
 
 		<div
-			v-if="!loading && filtersApply && (appointments.length > 0 || hasActiveFilters)"
+			v-if="!loading && viewDef.filtersApply && (appointments.length > 0 || hasActiveFilters)"
 			class="filter-bar"
 			data-test="appointment-filters">
 			<div class="filter-bar__triggers">
@@ -191,7 +188,7 @@
 		<!-- Appointments List -->
 		<div class="appointments-list">
 			<LoadingState v-if="loading" :text="t('attendance', 'Loading\u00A0…')" />
-			<NcEmptyContent v-else-if="visibleAppointments.length === 0 && !unansweredIsEmpty"
+			<NcEmptyContent v-else-if="visibleAppointments.length === 0 && !showCelebration"
 				:name="emptyState.name"
 				:description="emptyState.description"
 				data-test="appointments-empty-state">
@@ -283,20 +280,13 @@ import { useCategories } from '../composables/useCategories.js'
 import { useCategoryFilterChips } from '../composables/useCategoryFilterChips.js'
 import { usePermissions } from '../composables/usePermissions.js'
 import { categoryIconComponent } from '../utils/categoryIcons.js'
+import { VIEWS } from './appointmentViews.js'
 
 const props = defineProps({
-	showPast: {
-		type: Boolean,
-		default: false,
-	},
-	showUnanswered: {
-		type: Boolean,
-		default: false,
-	},
-	// "All" view: fetches upcoming + past in parallel and concatenates.
-	showAll: {
-		type: Boolean,
-		default: false,
+	view: {
+		type: String,
+		default: 'current',
+		validator: (value) => value in VIEWS,
 	},
 	searchQuery: {
 		type: String,
@@ -324,18 +314,8 @@ const emit = defineEmits([
 
 const activeSearch = computed(() => props.searchQuery.trim())
 
-const viewKey = computed(() => {
-	if (props.showUnanswered) return 'unanswered'
-	if (props.showAll) return 'all'
-	if (props.showPast) return 'past'
-	return 'current'
-})
-const pageHeading = computed(() => ({
-	unanswered: t('attendance', 'Unanswered'),
-	all: t('attendance', 'All appointments'),
-	past: t('attendance', 'Past appointments'),
-	current: t('attendance', 'Upcoming appointments'),
-}[viewKey.value]))
+const viewDef = computed(() => VIEWS[props.view])
+const pageHeading = computed(() => viewDef.value.heading())
 
 const appointments = ref([])
 const exportDialogVisible = ref(false)
@@ -499,16 +479,12 @@ const filters = computed(() => filterDefs.value
 		value: def.options.find((opt) => opt.id === filterValues.value[def.id]) ?? null,
 	})))
 
-// Binds "the filter bar is shown" to "the filters take effect" — decided
-// separately until now, which left the Unanswered view silently filtered.
-const filtersApply = computed(() => !props.showUnanswered)
-
 // Read filter state through the *visible* filters, never through filterValues
 // directly: a value stored back when an option was still available (planning
 // feature later switched off, manage permission revoked) must stop taking
 // effect, not keep filtering invisibly.
 const activeAudience = computed(() => {
-	if (!filtersApply.value) return null
+	if (!viewDef.value.filtersApply) return null
 	return filters.value.find((f) => f.id === F.AUDIENCE)?.value?.id ?? null
 })
 
@@ -558,7 +534,7 @@ const persistSelectedCategoryIds = debouncedLocalStorageWriter(CATEGORY_FILTER_S
 watch(selectedCategoryIds, persistSelectedCategoryIds, { deep: true })
 
 const hasActiveFilters = computed(() => Boolean(props.searchQuery.trim()
-	|| (filtersApply.value && (activeFilters.value.length || selectedLocations.value.length || selectedCategoryIds.value.length))))
+	|| (viewDef.value.filtersApply && (activeFilters.value.length || selectedLocations.value.length || selectedCategoryIds.value.length))))
 
 // The server decides who gets a prompt; the filter state is ours — an empty
 // filter result is not an empty instance.
@@ -590,13 +566,13 @@ const emptyState = computed(() => {
 
 const visibleAppointments = computed(() => {
 	const query = props.searchQuery.trim().toLowerCase()
-	const applyFilters = filtersApply.value
+	const { filtersApply: applyFilters, includesCancelled } = viewDef.value
 	const status = filterValues.value[F.STATUS]
 	const response = filterValues.value[F.RESPONSE]
 	return appointments.value.filter((appointment) => {
 		// Cancelled appointments drop out of the active lists — they are only
 		// reachable on the "All" view (own section + cancelled status filter).
-		if (!props.showAll && appointment.cancelledAt) return false
+		if (!includesCancelled && appointment.cancelledAt) return false
 		if (query) {
 			const haystack = `${appointment.name} ${appointment.description ?? ''}`.toLowerCase()
 			if (!haystack.includes(query)) return false
@@ -619,7 +595,7 @@ const visibleAppointments = computed(() => {
 // All view shows upcoming + past back-to-back; subdivide so the user knows
 // where the boundary is. Other views are a single homogeneous list.
 const visibleSections = computed(() => {
-	if (!props.showAll) {
+	if (!viewDef.value.mixesPastAndUpcoming) {
 		return [{ key: 'all', label: '', items: visibleAppointments.value }]
 	}
 	// Cancelled appointments get their own section at the bottom, regardless of
@@ -651,7 +627,7 @@ const loading = ref(true)
 
 // Nothing left to answer: the celebratory "Hurray!" banner is the empty state
 // here, so neither the heading nor the generic empty-state card belongs.
-const unansweredIsEmpty = computed(() => props.showUnanswered && !loading.value && appointments.value.length === 0)
+const showCelebration = computed(() => viewDef.value.celebratesEmpty && !loading.value && appointments.value.length === 0)
 
 // Use the shared response composable
 const { submitResponse: submitResponseApi } = useAppointmentResponse({
@@ -673,10 +649,11 @@ async function loadAppointments(skipLoadingSpinner = false) {
 			[AUDIENCE.ME_SCHEDULED]: { notScheduledOut: true },
 			[AUDIENCE.ME_BOOKED]: { onlyScheduled: true },
 		}[activeAudience.value] ?? {}
-		if (props.showAll) {
+		const params = { ...audienceParams, ...viewDef.value.params }
+		if (viewDef.value.mixesPastAndUpcoming) {
 			const [upcoming, past] = await Promise.all([
-				axios.get(url, { params: audienceParams }),
-				axios.get(url, { params: { ...audienceParams, showPastAppointments: true } }),
+				axios.get(url, { params }),
+				axios.get(url, { params: { ...params, showPastAppointments: true } }),
 			])
 			// Tag for the All-view section split — the server already partitions,
 			// don't re-derive from end_datetime in the browser.
@@ -685,9 +662,6 @@ async function loadAppointments(skipLoadingSpinner = false) {
 				...past.data.map((a) => ({ ...a, _isPast: true })),
 			]
 		} else {
-			const params = { ...audienceParams }
-			if (props.showPast) params.showPastAppointments = true
-			if (props.showUnanswered) params.unansweredOnly = true
 			const response = await axios.get(url, { params })
 			appointments.value = response.data
 		}
@@ -811,15 +785,15 @@ function triggerConfetti() {
 }
 
 // Watch for when all appointments are answered
-watch(loading, (isLoading) => {
-	if (!isLoading && props.showUnanswered && appointments.value.length === 0) {
+watch(loading, () => {
+	if (showCelebration.value) {
 		triggerConfetti()
 	}
 })
 
 // Also trigger confetti when appointments list becomes empty (after responding to last one)
-watch(() => appointments.value.length, (newLength, oldLength) => {
-	if (props.showUnanswered && !loading.value && newLength === 0 && oldLength > 0) {
+watch(() => appointments.value.length, (_, oldLength) => {
+	if (showCelebration.value && oldLength > 0) {
 		triggerConfetti()
 	}
 })
