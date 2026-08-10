@@ -4,6 +4,10 @@ OC.L10N.register(
     "No" : "Ket",
     "Scheduled" : "Raktreset",
     "Cancelled" : "Nullet",
+    "People" : "Tud",
+    "Groups" : "Strolladoù",
+    "Name" : "Anv",
+    "Present" : "Kinnig",
     "Connect" : "Kenstagañ",
     "Add account" : "Ouzhpenn ur c'hont",
     "Settings" : "Arventennoù",
@@ -42,7 +46,6 @@ OC.L10N.register(
     "Sunday" : "Sul",
     "Save" : "Enrollañ",
     "Import" : "Emporzhiañ ",
-    "Present" : "Kinnig",
     "Dismiss" : "Disteurel",
     "Categories" : "Rummadoù",
     "Close" : "Serriñ",
@@ -59,6 +62,7 @@ OC.L10N.register(
     "Description" : "Deskrivadur",
     "Notification" : "Kemennadenn",
     "Confirm" : "Kadarnaat",
+    "Search people" : "Klask tud",
     "Automatic" : "Otomatek"
 },
 "nplurals=5; plural=((n%10 == 1) && (n%100 != 11) && (n%100 !=71) && (n%100 !=91) ? 0 :(n%10 == 2) && (n%100 != 12) && (n%100 !=72) && (n%100 !=92) ? 1 :(n%10 ==3 || n%10==4 || n%10==9) && (n%100 < 10 || n% 100 > 19) && (n%100 < 70 || n%100 > 79) && (n%100 < 90 || n%100 > 99) ? 2 :(n != 0 && n % 1000000 == 0) ? 3 : 4);");

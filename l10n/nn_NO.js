@@ -3,6 +3,10 @@ OC.L10N.register(
     {
     "Group" : "Gruppe",
     "Cancelled" : "Avlyst",
+    "People" : "Folk",
+    "Groups" : "Grupper",
+    "Name" : "Namn",
+    "Total" : "Totalt",
     "Connect" : "Kople til",
     "Add account" : "Legg til konto",
     "Settings" : "Innstillingar",
@@ -49,6 +53,7 @@ OC.L10N.register(
     "Categories" : "Kategoriar",
     "Close" : "Lukk",
     "Continue" : "Gå vidare",
+    "Guest" : "Gjest",
     "Link copied" : "Lenkje kopiert",
     "Delete category" : "Slett kategori",
     "Preview" : "Førehandsvisning",
@@ -58,6 +63,8 @@ OC.L10N.register(
     "weeks" : "veker",
     "User" : "Bruker",
     "Description" : "Skildring",
-    "Unit" : "Eining"
+    "Unit" : "Eining",
+    "Year" : "År",
+    "Custom" : "Sjølvvald"
 },
 "nplurals=2; plural=(n != 1);");

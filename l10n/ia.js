@@ -4,6 +4,8 @@ OC.L10N.register(
     "Group" : "Gruppo",
     "Cancelled" : "Cancellate",
     "Attachments" : "Attachamentos",
+    "Groups" : "Gruppos",
+    "Total" : "Total",
     "Connect" : "Connecter se",
     "Settings" : "Configurationes",
     "None" : "Nulle",
@@ -49,6 +51,7 @@ OC.L10N.register(
     "30 minutes before" : "30 minutas antea",
     "1 hour before" : "1 hora antea",
     "2 hours before" : "2 horas antea",
+    "Custom" : "Personalisate",
     "Automatic" : "Automatic"
 },
 "nplurals=2; plural=(n != 1);");

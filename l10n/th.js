@@ -6,6 +6,10 @@ OC.L10N.register(
     "Group" : "กลุ่ม",
     "Cancelled" : "ยกเลิกแล้ว",
     "Attachments" : "ไฟล์แนบ",
+    "People" : "ผู้คน",
+    "Groups" : "กลุ่ม",
+    "Name" : "ชื่อ",
+    "No response" : "ไม่มีการตอบกลับ",
     "Connect" : "เชื่อมต่อ",
     "Settings" : "การตั้งค่า",
     "Appearance" : "ลักษณะที่ปรากฏ",
@@ -36,7 +40,6 @@ OC.L10N.register(
     "Share link" : "แชร์ลิงก์",
     "Edit" : "แก้ไข",
     "Delete" : "ลบ",
-    "No response" : "ไม่มีการตอบกลับ",
     "Show details" : "แสดงข้อมูล",
     "No activity yet" : "ยังไม่มีกิจกรรม",
     "Daily" : "รายวัน",
@@ -76,6 +79,9 @@ OC.L10N.register(
     "30 minutes before" : "30 นาทีก่อนหน้านั้น",
     "1 hour before" : "1 ชั่วโมงก่อนหน้านั้น",
     "2 hours before" : "2 ชั่วโมงก่อนหน้านั้น",
+    "Search people" : "ค้นหาผู้คน",
+    "Year" : "ปี",
+    "Custom" : "กำหนดเอง",
     "Automatic" : "อัตโนมัติ"
 },
 "nplurals=1; plural=0;");

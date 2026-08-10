@@ -6,6 +6,8 @@ OC.L10N.register(
     "Others" : "වෙනත්",
     "Cancelled" : "අවලංගු කළා",
     "Attachments" : "ඇමිණුම්",
+    "Groups" : "සමූහ",
+    "Name" : "නම",
     "Connect" : "සම්බන්ධ කරන්න",
     "Settings" : "සැකසුම්",
     "Log out" : "නික්මෙන්න",
@@ -47,6 +49,7 @@ OC.L10N.register(
     "Category" : "ප්‍රවර්ගය",
     "User" : "පරිශීලක",
     "Description" : "විස්තරය",
-    "Confirm" : "තහවුරු කරන්න"
+    "Confirm" : "තහවුරු කරන්න",
+    "Year" : "වර්ෂය"
 },
 "nplurals=2; plural=(n != 1);");

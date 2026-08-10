@@ -2,6 +2,7 @@
     "Yes" : "Bəli",
     "No" : "Xeyir",
     "Group" : "Qrup",
+    "Groups" : "Qruplar",
     "Connect" : "Qoşul",
     "Settings" : "Quraşdırmalar",
     "None" : "Heç bir",
@@ -48,6 +49,7 @@
     "User" : "User",
     "Description" : "Açıqlanma",
     "Confirm" : "Təsdiq edin",
+    "Search people" : "İnsanları axtarın",
     "Automatic" : "Avtomatik",
     "Guests" : "Qonaqlar"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

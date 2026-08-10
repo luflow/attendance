@@ -5,6 +5,10 @@ OC.L10N.register(
     "Group" : "Grup",
     "Cancelled" : "U anulua",
     "Attachments" : "Bashkangjitjet",
+    "Groups" : "Grupet",
+    "Name" : "Emër",
+    "Total" : "Total",
+    "Appointments" : "Takime",
     "Connect" : "Lidhu",
     "Add account" : "Shtoni llogari",
     "Settings" : "Rregullimet",
@@ -60,7 +64,6 @@ OC.L10N.register(
     "Quote" : "Citat",
     "Dismiss" : "Hiq",
     "Welcome" : "Mirëseerdhët",
-    "Appointments" : "Takime",
     "Categories" : "Kategoritë",
     "Close" : "Mbylleni",
     "Continue" : "Vazhdo",
@@ -84,6 +87,7 @@ OC.L10N.register(
     "30 minutes before" : "30 minuta para",
     "1 hour before" : "1 orë para",
     "2 hours before" : "2 orë para",
+    "Custom" : "E përshtatur",
     "Automatic" : "Automatike"
 },
 "nplurals=2; plural=(n != 1);");

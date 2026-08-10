@@ -6,6 +6,9 @@
     "Not scheduled" : "No programado",
     "Cancelled" : "Cancelado",
     "Attachments" : "Adjuntos",
+    "Groups" : "Grupos",
+    "Name" : "Nombre",
+    "Total" : "Total",
     "Connect" : "Conectar",
     "Add account" : "Añadir cuenta",
     "Settings" : "Configuración",
@@ -82,6 +85,8 @@
     "1 hour before" : "1 hora antes",
     "2 hours before" : "2 horas antes",
     "App Store" : "Tienda de aplicaciones",
+    "Year" : "Año",
+    "Custom" : "Personalizado",
     "Automatic" : "Automático",
     "name" : "nombre"
 },"pluralForm" :"nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"

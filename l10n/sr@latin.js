@@ -6,6 +6,8 @@ OC.L10N.register(
     "Scheduled" : "Zakazano",
     "Cancelled" : "Otkazano",
     "Attachments" : "Prilozi",
+    "Groups" : "Grupe",
+    "Name" : "Ime",
     "Connect" : "Poveži se",
     "Settings" : "Поставке",
     "Log out" : "Odjava",

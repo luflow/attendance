@@ -7,6 +7,10 @@ OC.L10N.register(
     "Group" : "Grupo",
     "Cancelled" : "Nuligita",
     "Attachments" : "Dosieraj aldonaĵoj",
+    "People" : "Homoj",
+    "Groups" : "Grupoj",
+    "Name" : "Nomo",
+    "Total" : "Sumo",
     "Connect" : "Konekti",
     "Settings" : "Agordoj",
     "Color" : "Koloro",
@@ -91,6 +95,8 @@ OC.L10N.register(
     "30 minutes before" : "30 minutojn antaŭe",
     "1 hour before" : "1 horon antaŭe",
     "2 hours before" : "2 horojn antaŭe",
+    "Search people" : "Serĉi homojn",
+    "Custom" : "Propra",
     "Automatic" : "Aŭtomata"
 },
 "nplurals=2; plural=(n != 1);");

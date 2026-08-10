@@ -4,6 +4,7 @@ OC.L10N.register(
     "Yes" : "Bəli",
     "No" : "Xeyir",
     "Group" : "Qrup",
+    "Groups" : "Qruplar",
     "Connect" : "Qoşul",
     "Settings" : "Quraşdırmalar",
     "None" : "Heç bir",
@@ -50,6 +51,7 @@ OC.L10N.register(
     "User" : "User",
     "Description" : "Açıqlanma",
     "Confirm" : "Təsdiq edin",
+    "Search people" : "İnsanları axtarın",
     "Automatic" : "Avtomatik",
     "Guests" : "Qonaqlar"
 },

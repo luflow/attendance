@@ -6,6 +6,8 @@ OC.L10N.register(
     "Group" : "Grupp",
     "Scheduled" : "Geplangt",
     "Cancelled" : "Ofgebrach",
+    "Groups" : "Gruppen",
+    "Name" : "Numm",
     "Connect" : "Verbannen",
     "Settings" : "Astellungen",
     "None" : "Keng",
@@ -49,6 +51,7 @@ OC.L10N.register(
     "30 minutes before" : "30 Minutte virdrun",
     "1 hour before" : "1 Stonn virdrun",
     "2 hours before" : "2 Stonne virdrun",
+    "Custom" : "Individualiséier",
     "Automatic" : "Automatesch"
 },
 "nplurals=2; plural=(n != 1);");

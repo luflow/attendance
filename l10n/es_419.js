@@ -3,6 +3,8 @@ OC.L10N.register(
     {
     "Yes" : "Si",
     "Cancelled" : "Cancelado",
+    "Name" : "Nombre",
+    "Total" : "Total",
     "Connect" : "Conectar",
     "Settings" : "Ajustes",
     "Log out" : "Cerrar sesión",
@@ -66,6 +68,7 @@ OC.L10N.register(
     "30 minutes before" : "30 minutos antes",
     "1 hour before" : "1 hora antes",
     "2 hours before" : "2 horas antes",
+    "Custom" : "Personalizado",
     "Automatic" : "Automático"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

@@ -2,6 +2,8 @@ OC.L10N.register(
     "attendance",
     {
     "Cancelled" : "Cancelado",
+    "Name" : "Nombre",
+    "Total" : "Total",
     "Connect" : "Conectar",
     "Settings" : "Configuraciones ",
     "Log out" : "Cerrar sesión",
@@ -65,6 +67,7 @@ OC.L10N.register(
     "30 minutes before" : "30 minutos antes",
     "1 hour before" : "1 hora antes",
     "2 hours before" : "2 horas antes",
+    "Custom" : "Personalizado",
     "Automatic" : "Automático",
     "name" : "nombre"
 },

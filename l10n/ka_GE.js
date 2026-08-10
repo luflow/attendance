@@ -4,6 +4,9 @@ OC.L10N.register(
     "Yes" : "დიახ",
     "Maybe" : "შესაძლოა",
     "Cancelled" : "უარყოფილია",
+    "Groups" : "ჯგუფები",
+    "Name" : "სახელი",
+    "Total" : "სულ",
     "Connect" : "დაკავშირება",
     "Add account" : "ანგარიშის დამატება.",
     "Settings" : "პარამეტრები",
@@ -69,6 +72,7 @@ OC.L10N.register(
     "30 minutes before" : "30 წუთით ადრე",
     "1 hour before" : "1 საათით ადრე",
     "2 hours before" : "2 საათით ადრე",
+    "Custom" : "ინდივიდუალური",
     "Automatic" : "ავტომატური"
 },
 "nplurals=2; plural=(n!=1);");

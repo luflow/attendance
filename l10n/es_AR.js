@@ -8,6 +8,9 @@ OC.L10N.register(
     "Not scheduled" : "No programado",
     "Cancelled" : "Cancelado",
     "Attachments" : "Adjuntos",
+    "Groups" : "Grupos",
+    "Name" : "Nombre",
+    "Total" : "Total",
     "Connect" : "Conectar",
     "Add account" : "Añadir cuenta",
     "Settings" : "Configuración",
@@ -84,6 +87,8 @@ OC.L10N.register(
     "1 hour before" : "1 hora antes",
     "2 hours before" : "2 horas antes",
     "App Store" : "Tienda de aplicaciones",
+    "Year" : "Año",
+    "Custom" : "Personalizado",
     "Automatic" : "Automático",
     "name" : "nombre"
 },
