@@ -68,50 +68,55 @@
 				</select>
 			</div>
 
-			<NcPopover v-if="capabilities.categoriesAvailable && categories.length">
-				<template #trigger>
-					<NcButton
-						:variant="categoryFilterActive ? 'secondary' : 'tertiary'"
-						data-test="statistics-filter-category">
-						<template #icon>
-							<TagIcon :size="20" />
-						</template>
-						{{ t("attendance", "Category") }}
-					</NcButton>
-				</template>
-				<template #default>
-					<ul class="statistics__options" role="menu">
-						<li v-for="category in categories" :key="category.id" role="presentation">
-							<button
-								type="button"
-								role="menuitemcheckbox"
-								:aria-checked="selectedCategoryIds.includes(category.id)"
-								class="statistics__option-button"
-								@click="toggleCategory(category.id)">
-								<component :is="categoryIconComponent(category.icon)" :size="18" />
-								{{ category.name }}
-								<CheckIcon v-if="selectedCategoryIds.includes(category.id)" :size="18" />
-							</button>
-						</li>
-						<li role="presentation">
-							<button
-								type="button"
-								role="menuitemcheckbox"
-								:aria-checked="includeUncategorized"
-								class="statistics__option-button"
-								data-test="statistics-filter-uncategorized"
-								@click="includeUncategorized = !includeUncategorized">
-								<!-- TRANSLATORS: Filter option — also count appointments that have no category assigned at all. -->
-								{{ t("attendance", "Without category") }}
-								<CheckIcon v-if="includeUncategorized" :size="18" />
-							</button>
-						</li>
-					</ul>
-				</template>
-			</NcPopover>
+			<div v-if="capabilities.categoriesAvailable && categories.length" class="statistics__filter">
+				<!-- TRANSLATORS: Label above the category filter button — marks it as a filter, matching "Period"/"Range" beside it. -->
+				<label>{{ t("attendance", "Filter") }}</label>
+				<NcPopover>
+					<template #trigger>
+						<NcButton
+							variant="secondary"
+							data-test="statistics-filter-category">
+							<template #icon>
+								<TagIcon :size="20" />
+							</template>
+							{{ t("attendance", "Category") }}
+						</NcButton>
+					</template>
+					<template #default>
+						<ul class="statistics__options" role="menu">
+							<li v-for="category in categories" :key="category.id" role="presentation">
+								<button
+									type="button"
+									role="menuitemcheckbox"
+									:aria-checked="selectedCategoryIds.includes(category.id)"
+									class="statistics__option-button"
+									@click="toggleCategory(category.id)">
+									<component :is="categoryIconComponent(category.icon)" :size="18" />
+									{{ category.name }}
+									<CheckIcon v-if="selectedCategoryIds.includes(category.id)" :size="18" />
+								</button>
+							</li>
+							<li role="presentation">
+								<button
+									type="button"
+									role="menuitemcheckbox"
+									:aria-checked="includeUncategorized"
+									class="statistics__option-button"
+									data-test="statistics-filter-uncategorized"
+									@click="includeUncategorized = !includeUncategorized">
+									<!-- TRANSLATORS: Filter option — also count appointments that have no category assigned at all. -->
+									{{ t("attendance", "Without category") }}
+									<CheckIcon v-if="includeUncategorized" :size="18" />
+								</button>
+							</li>
+						</ul>
+					</template>
+				</NcPopover>
+			</div>
 
 			<NcButton
 				v-if="!reduced"
+				class="statistics__export"
 				:disabled="exporting || !statistics"
 				data-test="statistics-export"
 				@click="exportStatistics">
@@ -120,6 +125,25 @@
 				</template>
 				{{ t("attendance", "Export") }}
 			</NcButton>
+		</div>
+
+		<div v-if="categoryFilterActive" class="statistics__active-filters" data-test="statistics-active-filters">
+			<span class="statistics__active-filters-label">{{ t("attendance", "Active filters:") }}</span>
+			<NcChip
+				v-for="category in selectedCategoryChips"
+				:key="category.id"
+				@close="toggleCategory(category.id)">
+				<span class="statistics__category-chip">
+					<span v-if="categoryChipLabel.before">{{ categoryChipLabel.before }}</span>
+					<component :is="categoryIconComponent(category.icon)" :size="16" />
+					<span>{{ category.name }}</span>
+					<span v-if="categoryChipLabel.after">{{ categoryChipLabel.after }}</span>
+				</span>
+			</NcChip>
+			<NcChip
+				v-if="includeUncategorized"
+				:text="t('attendance', 'Without category')"
+				@close="includeUncategorized = false" />
 		</div>
 
 		<LoadingState v-if="loading" :text="t('attendance', 'Loading …')" />
@@ -222,7 +246,7 @@ import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translatePlural as n, translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
-import { NcButton, NcEmptyContent, NcPopover, NcRadioGroup, NcRadioGroupButton, NcTextField } from '@nextcloud/vue'
+import { NcButton, NcChip, NcEmptyContent, NcPopover, NcRadioGroup, NcRadioGroupButton, NcTextField } from '@nextcloud/vue'
 import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import ChartLineIcon from 'vue-material-design-icons/ChartLine.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
@@ -232,6 +256,7 @@ import LoadingState from '../components/common/LoadingState.vue'
 import StatisticsPersonSidebar from '../components/statistics/StatisticsPersonSidebar.vue'
 import StatisticsTable from '../components/statistics/StatisticsTable.vue'
 import { useCategories } from '../composables/useCategories.js'
+import { useCategoryFilterChips } from '../composables/useCategoryFilterChips.js'
 import { usePermissions } from '../composables/usePermissions.js'
 import { categoryIconComponent } from '../utils/categoryIcons.js'
 import { defaultPeriod, periodFromKey, periodOptions, periodTypeForKey } from '../utils/statisticsPeriods.js'
@@ -241,7 +266,7 @@ import { defaultPeriod, periodFromKey, periodOptions, periodTypeForKey } from '.
 const StatisticsCharts = defineAsyncComponent(() => import('../components/statistics/StatisticsCharts.vue'))
 
 const { permissions, capabilities } = usePermissions()
-const { categories, loadCategories } = useCategories()
+const { categories, loadCategories, getCategory } = useCategories()
 loadCategories()
 
 const statistics = ref(null)
@@ -277,6 +302,8 @@ const canDrillDown = computed(() => permissions.canSeeIndividualResponses)
 const periodChoices = computed(() => periodOptions(periodType.value))
 
 const categoryFilterActive = computed(() => selectedCategoryIds.value.length > 0 || includeUncategorized.value)
+
+const { selectedCategoryChips, categoryChipLabel } = useCategoryFilterChips(selectedCategoryIds, getCategory)
 
 const range = computed(() => {
 	if (periodType.value === 'custom') {
@@ -450,6 +477,10 @@ function writeUrlState() {
     font-size: 0.85rem;
 }
 
+.statistics__export {
+    margin-inline-start: auto;
+}
+
 .statistics__search {
     max-width: 220px;
 }
@@ -493,6 +524,26 @@ function writeUrlState() {
 
 .statistics__option-button:hover {
     background-color: var(--color-background-hover);
+}
+
+.statistics__active-filters {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.statistics__active-filters-label {
+    color: var(--color-text-maxcontrast);
+    font-weight: 600;
+    margin-inline-end: 4px;
+}
+
+.statistics__category-chip {
+    align-items: center;
+    display: inline-flex;
+    gap: 4px;
 }
 
 .statistics__summary {

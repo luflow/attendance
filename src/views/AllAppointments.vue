@@ -280,6 +280,7 @@ import LoadingState from '../components/common/LoadingState.vue'
 import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
 import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
 import { useCategories } from '../composables/useCategories.js'
+import { useCategoryFilterChips } from '../composables/useCategoryFilterChips.js'
 import { usePermissions } from '../composables/usePermissions.js'
 import { categoryIconComponent } from '../utils/categoryIcons.js'
 
@@ -359,7 +360,7 @@ const STATUS = Object.freeze({ OPEN: 'open', CLOSED: 'closed', CANCELLED: 'cance
 const AUDIENCE = Object.freeze({ ME: 'me', ME_SCHEDULED: 'me-scheduled', ME_BOOKED: 'me-booked' })
 
 const { permissions, capabilities, config, loadPermissions } = usePermissions()
-const { categories, loadCategories } = useCategories()
+const { categories, loadCategories, getCategory } = useCategories()
 loadCategories()
 
 const filterDefs = computed(() => [
@@ -468,18 +469,7 @@ const availableCategories = computed(() => {
 	return categories.filter((category) => usedIds.has(category.id))
 })
 
-// Stale ids (category deleted after being stored/selected) are dropped
-// rather than shown as an unresolvable chip.
-const selectedCategoryChips = computed(() => selectedCategoryIds.value
-	.map((id) => categories.find((category) => category.id === id))
-	.filter(Boolean))
-
-// Deliberately unsubstituted: splitting the translated label at its own
-// placeholder puts the icon next to the name, in the translator's order.
-const categoryChipLabel = computed(() => {
-	const [before = '', after = ''] = t('attendance', 'Category: {category}').split('{category}')
-	return { before: before.trim(), after: after.trim() }
-})
+const { selectedCategoryChips, categoryChipLabel } = useCategoryFilterChips(selectedCategoryIds, getCategory)
 
 function toggleCategoryFilter(categoryId) {
 	selectedCategoryIds.value = selectedCategoryIds.value.includes(categoryId)
