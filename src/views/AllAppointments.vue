@@ -280,13 +280,13 @@ import { useCategories } from '../composables/useCategories.js'
 import { useCategoryFilterChips } from '../composables/useCategoryFilterChips.js'
 import { usePermissions } from '../composables/usePermissions.js'
 import { categoryIconComponent } from '../utils/categoryIcons.js'
+import { VIEWS } from './appointmentViews.js'
 
 const props = defineProps({
-	// One of the keys of VIEWS below. A key with no row there fails loudly on
-	// first render — no validator, defineProps cannot reference VIEWS.
 	view: {
 		type: String,
 		default: 'current',
+		validator: (value) => value in VIEWS,
 	},
 	searchQuery: {
 		type: String,
@@ -313,50 +313,6 @@ const emit = defineEmits([
 ])
 
 const activeSearch = computed(() => props.searchQuery.trim())
-
-// One row per view: every per-view difference is decided here, so a pair like
-// "filter bar hidden" and "filters still applied" cannot drift apart again.
-const VIEWS = Object.freeze({
-	current: {
-		heading: () => t('attendance', 'Upcoming appointments'),
-		params: {},
-		mixesPastAndUpcoming: false,
-		includesCancelled: false,
-		filtersApply: true,
-		showsAwaitingBanner: true,
-		celebratesEmpty: false,
-	},
-	past: {
-		heading: () => t('attendance', 'Past appointments'),
-		params: { showPastAppointments: true },
-		mixesPastAndUpcoming: false,
-		includesCancelled: false,
-		filtersApply: true,
-		// Nothing is left to answer here.
-		showsAwaitingBanner: false,
-		celebratesEmpty: false,
-	},
-	unanswered: {
-		heading: () => t('attendance', 'Unanswered'),
-		params: { unansweredOnly: true },
-		mixesPastAndUpcoming: false,
-		includesCancelled: false,
-		filtersApply: false,
-		// This view is the awaiting list; it has its own banner.
-		showsAwaitingBanner: false,
-		celebratesEmpty: true,
-	},
-	all: {
-		heading: () => t('attendance', 'All appointments'),
-		// Fetched as two parallel requests, so it carries no params of its own.
-		params: {},
-		mixesPastAndUpcoming: true,
-		includesCancelled: true,
-		filtersApply: true,
-		showsAwaitingBanner: true,
-		celebratesEmpty: false,
-	},
-})
 
 const viewDef = computed(() => VIEWS[props.view])
 const pageHeading = computed(() => viewDef.value.heading())
@@ -610,13 +566,13 @@ const emptyState = computed(() => {
 
 const visibleAppointments = computed(() => {
 	const query = props.searchQuery.trim().toLowerCase()
-	const applyFilters = viewDef.value.filtersApply
+	const { filtersApply: applyFilters, includesCancelled } = viewDef.value
 	const status = filterValues.value[F.STATUS]
 	const response = filterValues.value[F.RESPONSE]
 	return appointments.value.filter((appointment) => {
 		// Cancelled appointments drop out of the active lists — they are only
 		// reachable on the "All" view (own section + cancelled status filter).
-		if (!viewDef.value.includesCancelled && appointment.cancelledAt) return false
+		if (!includesCancelled && appointment.cancelledAt) return false
 		if (query) {
 			const haystack = `${appointment.name} ${appointment.description ?? ''}`.toLowerCase()
 			if (!haystack.includes(query)) return false
@@ -693,10 +649,11 @@ async function loadAppointments(skipLoadingSpinner = false) {
 			[AUDIENCE.ME_SCHEDULED]: { notScheduledOut: true },
 			[AUDIENCE.ME_BOOKED]: { onlyScheduled: true },
 		}[activeAudience.value] ?? {}
+		const params = { ...audienceParams, ...viewDef.value.params }
 		if (viewDef.value.mixesPastAndUpcoming) {
 			const [upcoming, past] = await Promise.all([
-				axios.get(url, { params: audienceParams }),
-				axios.get(url, { params: { ...audienceParams, showPastAppointments: true } }),
+				axios.get(url, { params }),
+				axios.get(url, { params: { ...params, showPastAppointments: true } }),
 			])
 			// Tag for the All-view section split — the server already partitions,
 			// don't re-derive from end_datetime in the browser.
@@ -705,7 +662,7 @@ async function loadAppointments(skipLoadingSpinner = false) {
 				...past.data.map((a) => ({ ...a, _isPast: true })),
 			]
 		} else {
-			const response = await axios.get(url, { params: { ...audienceParams, ...viewDef.value.params } })
+			const response = await axios.get(url, { params })
 			appointments.value = response.data
 		}
 
@@ -835,7 +792,7 @@ watch(loading, () => {
 })
 
 // Also trigger confetti when appointments list becomes empty (after responding to last one)
-watch(() => appointments.value.length, (newLength, oldLength) => {
+watch(() => appointments.value.length, (_, oldLength) => {
 	if (showCelebration.value && oldLength > 0) {
 		triggerConfetti()
 	}

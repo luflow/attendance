@@ -225,12 +225,7 @@
 
 				<!-- All Appointments View -->
 				<AllAppointments
-					v-else-if="
-						currentView === 'current'
-							|| currentView === 'past'
-							|| currentView === 'unanswered'
-							|| currentView === 'all'
-					"
+					v-else-if="currentView in VIEWS"
 					:key="currentView"
 					:view="currentView"
 					:searchQuery="searchQuery"
@@ -313,6 +308,7 @@ import CheckinView from './views/Checkin.vue'
 import StatisticsOverview from './views/StatisticsOverview.vue'
 import { usePermissions } from './composables/usePermissions.js'
 import { formatDateTime } from './utils/datetime.js'
+import { VIEWS } from './views/appointmentViews.js'
 
 t('attendance', 'Connect')
 t('attendance', 'Start over')
@@ -670,9 +666,7 @@ function appBaseUrl() {
 }
 
 function setView(view) {
-	// Scoped views (Upcoming/Past/Unanswered) reset the search; the "All"
-	// view is the search target, so navigating there preserves the term.
-	if (['current', 'past', 'unanswered'].includes(view) && view !== currentView.value) {
+	if (VIEWS[view]?.resetsSearch && view !== currentView.value) {
 		searchQuery.value = ''
 	}
 	currentView.value = view
