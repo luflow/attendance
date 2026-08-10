@@ -3,8 +3,9 @@
 import { startNextcloud, configureNextcloud, waitOnNextcloud, createSnapshot, getContainer, setupUsers } from '@nextcloud/e2e-test-server'
 
 /**
- * Start Nextcloud test server for e2e tests
- * This script is called by the Playwright webServer configuration
+ * Set the Nextcloud test server up for the e2e suite and exit once the "init"
+ * snapshot exists. Runs to completion before any test starts — see
+ * tests/e2e/README.md, "Why the server is a separate step".
  */
 async function main() {
 	try {
@@ -46,10 +47,7 @@ async function main() {
 		console.log('  - test3 / test3 (Regular user for e2e tests)')
 		console.log('  - test4 / test4 (Regular user for e2e tests)')
 		console.log('  - test5 / test5 (Regular user for e2e tests)')
-		console.log('\nYou can now run tests with: npm run test:e2e')
-		
-		// Keep the process running
-		await new Promise(() => {})
+		console.log('\nYou can now run tests with: npm run test:e2e:run')
 	} catch (error) {
 		console.error('Failed to start Nextcloud test server:', error)
 		console.error('Make sure Docker is running!')

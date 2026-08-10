@@ -46,7 +46,7 @@ jobs:
           timeout 300 bash -c 'until curl -s http://localhost:8080 > /dev/null; do sleep 2; done' || exit 1
 
       - name: Run e2e tests
-        run: npm run test:e2e
+        run: npm run test:e2e:run
         env:
           CI: true
           NEXTCLOUD_URL: http://localhost:8080

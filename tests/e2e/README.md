@@ -27,7 +27,14 @@ This creates a clean baseline database state that will be restored before each t
 npm run test:e2e
 ```
 
-The Nextcloud test server will automatically start before tests run and stop afterwards.
+This runs two steps in order: `test:e2e:server` sets the container up and writes
+the `init` database snapshot, and only once that has finished do the tests start.
+The order matters — see "Why the server is a separate step" below.
+
+Against a server that is already set up, skip straight to the tests:
+```bash
+npm run test:e2e:run
+```
 
 ### Run tests with UI mode (recommended for development)
 ```bash
@@ -67,27 +74,19 @@ npx playwright test --workers=1           # Control parallelization
 
 ### Reset test server data
 ```bash
-# Clean up Docker containers and reset data (recommended)
-npm run test:e2e:cleanup
-
-# Or manually:
-docker stop nextcloud-e2e-test-server_attendance
-docker rm -f nextcloud-e2e-test-server_attendance
-docker volume prune -f
+npm run test:e2e:server-cleanup
 ```
+
+Removes the container and the `apps_writable` volume, so the next
+`npm run test:e2e` builds a completely fresh instance. Do not reach for
+`docker volume prune -f` instead — it also takes out volumes belonging to
+unrelated containers, such as the local dev instance.
 
 **When to reset:**
 - Tests are failing due to stale data
 - Need a fresh Nextcloud instance
-- After major test changes
-- When switching between test runs
-- Before running full test suite
-
-**What the cleanup does:**
-1. Stops the running test server container
-2. Removes the container (clears all state)
-3. Removes unused Docker volumes (clears database)
-4. Next test run will create a completely fresh instance
+- After changing the server branch in `setup/server.js`
+- Before running the full test suite
 
 ### Database Snapshots
 
@@ -296,13 +295,32 @@ Failed tests automatically capture screenshots and videos in `test-results/` dir
 
 For CI environments, set the `CI` environment variable:
 ```bash
-CI=true npm run test:e2e
+CI=true npm run test:e2e:run
 ```
 
 This:
 - Enables test retries (2 retries)
 - Prevents `--only` tests from running
-- Disables server reuse
+- Caps the parallel project at 3 workers
+
+## Why the server is a separate step
+
+There is deliberately no `webServer` block in `playwright.config.js`. Playwright
+only waits for the URL to answer, and Apache answers long before
+`configureNextcloud` has enabled the apps and `createSnapshot` has written the
+`init` snapshot. Tests that start in that window create appointments which then
+land **inside** the snapshot — and since every later run restores it, those
+appointments come back forever. Tests start failing deterministically, on a clean
+checkout, in a way that looks exactly like a real regression.
+
+If you see appointments you did not create right after a restore, that is what
+happened. Recover with:
+```bash
+npm run test:e2e:server-cleanup
+```
+That also drops the `apps_writable` volume, which is a *named* volume and
+survives `docker rm -f`. Leaving it in place after a server-branch change means
+the next container boots the previous branch's apps.
 
 ## Configuration
 
