@@ -242,4 +242,45 @@ test.describe('Attendance App - Categories', () => {
 		await expect(cards.filter({ hasText: 'Filter Choir Meeting' }).first()).toBeVisible()
 		await expect(cards.filter({ hasText: 'Filter Band Meeting' })).toHaveCount(0)
 	})
+
+	// The unanswered view hides the filter bar, so a filter leaking in from the
+	// appointment list emptied it with nothing on screen to explain or undo it.
+	test('the unanswered view ignores a category filter set on the appointment list', async ({ page, request }) => {
+		const category = await createCategoryViaAPI(request, uniqueName('Choir'))
+		createdCategoryIds.push(category.id)
+
+		const targetName = uniqueName('Unanswered Without Category')
+		await createAppointmentViaAPI(request, { name: targetName, daysFromNow: 8 })
+		await createAppointmentViaAPI(request, {
+			name: uniqueName('Choir Filter Source'),
+			daysFromNow: 8,
+			categoryId: category.id,
+		})
+
+		await page.reload()
+		await page.waitForLoadState('networkidle')
+
+		const cards = page.locator('[data-test="appointment-card"]')
+		await page.locator('[data-test="filter-category"]').click()
+		await page.getByRole('menuitemcheckbox', { name: category.name }).click()
+		await expect(cards.filter({ hasText: targetName })).toHaveCount(0)
+
+		await page.waitForFunction(
+			([key]) => {
+				try {
+					const stored = JSON.parse(window.localStorage.getItem(key) || '[]')
+					return Array.isArray(stored) && stored.length > 0
+				} catch {
+					return false
+				}
+			},
+			[CATEGORY_FILTER_STORAGE_KEY],
+		)
+
+		await page.goto('/apps/attendance/unanswered')
+		await page.waitForLoadState('networkidle')
+
+		await expect(page.locator('[data-test="appointment-filters"]')).toHaveCount(0)
+		await expect(cards.filter({ hasText: targetName }).first()).toBeVisible()
+	})
 })

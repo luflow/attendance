@@ -6,10 +6,10 @@
 
 ### Fixed
 
-- Active category filters on the statistics page are now shown as closable chips, the same way the appointment list already does it — until now nothing on screen told you a filter was set
-- Points sitting exactly at 0 % or 100 % were clipped by the edge of the statistics charts
-- The timeline tooltip now names the appointment, not just the date
-- The mobile app banner sat flush against the page heading below it
+- **"Unanswered" stayed empty** when a filter was set in the appointment list: the filters kept applying on a page that does not show them. They no longer do
+- Active category filters on the statistics page now show as closable chips
+- Chart points at 0 % and 100 % were clipped, and the timeline tooltip only showed the date
+- Spacing below the mobile app banner
 
 ### Maintenance
 

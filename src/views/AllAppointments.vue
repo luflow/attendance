@@ -26,12 +26,12 @@
 			</div>
 		</div>
 
-		<h2 v-if="!hideHeading" class="page-heading" data-test="page-heading">
+		<h2 v-if="!unansweredIsEmpty" class="page-heading" data-test="page-heading">
 			{{ pageHeading }}
 		</h2>
 
 		<div
-			v-if="!loading && !showUnanswered && (appointments.length > 0 || hasActiveFilters)"
+			v-if="!loading && filtersApply && (appointments.length > 0 || hasActiveFilters)"
 			class="filter-bar"
 			data-test="appointment-filters">
 			<div class="filter-bar__triggers">
@@ -191,7 +191,7 @@
 		<!-- Appointments List -->
 		<div class="appointments-list">
 			<LoadingState v-if="loading" :text="t('attendance', 'Loading\u00A0…')" />
-			<NcEmptyContent v-else-if="visibleAppointments.length === 0 && !showUnanswered"
+			<NcEmptyContent v-else-if="visibleAppointments.length === 0 && !unansweredIsEmpty"
 				:name="emptyState.name"
 				:description="emptyState.description"
 				data-test="appointments-empty-state">
@@ -499,11 +499,16 @@ const filters = computed(() => filterDefs.value
 		value: def.options.find((opt) => opt.id === filterValues.value[def.id]) ?? null,
 	})))
 
+// Binds "the filter bar is shown" to "the filters take effect" — decided
+// separately until now, which left the Unanswered view silently filtered.
+const filtersApply = computed(() => !props.showUnanswered)
+
 // Read filter state through the *visible* filters, never through filterValues
 // directly: a value stored back when an option was still available (planning
 // feature later switched off, manage permission revoked) must stop taking
 // effect, not keep filtering invisibly.
 const activeAudience = computed(() => {
+	if (!filtersApply.value) return null
 	return filters.value.find((f) => f.id === F.AUDIENCE)?.value?.id ?? null
 })
 
@@ -552,7 +557,8 @@ watch(selectedLocations, persistSelectedLocations, { deep: true })
 const persistSelectedCategoryIds = debouncedLocalStorageWriter(CATEGORY_FILTER_STORAGE_KEY, selectedCategoryIds.value)
 watch(selectedCategoryIds, persistSelectedCategoryIds, { deep: true })
 
-const hasActiveFilters = computed(() => Boolean(props.searchQuery.trim() || activeFilters.value.length || selectedLocations.value.length || selectedCategoryIds.value.length))
+const hasActiveFilters = computed(() => Boolean(props.searchQuery.trim()
+	|| (filtersApply.value && (activeFilters.value.length || selectedLocations.value.length || selectedCategoryIds.value.length))))
 
 // The server decides who gets a prompt; the filter state is ours — an empty
 // filter result is not an empty instance.
@@ -584,6 +590,7 @@ const emptyState = computed(() => {
 
 const visibleAppointments = computed(() => {
 	const query = props.searchQuery.trim().toLowerCase()
+	const applyFilters = filtersApply.value
 	const status = filterValues.value[F.STATUS]
 	const response = filterValues.value[F.RESPONSE]
 	return appointments.value.filter((appointment) => {
@@ -594,6 +601,7 @@ const visibleAppointments = computed(() => {
 			const haystack = `${appointment.name} ${appointment.description ?? ''}`.toLowerCase()
 			if (!haystack.includes(query)) return false
 		}
+		if (!applyFilters) return true
 		if (status === STATUS.OPEN && (appointment.closedAt || appointment.cancelledAt)) return false
 		if (status === STATUS.CLOSED && (!appointment.closedAt || appointment.cancelledAt)) return false
 		if (status === STATUS.CANCELLED && !appointment.cancelledAt) return false
@@ -641,9 +649,9 @@ function handleClosedToggled(updated) {
 }
 const loading = ref(true)
 
-// On the Unanswered view the empty state is the celebratory "Hurray!" banner;
-// repeating "Unanswered" above it just adds noise.
-const hideHeading = computed(() => props.showUnanswered && !loading.value && appointments.value.length === 0)
+// Nothing left to answer: the celebratory "Hurray!" banner is the empty state
+// here, so neither the heading nor the generic empty-state card belongs.
+const unansweredIsEmpty = computed(() => props.showUnanswered && !loading.value && appointments.value.length === 0)
 
 // Use the shared response composable
 const { submitResponse: submitResponseApi } = useAppointmentResponse({
