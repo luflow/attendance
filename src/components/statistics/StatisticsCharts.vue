@@ -73,6 +73,7 @@ const { colors } = useChartTheme()
 // Long group names have to give way to their neighbours; the full name stays in
 // the tooltip, which reads the data label rather than the tick.
 const TICK_MAX_CHARS = 16
+const TOOLTIP_TITLE_MAX_CHARS = 40
 
 const LINE_STYLE = { tension: 0.3, borderWidth: 2, pointRadius: 3, pointHoverRadius: 5 }
 const BAR_STYLE = { borderRadius: 4, borderSkipped: false, maxBarThickness: 48, categoryPercentage: 0.7 }
@@ -112,7 +113,7 @@ const timelineData = computed(() => {
 const sectionData = computed(() => buildBars(props.statistics.sections ?? []))
 const categoryData = computed(() => buildBars(props.statistics.byCategory ?? []))
 
-const timelineOptions = computed(() => baseOptions())
+const timelineOptions = computed(() => baseOptions(null, (props.statistics.timeline ?? []).map((point) => point.name)))
 const sectionOptions = computed(() => baseOptions(sectionData.value?.labels))
 const categoryOptions = computed(() => baseOptions(categoryData.value?.labels))
 
@@ -154,23 +155,28 @@ function buildBars(entries) {
 }
 
 /**
- * @param {string} label - Full axis label.
- * @return {string} The label, shortened to fit one tick.
+ * @param {string} label - Full label.
+ * @param {number} [maxChars] - Length to shorten to.
+ * @return {string} The label, shortened to fit.
  */
-function truncate(label) {
-	return label.length > TICK_MAX_CHARS ? `${label.slice(0, TICK_MAX_CHARS - 1)}…` : label
+function truncate(label, maxChars = TICK_MAX_CHARS) {
+	return label.length > maxChars ? `${label.slice(0, maxChars - 1)}…` : label
 }
 
 /**
  * @param {Array<string>} [labels] - Bar labels; omitted for the date axis of the timeline.
+ * @param {Array<string>} [pointTitles] - Appointment name per timeline point, in point order;
+ *   omitted for the bar charts, which have no single appointment behind a bar.
  * @return {object} chart.js options in the current theme.
  */
-function baseOptions(labels = null) {
+function baseOptions(labels = null, pointTitles = null) {
 	return {
 		responsive: true,
 		maintainAspectRatio: false,
 		interaction: { intersect: false, mode: 'index' },
-		layout: { padding: { top: 4, right: 4 } },
+		// Room for the point radius (and its hover radius) so a value sitting
+		// right on the 0 % or 100 % line isn't clipped by the canvas edge.
+		layout: { padding: { top: 8, right: 8, bottom: 4, left: 4 } },
 		plugins: {
 			legend: {
 				// chart.js centres over the whole canvas, and the y-axis labels
@@ -187,6 +193,12 @@ function baseOptions(labels = null) {
 			},
 			tooltip: {
 				callbacks: {
+					...(pointTitles && {
+						title: (items) => {
+							const name = pointTitles[items[0]?.dataIndex]
+							return name ? [items[0].label, truncate(name, TOOLTIP_TITLE_MAX_CHARS)] : items[0]?.label
+						},
+					}),
 					label: (context) => `${context.dataset.label}: ${context.parsed.y ?? '–'} %`,
 				},
 			},
