@@ -6,6 +6,8 @@
 
 /.php-cs-fixer.cache
 /tests/.phpunit.cache
+__pycache__/
+*.py[cod]
 
 /node_modules/
 /js/
