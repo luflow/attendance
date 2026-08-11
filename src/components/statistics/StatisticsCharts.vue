@@ -75,7 +75,11 @@ const { colors } = useChartTheme()
 const TICK_MAX_CHARS = 16
 const TOOLTIP_TITLE_MAX_CHARS = 40
 
-const LINE_STYLE = { tension: 0.3, borderWidth: 2, pointRadius: 3, pointHoverRadius: 5 }
+// chart.js clips a dataset at the plot area, not at the canvas — so a point on
+// the 0 % or 100 % line loses its outer half. `clip` lets it spill into the
+// layout padding below, which is sized for the hover radius.
+const POINT_OVERFLOW = 8
+const LINE_STYLE = { tension: 0.3, borderWidth: 2, pointRadius: 3, pointHoverRadius: 5, clip: POINT_OVERFLOW }
 const BAR_STYLE = { borderRadius: 4, borderSkipped: false, maxBarThickness: 48, categoryPercentage: 0.7 }
 
 const percent = (rate) => (rate === null || rate === undefined ? null : Math.round(rate * 1000) / 10)
@@ -174,9 +178,8 @@ function baseOptions(labels = null, pointTitles = null) {
 		responsive: true,
 		maintainAspectRatio: false,
 		interaction: { intersect: false, mode: 'index' },
-		// Room for the point radius (and its hover radius) so a value sitting
-		// right on the 0 % or 100 % line isn't clipped by the canvas edge.
-		layout: { padding: { top: 8, right: 8, bottom: 4, left: 4 } },
+		// The room a point on the 0 % or 100 % line spills into.
+		layout: { padding: POINT_OVERFLOW },
 		plugins: {
 			legend: {
 				// chart.js centres over the whole canvas, and the y-axis labels
