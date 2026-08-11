@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## 1.47.2 – 2026-08-11
+
+### Fixed
+
+- Chart points on the 0 % and 100 % line were still drawn as half circles
+
+### Maintenance
+
+- Updated translations
+
 ## 1.47.1 – 2026-08-10
 
 ### Fixed
