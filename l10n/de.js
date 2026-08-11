@@ -931,6 +931,7 @@ OC.L10N.register(
     "Ungrouped" : "Ohne Gruppierung",
     "Detail" : "Detailgrad",
     "Compact" : "Kompakt",
-    "Full" : "Vollständig"
+    "Full" : "Vollständig",
+    "Filter" : "Filter"
 },
 "nplurals=2; plural=(n != 1);");
