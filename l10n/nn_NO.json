@@ -63,6 +63,7 @@
     "Description" : "Skildring",
     "Unit" : "Eining",
     "Year" : "År",
-    "Custom" : "Sjølvvald"
+    "Custom" : "Sjølvvald",
+    "Filter" : "Filter"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

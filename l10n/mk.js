@@ -142,6 +142,7 @@ OC.L10N.register(
     "Search people" : "Барај луѓе",
     "Year" : "Година",
     "Custom" : "Прилагодено",
+    "Filter" : "Филтер",
     "Manager" : "Менаџер",
     "Historic" : "Историја",
     "Automatic" : "Автоматски",

@@ -89,6 +89,7 @@ OC.L10N.register(
     "App Store" : "Tienda de aplicaciones",
     "Year" : "Año",
     "Custom" : "Personalizado",
+    "Filter" : "Filtrar",
     "Automatic" : "Automático",
     "name" : "nombre"
 },

@@ -111,7 +111,6 @@ OC.L10N.register(
     "Push notifications" : "התרעות בדחיפה",
     "or" : "או",
     "Relevance" : "רלוונטיות",
-    "Category: {category}" : "קטגוריה: {category}",
     "Location" : "מיקום",
     "Category" : "קטגוריה",
     "minutes" : "דקות",
@@ -130,6 +129,8 @@ OC.L10N.register(
     "2 hours before" : "2 שעות לפני",
     "Year" : "שנה",
     "Custom" : "מותאם אישית",
+    "Filter" : "מסנן",
+    "Category: {category}" : "קטגוריה: {category}",
     "Automatic" : "אוטומטי",
     "name" : "שם",
     "time" : "בשעה"

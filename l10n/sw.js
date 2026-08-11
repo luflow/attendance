@@ -377,6 +377,7 @@ OC.L10N.register(
     "Year" : "Mwaka",
     "Custom" : "Mteja",
     "Group by" : "Kundi kwa",
+    "Filter" : "Chujio",
     "Show all appointments" : "Onyesha miadi yote",
     "Error updating response" : "Hitilafu ya kusasisha jibu",
     "Comment updated" : "Maoni yamesasishwa",

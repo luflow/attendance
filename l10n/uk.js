@@ -182,6 +182,7 @@ OC.L10N.register(
     "Year" : "Рік",
     "Custom" : "Власне",
     "Group by" : "Згрупувати за",
+    "Filter" : "Фільтр",
     "Manager" : "Менеджер",
     "Historic" : "Історичний",
     "Automatic" : "Автоматично",

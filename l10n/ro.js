@@ -118,6 +118,7 @@ OC.L10N.register(
     "Search people" : "Caută persoane",
     "Year" : "An",
     "Custom" : "Particularizat",
+    "Filter" : "Filtru",
     "Automatic" : "Automat",
     "time" : "dată"
 },

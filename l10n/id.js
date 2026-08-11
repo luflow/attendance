@@ -278,6 +278,7 @@ OC.L10N.register(
     "Period" : "Periode",
     "Year" : "Tahun",
     "Custom" : "Kustom",
+    "Filter" : "Filter",
     "Show all appointments" : "Tampilkan semua janji temu",
     "Error updating response" : "Kesalahan saat memperbarui respons",
     "Comment updated" : "Komentar diperbarui",

@@ -82,6 +82,7 @@ OC.L10N.register(
     "Search people" : "ค้นหาผู้คน",
     "Year" : "ปี",
     "Custom" : "กำหนดเอง",
+    "Filter" : "ตัวกรอง",
     "Automatic" : "อัตโนมัติ"
 },
 "nplurals=1; plural=0;");

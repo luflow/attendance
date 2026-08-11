@@ -145,6 +145,7 @@ OC.L10N.register(
     "Compact" : "Шахмал",
     "Year" : "Жил",
     "Custom" : "–î—É—Ä—ã–Ω",
+    "Filter" : "–®“Ø“Ø–ª—Ç“Ø“Ø—Ä",
     "Manager" : "Менежер",
     "Automatic" : "Автомат",
     "name" : "нэр",

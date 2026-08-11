@@ -105,6 +105,7 @@ OC.L10N.register(
     "Year" : "Yil",
     "Custom" : "Maxsus",
     "Group by" : "Bo'yicha guruhlash",
+    "Filter" : "Filtr",
     "Automatic" : "Automatik"
 },
 "nplurals=1; plural=0;");

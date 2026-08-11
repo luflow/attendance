@@ -7,6 +7,8 @@
     "Cancelled" : "Encaboxáu",
     "People" : "Persones",
     "Groups" : "Grupos",
+    "Name" : "Nome",
+    "Total" : "Total",
     "Appointments" : "Cites",
     "No response" : "Nun hai nenguna rempuesta",
     "Connect" : "Coneutar",
@@ -43,6 +45,7 @@
     "Skip" : "Saltar",
     "Try again" : "Retentar",
     "year" : "añu",
+    "Statistics" : "Estadístiques",
     "Export" : "Esportar",
     "Select all" : "Seleicionar too",
     "Start date" : "Data de comienzu",
@@ -105,7 +108,6 @@
     "Push notifications" : "Avisos push",
     "or" : "o",
     "Relevance" : "Relevancia",
-    "Category: {category}" : "Categoría: {categoría}",
     "Reset filter" : "Reafitar la peñera",
     "Location" : "Llocalización",
     "Category" : "Categoría",
@@ -131,6 +133,8 @@
     "Period" : "Periodu",
     "Year" : "Añu",
     "Custom" : "Personalizar",
+    "Filter" : "Peñerar",
+    "Category: {category}" : "Categoría: {categoría}",
     "Manager" : "Xestor",
     "Automatic" : "Automáticu"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"

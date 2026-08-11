@@ -5,6 +5,7 @@ OC.L10N.register(
     "No" : "Xeyir",
     "Group" : "Qrup",
     "Groups" : "Qruplar",
+    "Name" : "Ad",
     "Connect" : "Qoşul",
     "Settings" : "Quraşdırmalar",
     "None" : "Heç bir",

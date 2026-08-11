@@ -176,6 +176,7 @@ OC.L10N.register(
     "Year" : "يىل",
     "Custom" : "خاس",
     "Group by" : "بىلەن گۇرۇپپىلاش",
+    "Filter" : "سۈزگۈچ",
     "Manager" : "باشقۇرغۇچى",
     "Historic" : "تارىخى",
     "Automatic" : "ئاپتوماتىك",

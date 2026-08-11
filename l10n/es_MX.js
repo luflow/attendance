@@ -139,6 +139,7 @@ OC.L10N.register(
     "Search people" : "Buscar personas",
     "Year" : "Año",
     "Custom" : "Personalizado",
+    "Filter" : "Filtrar",
     "Manager" : "Administrador",
     "Automatic" : "Automático",
     "name" : "nombre",

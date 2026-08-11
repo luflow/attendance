@@ -5,6 +5,7 @@ OC.L10N.register(
     "Others" : "Ander",
     "Cancelled" : "Gekanselleer",
     "Groups" : "Groepe",
+    "Total" : "Totaal",
     "Connect" : "Verbind",
     "Settings" : "Instellings",
     "Log out" : "Teken af",
@@ -65,6 +66,7 @@ OC.L10N.register(
     "1 hour before" : "1 uur vooraf",
     "2 hours before" : "2 ure vooraf",
     "Custom" : "Eie",
+    "Filter" : "Filter",
     "Automatic" : "Outomaties"
 },
 "nplurals=2; plural=(n != 1);");

@@ -65,6 +65,7 @@ OC.L10N.register(
     "Description" : "Skildring",
     "Unit" : "Eining",
     "Year" : "År",
-    "Custom" : "Sjølvvald"
+    "Custom" : "Sjølvvald",
+    "Filter" : "Filter"
 },
 "nplurals=2; plural=(n != 1);");

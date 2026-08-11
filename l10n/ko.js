@@ -280,6 +280,7 @@ OC.L10N.register(
     "Period" : "기간",
     "Year" : "년",
     "Custom" : "사용자 정의",
+    "Filter" : "필터",
     "Show all appointments" : "모든 약속 보기",
     "Error updating response" : "응답 업데이트 오류",
     "Comment updated" : "댓글이 업데이트되었습니다.",

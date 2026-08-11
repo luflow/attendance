@@ -163,6 +163,7 @@ OC.L10N.register(
     "Search people" : "人物を検索",
     "Year" : "年",
     "Custom" : "カスタム",
+    "Filter" : "フィルター",
     "Manager" : "Manager",
     "Automatic" : "自動",
     "name" : "名前",

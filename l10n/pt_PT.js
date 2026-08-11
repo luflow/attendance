@@ -511,6 +511,7 @@ OC.L10N.register(
     "Period" : "Período",
     "Year" : "Ano",
     "Custom" : "Personalizado",
+    "Filter" : "Filtro",
     "Show all appointments" : "Exibir todos os compromissos",
     "Approximately {datetime}. The exact time depends on when the server background job runs." : "Por volta das {datetime}. A hora exata depende do momento em que a tarefa em segundo plano do servidor for executada.",
     "Failed to close inquiry" : "Falha ao fechar a consulta",

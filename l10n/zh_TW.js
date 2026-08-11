@@ -457,6 +457,7 @@ OC.L10N.register(
     "Year" : "年",
     "Custom" : "自訂",
     "Group by" : "按以下規則分組",
+    "Filter" : "篩選",
     "Show all appointments" : "顯示所有預約",
     "Approximately {datetime}. The exact time depends on when the server background job runs." : "大約 {datetime}。確切的時間取決於伺服器背景作業執行的時間。",
     "Error updating response" : "更新回應時發生錯誤",

@@ -438,6 +438,7 @@
     "Year" : "ປີ",
     "Custom" : "ກຳນົດເອງ",
     "Group by" : "ກຸ່ມໂດຍ",
+    "Filter" : "ໂຕກອງ",
     "Show all appointments" : "ສະແດງການນັດໝາຍທັງໝົດ",
     "Approximately {datetime}. The exact time depends on when the server background job runs." : "ປະມານ {datetime}. ເວລາທີ່ແນ່ນອນແມ່ນຂຶ້ນກັບເວລາທີ່ລະບົບພື້ນຫຼັງຂອງເຊີເວີເຮັດວຽກ.",
     "Error updating response" : "ເກີດຂໍ້ຜິດພາດໃນການອັບເດດການຕອບກັບ",

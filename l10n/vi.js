@@ -96,7 +96,6 @@ OC.L10N.register(
     "Open" : "Mở",
     "Push notifications" : "Thông báo đẩy",
     "or" : "hoặc",
-    "Category: {category}" : "Thể loại: {danh mục}",
     "Location" : "Vị trí",
     "Category" : "Hạng mục",
     "Appointment not found" : "Không tìm thấy cuộc hẹn",
@@ -119,6 +118,8 @@ OC.L10N.register(
     "Search people" : "Tìm kiếm người dùng",
     "Year" : "Năm",
     "Custom" : "Tùy chỉnh",
+    "Filter" : "Bộ lọc",
+    "Category: {category}" : "Thể loại: {danh mục}",
     "Manager" : "Giám đốc",
     "Automatic" : "Tự động"
 },

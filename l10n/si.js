@@ -50,6 +50,7 @@ OC.L10N.register(
     "User" : "පරිශීලක",
     "Description" : "විස්තරය",
     "Confirm" : "තහවුරු කරන්න",
-    "Year" : "වර්ෂය"
+    "Year" : "වර්ෂය",
+    "Filter" : "පෙරහන"
 },
 "nplurals=2; plural=(n != 1);");

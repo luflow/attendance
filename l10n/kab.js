@@ -169,6 +169,7 @@ OC.L10N.register(
     "Year" : "Aseggas",
     "Custom" : "Udmawan",
     "Group by" : "Segrew s",
+    "Filter" : "Sizdeg",
     "Web" : "Web",
     "Manager" : "Asefrak",
     "Automatic" : "Awurman",

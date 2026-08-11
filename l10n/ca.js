@@ -170,6 +170,7 @@ OC.L10N.register(
     "Period" : "Període",
     "Year" : "Any",
     "Custom" : "Personalitzat",
+    "Filter" : "Filtra",
     "Manager" : "Gestor",
     "Historic" : "Històric",
     "Automatic" : "Automàtic",

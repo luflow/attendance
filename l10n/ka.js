@@ -120,6 +120,7 @@ OC.L10N.register(
     "Period" : "Period",
     "Year" : "წელი",
     "Custom" : "Custom",
+    "Filter" : "გაფილტრვა",
     "Manager" : "Manager",
     "Automatic" : "Automatic",
     "time" : "time",

@@ -515,6 +515,7 @@ OC.L10N.register(
     "Year" : "År",
     "Custom" : "Brugerdefineret",
     "Group by" : "Gruppér efter",
+    "Filter" : "Filter",
     "Show all appointments" : "Vis alle aftaler",
     "Approximately {datetime}. The exact time depends on when the server background job runs." : "Cirka {datetime}. Den nøjagtige tid afhænger af, hvornår serveren baggrund job kører.",
     "Failed to close inquiry" : "Kunne ikke afslutte undersøgelsen",
