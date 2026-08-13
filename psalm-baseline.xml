@@ -2105,7 +2105,6 @@
     <MixedArgument>
       <code><![CDATA[$cache['appointmentVisibleGroupsLower']]]></code>
       <code><![CDATA[$cache['appointmentVisibleTeams']]]></code>
-      <code><![CDATA[$cache['appointmentVisibleUsers']]]></code>
       <code><![CDATA[$cache['groupUsers']]]></code>
       <code><![CDATA[$cache['whitelistedGroups']]]></code>
       <code><![CDATA[$cache['whitelistedGroupsLower']]]></code>
@@ -2126,7 +2125,6 @@
       <code><![CDATA[$teamMemberIds]]></code>
       <code><![CDATA[$teamMemberIds]]></code>
       <code><![CDATA[$user->getUID()]]></code>
-      <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
@@ -2223,10 +2221,8 @@
       <code><![CDATA[$teamMemberIds]]></code>
       <code><![CDATA[$user]]></code>
       <code><![CDATA[$user]]></code>
-      <code><![CDATA[$user]]></code>
       <code><![CDATA[$userGroups]]></code>
       <code><![CDATA[$userGroups]]></code>
-      <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
@@ -2238,11 +2234,9 @@
       <code><![CDATA[getDisplayName]]></code>
       <code><![CDATA[getDisplayName]]></code>
       <code><![CDATA[getDisplayName]]></code>
-      <code><![CDATA[getDisplayName]]></code>
       <code><![CDATA[getGID]]></code>
       <code><![CDATA[getGID]]></code>
       <code><![CDATA[getResponse]]></code>
-      <code><![CDATA[getUID]]></code>
       <code><![CDATA[getUID]]></code>
       <code><![CDATA[getUID]]></code>
       <code><![CDATA[getUserId]]></code>

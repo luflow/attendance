@@ -126,8 +126,8 @@ class CheckinService {
 		// Get whitelisted groups for filtering
 		$whitelistedGroups = $this->configService->getWhitelistedGroups();
 
-		// Get relevant users efficiently - this filters by whitelisted groups when configured
-		$relevantUsers = $this->visibilityService->getRelevantUsersForAppointment($appointment, $whitelistedGroups);
+		// Get the target attendees efficiently - filters by whitelisted groups when configured
+		$targetAttendees = $this->visibilityService->getTargetAttendees($appointment, $whitelistedGroups);
 
 		// Create a map of user responses
 		$userResponseMap = [];
@@ -138,7 +138,7 @@ class CheckinService {
 		// Build group list for filtering UI
 		$userGroups = $this->buildGroupList($whitelistedGroups);
 
-		$users = $this->buildUserList($appointment, $relevantUsers, $userResponseMap, $whitelistedGroups);
+		$users = $this->buildUserList($targetAttendees, $userResponseMap, $whitelistedGroups);
 
 		return [
 			'appointment' => $appointment->jsonSerialize(),
@@ -171,29 +171,20 @@ class CheckinService {
 	/**
 	 * Build the unified user list with response data.
 	 *
-	 * @param \OCA\Attendance\Db\Appointment $appointment The appointment
-	 * @param array<string, \OCP\IUser> $relevantUsers Map of userId => IUser (pre-filtered by whitelisted groups)
+	 * @param array<string, \OCP\IUser> $targetAttendees Map of userId => IUser (the appointment's audience)
 	 * @param array $userResponseMap Map of userId => AttendanceResponse
 	 * @param array $whitelistedGroups List of whitelisted group IDs
 	 * @return array List of user data arrays
 	 */
 	private function buildUserList(
-		$appointment,
-		array $relevantUsers,
+		array $targetAttendees,
 		array $userResponseMap,
 		array $whitelistedGroups,
 	): array {
 		$users = [];
 
-		foreach ($relevantUsers as $userId => $user) {
-			// Filter: Only include users who are target attendees for this appointment
-			// This excludes admins who can "see" all appointments but aren't actual attendees
-			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
-				continue;
-			}
-
-			$userData = $this->buildUserData($user, $userResponseMap, $whitelistedGroups);
-			$users[] = $userData;
+		foreach ($targetAttendees as $user) {
+			$users[] = $this->buildUserData($user, $userResponseMap, $whitelistedGroups);
 		}
 
 		return $users;
@@ -212,8 +203,8 @@ class CheckinService {
 		// Get whitelisted groups for filtering
 		$whitelistedGroups = $this->configService->getWhitelistedGroups();
 
-		// Get relevant users - this filters by whitelisted groups when configured
-		$relevantUsers = $this->visibilityService->getRelevantUsersForAppointment($appointment, $whitelistedGroups);
+		// Get the target attendees - filters by whitelisted groups when configured
+		$targetAttendees = $this->visibilityService->getTargetAttendees($appointment, $whitelistedGroups);
 
 		// Create a map of user responses
 		$userResponseMap = [];
@@ -226,12 +217,7 @@ class CheckinService {
 		$absent = 0;
 		$notCheckedIn = 0;
 
-		foreach ($relevantUsers as $userId => $user) {
-			// Only count users who are target attendees
-			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
-				continue;
-			}
-
+		foreach ($targetAttendees as $userId => $user) {
 			if (isset($userResponseMap[$userId])) {
 				$checkinState = $userResponseMap[$userId]->getCheckinState();
 				if ($checkinState === 'yes') {

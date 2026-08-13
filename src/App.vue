@@ -448,6 +448,7 @@ t('attendance', 'Check-in recorded: {state}')
 t('attendance', 'Check-in updated: {state}')
 t('attendance', 'Checked in at {time}')
 t('attendance', 'Common')
+t('attendance', 'Copy location')
 t('attendance', 'Could not load language and group options: {error}')
 t('attendance', 'Create')
 t('attendance', 'Created guest account for {email}')
@@ -484,18 +485,21 @@ t('attendance', 'Language')
 // TRANSLATORS: Framing for the yearly personal plan (11.99 € per year). The
 // price itself always comes from the app store, never from this string.
 t('attendance', 'Less than one euro a month')
+t('attendance', 'Location copied')
+// TRANSLATORS: Android action-sheet entry opening the location in the phone's installed maps app.
+t('attendance', 'Maps app')
 // TRANSLATORS: Badge on the recommended subscription plan.
 t('attendance', 'Most popular')
 t('attendance', 'NFC is not available.')
 t('attendance', 'Name (optional)')
-// TRANSLATORS: One-time banner in the mobile app announcing self-check-in.
-t('attendance', 'New: scan the check-in code to check yourself in')
 t('attendance', 'Next appointment')
 t('attendance', 'No appointment right now')
 t('attendance', 'Not buying for a whole group? Get a license just for you.')
 t('attendance', 'Not ready to decide? Add 14 days, free')
 t('attendance', 'Not signed in on this server')
+t('attendance', 'Notify users who can see this appointment about its creation')
 t('attendance', 'One license covers everyone on your server.')
+t('attendance', 'OpenStreetMap')
 // TRANSLATORS: Subscription status shown for a license that covers one person
 // rather than the whole Nextcloud instance.
 t('attendance', 'Personal license')

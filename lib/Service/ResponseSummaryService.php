@@ -74,7 +74,7 @@ class ResponseSummaryService {
 		// Single pass: populate the global non-responder list AND the Others
 		// bucket (target attendees who don't surface in any visible section,
 		// e.g. guests whose `guest_app` group is hidden).
-		$this->collectMissingResponders($appointment, $summary, $respondedUserIds, $cache);
+		$this->collectMissingResponders($summary, $respondedUserIds, $cache);
 
 		// Filter out empty groups and teams (can occur with visibility restrictions)
 		$summary['by_group'] = $this->filterEmptyGroups($summary['by_group']);
@@ -117,11 +117,9 @@ class ResponseSummaryService {
 		}
 
 		$whitelistedGroups = $this->configService->getWhitelistedGroups();
-		$relevantUsers = $this->visibilityService->getRelevantUsersForAppointment($appointment, $whitelistedGroups);
-		foreach ($relevantUsers as $user) {
-			$userId = $user->getUID();
-			if (!isset($respondedUserIds[$userId])
-				&& $this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
+		$targetAttendees = $this->visibilityService->getTargetAttendees($appointment, $whitelistedGroups);
+		foreach ($targetAttendees as $user) {
+			if (!isset($respondedUserIds[$user->getUID()])) {
 				$counts['no_response']++;
 			}
 		}
@@ -146,9 +144,7 @@ class ResponseSummaryService {
 
 		$visibilitySettings = $this->visibilityService->getVisibilitySettings($appointment);
 		$appointmentHasRestrictions = $this->visibilityService->hasRestrictedVisibility($appointment);
-		$appointmentVisibleUsers = $visibilitySettings['users'];
-		$appointmentVisibleGroups = $visibilitySettings['groups'];
-		$appointmentVisibleGroupsLower = array_map('strtolower', $appointmentVisibleGroups);
+		$appointmentVisibleGroupsLower = array_map('strtolower', $visibilitySettings['groups']);
 		$appointmentVisibleTeams = $visibilitySettings['teams'];
 
 		// Pre-fetch all users from responses
@@ -191,16 +187,16 @@ class ResponseSummaryService {
 			}
 		}
 
-		// OPTIMIZATION: Only load relevant users based on appointment visibility
-		// instead of loading ALL users in the system
-		$relevantUsers = $this->visibilityService->getRelevantUsersForAppointment(
+		// OPTIMIZATION: Only load the appointment's target attendees based on
+		// visibility instead of loading ALL users in the system
+		$targetAttendees = $this->visibilityService->getTargetAttendees(
 			$appointment,
 			$whitelistedGroups
 		);
 
 		$allUsersMap = [];
 		$allUserGroups = [];
-		foreach ($relevantUsers as $uid => $user) {
+		foreach ($targetAttendees as $uid => $user) {
 			$allUsersMap[$uid] = $user;
 			if (!isset($userGroups[$uid])) {
 				$allUserGroups[$uid] = $this->groupManager->getUserGroups($user);
@@ -223,8 +219,6 @@ class ResponseSummaryService {
 			'allUserGroups' => $allUserGroups,
 			// Appointment-specific visibility restrictions
 			'appointmentHasRestrictions' => $appointmentHasRestrictions,
-			'appointmentVisibleUsers' => $appointmentVisibleUsers,
-			'appointmentVisibleGroups' => $appointmentVisibleGroups,
 			'appointmentVisibleGroupsLower' => $appointmentVisibleGroupsLower,
 			'appointmentVisibleTeams' => $appointmentVisibleTeams,
 		];
@@ -242,7 +236,7 @@ class ResponseSummaryService {
 		}
 
 		// Second check: if appointment has restrictions, group must be in visible groups
-		if ($cache['appointmentHasRestrictions'] && !empty($cache['appointmentVisibleGroups'])) {
+		if ($cache['appointmentHasRestrictions'] && !empty($cache['appointmentVisibleGroupsLower'])) {
 			return in_array(strtolower($groupId), $cache['appointmentVisibleGroupsLower']);
 		}
 
@@ -585,7 +579,6 @@ class ResponseSummaryService {
 	 * renders) — typically a guest with only `guest_app` membership.
 	 */
 	private function collectMissingResponders(
-		Appointment $appointment,
 		array &$summary,
 		array $respondedUserIds,
 		array $cache,
@@ -594,13 +587,11 @@ class ResponseSummaryService {
 		$totalMaybe = [];
 		$othersNonResponding = [];
 		$othersMaybe = [];
+		$skipUnaffiliated = !$cache['appointmentHasRestrictions'];
 
+		/** @var \OCP\IUser $user */
 		foreach ($cache['allUsers'] as $user) {
 			$userId = $user->getUID();
-
-			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
-				continue;
-			}
 
 			$userResponse = $respondedUserIds[$userId] ?? null;
 			if ($userResponse !== null && $userResponse !== 'maybe') {
@@ -612,12 +603,14 @@ class ResponseSummaryService {
 			$hasVisibleGroup = false;
 			foreach ($userGroups as $group) {
 				$gid = $group->getGID();
-				if ($this->isGroupAllowedCached($gid, $cache)) {
+				if ($this->isGroupVisibleAsSection($gid, $cache)) {
 					$hasAllowedGroup = true;
-					if ($this->isGroupVisibleAsSection($gid, $cache)) {
-						$hasVisibleGroup = true;
-						break;
-					}
+					$hasVisibleGroup = true;
+					break;
+				}
+				// Allowed-but-hidden groups (guest_app) still count as affiliation.
+				if ($skipUnaffiliated && !$hasAllowedGroup) {
+					$hasAllowedGroup = $this->isGroupAllowedCached($gid, $cache);
 				}
 			}
 
@@ -635,12 +628,9 @@ class ResponseSummaryService {
 				}
 			}
 
-			// Direct visibleUsers entries must render regardless of group
-			// membership; otherwise an individually invited user with no
-			// whitelisted-group ties would never reach the Others bucket.
-			$isDirectlyAddressedUser = in_array($userId, $cache['appointmentVisibleUsers'], true);
-
-			if (!$hasAllowedGroup && !$hasRelevantTeam && !$hasVisibleGroup && !$isDirectlyAddressedUser) {
+			// A restricted appointment invited every relevant user; open ones
+			// skip users tied to no allowed group or team — not audience.
+			if ($skipUnaffiliated && !$hasAllowedGroup && !$hasRelevantTeam) {
 				continue;
 			}
 
