@@ -183,7 +183,6 @@ OC.L10N.register(
     "Most popular" : "Am beliebtesten",
     "NFC is not available." : "NFC ist nicht verfügbar.",
     "Name (optional)" : "Name (optional)",
-    "New: scan the check-in code to check yourself in" : "Neu: Check-in-Code scannen und selbst einchecken",
     "Next appointment" : "Nächster Termin",
     "No appointment right now" : "Im Moment ist kein Termin verfügbar",
     "Not buying for a whole group? Get a license just for you." : "Du kaufst nicht für eine ganze Gruppe? Hol dir eine Lizenz nur für dich.",
@@ -932,6 +931,11 @@ OC.L10N.register(
     "Detail" : "Detailgrad",
     "Compact" : "Kompakt",
     "Full" : "Vollständig",
-    "Filter" : "Filter"
+    "Filter" : "Filter",
+    "Copy location" : "Ort kopieren",
+    "Location copied" : "Ort kopiert",
+    "Maps app" : "Karten-App",
+    "Notify users who can see this appointment about its creation" : "Benutzer, die diesen Termin sehen können, über die Erstellung benachrichtigen",
+    "OpenStreetMap" : "OpenStreetMap"
 },
 "nplurals=2; plural=(n != 1);");
