@@ -74,7 +74,7 @@ class ResponseSummaryService {
 		// Single pass: populate the global non-responder list AND the Others
 		// bucket (target attendees who don't surface in any visible section,
 		// e.g. guests whose `guest_app` group is hidden).
-		$this->collectMissingResponders($appointment, $summary, $respondedUserIds, $cache);
+		$this->collectMissingResponders($summary, $respondedUserIds, $cache);
 
 		// Filter out empty groups and teams (can occur with visibility restrictions)
 		$summary['by_group'] = $this->filterEmptyGroups($summary['by_group']);
@@ -117,11 +117,9 @@ class ResponseSummaryService {
 		}
 
 		$whitelistedGroups = $this->configService->getWhitelistedGroups();
-		$relevantUsers = $this->visibilityService->getRelevantUsersForAppointment($appointment, $whitelistedGroups);
-		foreach ($relevantUsers as $user) {
-			$userId = $user->getUID();
-			if (!isset($respondedUserIds[$userId])
-				&& $this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
+		$targetAttendees = $this->visibilityService->getTargetAttendees($appointment, $whitelistedGroups);
+		foreach ($targetAttendees as $user) {
+			if (!isset($respondedUserIds[$user->getUID()])) {
 				$counts['no_response']++;
 			}
 		}
@@ -189,16 +187,16 @@ class ResponseSummaryService {
 			}
 		}
 
-		// OPTIMIZATION: Only load relevant users based on appointment visibility
-		// instead of loading ALL users in the system
-		$relevantUsers = $this->visibilityService->getRelevantUsersForAppointment(
+		// OPTIMIZATION: Only load the appointment's target attendees based on
+		// visibility instead of loading ALL users in the system
+		$targetAttendees = $this->visibilityService->getTargetAttendees(
 			$appointment,
 			$whitelistedGroups
 		);
 
 		$allUsersMap = [];
 		$allUserGroups = [];
-		foreach ($relevantUsers as $uid => $user) {
+		foreach ($targetAttendees as $uid => $user) {
 			$allUsersMap[$uid] = $user;
 			if (!isset($userGroups[$uid])) {
 				$allUserGroups[$uid] = $this->groupManager->getUserGroups($user);
@@ -581,7 +579,6 @@ class ResponseSummaryService {
 	 * renders) — typically a guest with only `guest_app` membership.
 	 */
 	private function collectMissingResponders(
-		Appointment $appointment,
 		array &$summary,
 		array $respondedUserIds,
 		array $cache,
@@ -592,12 +589,9 @@ class ResponseSummaryService {
 		$othersMaybe = [];
 		$skipUnaffiliated = !$cache['appointmentHasRestrictions'];
 
+		/** @var \OCP\IUser $user */
 		foreach ($cache['allUsers'] as $user) {
 			$userId = $user->getUID();
-
-			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
-				continue;
-			}
 
 			$userResponse = $respondedUserIds[$userId] ?? null;
 			if ($userResponse !== null && $userResponse !== 'maybe') {

@@ -148,7 +148,7 @@ class VisibilityService {
 	 * Get relevant users for an appointment efficiently.
 	 *
 	 * This method avoids loading ALL users in the system by:
-	 * - For restricted appointments: only loading users from visible_users and visible_groups
+	 * - For restricted appointments: only loading users from visible_users, visible_groups and visible_teams
 	 * - For unrestricted appointments: loading users from specified whitelisted groups
 	 *
 	 * @param Appointment $appointment The appointment
@@ -179,6 +179,19 @@ class VisibilityService {
 				}
 			}
 
+			// Add members of visible teams
+			foreach ($settings['teams'] as $teamId) {
+				foreach ($this->getTeamMembers($teamId) as $memberId) {
+					if (isset($relevantUsers[$memberId])) {
+						continue;
+					}
+					$user = $this->userManager->get($memberId);
+					if ($user) {
+						$relevantUsers[$memberId] = $user;
+					}
+				}
+			}
+
 			return $relevantUsers;
 		}
 
@@ -204,6 +217,28 @@ class VisibilityService {
 		}
 
 		return $relevantUsers;
+	}
+
+	/**
+	 * The appointment's audience: relevant users narrowed to actual target
+	 * attendees. The one definition shared by the response summary, the
+	 * counts endpoint and the check-in views — call this instead of pairing
+	 * getRelevantUsersForAppointment() with isUserTargetAttendee() by hand.
+	 *
+	 * @param Appointment $appointment The appointment
+	 * @param array<string> $whitelistedGroups Groups to consider (from ConfigService)
+	 * @return array<string, \OCP\IUser> Map of userId => IUser
+	 */
+	public function getTargetAttendees(Appointment $appointment, array $whitelistedGroups = []): array {
+		$attendees = [];
+		foreach ($this->getRelevantUsersForAppointment($appointment, $whitelistedGroups) as $user) {
+			// UID from the object — array keys coerce numeric UIDs to int (issue #63).
+			$userId = $user->getUID();
+			if ($this->isUserTargetAttendee($appointment, $userId)) {
+				$attendees[$userId] = $user;
+			}
+		}
+		return $attendees;
 	}
 
 	/**

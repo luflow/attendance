@@ -89,7 +89,7 @@ class ResponseSummaryServiceTest extends TestCase {
 			->willReturn(['users' => [], 'groups' => [], 'teams' => []]);
 		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(false);
 		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
-		$this->visibilityService->method('getRelevantUsersForAppointment')->willReturn([]);
+		$this->visibilityService->method('getTargetAttendees')->willReturn([]);
 
 		$numericGroup = $this->createMock(IGroup::class);
 		$numericGroup->method('getGID')->willReturn('123');
@@ -104,9 +104,10 @@ class ResponseSummaryServiceTest extends TestCase {
 	}
 
 	/**
-	 * Regression test for the second leg of issue #63: iterating $cache['allUsers']
-	 * via `as $userId => $user` coerced numeric-string UIDs to int, which then
-	 * tripped VisibilityService::isUserTargetAttendee()'s string type hint.
+	 * Regression test for the second leg of issue #63: numeric-string UIDs
+	 * become int array keys in $cache['allUsers'] and must not trip any
+	 * string type hint. The cast at the source lives in
+	 * VisibilityService::getTargetAttendees() (see VisibilityServiceTest).
 	 */
 	public function testGetResponseSummaryWithNumericUserIdDoesNotThrowTypeError(): void {
 		$appointmentId = 2;
@@ -138,14 +139,9 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->groupManager->method('getUserGroups')->willReturn([$staffGroup]);
 
 		// Keyed by the numeric-string UID; PHP coerces the key to int 456.
-		$this->visibilityService->method('getRelevantUsersForAppointment')
+		$this->visibilityService->method('getTargetAttendees')
 			->willReturn(['456' => $numericUser]);
-
-		// Strict string type — the original bug surfaced here too.
-		$this->visibilityService->expects($this->atLeastOnce())
-			->method('isUserTargetAttendee')
-			->with($this->anything(), $this->isType('string'))
-			->willReturn(true);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
 
 		$summary = $this->service->getResponseSummary($appointmentId);
 
@@ -190,7 +186,7 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->groupManager->method('get')->with('staff')->willReturn($staffGroup);
 		$this->groupManager->method('getUserGroups')->willReturn([]);
 
-		$this->visibilityService->method('getRelevantUsersForAppointment')
+		$this->visibilityService->method('getTargetAttendees')
 			->willReturn(['new_hire' => $newHire]);
 
 		$summary = $this->service->getResponseSummary($appointmentId);
@@ -252,7 +248,7 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->userManager->method('get')->with('alice')->willReturn($alice);
 		$this->groupManager->method('getUserGroups')->willReturn([$boardGroup]);
 
-		$this->visibilityService->method('getRelevantUsersForAppointment')
+		$this->visibilityService->method('getTargetAttendees')
 			->willReturn(['alice' => $alice, 'bob' => $bob]);
 
 		$summary = $this->service->getResponseSummary($appointmentId);
@@ -267,6 +263,55 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->assertSame(1, $summary['others']['no_response']);
 		$othersIds = array_map(static fn (array $u): string => $u['userId'], $summary['others']['non_responding_users']);
 		$this->assertSame(['bob'], $othersIds);
+	}
+
+	/**
+	 * Same regression for teams: members reaching an appointment only through
+	 * a visibility team outside the whitelisted teams must surface under
+	 * Others and in the global non-responder count.
+	 */
+	public function testGetResponseSummaryListsVisibleTeamMembersOutsideWhitelistUnderOthers(): void {
+		$appointmentId = 7;
+		$appointment = new Appointment();
+		$appointment->setId($appointmentId);
+		$appointment->setVisibleUsers('[]');
+		$appointment->setVisibleGroups('[]');
+		$appointment->setVisibleTeams(json_encode(['team-1']));
+
+		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
+		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([]);
+
+		$this->configService->method('getWhitelistedGroups')->willReturn(['staff']);
+		$this->configService->method('getWhitelistedTeams')->willReturn([]);
+
+		$this->visibilityService->method('getVisibilitySettings')
+			->willReturn(['users' => [], 'groups' => [], 'teams' => ['team-1']]);
+		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(true);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+
+		$carol = $this->createMock(IUser::class);
+		$carol->method('getUID')->willReturn('carol');
+		$carol->method('getDisplayName')->willReturn('Carol');
+
+		$staffGroup = $this->createMock(IGroup::class);
+		$staffGroup->method('getGID')->willReturn('staff');
+		$staffGroup->method('getUsers')->willReturn([]);
+
+		$this->groupManager->method('get')->with('staff')->willReturn($staffGroup);
+		$this->groupManager->method('getUserGroups')->willReturn([]);
+
+		// getTargetAttendees now folds team members into the audience.
+		$this->visibilityService->method('getTargetAttendees')
+			->willReturn(['carol' => $carol]);
+
+		$summary = $this->service->getResponseSummary($appointmentId);
+
+		$this->assertSame([], $summary['by_group']);
+		$this->assertSame([], $summary['by_team']);
+		$this->assertSame(1, $summary['no_response']);
+		$this->assertSame(1, $summary['others']['no_response']);
+		$othersIds = array_map(static fn (array $u): string => $u['userId'], $summary['others']['non_responding_users']);
+		$this->assertSame(['carol'], $othersIds);
 	}
 
 	/**
@@ -302,7 +347,7 @@ class ResponseSummaryServiceTest extends TestCase {
 			->willReturn(['users' => [], 'groups' => [], 'teams' => []]);
 		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(false);
 		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
-		$this->visibilityService->method('getRelevantUsersForAppointment')->willReturn([]);
+		$this->visibilityService->method('getTargetAttendees')->willReturn([]);
 
 		$alice = $this->createMock(IUser::class);
 		$alice->method('getUID')->willReturn('alice');
@@ -362,7 +407,7 @@ class ResponseSummaryServiceTest extends TestCase {
 		$bob->method('getDisplayName')->willReturn('Bob');
 
 		// Bob never answered → counted as no_response.
-		$this->visibilityService->method('getRelevantUsersForAppointment')
+		$this->visibilityService->method('getTargetAttendees')
 			->willReturn(['alice' => $alice, 'bob' => $bob]);
 
 		$counts = $this->service->getResponseCounts($appointmentId);

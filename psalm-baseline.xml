@@ -2129,7 +2129,6 @@
       <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
-      <code><![CDATA[$userId]]></code>
     </MixedArgument>
     <MixedArrayAccess>
       <code><![CDATA[$cache['groupUsers'][$groupId]]]></code>
@@ -2222,10 +2221,8 @@
       <code><![CDATA[$teamMemberIds]]></code>
       <code><![CDATA[$user]]></code>
       <code><![CDATA[$user]]></code>
-      <code><![CDATA[$user]]></code>
       <code><![CDATA[$userGroups]]></code>
       <code><![CDATA[$userGroups]]></code>
-      <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
@@ -2237,11 +2234,9 @@
       <code><![CDATA[getDisplayName]]></code>
       <code><![CDATA[getDisplayName]]></code>
       <code><![CDATA[getDisplayName]]></code>
-      <code><![CDATA[getDisplayName]]></code>
       <code><![CDATA[getGID]]></code>
       <code><![CDATA[getGID]]></code>
       <code><![CDATA[getResponse]]></code>
-      <code><![CDATA[getUID]]></code>
       <code><![CDATA[getUID]]></code>
       <code><![CDATA[getUID]]></code>
       <code><![CDATA[getUserId]]></code>
