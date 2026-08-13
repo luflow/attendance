@@ -1,12 +1,12 @@
 /**
  * Composable for handling appointment responses and comments.
- * Centralizes response submission and comment auto-save logic.
+ * Centralizes response submission and comment saving.
  */
 
 import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
-import { nextTick, onBeforeUnmount, ref } from 'vue'
+import { onBeforeUnmount, ref } from 'vue'
 
 /**
  * Short cooldown for the yes/maybe/no buttons that prevents button-smashing
@@ -58,10 +58,7 @@ export function useAppointmentResponse(options = {}) {
 
 	// Comment state
 	const savingComment = ref(false)
-	const commentSaved = ref(false)
 	const errorComment = ref(false)
-	let commentTimeout = null
-	let savedIndicatorTimeout = null
 	let errorIndicatorTimeout = null
 
 	/**
@@ -108,16 +105,6 @@ export function useAppointmentResponse(options = {}) {
 	}
 
 	/**
-	 * Clear saved indicator timeout.
-	 */
-	const clearSavedIndicator = () => {
-		if (savedIndicatorTimeout) {
-			clearTimeout(savedIndicatorTimeout)
-			savedIndicatorTimeout = null
-		}
-	}
-
-	/**
 	 * Clear error indicator timeout.
 	 */
 	const clearErrorIndicator = () => {
@@ -128,26 +115,22 @@ export function useAppointmentResponse(options = {}) {
 	}
 
 	/**
-	 * Auto-save a comment with debouncing.
-	 * Shows visual feedback (spinner, checkmark, error icon).
+	 * Save a comment. Only ever called from an explicit user action (save
+	 * button, Enter) — comments are never sent while typing.
 	 *
 	 * @param {number} appointmentId - The appointment ID
 	 * @param {string} currentResponse - The current response value
 	 * @param {string} commentText - The comment text
-	 * @param {boolean} silent - If true, don't show success message
 	 * @return {Promise<void>}
 	 */
-	const autoSaveComment = async (appointmentId, currentResponse, commentText, silent = true) => {
+	const saveComment = async (appointmentId, currentResponse, commentText) => {
 		if (!currentResponse) return
 
 		const t = window.t || ((app, text) => text)
 
-		// Clear any pending timeouts
-		clearSavedIndicator()
 		clearErrorIndicator()
 
 		savingComment.value = true
-		commentSaved.value = false
 		errorComment.value = false
 
 		try {
@@ -161,20 +144,8 @@ export function useAppointmentResponse(options = {}) {
 				throw new Error(`API returned status ${axiosResponse.status}`)
 			}
 
-			// Show saved indicator with delay for visual feedback
-			setTimeout(() => {
-				savingComment.value = false
-				commentSaved.value = true
-
-				// Auto-hide saved indicator after 2 seconds
-				savedIndicatorTimeout = setTimeout(() => {
-					commentSaved.value = false
-				}, 2000)
-			}, 500)
-
-			if (!silent) {
-				showSuccess(t('attendance', 'Comment updated'))
-			}
+			savingComment.value = false
+			showSuccess(t('attendance', 'Comment updated'))
 
 			if (onSuccess) {
 				onSuccess(axiosResponse.data)
@@ -197,205 +168,22 @@ export function useAppointmentResponse(options = {}) {
 	}
 
 	/**
-	 * Create a debounced comment input handler.
-	 *
-	 * @param {() => string} getCommentText - Getter for the current comment text
-	 * @param {() => string} getCurrentResponse - Getter for the current response
-	 * @param {number} appointmentId - The appointment ID
-	 * @param {number} delay - Debounce delay in ms (default: 500)
-	 * @return {() => void} Input event handler
-	 */
-	const createCommentInputHandler = (getCommentText, getCurrentResponse, appointmentId, delay = 500) => {
-		return () => {
-			if (commentTimeout) {
-				clearTimeout(commentTimeout)
-			}
-
-			commentTimeout = setTimeout(async () => {
-				await nextTick()
-				const text = getCommentText()
-				const response = getCurrentResponse()
-				autoSaveComment(appointmentId, response, text)
-			}, delay)
-		}
-	}
-
-	/**
 	 * Reset all state.
 	 */
 	const reset = () => {
-		if (commentTimeout) {
-			clearTimeout(commentTimeout)
-			commentTimeout = null
-		}
-		clearSavedIndicator()
 		clearErrorIndicator()
 		savingComment.value = false
-		commentSaved.value = false
 		errorComment.value = false
 	}
 
 	return {
 		// State
 		savingComment,
-		commentSaved,
 		errorComment,
 
 		// Methods
 		submitResponse,
-		autoSaveComment,
-		createCommentInputHandler,
+		saveComment,
 		reset,
-	}
-}
-
-/**
- * Create a multi-appointment response handler.
- * Useful for list views where multiple appointments are shown.
- *
- * @param {object} options - Configuration options
- * @return {object} Response handling functions for multiple appointments
- */
-export function useMultiAppointmentResponse(options = {}) {
-	const { onSuccess, onError } = options
-
-	// Per-appointment state
-	const savingComments = {}
-	const savedComments = {}
-	const errorComments = {}
-	const commentTimeouts = {}
-
-	const t = window.t || ((app, text) => text)
-
-	/**
-	 * Submit a response to an appointment.
-	 *
-	 * @param {number} appointmentId - The appointment ID
-	 * @param {string|null} response - The response value (yes/no/maybe) or null to withdraw
-	 * @param {string} comment - Optional comment text
-	 */
-	const submitResponse = async (appointmentId, response, comment = '') => {
-		try {
-			const url = generateUrl('/apps/attendance/api/appointments/{id}/respond', { id: appointmentId })
-			const axiosResponse = await axios.post(url, {
-				response,
-				comment,
-			})
-
-			if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
-				throw new Error(`API returned status ${axiosResponse.status}`)
-			}
-
-			showSuccess(response === null
-				? t('attendance', 'Response withdrawn')
-				: t('attendance', 'Response updated'))
-
-			if (onSuccess) {
-				onSuccess(appointmentId, axiosResponse.data)
-			}
-
-			return axiosResponse.data
-		} catch (error) {
-			console.error('Failed to submit response:', error)
-			showError(t('attendance', 'Error updating response'))
-
-			if (onError) {
-				onError(appointmentId, error)
-			}
-
-			throw error
-		}
-	}
-
-	/**
-	 * Auto-save comment for a specific appointment.
-	 *
-	 * @param {number} appointmentId - The appointment ID
-	 * @param {string} currentResponse - The current response value
-	 * @param {string} commentText - The comment text to save
-	 */
-	const autoSaveComment = async (appointmentId, currentResponse, commentText) => {
-		if (!currentResponse) return
-
-		savingComments[appointmentId] = true
-		savedComments[appointmentId] = false
-		errorComments[appointmentId] = false
-
-		try {
-			const url = generateUrl('/apps/attendance/api/appointments/{id}/respond', { id: appointmentId })
-			await axios.post(url, {
-				response: currentResponse,
-				comment: commentText,
-			})
-
-			setTimeout(() => {
-				savingComments[appointmentId] = false
-				savedComments[appointmentId] = true
-
-				setTimeout(() => {
-					savedComments[appointmentId] = false
-				}, 2000)
-			}, 500)
-		} catch (error) {
-			console.error('Failed to save comment:', error)
-			savingComments[appointmentId] = false
-			errorComments[appointmentId] = true
-			showError(t('attendance', 'Comment could not be saved'))
-
-			setTimeout(() => {
-				errorComments[appointmentId] = false
-			}, 3000)
-		}
-	}
-
-	/**
-	 * Handle comment input with debouncing.
-	 *
-	 * @param {number} appointmentId - The appointment ID
-	 * @param {() => string} getCommentText - Getter for the current comment text
-	 * @param {() => string} getCurrentResponse - Getter for the current response
-	 * @param {number} delay - Debounce delay in milliseconds
-	 */
-	const onCommentInput = (appointmentId, getCommentText, getCurrentResponse, delay = 500) => {
-		if (commentTimeouts[appointmentId]) {
-			clearTimeout(commentTimeouts[appointmentId])
-		}
-
-		commentTimeouts[appointmentId] = setTimeout(async () => {
-			await nextTick()
-			const text = getCommentText()
-			const response = getCurrentResponse()
-			autoSaveComment(appointmentId, response, text)
-		}, delay)
-	}
-
-	/**
-	 * Check if comment is being saved for an appointment.
-	 *
-	 * @param {number} appointmentId - The appointment ID
-	 */
-	const isSaving = (appointmentId) => !!savingComments[appointmentId]
-
-	/**
-	 * Check if comment was saved for an appointment.
-	 *
-	 * @param {number} appointmentId - The appointment ID
-	 */
-	const isSaved = (appointmentId) => !!savedComments[appointmentId]
-
-	/**
-	 * Check if comment save failed for an appointment.
-	 *
-	 * @param {number} appointmentId - The appointment ID
-	 */
-	const hasError = (appointmentId) => !!errorComments[appointmentId]
-
-	return {
-		submitResponse,
-		autoSaveComment,
-		onCommentInput,
-		isSaving,
-		isSaved,
-		hasError,
 	}
 }

@@ -135,7 +135,7 @@ const localComment = ref(props.comment)
 const commentExpanded = ref(Boolean(props.comment) && !props.compact)
 const commentInput = ref(null)
 
-const { savingComment, errorComment, autoSaveComment, reset } = useAppointmentResponse()
+const { savingComment, errorComment, saveComment: postComment, reset } = useAppointmentResponse()
 
 // Saving a comment does not refresh the parent, so props.comment stays on the
 // value the card was rendered with. Without a local baseline the Save button
@@ -165,7 +165,7 @@ watch(() => props.comment, (next) => {
 async function saveComment() {
 	if (!commentChanged.value || savingComment.value) return
 	const pending = localComment.value
-	await autoSaveComment(props.appointmentId, props.userResponse, pending, false)
+	await postComment(props.appointmentId, props.userResponse, pending)
 	if (!errorComment.value) {
 		savedComment.value = pending
 	}
