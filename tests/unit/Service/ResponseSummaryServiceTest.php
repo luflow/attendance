@@ -204,6 +204,72 @@ class ResponseSummaryServiceTest extends TestCase {
 	}
 
 	/**
+	 * Regression: members reaching an appointment only through a visibility
+	 * group outside the admin whitelist used to vanish — no group section
+	 * (correct), but also no Others entry and no global non-responder count.
+	 * They must surface under Others like directly invited users do.
+	 */
+	public function testGetResponseSummaryListsVisibleGroupMembersOutsideWhitelistUnderOthers(): void {
+		$appointmentId = 6;
+		$appointment = new Appointment();
+		$appointment->setId($appointmentId);
+		$appointment->setVisibleUsers('[]');
+		$appointment->setVisibleGroups(json_encode(['board']));
+		$appointment->setVisibleTeams('[]');
+
+		$response = new AttendanceResponse();
+		$response->setId(1);
+		$response->setAppointmentId($appointmentId);
+		$response->setUserId('alice');
+		$response->setResponse('yes');
+
+		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
+		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
+
+		// The whitelist names a different group than the appointment targets.
+		$this->configService->method('getWhitelistedGroups')->willReturn(['staff']);
+		$this->configService->method('getWhitelistedTeams')->willReturn([]);
+
+		$this->visibilityService->method('getVisibilitySettings')
+			->willReturn(['users' => [], 'groups' => ['board'], 'teams' => []]);
+		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(true);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+
+		$alice = $this->createMock(IUser::class);
+		$alice->method('getUID')->willReturn('alice');
+		$alice->method('getDisplayName')->willReturn('Alice');
+		$bob = $this->createMock(IUser::class);
+		$bob->method('getUID')->willReturn('bob');
+		$bob->method('getDisplayName')->willReturn('Bob');
+
+		$boardGroup = $this->createMock(IGroup::class);
+		$boardGroup->method('getGID')->willReturn('board');
+		$staffGroup = $this->createMock(IGroup::class);
+		$staffGroup->method('getGID')->willReturn('staff');
+		$staffGroup->method('getUsers')->willReturn([]);
+
+		$this->groupManager->method('get')->with('staff')->willReturn($staffGroup);
+		$this->userManager->method('get')->willReturnMap([['alice', $alice], ['bob', $bob]]);
+		$this->groupManager->method('getUserGroups')->willReturn([$boardGroup]);
+
+		$this->visibilityService->method('getRelevantUsersForAppointment')
+			->willReturn(['alice' => $alice, 'bob' => $bob]);
+
+		$summary = $this->service->getResponseSummary($appointmentId);
+
+		// 'board' is not whitelisted, so no group section renders for it …
+		$this->assertSame([], $summary['by_group']);
+		// … but Alice's answer and Bob's silence both surface under Others.
+		$this->assertSame(1, $summary['others']['yes']);
+		$this->assertCount(1, $summary['others']['responses']);
+		$this->assertSame('Alice', $summary['others']['responses'][0]['userName']);
+		$this->assertSame(1, $summary['no_response']);
+		$this->assertSame(1, $summary['others']['no_response']);
+		$othersIds = array_map(static fn (array $u): string => $u['userId'], $summary['others']['non_responding_users']);
+		$this->assertSame(['bob'], $othersIds);
+	}
+
+	/**
 	 * Security regression: the free-text comment / checkinComment fields carry
 	 * potentially sensitive content and must only be exposed to callers who
 	 * hold PERMISSION_SEE_COMMENTS. With $includeComments = false the serialized

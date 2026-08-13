@@ -146,7 +146,6 @@ class ResponseSummaryService {
 
 		$visibilitySettings = $this->visibilityService->getVisibilitySettings($appointment);
 		$appointmentHasRestrictions = $this->visibilityService->hasRestrictedVisibility($appointment);
-		$appointmentVisibleUsers = $visibilitySettings['users'];
 		$appointmentVisibleGroups = $visibilitySettings['groups'];
 		$appointmentVisibleGroupsLower = array_map('strtolower', $appointmentVisibleGroups);
 		$appointmentVisibleTeams = $visibilitySettings['teams'];
@@ -223,7 +222,6 @@ class ResponseSummaryService {
 			'allUserGroups' => $allUserGroups,
 			// Appointment-specific visibility restrictions
 			'appointmentHasRestrictions' => $appointmentHasRestrictions,
-			'appointmentVisibleUsers' => $appointmentVisibleUsers,
 			'appointmentVisibleGroups' => $appointmentVisibleGroups,
 			'appointmentVisibleGroupsLower' => $appointmentVisibleGroupsLower,
 			'appointmentVisibleTeams' => $appointmentVisibleTeams,
@@ -635,12 +633,10 @@ class ResponseSummaryService {
 				}
 			}
 
-			// Direct visibleUsers entries must render regardless of group
-			// membership; otherwise an individually invited user with no
-			// whitelisted-group ties would never reach the Others bucket.
-			$isDirectlyAddressedUser = in_array($userId, $cache['appointmentVisibleUsers'], true);
-
-			if (!$hasAllowedGroup && !$hasRelevantTeam && !$hasVisibleGroup && !$isDirectlyAddressedUser) {
+			// Skipping only guards open appointments, where Others would list
+			// the whole instance; a restricted one invited every relevant user.
+			if (!$cache['appointmentHasRestrictions']
+				&& !$hasAllowedGroup && !$hasRelevantTeam && !$hasVisibleGroup) {
 				continue;
 			}
 

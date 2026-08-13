@@ -2105,7 +2105,6 @@
     <MixedArgument>
       <code><![CDATA[$cache['appointmentVisibleGroupsLower']]]></code>
       <code><![CDATA[$cache['appointmentVisibleTeams']]]></code>
-      <code><![CDATA[$cache['appointmentVisibleUsers']]]></code>
       <code><![CDATA[$cache['groupUsers']]]></code>
       <code><![CDATA[$cache['whitelistedGroups']]]></code>
       <code><![CDATA[$cache['whitelistedGroupsLower']]]></code>
