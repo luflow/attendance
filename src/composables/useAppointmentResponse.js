@@ -56,10 +56,30 @@ export function useResponseCooldown(currentResponse, cooldownMs = 800) {
 export function useAppointmentResponse(options = {}) {
 	const { onSuccess, onError } = options
 
-	// Comment state
 	const savingComment = ref(false)
-	const errorComment = ref(false)
-	let errorIndicatorTimeout = null
+
+	/**
+	 * The one transport both save paths share: POST to the respond endpoint
+	 * and throw on a non-2xx status.
+	 *
+	 * @param {number} appointmentId - The appointment ID
+	 * @param {string|null} response - The response (yes, no, maybe) or null to withdraw
+	 * @param {string} comment - The comment text
+	 * @return {Promise<object>} The axios response
+	 */
+	const postRespond = async (appointmentId, response, comment) => {
+		const url = generateUrl('/apps/attendance/api/appointments/{id}/respond', { id: appointmentId })
+		const axiosResponse = await axios.post(url, {
+			response,
+			comment,
+		})
+
+		if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
+			throw new Error(`API returned status ${axiosResponse.status}`)
+		}
+
+		return axiosResponse
+	}
 
 	/**
 	 * Submit a response to an appointment.
@@ -73,15 +93,7 @@ export function useAppointmentResponse(options = {}) {
 		const t = window.t || ((app, text) => text)
 
 		try {
-			const url = generateUrl('/apps/attendance/api/appointments/{id}/respond', { id: appointmentId })
-			const axiosResponse = await axios.post(url, {
-				response,
-				comment,
-			})
-
-			if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
-				throw new Error(`API returned status ${axiosResponse.status}`)
-			}
+			const axiosResponse = await postRespond(appointmentId, response, comment)
 
 			showSuccess(response === null
 				? t('attendance', 'Response withdrawn')
@@ -105,85 +117,51 @@ export function useAppointmentResponse(options = {}) {
 	}
 
 	/**
-	 * Clear error indicator timeout.
-	 */
-	const clearErrorIndicator = () => {
-		if (errorIndicatorTimeout) {
-			clearTimeout(errorIndicatorTimeout)
-			errorIndicatorTimeout = null
-		}
-	}
-
-	/**
 	 * Save a comment. Only ever called from an explicit user action (save
 	 * button, Enter) — comments are never sent while typing.
 	 *
 	 * @param {number} appointmentId - The appointment ID
 	 * @param {string} currentResponse - The current response value
 	 * @param {string} commentText - The comment text
-	 * @return {Promise<void>}
+	 * @return {Promise<boolean>} Whether the save succeeded
 	 */
 	const saveComment = async (appointmentId, currentResponse, commentText) => {
-		if (!currentResponse) return
+		if (!currentResponse) return false
 
 		const t = window.t || ((app, text) => text)
 
-		clearErrorIndicator()
-
 		savingComment.value = true
-		errorComment.value = false
 
 		try {
-			const url = generateUrl('/apps/attendance/api/appointments/{id}/respond', { id: appointmentId })
-			const axiosResponse = await axios.post(url, {
-				response: currentResponse,
-				comment: commentText,
-			})
+			const axiosResponse = await postRespond(appointmentId, currentResponse, commentText)
 
-			if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
-				throw new Error(`API returned status ${axiosResponse.status}`)
-			}
-
-			savingComment.value = false
 			showSuccess(t('attendance', 'Comment updated'))
 
 			if (onSuccess) {
 				onSuccess(axiosResponse.data)
 			}
+
+			return true
 		} catch (error) {
 			console.error('Failed to save comment:', error)
-			savingComment.value = false
-			errorComment.value = true
 			showError(t('attendance', 'Comment could not be saved'))
-
-			// Auto-hide error indicator after 3 seconds
-			errorIndicatorTimeout = setTimeout(() => {
-				errorComment.value = false
-			}, 3000)
 
 			if (onError) {
 				onError(error)
 			}
-		}
-	}
 
-	/**
-	 * Reset all state.
-	 */
-	const reset = () => {
-		clearErrorIndicator()
-		savingComment.value = false
-		errorComment.value = false
+			return false
+		} finally {
+			savingComment.value = false
+		}
 	}
 
 	return {
 		// State
 		savingComment,
-		errorComment,
 
 		// Methods
 		submitResponse,
 		saveComment,
-		reset,
 	}
 }

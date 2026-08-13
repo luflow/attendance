@@ -67,7 +67,7 @@
 
 <script setup>
 import { NcButton, NcInputField } from '@nextcloud/vue'
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import CheckCircle from 'vue-material-design-icons/CheckCircle.vue'
 import ClockIcon from 'vue-material-design-icons/Clock.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
@@ -135,7 +135,7 @@ const localComment = ref(props.comment)
 const commentExpanded = ref(Boolean(props.comment) && !props.compact)
 const commentInput = ref(null)
 
-const { savingComment, errorComment, saveComment: postComment, reset } = useAppointmentResponse()
+const { savingComment, saveComment: saveCommentApi } = useAppointmentResponse()
 
 // Saving a comment does not refresh the parent, so props.comment stays on the
 // value the card was rendered with. Without a local baseline the Save button
@@ -165,15 +165,11 @@ watch(() => props.comment, (next) => {
 async function saveComment() {
 	if (!commentChanged.value || savingComment.value) return
 	const pending = localComment.value
-	await postComment(props.appointmentId, props.userResponse, pending)
-	if (!errorComment.value) {
+	const saved = await saveCommentApi(props.appointmentId, props.userResponse, pending)
+	if (saved) {
 		savedComment.value = pending
 	}
 }
-
-// The composable keeps its own spinner/indicator timeouts, which would
-// otherwise keep writing into refs of an unmounted card.
-onBeforeUnmount(reset)
 </script>
 
 <style scoped lang="scss">
