@@ -249,7 +249,7 @@ class ResponseSummaryServiceTest extends TestCase {
 		$staffGroup->method('getUsers')->willReturn([]);
 
 		$this->groupManager->method('get')->with('staff')->willReturn($staffGroup);
-		$this->userManager->method('get')->willReturnMap([['alice', $alice], ['bob', $bob]]);
+		$this->userManager->method('get')->with('alice')->willReturn($alice);
 		$this->groupManager->method('getUserGroups')->willReturn([$boardGroup]);
 
 		$this->visibilityService->method('getRelevantUsersForAppointment')

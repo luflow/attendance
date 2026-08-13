@@ -146,8 +146,7 @@ class ResponseSummaryService {
 
 		$visibilitySettings = $this->visibilityService->getVisibilitySettings($appointment);
 		$appointmentHasRestrictions = $this->visibilityService->hasRestrictedVisibility($appointment);
-		$appointmentVisibleGroups = $visibilitySettings['groups'];
-		$appointmentVisibleGroupsLower = array_map('strtolower', $appointmentVisibleGroups);
+		$appointmentVisibleGroupsLower = array_map('strtolower', $visibilitySettings['groups']);
 		$appointmentVisibleTeams = $visibilitySettings['teams'];
 
 		// Pre-fetch all users from responses
@@ -222,7 +221,6 @@ class ResponseSummaryService {
 			'allUserGroups' => $allUserGroups,
 			// Appointment-specific visibility restrictions
 			'appointmentHasRestrictions' => $appointmentHasRestrictions,
-			'appointmentVisibleGroups' => $appointmentVisibleGroups,
 			'appointmentVisibleGroupsLower' => $appointmentVisibleGroupsLower,
 			'appointmentVisibleTeams' => $appointmentVisibleTeams,
 		];
@@ -240,7 +238,7 @@ class ResponseSummaryService {
 		}
 
 		// Second check: if appointment has restrictions, group must be in visible groups
-		if ($cache['appointmentHasRestrictions'] && !empty($cache['appointmentVisibleGroups'])) {
+		if ($cache['appointmentHasRestrictions'] && !empty($cache['appointmentVisibleGroupsLower'])) {
 			return in_array(strtolower($groupId), $cache['appointmentVisibleGroupsLower']);
 		}
 
@@ -592,6 +590,7 @@ class ResponseSummaryService {
 		$totalMaybe = [];
 		$othersNonResponding = [];
 		$othersMaybe = [];
+		$skipUnaffiliated = !$cache['appointmentHasRestrictions'];
 
 		foreach ($cache['allUsers'] as $user) {
 			$userId = $user->getUID();
@@ -610,12 +609,14 @@ class ResponseSummaryService {
 			$hasVisibleGroup = false;
 			foreach ($userGroups as $group) {
 				$gid = $group->getGID();
-				if ($this->isGroupAllowedCached($gid, $cache)) {
+				if ($this->isGroupVisibleAsSection($gid, $cache)) {
 					$hasAllowedGroup = true;
-					if ($this->isGroupVisibleAsSection($gid, $cache)) {
-						$hasVisibleGroup = true;
-						break;
-					}
+					$hasVisibleGroup = true;
+					break;
+				}
+				// Allowed-but-hidden groups (guest_app) still count as affiliation.
+				if ($skipUnaffiliated && !$hasAllowedGroup) {
+					$hasAllowedGroup = $this->isGroupAllowedCached($gid, $cache);
 				}
 			}
 
@@ -633,10 +634,9 @@ class ResponseSummaryService {
 				}
 			}
 
-			// Skipping only guards open appointments, where Others would list
-			// the whole instance; a restricted one invited every relevant user.
-			if (!$cache['appointmentHasRestrictions']
-				&& !$hasAllowedGroup && !$hasRelevantTeam && !$hasVisibleGroup) {
+			// A restricted appointment invited every relevant user; open ones
+			// skip users tied to no allowed group or team — not audience.
+			if ($skipUnaffiliated && !$hasAllowedGroup && !$hasRelevantTeam) {
 				continue;
 			}
 
