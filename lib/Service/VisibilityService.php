@@ -26,6 +26,9 @@ class VisibilityService {
 	private array $userGroupIdsCache = [];
 	/** @var array<string, list<string>> teamId → member user IDs. */
 	private array $teamMembersCache = [];
+	/** @var array<string, array{users: array<string>, groups: array<string>, teams: array<string>}>
+	 * Keyed by the raw JSON columns, so an in-request edit misses naturally. */
+	private array $visibilitySettingsCache = [];
 
 	public function __construct(
 		IGroupManager $groupManager,
@@ -79,14 +82,10 @@ class VisibilityService {
 	 * @return bool True if the user is a target attendee
 	 */
 	public function isUserTargetAttendee(Appointment $appointment, string $userId): bool {
-		$visibleUsers = $appointment->getVisibleUsers();
-		$visibleGroups = $appointment->getVisibleGroups();
-		$visibleTeams = $appointment->getVisibleTeams();
-
-		// Decode JSON fields
-		$visibleUsersList = $visibleUsers ? json_decode($visibleUsers, true) : [];
-		$visibleGroupsList = $visibleGroups ? json_decode($visibleGroups, true) : [];
-		$visibleTeamsList = $visibleTeams ? json_decode($visibleTeams, true) : [];
+		$settings = $this->getVisibilitySettings($appointment);
+		$visibleUsersList = $settings['users'];
+		$visibleGroupsList = $settings['groups'];
+		$visibleTeamsList = $settings['teams'];
 
 		// If all are empty/null, appointment is visible to all
 		if (empty($visibleUsersList) && empty($visibleGroupsList) && empty($visibleTeamsList)) {
@@ -252,11 +251,17 @@ class VisibilityService {
 		$visibleGroups = $appointment->getVisibleGroups();
 		$visibleTeams = $appointment->getVisibleTeams();
 
-		return [
-			'users' => $visibleUsers ? (json_decode($visibleUsers, true) ?: []) : [],
-			'groups' => $visibleGroups ? (json_decode($visibleGroups, true) ?: []) : [],
-			'teams' => $visibleTeams ? (json_decode($visibleTeams, true) ?: []) : [],
-		];
+		$key = $visibleUsers . '|' . $visibleGroups . '|' . $visibleTeams;
+		if (!isset($this->visibilitySettingsCache[$key])) {
+			/** @var array{users: array<string>, groups: array<string>, teams: array<string>} $settings */
+			$settings = [
+				'users' => $visibleUsers ? (json_decode($visibleUsers, true) ?: []) : [],
+				'groups' => $visibleGroups ? (json_decode($visibleGroups, true) ?: []) : [],
+				'teams' => $visibleTeams ? (json_decode($visibleTeams, true) ?: []) : [],
+			];
+			$this->visibilitySettingsCache[$key] = $settings;
+		}
+		return $this->visibilitySettingsCache[$key];
 	}
 
 	/**

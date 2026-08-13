@@ -1644,9 +1644,6 @@
     <RedundantCastGivenDocblockType>
       <code><![CDATA[(string)$saved->getCheckinComment()]]></code>
     </RedundantCastGivenDocblockType>
-    <UnusedForeachValue>
-      <code><![CDATA[$user]]></code>
-    </UnusedForeachValue>
   </file>
   <file src="lib/Service/ConfigService.php">
     <ClassMustBeFinal>
@@ -2127,8 +2124,6 @@
       <code><![CDATA[$user->getUID()]]></code>
       <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
-      <code><![CDATA[$userId]]></code>
-      <code><![CDATA[$userId]]></code>
     </MixedArgument>
     <MixedArrayAccess>
       <code><![CDATA[$cache['groupUsers'][$groupId]]]></code>
@@ -2218,13 +2213,9 @@
       <code><![CDATA[$teamInfo]]></code>
       <code><![CDATA[$teamMemberIds]]></code>
       <code><![CDATA[$teamMemberIds]]></code>
-      <code><![CDATA[$teamMemberIds]]></code>
-      <code><![CDATA[$user]]></code>
       <code><![CDATA[$user]]></code>
       <code><![CDATA[$userGroups]]></code>
       <code><![CDATA[$userGroups]]></code>
-      <code><![CDATA[$userId]]></code>
-      <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userResponse]]></code>
@@ -2232,12 +2223,9 @@
     </MixedAssignment>
     <MixedMethodCall>
       <code><![CDATA[getDisplayName]]></code>
-      <code><![CDATA[getDisplayName]]></code>
-      <code><![CDATA[getDisplayName]]></code>
       <code><![CDATA[getGID]]></code>
       <code><![CDATA[getGID]]></code>
       <code><![CDATA[getResponse]]></code>
-      <code><![CDATA[getUID]]></code>
       <code><![CDATA[getUID]]></code>
       <code><![CDATA[getUserId]]></code>
       <code><![CDATA[getUserId]]></code>
@@ -2324,9 +2312,6 @@
       <code><![CDATA[search]]></code>
     </DeprecatedMethod>
     <MixedArgument>
-      <code><![CDATA[$teamId]]></code>
-      <code><![CDATA[$visibleGroupsList]]></code>
-      <code><![CDATA[$visibleUsersList]]></code>
       <code><![CDATA[CirclesManager::class]]></code>
     </MixedArgument>
     <MixedAssignment>
@@ -2334,12 +2319,8 @@
       <code><![CDATA[$circle]]></code>
       <code><![CDATA[$member]]></code>
       <code><![CDATA[$members]]></code>
-      <code><![CDATA[$teamId]]></code>
       <code><![CDATA[$this->teamsManager]]></code>
       <code><![CDATA[$userIds[]]]></code>
-      <code><![CDATA[$visibleGroupsList]]></code>
-      <code><![CDATA[$visibleTeamsList]]></code>
-      <code><![CDATA[$visibleUsersList]]></code>
     </MixedAssignment>
     <MixedMethodCall>
       <code><![CDATA[getDisplayName]]></code>
@@ -2352,13 +2333,7 @@
     </MixedPropertyTypeCoercion>
     <MixedReturnTypeCoercion>
       <code><![CDATA[$userIds]]></code>
-      <code><![CDATA[[
-			'users' => $visibleUsers ? (json_decode($visibleUsers, true) ?: []) : [],
-			'groups' => $visibleGroups ? (json_decode($visibleGroups, true) ?: []) : [],
-			'teams' => $visibleTeams ? (json_decode($visibleTeams, true) ?: []) : [],
-		]]]></code>
       <code><![CDATA[array<string>]]></code>
-      <code><![CDATA[array{users: array<string>, groups: array<string>, teams: array<string>}]]></code>
     </MixedReturnTypeCoercion>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
@@ -2372,12 +2347,6 @@
       <code><![CDATA[empty($settings['groups'])]]></code>
       <code><![CDATA[empty($settings['teams'])]]></code>
       <code><![CDATA[empty($settings['users'])]]></code>
-      <code><![CDATA[empty($visibleGroupsList)]]></code>
-      <code><![CDATA[empty($visibleGroupsList)]]></code>
-      <code><![CDATA[empty($visibleTeamsList)]]></code>
-      <code><![CDATA[empty($visibleTeamsList)]]></code>
-      <code><![CDATA[empty($visibleUsersList)]]></code>
-      <code><![CDATA[empty($visibleUsersList)]]></code>
     </RiskyTruthyFalsyComparison>
     <UndefinedClass>
       <code><![CDATA[$this->teamsManager]]></code>

@@ -37,19 +37,27 @@ class VisibilityServiceTest extends TestCase {
 	}
 
 	/**
-	 * @param array<string, list<string>> $membersByTeam
+	 * @param list<string> $stubbedMethods
 	 * @return VisibilityService|MockObject
 	 */
-	private function serviceWithTeamMembers(array $membersByTeam) {
-		$service = $this->getMockBuilder(VisibilityService::class)
+	private function partialMock(array $stubbedMethods) {
+		return $this->getMockBuilder(VisibilityService::class)
 			->setConstructorArgs([
 				$this->groupManager,
 				$this->userManager,
 				$this->permissionService,
 				$this->container,
 			])
-			->onlyMethods(['getTeamMembers'])
+			->onlyMethods($stubbedMethods)
 			->getMock();
+	}
+
+	/**
+	 * @param array<string, list<string>> $membersByTeam
+	 * @return VisibilityService|MockObject
+	 */
+	private function serviceWithTeamMembers(array $membersByTeam) {
+		$service = $this->partialMock(['getTeamMembers']);
 		$service->method('getTeamMembers')
 			->willReturnCallback(static fn (string $teamId): array => $membersByTeam[$teamId] ?? []);
 		return $service;
@@ -99,15 +107,7 @@ class VisibilityServiceTest extends TestCase {
 		$numericUser = $this->createMock(IUser::class);
 		$numericUser->method('getUID')->willReturn('456');
 
-		$service = $this->getMockBuilder(VisibilityService::class)
-			->setConstructorArgs([
-				$this->groupManager,
-				$this->userManager,
-				$this->permissionService,
-				$this->container,
-			])
-			->onlyMethods(['getRelevantUsersForAppointment'])
-			->getMock();
+		$service = $this->partialMock(['getRelevantUsersForAppointment']);
 		$service->method('getRelevantUsersForAppointment')
 			->willReturn(['alice' => $alice, 'mallory' => $mallory, '456' => $numericUser]);
 
