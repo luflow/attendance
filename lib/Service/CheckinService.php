@@ -138,7 +138,10 @@ class CheckinService {
 		// Build group list for filtering UI
 		$userGroups = $this->buildGroupList($whitelistedGroups);
 
-		$users = $this->buildUserList($targetAttendees, $userResponseMap, $whitelistedGroups);
+		$users = array_map(
+			fn ($user) => $this->buildUserData($user, $userResponseMap, $whitelistedGroups),
+			array_values($targetAttendees),
+		);
 
 		return [
 			'appointment' => $appointment->jsonSerialize(),
@@ -169,28 +172,6 @@ class CheckinService {
 	}
 
 	/**
-	 * Build the unified user list with response data.
-	 *
-	 * @param array<string, \OCP\IUser> $targetAttendees Map of userId => IUser (the appointment's audience)
-	 * @param array $userResponseMap Map of userId => AttendanceResponse
-	 * @param array $whitelistedGroups List of whitelisted group IDs
-	 * @return array List of user data arrays
-	 */
-	private function buildUserList(
-		array $targetAttendees,
-		array $userResponseMap,
-		array $whitelistedGroups,
-	): array {
-		$users = [];
-
-		foreach ($targetAttendees as $user) {
-			$users[] = $this->buildUserData($user, $userResponseMap, $whitelistedGroups);
-		}
-
-		return $users;
-	}
-
-	/**
 	 * Get checkin summary counts for an appointment.
 	 *
 	 * @param int $appointmentId The appointment ID
@@ -217,7 +198,7 @@ class CheckinService {
 		$absent = 0;
 		$notCheckedIn = 0;
 
-		foreach ($targetAttendees as $userId => $user) {
+		foreach (array_keys($targetAttendees) as $userId) {
 			if (isset($userResponseMap[$userId])) {
 				$checkinState = $userResponseMap[$userId]->getCheckinState();
 				if ($checkinState === 'yes') {

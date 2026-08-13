@@ -68,7 +68,7 @@ class ResponseSummaryService {
 		}
 
 		// Add non-responding users to groups and teams
-		$this->addNonRespondingUsers($appointment, $summary, $respondedUserIds, $cache);
+		$this->addNonRespondingUsers($summary, $respondedUserIds, $cache);
 		$this->addNonRespondingTeamUsers($appointment, $summary, $respondedUserIds, $cache);
 
 		// Single pass: populate the global non-responder list AND the Others
@@ -194,15 +194,9 @@ class ResponseSummaryService {
 			$whitelistedGroups
 		);
 
-		$allUsersMap = [];
 		$allUserGroups = [];
 		foreach ($targetAttendees as $uid => $user) {
-			$allUsersMap[$uid] = $user;
-			if (!isset($userGroups[$uid])) {
-				$allUserGroups[$uid] = $this->groupManager->getUserGroups($user);
-			} else {
-				$allUserGroups[$uid] = $userGroups[$uid];
-			}
+			$allUserGroups[$uid] = $userGroups[$uid] ?? $this->groupManager->getUserGroups($user);
 		}
 
 		return [
@@ -215,7 +209,7 @@ class ResponseSummaryService {
 			'users' => $users,
 			'userGroups' => $userGroups,
 			'groupUsers' => $groupUsers,
-			'allUsers' => $allUsersMap,
+			'allUsers' => $targetAttendees,
 			'allUserGroups' => $allUserGroups,
 			// Appointment-specific visibility restrictions
 			'appointmentHasRestrictions' => $appointmentHasRestrictions,
@@ -444,7 +438,6 @@ class ResponseSummaryService {
 	 * Add non-responding users to group summaries.
 	 */
 	private function addNonRespondingUsers(
-		Appointment $appointment,
 		array &$summary,
 		array $respondedUserIds,
 		array $cache,
@@ -478,11 +471,12 @@ class ResponseSummaryService {
 			$nonRespondingUsers = [];
 			$maybeUsers = [];
 
+			/** @var \OCP\IUser $user */
 			foreach ($groupUsers as $user) {
 				$userId = $user->getUID();
 
-				// Filter to only actual target attendees
-				if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
+				// allUsers already is the audience — a hash lookup replaces the check.
+				if (!isset($cache['allUsers'][$userId])) {
 					continue;
 				}
 
@@ -538,12 +532,14 @@ class ResponseSummaryService {
 			}
 
 			// Get team members from cache
+			/** @var list<string> $teamMemberIds */
 			$teamMemberIds = $cache['teamMembers'][$teamId] ?? [];
 			$nonRespondingUsers = [];
 			$maybeUsers = [];
 
 			foreach ($teamMemberIds as $userId) {
-				// Filter to only actual target attendees
+				// Not an allUsers lookup: on an open appointment with a group
+				// whitelist, team members outside those groups are absent there.
 				if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
 					continue;
 				}
