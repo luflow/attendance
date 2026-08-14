@@ -64,6 +64,7 @@ OC.L10N.register(
     "Groups (required)" : "그룹 (필수)",
     "Invite guest" : "손님 초대",
     "Language" : "언어",
+    "Notify users who can see this appointment about its creation" : "이 약속을 볼 수 있는 사용자에게 약속 생성 사실을 알립니다.",
     "Search by name …" : "이름으로 검색…",
     "Send" : "전송",
     "Sign in" : "로그인",

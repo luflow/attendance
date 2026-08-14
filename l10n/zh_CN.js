@@ -54,6 +54,7 @@ OC.L10N.register(
     "Groups (required)" : "群组（必填）",
     "Invite guest" : "邀请访客",
     "Language" : "语言",
+    "OpenStreetMap" : "OpenStreetMap",
     "Questions?" : "有问题？",
     "Send" : "发送",
     "Show QR code" : "显示二维码",

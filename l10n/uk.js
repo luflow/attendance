@@ -53,6 +53,7 @@ OC.L10N.register(
     "Groups (required)" : "Групи (обов'язково)",
     "Invite guest" : "Запросити гостя",
     "Language" : "Мова",
+    "OpenStreetMap" : "OpenStreetMap",
     "Send" : "Надіслати",
     "Show QR code" : "Показати код QR",
     "Sign in" : "Увійти...",

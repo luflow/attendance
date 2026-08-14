@@ -131,6 +131,8 @@ OC.L10N.register(
     "Groups (required)" : "Gruplar (zorunlu)",
     "Invite guest" : "Konuk davet et",
     "Language" : "Dil",
+    "Notify users who can see this appointment about its creation" : "Bu randevuyu görebilen kullanıcıları oluşturulduğu ile ilgili bilgilendirin",
+    "OpenStreetMap" : "OpenStreetMap",
     "Questions?" : "Sorularınız mı var?",
     "Search by name …" : "Ada göre ara…",
     "Select the appointment you want to check into:" : "Giriş yapmak istediğiniz randevuyu seçin:",

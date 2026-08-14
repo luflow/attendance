@@ -127,6 +127,8 @@ OC.L10N.register(
     "Email" : "E-mail",
     "Invite guest" : "Convidar convidado",
     "Language" : "Idioma",
+    "Notify users who can see this appointment about its creation" : "Notificar os usuários que podem ver este compromisso sobre sua criação",
+    "OpenStreetMap" : "OpenStreetMap",
     "Questions?" : "Dúvidas?",
     "Select the appointment you want to check into:" : "Selecione o compromisso para o qual deseja registrar a entrada:",
     "Send" : "Enviar",

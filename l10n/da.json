@@ -128,6 +128,8 @@
     "Groups (required)" : "Grupper (påkrævet)",
     "Invite guest" : "Inviter gæst",
     "Language" : "Sprog",
+    "Notify users who can see this appointment about its creation" : "Advisér brugere, der kan se denne udnævnelse om dens oprettelse",
+    "OpenStreetMap" : "OpenStreetMap",
     "Select the appointment you want to check into:" : "Vælg den aftale du vil tjekke ind på:",
     "Send" : "Send",
     "Show QR code" : "Vis QR kode",

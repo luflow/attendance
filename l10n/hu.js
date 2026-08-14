@@ -53,6 +53,7 @@ OC.L10N.register(
     "Groups (required)" : "Csoportok (kötelező)",
     "Invite guest" : "Vendég meghívása",
     "Language" : "Nyelv",
+    "OpenStreetMap" : "OpenStreetMap",
     "Send" : "Küldés",
     "Show QR code" : "QR-kód megjelenítése",
     "Sign in" : "Bejelentkezés",

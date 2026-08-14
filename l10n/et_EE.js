@@ -173,6 +173,8 @@ OC.L10N.register(
     "No appointment right now" : "Hetkel pole ühtegi kohtumist",
     "Not ready to decide? Add 14 days, free" : "Sa pole veel valmis otsustama? Lisa veel 14 tasuta päeva",
     "Not signed in on this server" : "Sa pole sellesse serverisse sisse loginud",
+    "Notify users who can see this appointment about its creation" : "Teavita selle kohtumise loomisest neid kasutajaid, kes seda näevad",
+    "OpenStreetMap" : "OpenStreetMap",
     "Questions?" : "On sul küsimusi?",
     "Rather book directly?" : "Või pigem broneeriksid kohe otse?",
     "Scan again" : "Skaneeri uuesti",

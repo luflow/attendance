@@ -114,6 +114,8 @@ OC.L10N.register(
     "Email" : "ອີເມວ",
     "Invite guest" : "Invite guest",
     "Language" : "ພາສາ",
+    "Notify users who can see this appointment about its creation" : "ແຈ້ງເຕືອນຜູ້ໃຊ້ທີ່ສາມາດເຫັນການນັດໝາຍນີ້ກ່ຽວກັບການສ້າງນັດໝາຍ",
+    "OpenStreetMap" : "OpenStreetMap",
     "Select the appointment you want to check into:" : "ເລືອກການນັດໝາຍທີ່ທ່ານຕ້ອງການເຊັກອິນ:",
     "Send" : "ສົ່ງ",
     "Show QR code" : "ສະແດງລະຫັດ QR",

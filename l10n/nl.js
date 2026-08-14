@@ -69,6 +69,7 @@ OC.L10N.register(
     "Groups (required)" : "Groepen (vereist)",
     "Invite guest" : "Uitnodigen gast",
     "Language" : "Taal",
+    "OpenStreetMap" : "OpenStreetMap",
     "Questions?" : "Vragen?",
     "Send" : "Verzenden",
     "Sign in" : "Inloggen",

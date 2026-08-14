@@ -52,6 +52,7 @@ OC.L10N.register(
     "Groups (required)" : "گۇرۇپپىلار (تەلەپ قىلىنغان)",
     "Invite guest" : "مېھمان تەكلىپ قىلىڭ",
     "Language" : "تىل",
+    "OpenStreetMap" : "OpenStreetMap",
     "Send" : "ئەۋەتىڭ",
     "Show QR code" : "QR كودىنى كۆرسەت",
     "Sign in" : "تىزىملىتىڭ",

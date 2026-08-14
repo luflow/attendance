@@ -62,6 +62,7 @@ OC.L10N.register(
     "Groups (required)" : "Ryhmät (pakollinen)",
     "Invite guest" : "Kutsu vieras",
     "Language" : "Kieli",
+    "OpenStreetMap" : "OpenStreetMap",
     "Questions?" : "Kysymyksiä?",
     "Send" : "Lähetä",
     "Show QR code" : "Näytä QR-koodi",

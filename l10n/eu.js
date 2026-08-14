@@ -53,6 +53,7 @@ OC.L10N.register(
     "Groups (required)" : "Taldeak (beharrezkoa)",
     "Invite guest" : "Gonbidapen berria bidali",
     "Language" : "Hizkuntza",
+    "OpenStreetMap" : "OpenStreetMap",
     "Send" : "Bidali",
     "Show QR code" : "Erakutsi QR kodea",
     "Sign in" : "Eman izena",

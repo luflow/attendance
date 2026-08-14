@@ -128,6 +128,8 @@
     "Groups (required)" : "Groups (required)",
     "Invite guest" : "دعوت از مهمان",
     "Language" : "زبان",
+    "Notify users who can see this appointment about its creation" : "به کاربرانی که می‌توانند این قرار ملاقات را ببینند، درباره ایجاد آن اطلاع دهید",
+    "OpenStreetMap" : "اوپن‌استریت‌مپ",
     "Questions?" : "سوالی دارید؟",
     "Select the appointment you want to check into:" : "قرار ملاقاتی را که می‌خواهید در آن حضور یابید انتخاب کنید:",
     "Send" : "ارسال",

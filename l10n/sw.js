@@ -84,6 +84,8 @@ OC.L10N.register(
     "Email" : "Barua pepe",
     "Invite guest" : "Mwalike mgeni",
     "Language" : "Lugha",
+    "Notify users who can see this appointment about its creation" : "Waarifu watumiaji wanaoweza kuona miadi hii kuhusu kuundwa kwake",
+    "OpenStreetMap" : "OpenStreetMap",
     "Select the appointment you want to check into:" : "Chagua miadi unayotaka kuiangalia:",
     "Send" : "Tuma",
     "Show QR code" : "Onesha msimbo wa QR",

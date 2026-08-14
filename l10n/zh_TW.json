@@ -115,6 +115,8 @@
     "Groups (required)" : "群組（必填）",
     "Invite guest" : "邀請訪客",
     "Language" : "語言",
+    "Notify users who can see this appointment about its creation" : "通知可檢視此預約的使用者，告知其已建立",
+    "OpenStreetMap" : "OpenStreetMap",
     "Search by name …" : "根據名稱搜尋……",
     "Select the appointment you want to check into:" : "選取您想要簽到的預約",
     "Send" : "傳送",

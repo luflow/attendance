@@ -52,6 +52,7 @@ OC.L10N.register(
     "Groups (required)" : "グループ (必須)",
     "Invite guest" : "ゲストを招待する",
     "Language" : "言語",
+    "OpenStreetMap" : "OpenStreetMap",
     "Send" : "送る",
     "Show QR code" : "QRコードを表示",
     "Sign in" : "ログイン",

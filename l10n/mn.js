@@ -44,6 +44,7 @@ OC.L10N.register(
     "Done" : "–•–∏–π—Å—ç–Ω",
     "Email" : "–¶–∞—Ö–∏–º —à—É—É–¥–∞–Ω",
     "Language" : "–•—ç–ª",
+    "OpenStreetMap" : "OpenStreetMap",
     "Send" : "–∏–ª–≥—ç—ç—Ö",
     "Show QR code" : "QR код харуулах",
     "Sign in" : "Нэвтрэх",

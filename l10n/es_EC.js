@@ -48,6 +48,7 @@ OC.L10N.register(
     "Groups (required)" : "Grupos (requeridos)",
     "Invite guest" : "Invitar invitado",
     "Language" : "Idioma",
+    "OpenStreetMap" : "OpenStreetMap",
     "Send" : "Enviar",
     "Show QR code" : "Mostrar código QR",
     "Sign in" : "Iniciar sesión",

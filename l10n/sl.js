@@ -51,6 +51,7 @@ OC.L10N.register(
     "Groups (required)" : "Skupine (zahtevano)",
     "Invite guest" : "Povabi gosta",
     "Language" : "Jezik",
+    "OpenStreetMap" : "OpenStreetMap",
     "Send" : "Pošlji",
     "Show QR code" : "Pokaži kodo QR",
     "Sign in" : "Prijava",

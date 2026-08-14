@@ -71,6 +71,8 @@ OC.L10N.register(
     "Groups (required)" : "Grupos (necesario)",
     "Invite guest" : "Convidar a alguén",
     "Language" : "Idioma",
+    "Notify users who can see this appointment about its creation" : "Notificar a súa creación aos usuarios que poidan ver esta cita",
+    "OpenStreetMap" : "OpenStreetMap",
     "Send" : "Enviar",
     "Show QR code" : "Amosar o código QR",
     "Sign in" : "Acceder",

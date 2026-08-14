@@ -51,6 +51,7 @@ OC.L10N.register(
     "Email" : "Имейл",
     "Invite guest" : "Поканете гост",
     "Language" : "Език",
+    "OpenStreetMap" : "Приложение OpenStreetMap",
     "Send" : "Изпращане",
     "Show QR code" : "Показване на QR код",
     "Sign in" : "Вписване",

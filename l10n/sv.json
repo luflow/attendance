@@ -166,6 +166,8 @@
     "No appointment right now" : "Ingen bokning just nu",
     "Not ready to decide? Add 14 days, free" : "Inte redo att bestämma dig? Lägg till 14 dagar kostnadsfritt",
     "Not signed in on this server" : "Inte inloggad på den här servern",
+    "Notify users who can see this appointment about its creation" : "Avisera användare som kan se den här bokningen om att den har skapats",
+    "OpenStreetMap" : "OpenStreetMap",
     "Pick how the check-in button scans, or ask each time." : "Välj hur incheckningsknappen ska skanna, eller fråga varje gång.",
     "Point your camera at the check-in code, or hold your phone to the NFC tag." : "Rikta kameran mot incheckningskoden eller håll telefonen mot NFC-taggen.",
     "Point your camera at the check-in code." : "Rikta kameran mot incheckningskoden.",

@@ -63,6 +63,8 @@ OC.L10N.register(
     "Done" : "Selesai",
     "Email" : "Email",
     "Language" : "Bahasa",
+    "Notify users who can see this appointment about its creation" : "Beri tahu pengguna yang dapat melihat janji temu ini tentang pembuatannya",
+    "OpenStreetMap" : "OpenStreetMap",
     "Search by name …" : "Cari berdasarkan nama …",
     "Send" : "Kirim",
     "Show QR code" : "Tampilkan kode QR",

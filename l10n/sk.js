@@ -68,6 +68,8 @@ OC.L10N.register(
     "Groups (required)" : "Skupiny (povinné)",
     "Invite guest" : "Pozviať hosťa",
     "Language" : "Jazyk",
+    "Notify users who can see this appointment about its creation" : "Oznámte používateľom, ktorí môžu vidieť túto schôdzku, o jej vytvorení",
+    "OpenStreetMap" : "OpenStreetMap",
     "Send" : "Odoslať",
     "Show QR code" : "Zobraziť QR kód",
     "Sign in" : "Prihlásenie",

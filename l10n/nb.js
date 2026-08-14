@@ -53,6 +53,7 @@ OC.L10N.register(
     "Groups (required)" : "Grupper (kreves)",
     "Invite guest" : "Inviter gjest",
     "Language" : "Språk",
+    "OpenStreetMap" : "OpenStreetMap",
     "Send" : "Send",
     "Show QR code" : "Vis QR-koden",
     "Sign in" : "Logg inn",
