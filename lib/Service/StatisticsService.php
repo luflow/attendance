@@ -117,7 +117,10 @@ class StatisticsService {
 	}
 
 	/**
-	 * One person's appointments in the filtered range, for the drill-down.
+	 * One person's appointments in the filtered range, for the drill-down,
+	 * newest first — the drill-down answers "what has this person been doing
+	 * lately", not "how did the season run". The chronological order the
+	 * timeline needs stays with the timeline.
 	 *
 	 * @param bool $withComments Whether the viewer may read this person's comments
 	 * @return StatsPersonDetail
@@ -153,7 +156,7 @@ class StatisticsService {
 			'userId' => $userId,
 			'displayName' => $user?->getDisplayName() ?? $userId,
 			'isGuest' => $this->guestService->isGuestUser($userId),
-			'entries' => $entries,
+			'entries' => array_reverse($entries),
 		];
 	}
 

@@ -276,6 +276,31 @@ class StatisticsServiceTest extends TestCase {
 		$this->assertTrue($detail['entries'][0]['attendanceRecorded']);
 	}
 
+	/**
+	 * The drill-down reads newest first, while findForStatistics() — which also
+	 * feeds the chronological timeline — hands them over oldest first.
+	 */
+	public function testPersonDetailListsTheNewestAppointmentFirst(): void {
+		$this->givenUsers(['alice' => 'Alice']);
+		$this->givenUnrestrictedVisibility();
+		$this->givenGroupSections();
+
+		$this->appointmentMapper->method('findForStatistics')->willReturn([
+			$this->appointment(1, '2026-05-01 18:00:00', '2026-05-01 20:00:00'),
+			$this->appointment(2, '2026-06-01 18:00:00', '2026-06-01 20:00:00'),
+			$this->appointment(3, '2026-07-01 18:00:00', '2026-07-01 20:00:00'),
+		]);
+		$this->givenResponses([
+			$this->response(1, 'alice', 'yes', 'yes'),
+			$this->response(2, 'alice', 'no', ''),
+			$this->response(3, 'alice', 'maybe', ''),
+		]);
+
+		$detail = $this->service->getPersonDetail($this->filter(), 'alice');
+
+		$this->assertSame([3, 2, 1], array_column($detail['entries'], 'appointmentId'));
+	}
+
 	public function testPersonDetailWithholdsCommentsUnlessAsked(): void {
 		$this->givenUsers(['alice' => 'Alice']);
 		$this->givenUnrestrictedVisibility();
