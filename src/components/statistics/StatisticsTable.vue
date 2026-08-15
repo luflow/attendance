@@ -118,7 +118,7 @@ import { translatePlural as n, translate as t } from '@nextcloud/l10n'
 import { computed, ref } from 'vue'
 import MenuDownIcon from 'vue-material-design-icons/MenuDown.vue'
 import MenuUpIcon from 'vue-material-design-icons/MenuUp.vue'
-import { SECTIONS_COLUMN, sectionsColumnLabel, STATISTICS_COLUMNS } from '../../utils/statisticsColumns.js'
+import { formatRate, SECTIONS_COLUMN, sectionsColumnLabel, STATISTICS_COLUMNS } from '../../utils/statisticsColumns.js'
 
 const props = defineProps({
 	sections: { type: Array, required: true },
@@ -237,9 +237,7 @@ function cell(row, column) {
 	if (!column.rate) {
 		return String(value ?? 0)
 	}
-	return value === null || value === undefined
-		? '–'
-		: `${Math.round(value * 1000) / 10} %`
+	return formatRate(value)
 }
 </script>
 

@@ -100,3 +100,31 @@ export function presetColumns(detail, scheduling) {
 		.filter((column) => detail === 'full' || column.compact)
 		.map((column) => column.key)
 }
+
+/**
+ * A rate as a percentage, one decimal. Shared so the table, the charts and the
+ * highlight cards cannot drift apart on rounding or on the space before the
+ * sign — they render the same numbers side by side.
+ *
+ * @param {?number} rate - A rate between 0 and 1, or null without a basis.
+ * @param {string} fallback - Rendered instead when there is no rate.
+ * @return {string} The formatted percentage.
+ */
+export function formatRate(rate, fallback = '–') {
+	return rate === null || rate === undefined
+		? fallback
+		: `${Math.round(rate * 1000) / 10} %`
+}
+
+/**
+ * A selection with `value` flipped in or out. Written once because this view
+ * alone toggles cards, columns and categories, and copies of it drift — the
+ * card toggle shipped with the column toggle's doc comment.
+ *
+ * @param {Array<string|number>} list - The current selection.
+ * @param {string|number} value - What to flip.
+ * @return {Array<string|number>} A new selection.
+ */
+export function toggled(list, value) {
+	return list.includes(value) ? list.filter((entry) => entry !== value) : [...list, value]
+}

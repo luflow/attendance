@@ -28,7 +28,7 @@ use OCP\IUserManager;
  * for is one where the feature was not used.
  *
  * @psalm-type StatsCounts = array{targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, scheduled: int, notScheduled: int, schedulingBase: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float, scheduledRate: ?float}
- * @psalm-type StatsPerson = array{userId: string, displayName: string, isGuest: bool, sections: list<string>, targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, scheduled: int, notScheduled: int, schedulingBase: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float, scheduledRate: ?float}
+ * @psalm-type StatsPerson = array{userId: string, displayName: string, isGuest: bool, sections: list<string>, lastPresentAt: ?string, targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, scheduled: int, notScheduled: int, schedulingBase: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float, scheduledRate: ?float}
  * @psalm-type StatsSection = array{id: string, displayName: string, personCount: int, targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, scheduled: int, notScheduled: int, schedulingBase: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float, scheduledRate: ?float}
  * @psalm-type StatsTimelinePoint = array{appointmentId: int, name: string, startDatetime: ?string, targetCount: int, yes: int, present: int, attendanceRecorded: bool}
  * @psalm-type StatsCategory = array{categoryId: ?int, displayName: string, appointmentCount: int, targetCount: int, yes: int, present: int, attendanceBase: int, acceptRate: ?float, attendanceRate: ?float}
@@ -103,6 +103,7 @@ class StatisticsService {
 				'displayName' => $displayName,
 				'isGuest' => $this->guestService->isGuestUser($userId),
 				'sections' => $membership[$userId] ?? [],
+				'lastPresentAt' => $evaluation['lastPresent'][$userId] ?? null,
 			] + $tallies[$userId]->toArray();
 		}
 
@@ -191,7 +192,7 @@ class StatisticsService {
 
 	/**
 	 * @param list<Appointment> $appointments
-	 * @return array{tallies: array<string, StatisticsTally>, timeline: list<StatsTimelinePoint>, byCategory: array<int, StatsCategoryTally>, pastCount: int, attendanceRecordedCount: int}
+	 * @return array{tallies: array<string, StatisticsTally>, lastPresent: array<string, string>, timeline: list<StatsTimelinePoint>, byCategory: array<int, StatsCategoryTally>, pastCount: int, attendanceRecordedCount: int}
 	 */
 	private function evaluate(array $appointments): array {
 		$appointmentIds = $this->idsOf($appointments);
@@ -200,6 +201,12 @@ class StatisticsService {
 
 		/** @var array<string, StatisticsTally> $tallies */
 		$tallies = [];
+		// userId → start of the most recent appointment they turned up for.
+		// Kept beside the tallies rather than inside them: it is a fact about a
+		// person, and merging it into a group or the totals row would answer a
+		// question nobody asks.
+		/** @var array<string, string> $lastPresent */
+		$lastPresent = [];
 		$timeline = [];
 		/** @var array<int, StatsCategoryTally> $byCategory */
 		$byCategory = [];
@@ -211,6 +218,9 @@ class StatisticsService {
 			$appointmentId = $appointment->getId();
 			$targets = $this->targetUserIds($appointment);
 			$isPast = $this->hasEnded($appointment);
+			// Hoisted: startOf() serializes the whole entity, and both the inner
+			// loop and the timeline entry below want the same string.
+			$start = $this->startOf($appointment);
 			$countsForAttendance = $isPast && isset($checkedIn[$appointmentId]);
 			$countsForScheduling = $bookingEnabled
 				&& $appointment->isClosed()
@@ -234,6 +244,11 @@ class StatisticsService {
 				$tallies[$targetUserId] ??= new StatisticsTally();
 				$tallies[$targetUserId]->record($response, $checkin, $countsForAttendance, $countsForScheduling, $isScheduled);
 				$perAppointment->record($response, $checkin, $countsForAttendance, $countsForScheduling, $isScheduled);
+
+				// findForStatistics() orders ascending, so the last write wins.
+				if ($checkin === 'yes' && $start !== null) {
+					$lastPresent[$targetUserId] = $start;
+				}
 			}
 
 			$categoryKey = $appointment->getCategoryId() ?? 0;
@@ -250,7 +265,7 @@ class StatisticsService {
 			$timeline[] = [
 				'appointmentId' => $appointmentId,
 				'name' => $appointment->getName(),
-				'startDatetime' => $this->startOf($appointment),
+				'startDatetime' => $start,
 				'targetCount' => $perAppointment->targetCount,
 				'yes' => $perAppointment->yes,
 				'present' => $perAppointment->present,
@@ -260,6 +275,7 @@ class StatisticsService {
 
 		return [
 			'tallies' => $tallies,
+			'lastPresent' => $lastPresent,
 			'timeline' => $timeline,
 			'byCategory' => $byCategory,
 			'pastCount' => $pastCount,

@@ -179,6 +179,45 @@
 				}}
 			</p>
 
+			<div v-if="!reduced" class="statistics__highlights-head">
+				<!-- TRANSLATORS: Heading over the small summary cards above the charts. -->
+				<h3>{{ t("attendance", "Highlights") }}</h3>
+				<NcPopover>
+					<template #trigger>
+						<NcButton variant="tertiary" data-test="statistics-cards">
+							<template #icon>
+								<TuneIcon :size="20" />
+							</template>
+							{{ t("attendance", "Choose cards") }}
+						</NcButton>
+					</template>
+					<template #default>
+						<ul class="statistics__options" role="menu">
+							<li v-for="card in cardChoices" :key="card.key" role="presentation">
+								<button
+									type="button"
+									role="menuitemcheckbox"
+									:aria-checked="visibleCards.includes(card.key)"
+									class="statistics__option-button"
+									:data-test="`statistics-card-${card.key}`"
+									@click="toggleCard(card.key)">
+									{{ card.label }}
+									<CheckIcon v-if="visibleCards.includes(card.key)" :size="18" />
+								</button>
+							</li>
+						</ul>
+					</template>
+				</NcPopover>
+			</div>
+
+			<StatisticsHighlights
+				v-if="!reduced"
+				:people="statistics.people"
+				:totals="statistics.totals"
+				:visibleCards="visibleCards"
+				:selectable="canDrillDown"
+				@selectPerson="selectedPerson = $event" />
+
 			<StatisticsCharts
 				v-if="!reduced"
 				:statistics="statistics"
@@ -283,14 +322,17 @@ import CheckIcon from 'vue-material-design-icons/Check.vue'
 import DownloadIcon from 'vue-material-design-icons/Download.vue'
 import TableColumnIcon from 'vue-material-design-icons/TableColumn.vue'
 import TagIcon from 'vue-material-design-icons/TagOutline.vue'
+import TuneIcon from 'vue-material-design-icons/Tune.vue'
 import LoadingState from '../components/common/LoadingState.vue'
+import StatisticsHighlights from '../components/statistics/StatisticsHighlights.vue'
 import StatisticsPersonSidebar from '../components/statistics/StatisticsPersonSidebar.vue'
 import StatisticsTable from '../components/statistics/StatisticsTable.vue'
 import { useCategories } from '../composables/useCategories.js'
 import { useCategoryFilterChips } from '../composables/useCategoryFilterChips.js'
 import { usePermissions } from '../composables/usePermissions.js'
 import { categoryIconComponent } from '../utils/categoryIcons.js'
-import { availableColumns, presetColumns } from '../utils/statisticsColumns.js'
+import { availableCards, defaultCards } from '../utils/statisticsCards.js'
+import { availableColumns, presetColumns, toggled } from '../utils/statisticsColumns.js'
 import { defaultPeriod, periodFromKey, periodOptions, periodTypeForKey } from '../utils/statisticsPeriods.js'
 
 // chart.js is only ever needed here — keep it out of the bundle every other
@@ -338,13 +380,19 @@ const chosenColumns = ref(initial.columns)
 const visibleColumns = computed(() => chosenColumns.value
 	?? presetColumns(detail.value, schedulingEnabled.value))
 
+const cardChoices = computed(() => availableCards(schedulingEnabled.value))
+
+const chosenCards = ref(initial.cards)
+
+const visibleCards = computed(() => chosenCards.value ?? defaultCards(schedulingEnabled.value))
+
 // Compact/Full stay the two presets people reach for; ticking individual
 // columns refines whichever they picked last.
 watch(detail, () => {
 	chosenColumns.value = null
 })
 
-watch([grouping, detail, visibleColumns], writeUrlState)
+watch([grouping, detail, visibleColumns, visibleCards], writeUrlState)
 
 const reduced = computed(() => !permissions.canSeeStatistics)
 
@@ -430,21 +478,24 @@ async function exportStatistics() {
 }
 
 /**
+ * @param {string} key - Card to toggle.
+ */
+function toggleCard(key) {
+	chosenCards.value = toggled(visibleCards.value, key)
+}
+
+/**
  * @param {string} key - Column to toggle.
  */
 function toggleColumn(key) {
-	chosenColumns.value = visibleColumns.value.includes(key)
-		? visibleColumns.value.filter((column) => column !== key)
-		: [...visibleColumns.value, key]
+	chosenColumns.value = toggled(visibleColumns.value, key)
 }
 
 /**
  * @param {number} categoryId - Category to toggle.
  */
 function toggleCategory(categoryId) {
-	selectedCategoryIds.value = selectedCategoryIds.value.includes(categoryId)
-		? selectedCategoryIds.value.filter((id) => id !== categoryId)
-		: [...selectedCategoryIds.value, categoryId]
+	selectedCategoryIds.value = toggled(selectedCategoryIds.value, categoryId)
 }
 
 /**
@@ -486,6 +537,9 @@ function readUrlState() {
 		columns: params.has('columns')
 			? params.get('columns').split(',').filter(Boolean)
 			: null,
+		cards: params.has('cards')
+			? params.get('cards').split(',').filter(Boolean)
+			: null,
 	}
 }
 
@@ -512,6 +566,7 @@ function writeUrlState() {
 	// Only an explicit pick — the preset is already implied by `detail`, and
 	// spelling it out would put a dozen redundant keys on every visit.
 	if (chosenColumns.value !== null) params.set('columns', chosenColumns.value.join(','))
+	if (chosenCards.value !== null) params.set('cards', chosenCards.value.join(','))
 
 	window.history.replaceState(
 		window.history.state,
@@ -618,6 +673,19 @@ function writeUrlState() {
     align-items: center;
     display: inline-flex;
     gap: 4px;
+}
+
+.statistics__highlights-head {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.statistics__highlights-head h3 {
+    font-size: 15px;
+    font-weight: bold;
+    margin: 0;
 }
 
 .statistics__summary {

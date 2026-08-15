@@ -358,6 +358,47 @@ class StatisticsServiceTest extends TestCase {
 		$this->assertSame(1, $result['totals']['schedulingBase'], 'the totals row agrees');
 	}
 
+	/**
+	 * Feeds the "longest not attended" card, so it has to be the *latest*
+	 * appointment the person turned up for, and null for somebody who never did.
+	 */
+	public function testRecordsWhenEachPersonWasLastPresent(): void {
+		$this->givenUsers(['alice' => 'Alice', 'bob' => 'Bob']);
+		$this->givenUnrestrictedVisibility();
+		$this->givenGroupSections();
+
+		$this->appointmentMapper->method('findForStatistics')->willReturn([
+			$this->appointment(1, '2026-05-01 18:00:00', '2026-05-01 20:00:00'),
+			$this->appointment(2, '2026-05-08 18:00:00', '2026-05-08 20:00:00'),
+		]);
+		$this->givenResponses([
+			$this->response(1, 'alice', 'yes', 'yes'),
+			$this->response(2, 'alice', 'yes', 'yes'),
+			$this->response(1, 'bob', 'yes', 'yes'),
+			$this->response(2, 'bob', 'yes', 'no'),
+		]);
+
+		$people = array_column($this->service->getStatistics($this->filter())['people'], null, 'userId');
+
+		$this->assertStringStartsWith('2026-05-08', (string)$people['alice']['lastPresentAt'], 'the later of the two');
+		$this->assertStringStartsWith('2026-05-01', (string)$people['bob']['lastPresentAt'], 'absent on the later one');
+	}
+
+	public function testLastPresentIsNullForSomebodyWhoNeverTurnedUp(): void {
+		$this->givenUsers(['alice' => 'Alice']);
+		$this->givenUnrestrictedVisibility();
+		$this->givenGroupSections();
+
+		$this->appointmentMapper->method('findForStatistics')->willReturn([
+			$this->appointment(1, '2026-05-01 18:00:00', '2026-05-01 20:00:00'),
+		]);
+		$this->givenResponses([
+			$this->response(1, 'alice', 'no', 'no'),
+		]);
+
+		$this->assertNull($this->service->getStatistics($this->filter())['people'][0]['lastPresentAt']);
+	}
+
 	public function testRefusesRangesBeyondTheAppointmentLimit(): void {
 		$appointments = [];
 		for ($id = 1; $id <= StatisticsService::MAX_APPOINTMENTS + 1; $id++) {

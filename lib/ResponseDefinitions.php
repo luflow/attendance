@@ -328,6 +328,7 @@ namespace OCA\Attendance;
  *   displayName: string,
  *   isGuest: bool,
  *   sections: list<string>,
+ *   lastPresentAt: ?string,
  *   targetCount: int,
  *   yes: int,
  *   no: int,

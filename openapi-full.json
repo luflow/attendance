@@ -1508,6 +1508,7 @@
                     "displayName",
                     "isGuest",
                     "sections",
+                    "lastPresentAt",
                     "targetCount",
                     "yes",
                     "no",
@@ -1541,6 +1542,10 @@
                         "items": {
                             "type": "string"
                         }
+                    },
+                    "lastPresentAt": {
+                        "type": "string",
+                        "nullable": true
                     },
                     "targetCount": {
                         "type": "integer",
