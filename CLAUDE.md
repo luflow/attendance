@@ -14,6 +14,18 @@ check that the generated OpenAPI specs still match the controllers. Every gate
 runs even when an earlier one fails, so one invocation gives you the whole
 picture. It needs `npm ci` and `composer install` to have run first.
 
+The linters live in their own `vendor-bin/*` installs, and **a `git pull` does
+not update them** — only `composer install` (through its `post-install-cmd`) or
+`composer bin all install` does. Pull a change that bumps one of them and the
+old binary stays behind, which is how psalm ended up crashing on a PHP its
+version predates and looking like a broken environment. A gate that crashes
+rather than reporting findings is the signature; check what is actually
+installed before blaming the toolchain:
+
+```bash
+composer bin all install
+```
+
 Rules that keep the repo clean over time:
 
 - **Never silence a gate to make it pass.** No `eslint-disable`, no
@@ -23,7 +35,12 @@ Rules that keep the repo clean over time:
 - **`psalm-baseline.xml` is the known backlog, not a dumping ground.** New
   findings get fixed in the code. Do not run `psalm --set-baseline` to make
   your own errors disappear — that hides them and rewrites 1300 unrelated
-  entries. Entries only ever leave the baseline by being fixed.
+  entries. Entries only ever leave the baseline by being fixed. Note that it
+  counts occurrences *per file and issue type*, so adding one more call of an
+  already-baselined kind surfaces an error pointing at somebody else's line —
+  the fix belongs in your new code, not there. Deprecated `IConfig::getAppValue`
+  is the usual one; new settings in `ConfigService` take `IAppConfig`
+  (`getValueBool`/`setValueBool`).
 - **Do not run `psalm --alter`.** Its suggestions are led by deleting
   "unused" methods (this app is DI-driven, so psalm cannot see most call
   sites) and by making classes `final` (PHPUnit cannot mock final classes, so
