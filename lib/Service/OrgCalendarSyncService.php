@@ -140,7 +140,12 @@ class OrgCalendarSyncService {
 	 * are skipped: they already live in a calendar, and overwriting the source
 	 * event with our plain-text representation would be lossy.
 	 *
-	 * @return bool True if an event was written
+	 * @return bool True if the appointment is in the calendar afterwards —
+	 *              including when it was already current and nothing had to be
+	 *              written. Callers count coverage, not writes: the admin's
+	 *              sync button promises to create or update the events for all
+	 *              upcoming appointments, and reporting 0 because they were all
+	 *              already correct reads as a failure.
 	 */
 	public function syncAppointment(Appointment $appointment): bool {
 		try {
@@ -173,14 +178,13 @@ class OrgCalendarSyncService {
 				$ics = $existingIcs !== null
 					? $this->patchIcs($existingIcs, $appointment)
 					: $this->buildIcs($appointment, $uid);
-				if ($existingIcs !== null && $this->matchesIgnoringTimestamps($existingIcs, $ics)) {
-					// Nothing the reader would see changed. Writing anyway would
-					// still raise a calendar activity for everybody the calendar
-					// is shared with — see isOrgCalendarSummaryEnabled().
-					$this->linkAppointment($appointment, $uid, $ownerCalendarUri);
-					return false;
+				// Skip a write that changes nothing a reader would see: it would
+				// still raise a calendar activity for everybody the calendar is
+				// shared with — see isOrgCalendarSummaryEnabled(). The appointment
+				// is in the calendar either way, so the caller is told so.
+				if ($existingIcs === null || !$this->matchesIgnoringTimestamps($existingIcs, $ics)) {
+					$backend->updateCalendarObject($calendarId, $objectUri, $ics);
 				}
-				$backend->updateCalendarObject($calendarId, $objectUri, $ics);
 			} else {
 				$backend->createCalendarObject($calendarId, $objectUri, $this->buildIcs($appointment, $uid));
 			}

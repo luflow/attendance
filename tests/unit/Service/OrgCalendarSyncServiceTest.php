@@ -500,8 +500,31 @@ class OrgCalendarSyncServiceTest extends TestCase {
 			'calendardata' => str_replace('20260801T100000Z', '20260101T090000Z', $stored),
 		];
 
-		$this->assertFalse($this->service->syncAppointment($appointment));
+		// True because the appointment *is* in the calendar — what the caller
+		// counts is coverage, not writes. The absent write is the point.
+		$this->assertTrue($this->service->syncAppointment($appointment));
 		$this->assertSame([], $this->backend->updated);
+	}
+
+	/**
+	 * The admin's sync button reports how many upcoming appointments the
+	 * calendar now covers. Appointments whose event was already current must
+	 * count, or a healthy instance reports zero and reads as broken.
+	 */
+	public function testBackfillCountsAppointmentsThatWereAlreadyCurrent(): void {
+		$this->configureEnabled();
+		$appointment = $this->buildAppointment();
+		$appointment->setCalendarUri('org-events-owner-uri');
+		$appointment->setCalendarEventUid('attendance-org-5@cloud.example.com');
+
+		$this->backend->existingObjects['attendance-org-5@cloud.example.com.ics'] = [
+			'id' => 1,
+			'calendardata' => $this->service->buildIcs($appointment, 'attendance-org-5@cloud.example.com'),
+		];
+		$this->appointmentMapper->method('findUpcoming')->willReturn([$appointment]);
+
+		$this->assertSame(1, $this->service->syncAllUpcoming());
+		$this->assertSame([], $this->backend->updated, 'counted without writing');
 	}
 
 	public function testWriteHappensWhenTheSummaryLineMoved(): void {
