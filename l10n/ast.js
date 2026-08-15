@@ -41,6 +41,7 @@ OC.L10N.register(
     "Email" : "Direición de corréu electrónicu",
     "Groups (required)" : "Grupos (obligatorios)",
     "Language" : "Llingua",
+    "OpenStreetMap" : "OpenStreetMap",
     "Send" : "Unviar",
     "Show QR code" : "Amosar el códigu QR",
     "Sign in" : "Aniciar la sesión",

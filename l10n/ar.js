@@ -52,6 +52,7 @@ OC.L10N.register(
     "Groups (required)" : "المجموعات (مطلوب)",
     "Invite guest" : "أُدعُ ضيفاً",
     "Language" : "اللغة",
+    "OpenStreetMap" : "خرائط \"أوبن ستريت ماب\" OpenStreetMap",
     "Send" : "أرسِل",
     "Show QR code" : "عرض رمز الاستجابة السريعة QR",
     "Sign in" : "تسجيل الدخول",
