@@ -15,7 +15,7 @@
 								:size="16" />
 						</button>
 					</th>
-					<th v-if="!grouped" scope="col" class="statistics-table__sections">
+					<th v-if="showSections" scope="col" class="statistics-table__sections">
 						{{ sectionColumnLabel }}
 					</th>
 					<th v-for="column in columns" :key="column.key" scope="col">
@@ -41,7 +41,7 @@
 						<!-- TRANSLATORS: Row label on the one row a user without the statistics permission sees — their own counts. -->
 						{{ t("attendance", "Your numbers") }}
 					</th>
-					<td v-if="!grouped" class="statistics-table__sections">
+					<td v-if="showSections" class="statistics-table__sections">
 						{{ sectionsOf(ownPerson) }}
 					</td>
 					<td v-for="column in columns" :key="column.key">
@@ -88,7 +88,7 @@
 							{{ t("attendance", "Guest") }}
 						</span>
 					</th>
-					<td v-if="!grouped" class="statistics-table__sections">
+					<td v-if="showSections" class="statistics-table__sections">
 						{{ sectionsOf(person) }}
 					</td>
 					<td v-for="column in columns" :key="column.key">
@@ -103,7 +103,7 @@
 						<!-- TRANSLATORS: Label of the last table row, summing every person above it — each person counted once, even when listed under several groups. -->
 						{{ t("attendance", "Total") }}
 					</th>
-					<td v-if="!grouped" />
+					<td v-if="showSections" />
 					<td v-for="column in columns" :key="column.key">
 						{{ cell(totals, column) }}
 					</td>
@@ -118,6 +118,7 @@ import { translatePlural as n, translate as t } from '@nextcloud/l10n'
 import { computed, ref } from 'vue'
 import MenuDownIcon from 'vue-material-design-icons/MenuDown.vue'
 import MenuUpIcon from 'vue-material-design-icons/MenuUp.vue'
+import { SECTIONS_COLUMN, sectionsColumnLabel, STATISTICS_COLUMNS } from '../../utils/statisticsColumns.js'
 
 const props = defineProps({
 	sections: { type: Array, required: true },
@@ -126,11 +127,7 @@ const props = defineProps({
 	reduced: { type: Boolean, default: false },
 	selectable: { type: Boolean, default: false },
 	grouped: { type: Boolean, required: true },
-	detail: {
-		type: String,
-		default: 'compact',
-		validator: (value) => ['compact', 'full'].includes(value),
-	},
+	visibleColumns: { type: Array, required: true },
 	groupBy: { type: String, default: 'groups' },
 	ownUserId: { type: String, default: '' },
 	search: { type: String, default: '' },
@@ -138,36 +135,10 @@ const props = defineProps({
 
 const emit = defineEmits(['selectPerson'])
 
-// `compact` marks the columns that answer the question at a glance: who was
-// asked, what they said, whether they came.
-const COLUMNS = [
-	{ key: 'targetCount', label: t('attendance', 'Appointments') },
-	{ key: 'yes', label: t('attendance', 'Yes'), compact: true },
-	{ key: 'no', label: t('attendance', 'No'), compact: true },
-	{ key: 'maybe', label: t('attendance', 'Maybe'), compact: true },
-	{ key: 'noResponse', label: t('attendance', 'No response') },
-	{ key: 'present', label: t('attendance', 'Present'), compact: true },
-	{ key: 'absent', label: t('attendance', 'Absent') },
-	// TRANSLATORS: Column header — for how many appointments nobody wrote down whether this person was there. Not the same as being absent.
-	{ key: 'notRecorded', label: t('attendance', 'Not recorded') },
-	{
-		key: 'noShow',
-		// TRANSLATORS: Column header — the person said yes and then was not there. English uses the noun "no-show"; other languages usually need a short phrase.
-		label: t('attendance', 'No-show'),
-		hint: t('attendance', 'Said yes but was recorded as absent'),
-	},
-	// TRANSLATORS: Column header — share of appointments the person answered at all, whatever the answer was.
-	{ key: 'responseRate', label: t('attendance', 'Response rate'), rate: true, compact: true },
-	// TRANSLATORS: Column header — share of appointments the person answered with yes. Sits next to "Response rate" and "Attendance rate", which count different things.
-	{ key: 'acceptRate', label: t('attendance', 'Acceptance rate'), rate: true, compact: true },
-	// TRANSLATORS: Column header — share of appointments the person was actually there for, counted only over appointments where somebody worked the check-in list.
-	{ key: 'attendanceRate', label: t('attendance', 'Attendance rate'), rate: true, compact: true },
-]
-
 const sortKey = ref('displayName')
 const sortAsc = ref(true)
 
-const columns = computed(() => (props.detail === 'full' ? COLUMNS : COLUMNS.filter((column) => column.compact)))
+const columns = computed(() => STATISTICS_COLUMNS.filter((column) => props.visibleColumns.includes(column.key)))
 
 // A column the compact view drops takes its sort with it, arrow and all. Derived
 // rather than reset, so no render can fall between the two.
@@ -181,11 +152,13 @@ const sortIcon = computed(() => (activeSort.value.asc ? MenuUpIcon : MenuDownIco
 
 // Ungrouped, the membership a section heading would have carried becomes a
 // column of its own — it is the one thing a flat list would otherwise lose.
-const columnCount = computed(() => columns.value.length + (props.grouped ? 1 : 2))
+// Grouped, the headings already say it, so the column goes whatever is ticked.
+const showSections = computed(() => !props.grouped && props.visibleColumns.includes(SECTIONS_COLUMN))
 
-const sectionColumnLabel = computed(() => (props.groupBy === 'teams'
-	? t('attendance', 'Teams')
-	: t('attendance', 'Groups')))
+// The name column is always there; the sections column joins it when shown.
+const columnCount = computed(() => columns.value.length + 1 + (showSections.value ? 1 : 0))
+
+const sectionColumnLabel = computed(() => sectionsColumnLabel(props.groupBy))
 
 const sectionNames = computed(() => {
 	return Object.fromEntries(props.sections.map((section) => [section.id, section.displayName]))
@@ -288,6 +261,24 @@ function cell(row, column) {
     white-space: nowrap;
 }
 
+/* The name has to survive scrolling right — without it the numbers under the
+   cursor belong to nobody. It paints its own background, so it takes whatever
+   colour the row is carrying rather than a hardcoded one. Paired with the
+   sticky header below, the top-left corner needs the higher stacking order or
+   the two overlap. */
+.statistics-table th[scope="row"],
+.statistics-table thead th:first-child,
+.statistics-table tfoot th {
+    background-color: var(--row-background, var(--color-main-background));
+    inset-inline-start: 0;
+    position: sticky;
+    z-index: 1;
+}
+
+.statistics-table thead th:first-child {
+    z-index: 3;
+}
+
 /* Compounded with the element: the generic `th`/`td` rule above is a class plus
    an element, so a bare class would lose to it. */
 .statistics-table th[scope="row"],
@@ -315,7 +306,7 @@ function cell(row, column) {
     position: sticky;
     top: 0;
     background-color: var(--color-main-background);
-    z-index: 1;
+    z-index: 2;
 }
 
 .statistics-table__sort {
@@ -333,8 +324,15 @@ function cell(row, column) {
     padding: 0;
 }
 
-.statistics-table__section > * {
-    background-color: var(--color-background-hover);
+/* Row states set a custom property rather than a background: it inherits into
+   every cell including the sticky one, so no rule has to out-specify another. */
+.statistics-table tbody td,
+.statistics-table tbody th {
+    background-color: var(--row-background, transparent);
+}
+
+.statistics-table__section {
+    --row-background: var(--color-background-hover);
     font-weight: bold;
 }
 
@@ -345,14 +343,14 @@ function cell(row, column) {
     cursor: pointer;
 }
 
-.statistics-table__person:hover > * {
-    background-color: var(--color-background-hover);
+.statistics-table__person:hover {
+    --row-background: var(--color-background-hover);
 }
 
-.statistics-table__own > *,
-.statistics-table__person--self > *,
-.statistics-table__person--self:hover > * {
-    background-color: var(--color-primary-element-light);
+.statistics-table__own,
+.statistics-table__person--self,
+.statistics-table__person--self:hover {
+    --row-background: var(--color-primary-element-light);
     font-weight: bold;
 }
 

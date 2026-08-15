@@ -211,6 +211,37 @@
 						<NcRadioGroupButton :label="t('attendance', 'Compact')" value="compact" />
 						<NcRadioGroupButton :label="t('attendance', 'Full')" value="full" />
 					</NcRadioGroup>
+
+					<div class="statistics__filter">
+						<!-- TRANSLATORS: Label above the button that opens the list of table columns to tick or untick. -->
+						<label>{{ t("attendance", "Columns") }}</label>
+						<NcPopover>
+							<template #trigger>
+								<NcButton variant="secondary" data-test="statistics-columns">
+									<template #icon>
+										<TableColumnIcon :size="20" />
+									</template>
+									{{ n("attendance", "%n column", "%n columns", visibleColumns.length) }}
+								</NcButton>
+							</template>
+							<template #default>
+								<ul class="statistics__options" role="menu">
+									<li v-for="column in columnChoices" :key="column.key" role="presentation">
+										<button
+											type="button"
+											role="menuitemcheckbox"
+											:aria-checked="visibleColumns.includes(column.key)"
+											class="statistics__option-button"
+											:data-test="`statistics-column-${column.key}`"
+											@click="toggleColumn(column.key)">
+											{{ column.label }}
+											<CheckIcon v-if="visibleColumns.includes(column.key)" :size="18" />
+										</button>
+									</li>
+								</ul>
+							</template>
+						</NcPopover>
+					</div>
 				</div>
 			</div>
 
@@ -221,7 +252,7 @@
 				:reduced="reduced"
 				:selectable="canDrillDown"
 				:grouped="grouped"
-				:detail="detail"
+				:visibleColumns="visibleColumns"
 				:groupBy="statistics.groupBy"
 				:ownUserId="ownUserId"
 				:search="search"
@@ -251,6 +282,7 @@ import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import ChartLineIcon from 'vue-material-design-icons/ChartLine.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
 import DownloadIcon from 'vue-material-design-icons/Download.vue'
+import TableColumnIcon from 'vue-material-design-icons/TableColumn.vue'
 import TagIcon from 'vue-material-design-icons/TagOutline.vue'
 import LoadingState from '../components/common/LoadingState.vue'
 import StatisticsPersonSidebar from '../components/statistics/StatisticsPersonSidebar.vue'
@@ -259,6 +291,7 @@ import { useCategories } from '../composables/useCategories.js'
 import { useCategoryFilterChips } from '../composables/useCategoryFilterChips.js'
 import { usePermissions } from '../composables/usePermissions.js'
 import { categoryIconComponent } from '../utils/categoryIcons.js'
+import { availableColumns, presetColumns } from '../utils/statisticsColumns.js'
 import { defaultPeriod, periodFromKey, periodOptions, periodTypeForKey } from '../utils/statisticsPeriods.js'
 
 // chart.js is only ever needed here — keep it out of the bundle every other
@@ -291,7 +324,28 @@ const detail = ref(initial.detail)
 // Both switches only pick what is drawn from an answer the server already sent,
 // so they must stay out of `query` — flipping one is not worth an evaluation.
 const grouped = computed(() => grouping.value === 'grouped')
-watch([grouping, detail], writeUrlState)
+
+// Whether the scheduling counters mean anything travels with the numbers, so
+// the columns settle the moment the evaluation arrives — no second source that
+// resolves on its own schedule.
+const schedulingEnabled = computed(() => statistics.value?.schedulingEnabled === true)
+
+const columnChoices = computed(() => availableColumns(schedulingEnabled.value, groupBy.value))
+
+// The user's own pick, or null while they have not made one. Everything else is
+// derived, so the preset never has to be re-applied by a watcher.
+const chosenColumns = ref(initial.columns)
+
+const visibleColumns = computed(() => chosenColumns.value
+	?? presetColumns(detail.value, schedulingEnabled.value))
+
+// Compact/Full stay the two presets people reach for; ticking individual
+// columns refines whichever they picked last.
+watch(detail, () => {
+	chosenColumns.value = null
+})
+
+watch([grouping, detail, visibleColumns], writeUrlState)
 
 const reduced = computed(() => !permissions.canSeeStatistics)
 
@@ -377,6 +431,15 @@ async function exportStatistics() {
 }
 
 /**
+ * @param {string} key - Column to toggle.
+ */
+function toggleColumn(key) {
+	chosenColumns.value = visibleColumns.value.includes(key)
+		? visibleColumns.value.filter((column) => column !== key)
+		: [...visibleColumns.value, key]
+}
+
+/**
  * @param {number} categoryId - Category to toggle.
  */
 function toggleCategory(categoryId) {
@@ -419,6 +482,11 @@ function readUrlState() {
 		groupBy: params.get('groupBy') === 'teams' ? 'teams' : 'groups',
 		grouping: params.get('grouping') === 'flat' ? 'flat' : 'grouped',
 		detail: params.get('detail') === 'full' ? 'full' : 'compact',
+		// null, not [], so an explicitly emptied selection stays empty rather
+		// than falling back to the preset on every reload.
+		columns: params.has('columns')
+			? params.get('columns').split(',').filter(Boolean)
+			: null,
 	}
 }
 
@@ -442,6 +510,9 @@ function writeUrlState() {
 	// Below here: linkable, but not part of `query` — see the note on `grouped`.
 	if (!grouped.value) params.set('grouping', 'flat')
 	if (detail.value === 'full') params.set('detail', 'full')
+	// Only an explicit pick — the preset is already implied by `detail`, and
+	// spelling it out would put a dozen redundant keys on every visit.
+	if (chosenColumns.value !== null) params.set('columns', chosenColumns.value.join(','))
 
 	window.history.replaceState(
 		window.history.state,
@@ -452,8 +523,12 @@ function writeUrlState() {
 </script>
 
 <style scoped>
+/* The one page in the app that genuinely wants the screen: fully expanded the
+   table is fifteen columns of nowrap numbers, well past the 1200px every other
+   view is capped at. Capping it here pushed the table into a scroll container
+   whose bar sits below the last row — out of sight on any list worth reading. */
 .statistics {
-    max-width: 1200px;
+    max-width: 1800px;
     margin: 0 auto;
     padding: 0 20px 40px;
 }
