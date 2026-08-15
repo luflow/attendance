@@ -934,6 +934,12 @@
     "Location copied" : "Ort kopiert",
     "Maps app" : "Karten-App",
     "Notify users who can see this appointment about its creation" : "Benutzer, die diesen Termin sehen können, über die Erstellung benachrichtigen",
-    "OpenStreetMap" : "OpenStreetMap"
+    "OpenStreetMap" : "OpenStreetMap",
+    "Columns" : "Spalten",
+    "_%n column_::_%n columns_" : ["%n Spalte","%n Spalten"],
+    "Scheduling rate" : "Einplanungsquote",
+    "Counted only over closed inquiries where somebody was scheduled" : "Zählt nur geschlossene Anfragen, bei denen jemand eingeplant wurde",
+    "Show the response summary in the calendar event" : "Antwortübersicht im Kalendereintrag anzeigen",
+    "Everyone the calendar is shared with sees how many people accepted, without opening the app. Keeping it current means writing to the event after every answer, and Nextcloud reports each of those writes as a calendar change." : "Alle, für die der Kalender freigegeben ist, sehen ohne die App zu öffnen, wie viele zugesagt haben. Dafür wird der Kalendereintrag nach jeder Antwort neu geschrieben, und Nextcloud meldet jeden dieser Schreibvorgänge als Kalenderänderung."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
