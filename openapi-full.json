@@ -117,7 +117,8 @@
                 "required": [
                     "enabled",
                     "calendarUri",
-                    "userId"
+                    "userId",
+                    "summary"
                 ],
                 "properties": {
                     "enabled": {
@@ -130,6 +131,9 @@
                     "userId": {
                         "type": "string",
                         "nullable": true
+                    },
+                    "summary": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -7392,6 +7396,9 @@
                                             },
                                             "calendarUri": {
                                                 "type": "string"
+                                            },
+                                            "summary": {
+                                                "type": "boolean"
                                             }
                                         }
                                     },

@@ -231,6 +231,7 @@ namespace OCA\Attendance;
  *   enabled: bool,
  *   calendarUri: ?string,
  *   userId: ?string,
+ *   summary: bool,
  * }
  * @psalm-type AttendanceWritableCalendar = array{
  *   uri: string,

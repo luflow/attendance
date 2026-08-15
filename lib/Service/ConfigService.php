@@ -278,6 +278,32 @@ class ConfigService {
 	}
 
 	/**
+	 * Whether the response summary is carried in the organization calendar
+	 * event's description.
+	 *
+	 * Every write to a calendar object raises the DAV activity "X updated event
+	 * Y in calendar Z" for the owner and everybody the calendar is shared with —
+	 * unconditionally, without comparing content. Carrying the summary therefore
+	 * costs one such activity per answer. Nextcloud's own counter-setting is per
+	 * activity type, not per calendar, so switching it off there silences every
+	 * calendar the person has. This switch is the narrow one.
+	 *
+	 * Defaults to on, so an install that already carries the summary keeps it.
+	 */
+	public function isOrgCalendarSummaryEnabled(): bool {
+		return $this->appConfig->getValueBool(self::APP_ID, 'org_calendar_summary', true);
+	}
+
+	/**
+	 * Set whether the response summary is carried in the calendar event.
+	 *
+	 * @param bool $enabled Whether the summary should be carried
+	 */
+	public function setOrgCalendarSummaryEnabled(bool $enabled): void {
+		$this->appConfig->setValueBool(self::APP_ID, 'org_calendar_summary', $enabled);
+	}
+
+	/**
 	 * Check if push notifications are enabled.
 	 *
 	 * @return bool True if push notifications are enabled
