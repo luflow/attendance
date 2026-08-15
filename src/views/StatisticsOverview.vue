@@ -212,9 +212,8 @@
 						<NcRadioGroupButton :label="t('attendance', 'Full')" value="full" />
 					</NcRadioGroup>
 
-					<div class="statistics__filter">
-						<!-- TRANSLATORS: Label above the button that opens the list of table columns to tick or untick. -->
-						<label>{{ t("attendance", "Columns") }}</label>
+					<!-- TRANSLATORS: Label above the button that opens the list of table columns to tick or untick. -->
+					<NcFormGroup :label="t('attendance', 'Columns')">
 						<NcPopover>
 							<template #trigger>
 								<NcButton variant="secondary" data-test="statistics-columns">
@@ -241,7 +240,7 @@
 								</ul>
 							</template>
 						</NcPopover>
-					</div>
+					</NcFormGroup>
 				</div>
 			</div>
 
@@ -277,7 +276,7 @@ import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translatePlural as n, translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
-import { NcButton, NcChip, NcEmptyContent, NcPopover, NcRadioGroup, NcRadioGroupButton, NcTextField } from '@nextcloud/vue'
+import { NcButton, NcChip, NcEmptyContent, NcFormGroup, NcPopover, NcRadioGroup, NcRadioGroupButton, NcTextField } from '@nextcloud/vue'
 import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import ChartLineIcon from 'vue-material-design-icons/ChartLine.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'

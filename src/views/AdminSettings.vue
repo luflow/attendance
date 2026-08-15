@@ -415,6 +415,7 @@
 						<NcCheckboxRadioSwitch
 							v-model="orgCalendarSummary"
 							type="switch"
+							class="org-calendar-summary-switch"
 							data-test="switch-org-calendar-summary">
 							<!-- TRANSLATORS: Switch label. The summary is the "12 attending, 3 declined, 2 maybe" line the app appends to the calendar event's description. -->
 							{{ t('attendance', 'Show the response summary in the calendar event') }}
@@ -1442,6 +1443,12 @@ onMounted(async () => {
 	margin: 0 0 4px 0;
 	font-size: 15px;
 	font-weight: 600;
+}
+
+/* Its own decision, not another remark about the target calendar above it —
+   at the 8px the hint paragraphs use it read as one of them. */
+.org-calendar-summary-switch {
+	margin-top: 24px;
 }
 
 .org-calendar-sync-button {
