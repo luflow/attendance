@@ -169,7 +169,17 @@ class BookingService {
 	 * appointment where planning was never used stays unmarked.
 	 */
 	public function effectiveBookingStatus(AttendanceResponse $response): ?string {
-		return $response->getBookingStatus() ?? $response->getBookingNotifiedStatus();
+		return self::effectiveStatusOf($response->getBookingStatus(), $response->getBookingNotifiedStatus());
+	}
+
+	/**
+	 * The same precedence over raw column values, for callers that read the two
+	 * columns without hydrating the entity — the statistics evaluation reads
+	 * hundreds of thousands of rows and exists precisely to skip that. The rule
+	 * itself must not be restated there; it lives here.
+	 */
+	public static function effectiveStatusOf(?string $bookingStatus, ?string $notifiedStatus): ?string {
+		return $bookingStatus ?? $notifiedStatus;
 	}
 
 	/**

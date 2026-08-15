@@ -18,15 +18,18 @@ use OCP\IUserManager;
  * Cross-appointment evaluation: how each person answered, and whether they
  * actually turned up.
  *
- * Two denominators, deliberately different. The response rate counts every
+ * Three denominators, deliberately different. The response rate counts every
  * appointment a person was addressed to, upcoming ones included. The
  * attendance rate counts only appointments that are over *and* had at least
  * one check-in recorded — otherwise a person's number would depend on how
- * diligently somebody else worked the check-in list.
+ * diligently somebody else worked the check-in list. The scheduled rate counts
+ * only the yes-answers on inquiries that are closed *and* gave somebody a
+ * place: before closing nothing is decided, and an inquiry nobody was scheduled
+ * for is one where the feature was not used.
  *
- * @psalm-type StatsCounts = array{targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float}
- * @psalm-type StatsPerson = array{userId: string, displayName: string, isGuest: bool, sections: list<string>, targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float}
- * @psalm-type StatsSection = array{id: string, displayName: string, personCount: int, targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float}
+ * @psalm-type StatsCounts = array{targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, scheduled: int, notScheduled: int, schedulingBase: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float, scheduledRate: ?float}
+ * @psalm-type StatsPerson = array{userId: string, displayName: string, isGuest: bool, sections: list<string>, targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, scheduled: int, notScheduled: int, schedulingBase: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float, scheduledRate: ?float}
+ * @psalm-type StatsSection = array{id: string, displayName: string, personCount: int, targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, scheduled: int, notScheduled: int, schedulingBase: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float, scheduledRate: ?float}
  * @psalm-type StatsTimelinePoint = array{appointmentId: int, name: string, startDatetime: ?string, targetCount: int, yes: int, present: int, attendanceRecorded: bool}
  * @psalm-type StatsCategory = array{categoryId: ?int, displayName: string, appointmentCount: int, targetCount: int, yes: int, present: int, attendanceBase: int, acceptRate: ?float, attendanceRate: ?float}
  * @psalm-type StatsPersonDetail = array{userId: string, displayName: string, isGuest: bool, entries: list<array{appointmentId: int, name: string, startDatetime: ?string, response: ?string, checkinState: ?string, attendanceRecorded: bool, comment: ?string}>}
@@ -67,7 +70,7 @@ class StatisticsService {
 	 * @param ?string $limitToUserId When set, only this person's row is
 	 *                               returned and the chart series are left out —
 	 *                               the shape for users without the permission.
-	 * @return array{appointmentCount: int, pastCount: int, attendanceRecordedCount: int, groupBy: string, people: list<StatsPerson>, sections: list<StatsSection>, totals: StatsCounts, timeline: list<StatsTimelinePoint>, byCategory: list<StatsCategory>}
+	 * @return array{appointmentCount: int, pastCount: int, attendanceRecordedCount: int, groupBy: string, schedulingEnabled: bool, people: list<StatsPerson>, sections: list<StatsSection>, totals: StatsCounts, timeline: list<StatsTimelinePoint>, byCategory: list<StatsCategory>}
 	 * @throws StatisticsRangeException
 	 */
 	public function getStatistics(StatisticsFilter $filter, ?string $limitToUserId = null): array {
@@ -108,6 +111,10 @@ class StatisticsService {
 			'pastCount' => $evaluation['pastCount'],
 			'attendanceRecordedCount' => $evaluation['attendanceRecordedCount'],
 			'groupBy' => $filter->groupBy,
+			// Whether the scheduling counters mean anything at all. Travels with
+			// the numbers so every consumer — table, export, mobile — reads the
+			// rule from the one place that applied it.
+			'schedulingEnabled' => $this->configService->isBookingEnabled(),
 			'people' => $people,
 			'sections' => $sections,
 			'totals' => $totals->toArray(),
@@ -198,12 +205,16 @@ class StatisticsService {
 		$byCategory = [];
 		$pastCount = 0;
 		$attendanceRecordedCount = 0;
+		$bookingEnabled = $this->configService->isBookingEnabled();
 
 		foreach ($appointments as $appointment) {
 			$appointmentId = $appointment->getId();
 			$targets = $this->targetUserIds($appointment);
 			$isPast = $this->hasEnded($appointment);
 			$countsForAttendance = $isPast && isset($checkedIn[$appointmentId]);
+			$countsForScheduling = $bookingEnabled
+				&& $appointment->isClosed()
+				&& $this->anyoneScheduled($responses[$appointmentId] ?? []);
 
 			if ($isPast) {
 				$pastCount++;
@@ -217,10 +228,12 @@ class StatisticsService {
 				$answer = $responses[$appointmentId][$targetUserId] ?? null;
 				$response = $answer !== null ? $this->responseValue($answer['response']) : null;
 				$checkin = $answer !== null ? $this->checkinState($answer['checkinState']) : null;
+				$isScheduled = $countsForScheduling
+					&& ($answer['bookingStatus'] ?? null) === BookingService::STATUS_BOOKED;
 
 				$tallies[$targetUserId] ??= new StatisticsTally();
-				$tallies[$targetUserId]->record($response, $checkin, $countsForAttendance);
-				$perAppointment->record($response, $checkin, $countsForAttendance);
+				$tallies[$targetUserId]->record($response, $checkin, $countsForAttendance, $countsForScheduling, $isScheduled);
+				$perAppointment->record($response, $checkin, $countsForAttendance, $countsForScheduling, $isScheduled);
 			}
 
 			$categoryKey = $appointment->getCategoryId() ?? 0;
@@ -268,7 +281,7 @@ class StatisticsService {
 
 	/**
 	 * @param list<int> $appointmentIds
-	 * @return array<int, array<string, array{response: ?string, checkinState: ?string, comment?: ?string}>> appointmentId → userId → answer
+	 * @return array<int, array<string, array{response: ?string, checkinState: ?string, bookingStatus: ?string, comment?: ?string}>> appointmentId → userId → answer
 	 */
 	private function indexResponses(array $appointmentIds, ?string $userId = null, bool $withComments = false): array {
 		$indexed = [];
@@ -276,6 +289,7 @@ class StatisticsService {
 			$answer = [
 				'response' => $row['response'],
 				'checkinState' => $row['checkinState'],
+				'bookingStatus' => $row['bookingStatus'],
 			];
 			if ($withComments) {
 				$answer['comment'] = $row['comment'] ?? null;
@@ -284,6 +298,23 @@ class StatisticsService {
 		}
 
 		return $indexed;
+	}
+
+	/**
+	 * Whether anybody got a place in this appointment. An inquiry the manager
+	 * closed without scheduling anyone is one where the feature was not used —
+	 * counting everybody there as "not scheduled" would measure the manager,
+	 * not the person. Mirrors the guard in BookingService::isScheduledOut().
+	 *
+	 * @param array<string, array{response: ?string, checkinState: ?string, bookingStatus: ?string, comment?: ?string}> $answers
+	 */
+	private function anyoneScheduled(array $answers): bool {
+		foreach ($answers as $answer) {
+			if (($answer['bookingStatus'] ?? null) === BookingService::STATUS_BOOKED) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

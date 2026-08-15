@@ -1158,6 +1158,7 @@
                     "pastCount",
                     "attendanceRecordedCount",
                     "groupBy",
+                    "schedulingEnabled",
                     "people",
                     "sections",
                     "totals",
@@ -1179,6 +1180,9 @@
                     },
                     "groupBy": {
                         "type": "string"
+                    },
+                    "schedulingEnabled": {
+                        "type": "boolean"
                     },
                     "people": {
                         "type": "array",
@@ -1280,9 +1284,13 @@
                     "notRecorded",
                     "attendanceBase",
                     "noShow",
+                    "scheduled",
+                    "notScheduled",
+                    "schedulingBase",
                     "responseRate",
                     "acceptRate",
-                    "attendanceRate"
+                    "attendanceRate",
+                    "scheduledRate"
                 ],
                 "properties": {
                     "userId": {
@@ -1340,6 +1348,18 @@
                         "type": "integer",
                         "format": "int64"
                     },
+                    "scheduled": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "notScheduled": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "schedulingBase": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
                     "responseRate": {
                         "type": "number",
                         "format": "double",
@@ -1351,6 +1371,11 @@
                         "nullable": true
                     },
                     "attendanceRate": {
+                        "type": "number",
+                        "format": "double",
+                        "nullable": true
+                    },
+                    "scheduledRate": {
                         "type": "number",
                         "format": "double",
                         "nullable": true
@@ -1439,9 +1464,13 @@
                     "notRecorded",
                     "attendanceBase",
                     "noShow",
+                    "scheduled",
+                    "notScheduled",
+                    "schedulingBase",
                     "responseRate",
                     "acceptRate",
-                    "attendanceRate"
+                    "attendanceRate",
+                    "scheduledRate"
                 ],
                 "properties": {
                     "id": {
@@ -1494,6 +1523,18 @@
                         "type": "integer",
                         "format": "int64"
                     },
+                    "scheduled": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "notScheduled": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "schedulingBase": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
                     "responseRate": {
                         "type": "number",
                         "format": "double",
@@ -1505,6 +1546,11 @@
                         "nullable": true
                     },
                     "attendanceRate": {
+                        "type": "number",
+                        "format": "double",
+                        "nullable": true
+                    },
+                    "scheduledRate": {
                         "type": "number",
                         "format": "double",
                         "nullable": true
@@ -1564,9 +1610,13 @@
                     "notRecorded",
                     "attendanceBase",
                     "noShow",
+                    "scheduled",
+                    "notScheduled",
+                    "schedulingBase",
                     "responseRate",
                     "acceptRate",
-                    "attendanceRate"
+                    "attendanceRate",
+                    "scheduledRate"
                 ],
                 "properties": {
                     "targetCount": {
@@ -1609,6 +1659,18 @@
                         "type": "integer",
                         "format": "int64"
                     },
+                    "scheduled": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "notScheduled": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "schedulingBase": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
                     "responseRate": {
                         "type": "number",
                         "format": "double",
@@ -1620,6 +1682,11 @@
                         "nullable": true
                     },
                     "attendanceRate": {
+                        "type": "number",
+                        "format": "double",
+                        "nullable": true
+                    },
+                    "scheduledRate": {
                         "type": "number",
                         "format": "double",
                         "nullable": true
