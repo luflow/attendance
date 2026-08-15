@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## 1.47.3 – 2026-08-15
+
+### Fixed
+
+- **Appointments restricted to a team had no audience**: nobody showed up as unanswered — not in the response summary, not in the counts, not in the check-in lists, and reminders skipped them
+- **Members reached only through a visibility group outside the whitelist were missing from the summary**: no entry under "Others", and they were not counted as unanswered, although the appointment list did count them
+
+### Maintenance
+
+- Removed the leftovers of the old comment autosave — comments have long been saved only via the save button
+- Updated translations
+
 ## 1.47.2 – 2026-08-11
 
 ### Fixed
