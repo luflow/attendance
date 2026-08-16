@@ -58,7 +58,7 @@ class AttendanceResponseMapper extends QBMapper {
 
 	/**
 	 * @param int $appointmentId
-	 * @return array
+	 * @return list<AttendanceResponse>
 	 */
 	public function findByAppointment(int $appointmentId): array {
 		$qb = $this->db->getQueryBuilder();
@@ -161,7 +161,7 @@ class AttendanceResponseMapper extends QBMapper {
 
 	/**
 	 * @param string $userId
-	 * @return array
+	 * @return list<AttendanceResponse>
 	 */
 	public function findByUser(string $userId): array {
 		$qb = $this->db->getQueryBuilder();
@@ -178,7 +178,7 @@ class AttendanceResponseMapper extends QBMapper {
 
 	/**
 	 * @param int $appointmentId
-	 * @return array
+	 * @return array{yes: int, no: int, maybe: int}
 	 */
 	public function getResponseSummary(int $appointmentId): array {
 		$qb = $this->db->getQueryBuilder();
@@ -196,7 +196,12 @@ class AttendanceResponseMapper extends QBMapper {
 
 		$summary = ['yes' => 0, 'no' => 0, 'maybe' => 0];
 		foreach ($rows as $row) {
-			$summary[$row['response']] = (int)$row['count'];
+			// Only the three known answers; anything else in the column would
+			// otherwise add a key callers do not expect.
+			$response = (string)$row['response'];
+			if ($response === 'yes' || $response === 'no' || $response === 'maybe') {
+				$summary[$response] = (int)$row['count'];
+			}
 		}
 
 		return $summary;

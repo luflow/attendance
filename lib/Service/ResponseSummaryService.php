@@ -99,7 +99,6 @@ class ResponseSummaryService {
 	 */
 	public function getResponseCounts(int $appointmentId): array {
 		$appointment = $this->appointmentMapper->find($appointmentId);
-		/** @var list<\OCA\Attendance\Db\AttendanceResponse> $responses */
 		$responses = $this->responseMapper->findByAppointment($appointmentId);
 
 		/** @var array{yes: int, no: int, maybe: int, no_response: int} $counts */
