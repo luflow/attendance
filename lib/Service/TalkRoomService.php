@@ -54,6 +54,9 @@ class TalkRoomService {
 
 	private ?bool $talkEnabled = null;
 
+	/** @var array<class-string, ?object> Talk services already looked up */
+	private array $resolved = [];
+
 	public function __construct(
 		private ContainerInterface $container,
 		private IAppManager $appManager,
@@ -214,10 +217,14 @@ class TalkRoomService {
 		}
 
 		try {
-			$roomService = $this->resolve(RoomService::class);
 			$room = $this->resolveExistingRoom($appointment);
 			$owner = $this->resolveOwner($appointment);
-			if ($roomService === null || $room === null || $owner === null) {
+			if ($room === null || $owner === null) {
+				return;
+			}
+
+			$roomService = $this->resolve(RoomService::class);
+			if ($roomService === null) {
 				return;
 			}
 
@@ -450,8 +457,9 @@ class TalkRoomService {
 	 * list where a bare name says nothing about which date it belongs to.
 	 */
 	private function buildName(Appointment $appointment, IUser $owner): string {
-		$start = $this->startOf($appointment);
-		if ($start === null) {
+		try {
+			$start = new \DateTime($appointment->getStartDatetime(), new \DateTimeZone('UTC'));
+		} catch (\Exception) {
 			return mb_substr($appointment->getName(), 0, self::NAME_MAX_LENGTH);
 		}
 
@@ -491,26 +499,17 @@ class TalkRoomService {
 
 		// Talk rejects an over-long description outright, so a trimmed tail
 		// beats no description at all.
-		$available = self::DESCRIPTION_MAX_LENGTH - mb_strlen($intro) - 2;
-		if ($available < 2) {
+		$separator = "\n\n";
+		$ellipsis = '…';
+		$available = self::DESCRIPTION_MAX_LENGTH - mb_strlen($intro) - mb_strlen($separator);
+		if ($available <= mb_strlen($ellipsis)) {
 			return $intro;
 		}
 		if (mb_strlen($own) > $available) {
-			$own = mb_substr($own, 0, $available - 1) . '…';
+			$own = mb_substr($own, 0, $available - mb_strlen($ellipsis)) . $ellipsis;
 		}
 
-		return $intro . "\n\n" . $own;
-	}
-
-	/**
-	 * Start of the appointment as stored: UTC, and invalid only if the row is.
-	 */
-	private function startOf(Appointment $appointment): ?\DateTime {
-		try {
-			return new \DateTime($appointment->getStartDatetime(), new \DateTimeZone('UTC'));
-		} catch (\Exception) {
-			return null;
-		}
+		return $intro . $separator . $own;
 	}
 
 	/**
@@ -535,11 +534,31 @@ class TalkRoomService {
 	 * Talk registers its services in its own app container, which only exists
 	 * once the app is loaded — hence loadApp() before the lookup.
 	 *
+	 * Cached per request: a series edit reconciles one room per appointment, and
+	 * every miss would load the app and walk the container again.
+	 *
 	 * @template T of object
 	 * @param class-string<T> $class
 	 * @return ?T
 	 */
 	private function resolve(string $class): ?object {
+		if (array_key_exists($class, $this->resolved)) {
+			/** @var ?T */
+			return $this->resolved[$class];
+		}
+
+		$this->resolved[$class] = $this->load($class);
+
+		/** @var ?T */
+		return $this->resolved[$class];
+	}
+
+	/**
+	 * @template T of object
+	 * @param class-string<T> $class
+	 * @return ?T
+	 */
+	private function load(string $class): ?object {
 		try {
 			// Load first, then look: the class only becomes visible once Talk's
 			// autoloader is registered.
