@@ -245,6 +245,150 @@ class StatisticsServiceTest extends TestCase {
 		$this->assertSame([], $result['byCategory']);
 	}
 
+	/**
+	 * The scheduled rate counts a yes only once the inquiry is closed and
+	 * somebody got a place. Alice is scheduled on the closed one, Bob is not;
+	 * the open inquiry and the closed one nobody was scheduled for decide
+	 * nothing and must stay out of the basis entirely.
+	 */
+	public function testScheduledRateOnlyCountsDecidedInquiries(): void {
+		$this->givenUsers(['alice' => 'Alice', 'bob' => 'Bob']);
+		$this->givenUnrestrictedVisibility();
+		$this->givenGroupSections();
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+
+		$decided = $this->appointment(1, '2026-05-01 18:00:00', '2026-05-01 20:00:00');
+		$decided->setClosedAt('2026-04-25 10:00:00');
+		$open = $this->appointment(2, '2026-06-01 18:00:00', '2026-06-01 20:00:00');
+		$unused = $this->appointment(3, '2026-07-01 18:00:00', '2026-07-01 20:00:00');
+		$unused->setClosedAt('2026-06-25 10:00:00');
+
+		$this->appointmentMapper->method('findForStatistics')->willReturn([$decided, $open, $unused]);
+		$this->givenResponses([
+			$this->response(1, 'alice', 'yes', '', null, 'booked'),
+			$this->response(1, 'bob', 'yes', '', null, null),
+			$this->response(2, 'alice', 'yes', '', null, null),
+			$this->response(2, 'bob', 'yes', '', null, null),
+			$this->response(3, 'alice', 'yes', '', null, null),
+			$this->response(3, 'bob', 'yes', '', null, null),
+		]);
+
+		$result = $this->service->getStatistics($this->filter());
+		$people = array_column($result['people'], null, 'userId');
+
+		$this->assertSame(1, $people['alice']['schedulingBase'], 'only the decided inquiry counts');
+		$this->assertSame(1, $people['alice']['scheduled']);
+		$this->assertSame(0, $people['alice']['notScheduled']);
+		$this->assertSame(1.0, $people['alice']['scheduledRate']);
+
+		$this->assertSame(1, $people['bob']['schedulingBase']);
+		$this->assertSame(0, $people['bob']['scheduled']);
+		$this->assertSame(1, $people['bob']['notScheduled']);
+		$this->assertSame(0.0, $people['bob']['scheduledRate']);
+	}
+
+	/**
+	 * Being told "you are not scheduled" is recorded in bookingNotifiedStatus,
+	 * not in bookingStatus — the mapper has to fold the two like
+	 * BookingService::effectiveBookingStatus() does.
+	 */
+	public function testDecliningAnswersStillCountTowardsTheBasis(): void {
+		$this->givenUsers(['alice' => 'Alice', 'bob' => 'Bob']);
+		$this->givenUnrestrictedVisibility();
+		$this->givenGroupSections();
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+
+		$closed = $this->appointment(1, '2026-05-01 18:00:00', '2026-05-01 20:00:00');
+		$closed->setClosedAt('2026-04-25 10:00:00');
+		$this->appointmentMapper->method('findForStatistics')->willReturn([$closed]);
+		$this->givenResponses([
+			$this->response(1, 'alice', 'yes', '', null, 'booked'),
+			$this->response(1, 'bob', 'yes', '', null, 'declined'),
+		]);
+
+		$result = $this->service->getStatistics($this->filter());
+		$people = array_column($result['people'], null, 'userId');
+
+		$this->assertSame(1, $people['bob']['schedulingBase']);
+		$this->assertSame(1, $people['bob']['notScheduled']);
+	}
+
+	public function testNothingIsScheduledWhenPlanningIsOff(): void {
+		$this->givenUsers(['alice' => 'Alice']);
+		$this->givenUnrestrictedVisibility();
+		$this->givenGroupSections();
+		$this->configService->method('isBookingEnabled')->willReturn(false);
+
+		$closed = $this->appointment(1, '2026-05-01 18:00:00', '2026-05-01 20:00:00');
+		$closed->setClosedAt('2026-04-25 10:00:00');
+		$this->appointmentMapper->method('findForStatistics')->willReturn([$closed]);
+		$this->givenResponses([
+			$this->response(1, 'alice', 'yes', '', null, 'booked'),
+		]);
+
+		$result = $this->service->getStatistics($this->filter());
+
+		$this->assertSame(0, $result['people'][0]['schedulingBase']);
+		$this->assertNull($result['people'][0]['scheduledRate'], 'no basis, no rate');
+	}
+
+	/**
+	 * Only a yes can be scheduled, so a no or an unanswered row must not widen
+	 * the basis — otherwise the rate would punish people for declining.
+	 */
+	public function testOnlyAcceptancesFormTheSchedulingBasis(): void {
+		$this->givenUsers(['alice' => 'Alice', 'bob' => 'Bob']);
+		$this->givenUnrestrictedVisibility();
+		$this->givenGroupSections();
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+
+		$closed = $this->appointment(1, '2026-05-01 18:00:00', '2026-05-01 20:00:00');
+		$closed->setClosedAt('2026-04-25 10:00:00');
+		$this->appointmentMapper->method('findForStatistics')->willReturn([$closed]);
+		$this->givenResponses([
+			$this->response(1, 'alice', 'yes', '', null, 'booked'),
+			$this->response(1, 'bob', 'no', '', null, null),
+		]);
+
+		$result = $this->service->getStatistics($this->filter());
+		$people = array_column($result['people'], null, 'userId');
+
+		$this->assertSame(0, $people['bob']['schedulingBase']);
+		$this->assertNull($people['bob']['scheduledRate']);
+		$this->assertSame(1, $result['totals']['schedulingBase'], 'the totals row agrees');
+	}
+
+	/**
+	 * Feeds the "absent more often" card. Deliberately not 1 - attendanceRate:
+	 * an appointment nobody wrote down counts in the base but says nothing
+	 * about whether the person was there.
+	 */
+	public function testAbsenceRateCountsOnlyRecordedAbsences(): void {
+		$this->givenUsers(['alice' => 'Alice']);
+		$this->givenUnrestrictedVisibility();
+		$this->givenGroupSections();
+
+		$this->appointmentMapper->method('findForStatistics')->willReturn([
+			$this->appointment(1, '2026-05-01 18:00:00', '2026-05-01 20:00:00'),
+			$this->appointment(2, '2026-05-08 18:00:00', '2026-05-08 20:00:00'),
+			$this->appointment(3, '2026-05-15 18:00:00', '2026-05-15 20:00:00'),
+		]);
+		$this->givenResponses([
+			$this->response(1, 'alice', 'yes', 'yes'),
+			$this->response(2, 'alice', 'yes', 'no'),
+			// Somebody worked this list, but nobody ticked Alice either way
+			$this->response(3, 'alice', 'yes', ''),
+			$this->response(3, 'bob', 'yes', 'yes'),
+		]);
+
+		$alice = $this->person($this->service->getStatistics($this->filter()), 'alice');
+
+		$this->assertSame(3, $alice['attendanceBase']);
+		$this->assertSame(1, $alice['absent']);
+		$this->assertSame(1, $alice['notRecorded']);
+		$this->assertEqualsWithDelta(1 / 3, $alice['absenceRate'], 0.0001);
+	}
+
 	public function testRefusesRangesBeyondTheAppointmentLimit(): void {
 		$appointments = [];
 		for ($id = 1; $id <= StatisticsService::MAX_APPOINTMENTS + 1; $id++) {
@@ -274,6 +418,31 @@ class StatisticsServiceTest extends TestCase {
 		$this->assertSame('no', $detail['entries'][0]['response']);
 		$this->assertSame('yes', $detail['entries'][0]['checkinState']);
 		$this->assertTrue($detail['entries'][0]['attendanceRecorded']);
+	}
+
+	/**
+	 * The drill-down reads newest first, while findForStatistics() — which also
+	 * feeds the chronological timeline — hands them over oldest first.
+	 */
+	public function testPersonDetailListsTheNewestAppointmentFirst(): void {
+		$this->givenUsers(['alice' => 'Alice']);
+		$this->givenUnrestrictedVisibility();
+		$this->givenGroupSections();
+
+		$this->appointmentMapper->method('findForStatistics')->willReturn([
+			$this->appointment(1, '2026-05-01 18:00:00', '2026-05-01 20:00:00'),
+			$this->appointment(2, '2026-06-01 18:00:00', '2026-06-01 20:00:00'),
+			$this->appointment(3, '2026-07-01 18:00:00', '2026-07-01 20:00:00'),
+		]);
+		$this->givenResponses([
+			$this->response(1, 'alice', 'yes', 'yes'),
+			$this->response(2, 'alice', 'no', ''),
+			$this->response(3, 'alice', 'maybe', ''),
+		]);
+
+		$detail = $this->service->getPersonDetail($this->filter(), 'alice');
+
+		$this->assertSame([3, 2, 1], array_column($detail['entries'], 'appointmentId'));
 	}
 
 	public function testPersonDetailWithholdsCommentsUnlessAsked(): void {
@@ -402,14 +571,22 @@ class StatisticsServiceTest extends TestCase {
 	}
 
 	/**
-	 * @return array{appointmentId: int, userId: string, response: ?string, checkinState: ?string}
+	 * @return array{appointmentId: int, userId: string, response: ?string, checkinState: ?string, bookingStatus: ?string}
 	 */
-	private function response(int $appointmentId, string $userId, string $answer, string $checkinState, ?string $comment = null): array {
+	private function response(
+		int $appointmentId,
+		string $userId,
+		string $answer,
+		string $checkinState,
+		?string $comment = null,
+		?string $bookingStatus = null,
+	): array {
 		return [
 			'appointmentId' => $appointmentId,
 			'userId' => $userId,
 			'response' => $answer,
 			'checkinState' => $checkinState === '' ? null : $checkinState,
+			'bookingStatus' => $bookingStatus,
 			'comment' => $comment,
 		];
 	}
@@ -418,7 +595,7 @@ class StatisticsServiceTest extends TestCase {
 	 * Stubs both response queries from one row set, so a test never has to keep
 	 * the rows and the "was anyone checked in" flags in step by hand.
 	 *
-	 * @param list<array{appointmentId: int, userId: string, response: ?string, checkinState: ?string, comment: ?string}> $rows
+	 * @param list<array{appointmentId: int, userId: string, response: ?string, checkinState: ?string, bookingStatus: ?string, comment: ?string}> $rows
 	 */
 	private function givenResponses(array $rows): void {
 		$this->responseMapper->method('findStatisticsRows')->willReturnCallback(

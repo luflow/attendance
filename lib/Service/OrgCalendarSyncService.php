@@ -52,6 +52,16 @@ class OrgCalendarSyncService {
 	 */
 	public const SUMMARY_SEPARATOR = '--- Attendance ---';
 
+	/**
+	 * Properties managedProperties() derives from the appointment's updatedAt,
+	 * so they change whenever the row is touched — on a comment edit or a
+	 * repeated identical answer just as much as on a real change. Skipping them
+	 * when comparing is what makes those writes skippable. Keep this in step
+	 * with managedProperties(): a further per-write property left out here makes
+	 * every document look different and quietly retires the skip.
+	 */
+	private const VOLATILE_PROPERTIES = ['DTSTAMP', 'LAST-MODIFIED'];
+
 	/** @var array{0: int, 1: string}|false|null Memoized target; false = resolution failed */
 	private array|false|null $resolvedTarget = null;
 	private ?object $calDavBackend = null;
@@ -88,7 +98,7 @@ class OrgCalendarSyncService {
 	 * appointments when the feature was enabled or re-pointed. Owning the
 	 * transition here keeps controller and any future callers consistent.
 	 *
-	 * @param array{enabled?: bool, calendarUri?: string} $orgCalendar Settings payload
+	 * @param array{enabled?: bool, calendarUri?: string, summary?: bool} $orgCalendar Settings payload
 	 * @param string $actingUserId The admin performing the change
 	 */
 	public function applySettings(array $orgCalendar, string $actingUserId): void {
@@ -97,6 +107,13 @@ class OrgCalendarSyncService {
 		if (isset($orgCalendar['enabled'])) {
 			$changed = $this->configService->isOrgCalendarEnabled() !== (bool)$orgCalendar['enabled'];
 			$this->configService->setOrgCalendarEnabled((bool)$orgCalendar['enabled']);
+		}
+
+		if (isset($orgCalendar['summary'])) {
+			// Backfill in both directions: switching off has to take the block
+			// out of the events that already carry it, not just stop adding it.
+			$changed = $changed || $this->configService->isOrgCalendarSummaryEnabled() !== $orgCalendar['summary'];
+			$this->configService->setOrgCalendarSummaryEnabled($orgCalendar['summary']);
 		}
 
 		if (isset($orgCalendar['calendarUri']) && $orgCalendar['calendarUri'] !== '') {
@@ -123,7 +140,12 @@ class OrgCalendarSyncService {
 	 * are skipped: they already live in a calendar, and overwriting the source
 	 * event with our plain-text representation would be lossy.
 	 *
-	 * @return bool True if an event was written
+	 * @return bool True if the appointment is in the calendar afterwards —
+	 *              including when it was already current and nothing had to be
+	 *              written. Callers count coverage, not writes: the admin's
+	 *              sync button promises to create or update the events for all
+	 *              upcoming appointments, and reporting 0 because they were all
+	 *              already correct reads as a failure.
 	 */
 	public function syncAppointment(Appointment $appointment): bool {
 		try {
@@ -156,20 +178,18 @@ class OrgCalendarSyncService {
 				$ics = $existingIcs !== null
 					? $this->patchIcs($existingIcs, $appointment)
 					: $this->buildIcs($appointment, $uid);
-				$backend->updateCalendarObject($calendarId, $objectUri, $ics);
+				// Skip a write that changes nothing a reader would see: it would
+				// still raise a calendar activity for everybody the calendar is
+				// shared with — see isOrgCalendarSummaryEnabled(). The appointment
+				// is in the calendar either way, so the caller is told so.
+				if ($existingIcs === null || !$this->matchesIgnoringTimestamps($existingIcs, $ics)) {
+					$backend->updateCalendarObject($calendarId, $objectUri, $ics);
+				}
 			} else {
 				$backend->createCalendarObject($calendarId, $objectUri, $this->buildIcs($appointment, $uid));
 			}
 
-			// Store the link with the owner's calendar URI — calendar events
-			// dispatched by the server carry that URI, so the existing
-			// CalendarObjectUpdateListener can match edits back to us.
-			if ($appointment->getCalendarEventUid() !== $uid
-				|| $appointment->getCalendarUri() !== $ownerCalendarUri) {
-				$appointment->setCalendarUri($ownerCalendarUri);
-				$appointment->setCalendarEventUid($uid);
-				$this->appointmentMapper->update($appointment);
-			}
+			$this->linkAppointment($appointment, $uid, $ownerCalendarUri);
 
 			return true;
 		} catch (\Throwable $e) {
@@ -248,6 +268,49 @@ class OrgCalendarSyncService {
 	}
 
 	/**
+	 * Store the link with the owner's calendar URI — calendar events dispatched
+	 * by the server carry that URI, so the existing CalendarObjectUpdateListener
+	 * can match edits back to us. Also runs when the write itself was skipped:
+	 * the link is what makes an event ours, and a skipped write must not leave
+	 * it unset.
+	 */
+	private function linkAppointment(Appointment $appointment, string $uid, string $ownerCalendarUri): void {
+		if ($appointment->getCalendarEventUid() === $uid
+			&& $appointment->getCalendarUri() === $ownerCalendarUri) {
+			return;
+		}
+		$appointment->setCalendarUri($ownerCalendarUri);
+		$appointment->setCalendarEventUid($uid);
+		$this->appointmentMapper->update($appointment);
+	}
+
+	/**
+	 * Whether two VCALENDAR documents say the same thing to a reader.
+	 *
+	 * VOLATILE_PROPERTIES are excluded — see the constant. Folding and line
+	 * endings are normalized first, because the stored document may have been
+	 * folded by the Calendar app rather than by us.
+	 */
+	public function matchesIgnoringTimestamps(string $left, string $right): bool {
+		return $this->comparableLines($left) === $this->comparableLines($right);
+	}
+
+	/**
+	 * @return list<string> Unfolded lines without the volatile timestamps
+	 */
+	private function comparableLines(string $ics): array {
+		$lines = [];
+		foreach (IcalService::unfoldIcalContent($ics) as $line) {
+			if (in_array(IcalService::icalPropertyName($line), self::VOLATILE_PROPERTIES, true)) {
+				continue;
+			}
+			$lines[] = $line;
+		}
+
+		return $lines;
+	}
+
+	/**
 	 * Deterministic VEVENT UID for an appointment.
 	 */
 	public function buildEventUid(int $appointmentId): string {
@@ -313,10 +376,7 @@ class OrgCalendarSyncService {
 	 * to a full rebuild if no VEVENT is found.
 	 */
 	public function patchIcs(string $existingIcs, Appointment $appointment): string {
-		// Normalize newlines and unfold continuation lines (RFC 5545 3.1)
-		$content = str_replace(["\r\n", "\r"], "\n", $existingIcs);
-		$content = preg_replace("/\n[ \t]/", '', $content) ?? $content;
-		$lines = explode("\n", trim($content));
+		$lines = IcalService::unfoldIcalContent($existingIcs);
 
 		$props = $this->managedProperties($appointment);
 		$result = [];
@@ -356,7 +416,7 @@ class OrgCalendarSyncService {
 				continue;
 			}
 			if ($nested === 0) {
-				$name = strtoupper(substr($line, 0, strcspn($line, ';:')));
+				$name = IcalService::icalPropertyName($line);
 				if (array_key_exists($name, $props)) {
 					$newLine = $props[$name];
 					unset($props[$name]);
@@ -433,6 +493,10 @@ class OrgCalendarSyncService {
 	 */
 	private function buildDescription(Appointment $appointment): string {
 		$description = trim($appointment->getDescription() ?? '');
+
+		if (!$this->configService->isOrgCalendarSummaryEnabled()) {
+			return $description;
+		}
 
 		$summary = $this->buildResponseSummary($appointment);
 		if ($summary !== null) {

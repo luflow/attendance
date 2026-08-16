@@ -46,15 +46,17 @@ class StatisticsExportService {
 			$sectionNames[$section['id']] = $section['displayName'];
 		}
 
+		$scheduling = $statistics['schedulingEnabled'];
+
 		$content = $this->odsWriter->write(
 			$this->odsWriter->renderTable(
 				// TRANSLATORS Name of the spreadsheet sheet holding one row per person. The same word labels the person-count column on the other sheet.
 				$this->l10n->t('People'),
-				$this->peopleRows($statistics['people'], $statistics['totals'], $sectionNames),
+				$this->peopleRows($statistics['people'], $statistics['totals'], $sectionNames, $scheduling),
 			)
 			. $this->odsWriter->renderTable(
 				$this->l10n->t('Groups'),
-				$this->sectionRows($statistics['sections'], $statistics['totals']),
+				$this->sectionRows($statistics['sections'], $statistics['totals'], $scheduling),
 			),
 		);
 
@@ -67,8 +69,8 @@ class StatisticsExportService {
 	 * @param array<string, string> $sectionNames
 	 * @return list<list<OdsCell>>
 	 */
-	private function peopleRows(array $people, array $totals, array $sectionNames): array {
-		$rows = [$this->header([$this->l10n->t('Name'), $this->l10n->t('Groups')])];
+	private function peopleRows(array $people, array $totals, array $sectionNames, bool $scheduling): array {
+		$rows = [$this->header([$this->l10n->t('Name'), $this->l10n->t('Groups')], $scheduling)];
 
 		foreach ($people as $person) {
 			$names = array_map(
@@ -77,13 +79,13 @@ class StatisticsExportService {
 			);
 			$rows[] = array_merge(
 				[$person['displayName'], implode(', ', $names)],
-				$this->counts($person),
+				$this->counts($scheduling, $person),
 			);
 		}
 
 		$rows[] = array_merge(
 			[['value' => $this->l10n->t('Total'), 'style' => OdsWriter::STYLE_SECTION], ''],
-			$this->counts($totals),
+			$this->counts($scheduling, $totals),
 		);
 
 		return $rows;
@@ -94,31 +96,36 @@ class StatisticsExportService {
 	 * @param StatsCounts $totals
 	 * @return list<list<OdsCell>>
 	 */
-	private function sectionRows(array $sections, array $totals): array {
+	private function sectionRows(array $sections, array $totals, bool $scheduling): array {
 		// TRANSLATORS "People" here is the column counting how many people are in the group, and also names the other sheet.
-		$rows = [$this->header([$this->l10n->t('Group'), $this->l10n->t('People')])];
+		$rows = [$this->header([$this->l10n->t('Group'), $this->l10n->t('People')], $scheduling)];
 
 		foreach ($sections as $section) {
 			$rows[] = array_merge(
 				[$section['displayName'], ['value' => $section['personCount'], 'type' => 'float']],
-				$this->counts($section),
+				$this->counts($scheduling, $section),
 			);
 		}
 
 		$rows[] = array_merge(
 			[['value' => $this->l10n->t('Total'), 'style' => OdsWriter::STYLE_SECTION], ''],
-			$this->counts($totals),
+			$this->counts($scheduling, $totals),
 		);
 
 		return $rows;
 	}
 
 	/**
+	 * Kept in the same shape as counts() below — the two are positional lists
+	 * that have to stay index-aligned, and matching notation is what makes a
+	 * misalignment visible while editing.
+	 *
 	 * @param list<string> $leading
 	 * @return list<OdsCell>
 	 */
-	private function header(array $leading): array {
-		$labels = array_merge($leading, [
+	private function header(array $leading, bool $scheduling): array {
+		$labels = [
+			...$leading,
 			$this->l10n->t('Appointments'),
 			$this->l10n->t('Yes'),
 			$this->l10n->t('No'),
@@ -128,10 +135,19 @@ class StatisticsExportService {
 			$this->l10n->t('Absent'),
 			$this->l10n->t('Not recorded'),
 			$this->l10n->t('No-show'),
+			...($scheduling ? [
+				$this->l10n->t('Scheduled'),
+				// TRANSLATORS: Column header — the person accepted and the inquiry was closed, but they did not get a place.
+				$this->l10n->t('Not scheduled'),
+			] : []),
 			$this->l10n->t('Response rate'),
 			$this->l10n->t('Acceptance rate'),
 			$this->l10n->t('Attendance rate'),
-		]);
+			...($scheduling ? [
+				// TRANSLATORS: Column header — share of the person's acceptances that got a place, counted only over closed inquiries where somebody was scheduled.
+				$this->l10n->t('Scheduling rate'),
+			] : []),
+		];
 
 		return array_map(
 			static fn (string $label): array => ['value' => $label, 'style' => OdsWriter::STYLE_HEADER],
@@ -143,7 +159,7 @@ class StatisticsExportService {
 	 * @param StatsCounts|StatsPerson|StatsSection $counts
 	 * @return list<OdsCell>
 	 */
-	private function counts(array $counts): array {
+	private function counts(bool $scheduling, array $counts): array {
 		return [
 			['value' => $counts['targetCount'], 'type' => 'float'],
 			['value' => $counts['yes'], 'type' => 'float'],
@@ -154,9 +170,16 @@ class StatisticsExportService {
 			['value' => $counts['absent'], 'type' => 'float'],
 			['value' => $counts['notRecorded'], 'type' => 'float'],
 			['value' => $counts['noShow'], 'type' => 'float'],
+			...($scheduling ? [
+				['value' => $counts['scheduled'], 'type' => 'float'],
+				['value' => $counts['notScheduled'], 'type' => 'float'],
+			] : []),
 			['value' => $counts['responseRate'], 'type' => 'percentage'],
 			['value' => $counts['acceptRate'], 'type' => 'percentage'],
 			['value' => $counts['attendanceRate'], 'type' => 'percentage'],
+			...($scheduling ? [
+				['value' => $counts['scheduledRate'], 'type' => 'percentage'],
+			] : []),
 		];
 	}
 

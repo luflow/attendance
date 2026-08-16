@@ -435,6 +435,33 @@ class IcalService {
 	}
 
 	/**
+	 * The inverse of foldIcalContent(): normalize line endings and rejoin the
+	 * continuation lines, so every property is one array entry again. Lives
+	 * beside its counterpart because both encode the same RFC 5545 Section 3.1
+	 * rule, and a reader that disagrees with the writer about where a line ends
+	 * corrupts whatever it parses.
+	 *
+	 * Static because it is a pure transform, so callers can reach it without a
+	 * container and tests never have to restate the rule in a stub.
+	 *
+	 * @return list<string>
+	 */
+	public static function unfoldIcalContent(string $content): array {
+		$normalized = str_replace(["\r\n", "\r"], "\n", $content);
+		$normalized = preg_replace("/\n[ \t]/", '', $normalized) ?? $normalized;
+
+		return explode("\n", trim($normalized));
+	}
+
+	/**
+	 * The property name of an unfolded line, upper-cased and without its
+	 * parameters — "DTSTART" for both `DTSTART:…` and `DTSTART;TZID=…:…`.
+	 */
+	public static function icalPropertyName(string $line): string {
+		return strtoupper(substr($line, 0, strcspn($line, ';:')));
+	}
+
+	/**
 	 * Fold a single iCal line to max 75 octets, preserving UTF-8 boundaries.
 	 */
 	private function foldIcalLine(string $line): string {

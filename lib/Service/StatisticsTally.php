@@ -20,13 +20,24 @@ final class StatisticsTally {
 	public int $notRecorded = 0;
 	public int $attendanceBase = 0;
 	public int $noShow = 0;
+	public int $scheduled = 0;
+	public int $notScheduled = 0;
+	public int $schedulingBase = 0;
 
 	/**
 	 * @param ?string $answer yes/no/maybe, or null when unanswered
 	 * @param ?string $checkin yes/no, or null when not recorded
 	 * @param bool $countsForAttendance Whether the appointment is over and had check-ins at all
+	 * @param bool $countsForScheduling Whether the inquiry is closed and somebody got a place
+	 * @param bool $isScheduled Whether this person got one
 	 */
-	public function record(?string $answer, ?string $checkin, bool $countsForAttendance): void {
+	public function record(
+		?string $answer,
+		?string $checkin,
+		bool $countsForAttendance,
+		bool $countsForScheduling,
+		bool $isScheduled,
+	): void {
 		$this->targetCount++;
 
 		match ($answer) {
@@ -35,6 +46,13 @@ final class StatisticsTally {
 			'maybe' => $this->maybe++,
 			default => $this->noResponse++,
 		};
+
+		// Only a yes can be scheduled, and only a closed inquiry that gave
+		// somebody a place has decided anything — see BookingService.
+		if ($countsForScheduling && $answer === 'yes') {
+			$this->schedulingBase++;
+			$isScheduled ? $this->scheduled++ : $this->notScheduled++;
+		}
 
 		if (!$countsForAttendance) {
 			return;
@@ -65,10 +83,13 @@ final class StatisticsTally {
 		$this->notRecorded += $other->notRecorded;
 		$this->attendanceBase += $other->attendanceBase;
 		$this->noShow += $other->noShow;
+		$this->scheduled += $other->scheduled;
+		$this->notScheduled += $other->notScheduled;
+		$this->schedulingBase += $other->schedulingBase;
 	}
 
 	/**
-	 * @return array{targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float}
+	 * @return array{targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, scheduled: int, notScheduled: int, schedulingBase: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float, absenceRate: ?float, scheduledRate: ?float}
 	 */
 	public function toArray(): array {
 		return [
@@ -82,9 +103,16 @@ final class StatisticsTally {
 			'notRecorded' => $this->notRecorded,
 			'attendanceBase' => $this->attendanceBase,
 			'noShow' => $this->noShow,
+			'scheduled' => $this->scheduled,
+			'notScheduled' => $this->notScheduled,
+			'schedulingBase' => $this->schedulingBase,
 			'responseRate' => self::rate($this->yes + $this->no + $this->maybe, $this->targetCount),
 			'acceptRate' => self::rate($this->yes, $this->targetCount),
 			'attendanceRate' => self::rate($this->present, $this->attendanceBase),
+			// Not 1 - attendanceRate: appointments nobody wrote down count in the
+			// base but say nothing about whether the person was there.
+			'absenceRate' => self::rate($this->absent, $this->attendanceBase),
+			'scheduledRate' => self::rate($this->scheduled, $this->schedulingBase),
 		];
 	}
 

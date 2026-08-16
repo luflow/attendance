@@ -191,10 +191,11 @@ class OrgCalendarSyncServiceTest extends TestCase {
 	/** @var array<string, int> */
 	private array $responseSummary = [];
 
-	private function configureEnabled(): void {
+	private function configureEnabled(bool $summary = true): void {
 		$this->configService->method('isOrgCalendarEnabled')->willReturn(true);
 		$this->configService->method('getOrgCalendarUri')->willReturn('org-events');
 		$this->configService->method('getOrgCalendarUserId')->willReturn('admin');
+		$this->configService->method('isOrgCalendarSummaryEnabled')->willReturn($summary);
 
 		$this->calendarService->method('findWritableCalendar')
 			->with('admin', 'org-events')
@@ -469,6 +470,91 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->assertStringNotContainsString(OrgCalendarSyncService::SUMMARY_SEPARATOR, $this->backend->created[0][2]);
 	}
 
+	public function testSummaryOmittedWhenTheAdminSwitchedItOff(): void {
+		$this->configureEnabled(false);
+		$appointment = $this->buildAppointment();
+		$this->appointmentMapper->method('update')->willReturnArgument(0);
+		$this->responseSummary = ['yes' => 2, 'no' => 1, 'maybe' => 1];
+
+		$this->assertTrue($this->service->syncAppointment($appointment));
+
+		$ics = $this->backend->created[0][2];
+		$this->assertStringNotContainsString(OrgCalendarSyncService::SUMMARY_SEPARATOR, $ics);
+		$this->assertStringContainsString('DESCRIPTION:Bring instruments', $ics);
+	}
+
+	/**
+	 * Every write raises a calendar activity for everybody the calendar is
+	 * shared with, so a write that changes nothing visible is pure noise.
+	 */
+	public function testWriteSkippedWhenOnlyTheTimestampsWouldChange(): void {
+		$this->configureEnabled();
+		$appointment = $this->buildAppointment();
+		$appointment->setCalendarUri('org-events-owner-uri');
+		$appointment->setCalendarEventUid('attendance-org-5@cloud.example.com');
+
+		// What a previous sync left behind, with a stale DTSTAMP/LAST-MODIFIED
+		$stored = $this->service->buildIcs($appointment, 'attendance-org-5@cloud.example.com');
+		$this->backend->existingObjects['attendance-org-5@cloud.example.com.ics'] = [
+			'id' => 1,
+			'calendardata' => str_replace('20260801T100000Z', '20260101T090000Z', $stored),
+		];
+
+		// True because the appointment *is* in the calendar — what the caller
+		// counts is coverage, not writes. The absent write is the point.
+		$this->assertTrue($this->service->syncAppointment($appointment));
+		$this->assertSame([], $this->backend->updated);
+	}
+
+	/**
+	 * The admin's sync button reports how many upcoming appointments the
+	 * calendar now covers. Appointments whose event was already current must
+	 * count, or a healthy instance reports zero and reads as broken.
+	 */
+	public function testBackfillCountsAppointmentsThatWereAlreadyCurrent(): void {
+		$this->configureEnabled();
+		$appointment = $this->buildAppointment();
+		$appointment->setCalendarUri('org-events-owner-uri');
+		$appointment->setCalendarEventUid('attendance-org-5@cloud.example.com');
+
+		$this->backend->existingObjects['attendance-org-5@cloud.example.com.ics'] = [
+			'id' => 1,
+			'calendardata' => $this->service->buildIcs($appointment, 'attendance-org-5@cloud.example.com'),
+		];
+		$this->appointmentMapper->method('findUpcoming')->willReturn([$appointment]);
+
+		$this->assertSame(1, $this->service->syncAllUpcoming());
+		$this->assertSame([], $this->backend->updated, 'counted without writing');
+	}
+
+	public function testWriteHappensWhenTheSummaryLineMoved(): void {
+		$this->configureEnabled();
+		$appointment = $this->buildAppointment();
+		$appointment->setCalendarUri('org-events-owner-uri');
+		$appointment->setCalendarEventUid('attendance-org-5@cloud.example.com');
+
+		$this->responseSummary = ['yes' => 2, 'no' => 0, 'maybe' => 0];
+		$stored = $this->service->buildIcs($appointment, 'attendance-org-5@cloud.example.com');
+		$this->backend->existingObjects['attendance-org-5@cloud.example.com.ics'] = [
+			'id' => 1,
+			'calendardata' => $stored,
+		];
+
+		$this->responseSummary = ['yes' => 3, 'no' => 0, 'maybe' => 0];
+
+		$this->assertTrue($this->service->syncAppointment($appointment));
+		$this->assertCount(1, $this->backend->updated);
+	}
+
+	public function testComparisonIgnoresFoldingAndLineEndings(): void {
+		$folded = "BEGIN:VEVENT\r\nDESCRIPTION:A very long descripti\r\n on that got folded\r\nEND:VEVENT\r\n";
+		$unfolded = "BEGIN:VEVENT\nDESCRIPTION:A very long description that got folded\nEND:VEVENT";
+		$this->assertTrue($this->service->matchesIgnoringTimestamps($folded, $unfolded));
+
+		$other = "BEGIN:VEVENT\nDESCRIPTION:Something else\nEND:VEVENT";
+		$this->assertFalse($this->service->matchesIgnoringTimestamps($folded, $other));
+	}
+
 	public function testStripResponseSummary(): void {
 		$description = "Bring instruments\n\n" . OrgCalendarSyncService::SUMMARY_SEPARATOR . "\n2 attending, 1 declined, 1 maybe";
 		$this->assertSame('Bring instruments', OrgCalendarSyncService::stripResponseSummary($description));
@@ -521,6 +607,31 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->configService->expects($this->once())->method('setOrgCalendarUserId')->with('acting-admin');
 
 		$this->service->applySettings(['calendarUri' => 'new-uri'], 'acting-admin');
+	}
+
+	/**
+	 * Switching the summary off has to take the block out of the events that
+	 * already carry it, so the toggle counts as a change worth backfilling.
+	 */
+	public function testApplySettingsBackfillsWhenTheSummaryToggleFlips(): void {
+		$this->configService->method('isOrgCalendarEnabled')->willReturn(true);
+		$this->configService->method('getOrgCalendarUri')->willReturn('org-events');
+		$this->configService->method('getOrgCalendarUserId')->willReturn('admin');
+		$this->configService->method('isOrgCalendarSummaryEnabled')->willReturn(true);
+		$this->configService->expects($this->once())->method('setOrgCalendarSummaryEnabled')->with(false);
+		$this->appointmentMapper->expects($this->once())->method('findUpcoming')->willReturn([]);
+
+		$this->service->applySettings(['summary' => false], 'admin');
+	}
+
+	public function testApplySettingsLeavesTheSummaryToggleAloneWhenUnchanged(): void {
+		$this->configService->method('isOrgCalendarEnabled')->willReturn(true);
+		$this->configService->method('getOrgCalendarUri')->willReturn('org-events');
+		$this->configService->method('getOrgCalendarUserId')->willReturn('admin');
+		$this->configService->method('isOrgCalendarSummaryEnabled')->willReturn(true);
+		$this->appointmentMapper->expects($this->never())->method('findUpcoming');
+
+		$this->service->applySettings(['summary' => true], 'admin');
 	}
 
 	public function testApplySettingsKeepsStoredUserWhenUriUnchanged(): void {

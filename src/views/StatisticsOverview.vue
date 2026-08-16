@@ -179,6 +179,45 @@
 				}}
 			</p>
 
+			<div v-if="!reduced" class="statistics__highlights-head">
+				<!-- TRANSLATORS: Heading over the small summary cards above the charts. -->
+				<h3>{{ t("attendance", "Highlights") }}</h3>
+				<NcPopover>
+					<template #trigger>
+						<NcButton variant="secondary" data-test="statistics-cards">
+							<template #icon>
+								<TuneIcon :size="20" />
+							</template>
+							{{ t("attendance", "Choose highlights") }}
+						</NcButton>
+					</template>
+					<template #default>
+						<ul class="statistics__options" role="menu">
+							<li v-for="card in cardChoices" :key="card.key" role="presentation">
+								<button
+									type="button"
+									role="menuitemcheckbox"
+									:aria-checked="visibleCards.includes(card.key)"
+									class="statistics__option-button"
+									:data-test="`statistics-card-${card.key}`"
+									@click="toggleCard(card.key)">
+									{{ card.label }}
+									<CheckIcon v-if="visibleCards.includes(card.key)" :size="18" />
+								</button>
+							</li>
+						</ul>
+					</template>
+				</NcPopover>
+			</div>
+
+			<StatisticsHighlights
+				v-if="!reduced"
+				:people="statistics.people"
+				:totals="statistics.totals"
+				:visibleCards="visibleCards"
+				:selectable="canDrillDown"
+				@selectPerson="selectedPerson = $event" />
+
 			<StatisticsCharts
 				v-if="!reduced"
 				:statistics="statistics"
@@ -211,6 +250,36 @@
 						<NcRadioGroupButton :label="t('attendance', 'Compact')" value="compact" />
 						<NcRadioGroupButton :label="t('attendance', 'Full')" value="full" />
 					</NcRadioGroup>
+
+					<!-- TRANSLATORS: Label above the button that opens the list of table columns to tick or untick. -->
+					<NcFormGroup :label="t('attendance', 'Columns')">
+						<NcPopover>
+							<template #trigger>
+								<NcButton variant="secondary" data-test="statistics-columns">
+									<template #icon>
+										<TableColumnIcon :size="20" />
+									</template>
+									{{ n("attendance", "%n column", "%n columns", visibleColumns.length) }}
+								</NcButton>
+							</template>
+							<template #default>
+								<ul class="statistics__options" role="menu">
+									<li v-for="column in columnChoices" :key="column.key" role="presentation">
+										<button
+											type="button"
+											role="menuitemcheckbox"
+											:aria-checked="visibleColumns.includes(column.key)"
+											class="statistics__option-button"
+											:data-test="`statistics-column-${column.key}`"
+											@click="toggleColumn(column.key)">
+											{{ column.label }}
+											<CheckIcon v-if="visibleColumns.includes(column.key)" :size="18" />
+										</button>
+									</li>
+								</ul>
+							</template>
+						</NcPopover>
+					</NcFormGroup>
 				</div>
 			</div>
 
@@ -221,7 +290,7 @@
 				:reduced="reduced"
 				:selectable="canDrillDown"
 				:grouped="grouped"
-				:detail="detail"
+				:visibleColumns="visibleColumns"
 				:groupBy="statistics.groupBy"
 				:ownUserId="ownUserId"
 				:search="search"
@@ -246,19 +315,24 @@ import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translatePlural as n, translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
-import { NcButton, NcChip, NcEmptyContent, NcPopover, NcRadioGroup, NcRadioGroupButton, NcTextField } from '@nextcloud/vue'
+import { NcButton, NcChip, NcEmptyContent, NcFormGroup, NcPopover, NcRadioGroup, NcRadioGroupButton, NcTextField } from '@nextcloud/vue'
 import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import ChartLineIcon from 'vue-material-design-icons/ChartLine.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
 import DownloadIcon from 'vue-material-design-icons/Download.vue'
+import TableColumnIcon from 'vue-material-design-icons/TableColumn.vue'
 import TagIcon from 'vue-material-design-icons/TagOutline.vue'
+import TuneIcon from 'vue-material-design-icons/Tune.vue'
 import LoadingState from '../components/common/LoadingState.vue'
+import StatisticsHighlights from '../components/statistics/StatisticsHighlights.vue'
 import StatisticsPersonSidebar from '../components/statistics/StatisticsPersonSidebar.vue'
 import StatisticsTable from '../components/statistics/StatisticsTable.vue'
 import { useCategories } from '../composables/useCategories.js'
 import { useCategoryFilterChips } from '../composables/useCategoryFilterChips.js'
 import { usePermissions } from '../composables/usePermissions.js'
 import { categoryIconComponent } from '../utils/categoryIcons.js'
+import { availableCards, defaultCards } from '../utils/statisticsCards.js'
+import { availableColumns, presetColumns, toggled } from '../utils/statisticsColumns.js'
 import { defaultPeriod, periodFromKey, periodOptions, periodTypeForKey } from '../utils/statisticsPeriods.js'
 
 // chart.js is only ever needed here — keep it out of the bundle every other
@@ -291,7 +365,34 @@ const detail = ref(initial.detail)
 // Both switches only pick what is drawn from an answer the server already sent,
 // so they must stay out of `query` — flipping one is not worth an evaluation.
 const grouped = computed(() => grouping.value === 'grouped')
-watch([grouping, detail], writeUrlState)
+
+// Whether the scheduling counters mean anything travels with the numbers, so
+// the columns settle the moment the evaluation arrives — no second source that
+// resolves on its own schedule.
+const schedulingEnabled = computed(() => statistics.value?.schedulingEnabled === true)
+
+const columnChoices = computed(() => availableColumns(schedulingEnabled.value, groupBy.value))
+
+// The user's own pick, or null while they have not made one. Everything else is
+// derived, so the preset never has to be re-applied by a watcher.
+const chosenColumns = ref(initial.columns)
+
+const visibleColumns = computed(() => chosenColumns.value
+	?? presetColumns(detail.value, schedulingEnabled.value))
+
+const cardChoices = computed(() => availableCards(schedulingEnabled.value))
+
+const chosenCards = ref(initial.cards)
+
+const visibleCards = computed(() => chosenCards.value ?? defaultCards(schedulingEnabled.value))
+
+// Compact/Full stay the two presets people reach for; ticking individual
+// columns refines whichever they picked last.
+watch(detail, () => {
+	chosenColumns.value = null
+})
+
+watch([grouping, detail, visibleColumns, visibleCards], writeUrlState)
 
 const reduced = computed(() => !permissions.canSeeStatistics)
 
@@ -377,12 +478,24 @@ async function exportStatistics() {
 }
 
 /**
+ * @param {string} key - Card to toggle.
+ */
+function toggleCard(key) {
+	chosenCards.value = toggled(visibleCards.value, key)
+}
+
+/**
+ * @param {string} key - Column to toggle.
+ */
+function toggleColumn(key) {
+	chosenColumns.value = toggled(visibleColumns.value, key)
+}
+
+/**
  * @param {number} categoryId - Category to toggle.
  */
 function toggleCategory(categoryId) {
-	selectedCategoryIds.value = selectedCategoryIds.value.includes(categoryId)
-		? selectedCategoryIds.value.filter((id) => id !== categoryId)
-		: [...selectedCategoryIds.value, categoryId]
+	selectedCategoryIds.value = toggled(selectedCategoryIds.value, categoryId)
 }
 
 /**
@@ -419,6 +532,14 @@ function readUrlState() {
 		groupBy: params.get('groupBy') === 'teams' ? 'teams' : 'groups',
 		grouping: params.get('grouping') === 'flat' ? 'flat' : 'grouped',
 		detail: params.get('detail') === 'full' ? 'full' : 'compact',
+		// null, not [], so an explicitly emptied selection stays empty rather
+		// than falling back to the preset on every reload.
+		columns: params.has('columns')
+			? params.get('columns').split(',').filter(Boolean)
+			: null,
+		cards: params.has('cards')
+			? params.get('cards').split(',').filter(Boolean)
+			: null,
 	}
 }
 
@@ -442,6 +563,10 @@ function writeUrlState() {
 	// Below here: linkable, but not part of `query` — see the note on `grouped`.
 	if (!grouped.value) params.set('grouping', 'flat')
 	if (detail.value === 'full') params.set('detail', 'full')
+	// Only an explicit pick — the preset is already implied by `detail`, and
+	// spelling it out would put a dozen redundant keys on every visit.
+	if (chosenColumns.value !== null) params.set('columns', chosenColumns.value.join(','))
+	if (chosenCards.value !== null) params.set('cards', chosenCards.value.join(','))
 
 	window.history.replaceState(
 		window.history.state,
@@ -452,8 +577,12 @@ function writeUrlState() {
 </script>
 
 <style scoped>
+/* The one page in the app that genuinely wants the screen: fully expanded the
+   table is fifteen columns of nowrap numbers, well past the 1200px every other
+   view is capped at. Capping it here pushed the table into a scroll container
+   whose bar sits below the last row — out of sight on any list worth reading. */
 .statistics {
-    max-width: 1200px;
+    max-width: 1800px;
     margin: 0 auto;
     padding: 0 20px 40px;
 }
@@ -544,6 +673,19 @@ function writeUrlState() {
     align-items: center;
     display: inline-flex;
     gap: 4px;
+}
+
+.statistics__highlights-head {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.statistics__highlights-head h3 {
+    font-size: 15px;
+    font-weight: bold;
+    margin: 0;
 }
 
 .statistics__summary {

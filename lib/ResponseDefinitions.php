@@ -231,6 +231,7 @@ namespace OCA\Attendance;
  *   enabled: bool,
  *   calendarUri: ?string,
  *   userId: ?string,
+ *   summary: bool,
  * }
  * @psalm-type AttendanceWritableCalendar = array{
  *   uri: string,
@@ -337,9 +338,14 @@ namespace OCA\Attendance;
  *   notRecorded: int,
  *   attendanceBase: int,
  *   noShow: int,
+ *   scheduled: int,
+ *   notScheduled: int,
+ *   schedulingBase: int,
  *   responseRate: ?float,
  *   acceptRate: ?float,
  *   attendanceRate: ?float,
+ *   absenceRate: ?float,
+ *   scheduledRate: ?float,
  * }
  * @psalm-type AttendanceStatisticsTotals = array{
  *   targetCount: int,
@@ -352,9 +358,14 @@ namespace OCA\Attendance;
  *   notRecorded: int,
  *   attendanceBase: int,
  *   noShow: int,
+ *   scheduled: int,
+ *   notScheduled: int,
+ *   schedulingBase: int,
  *   responseRate: ?float,
  *   acceptRate: ?float,
  *   attendanceRate: ?float,
+ *   absenceRate: ?float,
+ *   scheduledRate: ?float,
  * }
  * @psalm-type AttendanceStatisticsSection = array{
  *   id: string,
@@ -370,9 +381,14 @@ namespace OCA\Attendance;
  *   notRecorded: int,
  *   attendanceBase: int,
  *   noShow: int,
+ *   scheduled: int,
+ *   notScheduled: int,
+ *   schedulingBase: int,
  *   responseRate: ?float,
  *   acceptRate: ?float,
  *   attendanceRate: ?float,
+ *   absenceRate: ?float,
+ *   scheduledRate: ?float,
  * }
  * @psalm-type AttendanceStatisticsTimelinePoint = array{
  *   appointmentId: int,
@@ -399,6 +415,7 @@ namespace OCA\Attendance;
  *   pastCount: int,
  *   attendanceRecordedCount: int,
  *   groupBy: string,
+ *   schedulingEnabled: bool,
  *   people: list<AttendanceStatisticsPerson>,
  *   sections: list<AttendanceStatisticsSection>,
  *   totals: AttendanceStatisticsTotals,

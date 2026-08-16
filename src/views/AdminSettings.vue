@@ -411,6 +411,18 @@
 						<p v-if="orgCalendarUserId" class="hint-text">
 							{{ t('attendance', 'Events are written using the account of {user}.', { user: orgCalendarUserId }) }}
 						</p>
+
+						<NcCheckboxRadioSwitch
+							v-model="orgCalendarSummary"
+							type="switch"
+							class="org-calendar-summary-switch"
+							data-test="switch-org-calendar-summary">
+							<!-- TRANSLATORS: Switch label. The summary is the "12 attending, 3 declined, 2 maybe" line the app appends to the calendar event's description. -->
+							{{ t('attendance', 'Show the response summary in the calendar event') }}
+						</NcCheckboxRadioSwitch>
+						<p class="hint-text">
+							{{ t('attendance', 'Everyone the calendar is shared with sees how many people accepted, without opening the app. Keeping it current means writing to the event after every answer, and Nextcloud reports each of those writes as a calendar change.') }}
+						</p>
 						<NcButton
 							v-if="selectedOrgCalendar"
 							class="org-calendar-sync-button"
@@ -858,6 +870,7 @@ const calendarAvailable = ref(false)
 const orgCalendarEnabled = ref(false)
 const selectedOrgCalendar = ref(null)
 const orgCalendarUserId = ref(null)
+const orgCalendarSummary = ref(true)
 const writableCalendars = ref([])
 const auditLogEnabled = ref(true)
 const auditLogVisibility = ref('managers')
@@ -1034,9 +1047,10 @@ autoSave(
 )
 // Debounced although these are discrete clicks: saving triggers the calendar
 // backfill server-side, so enable + calendar pick should collapse into one run.
-autoSave([orgCalendarEnabled, selectedOrgCalendar], 'orgCalendar', () => ({
+autoSave([orgCalendarEnabled, selectedOrgCalendar, orgCalendarSummary], 'orgCalendar', () => ({
 	orgCalendar: {
 		enabled: orgCalendarEnabled.value,
+		summary: orgCalendarSummary.value,
 		...(selectedOrgCalendar.value?.uri ? { calendarUri: selectedOrgCalendar.value.uri } : {}),
 	},
 }), SELECT_DEBOUNCE)
@@ -1119,6 +1133,7 @@ async function loadSettings() {
 		if (config.orgCalendar) {
 			orgCalendarEnabled.value = config.orgCalendar.enabled || false
 			orgCalendarUserId.value = config.orgCalendar.userId || null
+			orgCalendarSummary.value = config.orgCalendar.summary !== false
 			const storedUri = config.orgCalendar.calendarUri
 			if (storedUri) {
 				selectedOrgCalendar.value = writableCalendars.value.find((c) => c.uri === storedUri)
@@ -1428,6 +1443,12 @@ onMounted(async () => {
 	margin: 0 0 4px 0;
 	font-size: 15px;
 	font-weight: 600;
+}
+
+/* Its own decision, not another remark about the target calendar above it —
+   at the 8px the hint paragraphs use it read as one of them. */
+.org-calendar-summary-switch {
+	margin-top: 24px;
 }
 
 .org-calendar-sync-button {

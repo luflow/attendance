@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Db;
 
+use OCA\Attendance\Service\BookingService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
@@ -81,7 +82,7 @@ class AttendanceResponseMapper extends QBMapper {
 	 * @param list<int> $appointmentIds
 	 * @param ?string $userId Restrict to one person, for the drill-down
 	 * @param bool $withComments Read the comment column too — only the drill-down can afford to, it being one person's rows
-	 * @return list<array{appointmentId: int, userId: string, response: ?string, checkinState: ?string, comment?: ?string}>
+	 * @return list<array{appointmentId: int, userId: string, response: ?string, checkinState: ?string, bookingStatus: ?string, comment?: ?string}>
 	 */
 	public function findStatisticsRows(array $appointmentIds, ?string $userId = null, bool $withComments = false): array {
 		if ($appointmentIds === []) {
@@ -89,7 +90,7 @@ class AttendanceResponseMapper extends QBMapper {
 		}
 
 		$qb = $this->db->getQueryBuilder();
-		$qb->select('appointment_id', 'user_id', 'response', 'checkin_state')
+		$qb->select('appointment_id', 'user_id', 'response', 'checkin_state', 'booking_status', 'booking_notified_status')
 			->from($this->getTableName())
 			->where(
 				$qb->expr()->in('appointment_id', $qb->createNamedParameter($appointmentIds, IQueryBuilder::PARAM_INT_ARRAY))
@@ -113,6 +114,11 @@ class AttendanceResponseMapper extends QBMapper {
 				'userId' => (string)$row['user_id'],
 				'response' => $row['response'] !== null ? (string)$row['response'] : null,
 				'checkinState' => $row['checkin_state'] !== null ? (string)$row['checkin_state'] : null,
+				// The status as the person was actually told it
+				'bookingStatus' => BookingService::effectiveStatusOf(
+					$row['booking_status'] !== null ? (string)$row['booking_status'] : null,
+					$row['booking_notified_status'] !== null ? (string)$row['booking_notified_status'] : null,
+				),
 			];
 			if ($withComments) {
 				$mapped['comment'] = isset($row['comment']) ? (string)$row['comment'] : null;
