@@ -248,13 +248,6 @@ class AppointmentService {
 
 		$this->notifyAboutUpdate($before, $updated, $this->commitAppointmentChange($before, $updated), $userId);
 
-		// Talk shows the meeting time off the room's object id, so a moved
-		// appointment has to move its conversation with it.
-		if ($before->getStartDatetime() !== $updated->getStartDatetime()
-			|| $before->getEndDatetime() !== $updated->getEndDatetime()) {
-			$this->talkRoomService->updateMeetingWindow($updated);
-		}
-
 		return $updated;
 	}
 

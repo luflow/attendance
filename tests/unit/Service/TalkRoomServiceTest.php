@@ -195,14 +195,18 @@ class TalkRoomServiceTest extends TestCase {
 		$this->assertSame(['olivia', 'alice', 'bob'], $this->service->targetUserIds($this->appointment()));
 	}
 
-	public function testCreatesGroupConversationAsMeetingAndStoresToken(): void {
+	/**
+	 * A plain group room, deliberately not a Talk "event" room: all three
+	 * clients hide event rooms from the conversation list until 16 hours before
+	 * the start, and the room is opened when the inquiry closes — often weeks
+	 * ahead, which is exactly when people start using it.
+	 */
+	public function testCreatesPlainGroupConversationAndStoresToken(): void {
 		$this->configService->method('isBookingEnabled')->willReturn(true);
 		$this->responseMapper->method('findByAppointment')->willReturn([
 			$this->response('alice', 'yes', 'booked'),
 		]);
 		$this->participantService->method('getParticipantsForRoom')->willReturn($this->participants(['olivia']));
-
-		$expectedWindow = strtotime('2026-09-01 18:00:00 UTC') . '#' . strtotime('2026-09-01 20:00:00 UTC');
 
 		$this->roomService->expects($this->once())
 			->method('createConversation')
@@ -210,8 +214,6 @@ class TalkRoomServiceTest extends TestCase {
 				2,            // group, not public — there is no link to pass around
 				'Rehearsal',
 				$this->callback(fn (IUser $owner) => $owner->getUID() === 'olivia'),
-				'event',
-				$expectedWindow,
 			)
 			->willReturn($this->room());
 

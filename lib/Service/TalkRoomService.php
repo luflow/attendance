@@ -45,7 +45,6 @@ class TalkRoomService {
 	 * Verified against Talk stable32–stable34.
 	 */
 	private const ROOM_TYPE_GROUP = 2;          // Room::TYPE_GROUP
-	private const OBJECT_TYPE_EVENT = 'event';  // Room::OBJECT_TYPE_EVENT
 	private const ACTOR_USERS = 'users';        // Attendee::ACTOR_USERS
 	private const PARTICIPANT_MODERATOR = 2;    // Participant::MODERATOR
 	private const REASON_REMOVED = 'remove';    // AAttendeeRemovedEvent::REASON_REMOVED
@@ -127,14 +126,21 @@ class TalkRoomService {
 				return null;
 			}
 
+			// Deliberately a plain group room, not a Talk "event" room bound to
+			// the appointment's time. Event rooms look tempting — Talk shows a
+			// countdown and cleans them up 28 days after the date — but all
+			// three clients hide them from the conversation list until 16 hours
+			// before the start (hardcoded in web, Android and iOS alike). The
+			// room is opened when the inquiry closes, often weeks ahead, and
+			// that is exactly when people start sorting out the details. A room
+			// nobody can find is worse than one nobody tidies up.
+			//
 			// Named arguments on purpose: stable34 inserted `$attributes` into
 			// the middle of this signature.
 			$room = $roomService->createConversation(
 				type: self::ROOM_TYPE_GROUP,
 				name: mb_substr($appointment->getName(), 0, 255),
 				owner: $owner,
-				objectType: self::OBJECT_TYPE_EVENT,
-				objectId: $this->meetingWindow($appointment),
 			);
 
 			// Persist the token before anything else can fail — a room we
@@ -186,34 +192,6 @@ class TalkRoomService {
 			$this->reconcile($room, $appointment, $this->resolveOwner($appointment));
 		} catch (\Throwable $e) {
 			$this->logger->error('Syncing Talk participants failed', [
-				'app' => 'attendance',
-				'appointmentId' => $appointment->getId(),
-				'exception' => $e,
-			]);
-		}
-	}
-
-	/**
-	 * Keep Talk's meeting window in step when the appointment moves.
-	 */
-	public function updateMeetingWindow(Appointment $appointment): void {
-		if (!$this->isAvailable() || $appointment->getTalkRoomToken() === null) {
-			return;
-		}
-
-		try {
-			$room = $this->resolveExistingRoom($appointment);
-			$roomService = $this->getRoomService();
-			if ($room === null || $roomService === null) {
-				return;
-			}
-
-			$window = $this->meetingWindow($appointment);
-			if ($room->getObjectType() === self::OBJECT_TYPE_EVENT && $room->getObjectId() !== $window) {
-				$roomService->setObject($room, self::OBJECT_TYPE_EVENT, $window);
-			}
-		} catch (\Throwable $e) {
-			$this->logger->error('Updating the Talk meeting window failed', [
 				'app' => 'attendance',
 				'appointmentId' => $appointment->getId(),
 				'exception' => $e,
@@ -331,10 +309,9 @@ class TalkRoomService {
 	}
 
 	/**
-	 * The linked room, or null when it is gone. Talk deletes event rooms 28
-	 * days after they end (`retention_event_rooms`), so a stale token is the
-	 * normal end of life, not an anomaly — clear it and let the UI offer a new
-	 * conversation.
+	 * The linked room, or null when it is gone. Somebody deleting the room in
+	 * Talk is a normal end of life, not an anomaly — clear the token and let
+	 * the UI offer a new room.
 	 */
 	private function resolveExistingRoom(Appointment $appointment): ?Room {
 		$token = $appointment->getTalkRoomToken();
@@ -354,17 +331,6 @@ class TalkRoomService {
 			$this->appointmentMapper->update($appointment);
 			return null;
 		}
-	}
-
-	/**
-	 * Talk reads the meeting time off the object id as `start#end`, both unix
-	 * timestamps — the same shape spreed's own CalDavEventListener writes.
-	 */
-	private function meetingWindow(Appointment $appointment): string {
-		$start = strtotime($appointment->getStartDatetime() . ' UTC');
-		$end = strtotime($appointment->getEndDatetime() . ' UTC');
-
-		return ($start === false ? 0 : $start) . '#' . ($end === false ? 0 : $end);
 	}
 
 	/**
