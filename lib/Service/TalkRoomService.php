@@ -198,16 +198,38 @@ class TalkRoomService {
 
 		$targets = $appointment->getOrganizersList();
 		foreach ($responses as $response) {
-			if ($response->getResponse() !== 'yes') {
-				continue;
+			if ($this->holdsPlace($response, $bookingEnabled)) {
+				$targets[] = $response->getUserId();
 			}
-			if ($bookingEnabled && $response->getBookingStatus() !== BookingService::STATUS_BOOKED) {
-				continue;
-			}
-			$targets[] = $response->getUserId();
 		}
 
 		return array_values(array_unique($targets));
+	}
+
+	/**
+	 * Whether one answer amounts to holding a place. The single-response form of
+	 * the rule targetsFrom() applies to the whole set — kept together so the two
+	 * cannot drift.
+	 */
+	private function holdsPlace(AttendanceResponse $response, bool $bookingEnabled): bool {
+		if ($response->getResponse() !== 'yes') {
+			return false;
+		}
+
+		return !$bookingEnabled || $response->getBookingStatus() === BookingService::STATUS_BOOKED;
+	}
+
+	/**
+	 * Whether a viewer is in the room, and may therefore be told it exists.
+	 * Organisers and managers always are; everyone else needs a place.
+	 */
+	public function belongsInRoom(bool $canManage, ?AttendanceResponse $ownResponse): bool {
+		if ($canManage) {
+			return true;
+		}
+
+		return $ownResponse !== null
+			&& $this->holdsPlace($ownResponse, $this->configService->isBookingEnabled());
 	}
 
 	/**

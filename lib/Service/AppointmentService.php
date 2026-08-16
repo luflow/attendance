@@ -955,6 +955,24 @@ class AppointmentService {
 		}
 		$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
 		$appointmentData['myPermissions'] = $myPermissions;
+		$appointmentData = $this->hideTalkRoomFromOutsiders($appointmentData, $myPermissions['canEdit'], $userResponse);
+
+		return $appointmentData;
+	}
+
+	/**
+	 * Strip the Talk room token for viewers who are not in the room. They would
+	 * otherwise be shown a room they cannot enter — Talk refuses a non-member,
+	 * so the badge and its link would dead-end.
+	 *
+	 * @param array $appointmentData The serialized appointment data
+	 * @return array The appointment data, token cleared for non-members
+	 */
+	private function hideTalkRoomFromOutsiders(array $appointmentData, bool $canManage, ?AttendanceResponse $ownResponse): array {
+		if (($appointmentData['talkRoomToken'] ?? null) !== null
+			&& !$this->talkRoomService->belongsInRoom($canManage, $ownResponse)) {
+			$appointmentData['talkRoomToken'] = null;
+		}
 
 		return $appointmentData;
 	}
@@ -1464,6 +1482,7 @@ class AppointmentService {
 			}
 			$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
 			$appointmentData['myPermissions'] = $myPermissions;
+			$appointmentData = $this->hideTalkRoomFromOutsiders($appointmentData, $myPermissions['canEdit'], $userResponse);
 			$result[] = $appointmentData;
 		}
 
@@ -1500,6 +1519,11 @@ class AppointmentService {
 			$userResponse = $this->getUserResponse($appointment->getId(), $userId);
 			$appointmentData['userResponse'] = $this->serializeUserResponse($userResponse);
 			$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
+			$appointmentData = $this->hideTalkRoomFromOutsiders(
+				$appointmentData,
+				$this->permissionService->canManageAppointment($userId, $appointment),
+				$userResponse,
+			);
 			$result[] = $appointmentData;
 			$count++;
 		}

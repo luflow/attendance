@@ -303,6 +303,35 @@ class TalkRoomServiceTest extends TestCase {
 		$this->service->syncParticipants($this->appointment(token: 'tok123'));
 	}
 
+	/**
+	 * The token tells a viewer a room exists. Only members may be told — Talk
+	 * refuses everyone else, so the badge would link into a wall.
+	 */
+	public function testOnlyMembersMayBeToldTheRoomExists(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+
+		// Organisers and managers are in regardless of their own answer.
+		$this->assertTrue($this->service->belongsInRoom(true, null));
+		$this->assertTrue($this->service->belongsInRoom(true, $this->response('bob', 'no', null)));
+
+		// Everyone else needs a place.
+		$this->assertTrue($this->service->belongsInRoom(false, $this->response('alice', 'yes', 'booked')));
+		$this->assertFalse($this->service->belongsInRoom(false, $this->response('bob', 'yes', null)));
+		$this->assertFalse($this->service->belongsInRoom(false, $this->response('carol', 'no', null)));
+		$this->assertFalse($this->service->belongsInRoom(false, null));
+	}
+
+	/**
+	 * With planning off a yes is the whole commitment, so it also settles who
+	 * may be told about the room.
+	 */
+	public function testAnyYesResponderMayBeToldWhenPlanningIsOff(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(false);
+
+		$this->assertTrue($this->service->belongsInRoom(false, $this->response('bob', 'yes', null)));
+		$this->assertFalse($this->service->belongsInRoom(false, $this->response('carol', 'maybe', null)));
+	}
+
 	public function testSyncIsANoOpWithoutALinkedRoom(): void {
 		$this->talkManager->expects($this->never())->method('getRoomByToken');
 		$this->participantService->expects($this->never())->method('getParticipantsForRoom');
