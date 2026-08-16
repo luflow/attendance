@@ -349,15 +349,33 @@ class AppointmentMapper extends QBMapper {
 	}
 
 	/**
-	 * Bulk-close all active inquiries whose response_deadline or start_datetime
-	 * is at or before the given timestamp. Once an appointment has started,
-	 * further responses are pointless, so it gets closed regardless of any
-	 * configured deadline. Returns the IDs of the affected rows so the caller
-	 * can record matching audit events.
+	 * Active appointments that carry a Talk conversation.
+	 *
+	 * @return list<Appointment>
+	 */
+	public function findWithTalkRoom(): array {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->isNotNull('talk_room_token'));
+
+		return $this->findEntities($qb);
+	}
+
+	/**
+	 * Active inquiries whose response_deadline or start_datetime is at or
+	 * before the given timestamp. Once an appointment has started, further
+	 * responses are pointless, so it qualifies regardless of any configured
+	 * deadline.
+	 *
+	 * Only selects. Closing goes through AppointmentService::closeAppointment()
+	 * per appointment so that auto-close runs the same tail as a manual close —
+	 * booking notifications and the Talk conversation included.
 	 *
 	 * @return list<int>
 	 */
-	public function autoCloseExpired(string $now): array {
+	public function findDueForAutoClose(string $now): array {
 		$select = $this->db->getQueryBuilder();
 		$select->select('id')
 			->from($this->getTableName())
@@ -381,17 +399,6 @@ class AppointmentMapper extends QBMapper {
 			$ids[] = (int)$row['id'];
 		}
 		$result->closeCursor();
-
-		if (empty($ids)) {
-			return [];
-		}
-
-		$update = $this->db->getQueryBuilder();
-		$update->update($this->getTableName())
-			->set('closed_at', $update->createNamedParameter($now))
-			->set('updated_at', $update->createNamedParameter($now))
-			->where($update->expr()->in('id', $update->createNamedParameter($ids, IQueryBuilder::PARAM_INT_ARRAY)));
-		$update->executeStatement();
 
 		return $ids;
 	}

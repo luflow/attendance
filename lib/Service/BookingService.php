@@ -29,6 +29,7 @@ class BookingService {
 		private AppointmentMapper $appointmentMapper,
 		private ConfigService $configService,
 		private NotificationService $notificationService,
+		private TalkRoomService $talkRoomService,
 	) {
 	}
 
@@ -95,7 +96,14 @@ class BookingService {
 		}
 
 		$response->setBookingStatus($status);
-		return $this->responseMapper->update($response);
+		$updated = $this->responseMapper->update($response);
+
+		// Losing a place has to close the conversation behind them — the final
+		// details are handed out in there. Only bites once a room exists, i.e.
+		// after the inquiry was closed once and reopened.
+		$this->talkRoomService->syncParticipants($appointment);
+
+		return $updated;
 	}
 
 	/**

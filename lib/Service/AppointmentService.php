@@ -51,6 +51,7 @@ class AppointmentService {
 	private PermissionService $permissionService;
 	private OrgCalendarSyncService $orgCalendarSyncService;
 	private CategoryMapper $categoryMapper;
+	private TalkRoomService $talkRoomService;
 	/** @var array<string, bool> per-request cache for isOrganizerAnywhere() */
 	private array $organizerAnywhereCache = [];
 
@@ -72,6 +73,7 @@ class AppointmentService {
 		PermissionService $permissionService,
 		OrgCalendarSyncService $orgCalendarSyncService,
 		CategoryMapper $categoryMapper,
+		TalkRoomService $talkRoomService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -90,6 +92,7 @@ class AppointmentService {
 		$this->permissionService = $permissionService;
 		$this->orgCalendarSyncService = $orgCalendarSyncService;
 		$this->categoryMapper = $categoryMapper;
+		$this->talkRoomService = $talkRoomService;
 	}
 
 	/**
@@ -113,6 +116,7 @@ class AppointmentService {
 		?array $organizers = null,
 		?string $location = null,
 		?int $categoryId = null,
+		bool $createTalkRoom = false,
 	): Appointment {
 		$this->validateDateRange($startDatetime, $endDatetime);
 
@@ -142,6 +146,7 @@ class AppointmentService {
 		$appointment->setSeriesId($seriesId);
 		$appointment->setSeriesPosition($seriesPosition);
 		$appointment->setSendNotification($sendNotification);
+		$appointment->setCreateTalkRoom($createTalkRoom);
 		$appointment->setResponseDeadline($deadlineFormatted);
 		// The creator freely chooses the initial organizer list; when the client
 		// sends nothing, the creator becomes the sole organizer.
@@ -195,6 +200,7 @@ class AppointmentService {
 		?array $organizers = null,
 		?string $location = null,
 		?int $categoryId = null,
+		?bool $createTalkRoom = null,
 	): Appointment {
 		$appointment = $this->appointmentMapper->find($id);
 
@@ -234,9 +240,20 @@ class AppointmentService {
 			);
 		}
 
+		if ($createTalkRoom !== null) {
+			$appointment->setCreateTalkRoom($createTalkRoom);
+		}
+
 		$updated = $this->appointmentMapper->update($appointment);
 
 		$this->notifyAboutUpdate($before, $updated, $this->commitAppointmentChange($before, $updated), $userId);
+
+		// Talk shows the meeting time off the room's object id, so a moved
+		// appointment has to move its conversation with it.
+		if ($before->getStartDatetime() !== $updated->getStartDatetime()
+			|| $before->getEndDatetime() !== $updated->getEndDatetime()) {
+			$this->talkRoomService->updateMeetingWindow($updated);
+		}
 
 		return $updated;
 	}
@@ -442,7 +459,7 @@ class AppointmentService {
 	 * Close an appointment inquiry. Marks closedAt with the current UTC time.
 	 * Idempotent: returns the existing appointment unchanged if already closed.
 	 */
-	public function closeAppointment(int $id): Appointment {
+	public function closeAppointment(int $id, string $source = \OCA\Attendance\Audit\Verb::SOURCE_APP): Appointment {
 		$appointment = $this->appointmentMapper->find($id);
 		if ($appointment->isClosed()) {
 			return $appointment;
@@ -454,13 +471,17 @@ class AppointmentService {
 		$this->auditEventService->recordAppointmentLifecycle(
 			\OCA\Attendance\Audit\Verb::APPOINTMENT_CLOSED,
 			$id,
-			\OCA\Attendance\Audit\Verb::SOURCE_APP,
+			$source,
 		);
 
 		// Booking wave: notify planned-in / not-planned-in yes-responders. No-op
 		// unless the feature is on AND at least one person is booked; reopen-safe
 		// (only diffs against the last communicated state).
 		$this->bookingService->notifyOnClose($updated);
+
+		if ($updated->getCreateTalkRoom()) {
+			$this->talkRoomService->createForAppointment($updated);
+		}
 
 		return $updated;
 	}
@@ -571,6 +592,9 @@ class AppointmentService {
 		$appointment = $this->appointmentMapper->find($id);
 		$appointment->setIsActive(0);
 		$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
+		// Only forget the conversation — what people wrote in there is theirs,
+		// and deleting an inquiry is no reason to take it away from them.
+		$appointment->setTalkRoomToken(null);
 		$this->appointmentMapper->update($appointment);
 		$this->orgCalendarSyncService->handleAppointmentDeleted($appointment);
 	}
@@ -609,6 +633,7 @@ class AppointmentService {
 		?array $organizers = null,
 		?string $location = null,
 		?int $categoryId = null,
+		?bool $createTalkRoom = null,
 	): array {
 		$deadlineUpdate ??= DeadlineUpdate::unchanged();
 		$reference = $this->appointmentMapper->find($referenceId);
@@ -621,7 +646,7 @@ class AppointmentService {
 			$updated = $this->updateAppointment(
 				$referenceId, $name, $description, $startDatetime, $endDatetime,
 				$userId, $visibleUsers, $visibleGroups, $visibleTeams,
-				$deadlineUpdate, $organizers, $location, $categoryId,
+				$deadlineUpdate, $organizers, $location, $categoryId, $createTalkRoom,
 			);
 			return [$updated];
 		}
@@ -632,7 +657,7 @@ class AppointmentService {
 			$updated = $this->updateAppointment(
 				$referenceId, $name, $description, $startDatetime, $endDatetime,
 				$userId, $visibleUsers, $visibleGroups, $visibleTeams,
-				$deadlineUpdate, $organizers, $location, $categoryId,
+				$deadlineUpdate, $organizers, $location, $categoryId, $createTalkRoom,
 			);
 			return [$updated];
 		}
@@ -692,6 +717,9 @@ class AppointmentService {
 			$sibling->setDescription($descriptionClean);
 			$sibling->setLocation($locationValue);
 			$sibling->setCategoryId($categoryIdValue);
+			if ($createTalkRoom !== null) {
+				$sibling->setCreateTalkRoom($createTalkRoom);
+			}
 
 			// Apply time deltas
 			$siblingStart = new \DateTime($sibling->getStartDatetime(), new \DateTimeZone('UTC'));

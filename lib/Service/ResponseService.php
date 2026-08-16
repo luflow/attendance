@@ -25,6 +25,7 @@ class ResponseService {
 	private GuestService $guestService;
 	private AuditEventService $auditEventService;
 	private OrgCalendarSyncService $orgCalendarSyncService;
+	private TalkRoomService $talkRoomService;
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -36,6 +37,7 @@ class ResponseService {
 		GuestService $guestService,
 		AuditEventService $auditEventService,
 		OrgCalendarSyncService $orgCalendarSyncService,
+		TalkRoomService $talkRoomService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -46,6 +48,7 @@ class ResponseService {
 		$this->guestService = $guestService;
 		$this->auditEventService = $auditEventService;
 		$this->orgCalendarSyncService = $orgCalendarSyncService;
+		$this->talkRoomService = $talkRoomService;
 	}
 
 	// Response source constants
@@ -127,6 +130,10 @@ class ResponseService {
 
 		// Keep the response summary in the organization calendar event current
 		$this->orgCalendarSyncService->syncAppointment($appointment);
+
+		// A withdrawn yes has to close the conversation behind them. No-op
+		// unless a room exists, i.e. after a close-and-reopen.
+		$this->talkRoomService->syncParticipants($appointment);
 
 		return $result;
 	}

@@ -14,3 +14,8 @@ spl_autoload_register(function ($class) {
 		}
 	}
 });
+
+// Talk is an optional dependency with no public PHP API for participants. The
+// same stubs psalm reads make its classes mockable here, so TalkRoomService can
+// be tested against the shape it actually calls.
+require_once __DIR__ . '/stubs/talk.php';

@@ -22,6 +22,7 @@ use OCA\Attendance\Service\NotificationService;
 use OCA\Attendance\Service\OrgCalendarSyncService;
 use OCA\Attendance\Service\PermissionService;
 use OCA\Attendance\Service\ResponseSummaryService;
+use OCA\Attendance\Service\TalkRoomService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -82,6 +83,7 @@ class AppointmentServiceTest extends TestCase {
 
 	/** @var CategoryMapper|MockObject */
 	private $categoryMapper;
+	private $talkRoomService;
 
 	private AppointmentService $service;
 
@@ -103,6 +105,7 @@ class AppointmentServiceTest extends TestCase {
 		$this->permissionService = $this->createMock(PermissionService::class);
 		$this->orgCalendarSyncService = $this->createMock(OrgCalendarSyncService::class);
 		$this->categoryMapper = $this->createMock(CategoryMapper::class);
+		$this->talkRoomService = $this->createMock(TalkRoomService::class);
 
 		$this->service = new AppointmentService(
 			$this->appointmentMapper,
@@ -122,6 +125,7 @@ class AppointmentServiceTest extends TestCase {
 			$this->permissionService,
 			$this->orgCalendarSyncService,
 			$this->categoryMapper,
+			$this->talkRoomService,
 		);
 	}
 
