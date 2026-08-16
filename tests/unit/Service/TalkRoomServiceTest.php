@@ -380,6 +380,35 @@ class TalkRoomServiceTest extends TestCase {
 		$this->assertStringEndsWith('…', $description);
 	}
 
+	/**
+	 * An edited appointment is the same appointment — a room still carrying
+	 * last week's date and the old briefing is worse than no detail at all.
+	 */
+	public function testEditingTheAppointmentRewritesNameAndDescription(): void {
+		$this->talkManager->method('getRoomByToken')->willReturn($this->room());
+
+		$appointment = $this->appointment(token: 'tok123');
+		$appointment->setName('Dress rehearsal');
+		$appointment->setStartDatetime('2026-09-08 18:00:00');
+		$appointment->setDescription('Now with the band.');
+
+		$this->roomService->expects($this->once())
+			->method('setName')
+			->with($this->anything(), 'Dress rehearsal (08.09.2026)');
+		$this->roomService->expects($this->once())
+			->method('setDescription')
+			->with($this->anything(), $this->stringContains('Now with the band.'));
+
+		$this->service->syncRoomDetails($appointment);
+	}
+
+	public function testDetailSyncIsANoOpWithoutALinkedRoom(): void {
+		$this->roomService->expects($this->never())->method('setName');
+		$this->roomService->expects($this->never())->method('setDescription');
+
+		$this->service->syncRoomDetails($this->appointment());
+	}
+
 	public function testDoesNotCreateASecondRoomForALinkedAppointment(): void {
 		$this->talkManager->method('getRoomByToken')->willReturn($this->room());
 		$this->roomService->expects($this->never())->method('createConversation');

@@ -202,6 +202,37 @@ class TalkRoomService {
 	}
 
 	/**
+	 * Carry an edited name, date or description into the room. Talk drops a
+	 * write that changes nothing, so an edit that touched neither costs a read.
+	 *
+	 * A room renamed by hand loses that name here — the appointment is the one
+	 * source both sides agree on.
+	 */
+	public function syncRoomDetails(Appointment $appointment): void {
+		if ($appointment->getTalkRoomToken() === null || !$this->isAvailable()) {
+			return;
+		}
+
+		try {
+			$roomService = $this->resolve(RoomService::class);
+			$room = $this->resolveExistingRoom($appointment);
+			$owner = $this->resolveOwner($appointment);
+			if ($roomService === null || $room === null || $owner === null) {
+				return;
+			}
+
+			$roomService->setName($room, $this->buildName($appointment, $owner));
+			$roomService->setDescription($room, $this->buildDescription($appointment, $owner));
+		} catch (\Throwable $e) {
+			$this->logger->warning('Updating the Talk room name and description failed', [
+				'app' => 'attendance',
+				'appointmentId' => $appointment->getId(),
+				'exception' => $e,
+			]);
+		}
+	}
+
+	/**
 	 * Bring the room membership back in line with who is scheduled. No-op
 	 * without a linked room, so callers can fire it on every response change
 	 * without checking first.

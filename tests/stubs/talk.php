@@ -93,6 +93,9 @@ class RoomService {
 	): Room {
 	}
 
+	public function setName(Room $room, string $newName, ?string $oldName = null, bool $validateType = false): void {
+	}
+
 	public function setDescription(Room $room, string $description): void {
 	}
 

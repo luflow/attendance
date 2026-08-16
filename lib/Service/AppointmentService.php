@@ -266,6 +266,7 @@ class AppointmentService {
 		}
 
 		$this->orgCalendarSyncService->syncAppointment($updated);
+		$this->talkRoomService->syncRoomDetails($updated);
 
 		return $changedFields;
 	}
@@ -281,6 +282,9 @@ class AppointmentService {
 	 */
 	public function announceAppointmentUpdate(Appointment $before, Appointment $updated, ?string $actorId): void {
 		$this->notifyAboutUpdate($before, $updated, $this->computeAppointmentChanges($before, $updated), $actorId);
+		// Dragging the linked event in the Calendar app moves the date the room
+		// is named after, so this path has to carry it too.
+		$this->talkRoomService->syncRoomDetails($updated);
 	}
 
 	/**
