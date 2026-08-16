@@ -117,7 +117,6 @@ class ParticipantService {
 	public function getParticipantsForRoom(Room $room): array {
 	}
 
-
 	public function updateParticipantType(Room $room, Participant $participant, int $participantType): void {
 	}
 }

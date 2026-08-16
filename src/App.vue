@@ -482,9 +482,6 @@ t('attendance', "It's not my decision alone")
 t('attendance', 'Just for me')
 t('attendance', 'Just for you, on any of your Nextcloud accounts')
 t('attendance', 'Language')
-// TRANSLATORS: Framing for the yearly personal plan (11.99 € per year). The
-// price itself always comes from the app store, never from this string.
-t('attendance', 'Less than one euro a month')
 t('attendance', 'Location copied')
 // TRANSLATORS: Android action-sheet entry opening the location in the phone's installed maps app.
 t('attendance', 'Maps app')
@@ -548,7 +545,9 @@ t('attendance', 'Try again')
 t('attendance', 'Unlimited members')
 t('attendance', 'Up to {count} members')
 t('attendance', "Use the recipient's server locale")
-t('attendance', 'Using Attendance with a group? One license for the whole group costs less than three personal licenses.')
+// TRANSLATORS: {count} is how many personal licenses one group license beats.
+// It follows the app store prices, so the number is never spelled out here.
+t('attendance', 'Using Attendance with a group? One license for the whole group costs less than {count} personal licenses.')
 t('attendance', 'Using account {user} on {server}')
 t('attendance', 'What would you be willing to pay?')
 t('attendance', "What's still holding you back?")
