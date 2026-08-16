@@ -32,6 +32,7 @@ const DEFAULTS = {
 		locationsAvailable: false,
 		categoriesAvailable: false,
 		statisticsAvailable: false,
+		talkRoomsAvailable: false,
 	},
 	config: {
 		displayOrder: 'name_first',
@@ -104,6 +105,7 @@ export function usePermissions() {
 			state.capabilities.locationsAvailable = capabilitiesRes.data.locationsAvailable === true
 			state.capabilities.categoriesAvailable = capabilitiesRes.data.categoriesAvailable === true
 			state.capabilities.statisticsAvailable = capabilitiesRes.data.statisticsAvailable === true
+			state.capabilities.talkRoomsAvailable = capabilitiesRes.data.talkRoomsAvailable === true
 
 			state.config.displayOrder = configRes.data.displayOrder || 'name_first'
 			state.config.mobileAppBannerEnabled = configRes.data.mobileAppBannerEnabled !== false

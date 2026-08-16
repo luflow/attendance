@@ -317,6 +317,24 @@
 				</NcCheckboxRadioSwitch>
 			</div>
 
+			<div v-if="talkRoomsAvailable" class="form-section">
+				<h3>{{ t("attendance", "Conversation") }}</h3>
+				<!-- TRANSLATORS: Hint under the toggle that opens a Talk conversation when the inquiry is closed. It explains who ends up in that conversation and why it exists: the organizers hand out the remaining details there — meeting points, car pools, who brings what. Sample German: "Sobald die Anfrage geschlossen ist, wird eine Talk-Konversation mit den eingeplanten Personen eröffnet. Dort lassen sich die letzten Details klären." -->
+				<p class="hint-text">
+					{{
+						t(
+							"attendance",
+							"Opens a Talk conversation with the scheduled people once the inquiry is closed, so the remaining details can be sorted out there.",
+						)
+					}}
+				</p>
+				<NcCheckboxRadioSwitch
+					v-model="createTalkRoom"
+					data-test="checkbox-create-talk-room">
+					{{ t("attendance", "Open a conversation when closing") }}
+				</NcCheckboxRadioSwitch>
+			</div>
+
 			<div class="form-section">
 				<h3>{{ t("attendance", "Attachments") }}</h3>
 				<p class="hint-text">
@@ -639,6 +657,7 @@ const isSearchingOrganizers = ref(false)
 const organizersAvailable = computed(() => capabilities.organizers === true)
 
 const locationsAvailable = computed(() => capabilities.locationsAvailable === true)
+const talkRoomsAvailable = computed(() => capabilities.talkRoomsAvailable === true)
 const locationSuggestions = ref([])
 async function loadLocationSuggestions() {
 	try {
@@ -670,6 +689,7 @@ const initialOrganizerIds = ref(null)
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const isEmailAddress = (value) => typeof value === 'string' && EMAIL_REGEX.test(value.trim())
 const sendNotification = ref(false)
+const createTalkRoom = ref(false)
 const trackingGroups = ref([])
 const trackingTeams = ref([])
 const attachments = ref([])
@@ -1072,6 +1092,8 @@ async function loadAppointment() {
 		if (props.mode === 'edit') {
 			initialOrganizerIds.value = organizerList.map((o) => o.value)
 		}
+
+		createTalkRoom.value = appointment.createTalkRoom === true
 
 		// Load notification preference for copy mode
 		if (props.mode === 'copy') {
@@ -1550,6 +1572,7 @@ async function saveAppointment(scope = 'single') {
 				visibleGroups: formData.visibleGroups || [],
 				visibleTeams: formData.visibleTeams || [],
 				attachments: attachmentFileIds.value,
+				createTalkRoom: createTalkRoom.value,
 				scope,
 			}
 			const organizersChanged = initialOrganizerIds.value === null
@@ -1581,6 +1604,7 @@ async function saveAppointment(scope = 'single') {
 				visibleTeams: formData.visibleTeams || [],
 				organizers: formData.organizers || [],
 				sendNotification: sendNotification.value,
+				createTalkRoom: createTalkRoom.value,
 				calendarUri: calendarReference.value.calendarUri,
 				calendarEventUid: calendarReference.value.calendarEventUid,
 				attachments: attachmentFileIds.value,

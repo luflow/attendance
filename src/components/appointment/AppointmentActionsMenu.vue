@@ -57,6 +57,18 @@
 				{{ cancelToggleLabel }}
 			</NcActionButton>
 			<NcActionButton
+				v-if="canOpenConversation"
+				:closeAfterClick="true"
+				:disabled="openingConversation"
+				data-test="action-open-conversation"
+				@click="openConversation">
+				<template #icon>
+					<MessageTextIcon :size="20" />
+				</template>
+				<!-- TRANSLATORS: Menu action that opens a Talk conversation holding the organizers and everyone who got a place, so the remaining details can be sorted out there. -->
+				{{ t("attendance", "Open a conversation") }}
+			</NcActionButton>
+			<NcActionButton
 				v-if="canManage"
 				:closeAfterClick="true"
 				data-test="action-edit"
@@ -168,6 +180,7 @@ import HistoryIcon from 'vue-material-design-icons/History.vue'
 import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
 import LockOpenIcon from 'vue-material-design-icons/LockOpen.vue'
+import MessageTextIcon from 'vue-material-design-icons/MessageText.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import ShareVariantIcon from 'vue-material-design-icons/ShareVariant.vue'
 import CloseInquiryDialog from './CloseInquiryDialog.vue'
@@ -197,7 +210,7 @@ const emit = defineEmits([
 	'closedToggled',
 ])
 
-const { permissions } = usePermissions()
+const { permissions, capabilities } = usePermissions()
 
 const {
 	isClosed,
@@ -237,6 +250,29 @@ const cancelToggleLabel = computed(() => {
 	// TRANSLATORS: Menu action that calls off the appointment — it will not take place (German "Termin absagen", not "abbrechen").
 	return t('attendance', 'Cancel appointment')
 })
+
+// Offered once the inquiry is closed and no conversation exists yet — the
+// counterpart to the create-time opt-in, and the way in for inquiries the
+// deadline closed while nobody was looking.
+const canOpenConversation = computed(() => capabilities.talkRoomsAvailable === true
+	&& canManage.value
+	&& isClosed.value
+	&& !props.appointment.talkRoomToken)
+
+const openingConversation = ref(false)
+
+async function openConversation() {
+	openingConversation.value = true
+	try {
+		const response = await axios.post(generateUrl(`/apps/attendance/api/appointments/${props.appointment.id}/talk-room`))
+		emit('closedToggled', response.data)
+		showSuccess(t('attendance', 'Conversation opened'))
+	} catch (error) {
+		showError(error.response?.data?.error || t('attendance', 'The conversation could not be opened'))
+	} finally {
+		openingConversation.value = false
+	}
+}
 
 function copyShareLink() {
 	return copyToClipboard(window.location.origin + appointmentDetailUrl(props.appointment.id), {

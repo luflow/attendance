@@ -950,6 +950,16 @@
     "Top response rate" : "Top Antwortquote",
     "Top scheduling rate" : "Top Einplanungsquote",
     "Absent more often" : "Öfter nicht dabei",
-    "Choose highlights" : "Highlights auswählen"
+    "Choose highlights" : "Highlights auswählen",
+    "Conversation" : "Unterhaltung",
+    "Has a conversation" : "Hat eine Unterhaltung",
+    "A conversation is open for the people who got a place." : "Für die eingeplanten Personen ist eine Unterhaltung eröffnet.",
+    "Open conversation" : "Unterhaltung öffnen",
+    "Open a conversation" : "Unterhaltung eröffnen",
+    "Open a conversation when closing" : "Beim Schließen eine Unterhaltung eröffnen",
+    "Opens a Talk conversation with the scheduled people once the inquiry is closed, so the remaining details can be sorted out there." : "Eröffnet beim Schließen der Anfrage eine Talk-Unterhaltung mit den eingeplanten Personen, damit die restlichen Details dort geklärt werden können.",
+    "Conversation opened" : "Unterhaltung eröffnet",
+    "The conversation could not be opened" : "Die Unterhaltung konnte nicht eröffnet werden",
+    "Conversation for everyone scheduled into this appointment. Details: %1$s" : "Unterhaltung für alle, die für diesen Termin eingeplant sind. Details: %1$s"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

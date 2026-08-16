@@ -23,6 +23,17 @@ export function openStreetMapUrl(location) {
 }
 
 /**
+ * Link to the Talk conversation opened for an appointment's scheduled people.
+ *
+ * @param {object} appointment The appointment payload.
+ * @return {string|null} Relative URL, or null when no conversation is linked.
+ */
+export function talkRoomLink(appointment) {
+	const token = appointment?.talkRoomToken
+	return token ? generateUrl('/call/{token}', { token }) : null
+}
+
+/**
  * Deeplink that opens the appointment's source event in the Calendar app.
  *
  * @param {object} appointment The appointment payload.

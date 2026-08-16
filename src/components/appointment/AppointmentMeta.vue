@@ -61,6 +61,28 @@
 					<span>{{ organizedByLabel }}</span>
 				</div>
 			</NcPopover>
+
+			<NcPopover
+				v-if="talkLink"
+				v-bind="TOOLTIP"
+				class="appointment-meta__popover">
+				<template #trigger>
+					<span
+						class="appointment-meta__icon talk-room"
+						tabindex="0"
+						role="img"
+						data-test="talk-room-info"
+						:aria-label="t('attendance', 'Has a conversation')">
+						<MessageTextIcon :size="15" />
+					</span>
+				</template>
+				<div class="meta-tooltip">
+					<span>{{ t('attendance', 'A conversation is open for the people who got a place.') }}</span>
+					<a :href="talkLink">
+						{{ t('attendance', 'Open conversation') }} →
+					</a>
+				</div>
+			</NcPopover>
 		</span></span>
 	</span>
 </template>
@@ -70,8 +92,9 @@ import { NcPopover } from '@nextcloud/vue'
 import { computed } from 'vue'
 import AccountStarIcon from 'vue-material-design-icons/AccountStar.vue'
 import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
+import MessageTextIcon from 'vue-material-design-icons/MessageText.vue'
 import RepeatIcon from 'vue-material-design-icons/Repeat.vue'
-import { calendarDeepLink } from '../../utils/appointment.js'
+import { calendarDeepLink, talkRoomLink } from '../../utils/appointment.js'
 import { HOVER_TOOLTIP as TOOLTIP } from '../../utils/tooltip.js'
 
 const props = defineProps({
@@ -86,6 +109,7 @@ const props = defineProps({
 })
 
 const calendarLink = computed(() => calendarDeepLink(props.appointment))
+const talkLink = computed(() => talkRoomLink(props.appointment))
 
 // Same last-word split as the card title: the final token of the date shares a
 // no-wrap span with the icons, so they always keep text company when wrapping.
