@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.49.1 – 2026-08-16
+
+### Fixed
+
+- **An edited appointment left its Talk room behind**: name, date and description were written when the room opened and never again, so a moved appointment kept advertising the old date and the old briefing. Editing it — in the app or by dragging the linked event in the Calendar app — now carries all three into the room. A room renamed by hand takes the appointment's name back
+
 ## 1.49.0 – 2026-08-16
 
 ### Added
