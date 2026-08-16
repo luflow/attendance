@@ -184,11 +184,11 @@
 				<h3>{{ t("attendance", "Highlights") }}</h3>
 				<NcPopover>
 					<template #trigger>
-						<NcButton variant="tertiary" data-test="statistics-cards">
+						<NcButton variant="secondary" data-test="statistics-cards">
 							<template #icon>
 								<TuneIcon :size="20" />
 							</template>
-							{{ t("attendance", "Choose cards") }}
+							{{ t("attendance", "Choose highlights") }}
 						</NcButton>
 					</template>
 					<template #default>

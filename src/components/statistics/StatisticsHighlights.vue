@@ -10,7 +10,12 @@
 			</h3>
 			<ul class="highlights__rows">
 				<li v-for="row in card.rows" :key="row.value" class="highlights__row">
-					<span class="highlights__value">{{ formatValue(card, row) }}</span>
+					<span class="highlights__value">
+						{{ formatValue(card, row) }}
+						<span v-if="sharedBasis(card, row)" class="highlights__basis">
+							{{ sharedBasis(card, row) }}
+						</span>
+					</span>
 					<span v-if="selectable" class="highlights__names">
 						<button
 							v-for="person in row.people"
@@ -18,11 +23,11 @@
 							type="button"
 							class="highlights__person"
 							@click="emit('selectPerson', person)">
-							{{ nameOf(card, person) }}
+							{{ nameOf(card, row, person) }}
 						</button>
 					</span>
 					<span v-else class="highlights__names">
-						{{ row.people.map((person) => nameOf(card, person)).join(", ") }}
+						{{ row.people.map((person) => nameOf(card, row, person)).join(", ") }}
 					</span>
 				</li>
 			</ul>
@@ -61,7 +66,9 @@ const cards = computed(() => STATISTICS_CARDS
 function formatValue(card, row) {
 	if (card.date) {
 		// TRANSLATORS: Shown instead of a date for somebody who was not recorded present at any appointment in the period.
-		return row.never ? t('attendance', 'Never') : formatDate(new Date(row.value).toISOString(), 'short')
+		// Medium like the person sidebar: here the date is the content, not an
+		// axis label, and "21 July 2026" beats "21/07/2026" for reading.
+		return row.never ? t('attendance', 'Never') : formatDate(new Date(row.value))
 	}
 	if (card.basis) {
 		return formatRate(row.value)
@@ -70,16 +77,36 @@ function formatValue(card, row) {
 }
 
 /**
- * Rate cards carry the denominator behind each name: two people can share
- * 100 % on wildly different numbers of appointments, and the reader deserves
- * to see which.
+ * The denominator a rate row rests on, when everybody in it shares one — which
+ * is the normal case, the card only ever considering comparable bases. Said
+ * once beside the value instead of after every name, where four repetitions of
+ * "(4 appointments)" drown out the names themselves.
  *
  * @param {object} card - Card descriptor.
- * @param {object} person - A person row.
- * @return {string} The name, with its basis where one applies.
+ * @param {object} row - The row to label.
+ * @return {?string} The basis, or null when it differs within the row.
  */
-function nameOf(card, person) {
+function sharedBasis(card, row) {
 	if (!card.basis) {
+		return null
+	}
+	const first = row.people[0][card.basis]
+	return row.people.every((person) => person[card.basis] === first)
+		? `(${n('attendance', '%n appointment', '%n appointments', first)})`
+		: null
+}
+
+/**
+ * Two people can share a rate on different numbers of appointments. Where that
+ * happens the row cannot label itself, so each name carries its own basis.
+ *
+ * @param {object} card - Card descriptor.
+ * @param {object} row - The row the name sits in.
+ * @param {object} person - A person row.
+ * @return {string} The name, with its basis where the row could not say it.
+ */
+function nameOf(card, row, person) {
+	if (!card.basis || sharedBasis(card, row)) {
 		return person.displayName
 	}
 	return `${person.displayName} (${n('attendance', '%n appointment', '%n appointments', person[card.basis])})`
@@ -90,7 +117,7 @@ function nameOf(card, person) {
 .highlights {
     display: grid;
     gap: 12px;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     margin-bottom: 16px;
 }
 
@@ -112,43 +139,61 @@ function nameOf(card, person) {
 .highlights__rows {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    /* Groups need more air between them than a value has to its own names, or
+       the reader has to work out which names belong to which value. */
+    gap: 14px;
 }
 
 .highlights__row {
-    display: flex;
     font-size: 13px;
-    gap: 8px;
+    line-height: 1.35;
 }
 
+/* The value heads its group rather than sitting beside it: it is nowrap and
+   carries the basis, so as a column it left the names a strip too narrow to
+   fit one. Above them they get the whole card. */
 .highlights__value {
-    color: var(--color-main-text);
+    display: block;
     font-weight: bold;
-    white-space: nowrap;
 }
 
+.highlights__basis {
+    color: var(--color-text-maxcontrast);
+    font-weight: normal;
+}
+
+/* The separator is a gap plus a pseudo-element, not literal text: relying on
+   the whitespace between the buttons put a space in front of every comma and
+   left a stray one at the start of a wrapped line. */
 .highlights__names {
     color: var(--color-text-maxcontrast);
+    column-gap: 4px;
+    display: flex;
+    flex-wrap: wrap;
 }
 
-/* Reset rather than restyle: these sit inline inside a comma-separated run, so
-   any of the button chrome the server theme adds would break the line up. */
+/* Nextcloud styles every button as a full-width block with its own min-height;
+   these sit in a comma-separated run, so the reset has to take the box model
+   with it, not just the colours. */
 .highlights__person {
     background: none;
     border: none;
     color: inherit;
     cursor: pointer;
     font: inherit;
+    line-height: inherit;
     margin: 0;
+    min-height: 0;
     padding: 0;
     text-align: start;
+    width: auto;
 }
 
 .highlights__person:hover {
     text-decoration: underline;
 }
 
-.highlights__person:not(:first-child)::before {
-    content: ", ";
+.highlights__person:not(:last-child)::after {
+    content: ",";
 }
 </style>
