@@ -15,6 +15,9 @@ use OCA\Talk\Room;
 use OCA\Talk\Service\ParticipantService;
 use OCA\Talk\Service\RoomService;
 use OCP\App\IAppManager;
+use OCP\Config\IUserConfig;
+use OCP\IDateTimeFormatter;
+use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -46,6 +49,8 @@ class TalkRoomService {
 	private const ACTOR_USERS = 'users';        // Attendee::ACTOR_USERS
 	private const PARTICIPANT_MODERATOR = 2;    // Participant::MODERATOR
 	private const REASON_REMOVED = 'remove';    // AAttendeeRemovedEvent::REASON_REMOVED
+	private const NAME_MAX_LENGTH = 255;        // conversations.name column
+	private const DESCRIPTION_MAX_LENGTH = 2000; // Room::DESCRIPTION_MAXIMUM_LENGTH
 
 	private ?bool $talkEnabled = null;
 
@@ -55,6 +60,8 @@ class TalkRoomService {
 		private IUserManager $userManager,
 		private IURLGenerator $urlGenerator,
 		private IFactory $l10nFactory,
+		private IUserConfig $userConfig,
+		private IDateTimeFormatter $dateTimeFormatter,
 		private AppointmentMapper $appointmentMapper,
 		private AttendanceResponseMapper $responseMapper,
 		private ConfigService $configService,
@@ -142,7 +149,7 @@ class TalkRoomService {
 			// Named arguments: stable34 inserted `$attributes` mid-signature.
 			$room = $roomService->createConversation(
 				type: self::ROOM_TYPE_GROUP,
-				name: mb_substr($appointment->getName(), 0, 255),
+				name: $this->buildName($appointment, $owner),
 				owner: $owner,
 			);
 
@@ -408,11 +415,32 @@ class TalkRoomService {
 	}
 
 	/**
+	 * "Probe (12.09.2026)" — the room outlives the appointment in a conversation
+	 * list where a bare name says nothing about which date it belongs to.
+	 */
+	private function buildName(Appointment $appointment, IUser $owner): string {
+		$start = $this->startOf($appointment);
+		if ($start === null) {
+			return mb_substr($appointment->getName(), 0, self::NAME_MAX_LENGTH);
+		}
+
+		$date = $this->dateTimeFormatter->formatDate(
+			$start,
+			'medium',
+			$this->timezoneOf($owner),
+			$this->ownerL10n($owner),
+		);
+		$suffix = ' (' . $date . ')';
+
+		return mb_substr($appointment->getName(), 0, self::NAME_MAX_LENGTH - mb_strlen($suffix)) . $suffix;
+	}
+
+	/**
 	 * Translated into the owner's language: a background job has no UI locale,
 	 * and the description is stored once rather than rendered per reader.
 	 */
 	private function buildDescription(Appointment $appointment, IUser $owner): string {
-		$l = $this->l10nFactory->get('attendance', $this->l10nFactory->getUserLanguage($owner));
+		$l = $this->ownerL10n($owner);
 
 		$url = $this->urlGenerator->linkToRouteAbsolute(
 			'attendance.page.appointment',
@@ -421,11 +449,55 @@ class TalkRoomService {
 
 		// Same distinction the UI hint makes: without planning nobody is
 		// "scheduled", everyone who accepted is simply in.
-		if ($this->configService->isBookingEnabled()) {
-			return $l->t('Talk room for everyone scheduled into this appointment. Details: %1$s', [$url]);
+		$intro = $this->configService->isBookingEnabled()
+			? $l->t('Talk room for everyone scheduled into this appointment. Details: %1$s', [$url])
+			: $l->t('Talk room for everyone who accepted this appointment. Details: %1$s', [$url]);
+
+		$own = trim($appointment->getDescription() ?? '');
+		if ($own === '') {
+			return $intro;
 		}
 
-		return $l->t('Talk room for everyone who accepted this appointment. Details: %1$s', [$url]);
+		// Talk rejects an over-long description outright, so a trimmed tail
+		// beats no description at all.
+		$available = self::DESCRIPTION_MAX_LENGTH - mb_strlen($intro) - 2;
+		if ($available < 2) {
+			return $intro;
+		}
+		if (mb_strlen($own) > $available) {
+			$own = mb_substr($own, 0, $available - 1) . '…';
+		}
+
+		return $intro . "\n\n" . $own;
+	}
+
+	/**
+	 * Start of the appointment as stored: UTC, and invalid only if the row is.
+	 */
+	private function startOf(Appointment $appointment): ?\DateTime {
+		try {
+			return new \DateTime($appointment->getStartDatetime(), new \DateTimeZone('UTC'));
+		} catch (\Exception) {
+			return null;
+		}
+	}
+
+	/**
+	 * The owner's timezone, for the same reason as their language: name and
+	 * description are stored once, not rendered per reader.
+	 */
+	private function timezoneOf(IUser $owner): \DateTimeZone {
+		try {
+			$timezone = $this->userConfig->getValueString($owner->getUID(), 'core', 'timezone');
+
+			return new \DateTimeZone($timezone !== '' ? $timezone : date_default_timezone_get());
+		} catch (\Exception) {
+			return new \DateTimeZone('UTC');
+		}
+	}
+
+	private function ownerL10n(IUser $owner): IL10N {
+		return $this->l10nFactory->get('attendance', $this->l10nFactory->getUserLanguage($owner));
 	}
 
 	/**

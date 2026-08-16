@@ -17,6 +17,8 @@ use OCA\Talk\Room;
 use OCA\Talk\Service\ParticipantService;
 use OCA\Talk\Service\RoomService;
 use OCP\App\IAppManager;
+use OCP\Config\IUserConfig;
+use OCP\IDateTimeFormatter;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUser;
@@ -34,6 +36,8 @@ class TalkRoomServiceTest extends TestCase {
 	private AppointmentMapper|MockObject $appointmentMapper;
 	private AttendanceResponseMapper|MockObject $responseMapper;
 	private ConfigService|MockObject $configService;
+	private IUserConfig|MockObject $config;
+	private string $userTimezone = '';
 	private RoomService|MockObject $roomService;
 	private ParticipantService|MockObject $participantService;
 	private TalkManager|MockObject $talkManager;
@@ -82,17 +86,47 @@ class TalkRoomServiceTest extends TestCase {
 		$l10nFactory = $this->createMock(IFactory::class);
 		$l10nFactory->method('get')->willReturn($l10n);
 
+		// No timezone set, unless a test says otherwise.
+		$this->userTimezone = '';
+		$this->config = $this->createMock(IUserConfig::class);
+		$this->config->method('getValueString')->willReturnCallback(fn () => $this->userTimezone);
+
+		$urlGenerator = $this->createMock(IURLGenerator::class);
+		$urlGenerator->method('linkToRouteAbsolute')->willReturn('https://cloud.example/apps/attendance/appointment/7');
+
 		$this->service = new TalkRoomService(
 			$this->container,
 			$this->appManager,
 			$this->userManager,
-			$this->createMock(IURLGenerator::class),
+			$urlGenerator,
 			$l10nFactory,
+			$this->config,
+			$this->dateTimeFormatter(),
 			$this->appointmentMapper,
 			$this->responseMapper,
 			$this->configService,
 			$logger,
 		);
+	}
+
+	/**
+	 * Formats German-style, and honours the timezone it is handed — the two
+	 * properties the room name depends on.
+	 */
+	private function dateTimeFormatter(): IDateTimeFormatter|MockObject {
+		$formatter = $this->createMock(IDateTimeFormatter::class);
+		$formatter->method('formatDate')->willReturnCallback(
+			function (\DateTime $timestamp, string $format = 'long', ?\DateTimeZone $timeZone = null): string {
+				$date = clone $timestamp;
+				if ($timeZone !== null) {
+					$date->setTimezone($timeZone);
+				}
+
+				return $date->format('d.m.Y');
+			},
+		);
+
+		return $formatter;
 	}
 
 	private function appointment(array $organizers = ['olivia'], ?string $token = null): Appointment {
@@ -151,6 +185,8 @@ class TalkRoomServiceTest extends TestCase {
 			$this->userManager,
 			$this->createMock(IURLGenerator::class),
 			$this->createMock(IFactory::class),
+			$this->config,
+			$this->dateTimeFormatter(),
 			$this->appointmentMapper,
 			$this->responseMapper,
 			$this->configService,
@@ -233,7 +269,7 @@ class TalkRoomServiceTest extends TestCase {
 			->method('createConversation')
 			->with(
 				2,            // group, not public — there is no link to pass around
-				'Rehearsal',
+				'Rehearsal (01.09.2026)',
 				$this->callback(fn (IUser $owner) => $owner->getUID() === 'olivia'),
 			)
 			->willReturn($this->room());
@@ -243,6 +279,105 @@ class TalkRoomServiceTest extends TestCase {
 
 		$this->assertSame('tok123', $this->service->createForAppointment($appointment));
 		$this->assertSame('tok123', $appointment->getTalkRoomToken());
+	}
+
+	/**
+	 * The name and description the room is created with.
+	 *
+	 * @return array{name: string, description: string}
+	 */
+	private function createdLabels(Appointment $appointment): array {
+		$this->responseMapper->method('findByAppointment')->willReturn([$this->response('alice', 'yes', null)]);
+		$this->participantService->method('getParticipantsForRoom')->willReturn($this->participants(['olivia']));
+
+		$name = '';
+		$this->roomService->method('createConversation')->willReturnCallback(
+			function (int $type, string $roomName) use (&$name): Room {
+				$name = $roomName;
+
+				return $this->room();
+			},
+		);
+
+		$description = '';
+		$this->roomService->method('setDescription')->willReturnCallback(
+			function (Room $room, string $text) use (&$description): void {
+				$description = $text;
+			},
+		);
+
+		$this->service->createForAppointment($appointment);
+
+		return ['name' => $name, 'description' => $description];
+	}
+
+	/**
+	 * The date tells the rooms of a series apart; a conversation list full of
+	 * "Rehearsal" does not.
+	 */
+	public function testRoomNameCarriesTheStartDate(): void {
+		$this->assertSame('Rehearsal (01.09.2026)', $this->createdLabels($this->appointment())['name']);
+	}
+
+	/**
+	 * 23:00 UTC is the next day in Berlin, and the name is written once — in
+	 * the owner's timezone, for the same reason it is in their language.
+	 */
+	public function testRoomNameFollowsTheOwnersTimezone(): void {
+		$this->userTimezone = 'Europe/Berlin';
+		$appointment = $this->appointment();
+		$appointment->setStartDatetime('2026-09-01 23:00:00');
+
+		$this->assertSame('Rehearsal (02.09.2026)', $this->createdLabels($appointment)['name']);
+	}
+
+	/**
+	 * The name is capped, and the date is the part that has to survive.
+	 */
+	public function testRoomNameKeepsTheDateWhenTheNameIsTooLong(): void {
+		$appointment = $this->appointment();
+		$appointment->setName(str_repeat('a', 300));
+
+		$name = $this->createdLabels($appointment)['name'];
+
+		$this->assertSame(255, mb_strlen($name));
+		$this->assertStringEndsWith(' (01.09.2026)', $name);
+	}
+
+	/**
+	 * What the appointment says is what the people in the room need: the
+	 * description travels into the room rather than only sitting behind a link.
+	 */
+	public function testDescriptionCarriesTheAppointmentDescription(): void {
+		$appointment = $this->appointment();
+		$appointment->setDescription("Bring your own music stand.\nWe start on time.");
+
+		$description = $this->createdLabels($appointment)['description'];
+
+		$this->assertStringContainsString('everyone who accepted', $description);
+		$this->assertStringContainsString('https://cloud.example/apps/attendance/appointment/7', $description);
+		$this->assertStringContainsString("Bring your own music stand.\nWe start on time.", $description);
+	}
+
+	public function testDescriptionIsJustTheIntroWhenTheAppointmentHasNone(): void {
+		$description = $this->createdLabels($this->appointment())['description'];
+
+		$this->assertStringContainsString('everyone who accepted', $description);
+		$this->assertStringNotContainsString("\n\n", $description);
+	}
+
+	/**
+	 * Talk rejects anything over 2000 characters outright, which would leave
+	 * the room with no description at all.
+	 */
+	public function testDescriptionStaysWithinTalksLimit(): void {
+		$appointment = $this->appointment();
+		$appointment->setDescription(str_repeat('b', 2500));
+
+		$description = $this->createdLabels($appointment)['description'];
+
+		$this->assertLessThanOrEqual(2000, mb_strlen($description));
+		$this->assertStringEndsWith('…', $description);
 	}
 
 	public function testDoesNotCreateASecondRoomForALinkedAppointment(): void {
