@@ -396,7 +396,7 @@ class TalkRoomService {
 			['id' => $appointment->getId()],
 		);
 
-		return $l->t('Conversation for everyone scheduled into this appointment. Details: %1$s', [$url]);
+		return $l->t('Talk room for everyone scheduled into this appointment. Details: %1$s', [$url]);
 	}
 
 	private function getRoomService(): ?RoomService {

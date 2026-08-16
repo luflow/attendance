@@ -66,7 +66,7 @@
 					<MessageTextIcon :size="20" />
 				</template>
 				<!-- TRANSLATORS: Menu action that opens a Talk conversation holding the organizers and everyone who got a place, so the remaining details can be sorted out there. -->
-				{{ t("attendance", "Open a conversation") }}
+				{{ t("attendance", "Open a Talk room") }}
 			</NcActionButton>
 			<NcActionButton
 				v-if="canManage"
@@ -266,9 +266,9 @@ async function openConversation() {
 	try {
 		const response = await axios.post(generateUrl(`/apps/attendance/api/appointments/${props.appointment.id}/talk-room`))
 		emit('closedToggled', response.data)
-		showSuccess(t('attendance', 'Conversation opened'))
+		showSuccess(t('attendance', 'Talk room opened'))
 	} catch (error) {
-		showError(error.response?.data?.error || t('attendance', 'The conversation could not be opened'))
+		showError(error.response?.data?.error || t('attendance', 'The Talk room could not be opened'))
 	} finally {
 		openingConversation.value = false
 	}

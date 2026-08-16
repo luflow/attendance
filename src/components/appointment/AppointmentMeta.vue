@@ -72,14 +72,14 @@
 						tabindex="0"
 						role="img"
 						data-test="talk-room-info"
-						:aria-label="t('attendance', 'Has a conversation')">
+						:aria-label="t('attendance', 'Has a Talk room')">
 						<MessageTextIcon :size="15" />
 					</span>
 				</template>
 				<div class="meta-tooltip">
-					<span>{{ t('attendance', 'A conversation is open for the people who got a place.') }}</span>
+					<span>{{ t('attendance', 'A Talk room is open for the people who got a place.') }}</span>
 					<a :href="talkLink">
-						{{ t('attendance', 'Open conversation') }} →
+						{{ t('attendance', 'Open Talk room') }} →
 					</a>
 				</div>
 			</NcPopover>

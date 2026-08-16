@@ -318,20 +318,20 @@
 			</div>
 
 			<div v-if="talkRoomsAvailable" class="form-section">
-				<h3>{{ t("attendance", "Conversation") }}</h3>
+				<h3>{{ t("attendance", "Talk room") }}</h3>
 				<!-- TRANSLATORS: Hint under the toggle that opens a Talk conversation when the inquiry is closed. It explains who ends up in that conversation and why it exists: the organizers hand out the remaining details there — meeting points, car pools, who brings what. Sample German: "Sobald die Anfrage geschlossen ist, wird eine Talk-Konversation mit den eingeplanten Personen eröffnet. Dort lassen sich die letzten Details klären." -->
 				<p class="hint-text">
 					{{
 						t(
 							"attendance",
-							"Opens a Talk conversation with the scheduled people once the inquiry is closed, so the remaining details can be sorted out there.",
+							"Opens a Talk room with the scheduled people once the inquiry is closed, so the remaining details can be sorted out there.",
 						)
 					}}
 				</p>
 				<NcCheckboxRadioSwitch
 					v-model="createTalkRoom"
 					data-test="checkbox-create-talk-room">
-					{{ t("attendance", "Open a conversation when closing") }}
+					{{ t("attendance", "Open a Talk room when closing") }}
 				</NcCheckboxRadioSwitch>
 			</div>
 
