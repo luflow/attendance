@@ -359,44 +359,34 @@ class StatisticsServiceTest extends TestCase {
 	}
 
 	/**
-	 * Feeds the "longest not attended" card, so it has to be the *latest*
-	 * appointment the person turned up for, and null for somebody who never did.
+	 * Feeds the "absent more often" card. Deliberately not 1 - attendanceRate:
+	 * an appointment nobody wrote down counts in the base but says nothing
+	 * about whether the person was there.
 	 */
-	public function testRecordsWhenEachPersonWasLastPresent(): void {
-		$this->givenUsers(['alice' => 'Alice', 'bob' => 'Bob']);
-		$this->givenUnrestrictedVisibility();
-		$this->givenGroupSections();
-
-		$this->appointmentMapper->method('findForStatistics')->willReturn([
-			$this->appointment(1, '2026-05-01 18:00:00', '2026-05-01 20:00:00'),
-			$this->appointment(2, '2026-05-08 18:00:00', '2026-05-08 20:00:00'),
-		]);
-		$this->givenResponses([
-			$this->response(1, 'alice', 'yes', 'yes'),
-			$this->response(2, 'alice', 'yes', 'yes'),
-			$this->response(1, 'bob', 'yes', 'yes'),
-			$this->response(2, 'bob', 'yes', 'no'),
-		]);
-
-		$people = array_column($this->service->getStatistics($this->filter())['people'], null, 'userId');
-
-		$this->assertStringStartsWith('2026-05-08', (string)$people['alice']['lastPresentAt'], 'the later of the two');
-		$this->assertStringStartsWith('2026-05-01', (string)$people['bob']['lastPresentAt'], 'absent on the later one');
-	}
-
-	public function testLastPresentIsNullForSomebodyWhoNeverTurnedUp(): void {
+	public function testAbsenceRateCountsOnlyRecordedAbsences(): void {
 		$this->givenUsers(['alice' => 'Alice']);
 		$this->givenUnrestrictedVisibility();
 		$this->givenGroupSections();
 
 		$this->appointmentMapper->method('findForStatistics')->willReturn([
 			$this->appointment(1, '2026-05-01 18:00:00', '2026-05-01 20:00:00'),
+			$this->appointment(2, '2026-05-08 18:00:00', '2026-05-08 20:00:00'),
+			$this->appointment(3, '2026-05-15 18:00:00', '2026-05-15 20:00:00'),
 		]);
 		$this->givenResponses([
-			$this->response(1, 'alice', 'no', 'no'),
+			$this->response(1, 'alice', 'yes', 'yes'),
+			$this->response(2, 'alice', 'yes', 'no'),
+			// Somebody worked this list, but nobody ticked Alice either way
+			$this->response(3, 'alice', 'yes', ''),
+			$this->response(3, 'bob', 'yes', 'yes'),
 		]);
 
-		$this->assertNull($this->service->getStatistics($this->filter())['people'][0]['lastPresentAt']);
+		$alice = $this->person($this->service->getStatistics($this->filter()), 'alice');
+
+		$this->assertSame(3, $alice['attendanceBase']);
+		$this->assertSame(1, $alice['absent']);
+		$this->assertSame(1, $alice['notRecorded']);
+		$this->assertEqualsWithDelta(1 / 3, $alice['absenceRate'], 0.0001);
 	}
 
 	public function testRefusesRangesBeyondTheAppointmentLimit(): void {

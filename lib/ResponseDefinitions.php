@@ -328,7 +328,6 @@ namespace OCA\Attendance;
  *   displayName: string,
  *   isGuest: bool,
  *   sections: list<string>,
- *   lastPresentAt: ?string,
  *   targetCount: int,
  *   yes: int,
  *   no: int,
@@ -345,6 +344,7 @@ namespace OCA\Attendance;
  *   responseRate: ?float,
  *   acceptRate: ?float,
  *   attendanceRate: ?float,
+ *   absenceRate: ?float,
  *   scheduledRate: ?float,
  * }
  * @psalm-type AttendanceStatisticsTotals = array{
@@ -364,6 +364,7 @@ namespace OCA\Attendance;
  *   responseRate: ?float,
  *   acceptRate: ?float,
  *   attendanceRate: ?float,
+ *   absenceRate: ?float,
  *   scheduledRate: ?float,
  * }
  * @psalm-type AttendanceStatisticsSection = array{
@@ -386,6 +387,7 @@ namespace OCA\Attendance;
  *   responseRate: ?float,
  *   acceptRate: ?float,
  *   attendanceRate: ?float,
+ *   absenceRate: ?float,
  *   scheduledRate: ?float,
  * }
  * @psalm-type AttendanceStatisticsTimelinePoint = array{

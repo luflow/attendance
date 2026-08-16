@@ -1508,7 +1508,6 @@
                     "displayName",
                     "isGuest",
                     "sections",
-                    "lastPresentAt",
                     "targetCount",
                     "yes",
                     "no",
@@ -1525,6 +1524,7 @@
                     "responseRate",
                     "acceptRate",
                     "attendanceRate",
+                    "absenceRate",
                     "scheduledRate"
                 ],
                 "properties": {
@@ -1542,10 +1542,6 @@
                         "items": {
                             "type": "string"
                         }
-                    },
-                    "lastPresentAt": {
-                        "type": "string",
-                        "nullable": true
                     },
                     "targetCount": {
                         "type": "integer",
@@ -1610,6 +1606,11 @@
                         "nullable": true
                     },
                     "attendanceRate": {
+                        "type": "number",
+                        "format": "double",
+                        "nullable": true
+                    },
+                    "absenceRate": {
                         "type": "number",
                         "format": "double",
                         "nullable": true
@@ -1709,6 +1710,7 @@
                     "responseRate",
                     "acceptRate",
                     "attendanceRate",
+                    "absenceRate",
                     "scheduledRate"
                 ],
                 "properties": {
@@ -1789,6 +1791,11 @@
                         "format": "double",
                         "nullable": true
                     },
+                    "absenceRate": {
+                        "type": "number",
+                        "format": "double",
+                        "nullable": true
+                    },
                     "scheduledRate": {
                         "type": "number",
                         "format": "double",
@@ -1855,6 +1862,7 @@
                     "responseRate",
                     "acceptRate",
                     "attendanceRate",
+                    "absenceRate",
                     "scheduledRate"
                 ],
                 "properties": {
@@ -1921,6 +1929,11 @@
                         "nullable": true
                     },
                     "attendanceRate": {
+                        "type": "number",
+                        "format": "double",
+                        "nullable": true
+                    },
+                    "absenceRate": {
                         "type": "number",
                         "format": "double",
                         "nullable": true

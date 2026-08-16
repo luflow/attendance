@@ -89,7 +89,7 @@ final class StatisticsTally {
 	}
 
 	/**
-	 * @return array{targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, scheduled: int, notScheduled: int, schedulingBase: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float, scheduledRate: ?float}
+	 * @return array{targetCount: int, yes: int, no: int, maybe: int, noResponse: int, present: int, absent: int, notRecorded: int, attendanceBase: int, noShow: int, scheduled: int, notScheduled: int, schedulingBase: int, responseRate: ?float, acceptRate: ?float, attendanceRate: ?float, absenceRate: ?float, scheduledRate: ?float}
 	 */
 	public function toArray(): array {
 		return [
@@ -109,6 +109,9 @@ final class StatisticsTally {
 			'responseRate' => self::rate($this->yes + $this->no + $this->maybe, $this->targetCount),
 			'acceptRate' => self::rate($this->yes, $this->targetCount),
 			'attendanceRate' => self::rate($this->present, $this->attendanceBase),
+			// Not 1 - attendanceRate: appointments nobody wrote down count in the
+			// base but say nothing about whether the person was there.
+			'absenceRate' => self::rate($this->absent, $this->attendanceBase),
 			'scheduledRate' => self::rate($this->scheduled, $this->schedulingBase),
 		];
 	}

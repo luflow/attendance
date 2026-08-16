@@ -944,14 +944,14 @@ OC.L10N.register(
     "Show the response summary in the calendar event" : "Antwortübersicht im Kalendereintrag anzeigen",
     "Everyone the calendar is shared with sees how many people accepted, without opening the app. Keeping it current means writing to the event after every answer, and Nextcloud reports each of those writes as a calendar change." : "Alle, für die der Kalender freigegeben ist, sehen ohne die App zu öffnen, wie viele zugesagt haben. Dafür wird der Kalendereintrag nach jeder Antwort neu geschrieben, und Nextcloud meldet jeden dieser Schreibvorgänge als Kalenderänderung.",
     "Highlights" : "Highlights",
-    "Choose cards" : "Karten auswählen",
-    "Highest attendance rate" : "Höchste Anwesenheitsquote",
-    "Highest acceptance rate" : "Höchste Zusagequote",
-    "Highest response rate" : "Höchste Antwortquote",
-    "Highest scheduling rate" : "Höchste Einplanungsquote",
     "Most maybe answers" : "Meiste Vielleicht-Antworten",
     "Most times scheduled" : "Am häufigsten eingeplant",
-    "Longest not attended" : "Am längsten nicht dabei",
-    "Never" : "Nie"
+    "Never" : "Nie",
+    "Top attendance rate" : "Top Anwesenheitsquote",
+    "Top acceptance rate" : "Top Zusagequote",
+    "Top response rate" : "Top Antwortquote",
+    "Top scheduling rate" : "Top Einplanungsquote",
+    "Absent more often" : "Öfter nicht dabei",
+    "Choose highlights" : "Highlights auswählen"
 },
 "nplurals=2; plural=(n != 1);");
