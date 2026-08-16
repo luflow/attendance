@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Added
+
+- **A Talk room for the people who are coming**: an acceptance settles attendance, but not where to meet, who gives whom a lift or who brings the sheet music. A Talk room now opens holding exactly those people plus the organizers — nobody has to click a group together by hand. Membership stays in step afterwards: whoever withdraws their acceptance leaves the room again, so the final details stay among the people they concern. Switch it on per appointment, or open a room later from the appointment's menu. With the planning mode on the room waits until the inquiry is closed, because only then is it settled who has a place; without it the room opens as soon as the first person accepts. Needs Nextcloud Talk
+
+### Fixed
+
+- **Inquiries that closed by their deadline never told anybody they were scheduled**: the notification wave that tells people whether they got a place only ran when somebody closed an inquiry by hand. Closing by deadline — the more common case — skipped it silently, so nobody was told either way
+
+### Maintenance
+
+- Naming what the response mapper actually returns resolved 98 suppressed static-analysis findings across nine services, without changing any of their code
+
 ## 1.48.0 – 2026-08-16
 
 ### Added
