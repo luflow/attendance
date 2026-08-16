@@ -218,7 +218,8 @@
                     "responseCounts",
                     "locationsAvailable",
                     "categoriesAvailable",
-                    "statisticsAvailable"
+                    "statisticsAvailable",
+                    "talkRoomsAvailable"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -279,6 +280,9 @@
                         "type": "boolean"
                     },
                     "statisticsAvailable": {
+                        "type": "boolean"
+                    },
+                    "talkRoomsAvailable": {
                         "type": "boolean"
                     }
                 }

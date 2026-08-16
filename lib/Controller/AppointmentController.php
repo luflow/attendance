@@ -15,6 +15,7 @@ use OCA\Attendance\Service\ExportService;
 use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\NotificationService;
 use OCA\Attendance\Service\PermissionService;
+use OCA\Attendance\Service\TalkRoomService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Controller;
@@ -43,6 +44,7 @@ class AppointmentController extends Controller {
 	private ISecureRandom $secureRandom;
 	private GuestService $guestService;
 	private BookingService $bookingService;
+	private TalkRoomService $talkRoomService;
 
 	public function __construct(
 		string $appName,
@@ -61,6 +63,7 @@ class AppointmentController extends Controller {
 		ISecureRandom $secureRandom,
 		GuestService $guestService,
 		BookingService $bookingService,
+		TalkRoomService $talkRoomService,
 	) {
 		parent::__construct($appName, $request);
 		$this->appointmentService = $appointmentService;
@@ -77,6 +80,7 @@ class AppointmentController extends Controller {
 		$this->secureRandom = $secureRandom;
 		$this->guestService = $guestService;
 		$this->bookingService = $bookingService;
+		$this->talkRoomService = $talkRoomService;
 	}
 
 	/**
@@ -184,6 +188,7 @@ class AppointmentController extends Controller {
 	 * @param list<string> $organizers User IDs to set as organizers; empty defaults to the creator
 	 * @param ?string $location Free-text location
 	 * @param ?int $categoryId Category ID
+	 * @param bool $createTalkRoom Open a Talk conversation with the scheduled people when the inquiry closes
 	 * @return DataResponse<Http::STATUS_CREATED, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
@@ -205,6 +210,7 @@ class AppointmentController extends Controller {
 		array $organizers = [],
 		?string $location = null,
 		?int $categoryId = null,
+		bool $createTalkRoom = false,
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -236,6 +242,7 @@ class AppointmentController extends Controller {
 				$organizers === [] ? null : $organizers,
 				$location,
 				$categoryId,
+				$createTalkRoom,
 			);
 
 			$this->addAttachmentsToAppointment($appointment->getId(), $attachments, $user->getUID());
@@ -351,6 +358,7 @@ class AppointmentController extends Controller {
 	 * @param ?list<string> $organizers New organizer list, or null to leave unchanged. Organizers may add anyone but remove only themselves; managers may change freely.
 	 * @param ?string $location Free-text location, applied identically to every affected sibling when scope is future/all
 	 * @param ?int $categoryId Category, applied identically to every affected sibling when scope is future/all
+	 * @param ?bool $createTalkRoom Open a Talk conversation when the inquiry closes, or null to leave unchanged
 	 * @return DataResponse<Http::STATUS_OK, AttendanceAppointmentData|list<AttendanceAppointmentData>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
@@ -371,6 +379,7 @@ class AppointmentController extends Controller {
 		?array $organizers = null,
 		?string $location = null,
 		?int $categoryId = null,
+		?bool $createTalkRoom = null,
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -389,7 +398,7 @@ class AppointmentController extends Controller {
 				$updatedAppointments = $this->appointmentService->updateSeriesAppointments(
 					$id, $scope, $name, $description, $startDatetime, $endDatetime,
 					$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
-					$deadlineUpdate, $organizers, $location, $categoryId,
+					$deadlineUpdate, $organizers, $location, $categoryId, $createTalkRoom,
 				);
 
 				// Sync attachments across all affected appointments
@@ -405,7 +414,7 @@ class AppointmentController extends Controller {
 				$updatedAppointments = $this->appointmentService->updateSeriesAppointments(
 					$id, 'single', $name, $description, $startDatetime, $endDatetime,
 					$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
-					$deadlineUpdate, $organizers, $location, $categoryId,
+					$deadlineUpdate, $organizers, $location, $categoryId, $createTalkRoom,
 				);
 				$this->syncAttachments($id, $attachments, $user->getUID());
 				return new DataResponse($updatedAppointments[0]);
@@ -414,7 +423,7 @@ class AppointmentController extends Controller {
 			$appointment = $this->appointmentService->updateAppointment(
 				$id, $name, $description, $startDatetime, $endDatetime,
 				$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
-				$deadlineUpdate, $organizers, $location, $categoryId,
+				$deadlineUpdate, $organizers, $location, $categoryId, $createTalkRoom,
 			);
 
 			$this->syncAttachments($id, $attachments, $user->getUID());
@@ -476,6 +485,45 @@ class AppointmentController extends Controller {
 
 		$updated = $this->appointmentService->reopenAppointment($id);
 		return new DataResponse($updated);
+	}
+
+	/**
+	 * Open a Talk conversation with the scheduled people
+	 *
+	 * Creates a group conversation holding the organisers and everyone who got
+	 * a place, and links it to the appointment. Idempotent: an appointment that
+	 * already has a live conversation gets its participants reconciled instead
+	 * of a second room.
+	 *
+	 * The counterpart to the createTalkRoom opt-in, for inquiries that were
+	 * closed without it — including those the deadline closed.
+	 *
+	 * @param int $id Appointment ID
+	 * @return DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function createTalkRoom(int $id): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		$appointment = $this->findManageableAppointment($id, $user->getUID(), 'Insufficient permissions to open a conversation for this appointment');
+		if ($appointment instanceof DataResponse) {
+			return $appointment;
+		}
+
+		if (!$this->talkRoomService->isAvailable()) {
+			return new DataResponse(['error' => 'Talk is not available on this server'], 400);
+		}
+
+		if ($this->talkRoomService->createForAppointment($appointment) === null) {
+			return new DataResponse(['error' => 'The conversation could not be created'], 400);
+		}
+
+		return new DataResponse($this->appointmentService->getAppointment($id));
 	}
 
 	/**
@@ -974,6 +1022,11 @@ class AppointmentController extends Controller {
 			// /statistics, see_statistics permission). Clients hide the
 			// statistics entry point when this is false.
 			'statisticsAvailable' => true,
+			// True when Talk is installed and reachable, meaning the server can
+			// open a conversation for the scheduled people (createTalkRoom on
+			// the appointment, POST /appointments/{id}/talk-room). Clients hide
+			// the opt-in and the button when this is false.
+			'talkRoomsAvailable' => $this->talkRoomService->isAvailable(),
 		]);
 	}
 

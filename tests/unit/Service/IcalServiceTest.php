@@ -16,6 +16,7 @@ use OCA\Attendance\Service\BookingService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\IcalService;
 use OCA\Attendance\Service\NotificationService;
+use OCA\Attendance\Service\TalkRoomService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IConfig;
@@ -55,6 +56,7 @@ class IcalServiceTest extends TestCase {
 				$this->createMock(AppointmentMapper::class),
 				$this->configService,
 				$this->createMock(NotificationService::class),
+				$this->createMock(TalkRoomService::class),
 			),
 			$this->createMock(ISecureRandom::class),
 			$urlGenerator,

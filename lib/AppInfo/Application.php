@@ -7,6 +7,7 @@ namespace OCA\Attendance\AppInfo;
 use OCA\Attendance\Audit\AuditEventDispatcher;
 use OCA\Attendance\BackgroundJob\AutoCloseJob;
 use OCA\Attendance\BackgroundJob\ReminderJob;
+use OCA\Attendance\BackgroundJob\TalkRoomSyncJob;
 use OCA\Attendance\Dashboard\Widget;
 use OCA\Attendance\Listener\CalendarObjectUpdateListener;
 use OCA\Attendance\Listener\ResponseChangeNotificationListener;
@@ -42,12 +43,16 @@ class Application extends App implements IBootstrap {
 		$dispatcher->register([$listener, 'handle']);
 
 		// Register background job for reminders
+		/** @var \OCP\BackgroundJob\IJobList $jobList */
 		$jobList = $container->get(\OCP\BackgroundJob\IJobList::class);
 		if (!$jobList->has(ReminderJob::class, null)) {
 			$jobList->add(ReminderJob::class);
 		}
 		if (!$jobList->has(AutoCloseJob::class, null)) {
 			$jobList->add(AutoCloseJob::class);
+		}
+		if (!$jobList->has(TalkRoomSyncJob::class, null)) {
+			$jobList->add(TalkRoomSyncJob::class);
 		}
 	}
 

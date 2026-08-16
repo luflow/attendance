@@ -19,4 +19,9 @@
 	<extraFiles>
 		<directory name="vendor"/>
 	</extraFiles>
+	<!-- Talk is optional and has no public PHP API for participants; stubbing
+	     its internals keeps TalkRoomService typed instead of `mixed`. -->
+	<stubs>
+		<file name="tests/stubs/talk.php"/>
+	</stubs>
 </psalm>

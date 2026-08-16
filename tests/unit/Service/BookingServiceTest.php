@@ -11,6 +11,7 @@ use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Service\BookingService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\NotificationService;
+use OCA\Attendance\Service\TalkRoomService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -35,6 +36,7 @@ class BookingServiceTest extends TestCase {
 			$this->appointmentMapper,
 			$this->configService,
 			$this->notificationService,
+			$this->createMock(TalkRoomService::class),
 		);
 		// Default: an open appointment, so the happy-path booking tests aren't
 		// tripped by the closed-inquiry guard.
@@ -108,6 +110,7 @@ class BookingServiceTest extends TestCase {
 			$appointmentMapper,
 			$this->configService,
 			$this->notificationService,
+			$this->createMock(TalkRoomService::class),
 		);
 		// Reject before touching the response, and never persist.
 		$this->responseMapper->expects($this->never())->method('update');

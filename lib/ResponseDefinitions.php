@@ -29,6 +29,8 @@ namespace OCA\Attendance;
  *   responseDeadline: ?string,
  *   location: ?string,
  *   categoryId: ?int,
+ *   createTalkRoom: bool,
+ *   talkRoomToken: ?string,
  * }
  * @psalm-type AttendanceMyPermissions = array{
  *   isOrganizer: bool,
@@ -186,6 +188,7 @@ namespace OCA\Attendance;
  *   locationsAvailable: bool,
  *   categoriesAvailable: bool,
  *   statisticsAvailable: bool,
+ *   talkRoomsAvailable: bool,
  * }
  * @psalm-type AttendanceAuditUserRef = array{
  *   userId: string,

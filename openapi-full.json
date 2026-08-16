@@ -221,7 +221,9 @@
                     "cancelledAt",
                     "responseDeadline",
                     "location",
-                    "categoryId"
+                    "categoryId",
+                    "createTalkRoom",
+                    "talkRoomToken"
                 ],
                 "properties": {
                     "id": {
@@ -316,6 +318,13 @@
                     "categoryId": {
                         "type": "integer",
                         "format": "int64",
+                        "nullable": true
+                    },
+                    "createTalkRoom": {
+                        "type": "boolean"
+                    },
+                    "talkRoomToken": {
+                        "type": "string",
                         "nullable": true
                     }
                 }
@@ -672,7 +681,8 @@
                     "responseCounts",
                     "locationsAvailable",
                     "categoriesAvailable",
-                    "statisticsAvailable"
+                    "statisticsAvailable",
+                    "talkRoomsAvailable"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -733,6 +743,9 @@
                         "type": "boolean"
                     },
                     "statisticsAvailable": {
+                        "type": "boolean"
+                    },
+                    "talkRoomsAvailable": {
                         "type": "boolean"
                     }
                 }
@@ -2298,6 +2311,11 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Category ID"
+                                    },
+                                    "createTalkRoom": {
+                                        "type": "boolean",
+                                        "default": false,
+                                        "description": "Open a Talk conversation with the scheduled people when the inquiry closes"
                                     }
                                 }
                             }
@@ -2974,6 +2992,12 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Category, applied identically to every affected sibling when scope is future/all"
+                                    },
+                                    "createTalkRoom": {
+                                        "type": "boolean",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Open a Talk conversation when the inquiry closes, or null to leave unchanged"
                                     }
                                 }
                             }
@@ -4636,6 +4660,135 @@
                         }
                     },
                     "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/attendance/api/appointments/{id}/talk-room": {
+            "post": {
+                "operationId": "appointment-create-talk-room",
+                "summary": "Open a Talk conversation with the scheduled people",
+                "description": "Creates a group conversation holding the organisers and everyone who got a place, and links it to the appointment. Idempotent: an appointment that already has a live conversation gets its participants reconciled instead of a second room.\nThe counterpart to the createTalkRoom opt-in, for inquiries that were closed without it — including those the deadline closed.",
+                "tags": [
+                    "appointment"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Appointment ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AppointmentData"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
                         "description": "",
                         "content": {
                             "application/json": {
