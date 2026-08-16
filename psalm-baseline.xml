@@ -68,17 +68,6 @@
     <MissingParamType>
       <code><![CDATA[$argument]]></code>
     </MissingParamType>
-    <MixedArrayOffset>
-      <code><![CDATA[$respondedUserIds[$response->getUserId()]]]></code>
-    </MixedArrayOffset>
-    <MixedAssignment>
-      <code><![CDATA[$respondedUserIds[$response->getUserId()]]]></code>
-      <code><![CDATA[$response]]></code>
-    </MixedAssignment>
-    <MixedMethodCall>
-      <code><![CDATA[getResponse]]></code>
-      <code><![CDATA[getUserId]]></code>
-    </MixedMethodCall>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
     </PossiblyUnusedMethod>
@@ -594,9 +583,6 @@
       <code><![CDATA[$row['count']]]></code>
       <code><![CDATA[$row['response']]]></code>
     </MixedArrayAccess>
-    <MixedArrayOffset>
-      <code><![CDATA[$summary[$row['response']]]]></code>
-    </MixedArrayOffset>
     <MixedAssignment>
       <code><![CDATA[$row]]></code>
     </MixedAssignment>
@@ -1284,8 +1270,6 @@
       <code><![CDATA[$exactMatches[$subCategory]]]></code>
       <code><![CDATA[$groupId]]></code>
       <code><![CDATA[$groupId]]></code>
-      <code><![CDATA[$response->getUserId()]]></code>
-      <code><![CDATA[$response->getUserId()]]></code>
       <code><![CDATA[$shareType]]></code>
       <code><![CDATA[$teamId]]></code>
       <code><![CDATA[$teamId]]></code>
@@ -1304,16 +1288,8 @@
       <code><![CDATA[$resultData['exact']]]></code>
     </MixedArrayAccess>
     <MixedArrayAssignment>
-      <code><![CDATA[$responseData['userGroups']]]></code>
-      <code><![CDATA[$responseData['userGroups']]]></code>
-      <code><![CDATA[$responseData['userName']]]></code>
       <code><![CDATA[$userIds[]]]></code>
     </MixedArrayAssignment>
-    <MixedArrayOffset>
-      <code><![CDATA[$maybeUserIds[$response->getUserId()]]]></code>
-      <code><![CDATA[$respondedUserIds[$response->getUserId()]]]></code>
-      <code><![CDATA[$responseByUser[$response->getUserId()]]]></code>
-    </MixedArrayOffset>
     <MixedAssignment>
       <code><![CDATA[$appointment]]></code>
       <code><![CDATA[$appointment]]></code>
@@ -1324,38 +1300,20 @@
       <code><![CDATA[$id]]></code>
       <code><![CDATA[$item]]></code>
       <code><![CDATA[$items]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$responseByUser[$response->getUserId()]]]></code>
-      <code><![CDATA[$responseData]]></code>
-      <code><![CDATA[$responseData['userName']]]></code>
       <code><![CDATA[$resultData]]></code>
-      <code><![CDATA[$result[]]]></code>
       <code><![CDATA[$shareType]]></code>
       <code><![CDATA[$teamId]]></code>
       <code><![CDATA[$teamId]]></code>
       <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userIds]]></code>
-      <code><![CDATA[$userResponse]]></code>
       <code><![CDATA[$visibleGroupsList]]></code>
       <code><![CDATA[$visibleTeamsList]]></code>
       <code><![CDATA[$visibleUsersList]]></code>
     </MixedAssignment>
     <MixedMethodCall>
       <code><![CDATA[asArray]]></code>
-      <code><![CDATA[getResponse]]></code>
-      <code><![CDATA[getResponse]]></code>
-      <code><![CDATA[getUserId]]></code>
-      <code><![CDATA[getUserId]]></code>
-      <code><![CDATA[getUserId]]></code>
-      <code><![CDATA[getUserId]]></code>
-      <code><![CDATA[getUserId]]></code>
-      <code><![CDATA[getUserId]]></code>
       <code><![CDATA[isCancelled]]></code>
-      <code><![CDATA[jsonSerialize]]></code>
     </MixedMethodCall>
     <MixedOperand>
       <code><![CDATA[$result['id']]]></code>
@@ -1499,28 +1457,6 @@
     <ClassMustBeFinal>
       <code><![CDATA[BookingService]]></code>
     </ClassMustBeFinal>
-    <MixedArgument>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response->getUserId()]]></code>
-    </MixedArgument>
-    <MixedAssignment>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
-    </MixedAssignment>
-    <MixedMethodCall>
-      <code><![CDATA[getBookingNotifiedStatus]]></code>
-      <code><![CDATA[getBookingStatus]]></code>
-      <code><![CDATA[getBookingStatus]]></code>
-      <code><![CDATA[getBookingStatus]]></code>
-      <code><![CDATA[getResponse]]></code>
-      <code><![CDATA[getUserId]]></code>
-      <code><![CDATA[getUserId]]></code>
-      <code><![CDATA[getUserId]]></code>
-      <code><![CDATA[setBookingNotifiedAt]]></code>
-      <code><![CDATA[setBookingNotifiedStatus]]></code>
-    </MixedMethodCall>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
     </PossiblyUnusedMethod>
@@ -1606,14 +1542,7 @@
       <code><![CDATA[$responseData['isCheckedIn']]]></code>
       <code><![CDATA[$responseData['response']]]></code>
     </MixedArrayAccess>
-    <MixedArrayOffset>
-      <code><![CDATA[$userResponseMap[$response->getUserId()]]]></code>
-      <code><![CDATA[$userResponseMap[$response->getUserId()]]]></code>
-    </MixedArrayOffset>
     <MixedAssignment>
-      <code><![CDATA[$checkinState]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
       <code><![CDATA[$response]]></code>
       <code><![CDATA[$responseData]]></code>
       <code><![CDATA[$userData['checkinAt']]]></code>
@@ -1625,14 +1554,9 @@
       <code><![CDATA[$userData['isCheckedIn']]]></code>
       <code><![CDATA[$userData['response']]]></code>
       <code><![CDATA[$userId]]></code>
-      <code><![CDATA[$userResponseMap[$response->getUserId()]]]></code>
-      <code><![CDATA[$userResponseMap[$response->getUserId()]]]></code>
     </MixedAssignment>
     <MixedMethodCall>
-      <code><![CDATA[getCheckinState]]></code>
       <code><![CDATA[getUID]]></code>
-      <code><![CDATA[getUserId]]></code>
-      <code><![CDATA[getUserId]]></code>
       <code><![CDATA[jsonSerialize]]></code>
     </MixedMethodCall>
     <PossiblyUnusedMethod>
@@ -1742,9 +1666,6 @@
       <code><![CDATA[$user['displayName']]]></code>
       <code><![CDATA[$user['group']]]></code>
     </MixedArgument>
-    <MixedArgumentTypeCoercion>
-      <code><![CDATA[$uid]]></code>
-    </MixedArgumentTypeCoercion>
     <MixedArrayAccess>
       <code><![CDATA[$a['displayName']]]></code>
       <code><![CDATA[$appointmentResponses[$appointment->getId()][$user['userId']]]]></code>
@@ -1754,9 +1675,7 @@
       <code><![CDATA[$user['userId']]]></code>
     </MixedArrayAccess>
     <MixedArrayOffset>
-      <code><![CDATA[$allUserIds[$respUserId]]]></code>
       <code><![CDATA[$appointmentResponses[$appointment->getId()]]]></code>
-      <code><![CDATA[$appointmentResponses[$appointment->getId()][$respUserId]]]></code>
       <code><![CDATA[$appointmentResponses[$appointment->getId()][$user['userId']]]]></code>
     </MixedArrayOffset>
     <MixedAssignment>
@@ -1764,14 +1683,11 @@
       <code><![CDATA[$appointment]]></code>
       <code><![CDATA[$appointment]]></code>
       <code><![CDATA[$appointment]]></code>
-      <code><![CDATA[$appointmentResponses[$appointment->getId()][$respUserId]]]></code>
       <code><![CDATA[$attendanceFolder]]></code>
       <code><![CDATA[$checkinValue]]></code>
       <code><![CDATA[$existingFile]]></code>
       <code><![CDATA[$file]]></code>
       <code><![CDATA[$location]]></code>
-      <code><![CDATA[$respUserId]]></code>
-      <code><![CDATA[$response]]></code>
       <code><![CDATA[$response]]></code>
       <code><![CDATA[$rsvpValue]]></code>
       <code><![CDATA[$user]]></code>
@@ -1791,7 +1707,6 @@
       <code><![CDATA[getStartDatetime]]></code>
       <code><![CDATA[getStartDatetime]]></code>
       <code><![CDATA[getStartDatetime]]></code>
-      <code><![CDATA[getUserId]]></code>
       <code><![CDATA[newFile]]></code>
       <code><![CDATA[newFolder]]></code>
       <code><![CDATA[nodeExists]]></code>
@@ -1873,7 +1788,6 @@
       <code><![CDATA[$responseLabels[$responseState]]]></code>
       <code><![CDATA[$transpMap[$responseState]]]></code>
       <code><![CDATA[$userResponses[$appointment->getId()]]]></code>
-      <code><![CDATA[$userResponses[$response->getAppointmentId()]]]></code>
     </MixedArrayOffset>
     <MixedAssignment>
       <code><![CDATA[$appointment]]></code>
@@ -1882,17 +1796,13 @@
       <code><![CDATA[$attachmentLines[]]]></code>
       <code><![CDATA[$descriptionParts[]]]></code>
       <code><![CDATA[$instanceName]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
       <code><![CDATA[$responseComment]]></code>
       <code><![CDATA[$responseLabel]]></code>
       <code><![CDATA[$responseState]]></code>
       <code><![CDATA[$statusLabel]]></code>
       <code><![CDATA[$statusLabel]]></code>
-      <code><![CDATA[$userResponses[$response->getAppointmentId()]]]></code>
     </MixedAssignment>
     <MixedMethodCall>
-      <code><![CDATA[getAppointmentId]]></code>
       <code><![CDATA[getComment]]></code>
       <code><![CDATA[getFileId]]></code>
       <code><![CDATA[getFileId]]></code>
@@ -1962,9 +1872,6 @@
     </ClassMustBeFinal>
     <MixedArgument>
       <code><![CDATA[$appointment]]></code>
-      <code><![CDATA[$counts['maybe'] ?? 0]]></code>
-      <code><![CDATA[$counts['no'] ?? 0]]></code>
-      <code><![CDATA[$counts['yes'] ?? 0]]></code>
       <code><![CDATA[$existing]]></code>
     </MixedArgument>
     <MixedArrayAccess>
@@ -1977,10 +1884,6 @@
       <code><![CDATA[$row]]></code>
       <code><![CDATA[$this->calDavBackend]]></code>
     </MixedAssignment>
-    <MixedOperand>
-      <code><![CDATA[$counts['no'] ?? 0]]></code>
-      <code><![CDATA[($counts['yes'] ?? 0) + ($counts['no'] ?? 0)]]></code>
-    </MixedOperand>
     <MixedReturnStatement>
       <code><![CDATA[$this->calDavBackend]]></code>
       <code><![CDATA[$this->calDavBackend]]></code>
@@ -2034,40 +1937,6 @@
     <ClassMustBeFinal>
       <code><![CDATA[ResponseService]]></code>
     </ClassMustBeFinal>
-    <MissingClosureReturnType>
-      <code><![CDATA[fn ($response) => $response->getUserId()]]></code>
-    </MissingClosureReturnType>
-    <MixedArgument>
-      <code><![CDATA[$response->getUserId()]]></code>
-      <code><![CDATA[$response->getUserId()]]></code>
-      <code><![CDATA[$response->getUserId()]]></code>
-    </MixedArgument>
-    <MixedArrayAssignment>
-      <code><![CDATA[$responseData['isGuest']]]></code>
-      <code><![CDATA[$responseData['userGroups']]]></code>
-      <code><![CDATA[$responseData['userGroups']]]></code>
-      <code><![CDATA[$responseData['userName']]]></code>
-    </MixedArrayAssignment>
-    <MixedAssignment>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$responseData]]></code>
-      <code><![CDATA[$responseData['userName']]]></code>
-      <code><![CDATA[$result[]]]></code>
-    </MixedAssignment>
-    <MixedMethodCall>
-      <code><![CDATA[getUserId]]></code>
-      <code><![CDATA[getUserId]]></code>
-      <code><![CDATA[getUserId]]></code>
-      <code><![CDATA[getUserId]]></code>
-      <code><![CDATA[getUserId]]></code>
-      <code><![CDATA[jsonSerialize]]></code>
-    </MixedMethodCall>
-    <MixedReturnTypeCoercion>
-      <code><![CDATA[$this->responseMapper->findByAppointment($appointmentId)]]></code>
-      <code><![CDATA[array<AttendanceResponse>]]></code>
-      <code><![CDATA[array<string>]]></code>
-      <code><![CDATA[array_map(fn ($response) => $response->getUserId(), $responses)]]></code>
-    </MixedReturnTypeCoercion>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
       <code><![CDATA[checkinResponse]]></code>
@@ -2193,7 +2062,6 @@
       <code><![CDATA[$nameA]]></code>
       <code><![CDATA[$nameB]]></code>
       <code><![CDATA[$nameB]]></code>
-      <code><![CDATA[$response]]></code>
       <code><![CDATA[$responseData]]></code>
       <code><![CDATA[$responseData['userName']]]></code>
       <code><![CDATA[$sortedByGroup[$groupId]]]></code>
