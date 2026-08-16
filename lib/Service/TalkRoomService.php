@@ -6,7 +6,6 @@ namespace OCA\Attendance\Service;
 
 use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
-use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Talk\Exceptions\ParticipantNotFoundException;
 use OCA\Talk\Exceptions\RoomNotFoundException;
@@ -233,7 +232,6 @@ class TalkRoomService {
 		$bookingEnabled = $this->configService->isBookingEnabled();
 
 		$targets = $appointment->getOrganizersList();
-		/** @var list<AttendanceResponse> $responses */
 		$responses = $this->responseMapper->findByAppointment($appointment->getId());
 		foreach ($responses as $response) {
 			if ($response->getResponse() !== 'yes') {
@@ -257,7 +255,6 @@ class TalkRoomService {
 	 */
 	private function governedUserIds(Appointment $appointment): array {
 		$governed = $appointment->getOrganizersList();
-		/** @var list<AttendanceResponse> $responses */
 		$responses = $this->responseMapper->findByAppointment($appointment->getId());
 		foreach ($responses as $response) {
 			$governed[] = $response->getUserId();
