@@ -963,6 +963,7 @@
     "Talk room for everyone scheduled into this appointment. Details: %1$s" : "Talk-Raum für alle, die für diesen Termin eingeplant sind. Details: %1$s",
     "A Talk room is open for everyone who accepted." : "Für alle, die zugesagt haben, ist ein Talk-Raum eröffnet.",
     "Opens a Talk room with everyone who accepted, as soon as the first person does, so the remaining details can be sorted out there." : "Eröffnet einen Talk-Raum mit allen, die zugesagt haben — sobald die erste Zusage eingeht, damit die restlichen Details dort geklärt werden können.",
-    "Talk room for everyone who accepted this appointment. Details: %1$s" : "Talk-Raum für alle, die für diesen Termin zugesagt haben. Details: %1$s"
+    "Talk room for everyone who accepted this appointment. Details: %1$s" : "Talk-Raum für alle, die für diesen Termin zugesagt haben. Details: %1$s",
+    "Open a Talk room for this appointment" : "Talk-Raum für diesen Termin eröffnen"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

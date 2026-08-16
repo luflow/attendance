@@ -325,7 +325,7 @@
 				<NcCheckboxRadioSwitch
 					v-model="createTalkRoom"
 					data-test="checkbox-create-talk-room">
-					{{ t("attendance", "Open a Talk room when closing") }}
+					{{ talkRoomToggleLabel }}
 				</NcCheckboxRadioSwitch>
 			</div>
 
@@ -656,6 +656,17 @@ const talkRoomsAvailable = computed(() => capabilities.talkRoomsAvailable === tr
 // Who lands in the room depends on the planning feature, and so does when the
 // room opens — promising "the scheduled people" on an instance without planning
 // would simply be wrong.
+// "when closing" only holds while planning is on — without it the room opens on
+// the first acceptance, so the label must not promise the close.
+const talkRoomToggleLabel = computed(() => {
+	if (capabilities.bookingEnabled) {
+		// TRANSLATORS: Label of the toggle that opens a Talk room, on instances where the planning feature is on — the room appears when the inquiry is closed.
+		return t('attendance', 'Open a Talk room when closing')
+	}
+	// TRANSLATORS: Label of the toggle that opens a Talk room, on instances without the planning feature — the room appears as soon as somebody accepts, so no point in time is named.
+	return t('attendance', 'Open a Talk room for this appointment')
+})
+
 const talkRoomHint = computed(() => {
 	if (capabilities.bookingEnabled) {
 		// TRANSLATORS: Hint under the Talk room toggle, on instances where the planning feature is on. The room opens when the inquiry is closed and holds the people who were given a place, so the organizers can settle the remaining details there — meeting points, car pools, who brings what.
