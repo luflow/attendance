@@ -49,11 +49,6 @@ class AutoCloseJobTest extends TestCase {
 		$this->runJob();
 	}
 
-	/**
-	 * Auto-close goes through the service so it runs the same tail as a manual
-	 * close — the booking notification wave and the Talk conversation. The
-	 * previous bulk update skipped both.
-	 */
 	public function testClosesEachAppointmentThroughTheService(): void {
 		$ids = [11, 22, 33];
 		$this->appointmentMapper->method('findDueForAutoClose')->willReturn($ids);

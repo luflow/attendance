@@ -120,8 +120,6 @@ class TalkRoomServiceTest extends TestCase {
 	private function room(string $token = 'tok123'): Room|MockObject {
 		$room = $this->createMock(Room::class);
 		$room->method('getToken')->willReturn($token);
-		$room->method('getObjectType')->willReturn('event');
-		$room->method('getObjectId')->willReturn('0#0');
 
 		return $room;
 	}
@@ -164,10 +162,33 @@ class TalkRoomServiceTest extends TestCase {
 	}
 
 	/**
+	 * Whoever ends up being invited when the room is created — the observable
+	 * form of "who belongs in here".
+	 *
+	 * @return list<string>
+	 */
+	private function invitedOnCreate(): array {
+		$this->participantService->method('getParticipantsForRoom')->willReturn($this->participants(['olivia']));
+		$this->roomService->method('createConversation')->willReturn($this->room());
+
+		$invited = [];
+		$this->participantService->method('addUsers')->willReturnCallback(
+			function (Room $room, array $participants) use (&$invited): array {
+				$invited = array_column($participants, 'actorId');
+				return [];
+			},
+		);
+
+		$this->service->createForAppointment($this->appointment());
+
+		return $invited;
+	}
+
+	/**
 	 * With planning on, only the people who actually got a place belong in the
 	 * room — a yes without a booking does not.
 	 */
-	public function testTargetsBookedPeopleWhenPlanningIsOn(): void {
+	public function testInvitesBookedPeopleWhenPlanningIsOn(): void {
 		$this->configService->method('isBookingEnabled')->willReturn(true);
 		$this->responseMapper->method('findByAppointment')->willReturn([
 			$this->response('alice', 'yes', 'booked'),
@@ -176,14 +197,14 @@ class TalkRoomServiceTest extends TestCase {
 			$this->response('dave', 'no', null),
 		]);
 
-		$this->assertSame(['olivia', 'alice'], $this->service->targetUserIds($this->appointment()));
+		$this->assertSame(['alice'], $this->invitedOnCreate());
 	}
 
 	/**
 	 * Without the planning feature there is no booked state to read, so a yes
 	 * is the only commitment there is.
 	 */
-	public function testTargetsAllYesRespondersWhenPlanningIsOff(): void {
+	public function testInvitesAllYesRespondersWhenPlanningIsOff(): void {
 		$this->configService->method('isBookingEnabled')->willReturn(false);
 		$this->responseMapper->method('findByAppointment')->willReturn([
 			$this->response('alice', 'yes', null),
@@ -192,7 +213,7 @@ class TalkRoomServiceTest extends TestCase {
 			$this->response('dave', 'no', null),
 		]);
 
-		$this->assertSame(['olivia', 'alice', 'bob'], $this->service->targetUserIds($this->appointment()));
+		$this->assertSame(['alice', 'bob'], $this->invitedOnCreate());
 	}
 
 	/**
@@ -316,10 +337,6 @@ class TalkRoomServiceTest extends TestCase {
 		// participantType 3 = plain user, so the co-organiser needs promoting.
 		$participants = $this->participants(['olivia', 'oscar']);
 		$this->participantService->method('getParticipantsForRoom')->willReturn($participants);
-		$this->participantService->method('getParticipantByActor')->willReturnCallback(
-			fn (Room $r, string $type, string $id) => $participants[$id === 'olivia' ? 0 : 1],
-		);
-
 		$this->participantService->expects($this->exactly(2))
 			->method('updateParticipantType')
 			->with($room, $this->anything(), 2);

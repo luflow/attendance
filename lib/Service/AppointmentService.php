@@ -1270,6 +1270,11 @@ class AppointmentService {
 		// Keep the response summary in the organization calendar event current
 		$this->orgCalendarSyncService->syncAppointment($appointment);
 
+		// A withdrawn yes has to close the Talk room behind them. This is the
+		// path the web and mobile clients take; the quick-response links go
+		// through ResponseService, which syncs for itself.
+		$this->talkRoomService->syncParticipants($appointment);
+
 		return $result;
 	}
 

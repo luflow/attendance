@@ -6,10 +6,11 @@ namespace OCA\Attendance\Service;
 
 use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
+use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
-use OCA\Talk\Exceptions\ParticipantNotFoundException;
 use OCA\Talk\Exceptions\RoomNotFoundException;
 use OCA\Talk\Manager as TalkManager;
+use OCA\Talk\Participant;
 use OCA\Talk\Room;
 use OCA\Talk\Service\ParticipantService;
 use OCA\Talk\Service\RoomService;
@@ -30,11 +31,8 @@ use Psr\Log\LoggerInterface;
  * into the Guests app. Everything degrades to a no-op when Talk is missing or
  * its API moved: the room stays as it is and the app keeps working.
  *
- * Membership is a confidentiality promise, not a convenience: the final details
- * are handed out in that room, so someone who loses their place has to leave
- * it. The reconcile is therefore authoritative — but only over people this app
- * knows about. Anyone a moderator added by hand in Talk is invisible to it and
- * never removed.
+ * Membership is a confidentiality promise: the final details are handed out in
+ * that room, so someone who loses their place has to leave it.
  */
 class TalkRoomService {
 	private const TALK_APP_ID = 'spreed';
@@ -72,13 +70,8 @@ class TalkRoomService {
 		if ($this->talkEnabled === null) {
 			try {
 				// isEnabledForAnyone, not isEnabledForUser: most of this runs
-				// from cron, where there is no session user and the per-user
-				// check would answer false on a server that has Talk.
-				//
-				// Deliberately no class_exists() here — Talk's autoloader is
-				// only registered once its app is loaded, so the check would
-				// answer false on a server that has Talk. resolve() loads the
-				// app first and verifies the classes there.
+				// from cron, where there is no session user. Class presence is
+				// resolve()'s job — the autoloader only exists after loadApp().
 				$this->talkEnabled = $this->appManager->isEnabledForAnyone(self::TALK_APP_ID);
 			} catch (\Throwable $e) {
 				$this->logger->debug('Checking Talk availability failed', ['app' => 'attendance', 'exception' => $e]);
@@ -114,29 +107,25 @@ class TalkRoomService {
 			return null;
 		}
 
-		// Nothing to talk about if the appointment has nobody in it.
-		$targets = $this->targetUserIds($appointment);
-		if ($targets === []) {
+		// Loaded once and threaded through the reconcile below — the room's
+		// membership and the "may we touch this person" set both read it.
+		$responses = $this->responseMapper->findByAppointment($appointment->getId());
+		if ($this->targetsFrom($appointment, $responses) === []) {
 			return null;
 		}
 
 		try {
-			$roomService = $this->getRoomService();
+			$roomService = $this->resolve(RoomService::class);
 			if ($roomService === null) {
 				return null;
 			}
 
-			// Deliberately a plain group room, not a Talk "event" room bound to
-			// the appointment's time. Event rooms look tempting — Talk shows a
-			// countdown and cleans them up 28 days after the date — but all
-			// three clients hide them from the conversation list until 16 hours
-			// before the start (hardcoded in web, Android and iOS alike). The
-			// room is opened when the inquiry closes, often weeks ahead, and
-			// that is exactly when people start sorting out the details. A room
-			// nobody can find is worse than one nobody tidies up.
+			// Plain group room, not a Talk "event" room: every client hides
+			// event rooms from the list until 16 hours before the start, and
+			// this room is opened when the inquiry closes — usually much
+			// earlier, which is when people start using it.
 			//
-			// Named arguments on purpose: stable34 inserted `$attributes` into
-			// the middle of this signature.
+			// Named arguments: stable34 inserted `$attributes` mid-signature.
 			$room = $roomService->createConversation(
 				type: self::ROOM_TYPE_GROUP,
 				name: mb_substr($appointment->getName(), 0, 255),
@@ -149,10 +138,7 @@ class TalkRoomService {
 			$this->appointmentMapper->update($appointment);
 
 			try {
-				$description = $this->buildDescription($appointment, $owner->getUID());
-				if ($description !== '') {
-					$roomService->setDescription($room, $description);
-				}
+				$roomService->setDescription($room, $this->buildDescription($appointment, $owner));
 			} catch (\Throwable $e) {
 				$this->logger->warning('Setting the Talk conversation description failed', [
 					'app' => 'attendance',
@@ -161,7 +147,7 @@ class TalkRoomService {
 				]);
 			}
 
-			$this->reconcile($room, $appointment, $owner);
+			$this->reconcile($room, $appointment, $owner, $responses);
 
 			return $room->getToken();
 		} catch (\Throwable $e) {
@@ -180,7 +166,7 @@ class TalkRoomService {
 	 * without checking first.
 	 */
 	public function syncParticipants(Appointment $appointment): void {
-		if (!$this->isAvailable() || $appointment->getTalkRoomToken() === null) {
+		if (!$this->isAvailable()) {
 			return;
 		}
 
@@ -204,13 +190,13 @@ class TalkRoomService {
 	 * hold a place. With planning switched off instance-wide there is no
 	 * "booked" state to read, so a yes is the only commitment there is.
 	 *
+	 * @param list<AttendanceResponse> $responses
 	 * @return list<string>
 	 */
-	public function targetUserIds(Appointment $appointment): array {
+	private function targetsFrom(Appointment $appointment, array $responses): array {
 		$bookingEnabled = $this->configService->isBookingEnabled();
 
 		$targets = $appointment->getOrganizersList();
-		$responses = $this->responseMapper->findByAppointment($appointment->getId());
 		foreach ($responses as $response) {
 			if ($response->getResponse() !== 'yes') {
 				continue;
@@ -229,11 +215,11 @@ class TalkRoomService {
 	 * organisers. Whoever sits in the room outside this set was put there by a
 	 * moderator and stays untouched.
 	 *
+	 * @param list<AttendanceResponse> $responses
 	 * @return list<string>
 	 */
-	private function governedUserIds(Appointment $appointment): array {
+	private function governedFrom(Appointment $appointment, array $responses): array {
 		$governed = $appointment->getOrganizersList();
-		$responses = $this->responseMapper->findByAppointment($appointment->getId());
 		foreach ($responses as $response) {
 			$governed[] = $response->getUserId();
 		}
@@ -241,22 +227,22 @@ class TalkRoomService {
 		return array_values(array_unique($governed));
 	}
 
-	private function reconcile(Room $room, Appointment $appointment, ?IUser $addedBy): void {
-		$participantService = $this->getParticipantService();
+	/**
+	 * @param ?list<AttendanceResponse> $responses Already-loaded responses, to
+	 *                                             save the query when the caller has them
+	 */
+	private function reconcile(Room $room, Appointment $appointment, ?IUser $addedBy, ?array $responses = null): void {
+		$participantService = $this->resolve(ParticipantService::class);
 		if ($participantService === null) {
 			return;
 		}
 
-		$target = $this->targetUserIds($appointment);
-		$governed = $this->governedUserIds($appointment);
+		$responses ??= $this->responseMapper->findByAppointment($appointment->getId());
+		$target = $this->targetsFrom($appointment, $responses);
+		$governed = $this->governedFrom($appointment, $responses);
 
-		$present = [];
-		foreach ($participantService->getParticipantsForRoom($room) as $participant) {
-			$attendee = $participant->getAttendee();
-			if ($attendee->getActorType() === self::ACTOR_USERS) {
-				$present[] = $attendee->getActorId();
-			}
-		}
+		$byActor = $this->indexByActor($participantService->getParticipantsForRoom($room));
+		$present = array_keys($byActor);
 
 		$toAdd = [];
 		foreach (array_diff($target, $present) as $userId) {
@@ -275,6 +261,8 @@ class TalkRoomService {
 
 		if ($toAdd !== []) {
 			$participantService->addUsers($room, $toAdd, $addedBy);
+			// Re-read once so the promotion below sees the new arrivals.
+			$byActor = $this->indexByActor($participantService->getParticipantsForRoom($room));
 		}
 
 		// Only ever remove people we are responsible for.
@@ -286,26 +274,40 @@ class TalkRoomService {
 			$participantService->removeUser($room, $user, self::REASON_REMOVED);
 		}
 
-		$this->promoteOrganisers($room, $appointment, $participantService);
+		$this->promoteOrganisers($room, $appointment, $participantService, $byActor);
 	}
 
 	/**
 	 * Organisers hand out the final details, so they need to be able to rename
 	 * the room and pull someone in. The creator is already owner.
 	 */
-	private function promoteOrganisers(Room $room, Appointment $appointment, ParticipantService $participantService): void {
+	/**
+	 * @param array<string, Participant> $byActor
+	 */
+	private function promoteOrganisers(Room $room, Appointment $appointment, ParticipantService $participantService, array $byActor): void {
 		foreach ($appointment->getOrganizersList() as $userId) {
-			try {
-				$participant = $participantService->getParticipantByActor($room, self::ACTOR_USERS, $userId);
-			} catch (ParticipantNotFoundException) {
-				continue;
-			}
-
+			$participant = $byActor[$userId] ?? null;
 			// Owner outranks moderator — do not demote the creator.
-			if ($participant->getAttendee()->getParticipantType() > self::PARTICIPANT_MODERATOR) {
+			if ($participant !== null && $participant->getAttendee()->getParticipantType() > self::PARTICIPANT_MODERATOR) {
 				$participantService->updateParticipantType($room, $participant, self::PARTICIPANT_MODERATOR);
 			}
 		}
+	}
+
+	/**
+	 * @param list<Participant> $participants
+	 * @return array<string, Participant> User participants by user id
+	 */
+	private function indexByActor(array $participants): array {
+		$byActor = [];
+		foreach ($participants as $participant) {
+			$attendee = $participant->getAttendee();
+			if ($attendee->getActorType() === self::ACTOR_USERS) {
+				$byActor[$attendee->getActorId()] = $participant;
+			}
+		}
+
+		return $byActor;
 	}
 
 	/**
@@ -319,7 +321,7 @@ class TalkRoomService {
 			return null;
 		}
 
-		$manager = $this->getTalkManager();
+		$manager = $this->resolve(TalkManager::class);
 		if ($manager === null) {
 			return null;
 		}
@@ -353,9 +355,8 @@ class TalkRoomService {
 	 * Translated into the owner's language: a background job has no UI locale,
 	 * and the description is stored once rather than rendered per reader.
 	 */
-	private function buildDescription(Appointment $appointment, string $ownerId): string {
-		$language = $this->l10nFactory->getUserLanguage($this->userManager->get($ownerId));
-		$l = $this->l10nFactory->get('attendance', $language);
+	private function buildDescription(Appointment $appointment, IUser $owner): string {
+		$l = $this->l10nFactory->get('attendance', $this->l10nFactory->getUserLanguage($owner));
 
 		$url = $this->urlGenerator->linkToRouteAbsolute(
 			'attendance.page.appointment',
@@ -365,33 +366,15 @@ class TalkRoomService {
 		return $l->t('Talk room for everyone scheduled into this appointment. Details: %1$s', [$url]);
 	}
 
-	private function getRoomService(): ?RoomService {
-		$service = $this->resolve(RoomService::class);
-
-		return $service instanceof RoomService ? $service : null;
-	}
-
-	private function getParticipantService(): ?ParticipantService {
-		$service = $this->resolve(ParticipantService::class);
-
-		return $service instanceof ParticipantService ? $service : null;
-	}
-
-	private function getTalkManager(): ?TalkManager {
-		$service = $this->resolve(TalkManager::class);
-
-		return $service instanceof TalkManager ? $service : null;
-	}
-
 	/**
 	 * Talk registers its services in its own app container, which only exists
 	 * once the app is loaded — hence loadApp() before the lookup.
+	 *
+	 * @template T of object
+	 * @param class-string<T> $class
+	 * @return ?T
 	 */
 	private function resolve(string $class): ?object {
-		if (!$this->isAvailable()) {
-			return null;
-		}
-
 		try {
 			// Load first, then look: the class only becomes visible once Talk's
 			// autoloader is registered.
@@ -401,7 +384,7 @@ class TalkRoomService {
 			}
 			$instance = $this->container->get($class);
 
-			return is_object($instance) ? $instance : null;
+			return $instance instanceof $class ? $instance : null;
 		} catch (\Throwable $e) {
 			$this->logger->warning('Resolving a Talk service failed', [
 				'app' => 'attendance',

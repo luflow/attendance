@@ -24,8 +24,6 @@ namespace OCA\Talk;
 use OCA\Talk\Model\Attendee;
 
 class Room {
-	public function getId(): int {
-	}
 
 	public function getToken(): string {
 	}
@@ -59,16 +57,11 @@ class Attendee {
 	public function getParticipantType(): int {
 	}
 
-	public function getDisplayName(): string {
-	}
 }
 
 namespace OCA\Talk\Exceptions;
 
 class RoomNotFoundException extends \Exception {
-}
-
-class ParticipantNotFoundException extends \Exception {
 }
 
 namespace OCA\Talk\Service;
@@ -124,8 +117,6 @@ class ParticipantService {
 	public function getParticipantsForRoom(Room $room): array {
 	}
 
-	public function getParticipantByActor(Room $room, string $actorType, string $actorId): Participant {
-	}
 
 	public function updateParticipantType(Room $room, Participant $participant, int $participantType): void {
 	}

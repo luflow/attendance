@@ -349,16 +349,20 @@ class AppointmentMapper extends QBMapper {
 	}
 
 	/**
-	 * Active appointments that carry a Talk conversation.
+	 * Active appointments with a Talk room that ended no earlier than the given
+	 * timestamp. Bounded on purpose: the reconcile sweep would otherwise re-walk
+	 * the instance's entire history every hour, and once an appointment is over
+	 * its membership cannot change any more.
 	 *
 	 * @return list<Appointment>
 	 */
-	public function findWithTalkRoom(): array {
+	public function findWithTalkRoom(string $endedAfter): array {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select('*')
 			->from($this->getTableName())
 			->where($qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
-			->andWhere($qb->expr()->isNotNull('talk_room_token'));
+			->andWhere($qb->expr()->isNotNull('talk_room_token'))
+			->andWhere($qb->expr()->gte('end_datetime', $qb->createNamedParameter($endedAfter)));
 
 		return $this->findEntities($qb);
 	}
@@ -367,11 +371,7 @@ class AppointmentMapper extends QBMapper {
 	 * Active inquiries whose response_deadline or start_datetime is at or
 	 * before the given timestamp. Once an appointment has started, further
 	 * responses are pointless, so it qualifies regardless of any configured
-	 * deadline.
-	 *
-	 * Only selects. Closing goes through AppointmentService::closeAppointment()
-	 * per appointment so that auto-close runs the same tail as a manual close —
-	 * booking notifications and the Talk conversation included.
+	 * deadline. Selects only — see AutoCloseJob for why closing is per row.
 	 *
 	 * @return list<int>
 	 */

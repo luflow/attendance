@@ -71,7 +71,7 @@ export function useAppointmentLifecycle(appointmentSource, { onUpdated } = {}) {
 			onUpdated?.(response.data)
 		} catch (error) {
 			console.error(`Failed to ${action} appointment:`, error)
-			showError(messages.error)
+			showError((messages.errorFromServer && error.response?.data?.error) || messages.error)
 		}
 	}
 
@@ -116,6 +116,27 @@ export function useAppointmentLifecycle(appointmentSource, { onUpdated } = {}) {
 		togglingCancelled.value = false
 	}
 
+	// Offered once the inquiry is closed and no room exists yet — the
+	// counterpart to the create-time opt-in, and the way in for inquiries the
+	// deadline closed while nobody was looking.
+	const canOpenTalkRoom = computed(() => capabilities.talkRoomsAvailable
+		&& canManage.value
+		&& isClosed.value
+		&& !appointment.value.talkRoomToken)
+
+	const openingTalkRoom = ref(false)
+
+	async function openTalkRoom() {
+		if (openingTalkRoom.value) return
+		openingTalkRoom.value = true
+		await post('talk-room', {
+			success: t('attendance', 'Talk room opened'),
+			error: t('attendance', 'The Talk room could not be opened'),
+			errorFromServer: true,
+		})
+		openingTalkRoom.value = false
+	}
+
 	const dialogGroups = computed(() => [
 		{
 			key: 'booked',
@@ -143,5 +164,8 @@ export function useAppointmentLifecycle(appointmentSource, { onUpdated } = {}) {
 		toggleClosed,
 		confirmClose,
 		toggleCancelled,
+		canOpenTalkRoom,
+		openingTalkRoom,
+		openTalkRoom,
 	}
 }

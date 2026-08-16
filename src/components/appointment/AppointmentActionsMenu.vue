@@ -57,11 +57,11 @@
 				{{ cancelToggleLabel }}
 			</NcActionButton>
 			<NcActionButton
-				v-if="canOpenConversation"
+				v-if="canOpenTalkRoom"
 				:closeAfterClick="true"
-				:disabled="openingConversation"
+				:disabled="openingTalkRoom"
 				data-test="action-open-conversation"
-				@click="openConversation">
+				@click="openTalkRoom">
 				<template #icon>
 					<MessageTextIcon :size="20" />
 				</template>
@@ -210,7 +210,7 @@ const emit = defineEmits([
 	'closedToggled',
 ])
 
-const { permissions, capabilities } = usePermissions()
+const { permissions } = usePermissions()
 
 const {
 	isClosed,
@@ -224,6 +224,9 @@ const {
 	toggleClosed,
 	confirmClose,
 	toggleCancelled,
+	canOpenTalkRoom,
+	openingTalkRoom,
+	openTalkRoom,
 } = useAppointmentLifecycle(() => props.appointment, {
 	onUpdated: (updated) => emit('closedToggled', updated),
 })
@@ -250,29 +253,6 @@ const cancelToggleLabel = computed(() => {
 	// TRANSLATORS: Menu action that calls off the appointment — it will not take place (German "Termin absagen", not "abbrechen").
 	return t('attendance', 'Cancel appointment')
 })
-
-// Offered once the inquiry is closed and no conversation exists yet — the
-// counterpart to the create-time opt-in, and the way in for inquiries the
-// deadline closed while nobody was looking.
-const canOpenConversation = computed(() => capabilities.talkRoomsAvailable === true
-	&& canManage.value
-	&& isClosed.value
-	&& !props.appointment.talkRoomToken)
-
-const openingConversation = ref(false)
-
-async function openConversation() {
-	openingConversation.value = true
-	try {
-		const response = await axios.post(generateUrl(`/apps/attendance/api/appointments/${props.appointment.id}/talk-room`))
-		emit('closedToggled', response.data)
-		showSuccess(t('attendance', 'Talk room opened'))
-	} catch (error) {
-		showError(error.response?.data?.error || t('attendance', 'The Talk room could not be opened'))
-	} finally {
-		openingConversation.value = false
-	}
-}
 
 function copyShareLink() {
 	return copyToClipboard(window.location.origin + appointmentDetailUrl(props.appointment.id), {

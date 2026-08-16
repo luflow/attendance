@@ -519,6 +519,13 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'Talk is not available on this server'], 400);
 		}
 
+		// Who belongs in the room is only settled once the inquiry is closed.
+		// Enforced here and not just in the UI, because mobile clients call this
+		// endpoint directly.
+		if (!$appointment->isClosed()) {
+			return new DataResponse(['error' => 'The inquiry is still open'], 400);
+		}
+
 		if ($this->talkRoomService->createForAppointment($appointment) === null) {
 			return new DataResponse(['error' => 'The conversation could not be created'], 400);
 		}
