@@ -2,10 +2,19 @@
 
 ## [Unreleased]
 
-## 1.47.3 – 2026-08-15
+## 1.48.0 – 2026-08-16
+
+### Added
+
+- **Highlight cards above the statistics**: small cards naming who turned up most reliably, who accepts most often, who answers "maybe" most — and, plainly rather than as an award, who is absent more often than the rest. Pick which ones you want; four are shown to begin with. Everybody tied at a value shares one line, so nobody is ranked ahead of an equal, and a rate is only shown next to the number of appointments it rests on
+- **How often an acceptance got a place**: with the planning mode on, the statistics show how often somebody who said yes was then actually scheduled — as a count and as a rate. Counted only over inquiries you closed and actually scheduled somebody for, because before that nothing is decided
+- **Pick the columns of the statistics table**, including the group column. "Compact" and "Full" stay as the two presets and a selection refines whichever you picked last
 
 ### Fixed
 
+- **Answering an appointment no longer announces a calendar change**: the event in the organization calendar was rewritten after every single answer, and Nextcloud reported each of those writes to everybody the calendar is shared with — naming the person who answered, who never had access to the calendar at all. Writes that change nothing are skipped now, and a new setting turns the response summary inside the event off entirely, which Nextcloud's own notification settings cannot do per calendar
+- **The statistics table no longer runs off the screen**: fully expanded it needs more room than the page allowed, so it overflowed on every screen and its scrollbar sat underneath the last row, out of sight. The page now takes the width it needs, and the name column stays in place while you scroll right
+- Picking a person in the statistics lists their appointments newest first, instead of starting at the beginning of the period
 - **Appointments restricted to a team had no audience**: nobody showed up as unanswered — not in the response summary, not in the counts, not in the check-in lists, and reminders skipped them
 - **Members reached only through a visibility group outside the whitelist were missing from the summary**: no entry under "Others", and they were not counted as unanswered, although the appointment list did count them
 
