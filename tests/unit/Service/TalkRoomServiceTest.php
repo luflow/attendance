@@ -332,6 +332,70 @@ class TalkRoomServiceTest extends TestCase {
 		$this->assertFalse($this->service->belongsInRoom(false, $this->response('carol', 'maybe', null)));
 	}
 
+	/**
+	 * With planning on, who holds a place is only settled at the close, so the
+	 * room waits. Without planning it must not wait: auto-close fires at the
+	 * appointment's start, which is far too late to agree on where to meet.
+	 */
+	public function testWaitsForTheCloseOnlyWhilePlanningIsOn(): void {
+		$open = $this->appointment();
+		$closed = $this->appointment();
+		$closed->setClosedAt('2026-08-16 12:00:00');
+
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+		$this->assertFalse($this->service->mayOpenRoom($open));
+		$this->assertTrue($this->service->mayOpenRoom($closed));
+	}
+
+	public function testOpensBeforeTheCloseWhenPlanningIsOff(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(false);
+
+		$this->assertTrue($this->service->mayOpenRoom($this->appointment()));
+	}
+
+	/**
+	 * A room holding nobody but the organisers is not a conversation — it waits
+	 * for the first acceptance.
+	 */
+	public function testDoesNotOpenForOrganisersAlone(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(false);
+		$this->responseMapper->method('findByAppointment')->willReturn([]);
+		$this->roomService->expects($this->never())->method('createConversation');
+
+		$this->assertNull($this->service->createForAppointment($this->appointment()));
+	}
+
+	/**
+	 * openOrSync() is the single call every membership-changing write makes: it
+	 * opens the room when the appointment opted in and may have one, and
+	 * reconciles an existing one otherwise.
+	 */
+	public function testOpenOrSyncOpensTheRoomOnFirstAcceptance(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(false);
+		$this->responseMapper->method('findByAppointment')->willReturn([
+			$this->response('alice', 'yes', null),
+		]);
+		$this->participantService->method('getParticipantsForRoom')->willReturn($this->participants(['olivia']));
+
+		$appointment = $this->appointment();
+		$appointment->setCreateTalkRoom(true);
+
+		$this->roomService->expects($this->once())
+			->method('createConversation')
+			->willReturn($this->room());
+
+		$this->service->openOrSync($appointment);
+
+		$this->assertSame('tok123', $appointment->getTalkRoomToken());
+	}
+
+	public function testOpenOrSyncStaysQuietWithoutTheOptIn(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(false);
+		$this->roomService->expects($this->never())->method('createConversation');
+
+		$this->service->openOrSync($this->appointment());
+	}
+
 	public function testSyncIsANoOpWithoutALinkedRoom(): void {
 		$this->talkManager->expects($this->never())->method('getRoomByToken');
 		$this->participantService->expects($this->never())->method('getParticipantsForRoom');

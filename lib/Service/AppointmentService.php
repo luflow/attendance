@@ -472,9 +472,7 @@ class AppointmentService {
 		// (only diffs against the last communicated state).
 		$this->bookingService->notifyOnClose($updated);
 
-		if ($updated->getCreateTalkRoom()) {
-			$this->talkRoomService->createForAppointment($updated);
-		}
+		$this->talkRoomService->openOrSync($updated);
 
 		return $updated;
 	}
@@ -1288,10 +1286,11 @@ class AppointmentService {
 		// Keep the response summary in the organization calendar event current
 		$this->orgCalendarSyncService->syncAppointment($appointment);
 
-		// A withdrawn yes has to close the Talk room behind them. This is the
-		// path the web and mobile clients take; the quick-response links go
-		// through ResponseService, which syncs for itself.
-		$this->talkRoomService->syncParticipants($appointment);
+		// A withdrawn yes has to close the Talk room behind them, and without a
+		// planning mode a fresh yes may be what opens the room in the first
+		// place. This is the path the web and mobile clients take; the
+		// quick-response links go through ResponseService.
+		$this->talkRoomService->openOrSync($appointment);
 
 		return $result;
 	}

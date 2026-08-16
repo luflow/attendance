@@ -116,12 +116,13 @@ export function useAppointmentLifecycle(appointmentSource, { onUpdated } = {}) {
 		togglingCancelled.value = false
 	}
 
-	// Offered once the inquiry is closed and no room exists yet — the
-	// counterpart to the create-time opt-in, and the way in for inquiries the
-	// deadline closed while nobody was looking.
+	// The counterpart to the create-time opt-in, and the way in for inquiries the
+	// deadline closed while nobody was looking. Mirrors the server's own rule:
+	// with planning on the room waits for the close, because only then is it
+	// settled who holds a place.
 	const canOpenTalkRoom = computed(() => capabilities.talkRoomsAvailable
 		&& canManage.value
-		&& isClosed.value
+		&& (isClosed.value || !capabilities.bookingEnabled)
 		&& !appointment.value.talkRoomToken)
 
 	const openingTalkRoom = ref(false)

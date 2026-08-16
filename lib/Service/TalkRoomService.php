@@ -83,6 +83,18 @@ class TalkRoomService {
 	}
 
 	/**
+	 * Whether a room may exist for this appointment yet.
+	 *
+	 * With planning on, who holds a place is only settled when the inquiry
+	 * closes, so the room waits for that. Without planning a yes is the whole
+	 * commitment — waiting would open the room at the appointment's start,
+	 * which is far too late to agree on where to meet.
+	 */
+	public function mayOpenRoom(Appointment $appointment): bool {
+		return $appointment->isClosed() || !$this->configService->isBookingEnabled();
+	}
+
+	/**
 	 * Create the conversation for an appointment and store its token. Returns
 	 * the token, or null when nothing was created — Talk unavailable, a room
 	 * already linked, or nobody to invite.
@@ -110,7 +122,9 @@ class TalkRoomService {
 		// Loaded once and threaded through the reconcile below — the room's
 		// membership and the "may we touch this person" set both read it.
 		$responses = $this->responseMapper->findByAppointment($appointment->getId());
-		if ($this->targetsFrom($appointment, $responses) === []) {
+		$targets = $this->targetsFrom($appointment, $responses);
+		// Organisers alone are not a conversation. Wait for somebody to be in.
+		if (array_diff($targets, $appointment->getOrganizersList()) === []) {
 			return null;
 		}
 
@@ -158,6 +172,26 @@ class TalkRoomService {
 			]);
 			return null;
 		}
+	}
+
+	/**
+	 * Open the room if the appointment opted in and may have one, otherwise just
+	 * bring an existing room back in step. The one call every write path that
+	 * changes membership makes.
+	 */
+	public function openOrSync(Appointment $appointment): void {
+		if (!$this->isAvailable()) {
+			return;
+		}
+
+		if ($appointment->getTalkRoomToken() === null) {
+			if ($appointment->getCreateTalkRoom() && $this->mayOpenRoom($appointment)) {
+				$this->createForAppointment($appointment);
+			}
+			return;
+		}
+
+		$this->syncParticipants($appointment);
 	}
 
 	/**
@@ -385,7 +419,13 @@ class TalkRoomService {
 			['id' => $appointment->getId()],
 		);
 
-		return $l->t('Talk room for everyone scheduled into this appointment. Details: %1$s', [$url]);
+		// Same distinction the UI hint makes: without planning nobody is
+		// "scheduled", everyone who accepted is simply in.
+		if ($this->configService->isBookingEnabled()) {
+			return $l->t('Talk room for everyone scheduled into this appointment. Details: %1$s', [$url]);
+		}
+
+		return $l->t('Talk room for everyone who accepted this appointment. Details: %1$s', [$url]);
 	}
 
 	/**

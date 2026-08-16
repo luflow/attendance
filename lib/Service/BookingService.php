@@ -98,9 +98,8 @@ class BookingService {
 		$response->setBookingStatus($status);
 		$updated = $this->responseMapper->update($response);
 
-		// Losing a place has to close the conversation behind them — the final
-		// details are handed out in there. Only bites once a room exists, i.e.
-		// after the inquiry was closed once and reopened.
+		// Losing a place has to close the room behind them — the final details
+		// are handed out in there.
 		$this->talkRoomService->syncParticipants($appointment);
 
 		return $updated;

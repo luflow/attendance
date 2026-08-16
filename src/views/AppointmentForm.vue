@@ -319,14 +319,8 @@
 
 			<div v-if="talkRoomsAvailable" class="form-section">
 				<h3>{{ t("attendance", "Talk room") }}</h3>
-				<!-- TRANSLATORS: Hint under the toggle that opens a Talk conversation when the inquiry is closed. It explains who ends up in that conversation and why it exists: the organizers hand out the remaining details there — meeting points, car pools, who brings what. Sample German: "Sobald die Anfrage geschlossen ist, wird eine Talk-Konversation mit den eingeplanten Personen eröffnet. Dort lassen sich die letzten Details klären." -->
 				<p class="hint-text">
-					{{
-						t(
-							"attendance",
-							"Opens a Talk room with the scheduled people once the inquiry is closed, so the remaining details can be sorted out there.",
-						)
-					}}
+					{{ talkRoomHint }}
 				</p>
 				<NcCheckboxRadioSwitch
 					v-model="createTalkRoom"
@@ -658,6 +652,18 @@ const organizersAvailable = computed(() => capabilities.organizers === true)
 
 const locationsAvailable = computed(() => capabilities.locationsAvailable === true)
 const talkRoomsAvailable = computed(() => capabilities.talkRoomsAvailable === true)
+
+// Who lands in the room depends on the planning feature, and so does when the
+// room opens — promising "the scheduled people" on an instance without planning
+// would simply be wrong.
+const talkRoomHint = computed(() => {
+	if (capabilities.bookingEnabled) {
+		// TRANSLATORS: Hint under the Talk room toggle, on instances where the planning feature is on. The room opens when the inquiry is closed and holds the people who were given a place, so the organizers can settle the remaining details there — meeting points, car pools, who brings what.
+		return t('attendance', 'Opens a Talk room with the scheduled people once the inquiry is closed, so the remaining details can be sorted out there.')
+	}
+	// TRANSLATORS: Hint under the Talk room toggle, on instances without the planning feature. There is no "scheduled" state, so everyone who accepted is in, and the room opens as soon as the first person does rather than waiting for the inquiry to close.
+	return t('attendance', 'Opens a Talk room with everyone who accepted, as soon as the first person does, so the remaining details can be sorted out there.')
+})
 const locationSuggestions = ref([])
 async function loadLocationSuggestions() {
 	try {

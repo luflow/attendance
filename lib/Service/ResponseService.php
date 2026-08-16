@@ -131,9 +131,9 @@ class ResponseService {
 		// Keep the response summary in the organization calendar event current
 		$this->orgCalendarSyncService->syncAppointment($appointment);
 
-		// A withdrawn yes has to close the conversation behind them. No-op
-		// unless a room exists, i.e. after a close-and-reopen.
-		$this->talkRoomService->syncParticipants($appointment);
+		// Mirrors AppointmentService::applyResponse() — a withdrawn yes closes
+		// the room behind them, a fresh one may open it.
+		$this->talkRoomService->openOrSync($appointment);
 
 		return $result;
 	}

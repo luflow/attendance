@@ -519,10 +519,10 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'Talk is not available on this server'], 400);
 		}
 
-		// Who belongs in the room is only settled once the inquiry is closed.
 		// Enforced here and not just in the UI, because mobile clients call this
-		// endpoint directly.
-		if (!$appointment->isClosed()) {
+		// endpoint directly. With planning on, who holds a place is only settled
+		// when the inquiry closes.
+		if (!$this->talkRoomService->mayOpenRoom($appointment)) {
 			return new DataResponse(['error' => 'The inquiry is still open'], 400);
 		}
 

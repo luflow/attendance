@@ -77,7 +77,7 @@
 					</span>
 				</template>
 				<div class="meta-tooltip">
-					<span>{{ t('attendance', 'A Talk room is open for the people who got a place.') }}</span>
+					<span>{{ talkRoomLabel }}</span>
 					<a :href="talkLink">
 						{{ t('attendance', 'Open Talk room') }} →
 					</a>
@@ -94,6 +94,7 @@ import AccountStarIcon from 'vue-material-design-icons/AccountStar.vue'
 import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
 import MessageTextIcon from 'vue-material-design-icons/MessageText.vue'
 import RepeatIcon from 'vue-material-design-icons/Repeat.vue'
+import { usePermissions } from '../../composables/usePermissions.js'
 import { calendarDeepLink, talkRoomLink } from '../../utils/appointment.js'
 import { HOVER_TOOLTIP as TOOLTIP } from '../../utils/tooltip.js'
 
@@ -108,8 +109,19 @@ const props = defineProps({
 	},
 })
 
+const { capabilities } = usePermissions()
+
 const calendarLink = computed(() => calendarDeepLink(props.appointment))
 const talkLink = computed(() => talkRoomLink(props.appointment))
+
+const talkRoomLabel = computed(() => {
+	if (capabilities.bookingEnabled) {
+		// TRANSLATORS: Tooltip on the Talk room icon, on instances where the planning feature is on — the room holds the people who were given a place.
+		return t('attendance', 'A Talk room is open for the people who got a place.')
+	}
+	// TRANSLATORS: Tooltip on the Talk room icon, on instances without the planning feature — there is no "scheduled" state, so everyone who accepted is in the room.
+	return t('attendance', 'A Talk room is open for everyone who accepted.')
+})
 
 // Same last-word split as the card title: the final token of the date shares a
 // no-wrap span with the icons, so they always keep text company when wrapping.
