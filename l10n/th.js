@@ -59,6 +59,7 @@ OC.L10N.register(
     "Categories" : "หมวดหมู่",
     "Close" : "ปิด",
     "Continue" : "ดำเนินการต่อ",
+    "Never" : "ไม่เคย",
     "Settings saved" : "บันทึกการตั้งค่าแล้ว",
     "Failed to save settings" : "ไม่สามารถบันทึกการตั้งค่าได้",
     "Failed to load settings" : "ไม่สามารถโหลดการตั้งค่าได้",

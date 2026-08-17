@@ -73,6 +73,7 @@ OC.L10N.register(
     "Categories" : "Kategorioj",
     "Close" : "Malfermi",
     "Continue" : "Daŭrigi",
+    "Never" : "Neniam",
     "Settings saved" : "Agordoj konservitaj",
     "Failed to save settings" : "Konservo de agordoj malsukcesis",
     "Failed to load settings" : "Ŝargo de agordoj malsukcesis",

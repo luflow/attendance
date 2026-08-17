@@ -67,6 +67,7 @@ OC.L10N.register(
     "Categories" : "Kategoritë",
     "Close" : "Mbylleni",
     "Continue" : "Vazhdo",
+    "Never" : "Kurrë",
     "Permissions" : "Lejet",
     "Settings saved" : "Opsjonet u Ruajtën.",
     "Link copied" : "Linku u kopjua",

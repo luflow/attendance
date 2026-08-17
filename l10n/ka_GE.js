@@ -57,6 +57,7 @@ OC.L10N.register(
     "Welcome" : "კეთილი იყოს თქვენი მობრძანება",
     "Categories" : "კატეგორიები",
     "Close" : "დახურვა",
+    "Never" : "არასდროს",
     "Permissions" : "უფლებები",
     "Settings saved" : "პარამეტრები შენახულია",
     "Preview" : "წინასწარი ჩვენება",

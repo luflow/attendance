@@ -89,6 +89,7 @@ OC.L10N.register(
     "Categories" : "Categories",
     "Close" : "Close",
     "Continue" : "გაგრძელება",
+    "Never" : "Never",
     "Guest" : "Guest",
     "Permissions" : "Permissions",
     "Category name" : "Category name",

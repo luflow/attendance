@@ -53,6 +53,7 @@ OC.L10N.register(
     "Welcome" : "Bienvenido",
     "Categories" : "Categorías",
     "Close" : "Cerrar",
+    "Never" : "Nunca",
     "Permissions" : "Permisos",
     "Settings saved" : "Se han guardado las configuraciones ",
     "Link copied" : "Enlace copiado",

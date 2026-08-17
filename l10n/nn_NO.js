@@ -53,6 +53,7 @@ OC.L10N.register(
     "Categories" : "Kategoriar",
     "Close" : "Lukk",
     "Continue" : "Gå vidare",
+    "Never" : "Aldri",
     "Guest" : "Gjest",
     "Link copied" : "Lenkje kopiert",
     "Delete category" : "Slett kategori",

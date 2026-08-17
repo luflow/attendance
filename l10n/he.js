@@ -100,6 +100,7 @@ OC.L10N.register(
     "Categories" : "קטגוריות",
     "Close" : "סגירה",
     "Continue" : "להמשך",
+    "Never" : "מעולם לא",
     "Guest" : "אורח",
     "Permissions" : "הרשאות",
     "Settings saved" : "הגדרות נשמרו",

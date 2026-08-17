@@ -36,6 +36,7 @@ OC.L10N.register(
     "Save" : "Salveguardar",
     "Dismiss" : "Dimitter",
     "Close" : "Clauder",
+    "Never" : "Nunquam",
     "Settings saved" : "Configurationes salveguardate",
     "Preview" : "Previsualisar",
     "Location" : "Loco",

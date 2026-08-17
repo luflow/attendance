@@ -45,6 +45,7 @@ OC.L10N.register(
     "Dismiss" : "Odbaci",
     "Welcome" : "Dobro došli",
     "Close" : "Zatvori",
+    "Never" : "Nikad",
     "Link copied" : "Veza iskopirana",
     "Push notifications" : "Brza obaveštenja",
     "Category" : "Kategorija",

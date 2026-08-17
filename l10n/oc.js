@@ -71,6 +71,7 @@ OC.L10N.register(
     "Categories" : "Categorias",
     "Close" : "Plegar",
     "Continue" : "Contunhar",
+    "Never" : "Jamai",
     "Guest" : "Convidat",
     "Permissions" : "Autorizacions",
     "Settings saved" : "Paramètres salvats",

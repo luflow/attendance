@@ -79,7 +79,7 @@ OC.L10N.register(
     "Categories" : "Kategorijas",
     "Close" : "Aizvērt",
     "Continue" : "Turpināt",
-    "Teams" : "Komandas",
+    "Never" : "Nekad",
     "Guest" : "Viesis",
     "Permissions" : "Atļaujas",
     "Settings saved" : "Iestatījumi saglabāti",
@@ -114,6 +114,7 @@ OC.L10N.register(
     "Search people" : "Meklēt cilvēkus",
     "Year" : "Gads",
     "Custom" : "Pielāgots",
+    "Teams" : "Komandas",
     "Automatic" : "Automātisks",
     "description" : "apraksts"
 },

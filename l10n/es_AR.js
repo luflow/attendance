@@ -67,6 +67,7 @@ OC.L10N.register(
     "Categories" : "Categoría",
     "Close" : "Cerrar",
     "Continue" : "Continuar",
+    "Never" : "Nunca",
     "Permissions" : "Permisos",
     "Settings saved" : "Configuraciones guardadas",
     "Link copied" : "Link copiado",
