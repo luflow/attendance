@@ -88,6 +88,7 @@ OC.L10N.register(
     "1 hour before" : "1 hora antes",
     "2 hours before" : "2 horas antes",
     "App Store" : "Tienda de aplicaciones",
+    "Columns" : "Columnas",
     "Year" : "Año",
     "Custom" : "Personalizado",
     "Filter" : "Filtrar",

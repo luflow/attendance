@@ -41,6 +41,7 @@ OC.L10N.register(
     "Categories" : "Kateqoriyalar",
     "Close" : "Bağla",
     "Continue" : "Davam et",
+    "Never" : "Heç vaxt",
     "Settings saved" : "Parametrlər yaddaşa verildi",
     "Link copied" : "Link kopyalandı",
     "Location" : "Yerləşdiyiniz ünvan",

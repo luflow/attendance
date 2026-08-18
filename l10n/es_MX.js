@@ -137,6 +137,7 @@ OC.L10N.register(
     "2 hours before" : "2 horas antes",
     "App Store" : "Tienda de aplicaciones",
     "Search people" : "Buscar personas",
+    "Columns" : "Columnas",
     "Year" : "Año",
     "Custom" : "Personalizado",
     "Teams" : "Equipos",

@@ -85,6 +85,7 @@ OC.L10N.register(
     "Categories" : "Катэгорыі",
     "Close" : "Закрыць",
     "Continue" : "Працягнуць",
+    "Never" : "Ніколі",
     "Guest" : "Госць",
     "Permissions" : "Дазволы",
     "Mobile apps" : "Мабільныя праграмы",

@@ -50,6 +50,7 @@ OC.L10N.register(
     "Categories" : "Rummadoù",
     "Close" : "Serriñ",
     "Continue" : "Kendec'hel",
+    "Never" : "James",
     "Settings saved" : "Stummoù enrollet",
     "Link copied" : "Liamm eilet",
     "Preview" : "Ragwell",
