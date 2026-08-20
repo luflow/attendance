@@ -87,7 +87,7 @@ OC.L10N.register(
     "Setting up …" : "Setting up …",
     "Let's go!" : "Let's go!",
     "Settings" : "Settings",
-    "Accent color" : "Accent color",
+    "Accent color" : "Accent colour",
     "Log out" : "Log out",
     "Are you sure you want to log out?" : "Are you sure you want to log out?",
     "Reset to server color" : "Reset to server colour",
