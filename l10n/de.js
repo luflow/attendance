@@ -179,7 +179,6 @@ OC.L10N.register(
     "Just for me" : "Nur für mich",
     "Just for you, on any of your Nextcloud accounts" : "Nur für dich, auf allen deinen Nextcloud-Konten",
     "Language" : "Sprache",
-    "Less than one euro a month" : "Weniger als ein Euro im Monat",
     "Most popular" : "Am beliebtesten",
     "NFC is not available." : "NFC ist nicht verfügbar.",
     "Name (optional)" : "Name (optional)",
@@ -228,7 +227,6 @@ OC.L10N.register(
     "Unlimited members" : "Unbegrenzte Mitglieder",
     "Up to {count} members" : "Bis zu {count} Mitgliedern",
     "Use the recipient's server locale" : "Server-Ländereinstellung des Empfängers verwenden",
-    "Using Attendance with a group? One license for the whole group costs less than three personal licenses." : "Du nutzt Attendance mit einer Gruppe? Eine Lizenz für die ganze Gruppe kostet weniger als drei persönliche Lizenzen.",
     "Using account {user} on {server}" : "Konto {user} auf {server} verwenden",
     "What would you be willing to pay?" : "Was wärst du bereit zu zahlen?",
     "What's still holding you back?" : "Was hält dich noch zurück?",
@@ -966,6 +964,10 @@ OC.L10N.register(
     "A Talk room is open for everyone who accepted." : "Für alle, die zugesagt haben, ist ein Talk-Raum eröffnet.",
     "Opens a Talk room with everyone who accepted, as soon as the first person does, so the remaining details can be sorted out there." : "Eröffnet einen Talk-Raum mit allen, die zugesagt haben — sobald die erste Zusage eingeht, damit die restlichen Details dort geklärt werden können.",
     "Talk room for everyone who accepted this appointment. Details: %1$s" : "Talk-Raum für alle, die für diesen Termin zugesagt haben. Details: %1$s",
-    "Open a Talk room for this appointment" : "Talk-Raum für diesen Termin eröffnen"
+    "Open a Talk room for this appointment" : "Talk-Raum für diesen Termin eröffnen",
+    "Move {name} up" : "{name} nach oben verschieben",
+    "Move {name} down" : "{name} nach unten verschieben",
+    "Sections appear in this order. Drag an entry or use the arrows to move it." : "Die Abschnitte erscheinen in dieser Reihenfolge. Ziehe einen Eintrag oder verschiebe ihn mit den Pfeilen.",
+    "Using Attendance with a group? One license for the whole group costs less than {count} personal licenses." : "Du nutzt Attendance mit einer Gruppe? Eine Lizenz für die ganze Gruppe kostet weniger als {count} persönliche Lizenzen."
 },
 "nplurals=2; plural=(n != 1);");
