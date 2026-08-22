@@ -46,6 +46,7 @@ OC.L10N.register(
     "Export" : "Exportă",
     "Select all" : "Selectează tot",
     "Deselect all" : "Deselectează tot",
+    "Custom range" : "Interval particularizat",
     "Copy" : "Copiază",
     "Last accessed" : "Ultima accesare",
     "Cancel" : "Cancel",

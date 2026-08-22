@@ -65,6 +65,7 @@ OC.L10N.register(
     "User" : "Bruker",
     "Description" : "Skildring",
     "Unit" : "Eining",
+    "Period" : "Periode",
     "Year" : "År",
     "Custom" : "Sjølvvald",
     "Filter" : "Filter"
