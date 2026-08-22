@@ -4,8 +4,8 @@
 			{{ t('attendance', 'Sections appear in this order. Drag an entry or use the arrows to move it.') }}
 		</p>
 		<ul class="ordered-selection" :data-test="dataTest">
-			<li v-for="(item, index) in modelValue"
-				:key="item.id"
+			<li v-for="(row, index) in rows"
+				:key="row.item.id"
 				class="ordered-selection__item"
 				:class="{
 					'ordered-selection__item--dragged': dragIndex === index,
@@ -20,23 +20,23 @@
 				@dragend="resetDrag">
 				<DragIcon class="ordered-selection__handle" :size="20" />
 				<span class="ordered-selection__position">{{ index + 1 }}</span>
-				<span class="ordered-selection__label">{{ labelOf(item) }}</span>
+				<span class="ordered-selection__label">{{ row.label }}</span>
 				<NcButton variant="tertiary"
 					:disabled="index === 0"
-					:aria-label="t('attendance', 'Move {name} up', { name: labelOf(item) })"
-					:title="t('attendance', 'Move {name} up', { name: labelOf(item) })"
+					:aria-label="row.moveUp"
+					:title="row.moveUp"
 					:data-test="`${dataTest}-up`"
-					@click="move(index, -1)">
+					@click="reorder(index, index - 1)">
 					<template #icon>
 						<ArrowUp :size="20" />
 					</template>
 				</NcButton>
 				<NcButton variant="tertiary"
-					:disabled="index === modelValue.length - 1"
-					:aria-label="t('attendance', 'Move {name} down', { name: labelOf(item) })"
-					:title="t('attendance', 'Move {name} down', { name: labelOf(item) })"
+					:disabled="index === rows.length - 1"
+					:aria-label="row.moveDown"
+					:title="row.moveDown"
 					:data-test="`${dataTest}-down`"
-					@click="move(index, 1)">
+					@click="reorder(index, index + 1)">
 					<template #icon>
 						<ArrowDown :size="20" />
 					</template>
@@ -48,7 +48,7 @@
 
 <script setup>
 import { NcButton } from '@nextcloud/vue'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import ArrowDown from 'vue-material-design-icons/ArrowDown.vue'
 import ArrowUp from 'vue-material-design-icons/ArrowUp.vue'
 import DragIcon from 'vue-material-design-icons/DragHorizontalVariant.vue'
@@ -59,15 +59,9 @@ const props = defineProps({
 		type: Array,
 		default: () => [],
 	},
-	/** Property holding the human-readable name of an entry */
-	labelKey: {
-		type: String,
-		default: 'displayName',
-	},
-	/** Overrides `labelKey`, e.g. to translate system group ids */
 	formatLabel: {
 		type: Function,
-		default: null,
+		required: true,
 	},
 	dataTest: {
 		type: String,
@@ -80,10 +74,15 @@ const emit = defineEmits(['update:modelValue'])
 const dragIndex = ref(null)
 const overIndex = ref(null)
 
-function labelOf(item) {
-	if (props.formatLabel) return props.formatLabel(item)
-	return item[props.labelKey] || item.id
-}
+const rows = computed(() => props.modelValue.map((item) => {
+	const label = props.formatLabel(item)
+	return {
+		item,
+		label,
+		moveUp: t('attendance', 'Move {name} up', { name: label }),
+		moveDown: t('attendance', 'Move {name} down', { name: label }),
+	}
+}))
 
 function reorder(from, to) {
 	const items = [...props.modelValue]
@@ -92,17 +91,11 @@ function reorder(from, to) {
 	emit('update:modelValue', items)
 }
 
-function move(index, offset) {
-	const target = index + offset
-	if (target < 0 || target >= props.modelValue.length) return
-	reorder(index, target)
-}
-
 function onDragStart(index, event) {
 	dragIndex.value = index
 	event.dataTransfer.effectAllowed = 'move'
 	// Firefox only starts a drag once some data is attached.
-	event.dataTransfer.setData('text/plain', String(index))
+	event.dataTransfer.setData('text/plain', '')
 }
 
 function onDragLeave(index) {

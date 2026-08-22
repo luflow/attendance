@@ -39,7 +39,6 @@
 					:options="availableGroups"
 					:placeholder="t('attendance', 'Select groups …')"
 					:sortable="true"
-					orderDataTest="order-whitelisted-groups"
 					data-test="select-whitelisted-groups" />
 				<p class="hint-text">
 					{{ n('attendance', '%n group selected', '%n groups selected', selectedGroups.length, { n: selectedGroups.length }) }}
@@ -55,7 +54,6 @@
 					v-model="selectedTeams"
 					:placeholder="t('attendance', 'Search and select teams …')"
 					:sortable="true"
-					orderDataTest="order-whitelisted-teams"
 					data-test="select-whitelisted-teams" />
 				<p class="hint-text">
 					{{ n('attendance', '%n team selected', '%n teams selected', selectedTeams.length, { n: selectedTeams.length }) }}
@@ -1075,11 +1073,8 @@ async function loadSettings() {
 		availableGroups.value = groups
 		selectedGroups.value = toGroupObjects(config.whitelistedGroups, groups)
 
-		// Load teams settings
 		teamsAvailable.value = caps.teamsAvailable || false
-		if (config.whitelistedTeams) {
-			selectedTeams.value = config.whitelistedTeams
-		}
+		selectedTeams.value = config.whitelistedTeams ?? []
 
 		// Load permission settings
 		if (config.permissions) {

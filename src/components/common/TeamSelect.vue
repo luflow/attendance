@@ -26,8 +26,8 @@
 		</NcSelect>
 		<OrderedSelectionList v-if="sortable"
 			:modelValue="modelValue"
-			labelKey="label"
-			:dataTest="orderDataTest"
+			:formatLabel="teamLabel"
+			dataTest="order-teams"
 			@update:modelValue="$emit('update:modelValue', $event)" />
 	</div>
 </template>
@@ -54,10 +54,6 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
-	orderDataTest: {
-		type: String,
-		default: 'order-teams',
-	},
 })
 
 defineEmits(['update:modelValue'])
@@ -65,11 +61,13 @@ defineEmits(['update:modelValue'])
 const searchResults = ref([])
 const isSearching = ref(false)
 
+const teamLabel = (team) => team.label
+
 // Teams are searched server-side, so the dropdown would otherwise drop the
 // current selection as soon as it no longer matches the query.
 const options = computed(() => {
-	const selectedIds = props.modelValue.map((team) => team.id)
-	return [...props.modelValue, ...searchResults.value.filter((team) => !selectedIds.includes(team.id))]
+	const selectedIds = new Set(props.modelValue.map((team) => team.id))
+	return [...props.modelValue, ...searchResults.value.filter((team) => !selectedIds.has(team.id))]
 })
 
 async function search(query) {

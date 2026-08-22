@@ -290,18 +290,18 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.goto('/settings/admin/attendance')
 			await page.waitForLoadState('networkidle')
 
-			const items = page.locator('[data-test="order-whitelisted-groups-item"]')
+			const items = page.locator('[data-test="order-groups-item"]')
 			await expect(items).toHaveCount(2)
 			await expect(items.first()).toContainText(firstGroup)
 
 			const saved = waitForSettingsSave(page)
-			await items.first().locator('[data-test="order-whitelisted-groups-down"]').click()
+			await items.first().locator('[data-test="order-groups-down"]').click()
 			await saved
 
 			await page.reload()
 			await page.waitForLoadState('networkidle')
 
-			const reloaded = page.locator('[data-test="order-whitelisted-groups-item"]')
+			const reloaded = page.locator('[data-test="order-groups-item"]')
 			await expect(reloaded.first()).toContainText(secondGroup)
 			await expect(reloaded.last()).toContainText(firstGroup)
 		})

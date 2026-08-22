@@ -248,7 +248,7 @@ The page auto-saves; there is no save button. Wait for the POST to
 
 - `admin-settings` - Admin settings container
 - `select-whitelisted-groups` - Whitelisted groups selector
-- `order-whitelisted-groups-item` - Entry of the group order list, with `order-whitelisted-groups-up|down` buttons (same for `order-whitelisted-teams-*`)
+- `order-groups-item` - Entry of the group order list, with `order-groups-up|down` buttons (same for `order-teams-*`)
 - `permission-<name>` - Permission row (e.g. `permission-manage_appointments`) with `permission-<name>-mode-all|groups|nobody` radios and a `permission-<name>-groups` group selector (visible in "Specific groups" mode)
 - `switch-reminders-enabled` - Enable reminders switch
 - `input-reminder-days` - Reminder days input

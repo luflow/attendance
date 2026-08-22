@@ -25,7 +25,7 @@
 		<OrderedSelectionList v-if="sortable"
 			:modelValue="modelValue"
 			:formatLabel="groupLabel"
-			:dataTest="orderDataTest"
+			dataTest="order-groups"
 			@update:modelValue="$emit('update:modelValue', $event)" />
 	</div>
 </template>
@@ -59,22 +59,17 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
-	orderDataTest: {
-		type: String,
-		default: 'order-groups',
-	},
 })
 
 defineEmits(['update:modelValue'])
 
-// Rewrite the displayName for known system groups (e.g. guest_app → "Guests")
-// before they reach NcSelect, so the option list, the selected-options pill,
-// and the search filter all see the same friendly label.
+// Known system groups (e.g. guest_app → "Guests") must read the same in the
+// option list, the search filter, the pills and the order list — stored ids
+// come back undecorated, so every one of them goes through this.
+const groupLabel = (group) => formatGroupLabel(group.id, group.displayName)
+
 const decoratedOptions = computed(() => props.options.map((option) => ({
 	...option,
-	displayName: formatGroupLabel(option.id, option.displayName),
+	displayName: groupLabel(option),
 })))
-
-// Stored ids come back undecorated, so the order list relabels them itself.
-const groupLabel = (group) => formatGroupLabel(group.id, group.displayName)
 </script>

@@ -55,7 +55,6 @@
 						:options="availableGroups"
 						:placeholder="t('attendance', 'Select groups …')"
 						:sortable="true"
-						orderDataTest="order-onboarding-summary-groups"
 						data-test="onboarding-summary-groups" />
 				</template>
 
