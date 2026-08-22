@@ -39,6 +39,14 @@
 					:options="availableGroups"
 					:placeholder="t('attendance', 'Select groups …')"
 					data-test="select-whitelisted-groups" />
+				<template v-if="selectedGroups.length > 1">
+					<p class="hint-text">
+						{{ t('attendance', 'Sections appear in this order. Drag an entry or use the arrows to move it.') }}
+					</p>
+					<OrderedSelectionList v-model="selectedGroups"
+						:formatLabel="groupLabel"
+						dataTest="order-whitelisted-groups" />
+				</template>
 				<p class="hint-text">
 					{{ n('attendance', '%n group selected', '%n groups selected', selectedGroups.length, { n: selectedGroups.length }) }}
 				</p>
@@ -73,6 +81,14 @@
 						</span>
 					</template>
 				</NcSelect>
+				<template v-if="selectedTeams.length > 1">
+					<p class="hint-text">
+						{{ t('attendance', 'Sections appear in this order. Drag an entry or use the arrows to move it.') }}
+					</p>
+					<OrderedSelectionList v-model="selectedTeams"
+						labelKey="label"
+						dataTest="order-whitelisted-teams" />
+				</template>
 				<p class="hint-text">
 					{{ n('attendance', '%n team selected', '%n teams selected', selectedTeams.length, { n: selectedTeams.length }) }}
 				</p>
@@ -704,6 +720,7 @@ import Pencil from 'vue-material-design-icons/Pencil.vue'
 import RocketLaunchIcon from 'vue-material-design-icons/RocketLaunch.vue'
 import TrashCan from 'vue-material-design-icons/TrashCan.vue'
 import CategoryIconPicker from '../components/admin/CategoryIconPicker.vue'
+import OrderedSelectionList from '../components/admin/OrderedSelectionList.vue'
 import PermissionRow from '../components/admin/PermissionRow.vue'
 import SectionLink from '../components/admin/SectionLink.vue'
 import GroupSelect from '../components/common/GroupSelect.vue'
@@ -711,7 +728,7 @@ import LoadingState from '../components/common/LoadingState.vue'
 import { categoryIconComponent, DEFAULT_CATEGORY_ICON } from '../utils/categoryIcons.js'
 import { copyToClipboard } from '../utils/clipboard.js'
 import { formatDate, formatDateTimeMedium } from '../utils/datetime.js'
-import { toGroupObjects } from '../utils/groups.js'
+import { formatGroupLabel, toGroupObjects } from '../utils/groups.js'
 import { MOBILE_APP_STORES } from '../utils/mobileApp.js'
 import { AUDIT_VISIBILITIES, permissionGroups as buildPermissionGroups, emptyPermissionState, PERMISSION_NAMES, PERMISSION_ROWS, REMINDER_TARGETS } from '../utils/permissions.js'
 
@@ -851,6 +868,10 @@ function implicationLinkFor(name) {
 const availableGroups = ref([])
 const selectedGroups = ref([])
 const selectedTeams = ref([])
+
+// Groups stored in the config carry their raw id, so system groups need the
+// same relabelling the select applies to its options.
+const groupLabel = (group) => formatGroupLabel(group.id, group.displayName)
 const teamSearchResults = ref([])
 const isSearchingTeams = ref(false)
 const teamsAvailable = ref(false)

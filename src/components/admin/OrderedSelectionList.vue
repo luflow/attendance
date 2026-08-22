@@ -1,0 +1,165 @@
+<template>
+	<ul class="ordered-selection" :data-test="dataTest">
+		<li v-for="(item, index) in modelValue"
+			:key="item.id"
+			class="ordered-selection__item"
+			:class="{
+				'ordered-selection__item--dragged': dragIndex === index,
+				'ordered-selection__item--target': overIndex === index && dragIndex !== index,
+			}"
+			draggable="true"
+			:data-test="`${dataTest}-item`"
+			@dragstart="onDragStart(index, $event)"
+			@dragover.prevent="overIndex = index"
+			@dragleave="onDragLeave(index)"
+			@drop.prevent="onDrop(index)"
+			@dragend="resetDrag">
+			<DragIcon class="ordered-selection__handle" :size="20" />
+			<span class="ordered-selection__position">{{ index + 1 }}</span>
+			<span class="ordered-selection__label">{{ labelOf(item) }}</span>
+			<NcButton variant="tertiary"
+				:disabled="index === 0"
+				:aria-label="t('attendance', 'Move {name} up', { name: labelOf(item) })"
+				:title="t('attendance', 'Move {name} up', { name: labelOf(item) })"
+				:data-test="`${dataTest}-up`"
+				@click="move(index, -1)">
+				<template #icon>
+					<ArrowUp :size="20" />
+				</template>
+			</NcButton>
+			<NcButton variant="tertiary"
+				:disabled="index === modelValue.length - 1"
+				:aria-label="t('attendance', 'Move {name} down', { name: labelOf(item) })"
+				:title="t('attendance', 'Move {name} down', { name: labelOf(item) })"
+				:data-test="`${dataTest}-down`"
+				@click="move(index, 1)">
+				<template #icon>
+					<ArrowDown :size="20" />
+				</template>
+			</NcButton>
+		</li>
+	</ul>
+</template>
+
+<script setup>
+import { NcButton } from '@nextcloud/vue'
+import { ref } from 'vue'
+import ArrowDown from 'vue-material-design-icons/ArrowDown.vue'
+import ArrowUp from 'vue-material-design-icons/ArrowUp.vue'
+import DragIcon from 'vue-material-design-icons/DragHorizontalVariant.vue'
+
+const props = defineProps({
+	/** Ordered selection, each entry `{ id, … }` */
+	modelValue: {
+		type: Array,
+		default: () => [],
+	},
+	/** Property holding the human-readable name of an entry */
+	labelKey: {
+		type: String,
+		default: 'displayName',
+	},
+	/** Overrides `labelKey`, e.g. to translate system group ids */
+	formatLabel: {
+		type: Function,
+		default: null,
+	},
+	dataTest: {
+		type: String,
+		default: 'ordered-selection',
+	},
+})
+
+const emit = defineEmits(['update:modelValue'])
+
+const dragIndex = ref(null)
+const overIndex = ref(null)
+
+function labelOf(item) {
+	if (props.formatLabel) return props.formatLabel(item)
+	return item[props.labelKey] || item.id
+}
+
+function reorder(from, to) {
+	const items = [...props.modelValue]
+	const [moved] = items.splice(from, 1)
+	items.splice(to, 0, moved)
+	emit('update:modelValue', items)
+}
+
+function move(index, offset) {
+	const target = index + offset
+	if (target < 0 || target >= props.modelValue.length) return
+	reorder(index, target)
+}
+
+function onDragStart(index, event) {
+	dragIndex.value = index
+	event.dataTransfer.effectAllowed = 'move'
+	// Firefox only starts a drag once some data is attached.
+	event.dataTransfer.setData('text/plain', String(index))
+}
+
+function onDragLeave(index) {
+	if (overIndex.value === index) overIndex.value = null
+}
+
+function onDrop(index) {
+	if (dragIndex.value !== null && dragIndex.value !== index) {
+		reorder(dragIndex.value, index)
+	}
+	resetDrag()
+}
+
+function resetDrag() {
+	dragIndex.value = null
+	overIndex.value = null
+}
+</script>
+
+<style scoped>
+.ordered-selection {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin-block: 8px;
+	max-width: 480px;
+}
+
+.ordered-selection__item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 8px;
+	border: 2px solid transparent;
+	border-radius: var(--border-radius-element, var(--border-radius-large));
+	background-color: var(--color-background-hover);
+	cursor: grab;
+}
+
+.ordered-selection__item--dragged {
+	opacity: 0.5;
+}
+
+.ordered-selection__item--target {
+	border-color: var(--color-primary-element);
+}
+
+.ordered-selection__handle {
+	color: var(--color-text-maxcontrast);
+}
+
+.ordered-selection__position {
+	color: var(--color-text-maxcontrast);
+	font-size: 0.9em;
+	min-width: 1.5em;
+	text-align: end;
+}
+
+.ordered-selection__label {
+	flex: 1 1 auto;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+</style>

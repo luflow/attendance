@@ -1,4 +1,4 @@
-import { deleteAllAppointments, expect, resetAdminSettings, restrictPermissionToGroup, test, waitForSettingsSave } from './fixtures/nextcloud.js'
+import { createGroupViaOCS, deleteAllAppointments, expect, resetAdminSettings, restrictPermissionToGroup, saveAdminSettings, test, waitForSettingsSave } from './fixtures/nextcloud.js'
 
 /**
  * Admin Settings E2E Tests
@@ -268,6 +268,42 @@ test.describe('Attendance App - Admin Settings', () => {
 			const saved = waitForSettingsSave(page)
 			await adminOption.click()
 			await saved
+		})
+	})
+
+	test.describe('Group Order Configuration', () => {
+		const firstGroup = 'attendance-e2e-order-a'
+		const secondGroup = 'attendance-e2e-order-b'
+
+		test.beforeAll(async ({ request }) => {
+			await createGroupViaOCS(request, firstGroup)
+			await createGroupViaOCS(request, secondGroup)
+			await saveAdminSettings(request, { whitelistedGroups: [firstGroup, secondGroup] })
+		})
+
+		test.afterAll(async ({ request }) => {
+			await resetAdminSettings(request)
+		})
+
+		test('should reorder whitelisted groups and persist the new order', async ({ page, loginAsUser }) => {
+			await loginAsUser('admin', 'admin')
+			await page.goto('/settings/admin/attendance')
+			await page.waitForLoadState('networkidle')
+
+			const items = page.locator('[data-test="order-whitelisted-groups-item"]')
+			await expect(items).toHaveCount(2)
+			await expect(items.first()).toContainText(firstGroup)
+
+			const saved = waitForSettingsSave(page)
+			await items.first().locator('[data-test="order-whitelisted-groups-down"]').click()
+			await saved
+
+			await page.reload()
+			await page.waitForLoadState('networkidle')
+
+			const reloaded = page.locator('[data-test="order-whitelisted-groups-item"]')
+			await expect(reloaded.first()).toContainText(secondGroup)
+			await expect(reloaded.last()).toContainText(firstGroup)
 		})
 	})
 
