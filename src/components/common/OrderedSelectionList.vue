@@ -1,44 +1,49 @@
 <template>
-	<ul class="ordered-selection" :data-test="dataTest">
-		<li v-for="(item, index) in modelValue"
-			:key="item.id"
-			class="ordered-selection__item"
-			:class="{
-				'ordered-selection__item--dragged': dragIndex === index,
-				'ordered-selection__item--target': overIndex === index && dragIndex !== index,
-			}"
-			draggable="true"
-			:data-test="`${dataTest}-item`"
-			@dragstart="onDragStart(index, $event)"
-			@dragover.prevent="overIndex = index"
-			@dragleave="onDragLeave(index)"
-			@drop.prevent="onDrop(index)"
-			@dragend="resetDrag">
-			<DragIcon class="ordered-selection__handle" :size="20" />
-			<span class="ordered-selection__position">{{ index + 1 }}</span>
-			<span class="ordered-selection__label">{{ labelOf(item) }}</span>
-			<NcButton variant="tertiary"
-				:disabled="index === 0"
-				:aria-label="t('attendance', 'Move {name} up', { name: labelOf(item) })"
-				:title="t('attendance', 'Move {name} up', { name: labelOf(item) })"
-				:data-test="`${dataTest}-up`"
-				@click="move(index, -1)">
-				<template #icon>
-					<ArrowUp :size="20" />
-				</template>
-			</NcButton>
-			<NcButton variant="tertiary"
-				:disabled="index === modelValue.length - 1"
-				:aria-label="t('attendance', 'Move {name} down', { name: labelOf(item) })"
-				:title="t('attendance', 'Move {name} down', { name: labelOf(item) })"
-				:data-test="`${dataTest}-down`"
-				@click="move(index, 1)">
-				<template #icon>
-					<ArrowDown :size="20" />
-				</template>
-			</NcButton>
-		</li>
-	</ul>
+	<div v-if="modelValue.length > 1">
+		<p class="ordered-selection__hint">
+			{{ t('attendance', 'Sections appear in this order. Drag an entry or use the arrows to move it.') }}
+		</p>
+		<ul class="ordered-selection" :data-test="dataTest">
+			<li v-for="(item, index) in modelValue"
+				:key="item.id"
+				class="ordered-selection__item"
+				:class="{
+					'ordered-selection__item--dragged': dragIndex === index,
+					'ordered-selection__item--target': overIndex === index && dragIndex !== index,
+				}"
+				draggable="true"
+				:data-test="`${dataTest}-item`"
+				@dragstart="onDragStart(index, $event)"
+				@dragover.prevent="overIndex = index"
+				@dragleave="onDragLeave(index)"
+				@drop.prevent="onDrop(index)"
+				@dragend="resetDrag">
+				<DragIcon class="ordered-selection__handle" :size="20" />
+				<span class="ordered-selection__position">{{ index + 1 }}</span>
+				<span class="ordered-selection__label">{{ labelOf(item) }}</span>
+				<NcButton variant="tertiary"
+					:disabled="index === 0"
+					:aria-label="t('attendance', 'Move {name} up', { name: labelOf(item) })"
+					:title="t('attendance', 'Move {name} up', { name: labelOf(item) })"
+					:data-test="`${dataTest}-up`"
+					@click="move(index, -1)">
+					<template #icon>
+						<ArrowUp :size="20" />
+					</template>
+				</NcButton>
+				<NcButton variant="tertiary"
+					:disabled="index === modelValue.length - 1"
+					:aria-label="t('attendance', 'Move {name} down', { name: labelOf(item) })"
+					:title="t('attendance', 'Move {name} down', { name: labelOf(item) })"
+					:data-test="`${dataTest}-down`"
+					@click="move(index, 1)">
+					<template #icon>
+						<ArrowDown :size="20" />
+					</template>
+				</NcButton>
+			</li>
+		</ul>
+	</div>
 </template>
 
 <script setup>
@@ -118,6 +123,12 @@ function resetDrag() {
 </script>
 
 <style scoped>
+.ordered-selection__hint {
+	margin-top: 8px;
+	color: var(--color-text-maxcontrast);
+	font-size: 13px;
+}
+
 .ordered-selection {
 	display: flex;
 	flex-direction: column;
