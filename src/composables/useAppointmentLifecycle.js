@@ -63,10 +63,10 @@ export function useAppointmentLifecycle(appointmentSource, { onUpdated } = {}) {
 		return { booked: [...booked.values()], declined: [...declined.values()] }
 	})
 
-	async function post(action, messages) {
+	async function request(action, messages, method = 'post') {
 		const url = generateUrl(`/apps/attendance/api/appointments/${appointment.value.id}/${action}`)
 		try {
-			const response = await axios.post(url)
+			const response = await axios({ method, url })
 			showSuccess(messages.success)
 			onUpdated?.(response.data)
 		} catch (error) {
@@ -78,7 +78,7 @@ export function useAppointmentLifecycle(appointmentSource, { onUpdated } = {}) {
 	async function performToggleClosed(wantsClose) {
 		if (togglingClosed.value) return
 		togglingClosed.value = true
-		await post(wantsClose ? 'close' : 'reopen', wantsClose
+		await request(wantsClose ? 'close' : 'reopen', wantsClose
 			? { success: t('attendance', 'Inquiry closed'), error: t('attendance', 'Failed to close inquiry') }
 			: { success: t('attendance', 'Inquiry re-opened'), error: t('attendance', 'Failed to re-open inquiry') })
 		togglingClosed.value = false
@@ -110,7 +110,7 @@ export function useAppointmentLifecycle(appointmentSource, { onUpdated } = {}) {
 		const cancelled = t('attendance', 'Appointment cancelled')
 		// TRANSLATORS: Success toast — the cancellation was taken back, the appointment takes place again.
 		const reactivated = t('attendance', 'Appointment reactivated')
-		await post(wantsCancel ? 'cancel' : 'uncancel', wantsCancel
+		await request(wantsCancel ? 'cancel' : 'uncancel', wantsCancel
 			? { success: cancelled, error: t('attendance', 'Failed to cancel appointment') }
 			: { success: reactivated, error: t('attendance', 'Failed to reactivate appointment') })
 		togglingCancelled.value = false
@@ -130,12 +130,31 @@ export function useAppointmentLifecycle(appointmentSource, { onUpdated } = {}) {
 	async function openTalkRoom() {
 		if (openingTalkRoom.value) return
 		openingTalkRoom.value = true
-		await post('talk-room', {
+		await request('talk-room', {
 			success: t('attendance', 'Talk room opened'),
 			error: t('attendance', 'The Talk room could not be opened'),
 			errorFromServer: true,
 		})
 		openingTalkRoom.value = false
+	}
+
+	// The way back out, for a room opened by mistake or one that outlived what
+	// it was for.
+	const canDeleteTalkRoom = computed(() => capabilities.talkRoomsAvailable
+		&& canManage.value
+		&& Boolean(appointment.value.talkRoomToken))
+
+	const deletingTalkRoom = ref(false)
+
+	async function deleteTalkRoom() {
+		if (deletingTalkRoom.value) return
+		deletingTalkRoom.value = true
+		await request('talk-room', {
+			success: t('attendance', 'Talk room deleted'),
+			error: t('attendance', 'The Talk room could not be deleted'),
+			errorFromServer: true,
+		}, 'delete')
+		deletingTalkRoom.value = false
 	}
 
 	const dialogGroups = computed(() => [
@@ -168,5 +187,8 @@ export function useAppointmentLifecycle(appointmentSource, { onUpdated } = {}) {
 		canOpenTalkRoom,
 		openingTalkRoom,
 		openTalkRoom,
+		canDeleteTalkRoom,
+		deletingTalkRoom,
+		deleteTalkRoom,
 	}
 }

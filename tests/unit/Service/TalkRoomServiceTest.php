@@ -584,6 +584,39 @@ class TalkRoomServiceTest extends TestCase {
 		$this->assertNull($appointment->getTalkRoomToken());
 	}
 
+	public function testDeleteRemovesTheRoomAndTheOptIn(): void {
+		$room = $this->room();
+		$this->talkManager->method('getRoomByToken')->willReturn($room);
+		$this->roomService->expects($this->once())->method('deleteRoom')->with($room);
+
+		$appointment = $this->appointment(token: 'tok123');
+		$appointment->setCreateTalkRoom(true);
+
+		$this->assertTrue($this->service->deleteForAppointment($appointment));
+		$this->assertNull($appointment->getTalkRoomToken());
+		// Left standing, the opt-in would open a new room on the next answer.
+		$this->assertFalse($appointment->getCreateTalkRoom());
+	}
+
+	public function testDeleteIsANoOpWithoutALinkedRoom(): void {
+		$this->roomService->expects($this->never())->method('deleteRoom');
+
+		$this->assertFalse($this->service->deleteForAppointment($this->appointment()));
+	}
+
+	public function testDeleteSucceedsWhenTheRoomIsAlreadyGone(): void {
+		$this->talkManager->method('getRoomByToken')
+			->willThrowException(new \OCA\Talk\Exceptions\RoomNotFoundException());
+		$this->roomService->expects($this->never())->method('deleteRoom');
+
+		$appointment = $this->appointment(token: 'gone');
+		$appointment->setCreateTalkRoom(true);
+
+		$this->assertTrue($this->service->deleteForAppointment($appointment));
+		$this->assertNull($appointment->getTalkRoomToken());
+		$this->assertFalse($appointment->getCreateTalkRoom());
+	}
+
 	public function testOrganisersBecomeModerators(): void {
 		$this->configService->method('isBookingEnabled')->willReturn(true);
 		$this->responseMapper->method('findByAppointment')->willReturn([]);

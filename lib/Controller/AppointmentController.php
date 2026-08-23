@@ -534,6 +534,40 @@ class AppointmentController extends Controller {
 	}
 
 	/**
+	 * Delete the Talk conversation of an appointment
+	 *
+	 * Deletes the linked conversation in Talk, messages and all, and drops the
+	 * createTalkRoom opt-in with it so the next answer does not open a new one.
+	 *
+	 * @param int $id Appointment ID
+	 * @return DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function deleteTalkRoom(int $id): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		$appointment = $this->findManageableAppointment($id, $user->getUID(), 'Insufficient permissions to delete the conversation of this appointment');
+		if ($appointment instanceof DataResponse) {
+			return $appointment;
+		}
+
+		if (!$this->talkRoomService->isAvailable()) {
+			return new DataResponse(['error' => 'Talk is not available on this server'], 400);
+		}
+
+		if (!$this->talkRoomService->deleteForAppointment($appointment)) {
+			return new DataResponse(['error' => 'The conversation could not be deleted'], 400);
+		}
+
+		return new DataResponse($this->appointmentService->getAppointment($id));
+	}
+
+	/**
 	 * Cancel an appointment
 	 *
 	 * Marks the appointment as cancelled (the event will not take place). All
@@ -1034,6 +1068,10 @@ class AppointmentController extends Controller {
 			// the appointment, POST /appointments/{id}/talk-room). Clients hide
 			// the opt-in and the button when this is false.
 			'talkRoomsAvailable' => $this->talkRoomService->isAvailable(),
+			// Server understands DELETE /appointments/{id}/talk-room, which
+			// removes the conversation in Talk and the opt-in with it. Clients
+			// hide the delete action when this is false.
+			'talkRoomDeletion' => true,
 		]);
 	}
 

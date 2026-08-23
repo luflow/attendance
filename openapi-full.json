@@ -682,7 +682,8 @@
                     "locationsAvailable",
                     "categoriesAvailable",
                     "statisticsAvailable",
-                    "talkRoomsAvailable"
+                    "talkRoomsAvailable",
+                    "talkRoomDeletion"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -746,6 +747,9 @@
                         "type": "boolean"
                     },
                     "talkRoomsAvailable": {
+                        "type": "boolean"
+                    },
+                    "talkRoomDeletion": {
                         "type": "boolean"
                     }
                 }
@@ -4685,6 +4689,133 @@
                 "operationId": "appointment-create-talk-room",
                 "summary": "Open a Talk conversation with the scheduled people",
                 "description": "Creates a group conversation holding the organisers and everyone who got a place, and links it to the appointment. Idempotent: an appointment that already has a live conversation gets its participants reconciled instead of a second room.\nThe counterpart to the createTalkRoom opt-in, for inquiries that were closed without it — including those the deadline closed.",
+                "tags": [
+                    "appointment"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Appointment ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AppointmentData"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "appointment-delete-talk-room",
+                "summary": "Delete the Talk conversation of an appointment",
+                "description": "Deletes the linked conversation in Talk, messages and all, and drops the createTalkRoom opt-in with it so the next answer does not open a new one.",
                 "tags": [
                     "appointment"
                 ],

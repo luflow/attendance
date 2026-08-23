@@ -69,6 +69,18 @@
 				{{ t("attendance", "Open a Talk room") }}
 			</NcActionButton>
 			<NcActionButton
+				v-if="canDeleteTalkRoom"
+				:closeAfterClick="true"
+				:disabled="deletingTalkRoom"
+				data-test="action-delete-conversation"
+				@click="showDeleteTalkRoomDialog = true">
+				<template #icon>
+					<MessageMinusIcon :size="20" />
+				</template>
+				<!-- TRANSLATORS: Menu action that deletes the Talk conversation belonging to this appointment, messages and all. -->
+				{{ t("attendance", "Delete Talk room") }}
+			</NcActionButton>
+			<NcActionButton
 				v-if="canManage"
 				:closeAfterClick="true"
 				data-test="action-edit"
@@ -155,6 +167,26 @@
 			</div>
 		</NcDialog>
 
+		<NcDialog
+			v-if="showDeleteTalkRoomDialog"
+			:name="t('attendance', 'Delete Talk room')"
+			@closing="showDeleteTalkRoomDialog = false">
+			<p>{{ t('attendance', 'Do you want to delete the Talk room?') }}</p>
+			<!-- TRANSLATORS: Warning in the delete-Talk-room dialog — deleting takes the conversation away from every participant, not just the organizer. -->
+			<p>{{ t('attendance', 'The conversation and its messages are gone for everyone.') }}</p>
+			<template #actions>
+				<NcButton variant="tertiary" @click="showDeleteTalkRoomDialog = false">
+					{{ t('attendance', 'Cancel') }}
+				</NcButton>
+				<NcButton
+					variant="error"
+					data-test="confirm-delete-conversation"
+					@click="confirmDeleteTalkRoom">
+					{{ t('attendance', 'Delete') }}
+				</NcButton>
+			</template>
+		</NcDialog>
+
 		<CloseInquiryDialog
 			v-if="showCloseDialog"
 			:groups="dialogGroups"
@@ -180,6 +212,7 @@ import HistoryIcon from 'vue-material-design-icons/History.vue'
 import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
 import LockOpenIcon from 'vue-material-design-icons/LockOpen.vue'
+import MessageMinusIcon from 'vue-material-design-icons/MessageMinus.vue'
 import MessageTextIcon from 'vue-material-design-icons/MessageText.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import ShareVariantIcon from 'vue-material-design-icons/ShareVariant.vue'
@@ -227,6 +260,9 @@ const {
 	canOpenTalkRoom,
 	openingTalkRoom,
 	openTalkRoom,
+	canDeleteTalkRoom,
+	deletingTalkRoom,
+	deleteTalkRoom,
 } = useAppointmentLifecycle(() => props.appointment, {
 	onUpdated: (updated) => emit('closedToggled', updated),
 })
@@ -262,6 +298,12 @@ function copyShareLink() {
 
 const sendingReminders = ref(false)
 const showRemindDialog = ref(false)
+const showDeleteTalkRoomDialog = ref(false)
+
+async function confirmDeleteTalkRoom() {
+	showDeleteTalkRoomDialog.value = false
+	await deleteTalkRoom()
+}
 
 async function remindAll(target) {
 	showRemindDialog.value = false

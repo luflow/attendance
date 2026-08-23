@@ -49,6 +49,7 @@ return [
 		['name' => 'appointment#close', 'url' => '/api/appointments/{id}/close', 'verb' => 'POST'],
 		['name' => 'appointment#reopen', 'url' => '/api/appointments/{id}/reopen', 'verb' => 'POST'],
 		['name' => 'appointment#createTalkRoom', 'url' => '/api/appointments/{id}/talk-room', 'verb' => 'POST'],
+		['name' => 'appointment#deleteTalkRoom', 'url' => '/api/appointments/{id}/talk-room', 'verb' => 'DELETE'],
 		['name' => 'appointment#cancel', 'url' => '/api/appointments/{id}/cancel', 'verb' => 'POST'],
 		['name' => 'appointment#uncancel', 'url' => '/api/appointments/{id}/uncancel', 'verb' => 'POST'],
 		['name' => 'appointment#book', 'url' => '/api/appointments/{id}/book/{userId}', 'verb' => 'POST'],

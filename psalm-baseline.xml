@@ -134,6 +134,7 @@
     </MixedReturnTypeCoercion>
     <PossiblyUnusedParam>
       <code><![CDATA[$id]]></code>
+      <code><![CDATA[$id]]></code>
       <code><![CDATA[$appointmentId]]></code>
       <code><![CDATA[$appointmentId]]></code>
       <code><![CDATA[$appointmentIds]]></code>
@@ -236,6 +237,7 @@
       <code><![CDATA[DataResponse<Http::STATUS_OK, list<AttendanceAppointmentWithResponse>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>]]></code>
       <code><![CDATA[DataResponse<Http::STATUS_OK, list<AttendanceResponseWithUser>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
       <code><![CDATA[list<AttendanceBulkAppointmentItem>]]></code>
+      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>]]></code>
       <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>]]></code>
     </UndefinedDocblockClass>
     <UnusedClass>
@@ -2196,6 +2198,7 @@
     </MixedAssignment>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
+      <code><![CDATA[deleteForAppointment]]></code>
     </PossiblyUnusedMethod>
     <PossiblyUnusedReturnValue>
       <code><![CDATA[?string]]></code>
