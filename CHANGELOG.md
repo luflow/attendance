@@ -4,7 +4,7 @@
 
 ### Added
 
-- **Order the sections of the response summary**: the summary lists groups and teams in the order the whitelist has them, but the select could only append — putting a group in the middle meant removing and re-adding every one after it. Selected groups and teams now also show as an ordered list that reorders by dragging an entry or with the arrow buttons next to it, keyboard included. The setup wizard writes the same list and orders it too
+- **Order the sections of the response summary**: selected groups and teams show as a list that reorders by dragging — the entry moves along and shows where it will land — or with arrow buttons, keyboard included. The summary and the setup wizard follow that order
 
 ### Maintenance
 

@@ -3,23 +3,20 @@
 		<p class="ordered-selection__hint">
 			{{ t('attendance', 'Sections appear in this order. Drag an entry or use the arrows to move it.') }}
 		</p>
-		<ul class="ordered-selection" :data-test="dataTest">
+		<ul class="ordered-selection"
+			:data-test="dataTest"
+			@dragover="onListDragOver"
+			@drop.prevent="onDrop">
 			<li v-for="(row, index) in rows"
 				:key="row.item.id"
 				class="ordered-selection__item"
-				:class="{
-					'ordered-selection__item--dragged': dragIndex === index,
-					'ordered-selection__item--target': overIndex === index && dragIndex !== index,
-				}"
+				:class="{ 'ordered-selection__item--ghost': row.item.id === draggedId }"
 				draggable="true"
 				:data-test="`${dataTest}-item`"
-				@dragstart="onDragStart(index, $event)"
-				@dragover.prevent="overIndex = index"
-				@dragleave="onDragLeave(index)"
-				@drop.prevent="onDrop(index)"
+				@dragstart="onDragStart(row.item.id, $event)"
+				@dragover="onDragOver(index)"
 				@dragend="resetDrag">
 				<DragIcon class="ordered-selection__handle" :size="20" />
-				<span class="ordered-selection__position">{{ index + 1 }}</span>
 				<span class="ordered-selection__label">{{ row.label }}</span>
 				<NcButton variant="tertiary"
 					:disabled="index === 0"
@@ -71,10 +68,11 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const dragIndex = ref(null)
-const overIndex = ref(null)
+const draggedId = ref(null)
+// Order shown while dragging: the dragged entry already sits where it would land.
+const preview = ref(null)
 
-const rows = computed(() => props.modelValue.map((item) => {
+const rows = computed(() => (preview.value ?? props.modelValue).map((item) => {
 	const label = props.formatLabel(item)
 	return {
 		item,
@@ -84,34 +82,46 @@ const rows = computed(() => props.modelValue.map((item) => {
 	}
 }))
 
-function reorder(from, to) {
-	const items = [...props.modelValue]
-	const [moved] = items.splice(from, 1)
-	items.splice(to, 0, moved)
-	emit('update:modelValue', items)
+function moved(items, from, to) {
+	const result = [...items]
+	const [entry] = result.splice(from, 1)
+	result.splice(to, 0, entry)
+	return result
 }
 
-function onDragStart(index, event) {
-	dragIndex.value = index
+function reorder(from, to) {
+	emit('update:modelValue', moved(props.modelValue, from, to))
+}
+
+function onDragStart(id, event) {
+	draggedId.value = id
+	preview.value = [...props.modelValue]
 	event.dataTransfer.effectAllowed = 'move'
 	// Firefox only starts a drag once some data is attached.
 	event.dataTransfer.setData('text/plain', '')
 }
 
-function onDragLeave(index) {
-	if (overIndex.value === index) overIndex.value = null
+function onListDragOver(event) {
+	// Only accept drops for our own drag, not for files dragged over the page.
+	if (preview.value !== null) event.preventDefault()
 }
 
-function onDrop(index) {
-	if (dragIndex.value !== null && dragIndex.value !== index) {
-		reorder(dragIndex.value, index)
+function onDragOver(index) {
+	if (preview.value === null) return
+	const from = preview.value.findIndex((item) => item.id === draggedId.value)
+	if (from !== -1 && from !== index) preview.value = moved(preview.value, from, index)
+}
+
+function onDrop() {
+	if (preview.value !== null && preview.value.some((item, index) => item !== props.modelValue[index])) {
+		emit('update:modelValue', preview.value)
 	}
 	resetDrag()
 }
 
 function resetDrag() {
-	dragIndex.value = null
-	overIndex.value = null
+	draggedId.value = null
+	preview.value = null
 }
 </script>
 
@@ -141,23 +151,15 @@ function resetDrag() {
 	cursor: grab;
 }
 
-.ordered-selection__item--dragged {
+.ordered-selection__item--ghost {
 	opacity: 0.5;
-}
-
-.ordered-selection__item--target {
+	border-style: dashed;
 	border-color: var(--color-primary-element);
+	background-color: var(--color-primary-element-light);
 }
 
 .ordered-selection__handle {
 	color: var(--color-text-maxcontrast);
-}
-
-.ordered-selection__position {
-	color: var(--color-text-maxcontrast);
-	font-size: 0.9em;
-	min-width: 1.5em;
-	text-align: end;
 }
 
 .ordered-selection__label {
