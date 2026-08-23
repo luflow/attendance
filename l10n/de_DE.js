@@ -791,6 +791,7 @@ OC.L10N.register(
     "Closed automatically on {when}" : "Automatisch geschlossen am {when}",
     "Closed on {when}" : "Geschlossen am {when}",
     "Web" : "Web",
+    "App" : "App",
     "Email link" : "E-Mail-Link",
     "Manager" : "Manager",
     "Self check-in" : "Selbst-Check-in",

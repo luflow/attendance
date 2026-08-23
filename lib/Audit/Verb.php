@@ -60,7 +60,10 @@ final class Verb {
 		self::APPOINTMENT_UNCANCELLED,
 	];
 
+	// Both arrive through the app's own API; only the mobile client sends
+	// the header that tells them apart.
 	public const SOURCE_APP = 'app';
+	public const SOURCE_MOBILE = 'mobile';
 	public const SOURCE_QUICK_LINK = 'quick_link';
 	public const SOURCE_ADMIN_CHECKIN = 'admin_checkin';
 	public const SOURCE_ADMIN_RESPONSE = 'admin_response';

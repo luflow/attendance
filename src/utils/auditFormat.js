@@ -14,6 +14,9 @@ function subjectLabel(event) {
 
 export const SOURCE_LABELS = {
 	app: () => t('attendance', 'Web'),
+	// TRANSLATORS: Noun — audit-log source label: the entry was made in the
+	// mobile app, as opposed to "Web" above.
+	mobile: () => t('attendance', 'App'),
 	quick_link: () => t('attendance', 'Email link'),
 	// TRANSLATORS: Noun — audit-log source label: the response was recorded
 	// via the check-in screen.

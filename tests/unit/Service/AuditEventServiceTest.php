@@ -10,6 +10,7 @@ use OCA\Attendance\Db\AuditEvent;
 use OCA\Attendance\Db\AuditEventMapper;
 use OCA\Attendance\Service\AuditEventService;
 use OCA\Attendance\Service\ConfigService;
+use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -21,6 +22,7 @@ class AuditEventServiceTest extends TestCase {
 	private AuditEventDispatcher|MockObject $dispatcher;
 	private ConfigService|MockObject $configService;
 	private IUserSession|MockObject $userSession;
+	private IRequest|MockObject $request;
 	private LoggerInterface|MockObject $logger;
 	private AuditEventService $service;
 
@@ -29,6 +31,7 @@ class AuditEventServiceTest extends TestCase {
 		$this->dispatcher = $this->createMock(AuditEventDispatcher::class);
 		$this->configService = $this->createMock(ConfigService::class);
 		$this->userSession = $this->createMock(IUserSession::class);
+		$this->request = $this->createMock(IRequest::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 
 		$this->service = new AuditEventService(
@@ -36,6 +39,7 @@ class AuditEventServiceTest extends TestCase {
 			$this->dispatcher,
 			$this->configService,
 			$this->userSession,
+			$this->request,
 			$this->logger,
 		);
 
@@ -111,6 +115,7 @@ class AuditEventServiceTest extends TestCase {
 			$this->dispatcher,
 			$config,
 			$this->userSession,
+			$this->request,
 			$this->logger,
 		);
 
@@ -118,5 +123,59 @@ class AuditEventServiceTest extends TestCase {
 		$this->userSession->expects($this->never())->method('getUser');
 
 		$this->assertNull($service->recordAppointmentLifecycle(Verb::APPOINTMENT_CREATED, 1, Verb::SOURCE_APP));
+	}
+
+	public function testRecordMarksRequestsCarryingTheMobileHeader(): void {
+		$this->request->method('getHeader')
+			->with('X-Attendance-Client')
+			->willReturn('mobile');
+
+		$captured = null;
+		$this->mapper->expects($this->once())
+			->method('insert')
+			->willReturnCallback(function (AuditEvent $event) use (&$captured) {
+				$captured = $event;
+				return $event;
+			});
+
+		$this->service->record(Verb::RESPONSE_SUBMITTED, 1, 'bob', 'bob', [], Verb::SOURCE_APP);
+
+		$this->assertSame(Verb::SOURCE_MOBILE, $captured->getSource());
+	}
+
+	public function testRecordKeepsWebSourceWithoutTheHeader(): void {
+		// An app version predating the header sends none, exactly like the web
+		// UI — both stay SOURCE_APP, which is why no capability gate is needed.
+		$this->request->method('getHeader')->willReturn('');
+
+		$captured = null;
+		$this->mapper->expects($this->once())
+			->method('insert')
+			->willReturnCallback(function (AuditEvent $event) use (&$captured) {
+				$captured = $event;
+				return $event;
+			});
+
+		$this->service->record(Verb::RESPONSE_SUBMITTED, 1, 'bob', 'bob', [], Verb::SOURCE_APP);
+
+		$this->assertSame(Verb::SOURCE_APP, $captured->getSource());
+	}
+
+	public function testRecordLeavesSpecificSourcesAlone(): void {
+		// A self check-in done in the mobile app is still a self check-in: the
+		// header only refines the generic "came through the API" source.
+		$this->request->method('getHeader')->willReturn('mobile');
+
+		$captured = null;
+		$this->mapper->expects($this->once())
+			->method('insert')
+			->willReturnCallback(function (AuditEvent $event) use (&$captured) {
+				$captured = $event;
+				return $event;
+			});
+
+		$this->service->record(Verb::CHECKIN_RECORDED, 1, 'bob', 'bob', [], Verb::SOURCE_SELF_CHECKIN);
+
+		$this->assertSame(Verb::SOURCE_SELF_CHECKIN, $captured->getSource());
 	}
 }
