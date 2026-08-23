@@ -1,4 +1,4 @@
-import { createGroupViaOCS, deleteAllAppointments, expect, resetAdminSettings, restrictPermissionToGroup, saveAdminSettings, test, waitForSettingsSave } from './fixtures/nextcloud.js'
+import { addUserToGroupViaOCS, createAppointmentViaAPI, createGroupViaOCS, deleteAllAppointments, expect, PERMISSIVE_PERMISSIONS, resetAdminSettings, restrictPermissionToGroup, saveAdminSettings, test, waitForSettingsSave } from './fixtures/nextcloud.js'
 
 /**
  * Admin Settings E2E Tests
@@ -278,7 +278,18 @@ test.describe('Attendance App - Admin Settings', () => {
 		test.beforeAll(async ({ request }) => {
 			await createGroupViaOCS(request, firstGroup)
 			await createGroupViaOCS(request, secondGroup)
-			await saveAdminSettings(request, { whitelistedGroups: [firstGroup, secondGroup] })
+			// Sections are dropped when nobody is in them, so each group needs a member
+			await addUserToGroupViaOCS(request, 'test1', firstGroup)
+			await addUserToGroupViaOCS(request, 'test2', secondGroup)
+		})
+
+		test.beforeEach(async ({ request }) => {
+			await saveAdminSettings(request, {
+				whitelistedGroups: [firstGroup, secondGroup],
+				whitelistedTeams: [],
+				permissions: { ...PERMISSIVE_PERMISSIONS },
+				reminders: { enabled: false },
+			})
 		})
 
 		test.afterAll(async ({ request }) => {
@@ -294,6 +305,10 @@ test.describe('Attendance App - Admin Settings', () => {
 			await expect(items).toHaveCount(2)
 			await expect(items.first()).toContainText(firstGroup)
 
+			// Nothing to move past at either end
+			await expect(items.first().locator('[data-test="order-groups-up"]')).toBeDisabled()
+			await expect(items.last().locator('[data-test="order-groups-down"]')).toBeDisabled()
+
 			const saved = waitForSettingsSave(page)
 			await items.first().locator('[data-test="order-groups-down"]').click()
 			await saved
@@ -301,9 +316,57 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.reload()
 			await page.waitForLoadState('networkidle')
 
-			const reloaded = page.locator('[data-test="order-groups-item"]')
-			await expect(reloaded.first()).toContainText(secondGroup)
-			await expect(reloaded.last()).toContainText(firstGroup)
+			await expect(items.first()).toContainText(secondGroup)
+			await expect(items.last()).toContainText(firstGroup)
+
+			// And back up again
+			const savedAgain = waitForSettingsSave(page)
+			await items.last().locator('[data-test="order-groups-up"]').click()
+			await savedAgain
+
+			await page.reload()
+			await page.waitForLoadState('networkidle')
+
+			await expect(items.first()).toContainText(firstGroup)
+		})
+
+		test('should not offer the order list for fewer than two groups', async ({ page, loginAsUser, request }) => {
+			await saveAdminSettings(request, { whitelistedGroups: [firstGroup] })
+
+			await loginAsUser('admin', 'admin')
+			await page.goto('/settings/admin/attendance')
+			await page.waitForLoadState('networkidle')
+
+			await expect(page.locator('[data-test="select-whitelisted-groups"]')).toBeVisible()
+			await expect(page.locator('[data-test="order-groups-item"]')).toHaveCount(0)
+		})
+
+		test('should render the response summary sections in the configured order', async ({ page, loginAsUser, request }) => {
+			const appointment = await createAppointmentViaAPI(request, {
+				name: 'Group Order Summary',
+				daysFromNow: 5,
+				visibleGroups: [firstGroup, secondGroup],
+			})
+
+			await loginAsUser('admin', 'admin')
+			const sections = page.locator('[data-test="group-summary"] .group-name')
+
+			await page.goto(`/apps/attendance/appointment/${appointment.id}`)
+			await page.waitForLoadState('networkidle')
+			await expect(sections.nth(0)).toContainText(firstGroup)
+			await expect(sections.nth(1)).toContainText(secondGroup)
+
+			await page.goto('/settings/admin/attendance')
+			await page.waitForLoadState('networkidle')
+			const saved = waitForSettingsSave(page)
+			const items = page.locator('[data-test="order-groups-item"]')
+			await items.first().locator('[data-test="order-groups-down"]').click()
+			await saved
+
+			await page.goto(`/apps/attendance/appointment/${appointment.id}`)
+			await page.waitForLoadState('networkidle')
+			await expect(sections.nth(0)).toContainText(secondGroup)
+			await expect(sections.nth(1)).toContainText(firstGroup)
 		})
 	})
 
