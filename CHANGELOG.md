@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.50.0 – 2026-08-23
+
+### Added
+
+- **Order the sections of the response summary**: the summary lists groups and teams in the order the whitelist has them, but the select could only append — putting a group in the middle meant removing and re-adding every one after it. Selected groups and teams now also show as an ordered list that reorders by dragging an entry or with the arrow buttons next to it, keyboard included. The setup wizard writes the same list and orders it too
+
+### Maintenance
+
+- Updated translations from Transifex
+
 ## 1.49.1 – 2026-08-16
 
 ### Fixed
