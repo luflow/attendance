@@ -67,7 +67,7 @@
 				data-test="action-open-conversation"
 				@click="openTalkRoom">
 				<template #icon>
-					<MessageTextIcon :size="20" />
+					<MessagePlusIcon :size="20" />
 				</template>
 				<!-- TRANSLATORS: Menu action that opens a Talk conversation holding the organizers and everyone who got a place, so the remaining details can be sorted out there. -->
 				{{ t("attendance", "Open a Talk room") }}
@@ -232,6 +232,7 @@ import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
 import LockOpenIcon from 'vue-material-design-icons/LockOpen.vue'
 import MessageMinusIcon from 'vue-material-design-icons/MessageMinus.vue'
+import MessagePlusIcon from 'vue-material-design-icons/MessagePlus.vue'
 import MessageTextIcon from 'vue-material-design-icons/MessageText.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import ShareVariantIcon from 'vue-material-design-icons/ShareVariant.vue'
