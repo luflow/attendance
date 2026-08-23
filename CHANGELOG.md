@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.51.0 – 2026-08-24
+
+### Added
+
+- **Organisers can delete the Talk room** — the automatic-room opt-in goes with it, so the next answer does not open a fresh one
+- **The activity history shows whether an entry came from the mobile app or the web interface**
+- **Jump to the Talk room from the appointment menu** — long menus now group under headings, and the Talk actions got distinct icons
+
 ## 1.50.0 – 2026-08-23
 
 ### Added

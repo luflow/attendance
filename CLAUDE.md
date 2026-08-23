@@ -249,7 +249,7 @@ use OCP\AppFramework\Http\Attribute\OpenAPI;
 - Disable the app via occ command in the running docker containers (container names: master-stable32-1 and master-nextcloud-1)
 - Decide which version jump (fix, patch) based on the changes since last version to create and update version numbers in info.xml and package.json
 - Enable the app via occ command in the running docker containers (container names: master-stable32-1 and master-nextcloud-1)
-- Write release notes in CHANGELOG.md
+- Write release notes in CHANGELOG.md — short and precise: one bullet per change, bold lead naming the change, at most one short clause of context. No narrative back-story, no problem-history — that belongs in the commit message
 - Ask me to review the release notes and version number afterwards
 - Commit everything you changed after my review WITHOUT claude co author in the commit
 - Create a new tag based on the version number
