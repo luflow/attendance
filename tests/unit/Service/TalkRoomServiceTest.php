@@ -594,7 +594,6 @@ class TalkRoomServiceTest extends TestCase {
 
 		$this->assertTrue($this->service->deleteForAppointment($appointment));
 		$this->assertNull($appointment->getTalkRoomToken());
-		// Left standing, the opt-in would open a new room on the next answer.
 		$this->assertFalse($appointment->getCreateTalkRoom());
 	}
 
@@ -611,6 +610,8 @@ class TalkRoomServiceTest extends TestCase {
 
 		$appointment = $this->appointment(token: 'gone');
 		$appointment->setCreateTalkRoom(true);
+		// One write, not one per place that clears the link.
+		$this->appointmentMapper->expects($this->once())->method('update');
 
 		$this->assertTrue($this->service->deleteForAppointment($appointment));
 		$this->assertNull($appointment->getTalkRoomToken());

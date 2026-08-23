@@ -1068,8 +1068,7 @@ class AppointmentController extends Controller {
 			// the appointment, POST /appointments/{id}/talk-room). Clients hide
 			// the opt-in and the button when this is false.
 			'talkRoomsAvailable' => $this->talkRoomService->isAvailable(),
-			// Server understands DELETE /appointments/{id}/talk-room, which
-			// removes the conversation in Talk and the opt-in with it. Clients
+			// Server understands DELETE /appointments/{id}/talk-room. Clients
 			// hide the delete action when this is false.
 			'talkRoomDeletion' => true,
 		]);

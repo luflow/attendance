@@ -138,8 +138,6 @@ export function useAppointmentLifecycle(appointmentSource, { onUpdated } = {}) {
 		openingTalkRoom.value = false
 	}
 
-	// The way back out, for a room opened by mistake or one that outlived what
-	// it was for.
 	const canDeleteTalkRoom = computed(() => capabilities.talkRoomsAvailable
 		&& canManage.value
 		&& Boolean(appointment.value.talkRoomToken))
