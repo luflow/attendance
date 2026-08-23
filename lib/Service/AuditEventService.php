@@ -118,11 +118,11 @@ class AuditEventService {
 	 * untouched, background jobs included.
 	 */
 	private function resolveSource(?string $source): ?string {
-		if ($source !== Verb::SOURCE_APP) {
+		if ($source !== Verb::SOURCE_CLIENT) {
 			return $source;
 		}
 		$client = strtolower(trim($this->request->getHeader(self::CLIENT_HEADER)));
-		return $client === self::CLIENT_MOBILE ? Verb::SOURCE_MOBILE : Verb::SOURCE_APP;
+		return $client === self::CLIENT_MOBILE ? Verb::SOURCE_MOBILE : Verb::SOURCE_WEB;
 	}
 
 	/**
@@ -210,7 +210,7 @@ class AuditEventService {
 	public function recordAppointmentUpdate(
 		int $appointmentId,
 		array $fields,
-		string $source = Verb::SOURCE_APP,
+		string $source = Verb::SOURCE_CLIENT,
 	): ?AuditEvent {
 		return $this->record(
 			Verb::APPOINTMENT_UPDATED,

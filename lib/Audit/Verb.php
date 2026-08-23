@@ -60,9 +60,19 @@ final class Verb {
 		self::APPOINTMENT_UNCANCELLED,
 	];
 
-	// Both arrive through the app's own API; only the mobile client sends
-	// the header that tells them apart.
-	public const SOURCE_APP = 'app';
+	/**
+	 * What callers pass for "a client did this through our API". Never
+	 * persisted: AuditEventService resolves it to SOURCE_WEB or SOURCE_MOBILE
+	 * depending on whether the request identifies itself as the mobile app.
+	 */
+	public const SOURCE_CLIENT = 'app';
+
+	/**
+	 * The web UI. Its stored value is the historical 'app', from a time when
+	 * "the app" meant this app in a browser and no mobile client existed —
+	 * renaming the string would strand every audit row already written.
+	 */
+	public const SOURCE_WEB = 'app';
 	public const SOURCE_MOBILE = 'mobile';
 	public const SOURCE_QUICK_LINK = 'quick_link';
 	public const SOURCE_ADMIN_CHECKIN = 'admin_checkin';

@@ -60,11 +60,11 @@ class AuditEventServiceTest extends TestCase {
 				return $event;
 			});
 
-		$this->service->recordAppointmentLifecycle(Verb::APPOINTMENT_CREATED, 42, Verb::SOURCE_APP);
+		$this->service->recordAppointmentLifecycle(Verb::APPOINTMENT_CREATED, 42, Verb::SOURCE_CLIENT);
 
 		$this->assertSame('alice', $captured->getActorId());
 		$this->assertSame(Verb::APPOINTMENT_CREATED, $captured->getVerb());
-		$this->assertSame(Verb::SOURCE_APP, $captured->getSource());
+		$this->assertSame(Verb::SOURCE_WEB, $captured->getSource());
 	}
 
 	public function testRecordFallsBackToNullActorWhenNoSession(): void {
@@ -122,7 +122,7 @@ class AuditEventServiceTest extends TestCase {
 		$this->mapper->expects($this->never())->method('insert');
 		$this->userSession->expects($this->never())->method('getUser');
 
-		$this->assertNull($service->recordAppointmentLifecycle(Verb::APPOINTMENT_CREATED, 1, Verb::SOURCE_APP));
+		$this->assertNull($service->recordAppointmentLifecycle(Verb::APPOINTMENT_CREATED, 1, Verb::SOURCE_CLIENT));
 	}
 
 	public function testRecordMarksRequestsCarryingTheMobileHeader(): void {
@@ -138,14 +138,15 @@ class AuditEventServiceTest extends TestCase {
 				return $event;
 			});
 
-		$this->service->record(Verb::RESPONSE_SUBMITTED, 1, 'bob', 'bob', [], Verb::SOURCE_APP);
+		$this->service->record(Verb::RESPONSE_SUBMITTED, 1, 'bob', 'bob', [], Verb::SOURCE_CLIENT);
 
 		$this->assertSame(Verb::SOURCE_MOBILE, $captured->getSource());
 	}
 
 	public function testRecordKeepsWebSourceWithoutTheHeader(): void {
 		// An app version predating the header sends none, exactly like the web
-		// UI — both stay SOURCE_APP, which is why no capability gate is needed.
+		// UI — both resolve to SOURCE_WEB, which is why no capability gate
+		// is needed.
 		$this->request->method('getHeader')->willReturn('');
 
 		$captured = null;
@@ -156,9 +157,9 @@ class AuditEventServiceTest extends TestCase {
 				return $event;
 			});
 
-		$this->service->record(Verb::RESPONSE_SUBMITTED, 1, 'bob', 'bob', [], Verb::SOURCE_APP);
+		$this->service->record(Verb::RESPONSE_SUBMITTED, 1, 'bob', 'bob', [], Verb::SOURCE_CLIENT);
 
-		$this->assertSame(Verb::SOURCE_APP, $captured->getSource());
+		$this->assertSame(Verb::SOURCE_WEB, $captured->getSource());
 	}
 
 	public function testRecordLeavesSpecificSourcesAlone(): void {
