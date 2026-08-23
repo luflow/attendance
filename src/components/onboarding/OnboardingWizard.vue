@@ -54,6 +54,7 @@
 						v-model="whitelistedGroups"
 						:options="availableGroups"
 						:placeholder="t('attendance', 'Select groups …')"
+						:sortable="true"
 						data-test="onboarding-summary-groups" />
 				</template>
 

@@ -38,6 +38,7 @@
 					v-model="selectedGroups"
 					:options="availableGroups"
 					:placeholder="t('attendance', 'Select groups …')"
+					:sortable="true"
 					data-test="select-whitelisted-groups" />
 				<p class="hint-text">
 					{{ n('attendance', '%n group selected', '%n groups selected', selectedGroups.length, { n: selectedGroups.length }) }}
@@ -49,30 +50,11 @@
 				:name="t('attendance', 'Response summary teams')"
 				:description="t('attendance', 'Select which teams to include in response summaries. Team members will be grouped together like regular groups.')"
 				data-test="section-tracking-teams">
-				<NcSelect
+				<TeamSelect
 					v-model="selectedTeams"
-					:options="teamSearchResults"
 					:placeholder="t('attendance', 'Search and select teams …')"
-					:multiple="true"
-					:loading="isSearchingTeams"
-					:filterable="false"
-					label="label"
-					trackBy="id"
-					data-test="select-whitelisted-teams"
-					@search="searchTeams">
-					<template #option="{ label }">
-						<span style="display: flex; align-items: center; gap: 8px;">
-							<AccountStar :size="20" />
-							<span>{{ label }}</span>
-						</span>
-					</template>
-					<template #selected-option="{ label }">
-						<span style="display: flex; align-items: center; gap: 8px;">
-							<AccountStar :size="16" />
-							<span>{{ label }}</span>
-						</span>
-					</template>
-				</NcSelect>
+					:sortable="true"
+					data-test="select-whitelisted-teams" />
 				<p class="hint-text">
 					{{ n('attendance', '%n team selected', '%n teams selected', selectedTeams.length, { n: selectedTeams.length }) }}
 				</p>
@@ -693,7 +675,6 @@ import {
 } from '@nextcloud/vue'
 import QRCode from 'qrcode'
 import { computed, defineAsyncComponent, nextTick, onMounted, reactive, ref, watch } from 'vue'
-import AccountStar from 'vue-material-design-icons/AccountStar.vue'
 import BellRingIcon from 'vue-material-design-icons/BellRing.vue'
 import CalendarSyncIcon from 'vue-material-design-icons/CalendarSync.vue'
 import CellphoneCheck from 'vue-material-design-icons/CellphoneCheck.vue'
@@ -708,6 +689,7 @@ import PermissionRow from '../components/admin/PermissionRow.vue'
 import SectionLink from '../components/admin/SectionLink.vue'
 import GroupSelect from '../components/common/GroupSelect.vue'
 import LoadingState from '../components/common/LoadingState.vue'
+import TeamSelect from '../components/common/TeamSelect.vue'
 import { categoryIconComponent, DEFAULT_CATEGORY_ICON } from '../utils/categoryIcons.js'
 import { copyToClipboard } from '../utils/clipboard.js'
 import { formatDate, formatDateTimeMedium } from '../utils/datetime.js'
@@ -851,8 +833,6 @@ function implicationLinkFor(name) {
 const availableGroups = ref([])
 const selectedGroups = ref([])
 const selectedTeams = ref([])
-const teamSearchResults = ref([])
-const isSearchingTeams = ref(false)
 const teamsAvailable = ref(false)
 const permissions = ref(emptyPermissionState())
 const selfCheckinWindowMinutes = ref(30)
@@ -1093,13 +1073,8 @@ async function loadSettings() {
 		availableGroups.value = groups
 		selectedGroups.value = toGroupObjects(config.whitelistedGroups, groups)
 
-		// Load teams settings
 		teamsAvailable.value = caps.teamsAvailable || false
-		if (config.whitelistedTeams) {
-			selectedTeams.value = config.whitelistedTeams
-			// Also add to search results so they appear in the dropdown
-			teamSearchResults.value = [...config.whitelistedTeams]
-		}
+		selectedTeams.value = config.whitelistedTeams ?? []
 
 		// Load permission settings
 		if (config.permissions) {
@@ -1172,35 +1147,6 @@ async function loadSettings() {
 		// Let the watchers flush the load mutations before arming auto-save
 		await nextTick()
 		suppressSaves = false
-	}
-}
-
-async function searchTeams(query) {
-	if (!query || query.length < 1) {
-		// Keep selected teams visible in results
-		teamSearchResults.value = [...selectedTeams.value]
-		return
-	}
-
-	isSearchingTeams.value = true
-	try {
-		const response = await axios.get(
-			generateUrl('/apps/attendance/api/search/users-groups-teams'),
-			{ params: { search: query } },
-		)
-		// Filter to only show teams
-		const teams = response.data
-			.filter((item) => item.type === 'team')
-			.map((item) => ({ id: item.id, label: item.label, type: 'team' }))
-
-		// Merge with selected teams to keep them visible
-		const selectedIds = selectedTeams.value.map((t) => t.id)
-		const newTeams = teams.filter((t) => !selectedIds.includes(t.id))
-		teamSearchResults.value = [...selectedTeams.value, ...newTeams]
-	} catch (error) {
-		console.error('Error searching teams:', error)
-	} finally {
-		isSearchingTeams.value = false
 	}
 }
 
