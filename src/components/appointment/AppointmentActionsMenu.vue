@@ -11,6 +11,9 @@
 				<!-- TRANSLATORS: Menu action that copies the appointment link so it can be passed on — a verb ("share the link"), not a noun for the link itself. -->
 				{{ t("attendance", "Share link") }}
 			</NcActionButton>
+
+			<!-- TRANSLATORS: Heading over the menu actions that deal with the answers: check-in, reminders, closing the inquiry. -->
+			<NcActionCaption v-if="showCaptions && hasResponseActions" :name="t('attendance', 'Responses')" />
 			<NcActionButton
 				v-if="permissions.canCheckin"
 				:closeAfterClick="true"
@@ -44,18 +47,19 @@
 				</template>
 				{{ closeToggleLabel }}
 			</NcActionButton>
-			<NcActionButton
-				v-if="canCancel"
+
+			<NcActionCaption v-if="showCaptions && hasTalkActions" :name="t('attendance', 'Talk room')" />
+			<NcActionLink
+				v-if="talkLink"
+				:href="talkLink"
 				:closeAfterClick="true"
-				:disabled="togglingCancelled"
-				:data-test="isCancelled ? 'action-reactivate-appointment' : 'action-cancel-appointment'"
-				@click="toggleCancelled">
+				data-test="action-open-conversation-link">
 				<template #icon>
-					<CalendarRefreshIcon v-if="isCancelled" :size="20" />
-					<CalendarRemoveIcon v-else :size="20" />
+					<MessageTextIcon :size="20" />
 				</template>
-				{{ cancelToggleLabel }}
-			</NcActionButton>
+				<!-- TRANSLATORS: Menu action that jumps to the Talk conversation belonging to this appointment. -->
+				{{ t("attendance", "Open Talk room") }}
+			</NcActionLink>
 			<NcActionButton
 				v-if="canOpenTalkRoom"
 				:closeAfterClick="true"
@@ -80,6 +84,9 @@
 				<!-- TRANSLATORS: Menu action that deletes the Talk conversation belonging to this appointment, messages and all. -->
 				{{ t("attendance", "Delete Talk room") }}
 			</NcActionButton>
+
+			<!-- TRANSLATORS: Heading over the menu actions on the appointment itself: editing, copying, calling it off, deleting. -->
+			<NcActionCaption v-if="showCaptions && hasAppointmentActions" :name="t('attendance', 'Appointment')" />
 			<NcActionButton
 				v-if="canManage"
 				:closeAfterClick="true"
@@ -89,16 +96,6 @@
 					<Pencil :size="20" />
 				</template>
 				{{ t("attendance", "Edit") }}
-			</NcActionButton>
-			<NcActionButton
-				v-if="permissions.canManageAppointments"
-				:closeAfterClick="true"
-				data-test="action-export"
-				@click="emit('export', appointment.id)">
-				<template #icon>
-					<DownloadIcon :size="20" />
-				</template>
-				{{ t("attendance", "Export") }}
 			</NcActionButton>
 			<NcActionButton
 				v-if="permissions.canCreateAppointments"
@@ -111,6 +108,16 @@
 				{{ t("attendance", "Copy") }}
 			</NcActionButton>
 			<NcActionButton
+				v-if="permissions.canManageAppointments"
+				:closeAfterClick="true"
+				data-test="action-export"
+				@click="emit('export', appointment.id)">
+				<template #icon>
+					<DownloadIcon :size="20" />
+				</template>
+				{{ t("attendance", "Export") }}
+			</NcActionButton>
+			<NcActionButton
 				v-if="canSeeAuditLog"
 				:closeAfterClick="true"
 				data-test="action-show-audit-log"
@@ -119,6 +126,18 @@
 					<HistoryIcon :size="20" />
 				</template>
 				{{ t("attendance", "Show activity history") }}
+			</NcActionButton>
+			<NcActionButton
+				v-if="canCancel"
+				:closeAfterClick="true"
+				:disabled="togglingCancelled"
+				:data-test="isCancelled ? 'action-reactivate-appointment' : 'action-cancel-appointment'"
+				@click="toggleCancelled">
+				<template #icon>
+					<CalendarRefreshIcon v-if="isCancelled" :size="20" />
+					<CalendarRemoveIcon v-else :size="20" />
+				</template>
+				{{ cancelToggleLabel }}
 			</NcActionButton>
 			<NcActionButton
 				v-if="canManage"
@@ -200,7 +219,7 @@
 import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
-import { NcActionButton, NcActions, NcButton, NcDialog } from '@nextcloud/vue'
+import { NcActionButton, NcActionCaption, NcActionLink, NcActions, NcButton, NcDialog } from '@nextcloud/vue'
 import { computed, ref } from 'vue'
 import BellRingIcon from 'vue-material-design-icons/BellRing.vue'
 import CalendarRefreshIcon from 'vue-material-design-icons/CalendarRefresh.vue'
@@ -219,7 +238,7 @@ import ShareVariantIcon from 'vue-material-design-icons/ShareVariant.vue'
 import CloseInquiryDialog from './CloseInquiryDialog.vue'
 import { useAppointmentLifecycle } from '../../composables/useAppointmentLifecycle.js'
 import { usePermissions } from '../../composables/usePermissions.js'
-import { appointmentDetailUrl } from '../../utils/appointment.js'
+import { appointmentDetailUrl, talkRoomLink } from '../../utils/appointment.js'
 import { copyToClipboard } from '../../utils/clipboard.js'
 
 const props = defineProps({
@@ -289,6 +308,27 @@ const cancelToggleLabel = computed(() => {
 	// TRANSLATORS: Menu action that calls off the appointment — it will not take place (German "Termin absagen", not "abbrechen").
 	return t('attendance', 'Cancel appointment')
 })
+
+// Only members are sent the token, so a link at all means the viewer is in.
+const talkLink = computed(() => talkRoomLink(props.appointment))
+
+const hasResponseActions = computed(() => permissions.canCheckin || canManage.value)
+const hasTalkActions = computed(() => Boolean(talkLink.value)
+	|| canOpenTalkRoom.value
+	|| canDeleteTalkRoom.value)
+const hasAppointmentActions = computed(() => canManage.value
+	|| canCancel.value
+	|| permissions.canManageAppointments
+	|| permissions.canCreateAppointments
+	|| props.canSeeAuditLog)
+
+// Headings earn their space once there is more than one group to tell apart —
+// somebody who only gets "Share link" should not read a table of contents.
+const showCaptions = computed(() => [
+	hasResponseActions.value,
+	hasTalkActions.value,
+	hasAppointmentActions.value,
+].filter(Boolean).length > 1)
 
 function copyShareLink() {
 	return copyToClipboard(window.location.origin + appointmentDetailUrl(props.appointment.id), {
