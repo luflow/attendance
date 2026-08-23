@@ -8,6 +8,7 @@ use OCA\Attendance\Audit\AuditEventDispatcher;
 use OCA\Attendance\Audit\Verb;
 use OCA\Attendance\Db\AuditEvent;
 use OCA\Attendance\Db\AuditEventMapper;
+use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
 
@@ -23,10 +24,19 @@ use Psr\Log\LoggerInterface;
  * "no actor" context for the timeline renderer.
  */
 class AuditEventService {
+	/**
+	 * Header the mobile app identifies itself with. Its absence is the normal
+	 * case — the web UI never sends it, and neither do app versions predating
+	 * it, which is why nothing gates on a capability here.
+	 */
+	private const CLIENT_HEADER = 'X-Attendance-Client';
+	private const CLIENT_MOBILE = 'mobile';
+
 	private AuditEventMapper $mapper;
 	private AuditEventDispatcher $dispatcher;
 	private ConfigService $configService;
 	private IUserSession $userSession;
+	private IRequest $request;
 	private LoggerInterface $logger;
 
 	public function __construct(
@@ -34,12 +44,14 @@ class AuditEventService {
 		AuditEventDispatcher $dispatcher,
 		ConfigService $configService,
 		IUserSession $userSession,
+		IRequest $request,
 		LoggerInterface $logger,
 	) {
 		$this->mapper = $mapper;
 		$this->dispatcher = $dispatcher;
 		$this->configService = $configService;
 		$this->userSession = $userSession;
+		$this->request = $request;
 		$this->logger = $logger;
 	}
 
@@ -74,7 +86,7 @@ class AuditEventService {
 			$event->setActorId($actorId);
 			$event->setSubjectId($subjectId);
 			$event->setMetaArray($meta);
-			$event->setSource($source);
+			$event->setSource($this->resolveSource($source));
 			$event->setCreatedAt(gmdate('Y-m-d H:i:s'));
 
 			$saved = $this->mapper->insert($event);
@@ -98,6 +110,19 @@ class AuditEventService {
 		}
 
 		return $saved;
+	}
+
+	/**
+	 * Refine the generic client source into the client the request actually
+	 * came from. Every other source is already specific and passes through
+	 * untouched, background jobs included.
+	 */
+	private function resolveSource(?string $source): ?string {
+		if ($source !== Verb::SOURCE_CLIENT) {
+			return $source;
+		}
+		$client = strtolower(trim($this->request->getHeader(self::CLIENT_HEADER)));
+		return $client === self::CLIENT_MOBILE ? Verb::SOURCE_MOBILE : Verb::SOURCE_WEB;
 	}
 
 	/**
@@ -185,7 +210,7 @@ class AuditEventService {
 	public function recordAppointmentUpdate(
 		int $appointmentId,
 		array $fields,
-		string $source = Verb::SOURCE_APP,
+		string $source = Verb::SOURCE_CLIENT,
 	): ?AuditEvent {
 		return $this->record(
 			Verb::APPOINTMENT_UPDATED,

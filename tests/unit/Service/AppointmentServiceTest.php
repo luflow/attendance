@@ -145,7 +145,7 @@ class AppointmentServiceTest extends TestCase {
 
 		$this->auditEventService->expects($this->once())
 			->method('recordAppointmentLifecycle')
-			->with(Verb::APPOINTMENT_CREATED, 1, Verb::SOURCE_APP);
+			->with(Verb::APPOINTMENT_CREATED, 1, Verb::SOURCE_CLIENT);
 
 		$result = $this->service->createAppointment(
 			$name,
@@ -174,7 +174,7 @@ class AppointmentServiceTest extends TestCase {
 
 		$this->auditEventService->expects($this->once())
 			->method('recordAppointmentLifecycle')
-			->with(Verb::APPOINTMENT_CLOSED, 5, Verb::SOURCE_APP);
+			->with(Verb::APPOINTMENT_CLOSED, 5, Verb::SOURCE_CLIENT);
 
 		$result = $this->service->closeAppointment(5);
 		$this->assertNotNull($result->getClosedAt());
@@ -493,7 +493,7 @@ class AppointmentServiceTest extends TestCase {
 
 		$this->auditEventService->expects($this->once())
 			->method('recordAppointmentLifecycle')
-			->with(Verb::APPOINTMENT_REOPENED, 7, Verb::SOURCE_APP);
+			->with(Verb::APPOINTMENT_REOPENED, 7, Verb::SOURCE_CLIENT);
 
 		$result = $this->service->reopenAppointment(7);
 		$this->assertNull($result->getClosedAt());
@@ -543,7 +543,7 @@ class AppointmentServiceTest extends TestCase {
 
 		$this->auditEventService->expects($this->once())
 			->method('recordAppointmentLifecycle')
-			->with(Verb::APPOINTMENT_CANCELLED, 8, Verb::SOURCE_APP);
+			->with(Verb::APPOINTMENT_CANCELLED, 8, Verb::SOURCE_CLIENT);
 
 		$this->notificationService->expects($this->once())
 			->method('sendCancellationNotifications')
@@ -600,7 +600,7 @@ class AppointmentServiceTest extends TestCase {
 
 		$this->auditEventService->expects($this->once())
 			->method('recordAppointmentLifecycle')
-			->with(Verb::APPOINTMENT_UNCANCELLED, 9, Verb::SOURCE_APP);
+			->with(Verb::APPOINTMENT_UNCANCELLED, 9, Verb::SOURCE_CLIENT);
 
 		$result = $this->service->uncancelAppointment(9);
 		$this->assertNull($result->getCancelledAt());

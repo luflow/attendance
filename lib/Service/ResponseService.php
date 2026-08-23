@@ -115,7 +115,7 @@ class ResponseService {
 
 		$auditSource = $source === self::SOURCE_QUICK_LINK
 			? \OCA\Attendance\Audit\Verb::SOURCE_QUICK_LINK
-			: \OCA\Attendance\Audit\Verb::SOURCE_APP;
+			: \OCA\Attendance\Audit\Verb::SOURCE_CLIENT;
 		$this->auditEventService->recordResponseChange(
 			$appointmentId,
 			$userId,

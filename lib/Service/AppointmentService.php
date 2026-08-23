@@ -168,7 +168,7 @@ class AppointmentService {
 		$this->auditEventService->recordAppointmentLifecycle(
 			\OCA\Attendance\Audit\Verb::APPOINTMENT_CREATED,
 			$appointment->getId(),
-			\OCA\Attendance\Audit\Verb::SOURCE_APP,
+			\OCA\Attendance\Audit\Verb::SOURCE_CLIENT,
 		);
 
 		$this->orgCalendarSyncService->syncAppointment($appointment);
@@ -456,7 +456,7 @@ class AppointmentService {
 	 * Close an appointment inquiry. Marks closedAt with the current UTC time.
 	 * Idempotent: returns the existing appointment unchanged if already closed.
 	 */
-	public function closeAppointment(int $id, string $source = \OCA\Attendance\Audit\Verb::SOURCE_APP): Appointment {
+	public function closeAppointment(int $id, string $source = \OCA\Attendance\Audit\Verb::SOURCE_CLIENT): Appointment {
 		$appointment = $this->appointmentMapper->find($id);
 		if ($appointment->isClosed()) {
 			return $appointment;
@@ -502,7 +502,7 @@ class AppointmentService {
 		$this->auditEventService->recordAppointmentLifecycle(
 			\OCA\Attendance\Audit\Verb::APPOINTMENT_REOPENED,
 			$id,
-			\OCA\Attendance\Audit\Verb::SOURCE_APP,
+			\OCA\Attendance\Audit\Verb::SOURCE_CLIENT,
 		);
 
 		return $updated;
@@ -531,7 +531,7 @@ class AppointmentService {
 		$this->auditEventService->recordAppointmentLifecycle(
 			\OCA\Attendance\Audit\Verb::APPOINTMENT_CANCELLED,
 			$id,
-			\OCA\Attendance\Audit\Verb::SOURCE_APP,
+			\OCA\Attendance\Audit\Verb::SOURCE_CLIENT,
 		);
 
 		$this->orgCalendarSyncService->syncAppointment($updated);
@@ -567,7 +567,7 @@ class AppointmentService {
 		$this->auditEventService->recordAppointmentLifecycle(
 			\OCA\Attendance\Audit\Verb::APPOINTMENT_UNCANCELLED,
 			$id,
-			\OCA\Attendance\Audit\Verb::SOURCE_APP,
+			\OCA\Attendance\Audit\Verb::SOURCE_CLIENT,
 		);
 
 		$this->orgCalendarSyncService->syncAppointment($updated);
@@ -1135,7 +1135,7 @@ class AppointmentService {
 			$response,
 			$comment,
 			null,
-			\OCA\Attendance\Audit\Verb::SOURCE_APP,
+			\OCA\Attendance\Audit\Verb::SOURCE_CLIENT,
 			null,
 		);
 	}
