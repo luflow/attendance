@@ -101,6 +101,9 @@ class RoomService {
 
 	public function setObject(Room $room, string $objectType, string $objectId): void {
 	}
+
+	public function deleteRoom(Room $room): void {
+	}
 }
 
 class ParticipantService {

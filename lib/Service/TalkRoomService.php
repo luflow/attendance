@@ -205,6 +205,43 @@ class TalkRoomService {
 	}
 
 	/**
+	 * Delete the linked conversation, and the opt-in with it — left standing, the
+	 * next answer would open a fresh room. False when Talk refused.
+	 */
+	public function deleteForAppointment(Appointment $appointment): bool {
+		if ($appointment->getTalkRoomToken() === null || !$this->isAvailable()) {
+			return false;
+		}
+
+		$roomService = $this->resolve(RoomService::class);
+		if ($roomService === null) {
+			return false;
+		}
+
+		try {
+			// A room already gone in Talk is the end state asked for; the write
+			// below covers its token too.
+			$room = $this->resolveExistingRoom($appointment, persist: false);
+			if ($room !== null) {
+				$roomService->deleteRoom($room);
+			}
+		} catch (\Throwable $e) {
+			$this->logger->error('Deleting the Talk conversation failed', [
+				'app' => 'attendance',
+				'appointmentId' => $appointment->getId(),
+				'exception' => $e,
+			]);
+			return false;
+		}
+
+		$appointment->setTalkRoomToken(null);
+		$appointment->setCreateTalkRoom(false);
+		$this->appointmentMapper->update($appointment);
+
+		return true;
+	}
+
+	/**
 	 * Carry an edited name, date or description into the room. Talk drops a
 	 * write that changes nothing, so an edit that touched neither costs a read.
 	 *
@@ -414,9 +451,10 @@ class TalkRoomService {
 	/**
 	 * The linked room, or null when it is gone. Somebody deleting the room in
 	 * Talk is a normal end of life, not an anomaly — clear the token and let
-	 * the UI offer a new room.
+	 * the UI offer a new room. Callers that write the appointment themselves
+	 * pass $persist false, so one request never updates the row twice.
 	 */
-	private function resolveExistingRoom(Appointment $appointment): ?Room {
+	private function resolveExistingRoom(Appointment $appointment, bool $persist = true): ?Room {
 		$token = $appointment->getTalkRoomToken();
 		if ($token === null) {
 			return null;
@@ -431,7 +469,9 @@ class TalkRoomService {
 			return $manager->getRoomByToken($token);
 		} catch (RoomNotFoundException) {
 			$appointment->setTalkRoomToken(null);
-			$this->appointmentMapper->update($appointment);
+			if ($persist) {
+				$this->appointmentMapper->update($appointment);
+			}
 			return null;
 		}
 	}
