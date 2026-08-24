@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.51.1 – 2026-08-24
+
+### Fixed
+
+- **Editing an appointment's organizers no longer skipped the linked Talk room**: only the name and description synced on edit, so a newly added organizer never got invited or promoted, and a former one kept moderator rank forever
+- **A Talk room deleted directly in Talk is now noticed immediately**, instead of only being cleaned up up to an hour later
+
 ## 1.51.0 – 2026-08-24
 
 ### Added
