@@ -368,6 +368,23 @@ class AppointmentMapper extends QBMapper {
 	}
 
 	/**
+	 * Active appointments linked to this Talk room token. Normally at most
+	 * one — a list defends against the token somehow surviving on more than
+	 * one row rather than assuming it can't.
+	 *
+	 * @return list<Appointment>
+	 */
+	public function findByTalkRoomToken(string $token): array {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')
+			->from($this->getTableName())
+			->where($qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('talk_room_token', $qb->createNamedParameter($token)));
+
+		return $this->findEntities($qb);
+	}
+
+	/**
 	 * Active inquiries whose response_deadline or start_datetime is at or
 	 * before the given timestamp. Once an appointment has started, further
 	 * responses are pointless, so it qualifies regardless of any configured

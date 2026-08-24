@@ -267,6 +267,12 @@ class AppointmentService {
 
 		$this->orgCalendarSyncService->syncAppointment($updated);
 		$this->talkRoomService->syncRoomDetails($updated);
+		if (in_array('organizers', $changedFields, true)) {
+			// A new organiser needs moderator rank and a place in the room; one
+			// who lost the role needs the rank back, or the room entirely if they
+			// no longer hold a place either.
+			$this->talkRoomService->syncParticipants($updated);
+		}
 
 		return $changedFields;
 	}

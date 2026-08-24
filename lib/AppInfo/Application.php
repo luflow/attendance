@@ -11,7 +11,9 @@ use OCA\Attendance\BackgroundJob\TalkRoomSyncJob;
 use OCA\Attendance\Dashboard\Widget;
 use OCA\Attendance\Listener\CalendarObjectUpdateListener;
 use OCA\Attendance\Listener\ResponseChangeNotificationListener;
+use OCA\Attendance\Listener\TalkRoomDeletedListener;
 use OCA\Attendance\Listener\UserDeletedListener;
+use OCA\Talk\Events\RoomDeletedEvent;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -29,6 +31,9 @@ class Application extends App implements IBootstrap {
 		$context->registerDashboardWidget(Widget::class);
 		$context->registerNotifierService(\OCA\Attendance\Notification\Notifier::class);
 		$context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
+		// Talk may not be installed; registering by class name is safe since it
+		// never autoloads the class, only Talk actually dispatching it would.
+		$context->registerEventListener(RoomDeletedEvent::class, TalkRoomDeletedListener::class);
 
 		$this->registerCalendarListeners($context);
 	}

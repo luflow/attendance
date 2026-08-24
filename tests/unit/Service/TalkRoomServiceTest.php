@@ -634,4 +634,80 @@ class TalkRoomServiceTest extends TestCase {
 
 		$this->service->syncParticipants($this->appointment(['olivia', 'oscar'], 'tok123'));
 	}
+
+	/**
+	 * A co-organiser added after the room already exists is exactly the gap
+	 * that made this bug worth writing down: promotion must not depend on the
+	 * room having just been created.
+	 */
+	public function testANewlyAddedOrganiserGetsPromotedOnTheNextSync(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+		$this->responseMapper->method('findByAppointment')->willReturn([
+			$this->response('oscar', 'yes', 'booked'),
+		]);
+
+		$room = $this->room();
+		$this->talkManager->method('getRoomByToken')->willReturn($room);
+		// olivia is already moderator; oscar holds a place as a plain
+		// participant and has just been made a co-organiser.
+		$this->participantService->method('getParticipantsForRoom')->willReturn([
+			...$this->participants(['olivia'], 2),
+			...$this->participants(['oscar'], 3),
+		]);
+
+		$this->participantService->expects($this->once())
+			->method('updateParticipantType')
+			->with($room, $this->callback(fn (Participant $p) => $p->getAttendee()->getActorId() === 'oscar'), 2);
+
+		$this->service->syncParticipants($this->appointment(['olivia', 'oscar'], 'tok123'));
+	}
+
+	/**
+	 * Someone who is no longer an organiser but still holds a place loses the
+	 * moderator rank again — demoted to a plain participant rather than left a
+	 * moderator forever.
+	 */
+	public function testAFormerOrganiserIsDemotedBackToAParticipant(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+		$this->responseMapper->method('findByAppointment')->willReturn([
+			$this->response('oscar', 'yes', 'booked'),
+		]);
+
+		$room = $this->room();
+		$this->talkManager->method('getRoomByToken')->willReturn($room);
+		// oscar is still a moderator from when he was an organiser, but the
+		// current organizer list (just 'olivia') no longer includes him.
+		$this->participantService->method('getParticipantsForRoom')
+			->willReturn($this->participants(['olivia', 'oscar'], 2));
+
+		$this->participantService->expects($this->once())
+			->method('updateParticipantType')
+			->with($room, $this->callback(fn (Participant $p) => $p->getAttendee()->getActorId() === 'oscar'), 3);
+
+		$this->service->syncParticipants($this->appointment(['olivia'], 'tok123'));
+	}
+
+	/**
+	 * A room deleted directly in Talk is discovered without waiting on
+	 * TalkRoomSyncJob's hourly sweep — the listener calls this the moment
+	 * Talk fires its RoomDeletedEvent.
+	 */
+	public function testHandleRoomDeletedForgetsTheLinkedRoom(): void {
+		$appointment = $this->appointment(token: 'tok123');
+		$appointment->setCreateTalkRoom(true);
+		$this->appointmentMapper->method('findByTalkRoomToken')->with('tok123')->willReturn([$appointment]);
+		$this->appointmentMapper->expects($this->once())->method('update')->with($appointment);
+
+		$this->service->handleRoomDeleted('tok123');
+
+		$this->assertNull($appointment->getTalkRoomToken());
+		$this->assertFalse($appointment->getCreateTalkRoom());
+	}
+
+	public function testHandleRoomDeletedIsANoOpForAnUnknownToken(): void {
+		$this->appointmentMapper->method('findByTalkRoomToken')->willReturn([]);
+		$this->appointmentMapper->expects($this->never())->method('update');
+
+		$this->service->handleRoomDeleted('unknown');
+	}
 }

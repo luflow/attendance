@@ -893,6 +893,11 @@
       <code><![CDATA[handle]]></code>
     </PossiblyUnusedMethod>
   </file>
+  <file src="lib/Listener/TalkRoomDeletedListener.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
   <file src="lib/Listener/UserDeletedListener.php">
     <ClassMustBeFinal>
       <code><![CDATA[UserDeletedListener]]></code>
