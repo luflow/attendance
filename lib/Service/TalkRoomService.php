@@ -235,9 +235,7 @@ class TalkRoomService {
 			return false;
 		}
 
-		$appointment->setTalkRoomToken(null);
-		$appointment->setCreateTalkRoom(false);
-		$this->appointmentMapper->update($appointment);
+		$this->forgetRoom($appointment);
 
 		return true;
 	}
@@ -250,10 +248,18 @@ class TalkRoomService {
 	 */
 	public function handleRoomDeleted(string $token): void {
 		foreach ($this->appointmentMapper->findByTalkRoomToken($token) as $appointment) {
-			$appointment->setTalkRoomToken(null);
-			$appointment->setCreateTalkRoom(false);
-			$this->appointmentMapper->update($appointment);
+			$this->forgetRoom($appointment);
 		}
+	}
+
+	/**
+	 * Clear the link to a room that is gone for good, and the opt-in with it —
+	 * left standing, the next answer or edit would open a fresh one.
+	 */
+	private function forgetRoom(Appointment $appointment): void {
+		$appointment->setTalkRoomToken(null);
+		$appointment->setCreateTalkRoom(false);
+		$this->appointmentMapper->update($appointment);
 	}
 
 	/**
@@ -443,19 +449,14 @@ class TalkRoomService {
 	private function reconcileModerators(Room $room, Appointment $appointment, ParticipantService $participantService, array $byActor): void {
 		$organizers = $appointment->getOrganizersList();
 
-		foreach ($organizers as $userId) {
-			$participant = $byActor[$userId] ?? null;
-			if ($participant !== null && $participant->getAttendee()->getParticipantType() > self::PARTICIPANT_MODERATOR) {
-				$participantService->updateParticipantType($room, $participant, self::PARTICIPANT_MODERATOR);
-			}
-		}
-
 		foreach ($byActor as $userId => $participant) {
-			if (in_array($userId, $organizers, true)
-				|| $participant->getAttendee()->getParticipantType() !== self::PARTICIPANT_MODERATOR) {
-				continue;
+			$type = $participant->getAttendee()->getParticipantType();
+			$isOrganizer = in_array($userId, $organizers, true);
+			if ($isOrganizer && $type > self::PARTICIPANT_MODERATOR) {
+				$participantService->updateParticipantType($room, $participant, self::PARTICIPANT_MODERATOR);
+			} elseif (!$isOrganizer && $type === self::PARTICIPANT_MODERATOR) {
+				$participantService->updateParticipantType($room, $participant, self::PARTICIPANT_USER);
 			}
-			$participantService->updateParticipantType($room, $participant, self::PARTICIPANT_USER);
 		}
 	}
 
