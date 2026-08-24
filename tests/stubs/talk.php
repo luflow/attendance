@@ -126,3 +126,16 @@ class ParticipantService {
 	public function updateParticipantType(Room $room, Participant $participant, int $participantType): void {
 	}
 }
+
+namespace OCA\Talk\Events;
+
+use OCA\Talk\Room;
+use OCP\EventDispatcher\Event;
+
+abstract class ARoomEvent extends Event {
+	public function getRoom(): Room {
+	}
+}
+
+class RoomDeletedEvent extends ARoomEvent {
+}

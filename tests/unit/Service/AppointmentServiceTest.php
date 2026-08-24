@@ -1501,6 +1501,37 @@ class AppointmentServiceTest extends TestCase {
 		$this->assertEquals(['alice', 'bob'], $result->getOrganizersList());
 	}
 
+	/**
+	 * A new organiser needs moderator rank in the Talk room and a former one
+	 * needs it taken away again — neither happens unless the participant sync
+	 * actually runs when the organizer list changes.
+	 */
+	public function testUpdateAppointmentSyncsTalkParticipantsWhenOrganizersChange(): void {
+		$this->expectKnownUsers(['alice', 'bob']);
+		$appointment = $this->setUpOrganizerUpdate(['alice'], false);
+
+		$this->talkRoomService->expects($this->once())
+			->method('syncParticipants')
+			->with($appointment);
+
+		$this->service->updateAppointment(
+			3, 'Meeting', '', '2026-01-01T10:00:00Z', '2026-01-01T11:00:00Z',
+			'alice', [], [], [], null, ['alice', 'bob'],
+		);
+	}
+
+	public function testUpdateAppointmentDoesNotSyncTalkParticipantsWhenOrganizersAreUnchanged(): void {
+		$this->expectKnownUsers(['alice']);
+		$this->setUpOrganizerUpdate(['alice'], false);
+
+		$this->talkRoomService->expects($this->never())->method('syncParticipants');
+
+		$this->service->updateAppointment(
+			3, 'New name', '', '2026-01-01T10:00:00Z', '2026-01-01T11:00:00Z',
+			'alice', [], [], [], null, ['alice'],
+		);
+	}
+
 	public function testOrganizerCanRemoveOnlyThemselves(): void {
 		$this->expectKnownUsers(['alice', 'bob']);
 		$this->setUpOrganizerUpdate(['alice', 'bob'], false);

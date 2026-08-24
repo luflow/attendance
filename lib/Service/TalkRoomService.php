@@ -48,6 +48,7 @@ class TalkRoomService {
 	private const ROOM_TYPE_GROUP = 2;          // Room::TYPE_GROUP
 	private const ACTOR_USERS = 'users';        // Attendee::ACTOR_USERS
 	private const PARTICIPANT_MODERATOR = 2;    // Participant::MODERATOR
+	private const PARTICIPANT_USER = 3;         // Participant::USER
 	private const REASON_REMOVED = 'remove';    // AAttendeeRemovedEvent::REASON_REMOVED
 	private const NAME_MAX_LENGTH = 255;        // conversations.name column
 	private const DESCRIPTION_MAX_LENGTH = 2000; // Room::DESCRIPTION_MAXIMUM_LENGTH
@@ -234,11 +235,31 @@ class TalkRoomService {
 			return false;
 		}
 
+		$this->forgetRoom($appointment);
+
+		return true;
+	}
+
+	/**
+	 * React to a room being deleted directly in Talk — same end state as
+	 * deleteForAppointment(), reached without anyone clicking anything here.
+	 * Without this, the appointment would keep pointing at a gone token until
+	 * TalkRoomSyncJob's hourly sweep happens to notice.
+	 */
+	public function handleRoomDeleted(string $token): void {
+		foreach ($this->appointmentMapper->findByTalkRoomToken($token) as $appointment) {
+			$this->forgetRoom($appointment);
+		}
+	}
+
+	/**
+	 * Clear the link to a room that is gone for good, and the opt-in with it —
+	 * left standing, the next answer or edit would open a fresh one.
+	 */
+	private function forgetRoom(Appointment $appointment): void {
 		$appointment->setTalkRoomToken(null);
 		$appointment->setCreateTalkRoom(false);
 		$this->appointmentMapper->update($appointment);
-
-		return true;
 	}
 
 	/**
@@ -412,22 +433,29 @@ class TalkRoomService {
 			$participantService->removeUser($room, $user, self::REASON_REMOVED);
 		}
 
-		$this->promoteOrganisers($room, $appointment, $participantService, $byActor);
+		$this->reconcileModerators($room, $appointment, $participantService, $byActor);
 	}
 
 	/**
 	 * Organisers hand out the final details, so they need to be able to rename
-	 * the room and pull someone in. The creator is already owner.
-	 */
-	/**
+	 * the room and pull someone in — promote them. Someone who stopped being an
+	 * organiser loses that again, back to a plain participant; if they no
+	 * longer hold a place either, the removal above has already taken them out
+	 * of the room entirely. The creator is already owner and outranks
+	 * moderator either way, so this never touches them.
+	 *
 	 * @param array<string, Participant> $byActor
 	 */
-	private function promoteOrganisers(Room $room, Appointment $appointment, ParticipantService $participantService, array $byActor): void {
-		foreach ($appointment->getOrganizersList() as $userId) {
-			$participant = $byActor[$userId] ?? null;
-			// Owner outranks moderator — do not demote the creator.
-			if ($participant !== null && $participant->getAttendee()->getParticipantType() > self::PARTICIPANT_MODERATOR) {
+	private function reconcileModerators(Room $room, Appointment $appointment, ParticipantService $participantService, array $byActor): void {
+		$organizers = $appointment->getOrganizersList();
+
+		foreach ($byActor as $userId => $participant) {
+			$type = $participant->getAttendee()->getParticipantType();
+			$isOrganizer = in_array($userId, $organizers, true);
+			if ($isOrganizer && $type > self::PARTICIPANT_MODERATOR) {
 				$participantService->updateParticipantType($room, $participant, self::PARTICIPANT_MODERATOR);
+			} elseif (!$isOrganizer && $type === self::PARTICIPANT_MODERATOR) {
+				$participantService->updateParticipantType($room, $participant, self::PARTICIPANT_USER);
 			}
 		}
 	}
