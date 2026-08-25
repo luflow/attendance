@@ -50,6 +50,7 @@
     "Cancel" : "Cancel",
     "Responses" : "Răspunsuri",
     "Talk room" : "Camera de Talk",
+    "Appointment" : "Programare",
     "Delete" : "Șterge",
     "Share link" : "Partajază legătură",
     "Edit" : "Editează",
@@ -120,6 +121,7 @@
     "Year" : "An",
     "Custom" : "Particularizat",
     "Filter" : "Filtru",
+    "App" : "Aplicație",
     "Automatic" : "Automat",
     "time" : "dată"
 },"pluralForm" :"nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));"

@@ -35,6 +35,7 @@ OC.L10N.register(
     "Loading …" : "Cargament …",
     "Cancel" : "Cancel",
     "All users" : "Totes los utilizaires",
+    "Appointment" : "Rendetz-vos",
     "Delete" : "Suprimir",
     "Share link" : "Partejar via ligam",
     "Edit" : "Modificar",

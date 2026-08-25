@@ -43,6 +43,7 @@
     "Copy" : "Kopēt",
     "Last accessed" : "Pēdējo reizi piekļūts",
     "Cancel" : "Atcelt",
+    "Appointment" : "Plānota tikšanās",
     "Delete" : "Izdzēst",
     "Share link" : "Dalīt saiti",
     "Edit" : "Labot",
@@ -113,6 +114,7 @@
     "Year" : "Gads",
     "Custom" : "Pielāgots",
     "Teams" : "Komandas",
+    "App" : "Lietotne",
     "Automatic" : "Automātisks",
     "description" : "apraksts"
 },"pluralForm" :"nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);"

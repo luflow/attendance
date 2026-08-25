@@ -66,6 +66,7 @@
     "Period" : "Periode",
     "Year" : "År",
     "Custom" : "Sjølvvald",
-    "Filter" : "Filter"
+    "Filter" : "Filter",
+    "App" : "Applikasjon"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

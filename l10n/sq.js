@@ -90,6 +90,7 @@ OC.L10N.register(
     "2 hours before" : "2 orë para",
     "Custom" : "E përshtatur",
     "Filter" : "Filtro",
+    "App" : "Aplikacion",
     "Automatic" : "Automatike"
 },
 "nplurals=2; plural=(n != 1);");

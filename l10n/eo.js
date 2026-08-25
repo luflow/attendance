@@ -98,6 +98,7 @@ OC.L10N.register(
     "2 hours before" : "2 horojn antaŭe",
     "Search people" : "Serĉi homojn",
     "Custom" : "Propra",
+    "App" : "Aplikaĵo",
     "Automatic" : "Aŭtomata"
 },
 "nplurals=2; plural=(n != 1);");

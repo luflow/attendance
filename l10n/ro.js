@@ -52,6 +52,7 @@ OC.L10N.register(
     "Cancel" : "Cancel",
     "Responses" : "Răspunsuri",
     "Talk room" : "Camera de Talk",
+    "Appointment" : "Programare",
     "Delete" : "Șterge",
     "Share link" : "Partajază legătură",
     "Edit" : "Editează",
@@ -122,6 +123,7 @@ OC.L10N.register(
     "Year" : "An",
     "Custom" : "Particularizat",
     "Filter" : "Filtru",
+    "App" : "Aplicație",
     "Automatic" : "Automat",
     "time" : "dată"
 },

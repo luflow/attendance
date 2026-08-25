@@ -70,6 +70,7 @@ OC.L10N.register(
     "2 hours before" : "2 horas antes",
     "Custom" : "Personalizado",
     "Filter" : "Filtrar",
+    "App" : "Aplicación",
     "Automatic" : "Automático",
     "name" : "nombre"
 },

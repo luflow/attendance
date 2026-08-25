@@ -140,6 +140,7 @@ OC.L10N.register(
     "Teams" : "Equipos",
     "Filter" : "Peñerar",
     "Category: {category}" : "Categoría: {categoría}",
+    "App" : "Aplicación",
     "Manager" : "Xestor",
     "Automatic" : "Automáticu"
 },

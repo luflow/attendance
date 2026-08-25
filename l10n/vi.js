@@ -49,6 +49,7 @@ OC.L10N.register(
     "Copy URL" : "Sao chép liên kết",
     "Cancel" : "Cancel",
     "Talk room" : "Phòng họp",
+    "Appointment" : "Cuộc hẹn",
     "Delete" : "Xóa",
     "Share link" : "Chia sẻ liên kết",
     "Edit" : "Chỉnh sửa",
@@ -123,6 +124,7 @@ OC.L10N.register(
     "Custom" : "Tùy chỉnh",
     "Filter" : "Bộ lọc",
     "Category: {category}" : "Thể loại: {danh mục}",
+    "App" : "Ứng dụng",
     "Manager" : "Giám đốc",
     "Automatic" : "Tự động"
 },

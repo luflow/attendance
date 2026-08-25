@@ -51,6 +51,7 @@ OC.L10N.register(
     "Description" : "විස්තරය",
     "Confirm" : "තහවුරු කරන්න",
     "Year" : "වර්ෂය",
-    "Filter" : "පෙරහන"
+    "Filter" : "පෙරහන",
+    "App" : "යෙදුම"
 },
 "nplurals=2; plural=(n != 1);");

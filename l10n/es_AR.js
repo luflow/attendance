@@ -92,6 +92,7 @@ OC.L10N.register(
     "Year" : "Año",
     "Custom" : "Personalizado",
     "Filter" : "Filtrar",
+    "App" : "Aplicación",
     "Automatic" : "Automático",
     "name" : "nombre"
 },

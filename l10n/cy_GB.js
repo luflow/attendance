@@ -26,6 +26,7 @@ OC.L10N.register(
     "Export" : "Allforio",
     "Deselect all" : "Dad ddewis popeth",
     "Cancel" : "Cancel",
+    "Appointment" : "Apwyntiad",
     "Delete" : "Dileu",
     "Edit" : "Golygu",
     "No activity yet" : "Dim gweithred eto",
@@ -75,6 +76,7 @@ OC.L10N.register(
     "2 hours before" : "2 awr cynt",
     "Year" : "Blwyddyn",
     "Custom" : "Cyfaddas",
+    "App" : "Ap",
     "Automatic" : "Awtomatig",
     "time" : "amser"
 },

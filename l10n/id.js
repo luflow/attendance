@@ -103,6 +103,7 @@ OC.L10N.register(
     "Close inquiry" : "Tutup jajak pendapat",
     "Link copied to clipboard" : "Tautan disalin ke papan klip",
     "Talk room" : "Ruang Talk",
+    "Appointment" : "Janji",
     "Both" : "Keduanya",
     "Delete" : "Hapus",
     "Share link" : "Bagikan tautan",
@@ -293,6 +294,7 @@ OC.L10N.register(
     "Failed to regenerate subscription URL" : "Gagal membuat ulang URL langganan",
     "URL copied to clipboard" : "URL disalin ke papan klip",
     "Failed to copy URL" : "Gagal menyalin URL",
+    "App" : "Aplikasi",
     "Manager" : "Manajer",
     "Automatic" : "Otomatis",
     "name" : "nama"

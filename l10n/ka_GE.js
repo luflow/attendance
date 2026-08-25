@@ -75,6 +75,7 @@ OC.L10N.register(
     "2 hours before" : "2 საათით ადრე",
     "Custom" : "ინდივიდუალური",
     "Filter" : "ფილტრი",
+    "App" : "აპლიკაცია",
     "Automatic" : "ავტომატური"
 },
 "nplurals=2; plural=(n!=1);");

@@ -67,6 +67,7 @@ OC.L10N.register(
     "2 hours before" : "2 ure vooraf",
     "Custom" : "Eie",
     "Filter" : "Filter",
+    "App" : "Toep",
     "Automatic" : "Outomaties"
 },
 "nplurals=2; plural=(n != 1);");

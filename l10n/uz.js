@@ -42,6 +42,7 @@ OC.L10N.register(
     "Copy" : "Nusxalash",
     "Cancel" : "Bekor qilish",
     "Talk room" : "Suhbat xonasi",
+    "Appointment" : "Uchrashuv",
     "Delete" : "Oʻchirish",
     "Share link" : "Havolani ulashish",
     "Edit" : "Tahrirlash",
@@ -109,6 +110,7 @@ OC.L10N.register(
     "Group by" : "Bo'yicha guruhlash",
     "Teams" : "Jamoalar",
     "Filter" : "Filtr",
+    "App" : "Ilova",
     "Automatic" : "Automatik"
 },
 "nplurals=1; plural=0;");

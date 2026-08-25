@@ -56,6 +56,7 @@ OC.L10N.register(
     "Cancel" : "ביטול",
     "Link copied to clipboard" : "הקישור הועתק ללוח הגזירים",
     "Responses" : "תגובות",
+    "Appointment" : "פגישה",
     "Both" : "שניהם",
     "Delete" : "מחיקה",
     "Share link" : "שיתוף קישור",
@@ -132,6 +133,7 @@ OC.L10N.register(
     "Custom" : "מותאם אישית",
     "Filter" : "מסנן",
     "Category: {category}" : "קטגוריה: {category}",
+    "App" : "יישומון",
     "Automatic" : "אוטומטי",
     "name" : "שם",
     "time" : "בשעה"

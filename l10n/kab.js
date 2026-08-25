@@ -173,6 +173,7 @@ OC.L10N.register(
     "Teams" : "Tirebbuyaɛ",
     "Filter" : "Sizdeg",
     "Web" : "Web",
+    "App" : "Asnas",
     "Manager" : "Asefrak",
     "Automatic" : "Awurman",
     "name" : "isem",

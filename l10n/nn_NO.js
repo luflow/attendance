@@ -68,6 +68,7 @@ OC.L10N.register(
     "Period" : "Periode",
     "Year" : "År",
     "Custom" : "Sjølvvald",
-    "Filter" : "Filter"
+    "Filter" : "Filter",
+    "App" : "Applikasjon"
 },
 "nplurals=2; plural=(n != 1);");

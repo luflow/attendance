@@ -40,6 +40,7 @@
     "Copy" : "Nusxalash",
     "Cancel" : "Bekor qilish",
     "Talk room" : "Suhbat xonasi",
+    "Appointment" : "Uchrashuv",
     "Delete" : "Oʻchirish",
     "Share link" : "Havolani ulashish",
     "Edit" : "Tahrirlash",
@@ -107,6 +108,7 @@
     "Group by" : "Bo'yicha guruhlash",
     "Teams" : "Jamoalar",
     "Filter" : "Filtr",
+    "App" : "Ilova",
     "Automatic" : "Automatik"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

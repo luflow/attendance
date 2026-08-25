@@ -84,6 +84,7 @@ OC.L10N.register(
     "Year" : "ปี",
     "Custom" : "กำหนดเอง",
     "Filter" : "ตัวกรอง",
+    "App" : "แอป",
     "Automatic" : "อัตโนมัติ"
 },
 "nplurals=1; plural=0;");

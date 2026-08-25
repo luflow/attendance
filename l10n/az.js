@@ -54,6 +54,7 @@ OC.L10N.register(
     "Description" : "Açıqlanma",
     "Confirm" : "Təsdiq edin",
     "Search people" : "İnsanları axtarın",
+    "App" : "Tətbiq",
     "Automatic" : "Avtomatik",
     "Guests" : "Qonaqlar"
 },

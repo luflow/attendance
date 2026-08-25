@@ -45,6 +45,7 @@ OC.L10N.register(
     "Copy" : "Kopēt",
     "Last accessed" : "Pēdējo reizi piekļūts",
     "Cancel" : "Atcelt",
+    "Appointment" : "Plānota tikšanās",
     "Delete" : "Izdzēst",
     "Share link" : "Dalīt saiti",
     "Edit" : "Labot",
@@ -115,6 +116,7 @@ OC.L10N.register(
     "Year" : "Gads",
     "Custom" : "Pielāgots",
     "Teams" : "Komandas",
+    "App" : "Lietotne",
     "Automatic" : "Automātisks",
     "description" : "apraksts"
 },
