@@ -118,6 +118,7 @@ OC.L10N.register(
     "Teams" : "Komandas",
     "App" : "Lietotne",
     "Automatic" : "Automātisks",
-    "description" : "apraksts"
+    "description" : "apraksts",
+    "Guests" : "Viesi"
 },
 "nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n != 0 ? 1 : 2);");
