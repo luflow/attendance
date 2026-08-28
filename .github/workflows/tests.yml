@@ -6,6 +6,22 @@ on:
   workflow_call:
 
 jobs:
+  appinfo_validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install xmllint
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq libxml2-utils
+
+      # The app store validates against this schema on upload — failing here
+      # beats failing at release time.
+      - name: Validate info.xml against the app store schema
+        run: |
+          curl -fsSL https://apps.nextcloud.com/schema/apps/info.xsd -o /tmp/info.xsd
+          xmllint --noout --schema /tmp/info.xsd appinfo/info.xml
+
   e2e_tests:
     runs-on: ubuntu-latest
     steps:
@@ -114,6 +130,12 @@ jobs:
 
   php_tests:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # The span info.xml admits: min-version 8.1 up to the newest PHP the
+        # supported Nextcloud releases run on.
+        php-version: ['8.1', '8.4']
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -121,7 +143,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1'
+          php-version: ${{ matrix.php-version }}
           coverage: none
 
       - name: Install composer dependencies
