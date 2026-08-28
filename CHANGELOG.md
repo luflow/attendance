@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.51.1 – 2026-08-28
+
+### Fixed
+
+- **Organizer changes now reach the Talk room**: a newly added organizer gets invited and promoted, a removed one is demoted to a plain participant
+- **A room deleted directly in Talk is noticed immediately** instead of up to an hour later by the background sync
+
+### Maintenance
+
+- Updated translations from Transifex
+- CI validates info.xml, runs the tests on PHP 8.1 and 8.4, and checks the release inputs before building
+
 ## 1.51.0 – 2026-08-24
 
 ### Added
