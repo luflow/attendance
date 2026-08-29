@@ -860,7 +860,7 @@ OC.L10N.register(
     "Range" : "Intervalo",
     "Group by" : "Agrupar por",
     "Teams" : "Equipes",
-    "Filter" : "Filtrar",
+    "Filter" : "Filtro",
     "Attendance recorded for {recorded} of {past} past appointments" : "Presença registrada para {recorded} de {past} compromissos anteriores",
     "Highlights" : "Destaques",
     "Choose highlights" : "Escolha os destaques",

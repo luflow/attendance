@@ -172,6 +172,8 @@ OC.L10N.register(
     "Export appointment" : "匯出預約",
     "All users" : "所有使用者",
     "Select groups …" : "選取群組……",
+    "Reopen inquiry" : "重新開啟調查",
+    "Close inquiry" : "關閉調查",
     "Link copied to clipboard" : "已複製連結至剪貼簿",
     "Failed to send reminders" : "傳送提醒失敗",
     "Responses" : "回應",

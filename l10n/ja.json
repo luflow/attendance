@@ -121,6 +121,7 @@
     "Dismiss" : "無視する",
     "Welcome" : "ようこそ",
     "Categories" : "カテゴリ",
+    "Step {current} of {total}" : "{total}のうち{current}番目のステップ",
     "Close" : "閉じる",
     "Continue" : "続ける",
     "Never" : "なし",

@@ -570,7 +570,7 @@ OC.L10N.register(
     "Enable push notifications" : "Anlık bildirimleri aç",
     "Close" : "Kapat",
     "Finish later" : "Daha sonra tamamla",
-    "Continue" : "Sürdür",
+    "Continue" : "İlerle",
     "Over time" : "Zamana göre",
     "By team" : "Ekibe göre",
     "By group" : "Gruba göre",
