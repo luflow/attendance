@@ -83,6 +83,7 @@ OC.L10N.register(
     "Date range" : "Rentang tanggal",
     "Select all" : "Pilih semua",
     "Deselect all" : "Tidak ada yang dipilih",
+    "Custom range" : "Rentang kustom",
     "Start date" : "Tanggal mulai",
     "Subscribe to your appointments in external calendar apps like Google Calendar, Apple Calendar, or Thunderbird." : "Langgan ke janji temu Anda di aplikasi kalender eksternal seperti Google Calendar, Apple Calendar, atau Thunderbird.",
     "Subscription URL" : "URL langganan",

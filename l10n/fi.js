@@ -82,6 +82,7 @@ OC.L10N.register(
     "Date range" : "Päiväväli",
     "Select all" : "Valitse kaikki",
     "Deselect all" : "Poista valinnat",
+    "Custom range" : "mukautettu vaihteluväli",
     "Start date" : "Aloituspäivä",
     "Subscription URL" : "Tilauksen verkko-osoite",
     "Copy URL" : "Kopioi osoite",
