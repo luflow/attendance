@@ -53,7 +53,7 @@ test.describe('Attendance App - Recurrence', () => {
 		await page.waitForLoadState('networkidle')
 
 		// The switch should exist but be disabled (no start date set)
-		const toggle = page.getByRole('switch', { name: 'Repeat appointment' })
+		const toggle = page.locator('[data-test="switch-recurrence"]')
 		await expect(toggle).toBeVisible()
 		await expect(toggle).toBeDisabled()
 

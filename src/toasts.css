@@ -1,0 +1,12 @@
+@import '@nextcloud/dialogs/style.css';
+
+/*
+ * The server shows its own toasts top right, dialogs 7.5.0 puts ours bottom
+ * left and offers no way to configure that — so pull them back by hand. The
+ * class name is a CSS module carrying a per-release hash, hence the substring.
+ */
+body [class*="_toastContainer_"] {
+	inset-block: calc(var(--header-height, 50px) + var(--body-container-margin)) auto;
+	inset-inline: auto var(--body-container-margin);
+	align-items: flex-end;
+}
