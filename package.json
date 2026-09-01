@@ -13,7 +13,7 @@
     "lint": "eslint src",
     "stylelint": "stylelint \"src/**/*.{vue,scss,css}\"",
     "test:e2e:server": "node tests/e2e/setup/server.js",
-    "test:e2e:server-cleanup": "docker rm -f nextcloud-e2e-test-server_attendance 2>/dev/null || true && docker volume rm -f apps_writable 2>/dev/null || true",
+    "test:e2e:server-cleanup": "node tests/e2e/setup/server-cleanup.js",
     "test:e2e": "npm run test:e2e:server && npm run test:e2e:run",
     "test:e2e:run": "playwright test",
     "test:e2e:ui": "playwright test --ui",

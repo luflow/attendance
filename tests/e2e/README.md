@@ -130,6 +130,14 @@ The tests use the `@nextcloud/e2e-test-server` package which provides a pre-conf
 - **Installed apps:**
   - Attendance app (from current directory)
 
+### Container name
+
+`@nextcloud/e2e-test-server` names the container after the basename of the
+project directory, so it is `nextcloud-e2e-test-server_attendance` in the main
+checkout but `nextcloud-e2e-test-server_<worktree>` in a git worktree. Anything
+that shells out to `docker` therefore takes the name from
+`setup/container.js`, which asks the package for it — never hardcode it.
+
 ## Writing Tests
 
 ### Test Structure
