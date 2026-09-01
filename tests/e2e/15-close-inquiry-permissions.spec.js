@@ -11,6 +11,7 @@ import {
 	reloadWebWorkers,
 	PERMISSIVE_PERMISSIONS,
 } from './fixtures/nextcloud.js'
+import { CONTAINER_NAME } from './setup/container.js'
 
 // Set permission_manage_appointments via the same web SAPI that serves the
 // actual reopen call — occ runs in CLI mode and APCu lives in a separate
@@ -56,7 +57,7 @@ test.describe('Attendance App - Close inquiry permissions (sequential)', () => {
 		// or sibling test cannot mask the negative case.
 		await setManageAppointmentsRoles(request, ['admin'])
 		const checkPerm = execSync(
-			`docker exec -u www-data nextcloud-e2e-test-server_attendance php occ config:app:get attendance permission_manage_appointments`,
+			`docker exec -u www-data ${CONTAINER_NAME} php occ config:app:get attendance permission_manage_appointments`,
 			{ stdio: 'pipe' },
 		).toString().trim()
 		console.log('[debug] permission_manage_appointments =', checkPerm)

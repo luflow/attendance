@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync } from 'fs'
 import { execSync } from 'node:child_process'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
+import { CONTAINER_NAME } from '../setup/container.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const AUTH_DIR = join(__dirname, '..', '.auth')
@@ -440,7 +441,7 @@ export async function resetAdminSettings(request) {
  */
 export async function reloadWebWorkers() {
 	execSync(
-		'docker exec nextcloud-e2e-test-server_attendance apachectl graceful',
+		`docker exec ${CONTAINER_NAME} apachectl graceful`,
 		{ stdio: 'pipe' },
 	)
 	// Give Apache a moment to cycle workers.
