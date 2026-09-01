@@ -61,7 +61,7 @@ test.describe('Attendance App - Organization calendar', () => {
 
 			const toggle = page.locator('[data-test="switch-org-calendar-enabled"]')
 			await expect(toggle).toBeVisible()
-			await expect(page.getByRole('checkbox', { name: 'Create calendar events for appointments' })).toBeChecked()
+			await expect(toggle).toBeChecked()
 
 			// The configured calendar is selected in the picker
 			const picker = page.locator('[data-test="select-org-calendar"]')

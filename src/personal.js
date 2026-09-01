@@ -6,6 +6,8 @@ import { translate, translatePlural } from '@nextcloud/l10n'
 import { createApp } from 'vue'
 import PersonalSettings from './views/PersonalSettings.vue'
 
+import './toasts.css'
+
 const app = createApp(PersonalSettings)
 
 app.config.globalProperties.t = translate

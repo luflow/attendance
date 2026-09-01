@@ -2,6 +2,7 @@ import { translate, translatePlural } from '@nextcloud/l10n'
 import { createApp } from 'vue'
 import AppointmentWidget from './views/Widget.vue'
 
+import './toasts.css'
 import './dashboard.css'
 
 document.addEventListener('DOMContentLoaded', () => {

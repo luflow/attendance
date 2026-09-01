@@ -6,6 +6,8 @@ import { translate, translatePlural } from '@nextcloud/l10n'
 import { createApp } from 'vue'
 import AdminSettings from './views/AdminSettings.vue'
 
+import './toasts.css'
+
 const app = createApp(AdminSettings)
 
 // Make translation functions available globally

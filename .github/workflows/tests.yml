@@ -24,6 +24,15 @@ jobs:
 
   e2e_tests:
     runs-on: ubuntu-latest
+    # The two Playwright projects each get their own runner and their own
+    # Nextcloud container. sequential-admin runs on a single worker because its
+    # specs change instance-wide settings — sharing a server with the parallel
+    # project is what forced it to wait for that project to finish first.
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [parallel, sequential-admin]
+    name: e2e_tests (${{ matrix.project }})
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -62,7 +71,9 @@ jobs:
           timeout 300 bash -c 'until curl -s http://localhost:8080 > /dev/null; do sleep 2; done' || exit 1
 
       - name: Run e2e tests
-        run: npm run test:e2e:run
+        # --no-deps: each job runs its project alone, without the dependency
+        # that makes sequential-admin wait for parallel in a single-server run.
+        run: npx playwright test --project=${{ matrix.project }} --no-deps
         env:
           CI: true
           NEXTCLOUD_URL: http://localhost:8080
@@ -71,7 +82,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v5
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.project }}
           path: playwright-report/
           retention-days: 30
 
