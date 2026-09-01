@@ -1992,12 +1992,10 @@
     </MissingParamType>
     <MixedArgument>
       <code><![CDATA[$cache['appointmentVisibleGroupsLower']]]></code>
-      <code><![CDATA[$cache['appointmentVisibleTeams']]]></code>
       <code><![CDATA[$cache['groupUsers']]]></code>
       <code><![CDATA[$cache['whitelistedGroups']]]></code>
       <code><![CDATA[$cache['whitelistedGroupsLower']]]></code>
       <code><![CDATA[$cache['whitelistedGroupsLower']]]></code>
-      <code><![CDATA[$cache['whitelistedTeams']]]></code>
       <code><![CDATA[$cache['whitelistedTeams']]]></code>
       <code><![CDATA[$gid]]></code>
       <code><![CDATA[$groupId]]></code>
@@ -2007,9 +2005,6 @@
       <code><![CDATA[$nameB]]></code>
       <code><![CDATA[$summary['by_group']]]></code>
       <code><![CDATA[$summary['by_team']]]></code>
-      <code><![CDATA[$teamId]]></code>
-      <code><![CDATA[$teamId]]></code>
-      <code><![CDATA[$teamId]]></code>
       <code><![CDATA[$teamMemberIds]]></code>
       <code><![CDATA[$teamMemberIds]]></code>
       <code><![CDATA[$user->getUID()]]></code>
@@ -2095,9 +2090,6 @@
       <code><![CDATA[$summary[$responseValue]]]></code>
       <code><![CDATA[$summary['by_group'][$groupId][$responseValue]]]></code>
       <code><![CDATA[$summary['others'][$responseValue]]]></code>
-      <code><![CDATA[$teamId]]></code>
-      <code><![CDATA[$teamId]]></code>
-      <code><![CDATA[$teamId]]></code>
       <code><![CDATA[$teamId]]></code>
       <code><![CDATA[$teamInfo]]></code>
       <code><![CDATA[$teamInfo]]></code>

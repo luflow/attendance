@@ -428,4 +428,192 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->assertStringNotContainsString('bob', $encoded);
 		$this->assertStringNotContainsString('Secret', $encoded);
 	}
+
+	/**
+	 * Regression for issue #199: restricting an appointment to a group (here a
+	 * status group like 'active') must not disable grouping — the audience
+	 * still renders under the whitelisted groups (instruments) they belong
+	 * to, not under Others.
+	 */
+	public function testGetResponseSummaryKeepsWhitelistedGroupingWhenVisibilityRestricted(): void {
+		$appointmentId = 8;
+		$appointment = new Appointment();
+		$appointment->setId($appointmentId);
+		$appointment->setVisibleUsers('[]');
+		$appointment->setVisibleGroups(json_encode(['active']));
+		$appointment->setVisibleTeams('[]');
+
+		$response = new AttendanceResponse();
+		$response->setId(1);
+		$response->setAppointmentId($appointmentId);
+		$response->setUserId('alice');
+		$response->setResponse('yes');
+
+		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
+		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
+
+		// Grouping is configured by instrument, access is restricted by status.
+		$this->configService->method('getWhitelistedGroups')->willReturn(['sopranos', 'altos']);
+		$this->configService->method('getWhitelistedTeams')->willReturn([]);
+
+		$this->visibilityService->method('getVisibilitySettings')
+			->willReturn(['users' => [], 'groups' => ['active'], 'teams' => []]);
+		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(true);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+
+		$alice = $this->createMock(IUser::class);
+		$alice->method('getUID')->willReturn('alice');
+		$alice->method('getDisplayName')->willReturn('Alice');
+		$bob = $this->createMock(IUser::class);
+		$bob->method('getUID')->willReturn('bob');
+		$bob->method('getDisplayName')->willReturn('Bob');
+
+		$activeGroup = $this->createMock(IGroup::class);
+		$activeGroup->method('getGID')->willReturn('active');
+		$sopranosGroup = $this->createMock(IGroup::class);
+		$sopranosGroup->method('getGID')->willReturn('sopranos');
+		$sopranosGroup->method('getUsers')->willReturn([$alice]);
+		$altosGroup = $this->createMock(IGroup::class);
+		$altosGroup->method('getGID')->willReturn('altos');
+		$altosGroup->method('getUsers')->willReturn([$bob]);
+
+		$this->groupManager->method('get')->willReturnMap([
+			['sopranos', $sopranosGroup],
+			['altos', $altosGroup],
+		]);
+		$this->groupManager->method('getUserGroups')->willReturnCallback(
+			fn (IUser $user) => $user->getUID() === 'alice'
+				? [$activeGroup, $sopranosGroup]
+				: [$activeGroup, $altosGroup]
+		);
+		$this->userManager->method('get')->willReturnMap([['alice', $alice]]);
+
+		$this->visibilityService->method('getTargetAttendees')
+			->willReturn(['alice' => $alice, 'bob' => $bob]);
+
+		$summary = $this->service->getResponseSummary($appointmentId);
+
+		// Both instrument sections render; the restriction group gets none.
+		$this->assertSame(['sopranos', 'altos'], array_keys($summary['by_group']));
+		$this->assertSame(1, $summary['by_group']['sopranos']['yes']);
+		$this->assertSame('Alice', $summary['by_group']['sopranos']['responses'][0]['userName']);
+		$this->assertSame(1, $summary['by_group']['altos']['no_response']);
+		$this->assertSame('bob', $summary['by_group']['altos']['non_responding_users'][0]['userId']);
+		// Nobody is unaffiliated, so Others stays empty.
+		$this->assertSame(0, $summary['others']['yes']);
+		$this->assertSame([], $summary['others']['responses']);
+		$this->assertSame([], $summary['others']['non_responding_users']);
+		$this->assertSame(1, $summary['yes']);
+		$this->assertSame(1, $summary['no_response']);
+	}
+
+	/**
+	 * Team analog of issue #199: restricting an appointment to one team must
+	 * not hide the whitelisted teams' sections from the summary.
+	 */
+	public function testGetResponseSummaryKeepsWhitelistedTeamSectionsWhenVisibilityRestricted(): void {
+		$appointmentId = 9;
+		$appointment = new Appointment();
+		$appointment->setId($appointmentId);
+		$appointment->setVisibleUsers('[]');
+		$appointment->setVisibleGroups('[]');
+		$appointment->setVisibleTeams(json_encode(['team-a']));
+
+		$response = new AttendanceResponse();
+		$response->setId(1);
+		$response->setAppointmentId($appointmentId);
+		$response->setUserId('carol');
+		$response->setResponse('yes');
+
+		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
+		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
+
+		$this->configService->method('getWhitelistedGroups')->willReturn([]);
+		$this->configService->method('getWhitelistedTeams')->willReturn(['team-b']);
+
+		$this->visibilityService->method('getVisibilitySettings')
+			->willReturn(['users' => [], 'groups' => [], 'teams' => ['team-a']]);
+		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(true);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+		$this->visibilityService->method('getTeamMembers')->with('team-b')->willReturn(['carol']);
+		$this->visibilityService->method('getTeamInfo')->with('team-b')
+			->willReturn(['id' => 'team-b', 'label' => 'Team B', 'type' => 'team']);
+
+		$carol = $this->createMock(IUser::class);
+		$carol->method('getUID')->willReturn('carol');
+		$carol->method('getDisplayName')->willReturn('Carol');
+
+		$this->userManager->method('get')->willReturnMap([['carol', $carol]]);
+		$this->groupManager->method('getUserGroups')->willReturn([]);
+		$this->groupManager->method('search')->with('')->willReturn([]);
+
+		$this->visibilityService->method('getTargetAttendees')
+			->willReturn(['carol' => $carol]);
+
+		$summary = $this->service->getResponseSummary($appointmentId);
+
+		$this->assertSame(['team-b'], array_keys($summary['by_team']));
+		$this->assertSame('Team B', $summary['by_team']['team-b']['displayName']);
+		$this->assertSame(1, $summary['by_team']['team-b']['yes']);
+		$this->assertSame('Carol', $summary['by_team']['team-b']['responses'][0]['userName']);
+		$this->assertSame(0, $summary['others']['yes']);
+		$this->assertSame([], $summary['others']['responses']);
+		$this->assertSame(1, $summary['yes']);
+	}
+
+	/**
+	 * Without a whitelist there is no configured grouping, so a restricted
+	 * appointment keeps grouping by its restriction groups — the audience's
+	 * other group memberships must not fan out into sections.
+	 */
+	public function testGetResponseSummaryWithoutWhitelistKeepsGroupingByRestrictionGroups(): void {
+		$appointmentId = 10;
+		$appointment = new Appointment();
+		$appointment->setId($appointmentId);
+		$appointment->setVisibleUsers('[]');
+		$appointment->setVisibleGroups(json_encode(['board']));
+		$appointment->setVisibleTeams('[]');
+
+		$response = new AttendanceResponse();
+		$response->setId(1);
+		$response->setAppointmentId($appointmentId);
+		$response->setUserId('dave');
+		$response->setResponse('yes');
+
+		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
+		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
+
+		$this->configService->method('getWhitelistedGroups')->willReturn([]);
+		$this->configService->method('getWhitelistedTeams')->willReturn([]);
+
+		$this->visibilityService->method('getVisibilitySettings')
+			->willReturn(['users' => [], 'groups' => ['board'], 'teams' => []]);
+		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(true);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+
+		$dave = $this->createMock(IUser::class);
+		$dave->method('getUID')->willReturn('dave');
+		$dave->method('getDisplayName')->willReturn('Dave');
+
+		$boardGroup = $this->createMock(IGroup::class);
+		$boardGroup->method('getGID')->willReturn('board');
+		$boardGroup->method('getUsers')->willReturn([$dave]);
+		$staffGroup = $this->createMock(IGroup::class);
+		$staffGroup->method('getGID')->willReturn('staff');
+		$staffGroup->method('getUsers')->willReturn([$dave]);
+
+		$this->groupManager->method('search')->with('')->willReturn([$boardGroup, $staffGroup]);
+		$this->groupManager->method('getUserGroups')->willReturn([$boardGroup, $staffGroup]);
+		$this->userManager->method('get')->willReturnMap([['dave', $dave]]);
+
+		$this->visibilityService->method('getTargetAttendees')
+			->willReturn(['dave' => $dave]);
+
+		$summary = $this->service->getResponseSummary($appointmentId);
+
+		$this->assertSame(['board'], array_keys($summary['by_group']));
+		$this->assertSame(1, $summary['by_group']['board']['yes']);
+		$this->assertSame(0, $summary['others']['yes']);
+		$this->assertSame([], $summary['others']['responses']);
+	}
 }
