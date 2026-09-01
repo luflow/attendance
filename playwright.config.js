@@ -33,7 +33,7 @@ export default defineConfig({
 		baseURL: process.env.NEXTCLOUD_URL || 'http://localhost:8080',
 		trace: 'on-first-retry',
 		screenshot: 'only-on-failure',
-		video: 'retain-on-failure',
+		video: 'on-first-retry',
 	},
 
 	projects: [

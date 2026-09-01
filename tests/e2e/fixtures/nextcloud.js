@@ -96,9 +96,8 @@ export async function login(page, username, password = null, baseURL = BASE_URL)
 			const stateData = JSON.parse(readFileSync(authStatePath, 'utf-8'))
 			if (stateData.cookies && stateData.cookies.length > 0) {
 				await page.context().addCookies(stateData.cookies)
-				await page.goto(`${baseURL}/apps/dashboard/`)
-				const currentUrl = page.url()
-				if (!currentUrl.includes('/login')) {
+				const probe = await page.request.get(`${baseURL}/apps/dashboard/`, { maxRedirects: 0 })
+				if (probe.status() === 200) {
 					return
 				}
 			}
