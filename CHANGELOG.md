@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.51.2 – 2026-09-01
+
+### Fixed
+
+- **Restricting an appointment no longer collapses the response summary into Others**: a restriction narrows who is asked, the whitelist still decides the sections
+- **Toasts show up styled everywhere**: the dashboard widget and the admin and personal settings were missing the styles @nextcloud/dialogs 7.5.0 now ships itself, and the override keeps toasts in the same corner as the server's
+
+### Maintenance
+
+- Updated npm and composer dependencies
+- Updated translations from Transifex
+
 ## 1.51.1 – 2026-08-28
 
 ### Fixed
