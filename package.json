@@ -56,7 +56,7 @@
     "eslint": "^10.9.1",
     "sass-embedded": "^1.103.1",
     "typescript": "^6.0.3",
-    "vite": "^7.3.6"
+    "vite": "^8.2.2"
   },
   "overrides": {
     "stylelint-config-html": "^1.1.0"
