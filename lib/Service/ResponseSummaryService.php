@@ -144,7 +144,6 @@ class ResponseSummaryService {
 		$visibilitySettings = $this->visibilityService->getVisibilitySettings($appointment);
 		$appointmentHasRestrictions = $this->visibilityService->hasRestrictedVisibility($appointment);
 		$appointmentVisibleGroupsLower = array_map('strtolower', $visibilitySettings['groups']);
-		$appointmentVisibleTeams = $visibilitySettings['teams'];
 
 		// Pre-fetch all users from responses
 		$userIds = array_unique(array_map(fn ($r) => $r->getUserId(), $responses));
@@ -213,22 +212,23 @@ class ResponseSummaryService {
 			// Appointment-specific visibility restrictions
 			'appointmentHasRestrictions' => $appointmentHasRestrictions,
 			'appointmentVisibleGroupsLower' => $appointmentVisibleGroupsLower,
-			'appointmentVisibleTeams' => $appointmentVisibleTeams,
 		];
 	}
 
 	/**
-	 * Check if a group is allowed (using cache).
-	 * Checks both admin whitelist and appointment-specific restrictions.
+	 * Check if a group may appear as a section in the summary (using cache).
+	 *
+	 * Visibility restrictions narrow the audience, not the grouping: a
+	 * configured whitelist alone decides the sections, so restricting access
+	 * to a status group keeps answers grouped by instrument (issue #199).
+	 * Only without a whitelist does a group-restricted appointment group by
+	 * its restriction groups; empty sections are filtered out later.
 	 */
 	private function isGroupAllowedCached(string $groupId, array $cache): bool {
-		// First check: group must be in whitelist (or all groups allowed)
-		$inWhitelist = $cache['allowAllGroups'] || in_array(strtolower($groupId), $cache['whitelistedGroupsLower']);
-		if (!$inWhitelist) {
-			return false;
+		if (!$cache['allowAllGroups']) {
+			return in_array(strtolower($groupId), $cache['whitelistedGroupsLower']);
 		}
 
-		// Second check: if appointment has restrictions, group must be in visible groups
 		if ($cache['appointmentHasRestrictions'] && !empty($cache['appointmentVisibleGroupsLower'])) {
 			return in_array(strtolower($groupId), $cache['appointmentVisibleGroupsLower']);
 		}
@@ -249,24 +249,6 @@ class ResponseSummaryService {
 			return false;
 		}
 		return $this->isGroupAllowedCached($groupId, $cache);
-	}
-
-	/**
-	 * Check if a team is allowed for the appointment (using cache).
-	 * Checks both admin whitelist and appointment-specific restrictions.
-	 */
-	private function isTeamAllowedCached(string $teamId, array $cache): bool {
-		// First check: team must be in whitelist
-		if (!in_array($teamId, $cache['whitelistedTeams'])) {
-			return false;
-		}
-
-		// Second check: if appointment has restrictions, team must be in visible teams
-		if ($cache['appointmentHasRestrictions'] && !empty($cache['appointmentVisibleTeams'])) {
-			return in_array($teamId, $cache['appointmentVisibleTeams']);
-		}
-
-		return true;
 	}
 
 	/**
@@ -340,12 +322,9 @@ class ResponseSummaryService {
 			}
 
 			// Check teams (user can be in both groups AND teams - duplicates allowed)
-			foreach ($cache['whitelistedTeams'] as $teamId) {
-				// Skip teams not allowed for this appointment
-				if (!$this->isTeamAllowedCached($teamId, $cache)) {
-					continue;
-				}
-
+			/** @var list<string> $whitelistedTeams */
+			$whitelistedTeams = $cache['whitelistedTeams'];
+			foreach ($whitelistedTeams as $teamId) {
 				$teamMemberIds = $cache['teamMembers'][$teamId] ?? [];
 				if (in_array($userId, $teamMemberIds)) {
 					$userInWhitelistedTeam = true;
@@ -510,12 +489,9 @@ class ResponseSummaryService {
 		array $respondedUserIds,
 		array $cache,
 	): void {
-		foreach ($cache['whitelistedTeams'] as $teamId) {
-			// Skip teams not allowed for this appointment
-			if (!$this->isTeamAllowedCached($teamId, $cache)) {
-				continue;
-			}
-
+		/** @var list<string> $whitelistedTeams */
+		$whitelistedTeams = $cache['whitelistedTeams'];
+		foreach ($whitelistedTeams as $teamId) {
 			$teamInfo = $cache['teamInfo'][$teamId] ?? null;
 
 			if (!isset($summary['by_team'][$teamId])) {
@@ -583,6 +559,8 @@ class ResponseSummaryService {
 		$othersNonResponding = [];
 		$othersMaybe = [];
 		$skipUnaffiliated = !$cache['appointmentHasRestrictions'];
+		/** @var list<string> $whitelistedTeams */
+		$whitelistedTeams = $cache['whitelistedTeams'];
 
 		/** @var \OCP\IUser $user */
 		foreach ($cache['allUsers'] as $user) {
@@ -611,10 +589,7 @@ class ResponseSummaryService {
 
 			$hasRelevantTeam = false;
 			if (!$hasVisibleGroup) {
-				foreach ($cache['whitelistedTeams'] as $teamId) {
-					if (!$this->isTeamAllowedCached($teamId, $cache)) {
-						continue;
-					}
+				foreach ($whitelistedTeams as $teamId) {
 					$teamMemberIds = $cache['teamMembers'][$teamId] ?? [];
 					if (in_array($userId, $teamMemberIds)) {
 						$hasRelevantTeam = true;
