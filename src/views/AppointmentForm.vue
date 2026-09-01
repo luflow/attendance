@@ -559,8 +559,6 @@ import { usePermissions } from '../composables/usePermissions.js'
 import { categoryIconComponent } from '../utils/categoryIcons.js'
 import { formatGroupLabel } from '../utils/groups.js'
 
-import '@nextcloud/dialogs/style.css'
-
 const props = defineProps({
 	mode: {
 		type: String,
