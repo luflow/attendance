@@ -218,18 +218,16 @@ class ResponseSummaryService {
 	/**
 	 * Check if a group may appear as a section in the summary (using cache).
 	 *
-	 * Visibility restrictions narrow the audience, not the grouping: a
-	 * configured whitelist alone decides the sections, so restricting access
-	 * to a status group keeps answers grouped by instrument (issue #199).
-	 * Only without a whitelist does a group-restricted appointment group by
-	 * its restriction groups; empty sections are filtered out later.
+	 * A configured whitelist alone decides the sections — visibility
+	 * restrictions only narrow the audience (issue #199). Without a whitelist,
+	 * a group-restricted appointment groups by its restriction groups.
 	 */
 	private function isGroupAllowedCached(string $groupId, array $cache): bool {
 		if (!$cache['allowAllGroups']) {
 			return in_array(strtolower($groupId), $cache['whitelistedGroupsLower']);
 		}
 
-		if ($cache['appointmentHasRestrictions'] && !empty($cache['appointmentVisibleGroupsLower'])) {
+		if (!empty($cache['appointmentVisibleGroupsLower'])) {
 			return in_array(strtolower($groupId), $cache['appointmentVisibleGroupsLower']);
 		}
 
@@ -513,9 +511,12 @@ class ResponseSummaryService {
 			$maybeUsers = [];
 
 			foreach ($teamMemberIds as $userId) {
-				// Not an allUsers lookup: on an open appointment with a group
-				// whitelist, team members outside those groups are absent there.
-				if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
+				// Restricted: allUsers is the whole audience. Open with a group
+				// whitelist: team members outside those groups are absent there.
+				$isAttendee = $cache['appointmentHasRestrictions']
+					? isset($cache['allUsers'][$userId])
+					: $this->visibilityService->isUserTargetAttendee($appointment, $userId);
+				if (!$isAttendee) {
 					continue;
 				}
 
