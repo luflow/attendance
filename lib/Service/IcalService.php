@@ -13,6 +13,7 @@ use OCA\Attendance\Db\IcalToken;
 use OCA\Attendance\Db\IcalTokenMapper;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IConfig;
+use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\L10N\IFactory as IL10NFactory;
 use OCP\Security\ISecureRandom;
@@ -153,8 +154,8 @@ class IcalService {
 		$output .= "VERSION:2.0\r\n";
 		$output .= "PRODID:-//Nextcloud//Attendance App//EN\r\n";
 		$output .= "CALSCALE:GREGORIAN\r\n";
-		$output .= 'NAME:' . $this->escapeIcalText($calendarName) . "\r\n";
-		$output .= 'X-WR-CALNAME:' . $this->escapeIcalText($calendarName) . "\r\n";
+		$output .= 'NAME:' . self::escapeIcalText($calendarName) . "\r\n";
+		$output .= 'X-WR-CALNAME:' . self::escapeIcalText($calendarName) . "\r\n";
 		$output .= "REFRESH-INTERVAL;VALUE=DURATION:PT15M\r\n";
 		$output .= "X-PUBLISHED-TTL:PT15M\r\n";
 
@@ -202,7 +203,7 @@ class IcalService {
 		Appointment $appointment,
 		$response,
 		string $userId,
-		$l,
+		IL10N $l,
 		string $domain,
 		array $reminderTriggers = [],
 	): string {
@@ -311,7 +312,7 @@ class IcalService {
 		}
 
 		// Add link to respond
-		$descriptionParts[] = $l->t('View or change your response') . ":\n" . $this->getAppointmentUrl($appointment->getId());
+		$descriptionParts[] = $this->appointmentLinkLine($l, $appointment->getId());
 
 		$description = implode("\n\n", $descriptionParts);
 
@@ -353,15 +354,15 @@ class IcalService {
 		$output .= 'SEQUENCE:' . $sequence . "\r\n";
 		$output .= 'DTSTART:' . $startDt->format('Ymd\THis\Z') . "\r\n";
 		$output .= 'DTEND:' . $endDt->format('Ymd\THis\Z') . "\r\n";
-		$output .= 'SUMMARY:' . $this->escapeIcalText($summary) . "\r\n";
-		$output .= 'DESCRIPTION:' . $this->escapeIcalText($description) . "\r\n";
+		$output .= 'SUMMARY:' . self::escapeIcalText($summary) . "\r\n";
+		$output .= 'DESCRIPTION:' . self::escapeIcalText($description) . "\r\n";
 		$location = $appointment->getLocation();
 		if ($location !== null) {
-			$output .= 'LOCATION:' . $this->escapeIcalText($location) . "\r\n";
+			$output .= 'LOCATION:' . self::escapeIcalText($location) . "\r\n";
 		}
 		$categoryName = $this->resolveCategoryName($appointment->getCategoryId());
 		if ($categoryName !== null) {
-			$output .= 'CATEGORIES:' . $this->escapeIcalText($categoryName) . "\r\n";
+			$output .= 'CATEGORIES:' . self::escapeIcalText($categoryName) . "\r\n";
 		}
 		$output .= 'URL:' . $appointmentUrl . "\r\n";
 		$output .= 'STATUS:' . $status . "\r\n";
@@ -378,7 +379,7 @@ class IcalService {
 				$output .= "BEGIN:VALARM\r\n";
 				$output .= 'TRIGGER:-' . $trigger . "\r\n";
 				$output .= "ACTION:DISPLAY\r\n";
-				$output .= 'DESCRIPTION:' . $this->escapeIcalText($appointment->getName()) . "\r\n";
+				$output .= 'DESCRIPTION:' . self::escapeIcalText($appointment->getName()) . "\r\n";
 				$output .= "END:VALARM\r\n";
 			}
 		}
@@ -411,9 +412,23 @@ class IcalService {
 	}
 
 	/**
-	 * Escape text for iCal format (RFC 5545)
+	 * Labelled deep link, as it appears at the end of a calendar event's
+	 * description. Shared with the organization calendar so both spell the same
+	 * source string — a reword here must not fork into a second one to translate.
+	 *
+	 * @param IL10N $l The language the event is written in
 	 */
-	public function escapeIcalText(string $text): string {
+	public function appointmentLinkLine(IL10N $l, int $appointmentId): string {
+		return $l->t('View or change your response') . ":\n" . $this->getAppointmentUrl($appointmentId);
+	}
+
+	/**
+	 * Escape text for iCal format (RFC 5545)
+	 *
+	 * Static for the same reason as unfoldIcalContent() below: a pure transform
+	 * tests must not have to restate in a stub.
+	 */
+	public static function escapeIcalText(string $text): string {
 		// Escape backslashes first, then other special chars
 		$text = str_replace('\\', '\\\\', $text);
 		$text = str_replace(';', '\\;', $text);

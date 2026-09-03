@@ -88,8 +88,8 @@ class CalendarObjectUpdateListener implements IEventListener {
 			$appointment->setName($summary);
 		}
 		if ($description !== '') {
-			// The app-generated response summary block is calendar-only content
-			$appointment->setDescription(strip_tags(OrgCalendarSyncService::stripResponseSummary($description)));
+			// The app-generated block is calendar-only content
+			$appointment->setDescription(strip_tags(OrgCalendarSyncService::stripAppendedBlock($description)));
 		}
 
 		$dtstart = $vevent->DTSTART ? $vevent->DTSTART->getDateTime() : null;
@@ -167,7 +167,7 @@ class CalendarObjectUpdateListener implements IEventListener {
 						$appointment->setName($summary);
 					}
 					if ($description !== '') {
-						$appointment->setDescription(strip_tags(OrgCalendarSyncService::stripResponseSummary($description)));
+						$appointment->setDescription(strip_tags(OrgCalendarSyncService::stripAppendedBlock($description)));
 					}
 					$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
 					$this->appointmentMapper->update($appointment);
