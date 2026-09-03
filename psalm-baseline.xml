@@ -1792,7 +1792,6 @@
       <code><![CDATA[getUserValue]]></code>
     </DeprecatedMethod>
     <MissingParamType>
-      <code><![CDATA[$l]]></code>
       <code><![CDATA[$response]]></code>
     </MissingParamType>
     <MixedArgument>
@@ -1802,7 +1801,6 @@
     </MixedArgument>
     <MixedArgumentTypeCoercion>
       <code><![CDATA[$attachmentLines]]></code>
-      <code><![CDATA[$descriptionParts]]></code>
     </MixedArgumentTypeCoercion>
     <MixedArrayOffset>
       <code><![CDATA[$attachmentUrls[$attachment->getFileId()]]]></code>
@@ -1816,13 +1814,9 @@
       <code><![CDATA[$attachment]]></code>
       <code><![CDATA[$attachment]]></code>
       <code><![CDATA[$attachmentLines[]]]></code>
-      <code><![CDATA[$descriptionParts[]]]></code>
       <code><![CDATA[$instanceName]]></code>
       <code><![CDATA[$responseComment]]></code>
-      <code><![CDATA[$responseLabel]]></code>
       <code><![CDATA[$responseState]]></code>
-      <code><![CDATA[$statusLabel]]></code>
-      <code><![CDATA[$statusLabel]]></code>
     </MixedAssignment>
     <MixedMethodCall>
       <code><![CDATA[getComment]]></code>
@@ -1834,32 +1828,11 @@
       <code><![CDATA[getRespondedAt]]></code>
       <code><![CDATA[getRespondedAt]]></code>
       <code><![CDATA[getResponse]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
     </MixedMethodCall>
     <MixedOperand>
       <code><![CDATA[$attachment->getFileId()]]></code>
       <code><![CDATA[$instanceName]]></code>
-      <code><![CDATA[$l->t('Attachments')]]></code>
-      <code><![CDATA[$l->t('Cancelled')]]></code>
-      <code><![CDATA[$l->t('Me')]]></code>
-      <code><![CDATA[$l->t('Me')]]></code>
-      <code><![CDATA[$l->t('View or change your response')]]></code>
-      <code><![CDATA[$l->t('Your response')]]></code>
       <code><![CDATA[$responseComment]]></code>
-      <code><![CDATA[$responseLabel]]></code>
-      <code><![CDATA[$responseLabel]]></code>
-      <code><![CDATA[$statusLabel]]></code>
     </MixedOperand>
     <PossiblyFalseArgument>
       <code><![CDATA[$domain]]></code>

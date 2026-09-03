@@ -142,8 +142,8 @@ class OrgCalendarSyncServiceTest extends TestCase {
 	private FakeCalDavBackend $backend;
 	private TestableOrgCalendarSyncService $service;
 
-	/** Deep link line the app block ends with, as it appears in the escaped ICS */
-	private const LINK_LINE = 'View or change your response:\nhttps://cloud.example.com/apps/attendance/#/appointment/5';
+	/** Deep link line the app block ends with, unescaped */
+	private const LINK_LINE = "View or change your response:\nhttps://cloud.example.com/apps/attendance/#/appointment/5";
 
 	protected function setUp(): void {
 		$this->calendarService = $this->createMock(CalendarService::class);
@@ -155,14 +155,12 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->categoryMapper = $this->createMock(CategoryMapper::class);
 		$this->backend = new FakeCalDavBackend();
 
-		// Only the newline part of the real escaping is reproduced — it is what
-		// keeps a multi-line DESCRIPTION on one ICS content line.
-		$this->icalService->method('escapeIcalText')->willReturnCallback(
-			fn (string $text) => str_replace(["\r\n", "\r", "\n"], '\\n', $text),
-		);
 		$this->icalService->method('foldIcalContent')->willReturnArgument(0);
 		$this->icalService->method('getAppointmentUrl')
 			->willReturnCallback(fn (int $id) => 'https://cloud.example.com/apps/attendance/#/appointment/' . $id);
+		$this->icalService->method('appointmentLinkLine')->willReturnCallback(
+			fn (IL10N $l, int $id) => "View or change your response:\nhttps://cloud.example.com/apps/attendance/#/appointment/$id",
+		);
 
 		$this->urlGenerator->method('getAbsoluteURL')->willReturn('https://cloud.example.com/');
 
@@ -171,7 +169,6 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		);
 
 		$l10n = $this->createMock(IL10N::class);
-		$l10n->method('t')->willReturnArgument(0);
 		$l10n->method('n')->willReturnCallback(
 			fn (string $singular, string $plural, int $count) => str_replace('%n', (string)$count, $count === 1 ? $singular : $plural),
 		);
@@ -399,7 +396,7 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$ics = $this->backend->updated[0][2];
 		$this->assertStringNotContainsString('Old text', $ics);
 		$this->assertStringContainsString(
-			'DESCRIPTION:' . OrgCalendarSyncService::BLOCK_SEPARATOR . '\n' . self::LINK_LINE,
+			'DESCRIPTION:' . IcalService::escapeIcalText(OrgCalendarSyncService::BLOCK_SEPARATOR . "\n" . self::LINK_LINE),
 			$ics,
 		);
 	}
@@ -456,77 +453,86 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->assertStringNotContainsString('CATEGORIES:', $this->backend->updated[0][2]);
 	}
 
-	public function testResponseSummaryIsAppendedBehindMarker(): void {
-		$this->configureEnabled();
-		$appointment = $this->buildAppointment();
-		$this->appointmentMapper->method('update')->willReturnArgument(0);
-		$this->responseSummary = ['yes' => 2, 'no' => 1, 'maybe' => 1];
+	/**
+	 * @return array<string, array{0: string, 1: bool, 2: array<string, int>, 3: string}>
+	 */
+	public static function descriptionProvider(): array {
+		$marker = OrgCalendarSyncService::BLOCK_SEPARATOR;
+		$link = self::LINK_LINE;
 
-		$this->assertTrue($this->service->syncAppointment($appointment));
-		$ics = $this->backend->created[0][2];
-
-		$this->assertStringContainsString(
-			'DESCRIPTION:Bring instruments\n\n'
-			. OrgCalendarSyncService::BLOCK_SEPARATOR
-			. '\n2 attending, 1 declined, 1 maybe\n' . self::LINK_LINE,
-			$ics,
-		);
-	}
-
-	public function testBlockCarriesTheLinkWithoutResponses(): void {
-		$this->configureEnabled();
-		$appointment = $this->buildAppointment();
-		$this->appointmentMapper->method('update')->willReturnArgument(0);
-		$this->responseSummary = ['yes' => 0, 'no' => 0, 'maybe' => 0];
-
-		$this->assertTrue($this->service->syncAppointment($appointment));
-		$ics = $this->backend->created[0][2];
-
-		$this->assertStringContainsString(
-			'DESCRIPTION:Bring instruments\n\n'
-			. OrgCalendarSyncService::BLOCK_SEPARATOR . '\n' . self::LINK_LINE,
-			$ics,
-		);
-		$this->assertStringNotContainsString('attending', $ics);
+		return [
+			'summary and link behind the marker' => [
+				'Bring instruments', true, ['yes' => 2, 'no' => 1, 'maybe' => 1],
+				"Bring instruments\n\n$marker\n2 attending, 1 declined, 1 maybe\n$link",
+			],
+			'link alone while nobody has responded' => [
+				'Bring instruments', true, ['yes' => 0, 'no' => 0, 'maybe' => 0],
+				"Bring instruments\n\n$marker\n$link",
+			],
+			// The switch buys quiet from the per-answer write; the link never changes
+			'link survives the summary switch' => [
+				'Bring instruments', false, ['yes' => 2, 'no' => 1, 'maybe' => 1],
+				"Bring instruments\n\n$marker\n$link",
+			],
+			'block is the whole description' => [
+				'', true, [], "$marker\n$link",
+			],
+		];
 	}
 
 	/**
-	 * An appointment without a description starts straight with the block —
-	 * no leading blank line.
+	 * @dataProvider descriptionProvider
+	 *
+	 * @param array<string, int> $counts
 	 */
-	public function testBlockIsTheWholeDescriptionWhenTheAppointmentHasNone(): void {
-		$this->configureEnabled();
+	public function testEventDescription(string $appointmentDescription, bool $summaryEnabled, array $counts, string $expected): void {
+		$this->configureEnabled($summaryEnabled);
 		$appointment = $this->buildAppointment();
-		$appointment->setDescription('');
+		$appointment->setDescription($appointmentDescription);
 		$this->appointmentMapper->method('update')->willReturnArgument(0);
+		$this->responseSummary = $counts;
 
 		$this->assertTrue($this->service->syncAppointment($appointment));
 
 		$this->assertStringContainsString(
-			'DESCRIPTION:' . OrgCalendarSyncService::BLOCK_SEPARATOR . '\n' . self::LINK_LINE,
+			'DESCRIPTION:' . IcalService::escapeIcalText($expected) . "\r\n",
 			$this->backend->created[0][2],
 		);
 	}
 
 	/**
-	 * The summary switch buys quiet from the per-answer write; the link never
-	 * changes, so switching the summary off must not take it away.
+	 * The marker earns its keep only if the strip is the exact inverse of what
+	 * the sync appends — assert the round trip rather than two hand-written
+	 * halves that can drift apart.
 	 */
-	public function testSummaryOmittedWhenTheAdminSwitchedItOff(): void {
-		$this->configureEnabled(false);
+	public function testEverythingTheSyncAppendsIsStrippedAgain(): void {
+		$this->configureEnabled();
 		$appointment = $this->buildAppointment();
 		$this->appointmentMapper->method('update')->willReturnArgument(0);
 		$this->responseSummary = ['yes' => 2, 'no' => 1, 'maybe' => 1];
 
 		$this->assertTrue($this->service->syncAppointment($appointment));
 
-		$ics = $this->backend->created[0][2];
-		$this->assertStringNotContainsString('attending', $ics);
-		$this->assertStringContainsString(
-			'DESCRIPTION:Bring instruments\n\n'
-			. OrgCalendarSyncService::BLOCK_SEPARATOR . '\n' . self::LINK_LINE,
-			$ics,
-		);
+		$written = $this->descriptionOf($this->backend->created[0][2]);
+		$this->assertSame('Bring instruments', OrgCalendarSyncService::stripAppendedBlock($written));
+	}
+
+	/**
+	 * The DESCRIPTION of a written event, unescaped back to plain text — the
+	 * shape Sabre hands the listener.
+	 */
+	private function descriptionOf(string $ics): string {
+		foreach (IcalService::unfoldIcalContent($ics) as $line) {
+			if (IcalService::icalPropertyName($line) === 'DESCRIPTION') {
+				$escaped = substr($line, strlen('DESCRIPTION:'));
+				return preg_replace_callback(
+					'/\\\\(.)/',
+					fn (array $m) => $m[1] === 'n' ? "\n" : $m[1],
+					$escaped,
+				) ?? $escaped;
+			}
+		}
+		$this->fail('no DESCRIPTION in the written event');
 	}
 
 	/**
@@ -603,9 +609,7 @@ class OrgCalendarSyncServiceTest extends TestCase {
 
 	public function testStripAppendedBlock(): void {
 		$block = OrgCalendarSyncService::BLOCK_SEPARATOR
-			. "\n2 attending, 1 declined, 1 maybe"
-			. "\nView or change your response:"
-			. "\nhttps://cloud.example.com/apps/attendance/#/appointment/5";
+			. "\n2 attending, 1 declined, 1 maybe\n" . self::LINK_LINE;
 
 		$this->assertSame('Bring instruments', OrgCalendarSyncService::stripAppendedBlock("Bring instruments\n\n" . $block));
 

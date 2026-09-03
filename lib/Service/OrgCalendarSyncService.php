@@ -111,7 +111,7 @@ class OrgCalendarSyncService {
 		}
 
 		if (isset($orgCalendar['summary'])) {
-			// Backfill in both directions: switching off has to take the block
+			// Backfill in both directions: switching off has to take the summary
 			// out of the events that already carry it, not just stop adding it.
 			$changed = $changed || $this->configService->isOrgCalendarSummaryEnabled() !== $orgCalendar['summary'];
 			$this->configService->setOrgCalendarSummaryEnabled($orgCalendar['summary']);
@@ -440,7 +440,7 @@ class OrgCalendarSyncService {
 
 	/**
 	 * The VEVENT properties the app owns, as full unfolded lines.
-	 * A null value means the property must be absent (e.g. empty description).
+	 * A null value means the property must be absent (e.g. an unset location).
 	 *
 	 * @return array<string, ?string> property name => line
 	 */
@@ -458,13 +458,13 @@ class OrgCalendarSyncService {
 			'LAST-MODIFIED' => 'LAST-MODIFIED:' . $lastModified->format('Ymd\THis\Z'),
 			'DTSTART' => 'DTSTART:' . $start->format('Ymd\THis\Z'),
 			'DTEND' => 'DTEND:' . $end->format('Ymd\THis\Z'),
-			'SUMMARY' => 'SUMMARY:' . $this->icalService->escapeIcalText($appointment->getName()),
-			'DESCRIPTION' => 'DESCRIPTION:' . $this->icalService->escapeIcalText($this->buildDescription($appointment)),
+			'SUMMARY' => 'SUMMARY:' . IcalService::escapeIcalText($appointment->getName()),
+			'DESCRIPTION' => 'DESCRIPTION:' . IcalService::escapeIcalText($this->buildDescription($appointment)),
 			'LOCATION' => $location !== null
-				? 'LOCATION:' . $this->icalService->escapeIcalText($location)
+				? 'LOCATION:' . IcalService::escapeIcalText($location)
 				: null,
 			'CATEGORIES' => $categoryName !== null
-				? 'CATEGORIES:' . $this->icalService->escapeIcalText($categoryName)
+				? 'CATEGORIES:' . IcalService::escapeIcalText($categoryName)
 				: null,
 			'STATUS' => 'STATUS:' . ($appointment->isCancelled() ? 'CANCELLED' : 'CONFIRMED'),
 		];
@@ -488,28 +488,21 @@ class OrgCalendarSyncService {
 	/**
 	 * Event DESCRIPTION = plain appointment description, plus the app block
 	 * behind the BLOCK_SEPARATOR marker: the response summary when anybody
-	 * responded (the "who is coming" visibility agreed in issue #71) and a link
-	 * into the app, where an attendee can read the details and answer (#205).
+	 * responded (issue #71) and a link into the app to answer (issue #205).
 	 *
-	 * The link is deliberately outside the summary switch: that switch buys
-	 * quiet by keeping a write per answer out of the calendar, and the link
-	 * never changes, so it costs nothing to carry.
+	 * Only the summary sits behind the summary switch — the link never changes,
+	 * so carrying it costs no extra write.
 	 */
 	private function buildDescription(Appointment $appointment): string {
 		$description = trim($appointment->getDescription() ?? '');
-
-		$block = [];
-		if ($this->configService->isOrgCalendarSummaryEnabled()) {
-			$summary = $this->buildResponseSummary($appointment);
-			if ($summary !== null) {
-				$block[] = $summary;
-			}
-		}
-		$block[] = $this->getL10N()->t('View or change your response') . ":\n"
-			. $this->icalService->getAppointmentUrl($appointment->getId());
+		$summary = $this->configService->isOrgCalendarSummaryEnabled()
+			? $this->buildResponseSummary($appointment)
+			: null;
 
 		return ($description !== '' ? $description . "\n\n" : '')
-			. self::BLOCK_SEPARATOR . "\n" . implode("\n", $block);
+			. self::BLOCK_SEPARATOR . "\n"
+			. ($summary !== null ? $summary . "\n" : '')
+			. $this->icalService->appointmentLinkLine($this->getL10N(), $appointment->getId());
 	}
 
 	/**

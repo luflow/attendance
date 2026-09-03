@@ -1,4 +1,5 @@
 import {
+	BASE_URL,
 	cancelAppointmentViaAPI,
 	createAppointmentViaAPI,
 	deleteAppointmentViaAPI,
@@ -205,7 +206,7 @@ test.describe('Attendance App - Organization calendar', () => {
 	})
 
 	test.describe('Calendar to app sync of pushed events', () => {
-		test('calendar edit syncs back without leaking the summary block', async ({ request }) => {
+		test('calendar edit syncs back without leaking the app block', async ({ request }) => {
 			await saveAdminSettings(request, { calendarSync: { enabled: true } })
 
 			const appointment = await createAppointmentViaAPI(request, {
@@ -216,15 +217,16 @@ test.describe('Attendance App - Organization calendar', () => {
 			await respondToAppointmentViaAPI(request, appointment.id, { response: 'yes' })
 
 			// Edit the pushed event in the calendar: new title, and a description
-			// that still contains the app-generated summary block (as it would
-			// after editing the text above the marker in the Calendar app)
+			// that still carries the whole app block (as it would after editing
+			// the text above the marker in the Calendar app)
 			const start = new Date(Date.now() + 21 * 24 * 60 * 60 * 1000)
 			start.setHours(10, 0, 0, 0)
 			const end = new Date(start.getTime() + 60 * 60 * 1000)
 			await updateCalendarEvent(request, {
 				uid: appointment.calendarEventUid,
 				summary: 'Org Roundtrip Edited',
-				description: 'Edited text\\n\\n--- Attendance ---\\n1 attending\\, 0 declined\\, 0 maybe',
+				description: 'Edited text\\n\\n--- Attendance ---\\n1 attending\\, 0 declined\\, 0 maybe'
+					+ `\\nView or change your response:\\n${BASE_URL}/apps/attendance/#/appointment/${appointment.id}`,
 				dtstart: toICalDate(start),
 				dtend: toICalDate(end),
 				calendarName: CALENDAR_NAME,
@@ -233,7 +235,7 @@ test.describe('Attendance App - Organization calendar', () => {
 			const appointments = await listAppointmentsViaAPI(request, { showPast: false })
 			const synced = appointments.find((a) => a.id === appointment.id)
 			expect(synced.name).toBe('Org Roundtrip Edited')
-			// The summary block was stripped before writing back
+			// The whole app block was stripped before writing back
 			expect(synced.description).toBe('Edited text')
 
 			await deleteAppointmentViaAPI(request, appointment.id)
