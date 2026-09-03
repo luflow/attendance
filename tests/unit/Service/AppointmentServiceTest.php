@@ -11,10 +11,12 @@ use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Db\Category;
 use OCA\Attendance\Db\CategoryMapper;
+use OCA\Attendance\Service\AppointmentSerializer;
 use OCA\Attendance\Service\AppointmentService;
 use OCA\Attendance\Service\AttachmentService;
 use OCA\Attendance\Service\AuditEventService;
 use OCA\Attendance\Service\BookingService;
+use OCA\Attendance\Service\CapacityService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\DeadlineUpdate;
 use OCA\Attendance\Service\GuestService;
@@ -87,6 +89,7 @@ class AppointmentServiceTest extends TestCase {
 	private $talkRoomService;
 
 	private ResponsePolicyService $responsePolicyService;
+	private CapacityService $capacityService;
 
 	private AppointmentService $service;
 
@@ -112,7 +115,12 @@ class AppointmentServiceTest extends TestCase {
 		// The real policy, not a mock: the guard is the thing these tests need to
 		// see fire. Appointments offer all three answers unless one opts out.
 		$this->configService->method('isMaybeAllowed')->willReturn(true);
-		$this->responsePolicyService = new ResponsePolicyService($this->configService);
+		$this->capacityService = new CapacityService(
+			$this->responseMapper,
+			$this->notificationService,
+			$this->auditEventService,
+		);
+		$this->responsePolicyService = new ResponsePolicyService($this->configService, $this->capacityService);
 
 		$this->service = new AppointmentService(
 			$this->appointmentMapper,
@@ -134,6 +142,8 @@ class AppointmentServiceTest extends TestCase {
 			$this->categoryMapper,
 			$this->talkRoomService,
 			$this->responsePolicyService,
+			$this->capacityService,
+			new AppointmentSerializer($this->responsePolicyService, $this->capacityService),
 		);
 	}
 

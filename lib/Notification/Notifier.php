@@ -241,6 +241,37 @@ class Notifier implements INotifier {
 					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
 				));
 				return $notification;
+			case 'waitlist_promoted':
+			case 'waitlist_not_promoted':
+				$parameters = $notification->getSubjectParameters();
+				$appointmentName = (string)($parameters['name'] ?? 'Unknown');
+				$appointmentDate = $this->formatDateForUser(
+					(string)($parameters['startDatetime'] ?? $parameters['date'] ?? ''),
+					$notification->getUser()
+				);
+				if ($notification->getSubject() === 'waitlist_promoted') {
+					$notification->setParsedSubject(
+						// TRANSLATORS Push notification subject: the appointment was full when the person answered, a spot has now come free and they have it. %1$s is the appointment name, %2$s the date.
+						$l->t('A spot came free for %1$s on %2$s', [$appointmentName, $appointmentDate])
+					);
+					$notification->setParsedMessage(
+						// TRANSLATORS Push notification body, shown under a subject that already says a spot came free. Nobody clicked anything to make this happen — the person was waiting and moved up — so say plainly that they are in now. Sample German: "Du warst auf der Warteliste und bist jetzt dabei. Bitte halte dir den Termin frei."
+						$l->t('You were on the waitlist and are in now. Please plan to be there.')
+					);
+				} else {
+					$notification->setParsedSubject(
+						// TRANSLATORS Push notification subject: the appointment closed while the person was still waiting for a spot. %1$s is the appointment name, %2$s the date.
+						$l->t('No spot came free for %1$s on %2$s', [$appointmentName, $appointmentDate])
+					);
+					$notification->setParsedMessage(
+						// TRANSLATORS Push notification body, shown under a subject that already says no spot came free. The point is to release the person from holding the date — without this they keep the evening free for nothing. The app speaks as "we", the people organizing. Sample German: "Der Termin ist voll geblieben, du musst dir den Tag nicht mehr freihalten. Danke für deine Antwort."
+						$l->t('The appointment stayed full, so you no longer need to keep the date free. Thanks for answering.')
+					);
+				}
+				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
+					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
+				));
+				return $notification;
 			case 'response_submitted':
 			case 'response_changed':
 			case 'response_rescinded':

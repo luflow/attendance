@@ -59,6 +59,10 @@ use OCP\AppFramework\Db\Entity;
  * @method void setTalkRoomToken(?string $talkRoomToken)
  * @method bool|null getAllowMaybe()
  * @method void setAllowMaybe(?bool $allowMaybe)
+ * @method int|null getMaxAttendees()
+ * @method void setMaxAttendees(?int $maxAttendees)
+ * @method bool getWaitlistEnabled()
+ * @method void setWaitlistEnabled(bool $waitlistEnabled)
  */
 class Appointment extends Entity implements JsonSerializable {
 	use DatetimeFormatTrait;
@@ -87,6 +91,8 @@ class Appointment extends Entity implements JsonSerializable {
 	protected $createTalkRoom = false;
 	protected $talkRoomToken = null;
 	protected $allowMaybe = null;
+	protected $maxAttendees = null;
+	protected $waitlistEnabled = true;
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -115,6 +121,8 @@ class Appointment extends Entity implements JsonSerializable {
 		$this->addType('createTalkRoom', 'boolean');
 		$this->addType('talkRoomToken', 'string');
 		$this->addType('allowMaybe', 'boolean');
+		$this->addType('maxAttendees', 'integer');
+		$this->addType('waitlistEnabled', 'boolean');
 	}
 
 	public function jsonSerialize(): array {
@@ -148,6 +156,8 @@ class Appointment extends Entity implements JsonSerializable {
 			// Tri-state in the column, resolved against the instance default
 			// before it reaches a client — see AppointmentService::serializeAppointment().
 			'allowMaybe' => $this->getAllowMaybe(),
+			'maxAttendees' => $this->getMaxAttendees(),
+			'waitlistEnabled' => $this->getWaitlistEnabled(),
 		];
 	}
 

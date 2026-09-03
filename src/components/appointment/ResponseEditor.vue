@@ -56,6 +56,14 @@
 		</div>
 
 		<div
+			v-if="capacityNotice"
+			class="response-editor__capacity"
+			data-test="capacity-notice">
+			<AccountGroupIcon :size="15" />
+			<span>{{ capacityNotice }}</span>
+		</div>
+
+		<div
 			v-if="formattedDeadline"
 			class="response-editor__deadline"
 			data-test="deadline-info">
@@ -68,6 +76,7 @@
 <script setup>
 import { NcButton, NcInputField } from '@nextcloud/vue'
 import { computed, nextTick, ref, watch } from 'vue'
+import AccountGroupIcon from 'vue-material-design-icons/AccountGroup.vue'
 import CheckCircle from 'vue-material-design-icons/CheckCircle.vue'
 import ClockIcon from 'vue-material-design-icons/Clock.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
@@ -104,6 +113,26 @@ const props = defineProps({
 		type: Array,
 		default: () => RESPONSE_ORDER,
 	},
+	// The appointment has an attendance limit and it is taken.
+	isFull: {
+		type: Boolean,
+		default: false,
+	},
+	// This person's yes is a place in line rather than a spot.
+	waitlisted: {
+		type: Boolean,
+		default: false,
+	},
+	// Their place in line, counted from 1.
+	waitlistPosition: {
+		type: Number,
+		default: null,
+	},
+	// A full appointment can turn people away instead of queueing them.
+	waitlistEnabled: {
+		type: Boolean,
+		default: false,
+	},
 })
 
 const emit = defineEmits(['submitResponse'])
@@ -111,12 +140,35 @@ const emit = defineEmits(['submitResponse'])
 // Labels, variants and glyphs all come from the shared response helpers, so
 // the buttons carry the same filled circles the sidebar uses.
 const ICONS = { CheckCircle, HelpCircle, CloseCircle }
-const options = computed(() => props.responseOptions.map((value) => ({
-	value,
-	label: getResponseText(value),
-	variant: getResponseVariant(value),
-	icon: ICONS[getResponseIcon(value)],
-})))
+// Somebody who has not got a spot is offered the queue instead of a yes, so
+// the button says what the click will actually do. "No" is never taken away:
+// declining a full appointment is information the organizer wants.
+const joiningWaitlist = computed(() => props.isFull && props.waitlistEnabled && props.userResponse !== 'yes')
+
+const options = computed(() => props.responseOptions
+	.filter((value) => value !== 'yes' || !props.isFull || props.waitlistEnabled || props.userResponse === 'yes')
+	.map((value) => ({
+		value,
+		label: value === 'yes' && joiningWaitlist.value
+			? t('attendance', 'Join waitlist')
+			: getResponseText(value),
+		variant: getResponseVariant(value),
+		icon: ICONS[getResponseIcon(value)],
+	})))
+
+const capacityNotice = computed(() => {
+	if (props.waitlisted) {
+		return props.waitlistPosition
+			? t('attendance', 'You are number {position} on the waitlist', { position: props.waitlistPosition })
+			: t('attendance', 'You are on the waitlist')
+	}
+	if (props.isFull && props.userResponse !== 'yes') {
+		return props.waitlistEnabled
+			? t('attendance', 'This appointment is full. Join the waitlist to take the next free spot.')
+			: t('attendance', 'This appointment is full.')
+	}
+	return ''
+})
 
 const buttonSize = computed(() => (props.compact ? 'small' : 'normal'))
 
@@ -127,7 +179,11 @@ const { responseCooldown, resolveNext, startCooldown } = useResponseCooldown(() 
 function handleResponse(response) {
 	if (responseCooldown.value) return
 	startCooldown()
-	emit('submitResponse', props.appointmentId, resolveNext(response))
+	const next = resolveNext(response)
+	// Only a click on the button that says "Join waitlist" carries the intent.
+	// Without it a yes on an appointment that filled up since the page loaded is
+	// refused, rather than quietly turning into a place in line.
+	emit('submitResponse', props.appointmentId, next, next === 'yes' && joiningWaitlist.value)
 }
 
 // The extractor needs the NBSP before the ellipsis (Nextcloud l10n rule).
@@ -234,6 +290,14 @@ async function saveComment() {
             flex: 1;
             min-width: 0;
         }
+    }
+
+    &__capacity {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: var(--color-text-maxcontrast);
     }
 
     &__deadline {

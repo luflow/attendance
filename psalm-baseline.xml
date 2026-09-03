@@ -133,8 +133,7 @@
       <code><![CDATA[new DataResponse($results)]]></code>
     </MixedReturnTypeCoercion>
     <PossiblyUnusedParam>
-      <code><![CDATA[$id]]></code>
-      <code><![CDATA[$id]]></code>
+      <code><![CDATA[$acceptWaitlist]]></code>
       <code><![CDATA[$allowMaybe]]></code>
       <code><![CDATA[$allowMaybe]]></code>
       <code><![CDATA[$appointmentId]]></code>
@@ -173,9 +172,13 @@
       <code><![CDATA[$id]]></code>
       <code><![CDATA[$id]]></code>
       <code><![CDATA[$id]]></code>
+      <code><![CDATA[$id]]></code>
+      <code><![CDATA[$id]]></code>
       <code><![CDATA[$includeComments]]></code>
       <code><![CDATA[$location]]></code>
       <code><![CDATA[$location]]></code>
+      <code><![CDATA[$maxAttendees]]></code>
+      <code><![CDATA[$maxAttendees]]></code>
       <code><![CDATA[$name]]></code>
       <code><![CDATA[$name]]></code>
       <code><![CDATA[$notScheduledOut]]></code>
@@ -184,11 +187,11 @@
       <code><![CDATA[$organizers]]></code>
       <code><![CDATA[$organizers]]></code>
       <code><![CDATA[$organizers]]></code>
+      <code><![CDATA[$response]]></code>
+      <code><![CDATA[$response]]></code>
+      <code><![CDATA[$response]]></code>
       <code><![CDATA[$responseDeadline]]></code>
       <code><![CDATA[$responseDeadline]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
       <code><![CDATA[$scope]]></code>
       <code><![CDATA[$scope]]></code>
       <code><![CDATA[$sendNotification]]></code>
@@ -197,9 +200,9 @@
       <code><![CDATA[$startDate]]></code>
       <code><![CDATA[$startDatetime]]></code>
       <code><![CDATA[$startDatetime]]></code>
-      <code><![CDATA[$targetUserId]]></code>
-      <code><![CDATA[$targetUserId]]></code>
       <code><![CDATA[$target]]></code>
+      <code><![CDATA[$targetUserId]]></code>
+      <code><![CDATA[$targetUserId]]></code>
       <code><![CDATA[$unansweredOnly]]></code>
       <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
@@ -210,6 +213,8 @@
       <code><![CDATA[$visibleTeams]]></code>
       <code><![CDATA[$visibleUsers]]></code>
       <code><![CDATA[$visibleUsers]]></code>
+      <code><![CDATA[$waitlistEnabled]]></code>
+      <code><![CDATA[$waitlistEnabled]]></code>
     </PossiblyUnusedParam>
     <UndefinedDocblockClass>
       <code><![CDATA[DataResponse<Http::STATUS_CREATED, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>]]></code>
@@ -217,6 +222,8 @@
       <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
       <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
       <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
+      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>]]></code>
+      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>]]></code>
       <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceAppointmentData|list<AttendanceAppointmentData>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
       <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceAppointmentWithResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
       <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceCapabilities, array{}>]]></code>
@@ -239,8 +246,6 @@
       <code><![CDATA[DataResponse<Http::STATUS_OK, list<AttendanceAppointmentWithResponse>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>]]></code>
       <code><![CDATA[DataResponse<Http::STATUS_OK, list<AttendanceResponseWithUser>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
       <code><![CDATA[list<AttendanceBulkAppointmentItem>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>]]></code>
     </UndefinedDocblockClass>
     <UnusedClass>
       <code><![CDATA[AppointmentController]]></code>
@@ -293,9 +298,9 @@
       <code><![CDATA[$name]]></code>
     </PossiblyUnusedParam>
     <UndefinedDocblockClass>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, list<AttendanceCategoryData>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>]]></code>
       <code><![CDATA[DataResponse<Http::STATUS_CREATED, AttendanceCategoryData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>]]></code>
       <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceCategoryData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
+      <code><![CDATA[DataResponse<Http::STATUS_OK, list<AttendanceCategoryData>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>]]></code>
     </UndefinedDocblockClass>
     <UnusedClass>
       <code><![CDATA[CategoryController]]></code>
@@ -430,6 +435,7 @@
       <code><![CDATA[$endDatetime]]></code>
       <code><![CDATA[$isActive]]></code>
       <code><![CDATA[$location]]></code>
+      <code><![CDATA[$maxAttendees]]></code>
       <code><![CDATA[$name]]></code>
       <code><![CDATA[$organizers]]></code>
       <code><![CDATA[$responseDeadline]]></code>
@@ -442,6 +448,7 @@
       <code><![CDATA[$visibleGroups]]></code>
       <code><![CDATA[$visibleTeams]]></code>
       <code><![CDATA[$visibleUsers]]></code>
+      <code><![CDATA[$waitlistEnabled]]></code>
     </MissingPropertyType>
     <MixedArgument>
       <code><![CDATA[$this->parseJsonField($this->getOrganizers())]]></code>
@@ -463,6 +470,7 @@
       <code><![CDATA[$endDatetime]]></code>
       <code><![CDATA[$isActive]]></code>
       <code><![CDATA[$location]]></code>
+      <code><![CDATA[$maxAttendees]]></code>
       <code><![CDATA[$name]]></code>
       <code><![CDATA[$organizers]]></code>
       <code><![CDATA[$responseDeadline]]></code>
@@ -475,6 +483,7 @@
       <code><![CDATA[$visibleGroups]]></code>
       <code><![CDATA[$visibleTeams]]></code>
       <code><![CDATA[$visibleUsers]]></code>
+      <code><![CDATA[$waitlistEnabled]]></code>
     </PossiblyUnusedProperty>
     <PropertyNotSetInConstructor>
       <code><![CDATA[Appointment]]></code>
@@ -567,7 +576,10 @@
       <code><![CDATA[$respondedAt]]></code>
       <code><![CDATA[$response]]></code>
       <code><![CDATA[$responseSource]]></code>
+      <code><![CDATA[$spotClaimedAt]]></code>
       <code><![CDATA[$userId]]></code>
+      <code><![CDATA[$waitlistNotifiedAt]]></code>
+      <code><![CDATA[$waitlistNotifiedStatus]]></code>
     </MissingPropertyType>
     <PossiblyUnusedProperty>
       <code><![CDATA[$appointmentId]]></code>
@@ -583,7 +595,10 @@
       <code><![CDATA[$respondedAt]]></code>
       <code><![CDATA[$response]]></code>
       <code><![CDATA[$responseSource]]></code>
+      <code><![CDATA[$spotClaimedAt]]></code>
       <code><![CDATA[$userId]]></code>
+      <code><![CDATA[$waitlistNotifiedAt]]></code>
+      <code><![CDATA[$waitlistNotifiedStatus]]></code>
     </PossiblyUnusedProperty>
     <PropertyNotSetInConstructor>
       <code><![CDATA[AttendanceResponse]]></code>
@@ -1277,6 +1292,19 @@
       <code><![CDATA[Version000023Date20260903120000]]></code>
     </UnusedClass>
   </file>
+  <file src="lib/Migration/Version000024Date20260903130000.php">
+    <UnusedClass>
+      <code><![CDATA[Version000024Date20260903130000]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Service/AppointmentSerializer.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[AppointmentSerializer]]></code>
+    </ClassMustBeFinal>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
   <file src="lib/Service/AppointmentService.php">
     <ArgumentTypeCoercion>
       <code><![CDATA[$siblings]]></code>
@@ -1347,10 +1375,6 @@
     <MixedOperand>
       <code><![CDATA[$result['id']]]></code>
     </MixedOperand>
-    <MixedReturnTypeCoercion>
-      <code><![CDATA[$data]]></code>
-      <code><![CDATA[array<string, mixed>|null]]></code>
-    </MixedReturnTypeCoercion>
     <PossiblyFalseArgument>
       <code><![CDATA[$normalized === [] ? null : json_encode($normalized)]]></code>
       <code><![CDATA[$visibleGroupsJson]]></code>
@@ -1540,6 +1564,14 @@
       <code><![CDATA[__construct]]></code>
     </PossiblyUnusedMethod>
   </file>
+  <file src="lib/Service/CapacityService.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[CapacityService]]></code>
+    </ClassMustBeFinal>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
   <file src="lib/Service/CategoryService.php">
     <ClassMustBeFinal>
       <code><![CDATA[CategoryService]]></code>
@@ -1563,19 +1595,7 @@
       <code><![CDATA[$userId]]></code>
       <code><![CDATA[$whitelistedGroups]]></code>
     </MixedArgument>
-    <MixedArrayAccess>
-      <code><![CDATA[$responseData['checkinAt']]]></code>
-      <code><![CDATA[$responseData['checkinBy']]]></code>
-      <code><![CDATA[$responseData['checkinComment']]]></code>
-      <code><![CDATA[$responseData['checkinSource']]]></code>
-      <code><![CDATA[$responseData['checkinState']]]></code>
-      <code><![CDATA[$responseData['comment']]]></code>
-      <code><![CDATA[$responseData['isCheckedIn']]]></code>
-      <code><![CDATA[$responseData['response']]]></code>
-    </MixedArrayAccess>
     <MixedAssignment>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$responseData]]></code>
       <code><![CDATA[$userData['checkinAt']]]></code>
       <code><![CDATA[$userData['checkinBy']]]></code>
       <code><![CDATA[$userData['checkinComment']]]></code>
@@ -1588,7 +1608,6 @@
     </MixedAssignment>
     <MixedMethodCall>
       <code><![CDATA[getUID]]></code>
-      <code><![CDATA[jsonSerialize]]></code>
     </MixedMethodCall>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
@@ -1686,56 +1705,23 @@
     <MixedArgument>
       <code><![CDATA[$a->getStartDatetime()]]></code>
       <code><![CDATA[$a['displayName']]]></code>
-      <code><![CDATA[$appointment->getName()]]></code>
-      <code><![CDATA[$appointment->getStartDatetime()]]></code>
       <code><![CDATA[$b->getStartDatetime()]]></code>
       <code><![CDATA[$b['displayName']]]></code>
-      <code><![CDATA[$checkinValue]]></code>
-      <code><![CDATA[$location]]></code>
-      <code><![CDATA[$response->getComment()]]></code>
-      <code><![CDATA[$rsvpValue]]></code>
-      <code><![CDATA[$user['displayName']]]></code>
-      <code><![CDATA[$user['group']]]></code>
     </MixedArgument>
     <MixedArrayAccess>
       <code><![CDATA[$a['displayName']]]></code>
-      <code><![CDATA[$appointmentResponses[$appointment->getId()][$user['userId']]]]></code>
       <code><![CDATA[$b['displayName']]]></code>
-      <code><![CDATA[$user['displayName']]]></code>
-      <code><![CDATA[$user['group']]]></code>
-      <code><![CDATA[$user['userId']]]></code>
     </MixedArrayAccess>
-    <MixedArrayOffset>
-      <code><![CDATA[$appointmentResponses[$appointment->getId()]]]></code>
-      <code><![CDATA[$appointmentResponses[$appointment->getId()][$user['userId']]]]></code>
-    </MixedArrayOffset>
     <MixedAssignment>
-      <code><![CDATA[$appointment]]></code>
-      <code><![CDATA[$appointment]]></code>
-      <code><![CDATA[$appointment]]></code>
-      <code><![CDATA[$appointment]]></code>
       <code><![CDATA[$attendanceFolder]]></code>
-      <code><![CDATA[$checkinValue]]></code>
       <code><![CDATA[$existingFile]]></code>
       <code><![CDATA[$file]]></code>
-      <code><![CDATA[$location]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$rsvpValue]]></code>
-      <code><![CDATA[$user]]></code>
       <code><![CDATA[$userFolder]]></code>
     </MixedAssignment>
     <MixedMethodCall>
       <code><![CDATA[delete]]></code>
       <code><![CDATA[get]]></code>
       <code><![CDATA[get]]></code>
-      <code><![CDATA[getCheckinState]]></code>
-      <code><![CDATA[getComment]]></code>
-      <code><![CDATA[getComment]]></code>
-      <code><![CDATA[getId]]></code>
-      <code><![CDATA[getLocation]]></code>
-      <code><![CDATA[getName]]></code>
-      <code><![CDATA[getResponse]]></code>
-      <code><![CDATA[getStartDatetime]]></code>
       <code><![CDATA[getStartDatetime]]></code>
       <code><![CDATA[getStartDatetime]]></code>
       <code><![CDATA[newFile]]></code>
@@ -1755,6 +1741,7 @@
     </PossiblyUnusedMethod>
     <PossiblyUnusedParam>
       <code><![CDATA[$appointmentMapper]]></code>
+      <code><![CDATA[$capacityService]]></code>
       <code><![CDATA[$configService]]></code>
       <code><![CDATA[$groupManager]]></code>
       <code><![CDATA[$l10n]]></code>
@@ -1765,9 +1752,6 @@
     </PossiblyUnusedParam>
     <RiskyTruthyFalsyComparison>
       <code><![CDATA[$attendanceFolder->nodeExists($filename)]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
     </RiskyTruthyFalsyComparison>
     <UnusedForeachValue>
       <code><![CDATA[$appointment]]></code>
@@ -1800,24 +1784,15 @@
     <DeprecatedMethod>
       <code><![CDATA[getUserValue]]></code>
     </DeprecatedMethod>
-    <MissingParamType>
-      <code><![CDATA[$l]]></code>
-      <code><![CDATA[$response]]></code>
-    </MissingParamType>
     <MixedArgument>
       <code><![CDATA[$appointment]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response->getRespondedAt()]]></code>
     </MixedArgument>
     <MixedArgumentTypeCoercion>
       <code><![CDATA[$attachmentLines]]></code>
-      <code><![CDATA[$descriptionParts]]></code>
     </MixedArgumentTypeCoercion>
     <MixedArrayOffset>
       <code><![CDATA[$attachmentUrls[$attachment->getFileId()]]]></code>
       <code><![CDATA[$attachmentUrls[$attachment->getFileId()]]]></code>
-      <code><![CDATA[$responseLabels[$responseState]]]></code>
-      <code><![CDATA[$transpMap[$responseState]]]></code>
       <code><![CDATA[$userResponses[$appointment->getId()]]]></code>
     </MixedArrayOffset>
     <MixedAssignment>
@@ -1825,50 +1800,18 @@
       <code><![CDATA[$attachment]]></code>
       <code><![CDATA[$attachment]]></code>
       <code><![CDATA[$attachmentLines[]]]></code>
-      <code><![CDATA[$descriptionParts[]]]></code>
       <code><![CDATA[$instanceName]]></code>
-      <code><![CDATA[$responseComment]]></code>
-      <code><![CDATA[$responseLabel]]></code>
-      <code><![CDATA[$responseState]]></code>
-      <code><![CDATA[$statusLabel]]></code>
-      <code><![CDATA[$statusLabel]]></code>
     </MixedAssignment>
     <MixedMethodCall>
-      <code><![CDATA[getComment]]></code>
       <code><![CDATA[getFileId]]></code>
       <code><![CDATA[getFileId]]></code>
       <code><![CDATA[getFileId]]></code>
       <code><![CDATA[getFileName]]></code>
       <code><![CDATA[getId]]></code>
-      <code><![CDATA[getRespondedAt]]></code>
-      <code><![CDATA[getRespondedAt]]></code>
-      <code><![CDATA[getResponse]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
-      <code><![CDATA[t]]></code>
     </MixedMethodCall>
     <MixedOperand>
       <code><![CDATA[$attachment->getFileId()]]></code>
       <code><![CDATA[$instanceName]]></code>
-      <code><![CDATA[$l->t('Attachments')]]></code>
-      <code><![CDATA[$l->t('Cancelled')]]></code>
-      <code><![CDATA[$l->t('Me')]]></code>
-      <code><![CDATA[$l->t('Me')]]></code>
-      <code><![CDATA[$l->t('View or change your response')]]></code>
-      <code><![CDATA[$l->t('Your response')]]></code>
-      <code><![CDATA[$responseComment]]></code>
-      <code><![CDATA[$responseLabel]]></code>
-      <code><![CDATA[$responseLabel]]></code>
-      <code><![CDATA[$statusLabel]]></code>
     </MixedOperand>
     <PossiblyFalseArgument>
       <code><![CDATA[$domain]]></code>
@@ -1998,15 +1941,6 @@
     <MissingClosureReturnType>
       <code><![CDATA[fn ($r) => $r->getUserId()]]></code>
     </MissingClosureReturnType>
-    <MissingParamType>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$user]]></code>
-      <code><![CDATA[$user]]></code>
-      <code><![CDATA[$user]]></code>
-    </MissingParamType>
     <MixedArgument>
       <code><![CDATA[$cache['appointmentVisibleGroupsLower']]]></code>
       <code><![CDATA[$cache['groupUsers']]]></code>
@@ -2024,14 +1958,10 @@
       <code><![CDATA[$summary['by_team']]]></code>
       <code><![CDATA[$teamMemberIds]]></code>
       <code><![CDATA[$teamMemberIds]]></code>
-      <code><![CDATA[$user->getUID()]]></code>
-      <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
     </MixedArgument>
     <MixedArrayAccess>
       <code><![CDATA[$cache['groupUsers'][$groupId]]]></code>
-      <code><![CDATA[$responseData['checkinComment']]]></code>
-      <code><![CDATA[$responseData['comment']]]></code>
       <code><![CDATA[$summary['by_group'][$groupId]]]></code>
       <code><![CDATA[$summary['by_group'][$groupId][$responseValue]]]></code>
       <code><![CDATA[$summary['by_team'][$teamId]]]></code>
@@ -2041,8 +1971,6 @@
       <code><![CDATA[$teamInfo['label']]]></code>
     </MixedArrayAccess>
     <MixedArrayAssignment>
-      <code><![CDATA[$responseData['isGuest']]]></code>
-      <code><![CDATA[$responseData['userName']]]></code>
       <code><![CDATA[$summary['by_group'][$groupId]]]></code>
       <code><![CDATA[$summary['by_group'][$groupId]]]></code>
       <code><![CDATA[$summary['by_group'][$groupId]]]></code>
@@ -2096,8 +2024,6 @@
       <code><![CDATA[$nameA]]></code>
       <code><![CDATA[$nameB]]></code>
       <code><![CDATA[$nameB]]></code>
-      <code><![CDATA[$responseData]]></code>
-      <code><![CDATA[$responseData['userName']]]></code>
       <code><![CDATA[$sortedByGroup[$groupId]]]></code>
       <code><![CDATA[$sortedByGroup[$groupId]]]></code>
       <code><![CDATA[$sortedByGroup[$groupId]]]></code>
@@ -2112,23 +2038,16 @@
       <code><![CDATA[$teamInfo]]></code>
       <code><![CDATA[$teamMemberIds]]></code>
       <code><![CDATA[$teamMemberIds]]></code>
-      <code><![CDATA[$user]]></code>
       <code><![CDATA[$userGroups]]></code>
       <code><![CDATA[$userGroups]]></code>
-      <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userResponse]]></code>
       <code><![CDATA[$userResponse]]></code>
     </MixedAssignment>
     <MixedMethodCall>
-      <code><![CDATA[getDisplayName]]></code>
       <code><![CDATA[getGID]]></code>
       <code><![CDATA[getGID]]></code>
-      <code><![CDATA[getResponse]]></code>
-      <code><![CDATA[getUID]]></code>
       <code><![CDATA[getUserId]]></code>
-      <code><![CDATA[getUserId]]></code>
-      <code><![CDATA[jsonSerialize]]></code>
     </MixedMethodCall>
     <MixedOperand>
       <code><![CDATA[$summary[$responseValue]]]></code>
@@ -2136,9 +2055,6 @@
       <code><![CDATA[$summary['by_team'][$teamId][$responseValue]]]></code>
       <code><![CDATA[$summary['others'][$responseValue]]]></code>
     </MixedOperand>
-    <MixedReturnStatement>
-      <code><![CDATA[$responseData]]></code>
-    </MixedReturnStatement>
     <PossiblyUndefinedArrayOffset>
       <code><![CDATA[$byGroup[$groupId]]]></code>
       <code><![CDATA[$byTeam[$teamId]]]></code>
@@ -2150,7 +2066,6 @@
       <code><![CDATA[$info]]></code>
       <code><![CDATA[$teamInfo]]></code>
       <code><![CDATA[$teamInfo]]></code>
-      <code><![CDATA[$user]]></code>
     </RiskyTruthyFalsyComparison>
   </file>
   <file src="lib/Service/SelfCheckinService.php">

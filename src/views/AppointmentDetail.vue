@@ -151,7 +151,7 @@ function showExportDialog() {
 	exportDialogVisible.value = true
 }
 
-async function submitResponse(appointmentId, response) {
+async function submitResponse(appointmentId, response, acceptWaitlist = false) {
 	const comment = appointment.value.userResponse?.comment || ''
 
 	if (response === null) {
@@ -163,7 +163,7 @@ async function submitResponse(appointmentId, response) {
 		appointment.value.userResponse.response = response
 	}
 
-	await submitResponseApi(appointmentId, response, comment)
+	await submitResponseApi(appointmentId, response, comment, acceptWaitlist)
 }
 
 function onClosedToggled(updated) {

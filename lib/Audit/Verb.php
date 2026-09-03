@@ -13,6 +13,8 @@ final class Verb {
 	public const RESPONSE_CHANGED = 'response.changed';
 	public const RESPONSE_RESCINDED = 'response.rescinded';
 	public const RESPONSE_COMMENT_UPDATED = 'response.comment_updated';
+	/** A freed spot let somebody in off the waitlist. Nobody clicked anything. */
+	public const WAITLIST_PROMOTED = 'waitlist.promoted';
 
 	public const CHECKIN_RECORDED = 'checkin.recorded';
 	public const CHECKIN_CHANGED = 'checkin.changed';
@@ -29,6 +31,7 @@ final class Verb {
 		self::RESPONSE_CHANGED,
 		self::RESPONSE_RESCINDED,
 		self::RESPONSE_COMMENT_UPDATED,
+		self::WAITLIST_PROMOTED,
 	];
 
 	public const ALL_CHECKIN = [
@@ -50,6 +53,7 @@ final class Verb {
 		self::RESPONSE_CHANGED,
 		self::RESPONSE_RESCINDED,
 		self::RESPONSE_COMMENT_UPDATED,
+		self::WAITLIST_PROMOTED,
 		self::CHECKIN_RECORDED,
 		self::CHECKIN_CHANGED,
 		self::APPOINTMENT_CREATED,

@@ -215,6 +215,7 @@
                     "remindMaybe",
                     "responseOptions",
                     "allowMaybeDefault",
+                    "attendanceLimit",
                     "responseToggle",
                     "guestInvitation",
                     "auditLog",
@@ -263,6 +264,9 @@
                         "type": "boolean"
                     },
                     "allowMaybeDefault": {
+                        "type": "boolean"
+                    },
+                    "attendanceLimit": {
                         "type": "boolean"
                     },
                     "responseToggle": {

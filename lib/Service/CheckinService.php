@@ -22,6 +22,8 @@ class CheckinService {
 	private IGroupManager $groupManager;
 	private GuestService $guestService;
 	private AuditEventService $auditEventService;
+	private CapacityService $capacityService;
+	private AppointmentSerializer $appointmentSerializer;
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -31,6 +33,8 @@ class CheckinService {
 		IGroupManager $groupManager,
 		GuestService $guestService,
 		AuditEventService $auditEventService,
+		CapacityService $capacityService,
+		AppointmentSerializer $appointmentSerializer,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -39,6 +43,8 @@ class CheckinService {
 		$this->groupManager = $groupManager;
 		$this->guestService = $guestService;
 		$this->auditEventService = $auditEventService;
+		$this->capacityService = $capacityService;
+		$this->appointmentSerializer = $appointmentSerializer;
 	}
 
 	/**
@@ -138,13 +144,23 @@ class CheckinService {
 		// Build group list for filtering UI
 		$userGroups = $this->buildGroupList($whitelistedGroups);
 
+		// A place in line is not a place at the appointment. The list still
+		// carries everyone — an organizer has to be able to check in whoever
+		// actually turns up — but a waiting yes must not read as a confirmed one.
+		$confirmedIds = [];
+		if ($this->capacityService->limitOf($appointment) !== null) {
+			foreach ($this->capacityService->split($appointment)['confirmed'] as $row) {
+				$confirmedIds[$row->getUserId()] = true;
+			}
+		}
+
 		$users = array_map(
-			fn ($user) => $this->buildUserData($user, $userResponseMap, $whitelistedGroups),
+			fn ($user) => $this->buildUserData($user, $userResponseMap, $whitelistedGroups, $confirmedIds),
 			array_values($targetAttendees),
 		);
 
 		return [
-			'appointment' => $appointment->jsonSerialize(),
+			'appointment' => $this->appointmentSerializer->serialize($appointment),
 			'users' => $users,
 			'userGroups' => array_values($userGroups),
 		];
@@ -226,7 +242,7 @@ class CheckinService {
 	/**
 	 * Build data structure for a single user.
 	 */
-	private function buildUserData($user, array $userResponseMap, array $whitelistedGroups): array {
+	private function buildUserData($user, array $userResponseMap, array $whitelistedGroups, array $confirmedIds = []): array {
 		$userId = $user->getUID();
 		$userGroupIds = $this->groupManager->getUserGroupIds($user);
 
@@ -272,10 +288,12 @@ class CheckinService {
 			'checkinBy' => null,
 			'checkinAt' => null,
 			'checkinSource' => null,
+			'waitlisted' => false,
 		];
 
 		// Add response data if user has responded
 		if (isset($userResponseMap[$userId])) {
+			/** @var AttendanceResponse $response */
 			$response = $userResponseMap[$userId];
 			$responseData = $response->jsonSerialize();
 			$userData['response'] = $responseData['response'];
@@ -286,6 +304,9 @@ class CheckinService {
 			$userData['checkinBy'] = $responseData['checkinBy'];
 			$userData['checkinAt'] = $responseData['checkinAt'];
 			$userData['checkinSource'] = $responseData['checkinSource'];
+			$userData['waitlisted'] = $responseData['response'] === 'yes'
+				&& $confirmedIds !== []
+				&& !isset($confirmedIds[$userId]);
 		}
 
 		return $userData;

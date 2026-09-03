@@ -8,8 +8,11 @@ use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
+use OCA\Attendance\Service\AuditEventService;
+use OCA\Attendance\Service\CapacityService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\GuestService;
+use OCA\Attendance\Service\NotificationService;
 use OCA\Attendance\Service\ResponseSummaryService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\IGroup;
@@ -60,6 +63,11 @@ class ResponseSummaryServiceTest extends TestCase {
 			$this->groupManager,
 			$this->userManager,
 			$this->guestService,
+			new CapacityService(
+				$this->responseMapper,
+				$this->createMock(NotificationService::class),
+				$this->createMock(AuditEventService::class),
+			),
 		);
 	}
 

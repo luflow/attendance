@@ -32,6 +32,10 @@ namespace OCA\Attendance;
  *   createTalkRoom: bool,
  *   talkRoomToken: ?string,
  *   allowMaybe: bool,
+ *   maxAttendees: ?int,
+ *   waitlistEnabled: bool,
+ *   occupancy: int,
+ *   isFull: bool,
  * }
  * @psalm-type AttendanceMyPermissions = array{
  *   isOrganizer: bool,
@@ -56,6 +60,8 @@ namespace OCA\Attendance;
  *   responseSource: ?string,
  *   checkinSource: ?string,
  *   bookingStatus: ?string,
+ *   waitlisted: bool,
+ *   waitlistPosition: ?int,
  * }
  * @psalm-type AttendanceResponseWithUser = array{
  *   id: int,
@@ -75,6 +81,7 @@ namespace OCA\Attendance;
  *   userName: string,
  *   userGroups: list<string>,
  *   isGuest: bool,
+ *   waitlisted: bool,
  * }
  * @psalm-type AttendanceGuestsAppStatus = array{
  *   enabled: bool,
@@ -147,6 +154,8 @@ namespace OCA\Attendance;
  *   location?: string,
  *   categoryId?: int,
  *   allowMaybe?: bool,
+ *   maxAttendees?: int,
+ *   waitlistEnabled?: bool,
  * }
  * @psalm-type AttendanceCategoryData = array{
  *   id: int,
@@ -182,6 +191,7 @@ namespace OCA\Attendance;
  *   remindMaybe: bool,
  *   responseOptions: bool,
  *   allowMaybeDefault: bool,
+ *   attendanceLimit: bool,
  *   responseToggle: bool,
  *   guestInvitation: bool,
  *   auditLog: bool,

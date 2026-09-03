@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Service;
 
+use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
+use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -22,6 +24,7 @@ class ExportService {
 	private ConfigService $configService;
 	private OdsWriter $odsWriter;
 	private IL10N $l10n;
+	private CapacityService $capacityService;
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -32,6 +35,7 @@ class ExportService {
 		ConfigService $configService,
 		OdsWriter $odsWriter,
 		IL10N $l10n,
+		CapacityService $capacityService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -41,6 +45,7 @@ class ExportService {
 		$this->configService = $configService;
 		$this->odsWriter = $odsWriter;
 		$this->l10n = $l10n;
+		$this->capacityService = $capacityService;
 	}
 
 	/**
@@ -70,6 +75,10 @@ class ExportService {
 		// Collect all unique users who have responded or checked in
 		$allUserIds = [];
 		$appointmentResponses = [];
+		// Who actually holds a spot, per limited appointment. Resolved once here
+		// rather than per cell: this is a users x appointments matrix, and the
+		// queue is one query.
+		$confirmedIds = [];
 
 		foreach ($appointments as $appointment) {
 			$responses = $this->responseMapper->findByAppointment($appointment->getId());
@@ -79,6 +88,13 @@ class ExportService {
 				$respUserId = $response->getUserId();
 				$allUserIds[$respUserId] = true;
 				$appointmentResponses[$appointment->getId()][$respUserId] = $response;
+			}
+
+			if ($this->capacityService->limitOf($appointment) !== null) {
+				$confirmed = $this->capacityService->split($appointment)['confirmed'];
+				$confirmedIds[$appointment->getId()] = array_flip(
+					array_map(static fn ($row): string => $row->getUserId(), $confirmed),
+				);
 			}
 		}
 
@@ -118,7 +134,7 @@ class ExportService {
 			return strcmp($a['displayName'], $b['displayName']);
 		});
 
-		$odsContent = $this->odsWriter->write($this->getTableXml($appointments, $users, $appointmentResponses, $includeComments));
+		$odsContent = $this->odsWriter->write($this->getTableXml($appointments, $users, $appointmentResponses, $includeComments, $confirmedIds));
 
 		// Create the Attendance folder
 		try {
@@ -172,7 +188,13 @@ class ExportService {
 	/**
 	 * Render the export sheet. The document around it comes from OdsWriter.
 	 */
-	private function getTableXml(array $appointments, array $users, array $appointmentResponses, bool $includeComments = false): string {
+	/**
+	 * @param list<Appointment> $appointments
+	 * @param list<array{userId: string, displayName: string, group: string}> $users
+	 * @param array<int, array<string, AttendanceResponse>> $appointmentResponses
+	 * @param array<int, array<string, int>> $confirmedIds user IDs holding a spot, per limited appointment
+	 */
+	private function getTableXml(array $appointments, array $users, array $appointmentResponses, bool $includeComments = false, array $confirmedIds = []): string {
 		$xml = '
 			<table:table table:name="Attendance" table:print="false">';
 
@@ -290,10 +312,22 @@ class ExportService {
 			foreach ($appointments as $appointment) {
 				$response = $appointmentResponses[$appointment->getId()][$user['userId']] ?? null;
 
-				// RSVP column
+				// RSVP column. A yes that is only a place in line says so — this
+				// is the sheet an organizer takes to the door, and "Yes" for
+				// somebody without a spot would be wrong there. It borrows the
+				// amber "maybe" styling, which is free of ambiguity: an
+				// appointment with a limit never offers "Maybe".
 				$rsvpValue = $response ? $response->getResponse() : null;
-				$rsvp = $this->formatResponse($rsvpValue);
-				$rsvpStyle = $this->getResponseCellStyle($rsvpValue);
+				$waitlisted = $rsvpValue === 'yes'
+					&& isset($confirmedIds[$appointment->getId()])
+					&& !isset($confirmedIds[$appointment->getId()][$user['userId']]);
+				$rsvp = $waitlisted
+					// TRANSLATORS Cell value in the exported spreadsheet — the person answered yes but the appointment was full, so they are waiting for a spot (German "Warteliste").
+					? $this->l10n->t('Waitlist')
+					: $this->formatResponse($rsvpValue);
+				$rsvpStyle = $waitlisted
+					? OdsWriter::STYLE_MAYBE
+					: $this->getResponseCellStyle($rsvpValue);
 				$xml .= '
 					<table:table-cell table:style-name="' . $rsvpStyle . '" office:value-type="string">
 						<text:p>' . $rsvp . '</text:p>

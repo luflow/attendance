@@ -8,6 +8,7 @@ use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Service\AuditEventService;
+use OCA\Attendance\Service\CapacityService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\NotificationService;
@@ -44,6 +45,11 @@ class ResponseServiceTest extends TestCase {
 		$this->responseMapper = $this->createMock(AttendanceResponseMapper::class);
 		$this->configService = $this->createMock(ConfigService::class);
 		$this->configService->method('isMaybeAllowed')->willReturn(true);
+		$capacityService = new CapacityService(
+			$this->responseMapper,
+			$this->createMock(NotificationService::class),
+			$this->createMock(AuditEventService::class),
+		);
 
 		$this->service = new ResponseService(
 			$this->appointmentMapper,
@@ -56,7 +62,8 @@ class ResponseServiceTest extends TestCase {
 			$this->createMock(AuditEventService::class),
 			$this->createMock(OrgCalendarSyncService::class),
 			$this->createMock(TalkRoomService::class),
-			new ResponsePolicyService($this->configService),
+			new ResponsePolicyService($this->configService, $capacityService),
+			$capacityService,
 		);
 	}
 

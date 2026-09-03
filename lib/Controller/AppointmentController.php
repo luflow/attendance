@@ -190,6 +190,8 @@ class AppointmentController extends Controller {
 	 * @param ?int $categoryId Category ID
 	 * @param bool $createTalkRoom Open a Talk conversation with the scheduled people when the inquiry closes
 	 * @param ?bool $allowMaybe Offer "Maybe" as an answer; null follows the instance-wide default
+	 * @param ?int $maxAttendees Attendance limit; null or zero means no limit
+	 * @param bool $waitlistEnabled Whether a full appointment offers a place in line
 	 * @return DataResponse<Http::STATUS_CREATED, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
@@ -213,6 +215,8 @@ class AppointmentController extends Controller {
 		?int $categoryId = null,
 		bool $createTalkRoom = false,
 		?bool $allowMaybe = null,
+		?int $maxAttendees = null,
+		bool $waitlistEnabled = true,
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -246,6 +250,8 @@ class AppointmentController extends Controller {
 				$categoryId,
 				$createTalkRoom,
 				$allowMaybe,
+				$maxAttendees,
+				$waitlistEnabled,
 			);
 
 			$this->addAttachmentsToAppointment($appointment->getId(), $attachments, $user->getUID());
@@ -307,6 +313,8 @@ class AppointmentController extends Controller {
 					$data['categoryId'] ?? null,
 					false,
 					$data['allowMaybe'] ?? null,
+					$data['maxAttendees'] ?? null,
+					$data['waitlistEnabled'] ?? true,
 				);
 				$createdIds[] = $appointment->getId();
 				if ($firstAppointment === null) {
@@ -365,6 +373,8 @@ class AppointmentController extends Controller {
 	 * @param ?int $categoryId Category, applied identically to every affected sibling when scope is future/all
 	 * @param ?bool $createTalkRoom Open a Talk conversation when the inquiry closes, or null to leave unchanged
 	 * @param ?bool $allowMaybe Offer "Maybe" as an answer, or null to leave unchanged; applied identically to every affected sibling when scope is future/all
+	 * @param ?int $maxAttendees Attendance limit; null or zero clears it, applied identically to every affected sibling when scope is future/all
+	 * @param ?bool $waitlistEnabled Whether a full appointment offers a place in line, or null to leave unchanged
 	 * @return DataResponse<Http::STATUS_OK, AttendanceAppointmentData|list<AttendanceAppointmentData>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
@@ -387,6 +397,8 @@ class AppointmentController extends Controller {
 		?int $categoryId = null,
 		?bool $createTalkRoom = null,
 		?bool $allowMaybe = null,
+		?int $maxAttendees = null,
+		?bool $waitlistEnabled = null,
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -406,7 +418,7 @@ class AppointmentController extends Controller {
 					$id, $scope, $name, $description, $startDatetime, $endDatetime,
 					$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
 					$deadlineUpdate, $organizers, $location, $categoryId, $createTalkRoom,
-					$allowMaybe,
+					$allowMaybe, $maxAttendees, $waitlistEnabled,
 				);
 
 				// Sync attachments across all affected appointments
@@ -426,7 +438,7 @@ class AppointmentController extends Controller {
 					$id, 'single', $name, $description, $startDatetime, $endDatetime,
 					$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
 					$deadlineUpdate, $organizers, $location, $categoryId, $createTalkRoom,
-					$allowMaybe,
+					$allowMaybe, $maxAttendees, $waitlistEnabled,
 				);
 				$this->syncAttachments($id, $attachments, $user->getUID());
 				return new DataResponse($this->appointmentService->serializeAppointment($updatedAppointments[0]));
@@ -436,7 +448,7 @@ class AppointmentController extends Controller {
 				$id, $name, $description, $startDatetime, $endDatetime,
 				$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
 				$deadlineUpdate, $organizers, $location, $categoryId, $createTalkRoom,
-				$allowMaybe,
+				$allowMaybe, $maxAttendees, $waitlistEnabled,
 			);
 
 			$this->syncAttachments($id, $attachments, $user->getUID());
@@ -815,12 +827,13 @@ class AppointmentController extends Controller {
 	 * @param int $id Appointment ID
 	 * @param ?string $response Response value: yes, no, maybe — or null to withdraw an existing response
 	 * @param string $comment Optional comment
+	 * @param bool $acceptWaitlist Take a place in line when the appointment is already full, instead of being turned away
 	 * @return DataResponse<Http::STATUS_OK, AttendanceResponseData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI]
-	public function respond(int $id, ?string $response, string $comment = ''): DataResponse {
+	public function respond(int $id, ?string $response, string $comment = '', bool $acceptWaitlist = false): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
@@ -831,9 +844,13 @@ class AppointmentController extends Controller {
 				$id,
 				$user->getUID(),
 				$response,
-				$comment
+				$comment,
+				$acceptWaitlist
 			);
-			return new DataResponse($attendanceResponse);
+			return new DataResponse($this->appointmentService->serializeResponse(
+				$attendanceResponse,
+				$this->appointmentService->getAppointment($id),
+			));
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 400);
 		}
@@ -875,7 +892,7 @@ class AppointmentController extends Controller {
 				$response,
 				$user->getUID()
 			);
-			return new DataResponse($attendanceResponse);
+			return new DataResponse($this->appointmentService->serializeResponse($attendanceResponse, $appointment));
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 400);
 		}
@@ -1043,6 +1060,11 @@ class AppointmentController extends Controller {
 			// What an appointment offers when it has no opinion of its own.
 			// The appointment editor starts its switch here.
 			'allowMaybeDefault' => $this->configService->isMaybeAllowed(),
+			// Server understands maxAttendees/waitlistEnabled on an appointment,
+			// reports occupancy and isFull, and takes acceptWaitlist on respond.
+			// Clients without this flag show a plain "Yes" that a full
+			// appointment answers with 400.
+			'attendanceLimit' => true,
 			// Older servers reject response=null. Mobile clients gate the
 			// withdraw-response affordance on this flag.
 			'responseToggle' => true,

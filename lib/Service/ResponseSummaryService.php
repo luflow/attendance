@@ -6,8 +6,10 @@ namespace OCA\Attendance\Service;
 
 use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
+use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCP\IGroupManager;
+use OCP\IUser;
 use OCP\IUserManager;
 
 /**
@@ -23,6 +25,7 @@ class ResponseSummaryService {
 	private IGroupManager $groupManager;
 	private IUserManager $userManager;
 	private GuestService $guestService;
+	private CapacityService $capacityService;
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -32,6 +35,7 @@ class ResponseSummaryService {
 		IGroupManager $groupManager,
 		IUserManager $userManager,
 		GuestService $guestService,
+		CapacityService $capacityService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -40,6 +44,7 @@ class ResponseSummaryService {
 		$this->groupManager = $groupManager;
 		$this->userManager = $userManager;
 		$this->guestService = $guestService;
+		$this->capacityService = $capacityService;
 	}
 
 	/**
@@ -212,6 +217,10 @@ class ResponseSummaryService {
 			// Appointment-specific visibility restrictions
 			'appointmentHasRestrictions' => $appointmentHasRestrictions,
 			'appointmentVisibleGroupsLower' => $appointmentVisibleGroupsLower,
+			// Who holds a spot rather than a place in line. Empty for an
+			// appointment without a limit, which is also how serializeResponse()
+			// knows there is no queue to report on.
+			'confirmedIds' => $this->confirmedIds($appointment),
 		];
 	}
 
@@ -277,7 +286,7 @@ class ResponseSummaryService {
 	 */
 	private function processResponse(
 		Appointment $appointment,
-		$response,
+		AttendanceResponse $response,
 		array &$summary,
 		array &$respondedUserIds,
 		array $cache,
@@ -302,6 +311,7 @@ class ResponseSummaryService {
 		$respondedUserIds[$userId] = $responseValue;
 
 		// Get user from cache
+		/** @var ?IUser $user */
 		$user = $cache['users'][$userId] ?? null;
 		$userInWhitelistedGroup = false;
 		$userInWhitelistedTeam = false;
@@ -315,7 +325,7 @@ class ResponseSummaryService {
 				// Check if group is allowed (using cache)
 				if ($this->isGroupVisibleAsSection($groupId, $cache)) {
 					$userInWhitelistedGroup = true;
-					$this->addResponseToGroup($summary, $groupId, $responseValue, $response, $user, $includeComments);
+					$this->addResponseToGroup($summary, $groupId, $responseValue, $response, $user, $includeComments, $cache);
 				}
 			}
 
@@ -333,7 +343,7 @@ class ResponseSummaryService {
 			// If user is not in any whitelisted group or team, add to "others"
 			if (!$userInWhitelistedGroup && !$userInWhitelistedTeam) {
 				$summary['others'][$responseValue]++;
-				$summary['others']['responses'][] = $this->serializeResponse($response, $user, $includeComments);
+				$summary['others']['responses'][] = $this->serializeResponse($response, $user, $includeComments, $cache);
 			}
 		}
 	}
@@ -343,14 +353,35 @@ class ResponseSummaryService {
 	 * responder's display name and guest flag. Strips the free-text comment /
 	 * checkinComment fields unless the caller is permitted to read comments.
 	 */
-	private function serializeResponse($response, $user, bool $includeComments): array {
+	private function serializeResponse(AttendanceResponse $response, IUser $user, bool $includeComments, array $cache = []): array {
 		$responseData = $response->jsonSerialize();
 		if (!$includeComments) {
 			unset($responseData['comment'], $responseData['checkinComment']);
 		}
 		$responseData['userName'] = $user->getDisplayName();
 		$responseData['isGuest'] = $this->guestService->isGuestUser($user->getUID());
+		// Whoever may see who answered what also sees where they stand in the
+		// queue — it is strictly less than the names already in this payload.
+		/** @var array<string, true> $confirmedIds */
+		$confirmedIds = $cache['confirmedIds'] ?? [];
+		$responseData['waitlisted'] = $responseData['response'] === 'yes'
+			&& $confirmedIds !== []
+			&& !isset($confirmedIds[$user->getUID()]);
 		return $responseData;
+	}
+
+	/**
+	 * @return array<string, true> user IDs holding a spot, empty without a limit
+	 */
+	private function confirmedIds(Appointment $appointment): array {
+		if ($this->capacityService->limitOf($appointment) === null) {
+			return [];
+		}
+		$ids = [];
+		foreach ($this->capacityService->split($appointment)['confirmed'] as $row) {
+			$ids[$row->getUserId()] = true;
+		}
+		return $ids;
 	}
 
 	/**
@@ -360,9 +391,10 @@ class ResponseSummaryService {
 		array &$summary,
 		string $groupId,
 		string $responseValue,
-		$response,
-		$user,
+		AttendanceResponse $response,
+		IUser $user,
 		bool $includeComments,
+		array $cache = [],
 	): void {
 		if (!isset($summary['by_group'][$groupId])) {
 			$summary['by_group'][$groupId] = [
@@ -377,7 +409,7 @@ class ResponseSummaryService {
 		$summary['by_group'][$groupId][$responseValue]++;
 
 		// Add the detailed response to this group
-		$summary['by_group'][$groupId]['responses'][] = $this->serializeResponse($response, $user, $includeComments);
+		$summary['by_group'][$groupId]['responses'][] = $this->serializeResponse($response, $user, $includeComments, $cache);
 	}
 
 	/**
@@ -387,8 +419,8 @@ class ResponseSummaryService {
 		array &$summary,
 		string $teamId,
 		string $responseValue,
-		$response,
-		$user,
+		AttendanceResponse $response,
+		IUser $user,
 		array $cache,
 		bool $includeComments,
 	): void {
@@ -407,7 +439,7 @@ class ResponseSummaryService {
 		$summary['by_team'][$teamId][$responseValue]++;
 
 		// Add the detailed response to this team
-		$summary['by_team'][$teamId]['responses'][] = $this->serializeResponse($response, $user, $includeComments);
+		$summary['by_team'][$teamId]['responses'][] = $this->serializeResponse($response, $user, $includeComments, $cache);
 	}
 
 	/**

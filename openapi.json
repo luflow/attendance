@@ -48,7 +48,11 @@
                     "categoryId",
                     "createTalkRoom",
                     "talkRoomToken",
-                    "allowMaybe"
+                    "allowMaybe",
+                    "maxAttendees",
+                    "waitlistEnabled",
+                    "occupancy",
+                    "isFull"
                 ],
                 "properties": {
                     "id": {
@@ -153,6 +157,21 @@
                         "nullable": true
                     },
                     "allowMaybe": {
+                        "type": "boolean"
+                    },
+                    "maxAttendees": {
+                        "type": "integer",
+                        "format": "int64",
+                        "nullable": true
+                    },
+                    "waitlistEnabled": {
+                        "type": "boolean"
+                    },
+                    "occupancy": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "isFull": {
                         "type": "boolean"
                     }
                 }
@@ -487,6 +506,13 @@
                     },
                     "allowMaybe": {
                         "type": "boolean"
+                    },
+                    "maxAttendees": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "waitlistEnabled": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -505,6 +531,7 @@
                     "remindMaybe",
                     "responseOptions",
                     "allowMaybeDefault",
+                    "attendanceLimit",
                     "responseToggle",
                     "guestInvitation",
                     "auditLog",
@@ -553,6 +580,9 @@
                         "type": "boolean"
                     },
                     "allowMaybeDefault": {
+                        "type": "boolean"
+                    },
+                    "attendanceLimit": {
                         "type": "boolean"
                     },
                     "responseToggle": {
@@ -842,7 +872,9 @@
                     "isCheckedIn",
                     "responseSource",
                     "checkinSource",
-                    "bookingStatus"
+                    "bookingStatus",
+                    "waitlisted",
+                    "waitlistPosition"
                 ],
                 "properties": {
                     "id": {
@@ -893,6 +925,14 @@
                     "bookingStatus": {
                         "type": "string",
                         "nullable": true
+                    },
+                    "waitlisted": {
+                        "type": "boolean"
+                    },
+                    "waitlistPosition": {
+                        "type": "integer",
+                        "format": "int64",
+                        "nullable": true
                     }
                 }
             },
@@ -915,7 +955,8 @@
                     "bookingStatus",
                     "userName",
                     "userGroups",
-                    "isGuest"
+                    "isGuest",
+                    "waitlisted"
                 ],
                 "properties": {
                     "id": {
@@ -977,6 +1018,9 @@
                         }
                     },
                     "isGuest": {
+                        "type": "boolean"
+                    },
+                    "waitlisted": {
                         "type": "boolean"
                     }
                 }
@@ -2057,6 +2101,18 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Offer \"Maybe\" as an answer; null follows the instance-wide default"
+                                    },
+                                    "maxAttendees": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Attendance limit; null or zero means no limit"
+                                    },
+                                    "waitlistEnabled": {
+                                        "type": "boolean",
+                                        "default": true,
+                                        "description": "Whether a full appointment offers a place in line"
                                     }
                                 }
                             }
@@ -2745,6 +2801,19 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Offer \"Maybe\" as an answer, or null to leave unchanged; applied identically to every affected sibling when scope is future/all"
+                                    },
+                                    "maxAttendees": {
+                                        "type": "integer",
+                                        "format": "int64",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Attendance limit; null or zero clears it, applied identically to every affected sibling when scope is future/all"
+                                    },
+                                    "waitlistEnabled": {
+                                        "type": "boolean",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Whether a full appointment offers a place in line, or null to leave unchanged"
                                     }
                                 }
                             }
@@ -3040,6 +3109,11 @@
                                         "type": "string",
                                         "default": "",
                                         "description": "Optional comment"
+                                    },
+                                    "acceptWaitlist": {
+                                        "type": "boolean",
+                                        "default": false,
+                                        "description": "Take a place in line when the appointment is already full, instead of being turned away"
                                     }
                                 }
                             }

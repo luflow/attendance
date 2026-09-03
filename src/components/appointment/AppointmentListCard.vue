@@ -75,7 +75,11 @@
 				:comment="appointment.userResponse?.comment || ''"
 				:responseDeadline="appointment.responseDeadline"
 				:responseOptions="responseOptions"
-				@submitResponse="(id, response) => emit('submitResponse', id, response)">
+				:isFull="appointment.isFull === true"
+				:waitlistEnabled="appointment.waitlistEnabled === true"
+				:waitlisted="appointment.userResponse?.waitlisted === true"
+				:waitlistPosition="appointment.userResponse?.waitlistPosition ?? null"
+				@submitResponse="(id, response, acceptWaitlist) => emit('submitResponse', id, response, acceptWaitlist)">
 				<template #label>
 					<span class="list-card__label">{{ t("attendance", "Your response") }}</span>
 				</template>

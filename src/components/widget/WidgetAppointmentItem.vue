@@ -42,7 +42,11 @@
 			:userResponse="item.userResponse?.response ?? null"
 			:comment="item.userResponse?.comment || ''"
 			:responseOptions="responseOptions"
-			@submitResponse="(id, response) => emit('respond', id, response)" />
+			:isFull="item.isFull === true"
+			:waitlistEnabled="item.waitlistEnabled === true"
+			:waitlisted="item.userResponse?.waitlisted === true"
+			:waitlistPosition="item.userResponse?.waitlistPosition ?? null"
+			@submitResponse="(id, response, acceptWaitlist) => emit('respond', id, response, acceptWaitlist)" />
 	</div>
 </template>
 

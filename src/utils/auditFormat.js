@@ -196,6 +196,17 @@ export function formatAuditEvent(event) {
 				iconVariant: 'default',
 				segments: textOnly(t('attendance', '{actor} updated their comment', { actor })),
 			}
+		case 'waitlist.promoted':
+			return {
+				icon: 'AccountArrowUp',
+				iconVariant: 'success',
+				// No actor: a spot came free and the queue moved on its own,
+				// which is the whole reason this entry is worth having.
+				segments: textOnly(subject
+					// TRANSLATORS: Audit-log entry. A spot came free and {subject} (a name) moved off the waitlist into the appointment. Nobody performed this — it followed from someone else dropping out.
+					? t('attendance', '{subject} moved off the waitlist into a free spot', { subject })
+					: t('attendance', 'Someone moved off the waitlist into a free spot')),
+			}
 		case 'checkin.recorded':
 			return formatCheckin(
 				'AccountCheck',

@@ -977,6 +977,22 @@
     "Answer options" : "Antwortmöglichkeiten",
     "Offer “Maybe” as an answer" : "„Vielleicht“ als Antwort anbieten",
     "What every appointment offers unless its organizer decides otherwise." : "Gilt für jeden Termin, bei dem der Organisator es nicht anders festlegt.",
-    "Without “Maybe” people are left with a clear yes or no." : "Ohne „Vielleicht“ bleibt nur eine klare Zu- oder Absage."
+    "Without “Maybe” people are left with a clear yes or no." : "Ohne „Vielleicht“ bleibt nur eine klare Zu- oder Absage.",
+    "A spot came free for %1$s on %2$s" : "Ein Platz ist frei geworden: %1$s am %2$s",
+    "Attendance limit" : "Teilnahmelimit",
+    "Join waitlist" : "Auf die Warteliste",
+    "Maximum attendees" : "Maximale Teilnehmerzahl",
+    "No spot came free for %1$s on %2$s" : "Es ist kein Platz frei geworden: %1$s am %2$s",
+    "Offer a waitlist when full" : "Warteliste anbieten, wenn der Termin voll ist",
+    "Once that many people have said yes the appointment is full. Leave empty for no limit." : "Sobald so viele zugesagt haben, ist der Termin voll. Leer lassen für unbegrenzt.",
+    "Someone moved off the waitlist into a free spot" : "Jemand ist von der Warteliste auf einen frei gewordenen Platz nachgerückt",
+    "The appointment stayed full, so you no longer need to keep the date free. Thanks for answering." : "Der Termin ist voll geblieben, Sie müssen sich den Tag nicht mehr freihalten. Danke für Ihre Antwort.",
+    "This appointment is full." : "Dieser Termin ist voll.",
+    "This appointment is full. Join the waitlist to take the next free spot." : "Dieser Termin ist voll. Gehen Sie auf die Warteliste, um den nächsten frei werdenden Platz zu bekommen.",
+    "Waitlist" : "Warteliste",
+    "You are number {position} on the waitlist" : "Sie sind Nummer {position} auf der Warteliste",
+    "You are on the waitlist" : "Sie sind auf der Warteliste",
+    "You were on the waitlist and are in now. Please plan to be there." : "Sie waren auf der Warteliste und sind jetzt dabei. Bitte halten Sie sich den Termin frei.",
+    "{subject} moved off the waitlist into a free spot" : "{subject} ist von der Warteliste auf einen frei gewordenen Platz nachgerückt"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

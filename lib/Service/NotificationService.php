@@ -265,6 +265,53 @@ class NotificationService {
 	}
 
 	/**
+	 * Notify a single attendee about their place in an appointment's queue:
+	 * a spot came free and they are in ('waitlist_promoted'), or the inquiry
+	 * closed without one ('waitlist_not_promoted').
+	 *
+	 * Same shape as sendBookingNotification() — single recipient, deep-linked
+	 * to the appointment. CapacityService owns the fire-once marker, so this
+	 * only ever sends what it is told to.
+	 *
+	 * @param Appointment $appointment The appointment they queued for
+	 * @param string $userId The attendee to notify
+	 * @param string $subject 'waitlist_promoted' or 'waitlist_not_promoted'
+	 */
+	public function sendWaitlistNotification(Appointment $appointment, string $userId, string $subject): void {
+		if (!$this->isNotificationsAppEnabled()) {
+			return;
+		}
+
+		$appointmentUrl = $this->urlGenerator->linkToRouteAbsolute(
+			'attendance.page.appointment',
+			['id' => $appointment->getId()]
+		);
+
+		try {
+			$notification = $this->notificationManager->createNotification();
+			$notification->setApp('attendance')
+				->setUser($userId)
+				->setDateTime(new \DateTime())
+				->setObject('appointment', (string)$appointment->getId())
+				->setSubject($subject, [
+					'appointmentId' => $appointment->getId(),
+					'name' => $appointment->getName(),
+					'startDatetime' => $appointment->getStartDatetime(),
+				])
+				->setLink($appointmentUrl);
+
+			$this->notificationManager->notify($notification);
+		} catch (\Exception $e) {
+			$this->logger->error('Failed to send waitlist notification', [
+				'userId' => $userId,
+				'appointmentId' => $appointment->getId(),
+				'subject' => $subject,
+				'error' => $e->getMessage(),
+			]);
+		}
+	}
+
+	/**
 	 * Send an appointment reminder notification to a single user.
 	 * Uses the same notification format as ReminderJob but does NOT write to ReminderLogMapper.
 	 *
