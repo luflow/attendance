@@ -142,6 +142,9 @@ class OrgCalendarSyncServiceTest extends TestCase {
 	private FakeCalDavBackend $backend;
 	private TestableOrgCalendarSyncService $service;
 
+	/** Deep link line the app block ends with, as it appears in the escaped ICS */
+	private const LINK_LINE = 'View or change your response:\nhttps://cloud.example.com/apps/attendance/#/appointment/5';
+
 	protected function setUp(): void {
 		$this->calendarService = $this->createMock(CalendarService::class);
 		$this->appointmentMapper = $this->createMock(AppointmentMapper::class);
@@ -152,7 +155,11 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->categoryMapper = $this->createMock(CategoryMapper::class);
 		$this->backend = new FakeCalDavBackend();
 
-		$this->icalService->method('escapeIcalText')->willReturnArgument(0);
+		// Only the newline part of the real escaping is reproduced — it is what
+		// keeps a multi-line DESCRIPTION on one ICS content line.
+		$this->icalService->method('escapeIcalText')->willReturnCallback(
+			fn (string $text) => str_replace(["\r\n", "\r", "\n"], '\\n', $text),
+		);
 		$this->icalService->method('foldIcalContent')->willReturnArgument(0);
 		$this->icalService->method('getAppointmentUrl')
 			->willReturnCallback(fn (int $id) => 'https://cloud.example.com/apps/attendance/#/appointment/' . $id);
@@ -164,6 +171,7 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		);
 
 		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('t')->willReturnArgument(0);
 		$l10n->method('n')->willReturnCallback(
 			fn (string $singular, string $plural, int $count) => str_replace('%n', (string)$count, $count === 1 ? $singular : $plural),
 		);
@@ -371,7 +379,7 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->assertStringNotContainsString('SUMMARY:Old title', $ics);
 	}
 
-	public function testPatchRemovesDescriptionWhenCleared(): void {
+	public function testPatchDropsClearedDescriptionTextButKeepsTheBlock(): void {
 		$this->configureEnabled();
 		$appointment = $this->buildAppointment();
 		$appointment->setDescription('');
@@ -388,7 +396,12 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		];
 
 		$this->assertTrue($this->service->syncAppointment($appointment));
-		$this->assertStringNotContainsString('DESCRIPTION:', $this->backend->updated[0][2]);
+		$ics = $this->backend->updated[0][2];
+		$this->assertStringNotContainsString('Old text', $ics);
+		$this->assertStringContainsString(
+			'DESCRIPTION:' . OrgCalendarSyncService::BLOCK_SEPARATOR . '\n' . self::LINK_LINE,
+			$ics,
+		);
 	}
 
 	public function testPatchRemovesLocationWhenNotSet(): void {
@@ -453,23 +466,52 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$ics = $this->backend->created[0][2];
 
 		$this->assertStringContainsString(
-			"DESCRIPTION:Bring instruments\n\n"
-			. OrgCalendarSyncService::SUMMARY_SEPARATOR
-			. "\n2 attending, 1 declined, 1 maybe",
+			'DESCRIPTION:Bring instruments\n\n'
+			. OrgCalendarSyncService::BLOCK_SEPARATOR
+			. '\n2 attending, 1 declined, 1 maybe\n' . self::LINK_LINE,
 			$ics,
 		);
 	}
 
-	public function testNoSummaryBlockWithoutResponses(): void {
+	public function testBlockCarriesTheLinkWithoutResponses(): void {
 		$this->configureEnabled();
 		$appointment = $this->buildAppointment();
 		$this->appointmentMapper->method('update')->willReturnArgument(0);
 		$this->responseSummary = ['yes' => 0, 'no' => 0, 'maybe' => 0];
 
 		$this->assertTrue($this->service->syncAppointment($appointment));
-		$this->assertStringNotContainsString(OrgCalendarSyncService::SUMMARY_SEPARATOR, $this->backend->created[0][2]);
+		$ics = $this->backend->created[0][2];
+
+		$this->assertStringContainsString(
+			'DESCRIPTION:Bring instruments\n\n'
+			. OrgCalendarSyncService::BLOCK_SEPARATOR . '\n' . self::LINK_LINE,
+			$ics,
+		);
+		$this->assertStringNotContainsString('attending', $ics);
 	}
 
+	/**
+	 * An appointment without a description starts straight with the block —
+	 * no leading blank line.
+	 */
+	public function testBlockIsTheWholeDescriptionWhenTheAppointmentHasNone(): void {
+		$this->configureEnabled();
+		$appointment = $this->buildAppointment();
+		$appointment->setDescription('');
+		$this->appointmentMapper->method('update')->willReturnArgument(0);
+
+		$this->assertTrue($this->service->syncAppointment($appointment));
+
+		$this->assertStringContainsString(
+			'DESCRIPTION:' . OrgCalendarSyncService::BLOCK_SEPARATOR . '\n' . self::LINK_LINE,
+			$this->backend->created[0][2],
+		);
+	}
+
+	/**
+	 * The summary switch buys quiet from the per-answer write; the link never
+	 * changes, so switching the summary off must not take it away.
+	 */
 	public function testSummaryOmittedWhenTheAdminSwitchedItOff(): void {
 		$this->configureEnabled(false);
 		$appointment = $this->buildAppointment();
@@ -479,8 +521,12 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->assertTrue($this->service->syncAppointment($appointment));
 
 		$ics = $this->backend->created[0][2];
-		$this->assertStringNotContainsString(OrgCalendarSyncService::SUMMARY_SEPARATOR, $ics);
-		$this->assertStringContainsString('DESCRIPTION:Bring instruments', $ics);
+		$this->assertStringNotContainsString('attending', $ics);
+		$this->assertStringContainsString(
+			'DESCRIPTION:Bring instruments\n\n'
+			. OrgCalendarSyncService::BLOCK_SEPARATOR . '\n' . self::LINK_LINE,
+			$ics,
+		);
 	}
 
 	/**
@@ -555,16 +601,19 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->assertFalse($this->service->matchesIgnoringTimestamps($folded, $other));
 	}
 
-	public function testStripResponseSummary(): void {
-		$description = "Bring instruments\n\n" . OrgCalendarSyncService::SUMMARY_SEPARATOR . "\n2 attending, 1 declined, 1 maybe";
-		$this->assertSame('Bring instruments', OrgCalendarSyncService::stripResponseSummary($description));
+	public function testStripAppendedBlock(): void {
+		$block = OrgCalendarSyncService::BLOCK_SEPARATOR
+			. "\n2 attending, 1 declined, 1 maybe"
+			. "\nView or change your response:"
+			. "\nhttps://cloud.example.com/apps/attendance/#/appointment/5";
 
-		// Description that is only a summary block collapses to empty
-		$onlySummary = OrgCalendarSyncService::SUMMARY_SEPARATOR . "\n2 attending, 0 declined, 0 maybe";
-		$this->assertSame('', OrgCalendarSyncService::stripResponseSummary($onlySummary));
+		$this->assertSame('Bring instruments', OrgCalendarSyncService::stripAppendedBlock("Bring instruments\n\n" . $block));
+
+		// Description that is only the block collapses to empty
+		$this->assertSame('', OrgCalendarSyncService::stripAppendedBlock($block));
 
 		// No marker → unchanged
-		$this->assertSame('Plain text', OrgCalendarSyncService::stripResponseSummary('Plain text'));
+		$this->assertSame('Plain text', OrgCalendarSyncService::stripAppendedBlock('Plain text'));
 	}
 
 	public function testSyncAllUpcomingSkipsImportedAppointments(): void {

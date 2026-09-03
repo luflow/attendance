@@ -86,6 +86,8 @@ test.describe('Attendance App - Organization calendar', () => {
 			expect(ics).toBeTruthy()
 			expect(ics).toContain('SUMMARY:Org Push Create')
 			expect(ics).toContain('DESCRIPTION:Rehearsal in the club house')
+			expect(ics).toContain('--- Attendance ---')
+			expect(ics).toContain(`/apps/attendance/#/appointment/${appointment.id}`)
 			expect(ics).toContain('STATUS:CONFIRMED')
 
 			await deleteAppointmentViaAPI(request, appointment.id)

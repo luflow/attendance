@@ -26,8 +26,8 @@ use Psr\Log\LoggerInterface;
  * columns the import flow uses. The listener writes through the mapper (not this
  * service), so no push/echo loop can form; the listener echo of our own writes
  * is idempotent because the pushed DESCRIPTION is the plain appointment
- * description plus the response summary block, which the listener strips again
- * via stripResponseSummary() before writing back.
+ * description plus the app-generated block, which the listener strips again
+ * via stripAppendedBlock() before writing back.
  *
  * Object CRUD uses OCA\DAV\CalDAV\CalDavBackend because OCP offers no public
  * update/delete API for calendar objects (nextcloud/server#20154):
@@ -44,13 +44,14 @@ class OrgCalendarSyncService {
 
 	/**
 	 * Separator line between the appointment description and the app-generated
-	 * response summary inside the event DESCRIPTION. Doubles as the suppression
-	 * marker: CalendarObjectUpdateListener strips everything from this line on
-	 * before syncing a calendar-side description back into the appointment, so
-	 * the summary never leaks into the appointment description (echo loop).
+	 * block (response summary and deep link) inside the event DESCRIPTION.
+	 * Doubles as the suppression marker: CalendarObjectUpdateListener strips
+	 * everything from this line on before syncing a calendar-side description
+	 * back into the appointment, so the block never leaks into the appointment
+	 * description (echo loop).
 	 * Must stay untranslated — stripping has to work in every language.
 	 */
-	public const SUMMARY_SEPARATOR = '--- Attendance ---';
+	public const BLOCK_SEPARATOR = '--- Attendance ---';
 
 	/**
 	 * Properties managedProperties() derives from the appointment's updatedAt,
@@ -334,8 +335,9 @@ class OrgCalendarSyncService {
 	 * Build the full VCALENDAR document for a new appointment event.
 	 *
 	 * DESCRIPTION carries only content derived from the appointment (plus the
-	 * summary block the listener strips again), so the listener echo of our
-	 * own writes is a no-op. The deep link goes into URL instead.
+	 * app block the listener strips again), so the listener echo of our own
+	 * writes is a no-op. URL carries the same deep link for the clients that
+	 * surface that property.
 	 */
 	public function buildIcs(Appointment $appointment, string $uid): string {
 		$utc = new \DateTimeZone('UTC');
@@ -448,7 +450,6 @@ class OrgCalendarSyncService {
 		$end = new \DateTime($appointment->getEndDatetime(), $utc);
 		$lastModified = new \DateTime($appointment->getUpdatedAt() ?: 'now', $utc);
 
-		$description = $this->buildDescription($appointment);
 		$location = $appointment->getLocation();
 		$categoryName = $this->resolveCategoryName($appointment->getCategoryId());
 
@@ -458,9 +459,7 @@ class OrgCalendarSyncService {
 			'DTSTART' => 'DTSTART:' . $start->format('Ymd\THis\Z'),
 			'DTEND' => 'DTEND:' . $end->format('Ymd\THis\Z'),
 			'SUMMARY' => 'SUMMARY:' . $this->icalService->escapeIcalText($appointment->getName()),
-			'DESCRIPTION' => $description !== ''
-				? 'DESCRIPTION:' . $this->icalService->escapeIcalText($description)
-				: null,
+			'DESCRIPTION' => 'DESCRIPTION:' . $this->icalService->escapeIcalText($this->buildDescription($appointment)),
 			'LOCATION' => $location !== null
 				? 'LOCATION:' . $this->icalService->escapeIcalText($location)
 				: null,
@@ -487,30 +486,34 @@ class OrgCalendarSyncService {
 	}
 
 	/**
-	 * Event DESCRIPTION = plain appointment description, plus — when anybody
-	 * responded — the response summary behind the SUMMARY_SEPARATOR marker
-	 * (the "who is coming" visibility agreed in issue #71).
+	 * Event DESCRIPTION = plain appointment description, plus the app block
+	 * behind the BLOCK_SEPARATOR marker: the response summary when anybody
+	 * responded (the "who is coming" visibility agreed in issue #71) and a link
+	 * into the app, where an attendee can read the details and answer (#205).
+	 *
+	 * The link is deliberately outside the summary switch: that switch buys
+	 * quiet by keeping a write per answer out of the calendar, and the link
+	 * never changes, so it costs nothing to carry.
 	 */
 	private function buildDescription(Appointment $appointment): string {
 		$description = trim($appointment->getDescription() ?? '');
 
-		if (!$this->configService->isOrgCalendarSummaryEnabled()) {
-			return $description;
+		$block = [];
+		if ($this->configService->isOrgCalendarSummaryEnabled()) {
+			$summary = $this->buildResponseSummary($appointment);
+			if ($summary !== null) {
+				$block[] = $summary;
+			}
 		}
+		$block[] = $this->getL10N()->t('View or change your response') . ":\n"
+			. $this->icalService->getAppointmentUrl($appointment->getId());
 
-		$summary = $this->buildResponseSummary($appointment);
-		if ($summary !== null) {
-			$description = ($description !== '' ? $description . "\n\n" : '')
-				. self::SUMMARY_SEPARATOR . "\n" . $summary;
-		}
-
-		return $description;
+		return ($description !== '' ? $description . "\n\n" : '')
+			. self::BLOCK_SEPARATOR . "\n" . implode("\n", $block);
 	}
 
 	/**
 	 * One-line response summary, e.g. "12 attending, 3 declined, 2 maybe".
-	 * Uses the instance default language — the calendar is shared org-wide,
-	 * so the text must not depend on whoever responded last.
 	 *
 	 * @return string|null Null when nobody responded yet
 	 */
@@ -520,26 +523,35 @@ class OrgCalendarSyncService {
 			return null;
 		}
 
-		if ($this->l10n === null) {
-			$lang = $this->config->getSystemValueString('default_language', 'en');
-			$this->l10n = $this->l10nFactory->get('attendance', $lang);
-		}
+		$l10n = $this->getL10N();
 
 		return implode(', ', [
-			$this->l10n->n('%n attending', '%n attending', $counts['yes'] ?? 0),
-			$this->l10n->n('%n declined', '%n declined', $counts['no'] ?? 0),
-			$this->l10n->n('%n maybe', '%n maybe', $counts['maybe'] ?? 0),
+			$l10n->n('%n attending', '%n attending', $counts['yes'] ?? 0),
+			$l10n->n('%n declined', '%n declined', $counts['no'] ?? 0),
+			$l10n->n('%n maybe', '%n maybe', $counts['maybe'] ?? 0),
 		]);
 	}
 
 	/**
-	 * Remove the app-generated response summary block from a calendar-side
-	 * description. Used by CalendarObjectUpdateListener before syncing a
-	 * description back into the appointment, so our own summary (which always
-	 * sits at the end) never becomes part of the appointment description.
+	 * Instance default language — the calendar is shared org-wide, so its text
+	 * must not depend on whoever triggered the write.
 	 */
-	public static function stripResponseSummary(string $description): string {
-		$pos = strpos($description, self::SUMMARY_SEPARATOR);
+	private function getL10N(): IL10N {
+		if ($this->l10n === null) {
+			$lang = $this->config->getSystemValueString('default_language', 'en');
+			$this->l10n = $this->l10nFactory->get('attendance', $lang);
+		}
+		return $this->l10n;
+	}
+
+	/**
+	 * Remove the app-generated block from a calendar-side description. Used by
+	 * CalendarObjectUpdateListener before syncing a description back into the
+	 * appointment, so our own summary and link (which always sit at the end)
+	 * never become part of the appointment description.
+	 */
+	public static function stripAppendedBlock(string $description): string {
+		$pos = strpos($description, self::BLOCK_SEPARATOR);
 		if ($pos === false) {
 			return $description;
 		}
