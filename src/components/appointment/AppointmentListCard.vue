@@ -74,6 +74,7 @@
 				:userResponse="userResponse"
 				:comment="appointment.userResponse?.comment || ''"
 				:responseDeadline="appointment.responseDeadline"
+				:responseOptions="responseOptions"
 				@submitResponse="(id, response) => emit('submitResponse', id, response)">
 				<template #label>
 					<span class="list-card__label">{{ t("attendance", "Your response") }}</span>
@@ -124,7 +125,7 @@ import { useAppointmentCard } from '../../composables/useAppointmentCard.js'
 import { appointmentDetailUrl, formatCancelledLabel, formatClosedLabel } from '../../utils/appointment.js'
 import { categoryIconComponent } from '../../utils/categoryIcons.js'
 import { stripMarkdown } from '../../utils/markdown.js'
-import { getResponseText, responseSegments } from '../../utils/response.js'
+import { getResponseText, responseOptionsFor, responseSegments } from '../../utils/response.js'
 
 const props = defineProps({
 	appointment: {
@@ -144,6 +145,10 @@ const emit = defineEmits([
 	'closedToggled',
 	'showAuditLog',
 ])
+
+// Answers this appointment offers — the buttons must not show one the server
+// would reject.
+const responseOptions = computed(() => responseOptionsFor(props.appointment.allowMaybe))
 
 const {
 	isCancelled,

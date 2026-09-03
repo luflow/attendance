@@ -41,6 +41,7 @@
 			:appointmentId="item.id"
 			:userResponse="item.userResponse?.response ?? null"
 			:comment="item.userResponse?.comment || ''"
+			:responseOptions="responseOptions"
 			@submitResponse="(id, response) => emit('respond', id, response)" />
 	</div>
 </template>
@@ -51,6 +52,7 @@ import { computed } from 'vue'
 import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
 import ResponseEditor from '../appointment/ResponseEditor.vue'
 import { formatDateTime } from '../../utils/datetime.js'
+import { responseOptionsFor } from '../../utils/response.js'
 
 const props = defineProps({
 	item: {
@@ -68,6 +70,10 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['respond', 'openCheckin', 'openDetail'])
+
+// Answers this appointment offers — the buttons must not show one the server
+// would reject.
+const responseOptions = computed(() => responseOptionsFor(props.item.allowMaybe))
 
 const formattedDate = computed(() => formatDateTime(props.item.subText))
 </script>

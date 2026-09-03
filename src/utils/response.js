@@ -20,6 +20,21 @@ export const RESPONSES = {
 export const RESPONSE_ORDER = [RESPONSES.YES, RESPONSES.MAYBE, RESPONSES.NO]
 
 /**
+ * The answers an appointment offers, in display order. Appointments that turned
+ * "Maybe" off — and the ones with a limit, which never offer it — drop it here
+ * so no button appears for an answer the server would reject.
+ *
+ * @param {boolean} [allowMaybe] The appointment's resolved allowMaybe flag.
+ * @return {string[]} Response values to render.
+ */
+export function responseOptionsFor(allowMaybe) {
+	if (allowMaybe === false) {
+		return RESPONSE_ORDER.filter((response) => response !== RESPONSES.MAYBE)
+	}
+	return RESPONSE_ORDER
+}
+
+/**
  * Response variant mapping for UI components.
  */
 export const RESPONSE_VARIANTS = {

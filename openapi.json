@@ -47,7 +47,8 @@
                     "location",
                     "categoryId",
                     "createTalkRoom",
-                    "talkRoomToken"
+                    "talkRoomToken",
+                    "allowMaybe"
                 ],
                 "properties": {
                     "id": {
@@ -150,6 +151,9 @@
                     "talkRoomToken": {
                         "type": "string",
                         "nullable": true
+                    },
+                    "allowMaybe": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -480,6 +484,9 @@
                     "categoryId": {
                         "type": "integer",
                         "format": "int64"
+                    },
+                    "allowMaybe": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -496,6 +503,8 @@
                     "bookingEnabled",
                     "scheduledFilter",
                     "remindMaybe",
+                    "responseOptions",
+                    "allowMaybeDefault",
                     "responseToggle",
                     "guestInvitation",
                     "auditLog",
@@ -538,6 +547,12 @@
                         "type": "boolean"
                     },
                     "remindMaybe": {
+                        "type": "boolean"
+                    },
+                    "responseOptions": {
+                        "type": "boolean"
+                    },
+                    "allowMaybeDefault": {
                         "type": "boolean"
                     },
                     "responseToggle": {
@@ -2036,6 +2051,12 @@
                                         "type": "boolean",
                                         "default": false,
                                         "description": "Open a Talk conversation with the scheduled people when the inquiry closes"
+                                    },
+                                    "allowMaybe": {
+                                        "type": "boolean",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Offer \"Maybe\" as an answer; null follows the instance-wide default"
                                     }
                                 }
                             }
@@ -2718,6 +2739,12 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Open a Talk conversation when the inquiry closes, or null to leave unchanged"
+                                    },
+                                    "allowMaybe": {
+                                        "type": "boolean",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Offer \"Maybe\" as an answer, or null to leave unchanged; applied identically to every affected sibling when scope is future/all"
                                     }
                                 }
                             }

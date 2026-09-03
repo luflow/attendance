@@ -135,6 +135,8 @@
     <PossiblyUnusedParam>
       <code><![CDATA[$id]]></code>
       <code><![CDATA[$id]]></code>
+      <code><![CDATA[$allowMaybe]]></code>
+      <code><![CDATA[$allowMaybe]]></code>
       <code><![CDATA[$appointmentId]]></code>
       <code><![CDATA[$appointmentId]]></code>
       <code><![CDATA[$appointmentIds]]></code>
@@ -415,6 +417,7 @@
       <code><![CDATA[public function jsonSerialize(): array {]]></code>
     </MissingOverrideAttribute>
     <MissingPropertyType>
+      <code><![CDATA[$allowMaybe]]></code>
       <code><![CDATA[$calendarEventUid]]></code>
       <code><![CDATA[$calendarUri]]></code>
       <code><![CDATA[$cancelledAt]]></code>
@@ -447,6 +450,7 @@
       <code><![CDATA[$decoded]]></code>
     </MixedAssignment>
     <PossiblyUnusedProperty>
+      <code><![CDATA[$allowMaybe]]></code>
       <code><![CDATA[$calendarEventUid]]></code>
       <code><![CDATA[$calendarUri]]></code>
       <code><![CDATA[$cancelledAt]]></code>
@@ -1268,6 +1272,11 @@
       <code><![CDATA[Version000022Date20260816120000]]></code>
     </UnusedClass>
   </file>
+  <file src="lib/Migration/Version000023Date20260903120000.php">
+    <UnusedClass>
+      <code><![CDATA[Version000023Date20260903120000]]></code>
+    </UnusedClass>
+  </file>
   <file src="lib/Service/AppointmentService.php">
     <ArgumentTypeCoercion>
       <code><![CDATA[$siblings]]></code>
@@ -1951,6 +1960,14 @@
     <MixedReturnStatement>
       <code><![CDATA[$this->config->getSystemValue('secret', '')]]></code>
     </MixedReturnStatement>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Service/ResponsePolicyService.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[ResponsePolicyService]]></code>
+    </ClassMustBeFinal>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
     </PossiblyUnusedMethod>

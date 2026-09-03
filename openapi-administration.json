@@ -60,6 +60,7 @@
                     "pushEnabled",
                     "mobileAppBannerEnabled",
                     "bookingEnabled",
+                    "allowMaybe",
                     "selfCheckinWindowMinutes",
                     "guestsApp"
                 ],
@@ -101,6 +102,9 @@
                         "type": "boolean"
                     },
                     "bookingEnabled": {
+                        "type": "boolean"
+                    },
+                    "allowMaybe": {
                         "type": "boolean"
                     },
                     "selfCheckinWindowMinutes": {
@@ -209,6 +213,8 @@
                     "bookingEnabled",
                     "scheduledFilter",
                     "remindMaybe",
+                    "responseOptions",
+                    "allowMaybeDefault",
                     "responseToggle",
                     "guestInvitation",
                     "auditLog",
@@ -251,6 +257,12 @@
                         "type": "boolean"
                     },
                     "remindMaybe": {
+                        "type": "boolean"
+                    },
+                    "responseOptions": {
+                        "type": "boolean"
+                    },
+                    "allowMaybeDefault": {
                         "type": "boolean"
                     },
                     "responseToggle": {
@@ -712,6 +724,12 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Whether the booking / planning feature is enabled"
+                                    },
+                                    "allowMaybe": {
+                                        "type": "boolean",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Whether appointments offer \"Maybe\" where they have no override of their own"
                                     },
                                     "selfCheckinWindowMinutes": {
                                         "type": "integer",

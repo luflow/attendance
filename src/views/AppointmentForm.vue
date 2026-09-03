@@ -297,6 +297,24 @@
 				</p>
 			</div>
 
+			<div v-if="responseOptionsAvailable" class="form-section">
+				<h3>{{ t("attendance", "Answer options") }}</h3>
+				<!-- TRANSLATORS: Hint under the "Maybe" switch in the appointment form. It explains what turning the option off does — people are left with a straight yes or no — and is aimed at organizers who find "Maybe" unhelpful for this particular appointment. Sample German: "Ohne „Vielleicht“ bleibt nur eine klare Zu- oder Absage." -->
+				<p class="hint-text">
+					{{
+						t(
+							"attendance",
+							"Without “Maybe” people are left with a clear yes or no.",
+						)
+					}}
+				</p>
+				<NcCheckboxRadioSwitch
+					v-model="allowMaybe"
+					data-test="checkbox-allow-maybe">
+					{{ t("attendance", "Offer “Maybe” as an answer") }}
+				</NcCheckboxRadioSwitch>
+			</div>
+
 			<div
 				v-if="notificationsAppEnabled && (mode === 'create' || mode === 'copy')"
 				class="form-section">
@@ -650,6 +668,7 @@ const organizersAvailable = computed(() => capabilities.organizers === true)
 
 const locationsAvailable = computed(() => capabilities.locationsAvailable === true)
 const talkRoomsAvailable = computed(() => capabilities.talkRoomsAvailable === true)
+const responseOptionsAvailable = computed(() => capabilities.responseOptions === true)
 
 // Who lands in the room depends on the planning feature, and so does when the
 // room opens — promising "the scheduled people" on an instance without planning
@@ -705,6 +724,9 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const isEmailAddress = (value) => typeof value === 'string' && EMAIL_REGEX.test(value.trim())
 const sendNotification = ref(false)
 const createTalkRoom = ref(false)
+// A new appointment starts on whatever the instance offers; editing an existing
+// one loads its own answer, and saving always writes one either way.
+const allowMaybe = ref(capabilities.allowMaybeDefault !== false)
 const trackingGroups = ref([])
 const trackingTeams = ref([])
 const attachments = ref([])
@@ -1109,6 +1131,7 @@ async function loadAppointment() {
 		}
 
 		createTalkRoom.value = appointment.createTalkRoom === true
+		allowMaybe.value = appointment.allowMaybe !== false
 
 		// Load notification preference for copy mode
 		if (props.mode === 'copy') {
@@ -1455,6 +1478,7 @@ async function handleRecurringCreate() {
 				visibleUsers: formData.visibleUsers || [],
 				visibleGroups: formData.visibleGroups || [],
 				visibleTeams: formData.visibleTeams || [],
+				allowMaybe: allowMaybe.value,
 			}
 			if (formData.categoryId) {
 				item.categoryId = formData.categoryId
@@ -1588,6 +1612,7 @@ async function saveAppointment(scope = 'single') {
 				visibleTeams: formData.visibleTeams || [],
 				attachments: attachmentFileIds.value,
 				createTalkRoom: createTalkRoom.value,
+				allowMaybe: allowMaybe.value,
 				scope,
 			}
 			const organizersChanged = initialOrganizerIds.value === null
@@ -1620,6 +1645,7 @@ async function saveAppointment(scope = 'single') {
 				organizers: formData.organizers || [],
 				sendNotification: sendNotification.value,
 				createTalkRoom: createTalkRoom.value,
+				allowMaybe: allowMaybe.value,
 				calendarUri: calendarReference.value.calendarUri,
 				calendarEventUid: calendarReference.value.calendarEventUid,
 				attachments: attachmentFileIds.value,

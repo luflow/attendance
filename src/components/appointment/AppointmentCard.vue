@@ -109,6 +109,7 @@
 				:userResponse="userResponse"
 				:comment="appointment.userResponse?.comment || ''"
 				:responseDeadline="appointment.responseDeadline"
+				:responseOptions="responseOptions"
 				@submitResponse="(id, response) => emit('submitResponse', id, response)" />
 		</div>
 
@@ -151,6 +152,7 @@
 			:appointmentId="appointment.id"
 			:isClosed="isClosed"
 			:acceptsResponses="acceptsResponses"
+			:responseOptions="responseOptions"
 			@refreshAppointment="emit('refreshAppointment')" />
 	</div>
 </template>
@@ -176,7 +178,7 @@ import { finalScheduleStatus, formatCancelledLabel, formatClosedLabel } from '..
 import { categoryIconComponent } from '../../utils/categoryIcons.js'
 import { formatTime } from '../../utils/datetime.js'
 import { renderMarkdown, sanitizeHtml } from '../../utils/markdown.js'
-import { getResponseText } from '../../utils/response.js'
+import { getResponseText, responseOptionsFor } from '../../utils/response.js'
 
 const props = defineProps({
 	appointment: {
@@ -196,6 +198,10 @@ const emit = defineEmits([
 	'showAuditLog',
 	'refreshAppointment',
 ])
+
+// Answers this appointment offers — the buttons must not show one the server
+// would reject.
+const responseOptions = computed(() => responseOptionsFor(props.appointment.allowMaybe))
 
 // NB: pass a getter, never bind it to a name — every top-level binding in
 // <script setup> is exposed to the template, and a local `appointment` would

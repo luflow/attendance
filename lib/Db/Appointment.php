@@ -57,6 +57,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setCreateTalkRoom(bool $createTalkRoom)
  * @method string|null getTalkRoomToken()
  * @method void setTalkRoomToken(?string $talkRoomToken)
+ * @method bool|null getAllowMaybe()
+ * @method void setAllowMaybe(?bool $allowMaybe)
  */
 class Appointment extends Entity implements JsonSerializable {
 	use DatetimeFormatTrait;
@@ -84,6 +86,7 @@ class Appointment extends Entity implements JsonSerializable {
 	protected $categoryId = null;
 	protected $createTalkRoom = false;
 	protected $talkRoomToken = null;
+	protected $allowMaybe = null;
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -111,6 +114,7 @@ class Appointment extends Entity implements JsonSerializable {
 		$this->addType('categoryId', 'integer');
 		$this->addType('createTalkRoom', 'boolean');
 		$this->addType('talkRoomToken', 'string');
+		$this->addType('allowMaybe', 'boolean');
 	}
 
 	public function jsonSerialize(): array {
@@ -141,6 +145,9 @@ class Appointment extends Entity implements JsonSerializable {
 			'categoryId' => $this->getCategoryId(),
 			'createTalkRoom' => $this->getCreateTalkRoom(),
 			'talkRoomToken' => $this->getTalkRoomToken(),
+			// Tri-state in the column, resolved against the instance default
+			// before it reaches a client — see AppointmentService::serializeAppointment().
+			'allowMaybe' => $this->getAllowMaybe(),
 		];
 	}
 

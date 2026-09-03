@@ -26,6 +26,7 @@ class ResponseService {
 	private AuditEventService $auditEventService;
 	private OrgCalendarSyncService $orgCalendarSyncService;
 	private TalkRoomService $talkRoomService;
+	private ResponsePolicyService $responsePolicyService;
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -38,6 +39,7 @@ class ResponseService {
 		AuditEventService $auditEventService,
 		OrgCalendarSyncService $orgCalendarSyncService,
 		TalkRoomService $talkRoomService,
+		ResponsePolicyService $responsePolicyService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -49,6 +51,7 @@ class ResponseService {
 		$this->auditEventService = $auditEventService;
 		$this->orgCalendarSyncService = $orgCalendarSyncService;
 		$this->talkRoomService = $talkRoomService;
+		$this->responsePolicyService = $responsePolicyService;
 	}
 
 	// Response source constants
@@ -74,12 +77,13 @@ class ResponseService {
 		string $comment = '',
 		string $source = self::SOURCE_APP,
 	): AttendanceResponse {
-		if (!in_array($response, ['yes', 'no', 'maybe'])) {
-			throw new \InvalidArgumentException('Invalid response. Must be yes, no, or maybe.');
-		}
-
 		// Check if appointment exists and is still open for responses
 		$appointment = $this->appointmentMapper->find($appointmentId);
+
+		// Same guard AppointmentService::applyResponse() runs, so a quick-response
+		// link cannot slip past a rule the app enforces.
+		$this->responsePolicyService->assertResponseAllowed($appointment, $response);
+
 		if ($appointment->isClosed()) {
 			throw new \RuntimeException('This appointment is closed and no longer accepts responses.');
 		}

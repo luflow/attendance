@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Tests\Unit\Notification;
 
+use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Notification\Notifier;
 use OCA\Attendance\Service\QuickResponseTokenService;
+use OCA\Attendance\Service\ResponsePolicyService;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -31,6 +33,12 @@ class NotifierTest extends TestCase {
 	private $config;
 	/** @var AttendanceResponseMapper|MockObject */
 	private $responseMapper;
+
+	/** @var AppointmentMapper|MockObject */
+	private $appointmentMapper;
+
+	/** @var ResponsePolicyService|MockObject */
+	private $responsePolicyService;
 	/** @var IUserManager|MockObject */
 	private $userManager;
 
@@ -43,6 +51,11 @@ class NotifierTest extends TestCase {
 		$this->config = $this->createMock(IConfig::class);
 		$this->responseMapper = $this->createMock(AttendanceResponseMapper::class);
 		$this->userManager = $this->createMock(IUserManager::class);
+		$this->appointmentMapper = $this->createMock(AppointmentMapper::class);
+		$this->responsePolicyService = $this->createMock(ResponsePolicyService::class);
+		// Notifications carry all three quick-response buttons unless a test
+		// takes "Maybe" away.
+		$this->responsePolicyService->method('isMaybeAllowed')->willReturn(true);
 
 		$this->config->method('getUserValue')->willReturn('');
 
@@ -63,6 +76,8 @@ class NotifierTest extends TestCase {
 			$this->config,
 			$this->responseMapper,
 			$this->userManager,
+			$this->appointmentMapper,
+			$this->responsePolicyService,
 		);
 	}
 

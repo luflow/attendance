@@ -342,6 +342,25 @@ class ConfigService {
 	}
 
 	/**
+	 * Whether appointments offer "Maybe" as an answer. A per-appointment
+	 * override wins; this is what an appointment without one follows.
+	 *
+	 * @return bool True if "Maybe" is offered
+	 */
+	public function isMaybeAllowed(): bool {
+		return $this->appConfig->getValueBool(self::APP_ID, 'allow_maybe', true);
+	}
+
+	/**
+	 * Set whether "Maybe" is offered where an appointment has no override.
+	 *
+	 * @param bool $allowed Whether "Maybe" should be offered
+	 */
+	public function setMaybeAllowed(bool $allowed): void {
+		$this->appConfig->setValueBool(self::APP_ID, 'allow_maybe', $allowed);
+	}
+
+	/**
 	 * Minutes before an appointment starts that self-check-in opens.
 	 * The window always closes at the appointment end.
 	 */

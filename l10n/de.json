@@ -973,6 +973,10 @@
     "Move {name} up" : "{name} nach oben verschieben",
     "Move {name} down" : "{name} nach unten verschieben",
     "Sections appear in this order. Drag an entry or use the arrows to move it." : "Die Abschnitte erscheinen in dieser Reihenfolge. Ziehe einen Eintrag oder verschiebe ihn mit den Pfeilen.",
-    "Using Attendance with a group? One license for the whole group costs less than {count} personal licenses." : "Du nutzt Attendance mit einer Gruppe? Eine Lizenz für die ganze Gruppe kostet weniger als {count} persönliche Lizenzen."
+    "Using Attendance with a group? One license for the whole group costs less than {count} personal licenses." : "Du nutzt Attendance mit einer Gruppe? Eine Lizenz für die ganze Gruppe kostet weniger als {count} persönliche Lizenzen.",
+    "Answer options" : "Antwortmöglichkeiten",
+    "Offer “Maybe” as an answer" : "„Vielleicht“ als Antwort anbieten",
+    "What every appointment offers unless its organizer decides otherwise." : "Gilt für jeden Termin, bei dem der Organisator es nicht anders festlegt.",
+    "Without “Maybe” people are left with a clear yes or no." : "Ohne „Vielleicht“ bleibt nur eine klare Zu- oder Absage."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

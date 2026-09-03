@@ -466,6 +466,18 @@
 				</NcCheckboxRadioSwitch>
 			</NcSettingsSection>
 
+			<!-- TRANSLATORS: Admin settings section title for which answers appointments offer. -->
+			<NcSettingsSection id="answer-options"
+				:name="t('attendance', 'Answer options')"
+				:description="t('attendance', 'What every appointment offers unless its organizer decides otherwise.')">
+				<NcCheckboxRadioSwitch v-model="allowMaybe"
+					type="switch"
+					data-test="switch-allow-maybe">
+					<!-- TRANSLATORS: Switch label — appointments offer Yes, Maybe and No rather than just Yes and No. -->
+					{{ t('attendance', 'Offer “Maybe” as an answer') }}
+				</NcCheckboxRadioSwitch>
+			</NcSettingsSection>
+
 			<NcSettingsSection id="display-options"
 				:name="t('attendance', 'Display options')"
 				:description="t('attendance', 'Choose how appointments are displayed across the app.')">
@@ -708,6 +720,7 @@ const navSections = [
 	{ id: 'org-calendar', label: t('attendance', 'Organization calendar') },
 	{ id: 'audit-log', label: t('attendance', 'Audit log') },
 	{ id: 'scheduling', label: t('attendance', 'Scheduling') },
+	{ id: 'answer-options', label: t('attendance', 'Answer options') },
 	{ id: 'display-options', label: t('attendance', 'Display options') },
 	{ id: 'mobile-apps', label: t('attendance', 'Mobile apps') },
 	{ id: 'guests', label: t('attendance', 'Guest invitation') },
@@ -857,6 +870,7 @@ const auditLogVisibility = ref('managers')
 const pushEnabled = ref(true)
 const mobileAppBannerEnabled = ref(true)
 const bookingEnabled = ref(false)
+const allowMaybe = ref(true)
 const displayOrder = ref('name_first')
 const pushDeviceCount = ref(0)
 const loadingData = ref(true)
@@ -1047,6 +1061,7 @@ autoSave(
 	() => ({ mobileAppBannerEnabled: mobileAppBannerEnabled.value }),
 )
 autoSave(bookingEnabled, 'bookingEnabled', () => ({ bookingEnabled: bookingEnabled.value }))
+autoSave(allowMaybe, 'allowMaybe', () => ({ allowMaybe: allowMaybe.value }))
 
 // Methods
 function scrollToSection(id) {
@@ -1134,6 +1149,7 @@ async function loadSettings() {
 
 		// Load planning / booking setting (opt-in, defaults off)
 		bookingEnabled.value = config.bookingEnabled === true
+		allowMaybe.value = config.allowMaybe !== false
 
 		// Load guests app status (for whitelist warning)
 		if (config.guestsApp) {

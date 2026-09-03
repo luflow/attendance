@@ -49,6 +49,7 @@
 							:remindingUsers="remindingUsers"
 							:togglingBooking="togglingBooking"
 							:settingAnswer="settingAnswer"
+							:responseOptions="responseOptions"
 							@remind="remindUser"
 							@toggleBooking="toggleBooking"
 							@setAnswer="setAnswer" />
@@ -60,6 +61,7 @@
 						:headerText="t('attendance', 'No response yet:')"
 						:canManageAppointments="canSendReminders"
 						:canSetAnswer="canSetAnswer"
+						:responseOptions="responseOptions"
 						:appointmentId="appointmentId"
 						:remindingUsers="remindingUsers"
 						:settingAnswer="settingAnswer"
@@ -84,7 +86,7 @@ import ResponseBar from './ResponseBar.vue'
 import ResponseRow from './ResponseRow.vue'
 import { usePermissions } from '../../composables/usePermissions.js'
 import { formatGroupLabel } from '../../utils/groups.js'
-import { responseSegments } from '../../utils/response.js'
+import { RESPONSE_ORDER, responseSegments } from '../../utils/response.js'
 
 const props = defineProps({
 	responseSummary: {
@@ -112,6 +114,12 @@ const props = defineProps({
 	acceptsResponses: {
 		type: Boolean,
 		default: false,
+	},
+	// Which answers this appointment offers, forwarded to the on-behalf answer
+	// editors so they cannot show one the server would reject.
+	responseOptions: {
+		type: Array,
+		default: () => RESPONSE_ORDER,
 	},
 })
 

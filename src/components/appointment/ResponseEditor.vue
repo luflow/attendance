@@ -99,6 +99,11 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
+	// Which answers this appointment offers, in display order.
+	responseOptions: {
+		type: Array,
+		default: () => RESPONSE_ORDER,
+	},
 })
 
 const emit = defineEmits(['submitResponse'])
@@ -106,7 +111,7 @@ const emit = defineEmits(['submitResponse'])
 // Labels, variants and glyphs all come from the shared response helpers, so
 // the buttons carry the same filled circles the sidebar uses.
 const ICONS = { CheckCircle, HelpCircle, CloseCircle }
-const options = computed(() => RESPONSE_ORDER.map((value) => ({
+const options = computed(() => props.responseOptions.map((value) => ({
 	value,
 	label: getResponseText(value),
 	variant: getResponseVariant(value),

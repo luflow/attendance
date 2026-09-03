@@ -31,6 +31,7 @@ namespace OCA\Attendance;
  *   categoryId: ?int,
  *   createTalkRoom: bool,
  *   talkRoomToken: ?string,
+ *   allowMaybe: bool,
  * }
  * @psalm-type AttendanceMyPermissions = array{
  *   isOrganizer: bool,
@@ -145,6 +146,7 @@ namespace OCA\Attendance;
  *   responseDeadline?: string,
  *   location?: string,
  *   categoryId?: int,
+ *   allowMaybe?: bool,
  * }
  * @psalm-type AttendanceCategoryData = array{
  *   id: int,
@@ -178,6 +180,8 @@ namespace OCA\Attendance;
  *   bookingEnabled: bool,
  *   scheduledFilter: bool,
  *   remindMaybe: bool,
+ *   responseOptions: bool,
+ *   allowMaybeDefault: bool,
  *   responseToggle: bool,
  *   guestInvitation: bool,
  *   auditLog: bool,
@@ -258,6 +262,7 @@ namespace OCA\Attendance;
  *   pushEnabled: bool,
  *   mobileAppBannerEnabled: bool,
  *   bookingEnabled: bool,
+ *   allowMaybe: bool,
  *   selfCheckinWindowMinutes: int,
  *   guestsApp: AttendanceGuestsAppStatus,
  * }

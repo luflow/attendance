@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Notification;
 
+use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Service\QuickResponseTokenService;
+use OCA\Attendance\Service\ResponsePolicyService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IConfig;
 use OCP\IURLGenerator;
@@ -23,6 +25,8 @@ class Notifier implements INotifier {
 	private QuickResponseTokenService $tokenService;
 	private IConfig $config;
 	private AttendanceResponseMapper $responseMapper;
+	private AppointmentMapper $appointmentMapper;
+	private ResponsePolicyService $responsePolicyService;
 	private IUserManager $userManager;
 
 	public function __construct(
@@ -32,12 +36,16 @@ class Notifier implements INotifier {
 		IConfig $config,
 		AttendanceResponseMapper $responseMapper,
 		IUserManager $userManager,
+		AppointmentMapper $appointmentMapper,
+		ResponsePolicyService $responsePolicyService,
 	) {
 		$this->l10nFactory = $l10nFactory;
 		$this->urlGenerator = $urlGenerator;
 		$this->tokenService = $tokenService;
 		$this->config = $config;
 		$this->responseMapper = $responseMapper;
+		$this->appointmentMapper = $appointmentMapper;
+		$this->responsePolicyService = $responsePolicyService;
 		$this->userManager = $userManager;
 	}
 
@@ -438,6 +446,21 @@ class Notifier implements INotifier {
 	}
 
 	/**
+	 * Whether this appointment still offers "Maybe". A notification can outlive
+	 * the appointment it points at, and an unknown one keeps all three buttons
+	 * rather than silently dropping one.
+	 */
+	private function isMaybeOffered(int $appointmentId): bool {
+		try {
+			return $this->responsePolicyService->isMaybeAllowed(
+				$this->appointmentMapper->find($appointmentId),
+			);
+		} catch (\Throwable $e) {
+			return true;
+		}
+	}
+
+	/**
 	 * Add quick response action buttons to a notification.
 	 *
 	 * @param INotification $notification The notification to add actions to
@@ -463,16 +486,19 @@ class Notifier implements INotifier {
 			->setPrimary(false);
 		$notification->addParsedAction($noAction);
 
-		// Maybe action (added second, displays middle)
-		$maybeAction = $notification->createAction();
-		$maybeAction->setLabel('maybe')
-			->setParsedLabel($l->t('Maybe'))
-			->setLink(
-				$this->tokenService->generateQuickResponseUrl($userId, $appointmentId, 'maybe'),
-				IAction::TYPE_WEB
-			)
-			->setPrimary(false);
-		$notification->addParsedAction($maybeAction);
+		// Maybe action (added second, displays middle). Left out where the
+		// appointment does not offer it — the link would only ever 400.
+		if ($this->isMaybeOffered($appointmentId)) {
+			$maybeAction = $notification->createAction();
+			$maybeAction->setLabel('maybe')
+				->setParsedLabel($l->t('Maybe'))
+				->setLink(
+					$this->tokenService->generateQuickResponseUrl($userId, $appointmentId, 'maybe'),
+					IAction::TYPE_WEB
+				)
+				->setPrimary(false);
+			$notification->addParsedAction($maybeAction);
+		}
 
 		// Yes action (added last, displays first/left)
 		$yesAction = $notification->createAction();

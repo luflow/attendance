@@ -52,6 +52,7 @@ class AppointmentService {
 	private OrgCalendarSyncService $orgCalendarSyncService;
 	private CategoryMapper $categoryMapper;
 	private TalkRoomService $talkRoomService;
+	private ResponsePolicyService $responsePolicyService;
 	/** @var array<string, bool> per-request cache for isOrganizerAnywhere() */
 	private array $organizerAnywhereCache = [];
 
@@ -74,6 +75,7 @@ class AppointmentService {
 		OrgCalendarSyncService $orgCalendarSyncService,
 		CategoryMapper $categoryMapper,
 		TalkRoomService $talkRoomService,
+		ResponsePolicyService $responsePolicyService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -93,6 +95,7 @@ class AppointmentService {
 		$this->orgCalendarSyncService = $orgCalendarSyncService;
 		$this->categoryMapper = $categoryMapper;
 		$this->talkRoomService = $talkRoomService;
+		$this->responsePolicyService = $responsePolicyService;
 	}
 
 	/**
@@ -117,6 +120,7 @@ class AppointmentService {
 		?string $location = null,
 		?int $categoryId = null,
 		bool $createTalkRoom = false,
+		?bool $allowMaybe = null,
 	): Appointment {
 		$this->validateDateRange($startDatetime, $endDatetime);
 
@@ -147,6 +151,9 @@ class AppointmentService {
 		$appointment->setSeriesPosition($seriesPosition);
 		$appointment->setSendNotification($sendNotification);
 		$appointment->setCreateTalkRoom($createTalkRoom);
+		// NULL is a real state here: the appointment has no opinion on "Maybe"
+		// and follows whatever the instance default says, now and later.
+		$appointment->setAllowMaybe($allowMaybe);
 		$appointment->setResponseDeadline($deadlineFormatted);
 		// The creator freely chooses the initial organizer list; when the client
 		// sends nothing, the creator becomes the sole organizer.
@@ -201,6 +208,7 @@ class AppointmentService {
 		?string $location = null,
 		?int $categoryId = null,
 		?bool $createTalkRoom = null,
+		?bool $allowMaybe = null,
 	): Appointment {
 		$appointment = $this->appointmentMapper->find($id);
 
@@ -242,6 +250,13 @@ class AppointmentService {
 
 		if ($createTalkRoom !== null) {
 			$appointment->setCreateTalkRoom($createTalkRoom);
+		}
+
+		// Unlike the column, the parameter has no tri-state: null means the
+		// caller left the field alone. Deciding is one-way — an appointment that
+		// has an answer keeps it rather than falling back to the default.
+		if ($allowMaybe !== null) {
+			$appointment->setAllowMaybe($allowMaybe);
 		}
 
 		$updated = $this->appointmentMapper->update($appointment);
@@ -617,6 +632,7 @@ class AppointmentService {
 	 * @param ?list<string> $organizers New organizer list, or null to leave unchanged
 	 * @param ?string $location Location, applied identically to every affected sibling
 	 * @param ?int $categoryId Category, applied identically to every affected sibling
+	 * @param ?bool $allowMaybe Whether "Maybe" is offered, applied identically to every affected sibling; null leaves it alone
 	 * @return list<Appointment> Updated appointments
 	 */
 	public function updateSeriesAppointments(
@@ -635,6 +651,7 @@ class AppointmentService {
 		?string $location = null,
 		?int $categoryId = null,
 		?bool $createTalkRoom = null,
+		?bool $allowMaybe = null,
 	): array {
 		$deadlineUpdate ??= DeadlineUpdate::unchanged();
 		$reference = $this->appointmentMapper->find($referenceId);
@@ -648,6 +665,7 @@ class AppointmentService {
 				$referenceId, $name, $description, $startDatetime, $endDatetime,
 				$userId, $visibleUsers, $visibleGroups, $visibleTeams,
 				$deadlineUpdate, $organizers, $location, $categoryId, $createTalkRoom,
+				$allowMaybe,
 			);
 			return [$updated];
 		}
@@ -659,6 +677,7 @@ class AppointmentService {
 				$referenceId, $name, $description, $startDatetime, $endDatetime,
 				$userId, $visibleUsers, $visibleGroups, $visibleTeams,
 				$deadlineUpdate, $organizers, $location, $categoryId, $createTalkRoom,
+				$allowMaybe,
 			);
 			return [$updated];
 		}
@@ -720,6 +739,9 @@ class AppointmentService {
 			$sibling->setCategoryId($categoryIdValue);
 			if ($createTalkRoom !== null) {
 				$sibling->setCreateTalkRoom($createTalkRoom);
+			}
+			if ($allowMaybe !== null) {
+				$sibling->setAllowMaybe($allowMaybe);
 			}
 
 			// Apply time deltas
@@ -949,7 +971,7 @@ class AppointmentService {
 			$includeResponseCounts,
 		);
 
-		$appointmentData = $appointment->jsonSerialize();
+		$appointmentData = $this->serializeAppointment($appointment);
 		$appointmentData = $this->enrichVisibilityData($appointmentData);
 		$appointmentData = $this->enrichSeriesCount($appointmentData, $appointment);
 		// Only expose userResponse when the user actually answered yes/no/maybe.
@@ -1217,6 +1239,10 @@ class AppointmentService {
 	): AttendanceResponse {
 		$appointmentId = $appointment->getId();
 
+		// Same guard ResponseService::submitResponse() runs for quick-response
+		// links, so neither path can accept an answer the other rejects.
+		$this->responsePolicyService->assertResponseAllowed($appointment, $response);
+
 		if ($appointment->isClosed()) {
 			throw new \RuntimeException('This appointment is closed and no longer accepts responses.');
 		}
@@ -1481,7 +1507,7 @@ class AppointmentService {
 				$includeResponseCounts,
 			);
 
-			$appointmentData = $appointment->jsonSerialize();
+			$appointmentData = $this->serializeAppointment($appointment);
 			$appointmentData = $this->enrichVisibilityData($appointmentData);
 			$appointmentData = $this->enrichSeriesCount($appointmentData, $appointment);
 			$appointmentData['userResponse'] = $this->serializeUserResponse($userResponse);
@@ -1523,7 +1549,7 @@ class AppointmentService {
 				continue;
 			}
 
-			$appointmentData = $appointment->jsonSerialize();
+			$appointmentData = $this->serializeAppointment($appointment);
 			$appointmentData = $this->enrichVisibilityData($appointmentData);
 			$userResponse = $this->getUserResponse($appointment->getId(), $userId);
 			$appointmentData['userResponse'] = $this->serializeUserResponse($userResponse);
@@ -1808,6 +1834,20 @@ class AppointmentService {
 		}
 
 		return array_unique($userIds);
+	}
+
+	/**
+	 * The appointment as a client sees it. The entity cannot resolve allowMaybe
+	 * on its own — the tri-state column has to be read against the instance
+	 * default — so payloads go through here instead of jsonSerialize().
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function serializeAppointment(Appointment $appointment): array {
+		/** @var array<string, mixed> $data */
+		$data = $appointment->jsonSerialize();
+		$data['allowMaybe'] = $this->responsePolicyService->isMaybeAllowed($appointment);
+		return $data;
 	}
 
 	/**
