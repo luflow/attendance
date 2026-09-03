@@ -44,6 +44,7 @@ OC.L10N.register(
     "Something went wrong" : "Valami hiba történt",
     "About" : "Névjegy",
     "All languages" : "Összes nyelv",
+    "Basic" : "Alapvető",
     "Common" : "Általános",
     "Create" : "Létrehozás",
     "Default" : "Alapértelmezett",
