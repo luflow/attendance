@@ -372,6 +372,7 @@
     "Historic" : "Historické",
     "Automatic" : "Automaticky",
     "name" : "názov",
+    "description" : "popis",
     "time" : "krát",
     "Guests" : "Hostia"
 },"pluralForm" :"nplurals=4; plural=(n % 1 == 0 && n == 1 ? 0 : n % 1 == 0 && n >= 2 && n <= 4 ? 1 : n % 1 != 0 ? 2: 3);"

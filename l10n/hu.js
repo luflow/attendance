@@ -68,6 +68,7 @@ OC.L10N.register(
     "Deselect all" : "Kijelölés megszüntetése",
     "Custom range" : "Egyéni tartomány",
     "Start date" : "Kezdés ideje",
+    "End date" : "Befejezés dátuma",
     "Copy URL" : "URL másolása",
     "Copy" : "Másolás",
     "Last accessed" : "Utoljára hozzáférve",

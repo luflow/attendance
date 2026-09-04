@@ -374,6 +374,7 @@ OC.L10N.register(
     "Historic" : "Historické",
     "Automatic" : "Automaticky",
     "name" : "názov",
+    "description" : "popis",
     "time" : "krát",
     "Guests" : "Hostia"
 },

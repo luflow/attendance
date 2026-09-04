@@ -21,6 +21,8 @@ OC.L10N.register(
     "Color" : "Litur",
     "None" : "Ekkert",
     "System" : "Kerfið",
+    "Light" : "Ljóst",
+    "Dark" : "Dökkt",
     "Connected" : "Tengt",
     "Not now" : "Ekki núna",
     "Active filters" : "Virkar síur",
