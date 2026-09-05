@@ -160,6 +160,7 @@ OC.L10N.register(
     "Manager" : "Stjórnandi",
     "Automatic" : "Sjálfvirkt",
     "name" : "heiti",
+    "description" : "lýsing",
     "time" : "sinni"
 },
 "nplurals=2; plural=(n % 10 != 1 || n % 100 == 11);");
