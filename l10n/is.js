@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Yes" : "Já",
     "No" : "Nei",
+    "Maybe" : "Kannski",
     "Group" : "Hópur",
     "Cancelled" : "Hætt við",
     "Attachments" : "Viðhengi",
@@ -57,6 +58,7 @@ OC.L10N.register(
     "Deselect all" : "Afvelja allt",
     "Custom range" : "Sérsniðið bil",
     "Start date" : "Upphafsdagur",
+    "End date" : "Lokadagsetning",
     "Copy" : "Afrita",
     "Last accessed" : "Síðast notað",
     "Cancel" : "Cancel",
@@ -142,6 +144,7 @@ OC.L10N.register(
     "Date & Time" : "Dagsetning og tími",
     "Notification" : "Tilkynning",
     "Add from Files" : "Bæta við úr skrám",
+    "No users found" : "Engir notendur fundust",
     "Confirm" : "Staðfesta",
     "15 minutes before" : "15 mínútum fyrir",
     "30 minutes before" : "30 mínútum fyrir",
