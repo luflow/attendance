@@ -151,6 +151,7 @@ OC.L10N.register(
     "1 hour before" : "1 klukkustund fyrir ",
     "2 hours before" : "2 klukkustundum fyrir",
     "No reminders" : "Engar áminningar",
+    "Thank you for your response!" : "Takk fyrir svarið!",
     "App Store" : "Forritasafn",
     "Search people" : "Leita að fólki",
     "Period" : "Punktur",
