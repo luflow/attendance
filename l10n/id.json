@@ -83,6 +83,7 @@
     "Deselect all" : "Tidak ada yang dipilih",
     "Custom range" : "Rentang kustom",
     "Start date" : "Tanggal mulai",
+    "End date" : "Tanggal berakhir",
     "Subscribe to your appointments in external calendar apps like Google Calendar, Apple Calendar, or Thunderbird." : "Langgan ke janji temu Anda di aplikasi kalender eksternal seperti Google Calendar, Apple Calendar, atau Thunderbird.",
     "Subscription URL" : "URL langganan",
     "Copy URL" : "Salin URL",
@@ -101,6 +102,7 @@
     "Reopen inquiry" : "Buka kembali jajak pendapat",
     "Close inquiry" : "Tutup jajak pendapat",
     "Link copied to clipboard" : "Tautan disalin ke papan klip",
+    "Responses" : "Respons",
     "Talk room" : "Ruang Talk",
     "Appointment" : "Janji",
     "Both" : "Keduanya",
@@ -108,6 +110,7 @@
     "Share link" : "Bagikan tautan",
     "Start check-in" : "Mulai check-in",
     "Edit" : "Edit",
+    "Reopen" : "Buka kembali",
     "Show details" : "Tampilkan rincian",
     "Imported from calendar" : "Diimpor dari kalender",
     "Closed" : "Ditutup",
@@ -129,6 +132,7 @@
     "_day_::_days_" : ["hari"],
     "_week_::_weeks_" : ["minggu"],
     "_month_::_months_" : ["bulang"],
+    "After" : "Sesudah",
     "On date" : "Pada tanggal",
     "Show all" : "Lihat semua",
     "Add your comment …" : "Tambahkan komentar Anda …",
@@ -190,6 +194,7 @@
     "Never" : "Tidak pernah",
     "Guest" : "Tamu",
     "Permissions" : "Izin",
+    "Category name" : "Nama kategori",
     "Response summary teams" : "Tim ringkasan respons",
     "Settings saved" : "Pengaturan disimpan",
     "Failed to save settings" : "Gagal menyimpan pengaturan",
@@ -199,6 +204,7 @@
     "Select which teams to include in response summaries. Team members will be grouped together like regular groups." : "Pilih tim mana yang akan disertakan dalam ringkasan respons. Anggota tim akan dikelompokkan bersama seperti grup biasa.",
     "Search and select teams …" : "Cari dan pilih tim …",
     "Delete category" : "Hapus kategori",
+    "Add category" : "Tambahkan kategori",
     "Preview" : "Pratinjau",
     "Enable automatic calendar sync" : "Aktifkan sinkronisasi kalender otomatis",
     "Open" : "Buka",
@@ -296,6 +302,7 @@
     "App" : "Aplikasi",
     "Manager" : "Manajer",
     "Automatic" : "Otomatis",
-    "name" : "nama"
+    "name" : "nama",
+    "description" : "deskripsi"
 },"pluralForm" :"nplurals=1; plural=0;"
 }
