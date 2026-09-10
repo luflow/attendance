@@ -449,7 +449,7 @@ OC.L10N.register(
     "Columns" : "Sloupce",
     "Period" : "Období",
     "Year" : "Rok",
-    "Custom" : "Uživatelsky určený",
+    "Custom" : "Uživatelsky určené",
     "Group by" : "Seskupit podle",
     "Teams" : "Týmy",
     "Filter" : "Filtr",
