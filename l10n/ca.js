@@ -62,6 +62,7 @@ OC.L10N.register(
     "Create appointment" : "Crea cita",
     "Statistics" : "Estadístiques",
     "Export" : "Exporta",
+    "Loading …" : "S'està carregant ...",
     "Select all" : "Selecciona-ho tot",
     "Deselect all" : "No seleccionis res",
     "Start date" : "Data d'inici",
