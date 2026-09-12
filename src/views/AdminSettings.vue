@@ -29,35 +29,63 @@
 				</NcButton>
 			</NcSettingsSection>
 
-			<!-- TRANSLATORS: Admin settings section title. The "Response summary" is the main feature of this app - it shows attendance statistics on the appointment detail page, counting users by their Nextcloud group membership. Groups selected here will have their own sections in the summary; users not in these groups appear under "Others". -->
+			<!-- TRANSLATORS: Admin settings section title. The "Response summary" is the main feature of this app - it shows attendance statistics on the appointment detail page, counting users by their Nextcloud group membership. -->
 			<NcSettingsSection id="response-summary"
 				:name="t('attendance', 'Response summary groups')"
-				:description="t('attendance', 'Select which groups to include in response summaries. Users outside these groups will appear under Others. Leave empty to include all groups.')"
+				:description="t('attendance', 'Choose how responses are grouped into sections on the appointment detail page.')"
 				data-test="section-tracking-groups">
-				<GroupSelect
-					v-model="selectedGroups"
+				<PermissionRow
+					:modelValue="responseSummaryGroups"
+					:modes="RESPONSE_SUMMARY_GROUP_MODES"
+					pickerMode="specific"
+					:title="t('attendance', 'Group by')"
+					:hint="t('attendance', 'No grouping puts every response under Others. Specific groups only creates sections for the groups you select below — everyone else appears under Others. All groups creates a section for every Nextcloud group a responder belongs to.')"
+					:noSelectionHint="t('attendance', 'No groups selected yet — nothing groups into sections; everyone appears under Others.')"
+					:warningWhenAll="t('attendance', 'Every Nextcloud group becomes a section, including ones unrelated to attendance — group names become visible to anyone who can see the response overview.')"
 					:options="availableGroups"
-					:placeholder="t('attendance', 'Select groups …')"
-					:sortable="true"
-					data-test="select-whitelisted-groups" />
-				<p class="hint-text">
-					{{ n('attendance', '%n group selected', '%n groups selected', selectedGroups.length, { n: selectedGroups.length }) }}
-				</p>
+					dataTest="response-summary-groups"
+					@update:modelValue="onResponseSummaryGroupsChange">
+					<template #picker="{ value, setValue }">
+						<GroupSelect
+							:modelValue="value"
+							:options="availableGroups"
+							:placeholder="t('attendance', 'Select groups …')"
+							:sortable="true"
+							data-test="select-whitelisted-groups"
+							@update:modelValue="setValue" />
+						<p class="hint-text">
+							{{ n('attendance', '%n group selected', '%n groups selected', value.length, { n: value.length }) }}
+						</p>
+					</template>
+				</PermissionRow>
 			</NcSettingsSection>
 
-			<!-- TRANSLATORS: Admin settings section title. Similar to groups above, but for Nextcloud Teams (formerly Circles). Teams selected here will have their own sections in the attendance statistics on the appointment detail page, showing how many team members responded yes/no/maybe. -->
+			<!-- TRANSLATORS: Admin settings section title. Similar to groups above, but for Nextcloud Teams (formerly Circles). -->
 			<NcSettingsSection v-if="teamsAvailable"
 				:name="t('attendance', 'Response summary teams')"
-				:description="t('attendance', 'Select which teams to include in response summaries. Team members will be grouped together like regular groups.')"
+				:description="t('attendance', 'Choose how responses are grouped into sections by Nextcloud Team.')"
 				data-test="section-tracking-teams">
-				<TeamSelect
-					v-model="selectedTeams"
-					:placeholder="t('attendance', 'Search and select teams …')"
-					:sortable="true"
-					data-test="select-whitelisted-teams" />
-				<p class="hint-text">
-					{{ n('attendance', '%n team selected', '%n teams selected', selectedTeams.length, { n: selectedTeams.length }) }}
-				</p>
+				<PermissionRow
+					:modelValue="responseSummaryTeams"
+					:modes="RESPONSE_SUMMARY_TEAM_MODES"
+					pickerMode="specific"
+					:title="t('attendance', 'Group by')"
+					:hint="t('attendance', 'No grouping puts every response under Others. Specific teams only creates sections for the teams you select below — team members outside them appear under Others.')"
+					:noSelectionHint="t('attendance', 'No teams selected yet — nothing groups into sections; everyone appears under Others.')"
+					dataTest="response-summary-teams"
+					@update:modelValue="onResponseSummaryTeamsChange">
+					<template #picker="{ value, setValue }">
+						<TeamSelect
+							:modelValue="value"
+							:placeholder="t('attendance', 'Search and select teams …')"
+							:sortable="true"
+							data-test="select-whitelisted-teams"
+							@update:modelValue="setValue" />
+						<p class="hint-text">
+							{{ n('attendance', '%n team selected', '%n teams selected', value.length, { n: value.length }) }}
+						</p>
+					</template>
+				</PermissionRow>
 			</NcSettingsSection>
 
 			<NcSettingsSection id="categories"
@@ -695,7 +723,7 @@ import { copyToClipboard } from '../utils/clipboard.js'
 import { formatDate, formatDateTimeMedium } from '../utils/datetime.js'
 import { toGroupObjects } from '../utils/groups.js'
 import { MOBILE_APP_STORES } from '../utils/mobileApp.js'
-import { AUDIT_VISIBILITIES, permissionGroups as buildPermissionGroups, emptyPermissionState, PERMISSION_NAMES, PERMISSION_ROWS, REMINDER_TARGETS } from '../utils/permissions.js'
+import { AUDIT_VISIBILITIES, permissionGroups as buildPermissionGroups, emptyPermissionState, PERMISSION_NAMES, PERMISSION_ROWS, REMINDER_TARGETS, RESPONSE_SUMMARY_GROUP_MODES, RESPONSE_SUMMARY_TEAM_MODES } from '../utils/permissions.js'
 
 const navSections = [
 	{ id: 'setup-wizard', label: t('attendance', 'Setup wizard') },
@@ -831,8 +859,10 @@ function implicationLinkFor(name) {
 
 // State
 const availableGroups = ref([])
-const selectedGroups = ref([])
-const selectedTeams = ref([])
+/** { mode: 'none'|'specific'|'all', groups: Array<{id, displayName}> } */
+const responseSummaryGroups = ref({ mode: 'none', groups: [] })
+/** { mode: 'none'|'specific', groups: Array<{id, label}> } */
+const responseSummaryTeams = ref({ mode: 'none', groups: [] })
 const teamsAvailable = ref(false)
 const permissions = ref(emptyPermissionState())
 const selfCheckinWindowMinutes = ref(30)
@@ -981,17 +1011,29 @@ function autoSave(source, key, payloadFactory, delay = 0) {
 
 const SELECT_DEBOUNCE = 800
 
-autoSave(
-	selectedGroups,
+// Mode and group list save together, like a permission row: the backend
+// leaves omitted settings untouched, so a stale local mode can't clobber a
+// concurrent admin's group-list edit or vice versa.
+function makeGroupingModeHandler(targetRef, saveKey, modeField, listField) {
+	return (value) => {
+		targetRef.value = value
+		queueSave(saveKey, () => ({
+			[modeField]: targetRef.value.mode,
+			[listField]: targetRef.value.groups.map((g) => g.id),
+		}), SELECT_DEBOUNCE)
+	}
+}
+const onResponseSummaryGroupsChange = makeGroupingModeHandler(
+	responseSummaryGroups,
+	'responseSummaryGroups',
+	'responseSummaryGroupsMode',
 	'whitelistedGroups',
-	() => ({ whitelistedGroups: selectedGroups.value.map((g) => g.id) }),
-	SELECT_DEBOUNCE,
 )
-autoSave(
-	selectedTeams,
+const onResponseSummaryTeamsChange = makeGroupingModeHandler(
+	responseSummaryTeams,
+	'responseSummaryTeams',
+	'responseSummaryTeamsMode',
 	'whitelistedTeams',
-	() => ({ whitelistedTeams: selectedTeams.value.map((team) => team.id) }),
-	SELECT_DEBOUNCE,
 )
 // Per permission, not the whole map: the backend leaves omitted permissions
 // untouched, so concurrent admins and stale local state cannot overwrite
@@ -1071,10 +1113,16 @@ async function loadSettings() {
 		const caps = capabilitiesRes.data
 
 		availableGroups.value = groups
-		selectedGroups.value = toGroupObjects(config.whitelistedGroups, groups)
+		responseSummaryGroups.value = {
+			mode: config.responseSummaryGroupsMode || 'none',
+			groups: toGroupObjects(config.whitelistedGroups, groups),
+		}
 
 		teamsAvailable.value = caps.teamsAvailable || false
-		selectedTeams.value = config.whitelistedTeams ?? []
+		responseSummaryTeams.value = {
+			mode: config.responseSummaryTeamsMode || 'none',
+			groups: config.whitelistedTeams ?? [],
+		}
 
 		// Load permission settings
 		if (config.permissions) {

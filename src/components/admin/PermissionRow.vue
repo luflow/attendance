@@ -7,7 +7,7 @@
 			{{ hint }}
 		</p>
 		<div class="permission-row__modes">
-			<NcCheckboxRadioSwitch v-for="mode in MODES"
+			<NcCheckboxRadioSwitch v-for="mode in modes"
 				:key="mode.value"
 				:modelValue="modelValue.mode"
 				:value="mode.value"
@@ -20,18 +20,20 @@
 				{{ mode.label }}
 			</NcCheckboxRadioSwitch>
 		</div>
-		<template v-if="modelValue.mode === 'groups'">
-			<GroupSelect
-				:modelValue="modelValue.groups"
-				:options="options"
-				:placeholder="t('attendance', 'Select groups …')"
-				:data-test="`${dataTest}-groups`"
-				@update:modelValue="setGroups" />
+		<template v-if="modelValue.mode === pickerMode">
+			<slot name="picker" :value="modelValue.groups" :setValue="setGroups">
+				<GroupSelect
+					:modelValue="modelValue.groups"
+					:options="options"
+					:placeholder="t('attendance', 'Select groups …')"
+					:data-test="`${dataTest}-groups`"
+					@update:modelValue="setGroups" />
+			</slot>
 			<p v-if="modelValue.groups.length === 0" class="permission-row__note permission-row__note--warning">
-				{{ t('attendance', 'No groups selected yet — currently nobody is granted this.') }}
+				{{ noSelectionHint }}
 			</p>
 		</template>
-		<p v-if="warningWhenAll && modelValue.mode === 'all'" class="permission-row__note permission-row__note--warning">
+		<p v-if="warningWhenAll && modelValue.mode === warningWhenMode" class="permission-row__note permission-row__note--warning">
 			<AlertIcon :size="16" />
 			{{ warningWhenAll }}
 		</p>
@@ -64,10 +66,29 @@ const props = defineProps({
 		type: String,
 		required: true,
 	},
-	/** { mode: 'all'|'groups'|'nobody', groups: Array<{id, displayName}> } */
+	/** { mode: string, groups: Array<{id, displayName}> } — mode is one of `modes`' values */
 	modelValue: {
 		type: Object,
 		required: true,
+	},
+	/** Radio options. Defaults to the permission catalogue's all/groups/nobody. */
+	modes: {
+		type: Array,
+		default: () => [
+			{ value: 'all', label: t('attendance', 'All users') },
+			{ value: 'groups', label: t('attendance', 'Specific groups') },
+			{ value: 'nobody', label: t('attendance', 'Nobody') },
+		],
+	},
+	/** Which mode value reveals the picker slot below the radios. */
+	pickerMode: {
+		type: String,
+		default: 'groups',
+	},
+	/** Shown while in pickerMode with nothing selected yet. */
+	noSelectionHint: {
+		type: String,
+		default: () => t('attendance', 'No groups selected yet — currently nobody is granted this.'),
 	},
 	options: {
 		type: Array,
@@ -83,10 +104,15 @@ const props = defineProps({
 		type: Object,
 		default: null,
 	},
-	/** Warning note shown while the "all users" mode is selected */
+	/** Warning note shown while modelValue.mode === warningWhenMode */
 	warningWhenAll: {
 		type: String,
 		default: '',
+	},
+	/** Which mode value triggers warningWhenAll. */
+	warningWhenMode: {
+		type: String,
+		default: 'all',
 	},
 	dataTest: {
 		type: String,
@@ -97,12 +123,6 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'navigate'])
 
 const implicationParts = computed(() => props.implication.split('{section}'))
-
-const MODES = [
-	{ value: 'all', label: t('attendance', 'All users') },
-	{ value: 'groups', label: t('attendance', 'Specific groups') },
-	{ value: 'nobody', label: t('attendance', 'Nobody') },
-]
 
 function setMode(mode) {
 	emit('update:modelValue', { ...props.modelValue, mode })

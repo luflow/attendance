@@ -51,6 +51,8 @@
                 "required": [
                     "whitelistedGroups",
                     "whitelistedTeams",
+                    "responseSummaryGroupsMode",
+                    "responseSummaryTeamsMode",
                     "permissions",
                     "reminders",
                     "calendarSync",
@@ -75,6 +77,12 @@
                         "items": {
                             "$ref": "#/components/schemas/TeamOption"
                         }
+                    },
+                    "responseSummaryGroupsMode": {
+                        "type": "string"
+                    },
+                    "responseSummaryTeamsMode": {
+                        "type": "string"
                     },
                     "permissions": {
                         "$ref": "#/components/schemas/PermissionSettings"
@@ -600,6 +608,18 @@
                                         "items": {
                                             "type": "string"
                                         }
+                                    },
+                                    "responseSummaryGroupsMode": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "How the response summary groups by Nextcloud group: none|specific|all"
+                                    },
+                                    "responseSummaryTeamsMode": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "How the response summary groups by Nextcloud team: none|specific"
                                     },
                                     "permissions": {
                                         "type": "object",
