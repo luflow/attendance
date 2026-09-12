@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Tests\Unit\Notification;
 
+use OCA\Attendance\Activity\EventMessages;
 use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Notification\Notifier;
@@ -60,9 +61,9 @@ class NotifierTest extends TestCase {
 			$this->l10nFactory,
 			$this->urlGenerator,
 			$this->tokenService,
-			$this->config,
 			$this->responseMapper,
 			$this->userManager,
+			new EventMessages($this->config),
 		);
 	}
 
@@ -296,6 +297,62 @@ class NotifierTest extends TestCase {
 			->with('Alice Anderson changed the response of ghost from Yes to No on "Rehearsal"')
 			->willReturnSelf();
 
+		$this->notifier->prepare($notification, 'de');
+	}
+
+	public function testCancelledNotificationIsRendered(): void {
+		$notification = $this->mockAppointmentNotification('appointment_cancelled', [
+			'appointmentId' => 42,
+			'name' => 'Rehearsal',
+			'startDatetime' => '2030-08-01 18:00:00',
+		]);
+		$notification->expects($this->once())
+			->method('setParsedMessage')
+			->with('It will not take place, so the time is yours again.')
+			->willReturnSelf();
+
+		$this->notifier->prepare($notification, 'de');
+	}
+
+	public function testBookingConfirmedNotificationIsRendered(): void {
+		$notification = $this->mockAppointmentNotification('booking_confirmed', [
+			'appointmentId' => 42,
+			'name' => 'Rehearsal',
+			'startDatetime' => '2030-08-01 18:00:00',
+		]);
+		$notification->expects($this->once())
+			->method('setParsedMessage')
+			->with('You have a place, so please plan to be there. Thanks for answering.')
+			->willReturnSelf();
+
+		$this->notifier->prepare($notification, 'de');
+	}
+
+	public function testBookingDeclinedNotificationIsRendered(): void {
+		$notification = $this->mockAppointmentNotification('booking_declined', [
+			'appointmentId' => 42,
+			'name' => 'Rehearsal',
+			'startDatetime' => '2030-08-01 18:00:00',
+		]);
+		$notification->expects($this->once())
+			->method('setParsedMessage')
+			->with('We had more volunteers than places this time. Thanks for answering.')
+			->willReturnSelf();
+
+		$this->notifier->prepare($notification, 'de');
+	}
+
+	/**
+	 * Notifications created via OCP\Activity\IManager::bulkPublish() are
+	 * rendered by OCA\Attendance\Activity\Provider instead — the Notifier
+	 * must step aside instead of double-processing them.
+	 */
+	public function testActivityRoutedNotificationsAreIgnored(): void {
+		$notification = $this->createMock(INotification::class);
+		$notification->method('getApp')->willReturn('attendance');
+		$notification->method('getObjectType')->willReturn('activity_notification');
+
+		$this->expectException(\OCP\Notification\UnknownNotificationException::class);
 		$this->notifier->prepare($notification, 'de');
 	}
 }
