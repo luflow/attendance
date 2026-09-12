@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.52.0 – 2026-09-12
+
+### Added
+
+- **Response summary grouping is now an explicit choice**: pick "No grouping", "Specific groups" or "All groups" instead of an implicit whitelist behavior — existing setups keep working unchanged
+- **Calendar events link back to the appointment**: the description block now includes a link to view or answer it
+
+### Fixed
+
+- **A response no longer disappears when its author leaves the group that made the appointment visible to them**: only a manager's own non-attendee test responses get filtered now
+
+### Maintenance
+
+- Updated translations from Transifex
+
 ## 1.51.2 – 2026-09-01
 
 ### Fixed
