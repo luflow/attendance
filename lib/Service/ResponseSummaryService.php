@@ -242,9 +242,16 @@ class ResponseSummaryService {
 	 *
 	 * Same as isGroupAllowedCached but hides the Guests app's system group
 	 * unless an admin opts in via the whitelist — otherwise every guest user
-	 * would be lumped under one section regardless of context.
+	 * would be lumped under one section regardless of context. Also hides
+	 * every group when neither a whitelist nor an appointment restriction is
+	 * configured: otherwise every Nextcloud group a target attendee happens
+	 * to belong to becomes a section, however unrelated to attendance
+	 * tracking (issue #212). Everyone still counts, just under Others.
 	 */
 	private function isGroupVisibleAsSection(string $groupId, array $cache): bool {
+		if ($cache['allowAllGroups'] && empty($cache['appointmentVisibleGroupsLower'])) {
+			return false;
+		}
 		if (GuestService::isGuestsSystemGroup($groupId)
 			&& !in_array(GuestService::GUESTS_SYSTEM_GROUP, $cache['whitelistedGroupsLower'], true)) {
 			return false;

@@ -624,6 +624,7 @@ class ResponseSummaryServiceTest extends TestCase {
 	}
 
 	/**
+	/**
 	 * Regression test for issue #213: a response recorded while the user was
 	 * still a target attendee (e.g. a group/team member) must stay in the
 	 * summary after they leave that group — only a manager's own test
@@ -722,5 +723,60 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->assertSame(0, $summary['yes']);
 		$this->assertSame(0, $summary['others']['yes']);
 		$this->assertSame([], $summary['others']['responses']);
+	}
+
+	/**
+	 * Regression test for issue #212: with neither a whitelist nor an
+	 * appointment-level group restriction configured, a responder's own
+	 * (possibly unrelated) Nextcloud group memberships must not each become
+	 * their own summary section — everyone falls back to Others.
+	 */
+	public function testGetResponseSummaryWithoutWhitelistOrRestrictionDoesNotGroupByMemberGroups(): void {
+		$appointmentId = 11;
+		$appointment = new Appointment();
+		$appointment->setId($appointmentId);
+		$appointment->setVisibleUsers('[]');
+		$appointment->setVisibleGroups('[]');
+		$appointment->setVisibleTeams('[]');
+
+		$response = new AttendanceResponse();
+		$response->setId(1);
+		$response->setAppointmentId($appointmentId);
+		$response->setUserId('eve');
+		$response->setResponse('yes');
+
+		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
+		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
+
+		$this->configService->method('getWhitelistedGroups')->willReturn([]);
+		$this->configService->method('getWhitelistedTeams')->willReturn([]);
+
+		$this->visibilityService->method('getVisibilitySettings')
+			->willReturn(['users' => [], 'groups' => [], 'teams' => []]);
+		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(false);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+
+		$eve = $this->createMock(IUser::class);
+		$eve->method('getUID')->willReturn('eve');
+		$eve->method('getDisplayName')->willReturn('Eve');
+
+		// Eve happens to belong to several unrelated Nextcloud groups.
+		$choirGroup = $this->createMock(IGroup::class);
+		$choirGroup->method('getGID')->willReturn('choir');
+		$adminsGroup = $this->createMock(IGroup::class);
+		$adminsGroup->method('getGID')->willReturn('admins');
+
+		$this->userManager->method('get')->willReturnMap([['eve', $eve]]);
+		$this->groupManager->method('getUserGroups')->willReturn([$choirGroup, $adminsGroup]);
+		$this->groupManager->method('search')->with('')->willReturn([$choirGroup, $adminsGroup]);
+
+		$this->visibilityService->method('getTargetAttendees')->willReturn(['eve' => $eve]);
+
+		$summary = $this->service->getResponseSummary($appointmentId);
+
+		$this->assertSame([], $summary['by_group']);
+		$this->assertSame(1, $summary['others']['yes']);
+		$this->assertCount(1, $summary['others']['responses']);
+		$this->assertSame('Eve', $summary['others']['responses'][0]['userName']);
 	}
 }
