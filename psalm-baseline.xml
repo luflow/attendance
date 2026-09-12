@@ -1,5 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <files psalm-version="6.16.1@f1f5de594dc76faf8784e02d3dc4716c91c6f6ac">
+  <file src="lib/Activity/EventMessages.php">
+    <DeprecatedMethod>
+      <code><![CDATA[getUserValue]]></code>
+    </DeprecatedMethod>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Activity/Provider.php">
+    <UnusedClass>
+      <code><![CDATA[Provider]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Activity/Setting/AttendanceActivitySetting.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Activity/Setting/AppointmentCancelledSetting.php">
+    <UnusedClass>
+      <code><![CDATA[AppointmentCancelledSetting]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Activity/Setting/AppointmentReactivatedSetting.php">
+    <UnusedClass>
+      <code><![CDATA[AppointmentReactivatedSetting]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Activity/Setting/AppointmentsSeriesUpdatedSetting.php">
+    <UnusedClass>
+      <code><![CDATA[AppointmentsSeriesUpdatedSetting]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Activity/Setting/BookingConfirmedSetting.php">
+    <UnusedClass>
+      <code><![CDATA[BookingConfirmedSetting]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Activity/Setting/BookingDeclinedSetting.php">
+    <UnusedClass>
+      <code><![CDATA[BookingDeclinedSetting]]></code>
+    </UnusedClass>
+  </file>
   <file src="lib/AppInfo/Application.php">
     <ClassMustBeFinal>
       <code><![CDATA[Application]]></code>
@@ -1207,9 +1250,6 @@
     <ClassMustBeFinal>
       <code><![CDATA[Notifier]]></code>
     </ClassMustBeFinal>
-    <DeprecatedMethod>
-      <code><![CDATA[getUserValue]]></code>
-    </DeprecatedMethod>
     <MissingOverrideAttribute>
       <code><![CDATA[public function getID(): string {]]></code>
       <code><![CDATA[public function getName(): string {]]></code>
@@ -1222,15 +1262,11 @@
       <code><![CDATA[$count]]></code>
       <code><![CDATA[$parameters['startDatetime'] ?? $parameters['date'] ?? '']]></code>
       <code><![CDATA[$parameters['startDatetime'] ?? $parameters['date'] ?? '']]></code>
-      <code><![CDATA[$parameters['startDatetime'] ?? $parameters['date'] ?? '']]></code>
-      <code><![CDATA[$parameters['startDatetime'] ?? $parameters['date'] ?? '']]></code>
     </MixedArgument>
     <MixedAssignment>
       <code><![CDATA[$appointmentId]]></code>
       <code><![CDATA[$appointmentId]]></code>
       <code><![CDATA[$appointmentId]]></code>
-      <code><![CDATA[$appointmentName]]></code>
-      <code><![CDATA[$appointmentName]]></code>
       <code><![CDATA[$appointmentName]]></code>
       <code><![CDATA[$appointmentName]]></code>
       <code><![CDATA[$count]]></code>

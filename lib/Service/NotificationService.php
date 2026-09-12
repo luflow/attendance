@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\Attendance\Service;
 
 use OCA\Attendance\Db\Appointment;
+use OCP\Activity\IManager as IActivityManager;
 use OCP\App\IAppManager;
 use OCP\IDBConnection;
 use OCP\IURLGenerator;
@@ -13,23 +14,58 @@ use Psr\Log\LoggerInterface;
 
 class NotificationService {
 	private INotificationManager $notificationManager;
+	private IActivityManager $activityManager;
 	private IAppManager $appManager;
 	private IURLGenerator $urlGenerator;
 	private IDBConnection $db;
 	private LoggerInterface $logger;
+	private ?bool $activityAppEnabled = null;
 
 	public function __construct(
 		INotificationManager $notificationManager,
+		IActivityManager $activityManager,
 		IAppManager $appManager,
 		IURLGenerator $urlGenerator,
 		IDBConnection $db,
 		LoggerInterface $logger,
 	) {
 		$this->notificationManager = $notificationManager;
+		$this->activityManager = $activityManager;
 		$this->appManager = $appManager;
 		$this->urlGenerator = $urlGenerator;
 		$this->db = $db;
 		$this->logger = $logger;
+	}
+
+	/**
+	 * Whether the "activity" app is enabled — it is the only registered
+	 * consumer of OCP\Activity\IManager::bulkPublish(), so without it a
+	 * published event is delivered to nobody. It is a default-enabled but
+	 * disableable app (unlike e.g. "files"), so this must be checked, not
+	 * assumed. Memoized: it cannot change within one request/job run.
+	 */
+	private function isActivityAppEnabled(): bool {
+		return $this->activityAppEnabled ??= $this->appManager->isEnabledForUser('activity');
+	}
+
+	/**
+	 * The subject parameters every appointment-scoped notification carries.
+	 *
+	 * @return array{appointmentId: int, name: string, startDatetime: string}
+	 */
+	private function appointmentSubjectParameters(Appointment $appointment): array {
+		return [
+			'appointmentId' => $appointment->getId(),
+			'name' => $appointment->getName(),
+			'startDatetime' => $appointment->getStartDatetime(),
+		];
+	}
+
+	private function appointmentUrl(Appointment $appointment): string {
+		return $this->urlGenerator->linkToRouteAbsolute(
+			'attendance.page.appointment',
+			['id' => $appointment->getId()]
+		);
 	}
 
 	/**
@@ -124,7 +160,7 @@ class NotificationService {
 	 * @param list<string> $userIds Addressed attendees to notify
 	 */
 	public function sendCancellationNotifications(Appointment $appointment, array $userIds): void {
-		$this->sendLifecycleWave($appointment, $userIds, 'appointment_cancelled');
+		$this->sendActivityAwareLifecycleWave($appointment, $userIds, 'appointment_cancelled');
 	}
 
 	/**
@@ -136,7 +172,7 @@ class NotificationService {
 	 * @param list<string> $userIds Addressed attendees to notify
 	 */
 	public function sendReactivationNotifications(Appointment $appointment, array $userIds): void {
-		$this->sendLifecycleWave($appointment, $userIds, 'appointment_reactivated');
+		$this->sendActivityAwareLifecycleWave($appointment, $userIds, 'appointment_reactivated');
 	}
 
 	/**
@@ -174,15 +210,8 @@ class NotificationService {
 			return;
 		}
 
-		$appointmentUrl = $this->urlGenerator->linkToRouteAbsolute(
-			'attendance.page.appointment',
-			['id' => $appointment->getId()]
-		);
-		$subjectParameters = array_merge([
-			'appointmentId' => $appointment->getId(),
-			'name' => $appointment->getName(),
-			'startDatetime' => $appointment->getStartDatetime(),
-		], $extraParameters);
+		$appointmentUrl = $this->appointmentUrl($appointment);
+		$subjectParameters = array_merge($this->appointmentSubjectParameters($appointment), $extraParameters);
 
 		$shouldFlush = $this->notificationManager->defer();
 
@@ -222,6 +251,89 @@ class NotificationService {
 	}
 
 	/**
+	 * Like sendLifecycleWave, but for subjects with no quick-response actions
+	 * to preserve: routes through OCP\Activity\IManager when the "activity"
+	 * app is enabled, so users can opt in/out of push and e-mail per type via
+	 * their normal Nextcloud notification settings. Falls back to the direct
+	 * path — today's unconditional behaviour — when that app is disabled, so
+	 * delivery never depends on it being installed.
+	 *
+	 * @param list<string> $userIds
+	 */
+	private function sendActivityAwareLifecycleWave(Appointment $appointment, array $userIds, string $subject): void {
+		$this->sendViaActivityOrDirect(
+			$subject,
+			$this->appointmentSubjectParameters($appointment),
+			$userIds,
+			'appointment',
+			(string)$appointment->getId(),
+			$this->appointmentUrl($appointment),
+			fn () => $this->sendLifecycleWave($appointment, $userIds, $subject),
+		);
+	}
+
+	/**
+	 * The shared policy behind every notification type that has no
+	 * interactive action to preserve: publish through OCP\Activity\IManager
+	 * when the "activity" app is enabled (so the recipient's per-type push/
+	 * e-mail settings apply), otherwise call $sendDirect — the same fallback
+	 * used when publishing itself fails, so delivery is never contingent on
+	 * that app being installed. $subject doubles as the OCP\Activity event
+	 * type and must have a matching OCA\Attendance\Activity\Setting\*
+	 * registered in info.xml.
+	 *
+	 * @param array<string, mixed> $subjectParameters
+	 * @param list<string> $userIds
+	 */
+	private function sendViaActivityOrDirect(
+		string $subject,
+		array $subjectParameters,
+		array $userIds,
+		string $objectType,
+		string $objectId,
+		string $link,
+		callable $sendDirect,
+	): void {
+		if (!$this->isNotificationsAppEnabled()) {
+			$this->logger->warning('Cannot send notifications - notifications app is not enabled');
+			return;
+		}
+
+		if (empty($userIds)) {
+			return;
+		}
+
+		if (!$this->isActivityAppEnabled()) {
+			$sendDirect();
+			return;
+		}
+
+		try {
+			$event = $this->activityManager->generateEvent();
+			$event->setApp('attendance')
+				->setType($subject)
+				->setSubject($subject, $subjectParameters)
+				->setObject($objectType, $objectId)
+				->setLink($link)
+				->setTimestamp(time());
+
+			$setting = $this->activityManager->getSettingById($subject);
+			$this->activityManager->bulkPublish($event, $userIds, $setting);
+
+			$this->logger->info('Finished publishing appointment activity', [
+				'subject' => $subject,
+				'totalUsers' => count($userIds),
+			]);
+		} catch (\Exception $e) {
+			$this->logger->error('Failed to publish activity event, falling back to direct notification', [
+				'subject' => $subject,
+				'error' => $e->getMessage(),
+			]);
+			$sendDirect();
+		}
+	}
+
+	/**
 	 * Notify a single attendee about their booking outcome when an appointment
 	 * is closed: booked ("you are planned in") or not ("someone else this time").
 	 *
@@ -230,35 +342,35 @@ class NotificationService {
 	 * @param string $status 'booked' or 'declined'
 	 */
 	public function sendBookingNotification(Appointment $appointment, string $userId, string $status): void {
-		if (!$this->isNotificationsAppEnabled()) {
-			return;
-		}
-
 		$subject = $status === 'booked' ? 'booking_confirmed' : 'booking_declined';
-		$appointmentUrl = $this->urlGenerator->linkToRouteAbsolute(
-			'attendance.page.appointment',
-			['id' => $appointment->getId()]
-		);
 
+		$this->sendViaActivityOrDirect(
+			$subject,
+			$this->appointmentSubjectParameters($appointment),
+			[$userId],
+			'appointment',
+			(string)$appointment->getId(),
+			$this->appointmentUrl($appointment),
+			fn () => $this->sendDirectBookingNotification($appointment, $userId, $subject),
+		);
+	}
+
+	private function sendDirectBookingNotification(Appointment $appointment, string $userId, string $subject): void {
 		try {
 			$notification = $this->notificationManager->createNotification();
 			$notification->setApp('attendance')
 				->setUser($userId)
 				->setDateTime(new \DateTime())
 				->setObject('appointment', (string)$appointment->getId())
-				->setSubject($subject, [
-					'appointmentId' => $appointment->getId(),
-					'name' => $appointment->getName(),
-					'startDatetime' => $appointment->getStartDatetime(),
-				])
-				->setLink($appointmentUrl);
+				->setSubject($subject, $this->appointmentSubjectParameters($appointment))
+				->setLink($this->appointmentUrl($appointment));
 
 			$this->notificationManager->notify($notification);
 		} catch (\Exception $e) {
 			$this->logger->error('Failed to send booking notification', [
 				'userId' => $userId,
 				'appointmentId' => $appointment->getId(),
-				'status' => $status,
+				'subject' => $subject,
 				'error' => $e->getMessage(),
 			]);
 		}
@@ -347,16 +459,7 @@ class NotificationService {
 	 * Does not check isNotificationsAppEnabled — callers must check first.
 	 */
 	private function sendReminderNotification(Appointment $appointment, string $userId, bool $isTest = false): void {
-		$appointmentUrl = $this->urlGenerator->linkToRouteAbsolute(
-			'attendance.page.appointment',
-			['id' => $appointment->getId()]
-		);
-
-		$subjectParameters = [
-			'appointmentId' => $appointment->getId(),
-			'name' => $appointment->getName(),
-			'startDatetime' => $appointment->getStartDatetime(),
-		];
+		$subjectParameters = $this->appointmentSubjectParameters($appointment);
 		// Test reminders bypass the already-responded dismissal in the Notifier,
 		// so admins can verify the delivery chain regardless of their own response.
 		if ($isTest) {
@@ -369,7 +472,7 @@ class NotificationService {
 			->setDateTime(new \DateTime())
 			->setObject('appointment', (string)$appointment->getId())
 			->setSubject('appointment_reminder', $subjectParameters)
-			->setLink($appointmentUrl);
+			->setLink($this->appointmentUrl($appointment));
 
 		$this->notificationManager->notify($notification);
 
@@ -402,11 +505,22 @@ class NotificationService {
 	 * @param list<string> $userIds Addressed attendees to notify
 	 */
 	public function sendSeriesUpdateNotifications(int $count, string $name, array $changedFields, array $userIds): void {
-		$this->sendAggregateWave('appointments_series_updated', [
+		$subject = 'appointments_series_updated';
+		$subjectParameters = [
 			'count' => $count,
 			'name' => $name,
 			'changed' => $changedFields,
-		], $userIds);
+		];
+
+		$this->sendViaActivityOrDirect(
+			$subject,
+			$subjectParameters,
+			$userIds,
+			'appointment_bulk',
+			uniqid(),
+			$this->urlGenerator->linkToRouteAbsolute('attendance.page.index'),
+			fn () => $this->sendAggregateWave($subject, $subjectParameters, $userIds),
+		);
 	}
 
 	/**
