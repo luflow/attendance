@@ -256,6 +256,11 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.goto('/settings/admin/attendance')
 			await page.waitForLoadState('networkidle')
 
+			// The picker only appears once "Specific groups" mode is selected
+			const groupingRow = page.locator('[data-test="response-summary-groups"]')
+			await expect(groupingRow).toBeVisible()
+			await groupingRow.getByText('Specific groups', { exact: true }).click()
+
 			// Find whitelisted groups selector
 			const groupsSelect = page.locator('[data-test="select-whitelisted-groups"]')
 			await expect(groupsSelect).toBeVisible()
