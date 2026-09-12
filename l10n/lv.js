@@ -3,6 +3,7 @@ OC.L10N.register(
     {
     "Yes" : "Jā",
     "No" : "Nē",
+    "The date has changed. Please check whether your response still fits." : "Datums ir mainījies. Lūgums pārbaudīt, vai Tava atbilde joprojām ir atbilstoša.",
     "Others" : "Citi",
     "Group" : "Grupa",
     "Cancelled" : "Atcelts",

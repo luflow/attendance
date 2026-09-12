@@ -477,6 +477,7 @@ OC.L10N.register(
     "Teams" : "Týmy",
     "Filter" : "Filtr",
     "Highlights" : "Zvýraznění",
+    "_%n column_::_%n columns_" : ["%n sloupec","%n sloupce","%n sloupců","%n sloupce"],
     "Show all appointments" : "Zobrazit všechny schůzky",
     "Approximately {datetime}. The exact time depends on when the server background job runs." : "Přibližně {datetime}. Konkrétní čas závisí na tom, kdy jsou spouštěny úlohy na pozadí na serveru.",
     "Inquiry re-opened" : "Dotaz znovu otevřen",
