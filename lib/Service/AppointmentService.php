@@ -1332,7 +1332,14 @@ class AppointmentService {
 		$result = [];
 
 		foreach ($responses as $response) {
-			if (!$this->visibilityService->canUserSeeAppointment($appointment, $response->getUserId())) {
+			$responseUserId = $response->getUserId();
+
+			// A former target attendee keeps their recorded response after
+			// leaving the group/team that made the appointment visible to
+			// them (issue #213) — only a manager's test response on an
+			// appointment they were never part of is filtered.
+			if (!$this->visibilityService->isUserTargetAttendee($appointment, $responseUserId)
+				&& $this->permissionService->canManageAppointments($responseUserId)) {
 				continue;
 			}
 

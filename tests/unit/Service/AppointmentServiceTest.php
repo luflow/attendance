@@ -1647,4 +1647,67 @@ class AppointmentServiceTest extends TestCase {
 
 		$this->assertTrue($this->service->hasAnyAppointment());
 	}
+
+	// --- detailed responses with users ---
+
+	/**
+	 * Regression test for issue #213: a response recorded while the user was
+	 * still a target attendee must stay listed after they leave the
+	 * group/team that made the appointment visible to them.
+	 */
+	public function testGetAppointmentResponsesWithUsersKeepsResponseFromFormerTargetAttendee(): void {
+		$appointmentId = 42;
+		$appointment = new Appointment();
+		$appointment->setId($appointmentId);
+
+		$response = new AttendanceResponse();
+		$response->setId(1);
+		$response->setAppointmentId($appointmentId);
+		$response->setUserId('member11');
+		$response->setResponse('yes');
+
+		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
+		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
+
+		// member11 has since left the group and is no longer a target
+		// attendee, but is not an admin either — their response stays.
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(false);
+		$this->permissionService->method('canManageAppointments')->willReturn(false);
+
+		$member11 = $this->createMock(\OCP\IUser::class);
+		$member11->method('getDisplayName')->willReturn('Member 11');
+		$this->userManager->method('get')->with('member11')->willReturn($member11);
+		$this->groupManager->method('getUserGroups')->willReturn([]);
+
+		$result = $this->service->getAppointmentResponsesWithUsers($appointmentId, 'someManager');
+
+		$this->assertCount(1, $result);
+		$this->assertSame('Member 11', $result[0]['userName']);
+	}
+
+	/**
+	 * Counterpart: a manager's response on an appointment they are not a
+	 * target attendee of must still be filtered out.
+	 */
+	public function testGetAppointmentResponsesWithUsersFiltersNonAttendeeAdminResponse(): void {
+		$appointmentId = 43;
+		$appointment = new Appointment();
+		$appointment->setId($appointmentId);
+
+		$response = new AttendanceResponse();
+		$response->setId(1);
+		$response->setAppointmentId($appointmentId);
+		$response->setUserId('admin1');
+		$response->setResponse('yes');
+
+		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
+		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
+
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(false);
+		$this->permissionService->method('canManageAppointments')->willReturn(true);
+
+		$result = $this->service->getAppointmentResponsesWithUsers($appointmentId, 'someManager');
+
+		$this->assertSame([], $result);
+	}
 }
