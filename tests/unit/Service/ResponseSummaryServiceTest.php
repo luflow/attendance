@@ -10,6 +10,7 @@ use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\GuestService;
+use OCA\Attendance\Service\PermissionService;
 use OCA\Attendance\Service\ResponseSummaryService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\IGroup;
@@ -32,6 +33,9 @@ class ResponseSummaryServiceTest extends TestCase {
 	/** @var VisibilityService|MockObject */
 	private $visibilityService;
 
+	/** @var PermissionService|MockObject */
+	private $permissionService;
+
 	/** @var IGroupManager|MockObject */
 	private $groupManager;
 
@@ -48,6 +52,7 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->responseMapper = $this->createMock(AttendanceResponseMapper::class);
 		$this->configService = $this->createMock(ConfigService::class);
 		$this->visibilityService = $this->createMock(VisibilityService::class);
+		$this->permissionService = $this->createMock(PermissionService::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->guestService = $this->createMock(GuestService::class);
@@ -57,6 +62,7 @@ class ResponseSummaryServiceTest extends TestCase {
 			$this->responseMapper,
 			$this->configService,
 			$this->visibilityService,
+			$this->permissionService,
 			$this->groupManager,
 			$this->userManager,
 			$this->guestService,
@@ -613,6 +619,107 @@ class ResponseSummaryServiceTest extends TestCase {
 
 		$this->assertSame(['board'], array_keys($summary['by_group']));
 		$this->assertSame(1, $summary['by_group']['board']['yes']);
+		$this->assertSame(0, $summary['others']['yes']);
+		$this->assertSame([], $summary['others']['responses']);
+	}
+
+	/**
+	 * Regression test for issue #213: a response recorded while the user was
+	 * still a target attendee (e.g. a group/team member) must stay in the
+	 * summary after they leave that group — only a manager's own test
+	 * response on an appointment they were never part of is filtered.
+	 */
+	public function testGetResponseSummaryKeepsResponseFromFormerTargetAttendee(): void {
+		$appointmentId = 12;
+		$appointment = new Appointment();
+		$appointment->setId($appointmentId);
+		$appointment->setVisibleUsers('[]');
+		$appointment->setVisibleGroups(json_encode(['team1']));
+		$appointment->setVisibleTeams('[]');
+
+		$response = new AttendanceResponse();
+		$response->setId(1);
+		$response->setAppointmentId($appointmentId);
+		$response->setUserId('member11');
+		$response->setResponse('yes');
+
+		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
+		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
+
+		$this->configService->method('getWhitelistedGroups')->willReturn([]);
+		$this->configService->method('getWhitelistedTeams')->willReturn([]);
+
+		$this->visibilityService->method('getVisibilitySettings')
+			->willReturn(['users' => [], 'groups' => ['team1'], 'teams' => []]);
+		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(true);
+
+		// member11 has since left team1 and is no longer a target attendee —
+		// but they are not an admin either, so their recorded response stays.
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(false);
+		$this->permissionService->method('canManageAppointments')->willReturn(false);
+
+		$member11 = $this->createMock(IUser::class);
+		$member11->method('getUID')->willReturn('member11');
+		$member11->method('getDisplayName')->willReturn('Member 11');
+
+		$this->userManager->method('get')->willReturnMap([['member11', $member11]]);
+		$this->groupManager->method('getUserGroups')->willReturn([]);
+		$this->groupManager->method('search')->with('')->willReturn([]);
+
+		$team1Group = $this->createMock(IGroup::class);
+		$team1Group->method('getGID')->willReturn('team1');
+		$team1Group->method('getUsers')->willReturn([]);
+		$this->groupManager->method('get')->with('team1')->willReturn($team1Group);
+
+		$this->visibilityService->method('getTargetAttendees')->willReturn([]);
+
+		$summary = $this->service->getResponseSummary($appointmentId);
+
+		$this->assertSame(1, $summary['yes']);
+		$this->assertSame(1, $summary['others']['yes']);
+		$this->assertCount(1, $summary['others']['responses']);
+		$this->assertSame('Member 11', $summary['others']['responses'][0]['userName']);
+	}
+
+	/**
+	 * Counterpart to the regression above: a manager who is not part of the
+	 * appointment's audience but can respond via admin bypass must still be
+	 * filtered out of the summary, exactly as before issue #213 was fixed.
+	 */
+	public function testGetResponseSummaryFiltersNonAttendeeAdminResponse(): void {
+		$appointmentId = 13;
+		$appointment = new Appointment();
+		$appointment->setId($appointmentId);
+		$appointment->setVisibleUsers('[]');
+		$appointment->setVisibleGroups(json_encode(['team1']));
+		$appointment->setVisibleTeams('[]');
+
+		$response = new AttendanceResponse();
+		$response->setId(1);
+		$response->setAppointmentId($appointmentId);
+		$response->setUserId('admin1');
+		$response->setResponse('yes');
+
+		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
+		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
+
+		$this->configService->method('getWhitelistedGroups')->willReturn([]);
+		$this->configService->method('getWhitelistedTeams')->willReturn([]);
+
+		$this->visibilityService->method('getVisibilitySettings')
+			->willReturn(['users' => [], 'groups' => ['team1'], 'teams' => []]);
+		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(true);
+
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(false);
+		$this->permissionService->method('canManageAppointments')->willReturn(true);
+
+		$this->groupManager->method('getUserGroups')->willReturn([]);
+		$this->groupManager->method('search')->with('')->willReturn([]);
+		$this->visibilityService->method('getTargetAttendees')->willReturn([]);
+
+		$summary = $this->service->getResponseSummary($appointmentId);
+
+		$this->assertSame(0, $summary['yes']);
 		$this->assertSame(0, $summary['others']['yes']);
 		$this->assertSame([], $summary['others']['responses']);
 	}

@@ -20,6 +20,7 @@ class ResponseSummaryService {
 	private AttendanceResponseMapper $responseMapper;
 	private ConfigService $configService;
 	private VisibilityService $visibilityService;
+	private PermissionService $permissionService;
 	private IGroupManager $groupManager;
 	private IUserManager $userManager;
 	private GuestService $guestService;
@@ -29,6 +30,7 @@ class ResponseSummaryService {
 		AttendanceResponseMapper $responseMapper,
 		ConfigService $configService,
 		VisibilityService $visibilityService,
+		PermissionService $permissionService,
 		IGroupManager $groupManager,
 		IUserManager $userManager,
 		GuestService $guestService,
@@ -37,6 +39,7 @@ class ResponseSummaryService {
 		$this->responseMapper = $responseMapper;
 		$this->configService = $configService;
 		$this->visibilityService = $visibilityService;
+		$this->permissionService = $permissionService;
 		$this->groupManager = $groupManager;
 		$this->userManager = $userManager;
 		$this->guestService = $guestService;
@@ -108,7 +111,7 @@ class ResponseSummaryService {
 		foreach ($responses as $response) {
 			$value = $response->getResponse();
 			if (!in_array($value, ['yes', 'no', 'maybe'], true)
-				|| !$this->visibilityService->isUserTargetAttendee($appointment, $response->getUserId())) {
+				|| $this->isNonAttendeeAdminResponse($appointment, $response->getUserId())) {
 				continue;
 			}
 			$counts[$value]++;
@@ -250,6 +253,19 @@ class ResponseSummaryService {
 	}
 
 	/**
+	 * Whether a response should be excluded as a non-attendee's admin
+	 * bypass: a manager can see (and thus respond to) any appointment via
+	 * PERMISSION_MANAGE_APPOINTMENTS without being part of its actual
+	 * audience. Only that case is filtered — a regular user who answered
+	 * while still a target attendee keeps their response even if they later
+	 * leave the group/team (issue #213).
+	 */
+	private function isNonAttendeeAdminResponse(Appointment $appointment, string $userId): bool {
+		return !$this->visibilityService->isUserTargetAttendee($appointment, $userId)
+			&& $this->permissionService->canManageAppointments($userId);
+	}
+
+	/**
 	 * Initialize the summary structure.
 	 */
 	private function initializeSummary(): array {
@@ -285,9 +301,11 @@ class ResponseSummaryService {
 	): void {
 		$userId = $response->getUserId();
 
-		// Filter: Only include responses from actual target attendees
-		// This excludes admins who can "see" all appointments but aren't actual attendees
-		if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
+		// A former target attendee keeps their recorded response after leaving
+		// the group/team that made the appointment visible to them (issue
+		// #213) — only a manager's test response on an appointment they were
+		// never part of is filtered.
+		if ($this->isNonAttendeeAdminResponse($appointment, $userId)) {
 			return;
 		}
 
