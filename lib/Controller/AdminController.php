@@ -136,6 +136,8 @@ class AdminController extends Controller {
 				'config' => [
 					'whitelistedGroups' => $whitelistedGroups,
 					'whitelistedTeams' => $whitelistedTeams,
+					'responseSummaryGroupsMode' => $this->configService->getResponseSummaryGroupsMode(),
+					'responseSummaryTeamsMode' => $this->configService->getResponseSummaryTeamsMode(),
 					'permissions' => $permissionSettings,
 					'reminders' => [
 						'enabled' => $this->config->getAppValue('attendance', 'reminders_enabled', 'no') === 'yes',
@@ -188,6 +190,8 @@ class AdminController extends Controller {
 	 *
 	 * @param ?list<string> $whitelistedGroups Group IDs allowed to use the app
 	 * @param ?list<string> $whitelistedTeams Team IDs allowed to use the app
+	 * @param ?string $responseSummaryGroupsMode How the response summary groups by Nextcloud group: none|specific|all
+	 * @param ?string $responseSummaryTeamsMode How the response summary groups by Nextcloud team: none|specific
 	 * @param ?array<string, array{mode: string, groups: list<string>}> $permissions Permission name to access mode (all|groups|nobody) and group IDs
 	 * @param ?array{enabled?: bool, reminderDays?: int, reminderFrequency?: int, reminderTarget?: string} $reminders Reminder settings
 	 * @param ?array{enabled?: bool} $calendarSync Calendar sync settings
@@ -206,6 +210,8 @@ class AdminController extends Controller {
 	public function saveSettings(
 		?array $whitelistedGroups = null,
 		?array $whitelistedTeams = null,
+		?string $responseSummaryGroupsMode = null,
+		?string $responseSummaryTeamsMode = null,
 		?array $permissions = null,
 		?array $reminders = null,
 		?array $calendarSync = null,
@@ -235,6 +241,12 @@ class AdminController extends Controller {
 			}
 			if ($whitelistedTeams !== null) {
 				$this->configService->setWhitelistedTeams($whitelistedTeams);
+			}
+			if ($responseSummaryGroupsMode !== null) {
+				$this->configService->setResponseSummaryGroupsMode($responseSummaryGroupsMode);
+			}
+			if ($responseSummaryTeamsMode !== null) {
+				$this->configService->setResponseSummaryTeamsMode($responseSummaryTeamsMode);
 			}
 
 			if ($permissions !== null) {

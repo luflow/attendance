@@ -249,6 +249,8 @@ namespace OCA\Attendance;
  * @psalm-type AttendanceAdminConfig = array{
  *   whitelistedGroups: list<string>,
  *   whitelistedTeams: list<AttendanceTeamOption>,
+ *   responseSummaryGroupsMode: string,
+ *   responseSummaryTeamsMode: string,
  *   permissions: AttendancePermissionSettings,
  *   reminders: AttendanceAdminReminderConfig,
  *   calendarSync: AttendanceAdminCalendarSyncConfig,

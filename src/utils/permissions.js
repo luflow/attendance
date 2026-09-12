@@ -115,6 +115,19 @@ export const AUDIT_VISIBILITIES = [
 	{ value: 'all_with_response_overview', label: t('attendance', 'Everyone who can see the response overview') },
 ]
 
+/** Matches ConfigService::RESPONSE_SUMMARY_GROUP_MODES. */
+export const RESPONSE_SUMMARY_GROUP_MODES = [
+	{ value: 'none', label: t('attendance', 'No grouping') },
+	{ value: 'specific', label: t('attendance', 'Specific groups') },
+	{ value: 'all', label: t('attendance', 'All groups') },
+]
+
+/** Matches ConfigService::RESPONSE_SUMMARY_TEAM_MODES — teams have no "all" mode: unlike Nextcloud groups, there is no cheap way to enumerate every team. */
+export const RESPONSE_SUMMARY_TEAM_MODES = [
+	{ value: 'none', label: t('attendance', 'No grouping') },
+	{ value: 'specific', label: t('attendance', 'Specific teams') },
+]
+
 /** Matches ConfigService::VALID_REMINDER_TARGETS. */
 export const REMINDER_TARGETS = [
 	{

@@ -83,8 +83,12 @@ class ResponseSummaryService {
 		$summary['by_group'] = $this->filterEmptyGroups($summary['by_group']);
 		$summary['by_team'] = $this->filterEmptyGroups($summary['by_team']);
 
-		$summary['by_group'] = $this->sortGroups($summary['by_group'], $cache['whitelistedGroups']);
-		$summary['by_team'] = $this->sortTeams($summary['by_team'], $cache['whitelistedTeams']);
+		/** @var list<string> $sectionGroups */
+		$sectionGroups = $cache['sectionGroups'];
+		/** @var list<string> $sectionTeams */
+		$sectionTeams = $cache['sectionTeams'];
+		$summary['by_group'] = $this->sortGroups($summary['by_group'], $sectionGroups);
+		$summary['by_team'] = $this->sortTeams($summary['by_team'], $sectionTeams);
 
 		return $summary;
 	}
@@ -138,11 +142,17 @@ class ResponseSummaryService {
 	private function buildCache(Appointment $appointment, array $responses): array {
 		// Cache whitelisted groups (called once instead of per-group)
 		$whitelistedGroups = $this->configService->getWhitelistedGroups();
-		$whitelistedGroupsLower = array_map('strtolower', $whitelistedGroups);
-		$allowAllGroups = empty($whitelistedGroups);
+		$groupsMode = $this->configService->getResponseSummaryGroupsMode();
+		// Only "specific" mode pins sections to the whitelist. The raw list
+		// still separately narrows the audience of open appointments via
+		// getTargetAttendees() below, regardless of this display mode.
+		$sectionGroups = $groupsMode === ConfigService::RESPONSE_SUMMARY_MODE_SPECIFIC ? $whitelistedGroups : [];
+		$sectionGroupsLower = array_map('strtolower', $sectionGroups);
 
 		// Cache whitelisted teams
 		$whitelistedTeams = $this->configService->getWhitelistedTeams();
+		$teamsMode = $this->configService->getResponseSummaryTeamsMode();
+		$sectionTeams = $teamsMode === ConfigService::RESPONSE_SUMMARY_MODE_SPECIFIC ? $whitelistedTeams : [];
 
 		$visibilitySettings = $this->visibilityService->getVisibilitySettings($appointment);
 		$appointmentHasRestrictions = $this->visibilityService->hasRestrictedVisibility($appointment);
@@ -161,26 +171,40 @@ class ResponseSummaryService {
 			}
 		}
 
-		// Pre-fetch whitelisted group objects and their users
+		// Pre-fetch group objects and their users for whichever groups can
+		// render as sections, mirroring isGroupAllowedCached()'s precedence:
+		// the whitelist in "specific" mode; a restricted appointment's own
+		// restriction groups regardless of mode (issue #199 — only those can
+		// ever pass, so fetching every instance group would be wasted work);
+		// every Nextcloud group otherwise, but only in "all" mode ("none"
+		// suppresses grouping entirely on a fully open appointment).
+		/** @var array<array-key, list<\OCP\IUser>> $groupUsers */
 		$groupUsers = [];
-		if ($allowAllGroups) {
-			$allGroups = $this->groupManager->search('');
-			foreach ($allGroups as $group) {
-				$groupUsers[$group->getGID()] = $group->getUsers();
-			}
-		} else {
-			foreach ($whitelistedGroups as $groupId) {
+		if ($groupsMode === ConfigService::RESPONSE_SUMMARY_MODE_SPECIFIC) {
+			foreach ($sectionGroups as $groupId) {
 				$group = $this->groupManager->get($groupId);
 				if ($group) {
 					$groupUsers[$groupId] = $group->getUsers();
 				}
+			}
+		} elseif (!empty($appointmentVisibleGroupsLower)) {
+			foreach ($visibilitySettings['groups'] as $groupId) {
+				$group = $this->groupManager->get($groupId);
+				if ($group) {
+					$groupUsers[$groupId] = $group->getUsers();
+				}
+			}
+		} elseif ($groupsMode === ConfigService::RESPONSE_SUMMARY_MODE_ALL) {
+			$allGroups = $this->groupManager->search('');
+			foreach ($allGroups as $group) {
+				$groupUsers[$group->getGID()] = $group->getUsers();
 			}
 		}
 
 		// Pre-fetch whitelisted team members and info
 		$teamMembers = [];
 		$teamInfo = [];
-		foreach ($whitelistedTeams as $teamId) {
+		foreach ($sectionTeams as $teamId) {
 			$teamMembers[$teamId] = $this->visibilityService->getTeamMembers($teamId);
 			$info = $this->visibilityService->getTeamInfo($teamId);
 			if ($info) {
@@ -201,10 +225,10 @@ class ResponseSummaryService {
 		}
 
 		return [
-			'whitelistedGroups' => $whitelistedGroups,
-			'whitelistedGroupsLower' => $whitelistedGroupsLower,
-			'allowAllGroups' => $allowAllGroups,
-			'whitelistedTeams' => $whitelistedTeams,
+			'groupsMode' => $groupsMode,
+			'sectionGroups' => $sectionGroups,
+			'sectionGroupsLower' => $sectionGroupsLower,
+			'sectionTeams' => $sectionTeams,
 			'teamMembers' => $teamMembers,
 			'teamInfo' => $teamInfo,
 			'users' => $users,
@@ -221,20 +245,26 @@ class ResponseSummaryService {
 	/**
 	 * Check if a group may appear as a section in the summary (using cache).
 	 *
-	 * A configured whitelist alone decides the sections — visibility
-	 * restrictions only narrow the audience (issue #199). Without a whitelist,
-	 * a group-restricted appointment groups by its restriction groups.
+	 * Driven by the admin's chosen response-summary-groups mode: 'specific'
+	 * sections only the configured whitelist regardless of the appointment's
+	 * own visibility restrictions (issue #199). 'none' and 'all' both still
+	 * section a restricted appointment by its own restriction groups (issue
+	 * #199 applies with no whitelist too) — only a fully open appointment
+	 * tells them apart: 'none' sections nothing there (issue #212), 'all'
+	 * sections every group the responder belongs to.
 	 */
 	private function isGroupAllowedCached(string $groupId, array $cache): bool {
-		if (!$cache['allowAllGroups']) {
-			return in_array(strtolower($groupId), $cache['whitelistedGroupsLower']);
+		if ($cache['groupsMode'] === ConfigService::RESPONSE_SUMMARY_MODE_SPECIFIC) {
+			/** @var list<string> $sectionGroupsLower */
+			$sectionGroupsLower = $cache['sectionGroupsLower'];
+			return in_array(strtolower($groupId), $sectionGroupsLower);
 		}
 
 		if (!empty($cache['appointmentVisibleGroupsLower'])) {
 			return in_array(strtolower($groupId), $cache['appointmentVisibleGroupsLower']);
 		}
 
-		return true;
+		return $cache['groupsMode'] === ConfigService::RESPONSE_SUMMARY_MODE_ALL;
 	}
 
 	/**
@@ -242,18 +272,13 @@ class ResponseSummaryService {
 	 *
 	 * Same as isGroupAllowedCached but hides the Guests app's system group
 	 * unless an admin opts in via the whitelist — otherwise every guest user
-	 * would be lumped under one section regardless of context. Also hides
-	 * every group when neither a whitelist nor an appointment restriction is
-	 * configured: otherwise every Nextcloud group a target attendee happens
-	 * to belong to becomes a section, however unrelated to attendance
-	 * tracking (issue #212). Everyone still counts, just under Others.
+	 * would be lumped under one section regardless of context.
 	 */
 	private function isGroupVisibleAsSection(string $groupId, array $cache): bool {
-		if ($cache['allowAllGroups'] && empty($cache['appointmentVisibleGroupsLower'])) {
-			return false;
-		}
+		/** @var list<string> $sectionGroupsLower */
+		$sectionGroupsLower = $cache['sectionGroupsLower'];
 		if (GuestService::isGuestsSystemGroup($groupId)
-			&& !in_array(GuestService::GUESTS_SYSTEM_GROUP, $cache['whitelistedGroupsLower'], true)) {
+			&& !in_array(GuestService::GUESTS_SYSTEM_GROUP, $sectionGroupsLower, true)) {
 			return false;
 		}
 		return $this->isGroupAllowedCached($groupId, $cache);
@@ -345,9 +370,9 @@ class ResponseSummaryService {
 			}
 
 			// Check teams (user can be in both groups AND teams - duplicates allowed)
-			/** @var list<string> $whitelistedTeams */
-			$whitelistedTeams = $cache['whitelistedTeams'];
-			foreach ($whitelistedTeams as $teamId) {
+			/** @var list<string> $sectionTeams */
+			$sectionTeams = $cache['sectionTeams'];
+			foreach ($sectionTeams as $teamId) {
 				$teamMemberIds = $cache['teamMembers'][$teamId] ?? [];
 				if (in_array($userId, $teamMemberIds)) {
 					$userInWhitelistedTeam = true;
@@ -443,11 +468,12 @@ class ResponseSummaryService {
 		array $respondedUserIds,
 		array $cache,
 	): void {
-		$groupsToProcess = $cache['allowAllGroups']
-			? array_keys($cache['groupUsers'])
-			: $cache['whitelistedGroups'];
-
-		foreach ($groupsToProcess as $groupId) {
+		// $cache['groupUsers'] already holds exactly the candidate groups for
+		// the active mode (every group for 'all', the whitelist for
+		// 'specific', none for 'none') — no need to branch on mode again here.
+		/** @var list<array-key> $groupIds */
+		$groupIds = array_keys($cache['groupUsers']);
+		foreach ($groupIds as $groupId) {
 			// Numeric-string group IDs get coerced to int when used as array keys (issue #63)
 			$groupId = (string)$groupId;
 
@@ -512,9 +538,9 @@ class ResponseSummaryService {
 		array $respondedUserIds,
 		array $cache,
 	): void {
-		/** @var list<string> $whitelistedTeams */
-		$whitelistedTeams = $cache['whitelistedTeams'];
-		foreach ($whitelistedTeams as $teamId) {
+		/** @var list<string> $sectionTeams */
+		$sectionTeams = $cache['sectionTeams'];
+		foreach ($sectionTeams as $teamId) {
 			$teamInfo = $cache['teamInfo'][$teamId] ?? null;
 
 			if (!isset($summary['by_team'][$teamId])) {
@@ -585,8 +611,8 @@ class ResponseSummaryService {
 		$othersNonResponding = [];
 		$othersMaybe = [];
 		$skipUnaffiliated = !$cache['appointmentHasRestrictions'];
-		/** @var list<string> $whitelistedTeams */
-		$whitelistedTeams = $cache['whitelistedTeams'];
+		/** @var list<string> $sectionTeams */
+		$sectionTeams = $cache['sectionTeams'];
 
 		/** @var \OCP\IUser $user */
 		foreach ($cache['allUsers'] as $user) {
@@ -615,7 +641,7 @@ class ResponseSummaryService {
 
 			$hasRelevantTeam = false;
 			if (!$hasVisibleGroup) {
-				foreach ($whitelistedTeams as $teamId) {
+				foreach ($sectionTeams as $teamId) {
 					$teamMemberIds = $cache['teamMembers'][$teamId] ?? [];
 					if (in_array($userId, $teamMemberIds)) {
 						$hasRelevantTeam = true;
