@@ -252,8 +252,8 @@ OC.L10N.register(
     "All users" : "Kõik kasutajad",
     "Specific groups" : "Konkreetsed grupid",
     "Nobody" : "Mitte keegi",
-    "Select groups …" : "Vali grupid…",
     "No groups selected yet — currently nobody is granted this." : "Hetkel pole ühtegi gruppi valitud ja kellelgi pole seda õigust.",
+    "Select groups …" : "Vali grupid…",
     "Reopen inquiry" : "Ava küsitlus uuesti",
     "Close inquiry" : "Sulge järelpärimine",
     "Reactivate appointment" : "Aktiveeri kohtumine uuesti",
@@ -451,6 +451,7 @@ OC.L10N.register(
     "No upcoming appointment found" : "Ühtegi tulevast kohtumist ei leidu",
     "Failed to send test reminder" : "Testmeeldetuletuse saatmine ei õnnestunud",
     "Start setup wizard" : "Käivita algseadistuse viisard",
+    "Group by" : "Grupeerimise alus",
     "Search and select teams …" : "Otsi ja vali tiime…",
     "Define categories appointments can be classified under. Each one gets an icon, shown wherever the category appears." : "Määra kategooriad, mille alusel kohtumisi saab liigitada. Igale kategooriale määratakse ikoon, mis kuvatakse kõikjal, kus kategooria on näha.",
     "Rename category" : "Muuda kategooria nime",
@@ -639,7 +640,6 @@ OC.L10N.register(
     "Quarter" : "Kvartal",
     "Custom" : "Kohandatud",
     "Range" : "Vahemik",
-    "Group by" : "Grupeerimise alus",
     "Teams" : "Tiimid",
     "Filter" : "Filtreeri",
     "Highlights" : "Esiletõstmised",
@@ -701,6 +701,7 @@ OC.L10N.register(
     "Guests" : "Külalised",
     "App Store (iOS)" : "App Store (iOS)",
     "Google Play (Android)" : "Google Play (Android)",
-    "May manage appointments" : "Võib hallata kohtumisi"
+    "May manage appointments" : "Võib hallata kohtumisi",
+    "All groups" : "Kõik grupid"
 },
 "nplurals=2; plural=(n != 1);");

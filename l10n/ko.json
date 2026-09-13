@@ -196,8 +196,6 @@
     "Failed to save settings" : "설정을 저장하는 데 실패했습니다",
     "Failed to load settings" : "설정을 불러오는 데 실패했습니다",
     "Link copied" : "링크 복사됨",
-    "Select which groups to include in response summaries. Users outside these groups will appear under Others. Leave empty to include all groups." : "응답 요약에 포함할 그룹을 선택하세요. 선택한 그룹에 속하지 않는 사용자는 '기타' 항목에 표시됩니다. 모든 그룹을 포함하려면 비워 두세요.",
-    "Select which teams to include in response summaries. Team members will be grouped together like regular groups." : "답변 요약에 포함할 팀을 선택하세요. 팀 구성원은 일반 그룹처럼 함께 그룹화됩니다.",
     "Search and select teams …" : "팀을 검색하고 선택하세요 …",
     "Preview" : "미리 보기",
     "Enable automatic calendar sync" : "캘린더 자동 동기화 활성화",

@@ -255,8 +255,7 @@ OC.L10N.register(
     "Failed to save settings" : "Produciuse un fallo ao gardar os axustes",
     "Failed to load settings" : "Produciuse un fallo ao cargar os axustes",
     "Link copied" : "Ligazón copiada",
-    "Select which groups to include in response summaries. Users outside these groups will appear under Others. Leave empty to include all groups." : "Seleccione que grupos incluír nos resumos de resposta. Os usuarios fóra destes grupos aparecerán en Outros. Déixeo baleiro para incluír todos os grupos.",
-    "Select which teams to include in response summaries. Team members will be grouped together like regular groups." : "Seleccione que equipos incluír nos resumos de resposta. Os membros do equipo agruparanse como grupos normais.",
+    "Group by" : "Agrupar por",
     "Search and select teams …" : "Buscar e seleccionar equipos…",
     "Delete category" : "Eliminar categoría",
     "Preview" : "Vista previa",
@@ -372,7 +371,6 @@ OC.L10N.register(
     "Period" : "Punto",
     "Year" : "Ano",
     "Custom" : "Personalizado",
-    "Group by" : "Agrupar por",
     "Teams" : "Equipos",
     "Filter" : "Filtro",
     "Show all appointments" : "Amosar todas as citas",
@@ -393,6 +391,7 @@ OC.L10N.register(
     "name" : "nome",
     "description" : "descrición",
     "time" : "vez",
-    "Guests" : "Convidado"
+    "Guests" : "Convidado",
+    "All groups" : "Todos os grupos"
 },
 "nplurals=2; plural=(n != 1);");

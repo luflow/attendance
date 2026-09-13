@@ -139,6 +139,7 @@ OC.L10N.register(
     "Failed to save settings" : "Не удалось сохранить параметры",
     "Failed to load settings" : "Не удалось загрузить параметры",
     "Link copied" : "Ссылка скопирована",
+    "Group by" : "Группировать по",
     "Preview" : "Предварительный просмотр",
     "Open" : "Открытые",
     "Push notifications" : "Push-уведомления",
@@ -180,7 +181,6 @@ OC.L10N.register(
     "Period" : "Период",
     "Year" : "Год",
     "Custom" : "Задать",
-    "Group by" : "Группировать по",
     "Teams" : "Команды",
     "Filter" : "Фильтр",
     "Category: {category}" : "Категория: {category}",
@@ -191,6 +191,7 @@ OC.L10N.register(
     "name" : "имя",
     "description" : "описание",
     "time" : "раз",
-    "Guests" : "Гости"
+    "Guests" : "Гости",
+    "All groups" : "Все группы"
 },
 "nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14)? 2 : 3);");

@@ -346,8 +346,6 @@ OC.L10N.register(
     "Test reminder sent for {name}" : "Lembrete de teste enviado para {name}",
     "No upcoming appointment found" : "Não foram encontrados compromissos agendados",
     "Failed to send test reminder" : "Falha ao enviar lembrete de teste",
-    "Select which groups to include in response summaries. Users outside these groups will appear under Others. Leave empty to include all groups." : "Selecione quais grupos incluir nos resumos de respostas. Os usuários fora desses grupos aparecerão em Outros. Deixe em branco para incluir todos os grupos.",
-    "Select which teams to include in response summaries. Team members will be grouped together like regular groups." : "Selecione quais equipes incluir nos resumos de respostas. Os membros das equipes serão agrupados como grupos regulares.",
     "Search and select teams …" : "Pesquisar e selecionar equipes …",
     "Delete category" : "Excluir categoria",
     "Next reminder run" : "Próxima execução de lembretes",
@@ -556,6 +554,7 @@ OC.L10N.register(
     "Google Play (Android)" : "Google Play (Android)",
     "Only users who can manage appointments" : "Apenas usuários com permissão para gerenciar compromissos",
     "Everyone who can see the response overview" : "Todas as pessoas que podem ver o resumo das respostas",
+    "All groups" : "Todos os grupos",
     "Non-responders only" : "Somente pessoas que não responderam",
     "Maybe responders only" : "Somente pessoas que responderam com talvez",
     "Both non-responders and maybe responders" : "Tanto os que não responderam quanto os que responderam com talvez"

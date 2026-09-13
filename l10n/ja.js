@@ -175,6 +175,7 @@ OC.L10N.register(
     "Automatic" : "自動",
     "name" : "名前",
     "description" : "説明",
-    "Guests" : "ゲスト"
+    "Guests" : "ゲスト",
+    "All groups" : "全てのグループ"
 },
 "nplurals=1; plural=0;");

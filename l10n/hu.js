@@ -188,6 +188,7 @@ OC.L10N.register(
     "Automatic" : "Automatikus",
     "name" : "név",
     "time" : "alkalom",
-    "Guests" : "Vendégek"
+    "Guests" : "Vendégek",
+    "All groups" : "Összes csoport"
 },
 "nplurals=2; plural=(n != 1);");

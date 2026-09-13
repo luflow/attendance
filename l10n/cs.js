@@ -329,8 +329,7 @@ OC.L10N.register(
     "Failed to load settings" : "Nepodařilo se načíst nastavení",
     "Link copied" : "Odkaz zkopírován",
     "Command copied" : "Příkaz zkopírován",
-    "Select which groups to include in response summaries. Users outside these groups will appear under Others. Leave empty to include all groups." : "Vyberte které skupiny zahrnout do souhrnů odpovědí. Uživatelé mimo tyto skuiny se objeví pod Ostatní. Pokud chcete zahrnout všechny skupiny, nevyplňujte.",
-    "Select which teams to include in response summaries. Team members will be grouped together like regular groups." : "Vyberte které týmy zahrnout do souhrnů odpovědí. Členové týmu budou seskupeni dohromady jako běžné skupiny.",
+    "Group by" : "Seskupit podle",
     "Search and select teams …" : "Hledat a vybrat týmy …",
     "Delete category" : "Smazat kategorii",
     "Next reminder run" : "Příští kolo připomínky",
@@ -473,7 +472,6 @@ OC.L10N.register(
     "Quarter" : "Čtvrtletí",
     "Custom" : "Uživatelsky určené",
     "Range" : "Rozsah",
-    "Group by" : "Seskupit podle",
     "Teams" : "Týmy",
     "Filter" : "Filtr",
     "Highlights" : "Zvýraznění",
@@ -509,6 +507,7 @@ OC.L10N.register(
     "Guests" : "Hosté",
     "App Store (iOS)" : "App Store (iOS)",
     "Google Play (Android)" : "Google Play (Android)",
+    "All groups" : "Všechny skupiny",
     "Non-responders only" : "Pouze těm, kteří ještě neodpověděli"
 },
 "nplurals=4; plural=(n == 1 && n % 1 == 0) ? 0 : (n >= 2 && n <= 4 && n % 1 == 0) ? 1: (n % 1 != 0 ) ? 2 : 3;");
