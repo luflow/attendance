@@ -55,10 +55,17 @@ class Notifier implements INotifier {
 		}
 
 		// Published via OCP\Activity\IManager (the "activity" app is enabled) —
-		// OCA\Attendance\Activity\Provider renders it instead, so it is not ours
-		// to touch here. Without that app, these subjects never reach this
-		// object type and fall through to the cases below as before.
+		// OCA\Attendance\Activity\Provider already rendered the subject/message,
+		// so that part is not ours to touch. But the mobile app's push/OCS
+		// handling keys navigation off objectType starting with "appointment"
+		// and off objectId as the appointment ID, so we restore that shape
+		// before stepping aside: setObject() mutates the shared $notification
+		// in place, and every notifier in OCP\Notification\IManager::prepare()'s
+		// chain sees the same instance, so this survives even though we still
+		// throw below. Without the "activity" app, these subjects never reach
+		// this object type and fall through to the cases below as before.
 		if ($notification->getObjectType() === 'activity_notification') {
+			$this->restoreObjectForClientCompatibility($notification);
 			throw new UnknownNotificationException();
 		}
 
@@ -315,6 +322,25 @@ class Notifier implements INotifier {
 			$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
 		));
 		return $notification;
+	}
+
+	/**
+	 * Puts back the objectType/objectId shape the direct-notification path
+	 * would have produced (see NotificationService::sendViaActivityOrDirect),
+	 * for the mobile app's benefit — see the call site in prepare().
+	 */
+	private function restoreObjectForClientCompatibility(INotification $notification): void {
+		if ($notification->getSubject() === 'appointments_series_updated') {
+			// Never tied to one appointment — same "no single target" shape
+			// the direct path uses for this and appointments_bulk_created.
+			$notification->setObject('appointment_bulk', uniqid());
+			return;
+		}
+
+		$appointmentId = (int)($notification->getSubjectParameters()['appointmentId'] ?? 0);
+		if ($appointmentId > 0) {
+			$notification->setObject('appointment', (string)$appointmentId);
+		}
 	}
 
 	/**

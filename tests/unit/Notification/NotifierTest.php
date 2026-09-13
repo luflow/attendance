@@ -351,8 +351,55 @@ class NotifierTest extends TestCase {
 		$notification = $this->createMock(INotification::class);
 		$notification->method('getApp')->willReturn('attendance');
 		$notification->method('getObjectType')->willReturn('activity_notification');
+		$notification->method('getSubject')->willReturn('appointment_cancelled');
+		$notification->method('getSubjectParameters')->willReturn(['appointmentId' => 42]);
 
 		$this->expectException(\OCP\Notification\UnknownNotificationException::class);
 		$this->notifier->prepare($notification, 'de');
+	}
+
+	/**
+	 * The mobile app's push/OCS handling navigates by objectType starting
+	 * with "appointment" and reads objectId as the appointment ID — both
+	 * must be restored even though the Activity-rendered content is left
+	 * alone, or deep-linking silently breaks whenever the "activity" app
+	 * is enabled.
+	 */
+	public function testActivityRoutedNotificationRestoresAppointmentObjectForMobileApp(): void {
+		$notification = $this->createMock(INotification::class);
+		$notification->method('getApp')->willReturn('attendance');
+		$notification->method('getObjectType')->willReturn('activity_notification');
+		$notification->method('getSubject')->willReturn('booking_confirmed');
+		$notification->method('getSubjectParameters')->willReturn(['appointmentId' => 42]);
+		$notification->expects($this->once())
+			->method('setObject')
+			->with('appointment', '42')
+			->willReturnSelf();
+
+		try {
+			$this->notifier->prepare($notification, 'de');
+			$this->fail('Expected UnknownNotificationException');
+		} catch (\OCP\Notification\UnknownNotificationException) {
+			// Expected — the assertion is the setObject() call above.
+		}
+	}
+
+	public function testActivityRoutedSeriesUpdateRestoresBulkObject(): void {
+		$notification = $this->createMock(INotification::class);
+		$notification->method('getApp')->willReturn('attendance');
+		$notification->method('getObjectType')->willReturn('activity_notification');
+		$notification->method('getSubject')->willReturn('appointments_series_updated');
+		$notification->method('getSubjectParameters')->willReturn([]);
+		$notification->expects($this->once())
+			->method('setObject')
+			->with('appointment_bulk', $this->isType('string'))
+			->willReturnSelf();
+
+		try {
+			$this->notifier->prepare($notification, 'de');
+			$this->fail('Expected UnknownNotificationException');
+		} catch (\OCP\Notification\UnknownNotificationException) {
+			// Expected — the assertion is the setObject() call above.
+		}
 	}
 }
