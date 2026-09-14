@@ -702,6 +702,8 @@ OC.L10N.register(
     "App Store (iOS)" : "App Store (iOS)",
     "Google Play (Android)" : "Google Play (Android)",
     "May manage appointments" : "Võib hallata kohtumisi",
-    "All groups" : "Kõik grupid"
+    "No grouping" : "Grupeerimist pole",
+    "All groups" : "Kõik grupid",
+    "Specific teams" : "Kindlad tiimid"
 },
 "nplurals=2; plural=(n != 1);");
