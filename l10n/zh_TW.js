@@ -292,6 +292,7 @@ OC.L10N.register(
     "Quote" : "引用",
     "Insert link" : "插入連結",
     "Dismiss" : "忽略",
+    "Move {name} up" : "向上移動 {name}",
     "Welcome" : "歡迎",
     "Response summary groups" : "回應摘要群組",
     "Appointment reminders" : "預約提醒",
