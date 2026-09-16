@@ -988,6 +988,8 @@ OC.L10N.register(
     "A cancelled appointment takes place after all" : "Ein abgesagter Termin findet doch noch statt",
     "You got a place in an appointment" : "Sie sind für einen Termin eingeplant",
     "You did not get a place in an appointment" : "Sie sind für einen Termin nicht eingeplant",
-    "Several appointments of a series changed at once" : "Mehrere Termine einer Serie wurden auf einmal geändert"
+    "Several appointments of a series changed at once" : "Mehrere Termine einer Serie wurden auf einmal geändert",
+    "Notifications are delivered via UnifiedPush — no Google Play required" : "Benachrichtigungen werden über UnifiedPush zugestellt — Google Play wird nicht benötigt",
+    "See prices" : "Preise anzeigen"
 },
 "nplurals=2; plural=(n != 1);");
