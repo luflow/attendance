@@ -989,6 +989,7 @@ OC.L10N.register(
     "You got a place in an appointment" : "Du bist für einen Termin eingeplant",
     "You did not get a place in an appointment" : "Du bist für einen Termin nicht eingeplant",
     "Several appointments of a series changed at once" : "Mehrere Termine einer Serie wurden auf einmal geändert",
-    "Notifications are delivered via UnifiedPush — no Google Play required" : "Benachrichtigungen werden über UnifiedPush zugestellt — Google Play wird nicht benötigt"
+    "Notifications are delivered via UnifiedPush — no Google Play required" : "Benachrichtigungen werden über UnifiedPush zugestellt — Google Play wird nicht benötigt",
+    "See prices" : "Preise anzeigen"
 },
 "nplurals=2; plural=(n != 1);");
