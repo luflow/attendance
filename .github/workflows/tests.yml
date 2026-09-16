@@ -132,6 +132,15 @@ jobs:
             exit 1
           fi
 
+      # No sync catches these — placeholders, German quotes, du/Sie mixing,
+      # duplicate keys, .js/.json parity.
+      - name: Check German l10n files
+        run: python3 scripts/check-german-l10n.py
+
+      # A bad source string reaches 80 languages before anyone notices.
+      - name: Check source strings
+        run: python3 scripts/check-source-strings.py
+
       - name: Run eslint
         run: npm run lint
 
