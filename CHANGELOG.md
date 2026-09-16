@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.53.0 – 2026-09-16
+
+### Added
+
+- **Notification settings for 5 more event types**: appointment cancelled, appointment reactivated, appointments series updated, booking confirmed and booking declined can now be toggled individually (push/e-mail) in Settings > Notifications
+
+### Maintenance
+
+- Updated translations from Transifex
+- CI now fails when a string is missing its German translation
+
 ## 1.52.0 – 2026-09-12
 
 ### Added
