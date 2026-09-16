@@ -51,7 +51,7 @@
     "@nextcloud/eslint-config": "^9.0.1",
     "@nextcloud/stylelint-config": "^3.2.2",
     "@nextcloud/vite-config": "^2.5.4",
-    "@playwright/test": "^1.62.1",
+    "@playwright/test": "^1.63.0",
     "@vue/tsconfig": "^0.9.1",
     "eslint": "^10.9.1",
     "sass-embedded": "^1.103.1",
