@@ -973,6 +973,11 @@
     "Move {name} up" : "{name} nach oben verschieben",
     "Move {name} down" : "{name} nach unten verschieben",
     "Sections appear in this order. Drag an entry or use the arrows to move it." : "Die Abschnitte erscheinen in dieser Reihenfolge. Ziehen Sie einen Eintrag oder verschieben Sie ihn mit den Pfeilen.",
-    "Using Attendance with a group? One license for the whole group costs less than {count} personal licenses." : "Sie nutzen Attendance mit einer Gruppe? Eine Lizenz für die ganze Gruppe kostet weniger als {count} persönliche Lizenzen."
+    "Using Attendance with a group? One license for the whole group costs less than {count} personal licenses." : "Sie nutzen Attendance mit einer Gruppe? Eine Lizenz für die ganze Gruppe kostet weniger als {count} persönliche Lizenzen.",
+    "An appointment was cancelled" : "Ein Termin wurde abgesagt",
+    "A cancelled appointment takes place after all" : "Ein abgesagter Termin findet doch noch statt",
+    "You got a place in an appointment" : "Sie sind für einen Termin eingeplant",
+    "You did not get a place in an appointment" : "Sie sind für einen Termin nicht eingeplant",
+    "Several appointments of a series changed at once" : "Mehrere Termine einer Serie wurden auf einmal geändert"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

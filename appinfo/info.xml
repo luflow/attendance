@@ -132,6 +132,18 @@ Dokumentation, Einsatzbeispiele und Roadmap: [anwesenheit.app](https://anwesenhe
 		<personal>OCA\Attendance\Settings\PersonalSettings</personal>
 		<personal-section>OCA\Attendance\Settings\PersonalSection</personal-section>
 	</settings>
+	<activity>
+		<settings>
+			<setting>OCA\Attendance\Activity\Setting\AppointmentCancelledSetting</setting>
+			<setting>OCA\Attendance\Activity\Setting\AppointmentReactivatedSetting</setting>
+			<setting>OCA\Attendance\Activity\Setting\BookingConfirmedSetting</setting>
+			<setting>OCA\Attendance\Activity\Setting\BookingDeclinedSetting</setting>
+			<setting>OCA\Attendance\Activity\Setting\AppointmentsSeriesUpdatedSetting</setting>
+		</settings>
+		<providers>
+			<provider>OCA\Attendance\Activity\Provider</provider>
+		</providers>
+	</activity>
 	<navigations>
 		<navigation>
 			<id>attendance</id>
