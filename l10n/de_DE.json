@@ -981,6 +981,11 @@
     "Every Nextcloud group becomes a section, including ones unrelated to attendance — group names become visible to anyone who can see the response overview." : "Jede Nextcloud-Gruppe wird zu einem Abschnitt, auch solche ohne Bezug zur Anwesenheit — Gruppennamen werden für alle sichtbar, die die Antwortübersicht sehen können.",
     "No grouping puts every response under Others. Specific teams only creates sections for the teams you select below — team members outside them appear under Others." : "Keine Gruppierung stellt jede Antwort unter „Andere“. Bestimmte Teams legt nur für die unten ausgewählten Teams Abschnitte an — Mitglieder außerhalb davon erscheinen unter „Andere“.",
     "No teams selected yet — nothing groups into sections; everyone appears under Others." : "Noch keine Teams ausgewählt — es wird nichts in Abschnitte gruppiert; alle erscheinen unter „Andere“.",
-    "Pick the groups that should get their own section. Everyone else appears under Others. Leave it empty for no grouping — more options are in the Response summary groups section of the admin settings." : "Wählen Sie die Gruppen aus, die einen eigenen Abschnitt bekommen sollen. Alle anderen erscheinen unter „Andere“. Leer lassen für keine Gruppierung — weitere Optionen finden Sie im Abschnitt „Gruppen in Antwortübersicht“ der Admin-Einstellungen."
+    "Pick the groups that should get their own section. Everyone else appears under Others. Leave it empty for no grouping — more options are in the Response summary groups section of the admin settings." : "Wählen Sie die Gruppen aus, die einen eigenen Abschnitt bekommen sollen. Alle anderen erscheinen unter „Andere“. Leer lassen für keine Gruppierung — weitere Optionen finden Sie im Abschnitt „Gruppen in Antwortübersicht“ der Admin-Einstellungen.",
+    "An appointment was cancelled" : "Ein Termin wurde abgesagt",
+    "A cancelled appointment takes place after all" : "Ein abgesagter Termin findet doch noch statt",
+    "You got a place in an appointment" : "Sie sind für einen Termin eingeplant",
+    "You did not get a place in an appointment" : "Sie sind für einen Termin nicht eingeplant",
+    "Several appointments of a series changed at once" : "Mehrere Termine einer Serie wurden auf einmal geändert"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
