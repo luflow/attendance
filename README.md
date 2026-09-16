@@ -1,5 +1,8 @@
 # Attendance
 
+[<img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="56">](https://play.google.com/store/apps/details?id=de.krautnerds.attendance)
+[<img alt="Download on the App Store" src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83" height="56">](https://apps.apple.com/app/id6759988681)
+
 A Nextcloud app for knowing who is coming. Collect replies up front, check people in on the day, and see every response broken down by your Nextcloud groups. Free, open source, and running entirely on your own server.
 
 [Website](https://anwesenheit.app) · [Nextcloud App Store](https://apps.nextcloud.com/apps/attendance) · [Documentation](https://anwesenheit.app/docs)
