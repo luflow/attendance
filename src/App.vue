@@ -514,6 +514,7 @@ t('attendance', 'Scan NFC tag')
 t('attendance', 'Scan again')
 // TRANSLATORS: Call-to-action button opening the subscription screen on the group tiers; "plans" are the paid subscription tiers, not schedules or agendas.
 t('attendance', 'See group plans')
+t('attendance', 'See prices')
 t('attendance', 'Search by name …')
 t('attendance', 'Select the appointment you want to check into:')
 t('attendance', 'Send')
