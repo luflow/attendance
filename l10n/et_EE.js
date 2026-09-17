@@ -1,6 +1,10 @@
 OC.L10N.register(
     "attendance",
     {
+    "Appointment cancelled: %1$s on %2$s" : "Kohtumine on tühistatud: %1$s, %2$s",
+    "You are scheduled for %1$s on %2$s" : "Sinu kohtumine on lepitud kokku järgnevalt: %1$s, %2$s",
+    "You are not scheduled for %1$s on %2$s" : "Sinu kohtumine pole ajastatud: %1$s, %2$s",
+    "Attendance" : "Osalemine",
     "This appointment no longer exists." : "Seda kohtumist pole enam olemas",
     "This appointment was cancelled and no longer accepts responses." : "See kohtumine on tühistatud ja siia ei saa enam vastuseid lisada.",
     "This appointment is closed and no longer accepts responses." : "See kohtumine on suletud ja siia ei saa enam vastuseid lisada.",
@@ -14,12 +18,8 @@ OC.L10N.register(
     "No" : "Ei",
     "Maybe" : "Võib-olla",
     "My attendance" : "Minu osalemine",
-    "Attendance" : "Osalemine",
     "Response missing: %1$s on %2$s" : "Vastus on puudu: %1$s, %2$s",
     "New appointment: %1$s on %2$s" : "Uus kohtumine: %1$s, %2$s",
-    "Appointment cancelled: %1$s on %2$s" : "Kohtumine on tühistatud: %1$s, %2$s",
-    "You are scheduled for %1$s on %2$s" : "Sinu kohtumine on lepitud kokku järgnevalt: %1$s, %2$s",
-    "You are not scheduled for %1$s on %2$s" : "Sinu kohtumine pole ajastatud: %1$s, %2$s",
     "Someone" : "Keegi",
     "Others" : "Muud",
     "Group" : "Grupp",

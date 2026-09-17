@@ -1,6 +1,7 @@
 OC.L10N.register(
     "attendance",
     {
+    "Attendance" : "Presença",
     "This appointment no longer exists." : "Este compromisso já não existe.",
     "This appointment is closed and no longer accepts responses." : "Este compromisso está fechada e não aceita mais repostas.",
     "Response recorded" : "Resposta gravada",
@@ -13,7 +14,6 @@ OC.L10N.register(
     "No" : "Não",
     "Maybe" : "Talvez",
     "My attendance" : "Minha presença",
-    "Attendance" : "Presença",
     "Response missing: %1$s on %2$s" : "Resposta ausente: %1$s em %2$s",
     "New appointment: %1$s on %2$s" : "Novo compromisso: %1$s em %2$s",
     "Someone" : "Alguém",

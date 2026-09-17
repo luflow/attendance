@@ -1,6 +1,7 @@
 OC.L10N.register(
     "attendance",
     {
+    "Attendance" : "Osallistuminen",
     "This appointment no longer exists." : "Tätä tapaamista ei ole enää olemassa.",
     "Invalid response type." : "Virheellinen vastauksen tyyppi.",
     "This link is invalid. Please use the link from your notification." : "Tämä linkki on virheellinen. Käytä ilmoituksessasi olevaa linkkiä.",
@@ -9,7 +10,6 @@ OC.L10N.register(
     "Yes" : "Kyllä",
     "No" : "Ei",
     "Maybe" : "Ehkä",
-    "Attendance" : "Osallistuminen",
     "Someone" : "Joku",
     "Others" : "Muut",
     "Group" : "Ryhmä",

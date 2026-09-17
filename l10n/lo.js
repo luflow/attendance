@@ -1,6 +1,7 @@
 OC.L10N.register(
     "attendance",
     {
+    "Attendance" : "ການມາຮ່ວມ",
     "This appointment no longer exists." : "ການນັດໝາຍນີ້ບໍ່ມີຢູ່ໃນລະບົບແລ້ວ.",
     "Response recorded" : "ບັນທຶກການຕອບກັບແລ້ວ",
     "An error occurred while recording your response. Please try again." : "ເກີດຂໍ້ຜິດພາດໃນຂະນະທີ່ບັນທຶກການຕອບກັບຂອງທ່ານ. ກະລຸນາລອງໃໝ່ອີກຄັ້ງ.",
@@ -11,7 +12,6 @@ OC.L10N.register(
     "Yes" : "ແມ່ນ",
     "No" : "ບໍ່",
     "Maybe" : "ອາດຈະ",
-    "Attendance" : "ການມາຮ່ວມ",
     "Response missing: %1$s on %2$s" : "ຍັງບໍ່ໄດ້ຕອບກັບ: %1$s ໃນ %2$s",
     "New appointment: %1$s on %2$s" : "ການນັດໝາຍໃໝ່: %1$s ໃນ %2$s",
     "Someone" : "ບາງຄົນ",

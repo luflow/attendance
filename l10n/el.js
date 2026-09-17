@@ -1,6 +1,7 @@
 OC.L10N.register(
     "attendance",
     {
+    "Attendance" : "Παρουσίες",
     "This appointment no longer exists." : "Αυτό το ραντεβού δεν υπάρχει πλέον.",
     "This appointment is closed and no longer accepts responses." : "Αυτό το ραντεβού έχει κλείσει και δεν δέχεται πλέον απαντήσεις.",
     "Response recorded" : "Η απάντηση καταγράφηκε",
@@ -13,7 +14,6 @@ OC.L10N.register(
     "No" : "Όχι",
     "Maybe" : "Ίσως",
     "My attendance" : "Η παρουσία μου",
-    "Attendance" : "Παρουσίες",
     "Response missing: %1$s on %2$s" : "Λείπει απάντηση: %1$s στις %2$s",
     "New appointment: %1$s on %2$s" : "Νέο ραντεβού: %1$s στις %2$s",
     "Someone" : "Κάποιος",

@@ -1,6 +1,7 @@
 OC.L10N.register(
     "attendance",
     {
+    "Attendance" : "حضور",
     "This appointment no longer exists." : "این قرار دیگر وجود ندارد.",
     "This appointment is closed and no longer accepts responses." : "این قرار بسته شده و دیگر پاسخ‌ها را نمی‌پذیرد.",
     "Response recorded" : "پاسخ ثبت شد",
@@ -13,7 +14,6 @@ OC.L10N.register(
     "No" : "خیر",
     "Maybe" : "شاید",
     "My attendance" : "حضور من",
-    "Attendance" : "حضور",
     "Response missing: %1$s on %2$s" : "پاسخ گم شده: %1$s در %2$s",
     "New appointment: %1$s on %2$s" : "قرار جدید: %1$s در %2$s",
     "Someone" : "شخصی",
