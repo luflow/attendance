@@ -21,8 +21,10 @@ use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\NotificationService;
 use OCA\Attendance\Service\OrgCalendarSyncService;
 use OCA\Attendance\Service\PermissionService;
+use OCA\Attendance\Service\ResponseService;
 use OCA\Attendance\Service\ResponseSummaryService;
 use OCA\Attendance\Service\TalkRoomService;
+use OCA\Attendance\Service\VacationService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -85,6 +87,9 @@ class AppointmentServiceTest extends TestCase {
 	private $categoryMapper;
 	private $talkRoomService;
 
+	/** @var VacationService|MockObject */
+	private $vacationService;
+
 	private AppointmentService $service;
 
 	protected function setUp(): void {
@@ -92,6 +97,13 @@ class AppointmentServiceTest extends TestCase {
 		$this->responseMapper = $this->createMock(AttendanceResponseMapper::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->userManager = $this->createMock(IUserManager::class);
+		// Unstubbed IUserManager::search() returns null rather than [], which
+		// crashes the whitelist-fallback foreach in getAllWhitelistedUsers().
+		// createAppointment() now reaches that path unconditionally (the
+		// vacation auto-response check), not just when sendNotification is
+		// set, so every test needs this default rather than the few that
+		// used to opt in individually.
+		$this->userManager->method('search')->willReturn([]);
 		$this->configService = $this->createMock(ConfigService::class);
 		$this->visibilityService = $this->createMock(VisibilityService::class);
 		$this->responseSummaryService = $this->createMock(ResponseSummaryService::class);
@@ -106,6 +118,7 @@ class AppointmentServiceTest extends TestCase {
 		$this->orgCalendarSyncService = $this->createMock(OrgCalendarSyncService::class);
 		$this->categoryMapper = $this->createMock(CategoryMapper::class);
 		$this->talkRoomService = $this->createMock(TalkRoomService::class);
+		$this->vacationService = $this->createMock(VacationService::class);
 
 		$this->service = new AppointmentService(
 			$this->appointmentMapper,
@@ -126,6 +139,7 @@ class AppointmentServiceTest extends TestCase {
 			$this->orgCalendarSyncService,
 			$this->categoryMapper,
 			$this->talkRoomService,
+			$this->vacationService,
 		);
 	}
 
@@ -157,6 +171,58 @@ class AppointmentServiceTest extends TestCase {
 
 		$this->assertInstanceOf(Appointment::class, $result);
 		$this->assertEquals(1, $result->getId());
+	}
+
+	public function testCreateAppointmentAutoRespondsNoForInviteesOnVacation(): void {
+		$appointment = new Appointment();
+		$appointment->setId(7);
+		$appointment->setStartDatetime('2026-06-01 10:00:00');
+		$appointment->setEndDatetime('2026-06-01 12:00:00');
+		$appointment->setVisibleUsers(json_encode(['alice', 'bob']));
+
+		$this->appointmentMapper->method('insert')->willReturn($appointment);
+
+		$this->vacationService->expects($this->once())
+			->method('findUsersOnVacation')
+			->with('2026-06-01 10:00:00', '2026-06-01 12:00:00', ['alice', 'bob'])
+			->willReturn(['bob']);
+
+		$this->responseMapper->expects($this->once())
+			->method('insert')
+			->with($this->callback(function (AttendanceResponse $response): bool {
+				return $response->getAppointmentId() === 7
+					&& $response->getUserId() === 'bob'
+					&& $response->getResponse() === 'no'
+					&& $response->getResponseSource() === ResponseService::SOURCE_VACATION;
+			}))
+			->willReturnArgument(0);
+
+		$this->service->createAppointment(
+			'Trip',
+			'',
+			'2026-06-01T10:00:00Z',
+			'2026-06-01T12:00:00Z',
+			'admin',
+			['alice', 'bob'],
+		);
+	}
+
+	public function testCreateAppointmentSkipsVacationCheckWithNoAudience(): void {
+		$appointment = new Appointment();
+		$appointment->setId(9);
+
+		$this->appointmentMapper->method('insert')->willReturn($appointment);
+
+		$this->vacationService->expects($this->never())->method('findUsersOnVacation');
+		$this->responseMapper->expects($this->never())->method('insert');
+
+		$this->service->createAppointment(
+			'Empty audience',
+			'',
+			'2024-01-15T10:00:00Z',
+			'2024-01-15T11:00:00Z',
+			'admin',
+		);
 	}
 
 	public function testCloseAppointmentRecordsAuditEvent(): void {

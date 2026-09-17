@@ -68,6 +68,15 @@ return [
 		['name' => 'category#update', 'url' => '/api/admin/categories/{id}', 'verb' => 'PUT'],
 		['name' => 'category#destroy', 'url' => '/api/admin/categories/{id}', 'verb' => 'DELETE'],
 
+		// Vacation management
+		// NOTE: Specific routes must come BEFORE wildcard {id} routes
+		['name' => 'vacation#index', 'url' => '/api/vacations', 'verb' => 'GET'],
+		['name' => 'vacation#overview', 'url' => '/api/vacations/team', 'verb' => 'GET'],
+		['name' => 'vacation#conflicts', 'url' => '/api/vacations/conflicts', 'verb' => 'GET'],
+		['name' => 'vacation#create', 'url' => '/api/vacations', 'verb' => 'POST'],
+		['name' => 'vacation#update', 'url' => '/api/vacations/{id}', 'verb' => 'PUT'],
+		['name' => 'vacation#destroy', 'url' => '/api/vacations/{id}', 'verb' => 'DELETE'],
+
 		// User data
 		['name' => 'appointment#getPermissions', 'url' => '/api/user/permissions', 'verb' => 'GET'],
 		['name' => 'appointment#getUserConfig', 'url' => '/api/user/config', 'verb' => 'GET'],

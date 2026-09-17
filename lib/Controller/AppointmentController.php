@@ -1071,6 +1071,11 @@ class AppointmentController extends Controller {
 			// Server understands DELETE /appointments/{id}/talk-room. Clients
 			// hide the delete action when this is false.
 			'talkRoomDeletion' => true,
+			// Server supports personal vacation periods (GET/POST/PUT/DELETE
+			// /vacations), the create-appointment conflict hint, the team
+			// overview, and auto-"no" responses for invitees on vacation.
+			// Clients hide all of that UI when this is false.
+			'vacationManagementEnabled' => true,
 		]);
 	}
 

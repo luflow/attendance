@@ -52,6 +52,7 @@ class AppointmentService {
 	private OrgCalendarSyncService $orgCalendarSyncService;
 	private CategoryMapper $categoryMapper;
 	private TalkRoomService $talkRoomService;
+	private VacationService $vacationService;
 	/** @var array<string, bool> per-request cache for isOrganizerAnywhere() */
 	private array $organizerAnywhereCache = [];
 
@@ -74,6 +75,7 @@ class AppointmentService {
 		OrgCalendarSyncService $orgCalendarSyncService,
 		CategoryMapper $categoryMapper,
 		TalkRoomService $talkRoomService,
+		VacationService $vacationService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -93,6 +95,7 @@ class AppointmentService {
 		$this->orgCalendarSyncService = $orgCalendarSyncService;
 		$this->categoryMapper = $categoryMapper;
 		$this->talkRoomService = $talkRoomService;
+		$this->vacationService = $vacationService;
 	}
 
 	/**
@@ -171,6 +174,8 @@ class AppointmentService {
 			\OCA\Attendance\Audit\Verb::SOURCE_CLIENT,
 		);
 
+		$this->applyVacationAutoResponses($appointment);
+
 		$this->orgCalendarSyncService->syncAppointment($appointment);
 
 		if ($sendNotification) {
@@ -181,6 +186,44 @@ class AppointmentService {
 		}
 
 		return $appointment;
+	}
+
+	/**
+	 * Default a brand-new appointment's invitees to "no" when they're on
+	 * vacation for its whole window — they can still change it afterwards
+	 * through the normal respond flow, same as any other answer.
+	 *
+	 * Only runs at creation time: a vacation entered after the appointment
+	 * already exists does not retroactively touch anyone's response.
+	 */
+	private function applyVacationAutoResponses(Appointment $appointment): void {
+		// getAffectedUsers() is untyped (its audience can come from a decoded
+		// JSON column), so normalize to a plain string list at this boundary
+		// rather than loosening VacationService's own, precisely-typed API.
+		$affectedUsers = array_values(array_filter(
+			$this->getAffectedUsers($appointment),
+			static fn (mixed $userId): bool => is_string($userId),
+		));
+		if ($affectedUsers === []) {
+			return;
+		}
+
+		$onVacation = $this->vacationService->findUsersOnVacation(
+			$appointment->getStartDatetime(),
+			$appointment->getEndDatetime(),
+			$affectedUsers,
+		);
+
+		foreach ($onVacation as $userId) {
+			$response = new AttendanceResponse();
+			$response->setAppointmentId($appointment->getId());
+			$response->setUserId($userId);
+			$response->setResponse('no');
+			$response->setComment('');
+			$response->setRespondedAt(gmdate('Y-m-d H:i:s'));
+			$response->setResponseSource(ResponseService::SOURCE_VACATION);
+			$this->responseMapper->insert($response);
+		}
 	}
 
 	/**
@@ -1792,9 +1835,14 @@ class AppointmentService {
 	}
 
 	/**
-	 * Get all users in whitelisted groups.
+	 * Get all users in whitelisted groups (or everyone, when no whitelist is
+	 * configured) — the app-wide notion of "everyone", also used by
+	 * VacationController to scope the team vacation overview and the
+	 * create-appointment conflict hint when no narrower audience is given.
+	 *
+	 * @return list<string>
 	 */
-	private function getAllWhitelistedUsers(): array {
+	public function getAllWhitelistedUsers(): array {
 		$whitelistedGroups = $this->configService->getWhitelistedGroups();
 		$userIds = [];
 
@@ -1814,7 +1862,7 @@ class AppointmentService {
 			}
 		}
 
-		return array_unique($userIds);
+		return array_values(array_unique($userIds));
 	}
 
 	/**
