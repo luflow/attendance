@@ -13,7 +13,7 @@ There is a companion app for iOS and Android. It talks to your own Nextcloud and
 
 It also puts appointments, replies and comments on the phone, and holds several Nextcloud accounts in one app.
 
-[App Store](https://apps.apple.com/app/id6759988681) · [Google Play](https://play.google.com/store/apps/details?id=de.krautnerds.attendance) · [What the app does](https://anwesenheit.app/mobile)
+[App Store](https://apps.apple.com/app/id6759988681) · [Google Play](https://play.google.com/store/apps/details?id=de.krautnerds.attendance) · [F-Droid](https://fdroid.anwesenheit.app/repo?fingerprint=4E1BFBC669A19270E83E6FF960B1F9C9E2AF6C824DE79D975888B36C85F33D0E) · [What the app does](https://anwesenheit.app/mobile)
 
 The mobile app is free for the first 30 days per Nextcloud instance, then one yearly subscription covers the whole instance. **This Nextcloud app stays free and open source** — everything below works without the mobile app.
 
