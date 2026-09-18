@@ -169,6 +169,7 @@ OC.L10N.register(
     "Date & Time" : "Дата та час ",
     "Notification" : "Сповіщення",
     "Add from Files" : "Додати з файлів",
+    "Configure in administration settings" : "Сконфігурувати у налаштуваннях адміністратора",
     "Continue anyway" : "Продовжити все одно",
     "No users found" : "Не знайдено користувачів",
     "Confirm" : "Підтвердити",
