@@ -16,7 +16,7 @@ OC.L10N.register(
     "Please check the appointment." : "Por favor, verifique o compromisso.",
     "An appointment was cancelled" : "Un compromisso foi cancelado",
     "A cancelled appointment takes place after all" : "Afinal, um compromisso cancelado acaba acontecendo",
-    "Several appointments of a series changed at once" : "Várias consultas de uma série foram alteradas de uma só vez",
+    "Several appointments of a series changed at once" : "Vários compromissos de uma série foram alterados de uma só vez",
     "Attendance" : "Presença",
     "You got a place in an appointment" : "Você conseguiu uma vaga em um compromisso",
     "You did not get a place in an appointment" : "Você não conseguiu uma vaga em um compromisso",
