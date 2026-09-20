@@ -239,6 +239,63 @@ class AppointmentServiceTest extends TestCase {
 		);
 	}
 
+	private function upcomingAppointment(int $id): Appointment {
+		$appointment = new Appointment();
+		$appointment->setId($id);
+		$appointment->setStartDatetime('2030-06-03 10:00:00');
+		$appointment->setEndDatetime('2030-06-03 12:00:00');
+		return $appointment;
+	}
+
+	public function testAnswerNoDuringVacationAnswersOpenAppointmentsInTheWindow(): void {
+		$appointment = $this->upcomingAppointment(11);
+		$this->appointmentMapper->expects($this->once())->method('findUpcomingOverlapping')
+			->with('2030-06-01 00:00:00', '2030-06-10 23:59:59')
+			->willReturn([$appointment]);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+		$this->responseMapper->method('findByAppointmentAndUser')
+			->willThrowException(new DoesNotExistException('no answer yet'));
+
+		$this->responseMapper->expects($this->once())->method('insert')
+			->with($this->callback(function (AttendanceResponse $response): bool {
+				return $response->getAppointmentId() === 11
+					&& $response->getUserId() === 'alice'
+					&& $response->getResponse() === 'no'
+					&& $response->getResponseSource() === ResponseService::SOURCE_VACATION;
+			}))
+			->willReturnArgument(0);
+
+		$this->assertSame(1, $this->service->answerNoDuringVacation('alice', '2030-06-01', '2030-06-10'));
+	}
+
+	public function testAnswerNoDuringVacationKeepsAnswersAlreadyGiven(): void {
+		$this->appointmentMapper->method('findUpcomingOverlapping')->willReturn([$this->upcomingAppointment(12)]);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+		$given = new AttendanceResponse();
+		$given->setResponse('yes');
+		$this->responseMapper->method('findByAppointmentAndUser')->willReturn($given);
+
+		$this->responseMapper->expects($this->never())->method('insert');
+		$this->responseMapper->expects($this->never())->method('update');
+
+		$this->assertSame(0, $this->service->answerNoDuringVacation('alice', '2030-06-01', '2030-06-10'));
+	}
+
+	public function testAnswerNoDuringVacationSkipsClosedCancelledAndForeignAppointments(): void {
+		$closed = $this->upcomingAppointment(13);
+		$closed->setClosedAt('2030-01-01 00:00:00');
+		$cancelled = $this->upcomingAppointment(14);
+		$cancelled->setCancelledAt('2030-01-01 00:00:00');
+		$foreign = $this->upcomingAppointment(15);
+
+		$this->appointmentMapper->method('findUpcomingOverlapping')->willReturn([$closed, $cancelled, $foreign]);
+		// Only the third would be considered, and alice is not in its audience.
+		$this->visibilityService->expects($this->once())->method('isUserTargetAttendee')->willReturn(false);
+		$this->responseMapper->expects($this->never())->method('insert');
+
+		$this->assertSame(0, $this->service->answerNoDuringVacation('alice', '2030-06-01', '2030-06-10'));
+	}
+
 	public function testPreviewAudienceResolvesADraftSelection(): void {
 		$this->assertSame(['alice', 'bob'], $this->service->previewAudience(['alice', 'bob'], [], []));
 	}

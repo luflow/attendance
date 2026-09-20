@@ -129,6 +129,30 @@ class VacationControllerTest extends TestCase {
 		$this->assertEquals(Http::STATUS_NOT_FOUND, $response->getStatus());
 	}
 
+	public function testApplyToAppointmentsAnswersForTheOwnedVacation(): void {
+		$this->signIn('alice');
+		$this->vacationService->method('findOwnedBy')->with(3, 'alice')->willReturn($this->vacation(3, 'alice'));
+		$this->appointmentService->expects($this->once())->method('answerNoDuringVacation')
+			->with('alice', '2026-07-01', '2026-07-10')
+			->willReturn(4);
+
+		$response = $this->controller->applyToAppointments(3);
+
+		$this->assertEquals(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame(['count' => 4], $response->getData());
+	}
+
+	public function testApplyToAppointmentsRejectsSomeoneElsesVacation(): void {
+		$this->signIn('mallory');
+		$this->vacationService->method('findOwnedBy')
+			->willThrowException(new DoesNotExistException('not found'));
+		$this->appointmentService->expects($this->never())->method('answerNoDuringVacation');
+
+		$response = $this->controller->applyToAppointments(3);
+
+		$this->assertEquals(Http::STATUS_NOT_FOUND, $response->getStatus());
+	}
+
 	public function testConflictsChecksTheAudienceTheSelectionResolvesTo(): void {
 		$this->signIn('admin');
 		$this->appointmentService->expects($this->once())->method('previewAudience')

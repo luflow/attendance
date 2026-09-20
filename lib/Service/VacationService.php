@@ -125,7 +125,7 @@ class VacationService {
 	/**
 	 * @throws DoesNotExistException When the vacation does not exist or belongs to someone else
 	 */
-	private function findOwnedBy(int $id, string $userId): Vacation {
+	public function findOwnedBy(int $id, string $userId): Vacation {
 		$vacation = $this->vacationMapper->find($id);
 		if ($vacation->getUserId() !== $userId) {
 			// Same "not found" as a missing row: the API never confirms that

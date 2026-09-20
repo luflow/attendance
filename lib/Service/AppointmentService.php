@@ -221,6 +221,45 @@ class AppointmentService {
 	}
 
 	/**
+	 * Answer "no" to every upcoming, still-open appointment inside a vacation
+	 * that reached this user and that they have not answered yet — what a user
+	 * opts into when they record a vacation after appointments already exist.
+	 * An answer already given stays: they may well have picked the gig over
+	 * the holiday.
+	 *
+	 * @return int How many appointments were answered
+	 */
+	public function answerNoDuringVacation(string $userId, string $startDate, string $endDate): int {
+		$answered = 0;
+		$appointments = $this->appointmentMapper->findUpcomingOverlapping($startDate . ' 00:00:00', $endDate . ' 23:59:59');
+		foreach ($appointments as $appointment) {
+			if ($appointment->isClosed() || $appointment->isCancelled()) {
+				continue;
+			}
+			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
+				continue;
+			}
+			$existing = $this->getUserResponse($appointment->getId(), $userId);
+			if ($existing !== null && $existing->getResponse() !== null) {
+				continue;
+			}
+
+			$this->applyResponse(
+				$appointment,
+				$userId,
+				'no',
+				null,
+				ResponseService::SOURCE_VACATION,
+				\OCA\Attendance\Audit\Verb::SOURCE_CLIENT,
+				null,
+			);
+			$answered++;
+		}
+
+		return $answered;
+	}
+
+	/**
 	 * Who an audience selection would address, before any appointment exists —
 	 * the same resolution getAffectedUsers() does, so a hint computed from a
 	 * draft and the auto-"no" on the saved appointment can't disagree.

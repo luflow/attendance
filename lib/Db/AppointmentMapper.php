@@ -132,6 +132,32 @@ class AppointmentMapper extends QBMapper {
 	}
 
 	/**
+	 * Appointments that have not ended yet and touch the given UTC window
+	 * ('Y-m-d H:i:s' bounds).
+	 *
+	 * @return list<Appointment>
+	 */
+	public function findUpcomingOverlapping(string $windowStart, string $windowEnd): array {
+		$qb = $this->db->getQueryBuilder();
+
+		// end >= max(now, window start): one bound covers "not over" and "reaches the window".
+		$endsAfter = max(gmdate('Y-m-d H:i:s'), $windowStart);
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->andX(
+					$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
+					$qb->expr()->gte('end_datetime', $qb->createNamedParameter($endsAfter)),
+					$qb->expr()->lte('start_datetime', $qb->createNamedParameter($windowEnd))
+				)
+			)
+			->orderBy('start_datetime', 'ASC');
+
+		return $this->findEntities($qb);
+	}
+
+	/**
 	 * Find past appointments (end_datetime < now)
 	 * @return array
 	 */

@@ -487,6 +487,7 @@ t('attendance', "It's not my decision alone")
 t('attendance', 'Just for me')
 t('attendance', 'Just for you, on any of your Nextcloud accounts')
 t('attendance', 'Language')
+t('attendance', 'Leave open')
 t('attendance', 'Location copied')
 // TRANSLATORS: Android action-sheet entry opening the location in the phone's installed maps app.
 t('attendance', 'Maps app')
@@ -497,6 +498,7 @@ t('attendance', 'NFC is not available.')
 t('attendance', 'Name (optional)')
 t('attendance', 'Next appointment')
 t('attendance', 'No appointment right now')
+t('attendance', 'No unanswered appointments during this vacation')
 t('attendance', 'No vacations recorded yet. Tap + to add one.')
 t('attendance', 'Nobody has recorded a vacation for the next months.')
 t('attendance', 'Not buying for a whole group? Get a license just for you.')
@@ -529,8 +531,14 @@ t('attendance', 'Search by name …')
 t('attendance', 'Select the appointment you want to check into:')
 t('attendance', 'Send')
 t('attendance', 'Send invitation email')
+// TRANSLATORS: Question in the mobile app after saving a vacation. The quoted "No" is the app's own no-response label — translate it to match that label's wording in this language.
+t('attendance', 'Set appointments to "No"?')
+// TRANSLATORS: Confirm button of that question; the quoted "No" is the app's own no-response label, as above.
+t('attendance', 'Set to "No"')
 t('attendance', 'Set up self-check-in')
 t('attendance', 'Share QR code')
+// TRANSLATORS: Body of the question after saving a vacation; only appointments the person has not answered yet are touched. The quoted "No" is the app's own no-response label, as above.
+t('attendance', 'Should all upcoming appointments during your vacation that you have not answered yet be set to "No"?')
 t('attendance', 'Show QR code')
 t('attendance', 'Show response bar in lists')
 t('attendance', 'Show the check-in code at the entrance or write it to NFC tags.')
@@ -600,6 +608,8 @@ n('attendance', '%n person on this server pays for a personal license — one or
 // their own check-in; the web timeline uses the neutral variants instead.
 t('attendance', '{actor} checked themselves in: {state}')
 t('attendance', '{actor} updated their own check-in: {state}')
+// TRANSLATORS: Confirmation after the question above; {count} is how many appointments were answered. The quoted "No" is the app's own no-response label, as above.
+t('attendance', '{count} appointments set to "No"')
 // TRANSLATORS: Hint on the mobile app's create-appointment screen once a lookup finds people on vacation for the chosen time; {count} is how many. The quoted "No" is the app's own no-response label — translate it to match that label's wording in this language, not literally.
 t('attendance', '{count} people can\'t attend at this time — their answer defaults to "No"')
 

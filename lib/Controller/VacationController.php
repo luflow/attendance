@@ -126,6 +126,34 @@ class VacationController extends Controller {
 	}
 
 	/**
+	 * Answer "no" to the upcoming, still-open appointments inside one of the
+	 * current user's own vacations that they have not answered yet. Opt-in,
+	 * asked for after saving a vacation; answers already given are kept.
+	 *
+	 * @param int $id Vacation ID
+	 * @return DataResponse<Http::STATUS_OK, array{count: int}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function applyToAppointments(int $id): DataResponse {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return new DataResponse(['error' => 'User not authenticated'], Http::STATUS_UNAUTHORIZED);
+		}
+
+		try {
+			$vacation = $this->vacationService->findOwnedBy($id, $user->getUID());
+		} catch (DoesNotExistException $e) {
+			return new DataResponse(['error' => 'Vacation not found'], Http::STATUS_NOT_FOUND);
+		}
+
+		$count = $this->appointmentService->answerNoDuringVacation($user->getUID(), $vacation->getStartDate(), $vacation->getEndDate());
+
+		return new DataResponse(['count' => $count]);
+	}
+
+	/**
 	 * Who among a proposed audience can't attend a proposed appointment window —
 	 * the "X people can't attend" hint on the create screen. The audience is
 	 * described the way an appointment describes it; with all three empty it is

@@ -74,6 +74,7 @@ return [
 		['name' => 'vacation#overview', 'url' => '/api/vacations/team', 'verb' => 'GET'],
 		['name' => 'vacation#conflicts', 'url' => '/api/vacations/conflicts', 'verb' => 'GET'],
 		['name' => 'vacation#create', 'url' => '/api/vacations', 'verb' => 'POST'],
+		['name' => 'vacation#applyToAppointments', 'url' => '/api/vacations/{id}/apply-responses', 'verb' => 'POST'],
 		['name' => 'vacation#update', 'url' => '/api/vacations/{id}', 'verb' => 'PUT'],
 		['name' => 'vacation#destroy', 'url' => '/api/vacations/{id}', 'verb' => 'DELETE'],
 
