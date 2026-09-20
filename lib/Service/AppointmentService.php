@@ -217,6 +217,15 @@ class AppointmentService {
 			$response->setRespondedAt(gmdate('Y-m-d H:i:s'));
 			$response->setResponseSource(ResponseService::SOURCE_VACATION);
 			$this->responseMapper->insert($response);
+			$this->auditEventService->recordResponseChange(
+				$appointment->getId(),
+				$userId,
+				null,
+				'',
+				'no',
+				'',
+				\OCA\Attendance\Audit\Verb::SOURCE_VACATION,
+			);
 		}
 	}
 
@@ -250,7 +259,7 @@ class AppointmentService {
 				'no',
 				null,
 				ResponseService::SOURCE_VACATION,
-				\OCA\Attendance\Audit\Verb::SOURCE_CLIENT,
+				\OCA\Attendance\Audit\Verb::SOURCE_VACATION,
 				null,
 			);
 			$answered++;

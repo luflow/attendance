@@ -570,7 +570,7 @@ t('attendance', "Use the recipient's server locale")
 // It follows the app store prices, so the number is never spelled out here.
 t('attendance', 'Using Attendance with a group? One license for the whole group costs less than {count} personal licenses.')
 t('attendance', 'Using account {user} on {server}')
-// TRANSLATORS: Header of the personal-settings section where a user records their own absence periods.
+// TRANSLATORS: Noun. In the mobile app: header of the personal-settings section where a user records their own absence periods. In the audit log: source label of an answer that was set automatically because the person is on vacation.
 t('attendance', 'Vacation')
 t('attendance', 'Visible to the whole team on the vacation calendar.')
 t('attendance', 'What would you be willing to pay?')

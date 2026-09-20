@@ -55,6 +55,12 @@ class ResponseChangeNotificationListener {
 			return;
 		}
 
+		// Answers set on the person's behalf because of a vacation are logged, but
+		// nobody did anything: one push per invitee on every new appointment is noise.
+		if ($event->getSource() === Verb::SOURCE_VACATION) {
+			return;
+		}
+
 		try {
 			$appointment = $this->appointmentMapper->find($event->getAppointmentId());
 		} catch (DoesNotExistException $e) {

@@ -190,6 +190,10 @@ class AppointmentServiceTest extends TestCase {
 			}))
 			->willReturnArgument(0);
 
+		// Logged per person, as its own source, with the person as actor.
+		$this->auditEventService->expects($this->once())->method('recordResponseChange')
+			->with(7, 'bob', null, '', 'no', '', Verb::SOURCE_VACATION);
+
 		$this->service->createAppointment(
 			'Trip',
 			'',
@@ -208,6 +212,7 @@ class AppointmentServiceTest extends TestCase {
 		$this->appointmentMapper->method('insert')->willReturn($appointment);
 		$this->vacationService->method('findUsersOnVacation')->willReturn(['carol']);
 		$this->responseMapper->expects($this->never())->method('insert');
+		$this->auditEventService->expects($this->never())->method('recordResponseChange');
 
 		$this->service->createAppointment(
 			'Trip',
@@ -264,6 +269,9 @@ class AppointmentServiceTest extends TestCase {
 					&& $response->getResponseSource() === ResponseService::SOURCE_VACATION;
 			}))
 			->willReturnArgument(0);
+
+		$this->auditEventService->expects($this->once())->method('recordResponseChange')
+			->with(11, 'alice', null, '', 'no', '', Verb::SOURCE_VACATION, null);
 
 		$this->assertSame(1, $this->service->answerNoDuringVacation('alice', '2030-06-01', '2030-06-10'));
 	}
