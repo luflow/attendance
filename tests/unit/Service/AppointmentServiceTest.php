@@ -97,13 +97,6 @@ class AppointmentServiceTest extends TestCase {
 		$this->responseMapper = $this->createMock(AttendanceResponseMapper::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->userManager = $this->createMock(IUserManager::class);
-		// Unstubbed IUserManager::search() returns null rather than [], which
-		// crashes the whitelist-fallback foreach in getAllWhitelistedUsers().
-		// createAppointment() now reaches that path unconditionally (the
-		// vacation auto-response check), not just when sendNotification is
-		// set, so every test needs this default rather than the few that
-		// used to opt in individually.
-		$this->userManager->method('search')->willReturn([]);
 		$this->configService = $this->createMock(ConfigService::class);
 		$this->visibilityService = $this->createMock(VisibilityService::class);
 		$this->responseSummaryService = $this->createMock(ResponseSummaryService::class);
@@ -184,7 +177,7 @@ class AppointmentServiceTest extends TestCase {
 
 		$this->vacationService->expects($this->once())
 			->method('findUsersOnVacation')
-			->with('2026-06-01 10:00:00', '2026-06-01 12:00:00', ['alice', 'bob'])
+			->with('2026-06-01 10:00:00', '2026-06-01 12:00:00')
 			->willReturn(['bob']);
 
 		$this->responseMapper->expects($this->once())
@@ -207,22 +200,47 @@ class AppointmentServiceTest extends TestCase {
 		);
 	}
 
-	public function testCreateAppointmentSkipsVacationCheckWithNoAudience(): void {
+	public function testCreateAppointmentLeavesVacationersOutsideTheAudienceAlone(): void {
+		$appointment = new Appointment();
+		$appointment->setId(8);
+		$appointment->setVisibleUsers(json_encode(['alice']));
+
+		$this->appointmentMapper->method('insert')->willReturn($appointment);
+		$this->vacationService->method('findUsersOnVacation')->willReturn(['carol']);
+		$this->responseMapper->expects($this->never())->method('insert');
+
+		$this->service->createAppointment(
+			'Trip',
+			'',
+			'2026-06-01T10:00:00Z',
+			'2026-06-01T12:00:00Z',
+			'admin',
+			['alice'],
+		);
+	}
+
+	public function testCreateAppointmentSkipsAudienceLookupWhenNobodyIsOnVacation(): void {
 		$appointment = new Appointment();
 		$appointment->setId(9);
 
 		$this->appointmentMapper->method('insert')->willReturn($appointment);
+		$this->vacationService->method('findUsersOnVacation')->willReturn([]);
 
-		$this->vacationService->expects($this->never())->method('findUsersOnVacation');
+		// The common case must not pay for enumerating the whole whitelist.
+		$this->userManager->expects($this->never())->method('search');
 		$this->responseMapper->expects($this->never())->method('insert');
 
 		$this->service->createAppointment(
-			'Empty audience',
+			'Nobody away',
 			'',
 			'2024-01-15T10:00:00Z',
 			'2024-01-15T11:00:00Z',
 			'admin',
 		);
+	}
+
+	public function testPreviewAudienceResolvesADraftSelection(): void {
+		$this->assertSame(['alice', 'bob'], $this->service->previewAudience(['alice', 'bob'], [], []));
 	}
 
 	public function testCloseAppointmentRecordsAuditEvent(): void {

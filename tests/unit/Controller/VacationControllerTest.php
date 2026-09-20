@@ -129,28 +129,28 @@ class VacationControllerTest extends TestCase {
 		$this->assertEquals(Http::STATUS_NOT_FOUND, $response->getStatus());
 	}
 
-	public function testConflictsUsesGivenCandidatesWhenProvided(): void {
+	public function testConflictsChecksTheAudienceTheSelectionResolvesTo(): void {
 		$this->signIn('admin');
-		$this->appointmentService->expects($this->never())->method('getAllWhitelistedUsers');
+		$this->appointmentService->expects($this->once())->method('previewAudience')
+			->with(['alice'], ['trumpets'], [])
+			->willReturn(['alice', 'bob']);
+		$entry = ['userId' => 'bob', 'displayName' => 'Bob', 'startDate' => '2026-06-01', 'endDate' => '2026-06-02', 'note' => null];
 		$this->vacationService->expects($this->once())->method('findConflicts')
 			->with('2026-06-01T10:00:00Z', '2026-06-01T12:00:00Z', ['alice', 'bob'])
-			->willReturn([['userId' => 'bob', 'displayName' => 'Bob', 'startDate' => '2026-06-01', 'endDate' => '2026-06-02', 'note' => null]]);
+			->willReturn([$entry]);
 
-		$response = $this->controller->conflicts('2026-06-01T10:00:00Z', '2026-06-01T12:00:00Z', ['alice', 'bob']);
+		$response = $this->controller->conflicts('2026-06-01T10:00:00Z', '2026-06-01T12:00:00Z', ['alice'], ['trumpets']);
 
-		$this->assertEquals(['count' => 1, 'users' => [['userId' => 'bob', 'displayName' => 'Bob', 'startDate' => '2026-06-01', 'endDate' => '2026-06-02', 'note' => null]]], $response->getData());
+		$this->assertEquals(['count' => 1, 'users' => [$entry]], $response->getData());
 	}
 
-	public function testConflictsFallsBackToWhitelistedUsersWhenCandidatesOmitted(): void {
-		$this->signIn('admin');
-		$this->appointmentService->expects($this->once())->method('getAllWhitelistedUsers')->willReturn(['alice', 'bob']);
-		$this->vacationService->expects($this->once())->method('findConflicts')
-			->with('2026-06-01T10:00:00Z', '2026-06-01T12:00:00Z', ['alice', 'bob'])
-			->willReturn([]);
+	public function testConflictsRejectsAnonymousRequest(): void {
+		$this->userSession->method('getUser')->willReturn(null);
+		$this->vacationService->expects($this->never())->method('findConflicts');
 
 		$response = $this->controller->conflicts('2026-06-01T10:00:00Z', '2026-06-01T12:00:00Z');
 
-		$this->assertEquals(['count' => 0, 'users' => []], $response->getData());
+		$this->assertEquals(Http::STATUS_UNAUTHORIZED, $response->getStatus());
 	}
 
 	public function testOverviewDefaultsToTodayAndWhitelistedUsers(): void {

@@ -78,21 +78,17 @@ class VacationService {
 	}
 
 	/**
-	 * Which of $userIds have a vacation covering any part of the given
-	 * datetime window — the check behind the auto-"no" response on
-	 * appointment creation.
+	 * Everyone with a vacation covering any part of the given datetime window —
+	 * the first half of the auto-"no" check on appointment creation. Deliberately
+	 * not scoped to an audience: the vacation table is tiny next to the user
+	 * list, so the caller only resolves the audience when this is non-empty.
 	 *
-	 * @param list<string> $userIds
 	 * @return list<string>
 	 */
-	public function findUsersOnVacation(string $startDatetime, string $endDatetime, array $userIds): array {
-		if ($userIds === []) {
-			return [];
-		}
-
+	public function findUsersOnVacation(string $startDatetime, string $endDatetime): array {
 		[$startDate, $endDate] = $this->toDateRange($startDatetime, $endDatetime);
 		$matches = [];
-		foreach ($this->vacationMapper->findOverlapping($startDate, $endDate, $userIds) as $vacation) {
+		foreach ($this->vacationMapper->findOverlapping($startDate, $endDate) as $vacation) {
 			$matches[$vacation->getUserId()] = true;
 		}
 
@@ -107,12 +103,8 @@ class VacationService {
 	 * @return list<array{userId: string, displayName: string, startDate: string, endDate: string, note: ?string}>
 	 */
 	public function findConflicts(string $startDatetime, string $endDatetime, array $userIds): array {
-		if ($userIds === []) {
-			return [];
-		}
-
 		[$startDate, $endDate] = $this->toDateRange($startDatetime, $endDatetime);
-		return $this->withDisplayNames($this->vacationMapper->findOverlapping($startDate, $endDate, $userIds));
+		return $this->getOverview($startDate, $endDate, $userIds);
 	}
 
 	/**
@@ -161,14 +153,8 @@ class VacationService {
 	}
 
 	private function normalizeNote(?string $note): ?string {
-		if ($note === null) {
-			return null;
-		}
-		$note = trim($note);
-		if ($note === '') {
-			return null;
-		}
-		return mb_substr($note, 0, self::NOTE_MAX_LENGTH);
+		$note = trim($note ?? '');
+		return $note === '' ? null : mb_substr($note, 0, self::NOTE_MAX_LENGTH);
 	}
 
 	/**

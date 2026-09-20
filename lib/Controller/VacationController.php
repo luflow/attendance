@@ -84,6 +84,7 @@ class VacationController extends Controller {
 	 * @param ?string $note Optional free-text reason, visible to the whole team on the overview
 	 * @return DataResponse<Http::STATUS_OK, AttendanceVacationData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
+	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI]
 	public function update(int $id, string $startDate, string $endDate, ?string $note = null): DataResponse {
@@ -107,6 +108,7 @@ class VacationController extends Controller {
 	 * @param int $id Vacation ID
 	 * @return DataResponse<Http::STATUS_OK, array{success: bool}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
+	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI]
 	public function destroy(int $id): DataResponse {
@@ -124,25 +126,29 @@ class VacationController extends Controller {
 	}
 
 	/**
-	 * Which candidate users can't attend a proposed appointment window — the
-	 * "X people can't attend" hint on the create/edit screen.
+	 * Who among a proposed audience can't attend a proposed appointment window —
+	 * the "X people can't attend" hint on the create screen. The audience is
+	 * described the way an appointment describes it; with all three empty it is
+	 * everyone, exactly as for a saved appointment.
 	 *
 	 * @param string $startDatetime ISO 8601 start of the proposed appointment
 	 * @param string $endDatetime ISO 8601 end of the proposed appointment
-	 * @param list<string> $userIds Candidate audience to check; falls back to every whitelisted member when empty
+	 * @param list<string> $visibleUsers Individually selected users
+	 * @param list<string> $visibleGroups Selected groups
+	 * @param list<string> $visibleTeams Selected teams
 	 * @return DataResponse<Http::STATUS_OK, AttendanceVacationConflicts, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI]
-	public function conflicts(string $startDatetime, string $endDatetime, array $userIds = []): DataResponse {
+	public function conflicts(string $startDatetime, string $endDatetime, array $visibleUsers = [], array $visibleGroups = [], array $visibleTeams = []): DataResponse {
 		$user = $this->userSession->getUser();
 		if ($user === null) {
 			return new DataResponse(['error' => 'User not authenticated'], Http::STATUS_UNAUTHORIZED);
 		}
 
-		$candidates = $userIds !== [] ? $userIds : $this->appointmentService->getAllWhitelistedUsers();
-		$conflicts = $this->vacationService->findConflicts($startDatetime, $endDatetime, $candidates);
+		$audience = $this->appointmentService->previewAudience($visibleUsers, $visibleGroups, $visibleTeams);
+		$conflicts = $this->vacationService->findConflicts($startDatetime, $endDatetime, $audience);
 
 		return new DataResponse([
 			'count' => count($conflicts),
@@ -152,7 +158,7 @@ class VacationController extends Controller {
 
 	/**
 	 * The team-wide vacation calendar: every whitelisted member's vacation
-	 * periods overlapping the given window.
+	 * periods overlapping the given window, ordered by start date.
 	 *
 	 * @param ?string $from Y-m-d, defaults to today
 	 * @param ?string $to Y-m-d, defaults to 180 days after $from

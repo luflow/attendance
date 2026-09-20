@@ -135,22 +135,22 @@ class VacationServiceTest extends TestCase {
 
 	public function testFindUsersOnVacationReturnsUniqueUserIds(): void {
 		$this->vacationMapper->expects($this->once())->method('findOverlapping')
-			->with('2026-06-01', '2026-06-02', ['alice', 'bob'])
+			->with('2026-06-01', '2026-06-02')
 			->willReturn([
 				$this->vacation(1, 'bob', '2026-05-20', '2026-06-05'),
+				$this->vacation(2, 'bob', '2026-06-02', '2026-06-09'),
 			]);
 
 		$this->assertSame(['bob'], $this->service->findUsersOnVacation(
 			'2026-06-01T00:00:00Z',
 			'2026-06-02T00:00:00Z',
-			['alice', 'bob'],
 		));
 	}
 
-	public function testFindUsersOnVacationSkipsQueryWithNoCandidates(): void {
+	public function testFindConflictsWithNoCandidatesSkipsTheQuery(): void {
 		$this->vacationMapper->expects($this->never())->method('findOverlapping');
 
-		$this->assertSame([], $this->service->findUsersOnVacation('2026-06-01T00:00:00Z', '2026-06-02T00:00:00Z', []));
+		$this->assertSame([], $this->service->findConflicts('2026-06-01T00:00:00Z', '2026-06-02T00:00:00Z', []));
 	}
 
 	public function testFindConflictsEnrichesWithDisplayNames(): void {

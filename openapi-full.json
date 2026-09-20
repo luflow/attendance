@@ -5774,7 +5774,7 @@
         "/index.php/apps/attendance/api/vacations/team": {
             "get": {
                 "operationId": "vacation-overview",
-                "summary": "The team-wide vacation calendar: every whitelisted member's vacation periods overlapping the given window.",
+                "summary": "The team-wide vacation calendar: every whitelisted member's vacation periods overlapping the given window, ordered by start date.",
                 "tags": [
                     "vacation"
                 ],
@@ -5861,7 +5861,7 @@
         "/index.php/apps/attendance/api/vacations/conflicts": {
             "get": {
                 "operationId": "vacation-conflicts",
-                "summary": "Which candidate users can't attend a proposed appointment window — the \"X people can't attend\" hint on the create/edit screen.",
+                "summary": "Who among a proposed audience can't attend a proposed appointment window — the \"X people can't attend\" hint on the create screen. The audience is described the way an appointment describes it; with all three empty it is everyone, exactly as for a saved appointment.",
                 "tags": [
                     "vacation"
                 ],
@@ -5893,9 +5893,33 @@
                         }
                     },
                     {
-                        "name": "userIds[]",
+                        "name": "visibleUsers[]",
                         "in": "query",
-                        "description": "Candidate audience to check; falls back to every whitelisted member when empty",
+                        "description": "Individually selected users",
+                        "schema": {
+                            "type": "array",
+                            "default": [],
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    {
+                        "name": "visibleGroups[]",
+                        "in": "query",
+                        "description": "Selected groups",
+                        "schema": {
+                            "type": "array",
+                            "default": [],
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    {
+                        "name": "visibleTeams[]",
+                        "in": "query",
+                        "description": "Selected teams",
                         "schema": {
                             "type": "array",
                             "default": [],
@@ -5956,7 +5980,6 @@
             "put": {
                 "operationId": "vacation-update",
                 "summary": "Update one of the current user's own vacation periods.",
-                "description": "This endpoint requires admin access",
                 "tags": [
                     "vacation"
                 ],
@@ -6089,31 +6112,12 @@
                                 }
                             }
                         }
-                    },
-                    "403": {
-                        "description": "Logged in account must be an admin",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "message"
-                                    ],
-                                    "properties": {
-                                        "message": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
             },
             "delete": {
                 "operationId": "vacation-destroy",
                 "summary": "Delete one of the current user's own vacation periods.",
-                "description": "This endpoint requires admin access",
                 "tags": [
                     "vacation"
                 ],
@@ -6200,24 +6204,6 @@
                                     ],
                                     "properties": {
                                         "error": {
-                                            "type": "string"
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "Logged in account must be an admin",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "required": [
-                                        "message"
-                                    ],
-                                    "properties": {
-                                        "message": {
                                             "type": "string"
                                         }
                                     }

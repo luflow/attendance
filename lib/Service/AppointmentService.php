@@ -190,31 +190,25 @@ class AppointmentService {
 
 	/**
 	 * Default a brand-new appointment's invitees to "no" when they're on
-	 * vacation for its whole window — they can still change it afterwards
-	 * through the normal respond flow, same as any other answer.
+	 * vacation for its window — they can still change it afterwards through
+	 * the normal respond flow, same as any other answer.
 	 *
 	 * Only runs at creation time: a vacation entered after the appointment
 	 * already exists does not retroactively touch anyone's response.
 	 */
 	private function applyVacationAutoResponses(Appointment $appointment): void {
-		// getAffectedUsers() is untyped (its audience can come from a decoded
-		// JSON column), so normalize to a plain string list at this boundary
-		// rather than loosening VacationService's own, precisely-typed API.
-		$affectedUsers = array_values(array_filter(
-			$this->getAffectedUsers($appointment),
-			static fn (mixed $userId): bool => is_string($userId),
-		));
-		if ($affectedUsers === []) {
-			return;
-		}
-
+		// Nearly every appointment has nobody on vacation, so ask the small
+		// vacation table first and only resolve the audience when it matters.
 		$onVacation = $this->vacationService->findUsersOnVacation(
 			$appointment->getStartDatetime(),
 			$appointment->getEndDatetime(),
-			$affectedUsers,
 		);
+		if (empty($onVacation)) {
+			return;
+		}
 
-		foreach ($onVacation as $userId) {
+		$invited = $this->recipientsWithout($this->getAffectedUsers($appointment), null);
+		foreach (array_intersect($onVacation, $invited) as $userId) {
 			$response = new AttendanceResponse();
 			$response->setAppointmentId($appointment->getId());
 			$response->setUserId($userId);
@@ -224,6 +218,20 @@ class AppointmentService {
 			$response->setResponseSource(ResponseService::SOURCE_VACATION);
 			$this->responseMapper->insert($response);
 		}
+	}
+
+	/**
+	 * Who an audience selection would address, before any appointment exists —
+	 * the same resolution getAffectedUsers() does, so a hint computed from a
+	 * draft and the auto-"no" on the saved appointment can't disagree.
+	 *
+	 * @param array<array-key, string> $visibleUsers
+	 * @param array<array-key, string> $visibleGroups
+	 * @param array<array-key, string> $visibleTeams
+	 * @return list<string>
+	 */
+	public function previewAudience(array $visibleUsers, array $visibleGroups, array $visibleTeams): array {
+		return $this->recipientsWithout($this->resolveAudience($visibleUsers, $visibleGroups, $visibleTeams), null);
 	}
 
 	/**
@@ -1807,10 +1815,18 @@ class AppointmentService {
 		$visibleGroups = $appointment->getVisibleGroups();
 		$visibleTeams = $appointment->getVisibleTeams();
 
-		$visibleUsersList = $visibleUsers ? json_decode($visibleUsers, true) : [];
-		$visibleGroupsList = $visibleGroups ? json_decode($visibleGroups, true) : [];
-		$visibleTeamsList = $visibleTeams ? json_decode($visibleTeams, true) : [];
+		$visibleUsersList = $visibleUsers ? (array)json_decode($visibleUsers, true) : [];
+		$visibleGroupsList = $visibleGroups ? (array)json_decode($visibleGroups, true) : [];
+		$visibleTeamsList = $visibleTeams ? (array)json_decode($visibleTeams, true) : [];
 
+		return $this->resolveAudience($visibleUsersList, $visibleGroupsList, $visibleTeamsList);
+	}
+
+	/**
+	 * The users an audience selection addresses; no selection at all means
+	 * everyone in the whitelist.
+	 */
+	private function resolveAudience(array $visibleUsersList, array $visibleGroupsList, array $visibleTeamsList): array {
 		if (empty($visibleUsersList) && empty($visibleGroupsList) && empty($visibleTeamsList)) {
 			return $this->getAllWhitelistedUsers();
 		}
