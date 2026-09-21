@@ -187,6 +187,7 @@ OC.L10N.register(
     "Historic" : "Történelmi",
     "Automatic" : "Automatikus",
     "name" : "név",
+    "description" : "leírás",
     "time" : "alkalom",
     "Guests" : "Vendégek",
     "All groups" : "Összes csoport"
