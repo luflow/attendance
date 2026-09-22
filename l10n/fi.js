@@ -44,6 +44,7 @@ OC.L10N.register(
     "Not now" : "Ei nyt",
     "Active filters" : "Aktiiviset suodattimet",
     "No connection" : "Ei yhteyttä",
+    "Last updated {time}" : "Viimeksi päivitetty {time}",
     "Subscribe" : "Tilaa",
     "Subscription" : "Tilaus",
     "Active" : "Aktiivinen",
