@@ -21,6 +21,7 @@ OC.L10N.register(
     "Send" : "Stuur",
     "Export" : "Voer uit",
     "Select all" : "Kies alle",
+    "Custom range" : "Pasgemaakte reeks",
     "Start date" : "Begindatum",
     "Copy URL" : "Kopieer URL",
     "Cancel" : "Cancel",
