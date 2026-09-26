@@ -427,6 +427,7 @@ t('attendance', 'After this date, the inquiry is automatically closed and no fur
 t('attendance', 'A license for you, or for your whole group')
 t('attendance', 'A personal license works on every Nextcloud account you sign in with.')
 t('attendance', 'A personal license covers just you, so nobody else has to agree to it.')
+t('attendance', 'Add vacation')
 t('attendance', 'All languages')
 t('attendance', 'Already checked in')
 t('attendance', 'Another reason')
@@ -453,8 +454,12 @@ t('attendance', 'Could not load language and group options: {error}')
 t('attendance', 'Create')
 t('attendance', 'Created guest account for {email}')
 t('attendance', 'Default')
+t('attendance', 'Delete vacation')
 t('attendance', 'Display name')
+// TRANSLATORS: Confirmation before deleting one of the current user's own vacation entries in the mobile app's personal settings.
+t('attendance', 'Do you want to delete this vacation entry?')
 t('attendance', 'Done')
+t('attendance', 'Edit vacation')
 t('attendance', 'Email')
 t('attendance', 'Every plan has every feature. Billed yearly.')
 t('attendance', 'Failed to write the tag.')
@@ -482,20 +487,27 @@ t('attendance', "It's not my decision alone")
 t('attendance', 'Just for me')
 t('attendance', 'Just for you, on any of your Nextcloud accounts')
 t('attendance', 'Language')
+t('attendance', 'Leave open')
 t('attendance', 'Location copied')
 // TRANSLATORS: Android action-sheet entry opening the location in the phone's installed maps app.
 t('attendance', 'Maps app')
 // TRANSLATORS: Badge on the recommended subscription plan.
 t('attendance', 'Most popular')
+t('attendance', 'My vacations')
 t('attendance', 'NFC is not available.')
 t('attendance', 'Name (optional)')
 t('attendance', 'Next appointment')
 t('attendance', 'No appointment right now')
+t('attendance', 'No unanswered appointments during this vacation')
+t('attendance', 'No vacations recorded yet. Tap + to add one.')
+t('attendance', 'Nobody has recorded a vacation for the next months.')
 t('attendance', 'Not buying for a whole group? Get a license just for you.')
 t('attendance', 'Not ready to decide? Add 14 days, free')
 t('attendance', 'Not signed in on this server')
+t('attendance', 'Note (optional)')
 t('attendance', 'Notifications are delivered via UnifiedPush — no Google Play required')
 t('attendance', 'Notify users who can see this appointment about its creation')
+t('attendance', 'On vacation at this time')
 t('attendance', 'One license covers everyone on your server.')
 t('attendance', 'OpenStreetMap')
 // TRANSLATORS: Subscription status shown for a license that covers one person
@@ -519,8 +531,14 @@ t('attendance', 'Search by name …')
 t('attendance', 'Select the appointment you want to check into:')
 t('attendance', 'Send')
 t('attendance', 'Send invitation email')
+// TRANSLATORS: Question in the mobile app after saving a vacation. The quoted "No" is the app's own no-response label — translate it to match that label's wording in this language.
+t('attendance', 'Set appointments to "No"?')
+// TRANSLATORS: Confirm button of that question; the quoted "No" is the app's own no-response label, as above.
+t('attendance', 'Set to "No"')
 t('attendance', 'Set up self-check-in')
 t('attendance', 'Share QR code')
+// TRANSLATORS: Body of the question after saving a vacation; only appointments the person has not answered yet are touched. The quoted "No" is the app's own no-response label, as above.
+t('attendance', 'Should all upcoming appointments during your vacation that you have not answered yet be set to "No"?')
 t('attendance', 'Show QR code')
 t('attendance', 'Show response bar in lists')
 t('attendance', 'Show the check-in code at the entrance or write it to NFC tags.')
@@ -529,6 +547,7 @@ t('attendance', 'Skip')
 // TRANSLATORS: Name of the recommended organization subscription plan.
 t('attendance', 'Standard')
 t('attendance', 'Tag written. Scan it to test the check-in.')
+t('attendance', 'Team vacation calendar')
 t('attendance', 'Tell me more (optional)')
 t('attendance', 'Thanks — that really helps.')
 // TRANSLATORS: {price} is the personal plan's yearly price divided by twelve,
@@ -551,6 +570,9 @@ t('attendance', "Use the recipient's server locale")
 // It follows the app store prices, so the number is never spelled out here.
 t('attendance', 'Using Attendance with a group? One license for the whole group costs less than {count} personal licenses.')
 t('attendance', 'Using account {user} on {server}')
+// TRANSLATORS: Noun. In the mobile app: header of the personal-settings section where a user records their own absence periods. In the audit log: source label of an answer that was set automatically because the person is on vacation.
+t('attendance', 'Vacation')
+t('attendance', 'Visible to the whole team on the vacation calendar.')
 t('attendance', 'What would you be willing to pay?')
 t('attendance', "What's still holding you back?")
 // TRANSLATORS: Asked after someone says the price is too high, to learn whether
@@ -586,6 +608,10 @@ n('attendance', '%n person on this server pays for a personal license — one or
 // their own check-in; the web timeline uses the neutral variants instead.
 t('attendance', '{actor} checked themselves in: {state}')
 t('attendance', '{actor} updated their own check-in: {state}')
+// TRANSLATORS: Confirmation after the question above; {count} is how many appointments were answered. The quoted "No" is the app's own no-response label, as above.
+t('attendance', '{count} appointments set to "No"')
+// TRANSLATORS: Hint on the mobile app's create-appointment screen once a lookup finds people on vacation for the chosen time; {count} is how many. The quoted "No" is the app's own no-response label — translate it to match that label's wording in this language, not literally.
+t('attendance', '{count} people can\'t attend at this time — their answer defaults to "No"')
 
 const currentView = ref(null) // 'current', 'past', 'unanswered', 'appointment', 'checkin', 'create', 'edit', 'copy', or null
 

@@ -29,6 +29,9 @@ export const SOURCE_LABELS = {
 	self_checkin: () => t('attendance', 'Self check-in'),
 	legacy_backfill: () => t('attendance', 'Historic'),
 	auto_close: () => t('attendance', 'Automatic'),
+	// TRANSLATORS: Noun — audit-log source label: the answer was set automatically
+	// because the person is on vacation.
+	vacation: () => t('attendance', 'Vacation'),
 }
 
 export function formatSource(source) {

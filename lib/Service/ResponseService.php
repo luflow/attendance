@@ -55,6 +55,8 @@ class ResponseService {
 	public const SOURCE_APP = 'app';
 	public const SOURCE_QUICK_LINK = 'quick_link';
 	public const SOURCE_ADMIN = 'admin';
+	/** Auto-set to "no" on appointment creation because the invitee is on vacation. */
+	public const SOURCE_VACATION = 'vacation';
 
 	/**
 	 * Submit or update an attendance response.

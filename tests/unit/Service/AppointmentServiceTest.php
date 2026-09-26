@@ -21,8 +21,10 @@ use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\NotificationService;
 use OCA\Attendance\Service\OrgCalendarSyncService;
 use OCA\Attendance\Service\PermissionService;
+use OCA\Attendance\Service\ResponseService;
 use OCA\Attendance\Service\ResponseSummaryService;
 use OCA\Attendance\Service\TalkRoomService;
+use OCA\Attendance\Service\VacationService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -85,6 +87,9 @@ class AppointmentServiceTest extends TestCase {
 	private $categoryMapper;
 	private $talkRoomService;
 
+	/** @var VacationService|MockObject */
+	private $vacationService;
+
 	private AppointmentService $service;
 
 	protected function setUp(): void {
@@ -106,6 +111,7 @@ class AppointmentServiceTest extends TestCase {
 		$this->orgCalendarSyncService = $this->createMock(OrgCalendarSyncService::class);
 		$this->categoryMapper = $this->createMock(CategoryMapper::class);
 		$this->talkRoomService = $this->createMock(TalkRoomService::class);
+		$this->vacationService = $this->createMock(VacationService::class);
 
 		$this->service = new AppointmentService(
 			$this->appointmentMapper,
@@ -126,6 +132,7 @@ class AppointmentServiceTest extends TestCase {
 			$this->orgCalendarSyncService,
 			$this->categoryMapper,
 			$this->talkRoomService,
+			$this->vacationService,
 		);
 	}
 
@@ -157,6 +164,148 @@ class AppointmentServiceTest extends TestCase {
 
 		$this->assertInstanceOf(Appointment::class, $result);
 		$this->assertEquals(1, $result->getId());
+	}
+
+	public function testCreateAppointmentAutoRespondsNoForInviteesOnVacation(): void {
+		$appointment = new Appointment();
+		$appointment->setId(7);
+		$appointment->setStartDatetime('2026-06-01 10:00:00');
+		$appointment->setEndDatetime('2026-06-01 12:00:00');
+		$appointment->setVisibleUsers(json_encode(['alice', 'bob']));
+
+		$this->appointmentMapper->method('insert')->willReturn($appointment);
+
+		$this->vacationService->expects($this->once())
+			->method('findUsersOnVacation')
+			->with('2026-06-01 10:00:00', '2026-06-01 12:00:00')
+			->willReturn(['bob']);
+
+		$this->responseMapper->expects($this->once())
+			->method('insert')
+			->with($this->callback(function (AttendanceResponse $response): bool {
+				return $response->getAppointmentId() === 7
+					&& $response->getUserId() === 'bob'
+					&& $response->getResponse() === 'no'
+					&& $response->getResponseSource() === ResponseService::SOURCE_VACATION;
+			}))
+			->willReturnArgument(0);
+
+		// Logged per person, as its own source, with the person as actor.
+		$this->auditEventService->expects($this->once())->method('recordResponseChange')
+			->with(7, 'bob', null, '', 'no', '', Verb::SOURCE_VACATION);
+
+		$this->service->createAppointment(
+			'Trip',
+			'',
+			'2026-06-01T10:00:00Z',
+			'2026-06-01T12:00:00Z',
+			'admin',
+			['alice', 'bob'],
+		);
+	}
+
+	public function testCreateAppointmentLeavesVacationersOutsideTheAudienceAlone(): void {
+		$appointment = new Appointment();
+		$appointment->setId(8);
+		$appointment->setVisibleUsers(json_encode(['alice']));
+
+		$this->appointmentMapper->method('insert')->willReturn($appointment);
+		$this->vacationService->method('findUsersOnVacation')->willReturn(['carol']);
+		$this->responseMapper->expects($this->never())->method('insert');
+		$this->auditEventService->expects($this->never())->method('recordResponseChange');
+
+		$this->service->createAppointment(
+			'Trip',
+			'',
+			'2026-06-01T10:00:00Z',
+			'2026-06-01T12:00:00Z',
+			'admin',
+			['alice'],
+		);
+	}
+
+	public function testCreateAppointmentSkipsAudienceLookupWhenNobodyIsOnVacation(): void {
+		$appointment = new Appointment();
+		$appointment->setId(9);
+
+		$this->appointmentMapper->method('insert')->willReturn($appointment);
+		$this->vacationService->method('findUsersOnVacation')->willReturn([]);
+
+		// The common case must not pay for enumerating the whole whitelist.
+		$this->userManager->expects($this->never())->method('search');
+		$this->responseMapper->expects($this->never())->method('insert');
+
+		$this->service->createAppointment(
+			'Nobody away',
+			'',
+			'2024-01-15T10:00:00Z',
+			'2024-01-15T11:00:00Z',
+			'admin',
+		);
+	}
+
+	private function upcomingAppointment(int $id): Appointment {
+		$appointment = new Appointment();
+		$appointment->setId($id);
+		$appointment->setStartDatetime('2030-06-03 10:00:00');
+		$appointment->setEndDatetime('2030-06-03 12:00:00');
+		return $appointment;
+	}
+
+	public function testAnswerNoDuringVacationAnswersOpenAppointmentsInTheWindow(): void {
+		$appointment = $this->upcomingAppointment(11);
+		$this->appointmentMapper->expects($this->once())->method('findUpcomingOverlapping')
+			->with('2030-06-01 00:00:00', '2030-06-10 23:59:59')
+			->willReturn([$appointment]);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+		$this->responseMapper->method('findByAppointmentAndUser')
+			->willThrowException(new DoesNotExistException('no answer yet'));
+
+		$this->responseMapper->expects($this->once())->method('insert')
+			->with($this->callback(function (AttendanceResponse $response): bool {
+				return $response->getAppointmentId() === 11
+					&& $response->getUserId() === 'alice'
+					&& $response->getResponse() === 'no'
+					&& $response->getResponseSource() === ResponseService::SOURCE_VACATION;
+			}))
+			->willReturnArgument(0);
+
+		$this->auditEventService->expects($this->once())->method('recordResponseChange')
+			->with(11, 'alice', null, '', 'no', '', Verb::SOURCE_VACATION, null);
+
+		$this->assertSame(1, $this->service->answerNoDuringVacation('alice', '2030-06-01', '2030-06-10'));
+	}
+
+	public function testAnswerNoDuringVacationKeepsAnswersAlreadyGiven(): void {
+		$this->appointmentMapper->method('findUpcomingOverlapping')->willReturn([$this->upcomingAppointment(12)]);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+		$given = new AttendanceResponse();
+		$given->setResponse('yes');
+		$this->responseMapper->method('findByAppointmentAndUser')->willReturn($given);
+
+		$this->responseMapper->expects($this->never())->method('insert');
+		$this->responseMapper->expects($this->never())->method('update');
+
+		$this->assertSame(0, $this->service->answerNoDuringVacation('alice', '2030-06-01', '2030-06-10'));
+	}
+
+	public function testAnswerNoDuringVacationSkipsClosedCancelledAndForeignAppointments(): void {
+		$closed = $this->upcomingAppointment(13);
+		$closed->setClosedAt('2030-01-01 00:00:00');
+		$cancelled = $this->upcomingAppointment(14);
+		$cancelled->setCancelledAt('2030-01-01 00:00:00');
+		$foreign = $this->upcomingAppointment(15);
+
+		$this->appointmentMapper->method('findUpcomingOverlapping')->willReturn([$closed, $cancelled, $foreign]);
+		// Only the third would be considered, and alice is not in its audience.
+		$this->visibilityService->expects($this->once())->method('isUserTargetAttendee')->willReturn(false);
+		$this->responseMapper->expects($this->never())->method('insert');
+
+		$this->assertSame(0, $this->service->answerNoDuringVacation('alice', '2030-06-01', '2030-06-10'));
+	}
+
+	public function testPreviewAudienceResolvesADraftSelection(): void {
+		$this->assertSame(['alice', 'bob'], $this->service->previewAudience(['alice', 'bob'], [], []));
 	}
 
 	public function testCloseAppointmentRecordsAuditEvent(): void {
