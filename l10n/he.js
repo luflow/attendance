@@ -49,6 +49,7 @@ OC.L10N.register(
     "Export" : "ייצוא",
     "Select all" : "בחר הכל",
     "Deselect all" : "ביטול בחירה",
+    "Custom range" : "טווח מותאם",
     "Start date" : "תאריך התחלה",
     "Copy URL" : "העתקת כתובת",
     "Copy" : "העתקה",
