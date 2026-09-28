@@ -109,6 +109,7 @@ OC.L10N.register(
     "Close" : "Затвори",
     "Continue" : "Продолжи",
     "Never" : "Никогаш",
+    "Guest" : "Гостин",
     "Permissions" : "Дозволи",
     "Category name" : "Име на категорија",
     "Settings saved" : "Параматрите се зачувани",
