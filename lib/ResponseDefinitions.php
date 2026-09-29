@@ -190,6 +190,7 @@ namespace OCA\Attendance;
  *   statisticsAvailable: bool,
  *   talkRoomsAvailable: bool,
  *   talkRoomDeletion: bool,
+ *   exportOptions: bool,
  * }
  * @psalm-type AttendanceAuditUserRef = array{
  *   userId: string,
@@ -321,6 +322,14 @@ namespace OCA\Attendance;
  * @psalm-type AttendanceExportResult = array{
  *   path: string,
  *   filename: string,
+ * }
+ * @psalm-type AttendanceExportSeries = array{
+ *   seriesId: string,
+ *   name: string,
+ *   startDatetime: string,
+ *   endDatetime: string,
+ *   appointmentCount: int,
+ *   ongoing: bool,
  * }
  * @psalm-type AttendanceReminderResult = array{
  *   sent: int,

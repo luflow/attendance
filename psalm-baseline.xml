@@ -214,7 +214,10 @@
       <code><![CDATA[$id]]></code>
       <code><![CDATA[$id]]></code>
       <code><![CDATA[$id]]></code>
+      <code><![CDATA[$includeCheckin]]></code>
       <code><![CDATA[$includeComments]]></code>
+      <code><![CDATA[$includeOrganizers]]></code>
+      <code><![CDATA[$includeRsvp]]></code>
       <code><![CDATA[$location]]></code>
       <code><![CDATA[$location]]></code>
       <code><![CDATA[$name]]></code>
@@ -234,6 +237,7 @@
       <code><![CDATA[$scope]]></code>
       <code><![CDATA[$sendNotification]]></code>
       <code><![CDATA[$sendNotification]]></code>
+      <code><![CDATA[$seriesIds]]></code>
       <code><![CDATA[$showPastAppointments]]></code>
       <code><![CDATA[$startDate]]></code>
       <code><![CDATA[$startDatetime]]></code>
@@ -1701,6 +1705,12 @@
       <code><![CDATA[isUnchanged]]></code>
     </PossiblyUnusedMethod>
   </file>
+  <file src="lib/Service/ExportOptions.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[fromWire]]></code>
+      <code><![CDATA[hasAnyColumn]]></code>
+    </PossiblyUnusedMethod>
+  </file>
   <file src="lib/Service/ExportService.php">
     <ClassMustBeFinal>
       <code><![CDATA[ExportService]]></code>
@@ -1713,56 +1723,23 @@
     <MixedArgument>
       <code><![CDATA[$a->getStartDatetime()]]></code>
       <code><![CDATA[$a['displayName']]]></code>
-      <code><![CDATA[$appointment->getName()]]></code>
-      <code><![CDATA[$appointment->getStartDatetime()]]></code>
       <code><![CDATA[$b->getStartDatetime()]]></code>
       <code><![CDATA[$b['displayName']]]></code>
-      <code><![CDATA[$checkinValue]]></code>
-      <code><![CDATA[$location]]></code>
-      <code><![CDATA[$response->getComment()]]></code>
-      <code><![CDATA[$rsvpValue]]></code>
-      <code><![CDATA[$user['displayName']]]></code>
-      <code><![CDATA[$user['group']]]></code>
     </MixedArgument>
     <MixedArrayAccess>
       <code><![CDATA[$a['displayName']]]></code>
-      <code><![CDATA[$appointmentResponses[$appointment->getId()][$user['userId']]]]></code>
       <code><![CDATA[$b['displayName']]]></code>
-      <code><![CDATA[$user['displayName']]]></code>
-      <code><![CDATA[$user['group']]]></code>
-      <code><![CDATA[$user['userId']]]></code>
     </MixedArrayAccess>
-    <MixedArrayOffset>
-      <code><![CDATA[$appointmentResponses[$appointment->getId()]]]></code>
-      <code><![CDATA[$appointmentResponses[$appointment->getId()][$user['userId']]]]></code>
-    </MixedArrayOffset>
     <MixedAssignment>
-      <code><![CDATA[$appointment]]></code>
-      <code><![CDATA[$appointment]]></code>
-      <code><![CDATA[$appointment]]></code>
-      <code><![CDATA[$appointment]]></code>
       <code><![CDATA[$attendanceFolder]]></code>
-      <code><![CDATA[$checkinValue]]></code>
       <code><![CDATA[$existingFile]]></code>
       <code><![CDATA[$file]]></code>
-      <code><![CDATA[$location]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$rsvpValue]]></code>
-      <code><![CDATA[$user]]></code>
       <code><![CDATA[$userFolder]]></code>
     </MixedAssignment>
     <MixedMethodCall>
       <code><![CDATA[delete]]></code>
       <code><![CDATA[get]]></code>
       <code><![CDATA[get]]></code>
-      <code><![CDATA[getCheckinState]]></code>
-      <code><![CDATA[getComment]]></code>
-      <code><![CDATA[getComment]]></code>
-      <code><![CDATA[getId]]></code>
-      <code><![CDATA[getLocation]]></code>
-      <code><![CDATA[getName]]></code>
-      <code><![CDATA[getResponse]]></code>
-      <code><![CDATA[getStartDatetime]]></code>
       <code><![CDATA[getStartDatetime]]></code>
       <code><![CDATA[getStartDatetime]]></code>
       <code><![CDATA[newFile]]></code>
@@ -1770,9 +1747,6 @@
       <code><![CDATA[nodeExists]]></code>
       <code><![CDATA[putContent]]></code>
     </MixedMethodCall>
-    <MixedOperand>
-      <code><![CDATA[$appointmentIds[0]]]></code>
-    </MixedOperand>
     <PossiblyFalseArgument>
       <code><![CDATA[strtotime($appointment->getStartDatetime())]]></code>
     </PossiblyFalseArgument>
@@ -1792,16 +1766,10 @@
     </PossiblyUnusedParam>
     <RiskyTruthyFalsyComparison>
       <code><![CDATA[$attendanceFolder->nodeExists($filename)]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
     </RiskyTruthyFalsyComparison>
     <UnusedForeachValue>
       <code><![CDATA[$appointment]]></code>
     </UnusedForeachValue>
-    <UnusedVariable>
-      <code><![CDATA[$columnCount]]></code>
-    </UnusedVariable>
   </file>
   <file src="lib/Service/GuestService.php">
     <ClassMustBeFinal>

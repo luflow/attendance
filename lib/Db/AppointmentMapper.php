@@ -11,6 +11,14 @@ use OCP\IDBConnection;
 
 /**
  * @template-extends QBMapper<Appointment>
+ *
+ * @psalm-type SeriesSummary = array{
+ *     seriesId: string,
+ *     name: string,
+ *     startDatetime: string,
+ *     endDatetime: string,
+ *     appointmentCount: int,
+ * }
  */
 class AppointmentMapper extends QBMapper {
 	public function __construct(IDBConnection $db) {
@@ -469,9 +477,10 @@ class AppointmentMapper extends QBMapper {
 	 * @param array|null $appointmentIds Specific appointment IDs to export (null for all)
 	 * @param string|null $startDate Start date filter (Y-m-d format, inclusive)
 	 * @param string|null $endDate End date filter (Y-m-d format, inclusive)
+	 * @param array|null $seriesIds Series UUIDs to export in full (null for no series filter)
 	 * @return array<Appointment>
 	 */
-	public function findForExport(?array $appointmentIds = null, ?string $startDate = null, ?string $endDate = null): array {
+	public function findForExport(?array $appointmentIds = null, ?string $startDate = null, ?string $endDate = null, ?array $seriesIds = null): array {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
@@ -484,6 +493,13 @@ class AppointmentMapper extends QBMapper {
 		if ($appointmentIds !== null && !empty($appointmentIds)) {
 			$qb->andWhere(
 				$qb->expr()->in('id', $qb->createNamedParameter($appointmentIds, IQueryBuilder::PARAM_INT_ARRAY))
+			);
+		}
+
+		// Filter by series: every appointment of the selected series, past ones included
+		if ($seriesIds !== null && !empty($seriesIds)) {
+			$qb->andWhere(
+				$qb->expr()->in('series_id', $qb->createNamedParameter($seriesIds, IQueryBuilder::PARAM_STR_ARRAY))
 			);
 		}
 
@@ -505,6 +521,68 @@ class AppointmentMapper extends QBMapper {
 		$qb->orderBy('start_datetime', 'ASC');
 
 		return $this->findEntities($qb);
+	}
+
+	/**
+	 * Every series in the instance, summarised for the export dialog: the first
+	 * appointment names it, the last one decides whether it is still running.
+	 *
+	 * Grouping happens in PHP rather than via GROUP BY because the series name
+	 * comes from a specific row (the earliest one), which the aggregate itself
+	 * cannot return — it would take a second query keyed on the minimum
+	 * series_position. Only four narrow columns are read, so at today's scale
+	 * folding the rows here is cheaper than the extra round trip; revisit that
+	 * trade if an instance ever carries tens of thousands of appointments.
+	 *
+	 * Whether a series counts as ongoing, and the order they are offered in,
+	 * are the export's decisions and live in ExportService.
+	 *
+	 * @return list<SeriesSummary>
+	 */
+	public function findSeriesOverview(): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('series_id', 'name', 'start_datetime', 'end_datetime')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->andX(
+					$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
+					$qb->expr()->isNotNull('series_id'),
+					$qb->expr()->neq('series_id', $qb->createNamedParameter(''))
+				)
+			)
+			->orderBy('series_position', 'ASC')
+			->addOrderBy('start_datetime', 'ASC');
+
+		/** @var array<string, SeriesSummary> $series */
+		$series = [];
+
+		$result = $qb->executeQuery();
+		/** @var list<array<string, mixed>> $rows IResult::fetchAll() is declared mixed */
+		$rows = $result->fetchAll();
+		$result->closeCursor();
+
+		foreach ($rows as $row) {
+			$seriesId = (string)$row['series_id'];
+			$start = (string)$row['start_datetime'];
+			$end = (string)$row['end_datetime'];
+
+			if (!isset($series[$seriesId])) {
+				$series[$seriesId] = [
+					'seriesId' => $seriesId,
+					'name' => (string)$row['name'],
+					'startDatetime' => $start,
+					'endDatetime' => $end,
+					'appointmentCount' => 0,
+				];
+			}
+
+			$series[$seriesId]['appointmentCount']++;
+			$series[$seriesId]['startDatetime'] = min($series[$seriesId]['startDatetime'], $start);
+			$series[$seriesId]['endDatetime'] = max($series[$seriesId]['endDatetime'], $end);
+		}
+
+		return array_values($series);
 	}
 
 	/**

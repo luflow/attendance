@@ -507,7 +507,8 @@
                     "categoriesAvailable",
                     "statisticsAvailable",
                     "talkRoomsAvailable",
-                    "talkRoomDeletion"
+                    "talkRoomDeletion",
+                    "exportOptions"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -574,6 +575,9 @@
                         "type": "boolean"
                     },
                     "talkRoomDeletion": {
+                        "type": "boolean"
+                    },
+                    "exportOptions": {
                         "type": "boolean"
                     }
                 }
@@ -650,6 +654,38 @@
                     },
                     "filename": {
                         "type": "string"
+                    }
+                }
+            },
+            "ExportSeries": {
+                "type": "object",
+                "required": [
+                    "seriesId",
+                    "name",
+                    "startDatetime",
+                    "endDatetime",
+                    "appointmentCount",
+                    "ongoing"
+                ],
+                "properties": {
+                    "seriesId": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "startDatetime": {
+                        "type": "string"
+                    },
+                    "endDatetime": {
+                        "type": "string"
+                    },
+                    "appointmentCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "ongoing": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -5916,6 +5952,30 @@
                                         "type": "boolean",
                                         "default": false,
                                         "description": "Whether to include user comments in the export"
+                                    },
+                                    "seriesIds": {
+                                        "type": "array",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Series to export in full, or null for no series filter",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "includeRsvp": {
+                                        "type": "boolean",
+                                        "default": true,
+                                        "description": "Whether to include the RSVP column per appointment"
+                                    },
+                                    "includeCheckin": {
+                                        "type": "boolean",
+                                        "default": true,
+                                        "description": "Whether to include the check-in column per appointment"
+                                    },
+                                    "includeOrganizers": {
+                                        "type": "boolean",
+                                        "default": false,
+                                        "description": "Whether to append a row listing each appointment's organizers"
                                     }
                                 }
                             }
@@ -5946,6 +6006,89 @@
                                         "error": {
                                             "type": "string"
                                         }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/attendance/api/export/series": {
+            "get": {
+                "operationId": "appointment-export-series",
+                "summary": "List the appointment series the export can filter by, ongoing ones first",
+                "tags": [
+                    "appointment"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ExportSeries"
                                     }
                                 }
                             }

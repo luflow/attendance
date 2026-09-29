@@ -272,7 +272,6 @@
     "Start date" : "Startdatum",
     "End date" : "Enddatum",
     "Export options" : "Exportoptionen",
-    "Include comments in export" : "Kommentare in den Export einbeziehen",
     "Exporting …" : "Wird exportiert …",
     "Subscribe to your appointments in external calendar apps like Google Calendar, Apple Calendar, or Thunderbird." : "Abonniere deine Termine in externen Kalender-Apps wie Google Kalender, Apple Kalender oder Thunderbird.",
     "Subscription URL" : "Abonnement-URL",
@@ -989,6 +988,21 @@
     "Several appointments of a series changed at once" : "Mehrere Termine einer Serie wurden auf einmal geändert",
     "Notifications are delivered via UnifiedPush — no Google Play required" : "Benachrichtigungen werden über UnifiedPush zugestellt — Google Play wird nicht benötigt",
     "See prices" : "Preise anzeigen",
-    "Failed to search teams" : "Teams konnten nicht durchsucht werden"
+    "Failed to search teams" : "Teams konnten nicht durchsucht werden",
+    "Add a row with the organizers of each appointment" : "Zeile mit den Organisatoren jedes Termins ergänzen",
+    "Appointment series" : "Terminserien",
+    "Columns per appointment" : "Spalten pro Termin",
+    "Comments" : "Kommentare",
+    "Failed to load appointment series" : "Terminserien konnten nicht geladen werden",
+    "Finished ({count})" : "Abgeschlossen ({count})",
+    "No series found" : "Keine Serien gefunden",
+    "No series match your search" : "Keine Serie passt zur Suche",
+    "Ongoing and upcoming" : "Laufend und anstehend",
+    "RSVP" : "RSVP",
+    "Search series …" : "Serien suchen …",
+    "Select at least one column" : "Mindestens eine Spalte auswählen",
+    "Select series" : "Serien auswählen",
+    "Series appear here once an appointment repeats regularly." : "Serien erscheinen hier, sobald sich ein Termin regelmäßig wiederholt.",
+    "_{count} appointment · {range}_::_{count} appointments · {range}_" : ["{count} Termin · {range}","{count} Termine · {range}"]
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
