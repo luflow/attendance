@@ -209,6 +209,84 @@ class ResponseSummaryServiceTest extends TestCase {
 	}
 
 	/**
+	 * Regression for issue #229: somebody who never answered but was checked in
+	 * has a response row carrying only a check-in state. That row is no answer,
+	 * so the summary lists them among the non-responders — but it dropped the
+	 * check-in with it, and the organizer could not see they had turned up.
+	 */
+	public function testGetResponseSummaryKeepsTheCheckinOfSomebodyWhoNeverAnswered(): void {
+		$appointmentId = 9;
+		$appointment = new Appointment();
+		$appointment->setId($appointmentId);
+		$appointment->setVisibleUsers(json_encode(['wilfried']));
+		$appointment->setVisibleGroups('[]');
+		$appointment->setVisibleTeams('[]');
+
+		$checkinOnly = new AttendanceResponse();
+		$checkinOnly->setUserId('wilfried');
+		$checkinOnly->setResponse(null);
+		$checkinOnly->setCheckinState('yes');
+
+		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
+		$this->responseMapper->method('findByAppointment')->willReturn([$checkinOnly]);
+
+		$this->configService->method('getWhitelistedGroups')->willReturn([]);
+		$this->configService->method('getResponseSummaryGroupsMode')->willReturn(ConfigService::RESPONSE_SUMMARY_MODE_NONE);
+		$this->configService->method('getWhitelistedTeams')->willReturn([]);
+
+		$this->visibilityService->method('getVisibilitySettings')
+			->willReturn(['users' => ['wilfried'], 'groups' => [], 'teams' => []]);
+		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(true);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+
+		$wilfried = $this->createMock(IUser::class);
+		$wilfried->method('getUID')->willReturn('wilfried');
+		$wilfried->method('getDisplayName')->willReturn('Wilfried');
+		$this->userManager->method('get')->willReturn($wilfried);
+		$this->groupManager->method('getUserGroups')->willReturn([]);
+		$this->visibilityService->method('getTargetAttendees')->willReturn(['wilfried' => $wilfried]);
+
+		$summary = $this->service->getResponseSummary($appointmentId);
+
+		$this->assertSame(1, $summary['no_response']);
+		$entry = $summary['non_responding_users'][0];
+		$this->assertSame('wilfried', $entry['userId']);
+		// 'yes' is the check-in scale's "present", not an answer.
+		$this->assertSame('yes', $entry['checkinState']);
+	}
+
+	public function testGetResponseSummaryLeavesTheCheckinNullForSomebodyWhoNeverTurnedUp(): void {
+		$appointmentId = 10;
+		$appointment = new Appointment();
+		$appointment->setId($appointmentId);
+		$appointment->setVisibleUsers(json_encode(['wilfried']));
+		$appointment->setVisibleGroups('[]');
+		$appointment->setVisibleTeams('[]');
+
+		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
+		$this->responseMapper->method('findByAppointment')->willReturn([]);
+
+		$this->configService->method('getWhitelistedGroups')->willReturn([]);
+		$this->configService->method('getResponseSummaryGroupsMode')->willReturn(ConfigService::RESPONSE_SUMMARY_MODE_NONE);
+		$this->configService->method('getWhitelistedTeams')->willReturn([]);
+
+		$this->visibilityService->method('getVisibilitySettings')
+			->willReturn(['users' => ['wilfried'], 'groups' => [], 'teams' => []]);
+		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(true);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+
+		$wilfried = $this->createMock(IUser::class);
+		$wilfried->method('getUID')->willReturn('wilfried');
+		$wilfried->method('getDisplayName')->willReturn('Wilfried');
+		$this->groupManager->method('getUserGroups')->willReturn([]);
+		$this->visibilityService->method('getTargetAttendees')->willReturn(['wilfried' => $wilfried]);
+
+		$summary = $this->service->getResponseSummary($appointmentId);
+
+		$this->assertNull($summary['non_responding_users'][0]['checkinState']);
+	}
+
+	/**
 	 * Regression: members reaching an appointment only through a visibility
 	 * group outside the admin whitelist used to vanish — no group section
 	 * (correct), but also no Others entry and no global non-responder count.

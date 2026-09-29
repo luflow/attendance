@@ -1,4 +1,6 @@
-import { test, expect, createAppointmentViaAPI, deleteAllAppointments, checkinUserViaAPI } from './fixtures/nextcloud.js'
+import { test, expect, authHeaders, createAppointmentViaAPI, deleteAllAppointments, checkinUserViaAPI } from './fixtures/nextcloud.js'
+
+const API_BASE = `${process.env.NEXTCLOUD_URL || 'http://localhost:8080'}/index.php`
 
 let checkinAppointmentId
 
@@ -156,5 +158,30 @@ test.describe('Attendance App - Bulk Operations', () => {
 		await expect(confirmButton).toBeVisible()
 
 		await page.locator('[data-test="button-bulk-cancel"]').click()
+	})
+
+	// Regression for #229: somebody can turn up without ever answering. The
+	// summary lists them among the non-responders — it used to drop the
+	// check-in on the way, so the organizer could not see they had attended.
+	test('a checked-in non-responder keeps their check-in in the summary', async ({ request }) => {
+		const appointment = await createAppointmentViaAPI(request, {
+			name: 'Checked In Without Answering',
+			daysFromNow: 2,
+			visibleUsers: ['test'],
+		})
+		await checkinUserViaAPI(request, appointment.id, 'test', { response: 'yes' })
+
+		const resp = await request.get(
+			`${API_BASE}/apps/attendance/api/appointments/${appointment.id}`,
+			{ headers: authHeaders() },
+		)
+		expect(resp.ok()).toBeTruthy()
+		const summary = (await resp.json()).responseSummary
+
+		// No answer given, so they are a non-responder — carrying the attendance.
+		expect(summary.yes).toBe(0)
+		const entry = summary.non_responding_users.find(u => u.userId === 'test')
+		expect(entry).toBeTruthy()
+		expect(entry.checkinState).toBe('yes')
 	})
 })

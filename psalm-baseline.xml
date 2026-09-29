@@ -1987,9 +1987,6 @@
     <ClassMustBeFinal>
       <code><![CDATA[ResponseSummaryService]]></code>
     </ClassMustBeFinal>
-    <MissingClosureReturnType>
-      <code><![CDATA[fn ($r) => $r->getUserId()]]></code>
-    </MissingClosureReturnType>
     <MissingParamType>
       <code><![CDATA[$response]]></code>
       <code><![CDATA[$response]]></code>
@@ -2013,7 +2010,6 @@
       <code><![CDATA[$teamMemberIds]]></code>
       <code><![CDATA[$teamMemberIds]]></code>
       <code><![CDATA[$user->getUID()]]></code>
-      <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
     </MixedArgument>
     <MixedArrayAccess>
@@ -2068,8 +2064,6 @@
       <code><![CDATA[$byTeam[$teamId]]]></code>
       <code><![CDATA[$sortedByGroup[$groupId]]]></code>
       <code><![CDATA[$sortedByTeam[$teamId]]]></code>
-      <code><![CDATA[$userGroups[$userId]]]></code>
-      <code><![CDATA[$users[$userId]]]></code>
     </MixedArrayOffset>
     <MixedAssignment>
       <code><![CDATA[$gid]]></code>
@@ -2102,7 +2096,6 @@
       <code><![CDATA[$userGroups]]></code>
       <code><![CDATA[$userGroups]]></code>
       <code><![CDATA[$userId]]></code>
-      <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userResponse]]></code>
       <code><![CDATA[$userResponse]]></code>
     </MixedAssignment>
@@ -2112,7 +2105,6 @@
       <code><![CDATA[getGID]]></code>
       <code><![CDATA[getResponse]]></code>
       <code><![CDATA[getUID]]></code>
-      <code><![CDATA[getUserId]]></code>
       <code><![CDATA[getUserId]]></code>
       <code><![CDATA[jsonSerialize]]></code>
     </MixedMethodCall>
