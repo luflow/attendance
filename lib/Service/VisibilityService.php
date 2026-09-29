@@ -57,18 +57,25 @@ class VisibilityService {
 	 * @return bool True if the user can see the appointment
 	 */
 	public function canUserSeeAppointment(Appointment $appointment, string $userId): bool {
-		// Users with manage_appointments permission can always see all appointments
-		if ($this->permissionService->hasPermission($userId, PermissionService::PERMISSION_MANAGE_APPOINTMENTS)) {
+		// see_all_appointments lifts the audience restriction; managers hold it
+		// implicitly.
+		if ($this->permissionService->canSeeAllAppointments($userId)) {
 			return true;
 		}
 
+		return $this->isUserOwnAppointment($appointment, $userId);
+	}
+
+	/**
+	 * "Mine": the user is part of the target audience or organizes it. This is
+	 * what the appointment list scopes to without see_all_appointments, and
+	 * what the "My appointments" view shows to everyone.
+	 */
+	public function isUserOwnAppointment(Appointment $appointment, string $userId): bool {
 		// Organizers always see their own appointment, even when they are not
 		// part of the visibility target audience.
-		if ($this->permissionService->isOrganizer($appointment, $userId)) {
-			return true;
-		}
-
-		return $this->isUserTargetAttendee($appointment, $userId);
+		return $this->permissionService->isOrganizer($appointment, $userId)
+			|| $this->isUserTargetAttendee($appointment, $userId);
 	}
 
 	/**

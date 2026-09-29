@@ -228,7 +228,8 @@
                     "categoriesAvailable",
                     "statisticsAvailable",
                     "talkRoomsAvailable",
-                    "talkRoomDeletion"
+                    "talkRoomDeletion",
+                    "seeAllAppointments"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -295,6 +296,9 @@
                         "type": "boolean"
                     },
                     "talkRoomDeletion": {
+                        "type": "boolean"
+                    },
+                    "seeAllAppointments": {
                         "type": "boolean"
                     }
                 }

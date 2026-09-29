@@ -61,7 +61,7 @@
 				</NcAppNavigationItem>
 
 				<NcAppNavigationItem
-					:name="t('attendance', 'Upcoming appointments')"
+					:name="t('attendance', 'My appointments')"
 					:active="currentView === 'current'"
 					data-test="nav-upcoming"
 					@click.prevent="setView('current')">
@@ -545,6 +545,9 @@ t('attendance', 'This tag is write-protected.')
 t('attendance', 'Too expensive')
 t('attendance', 'Try again')
 t('attendance', 'Unlimited members')
+// TRANSLATORS: Appointment list heading in the mobile app, still used against
+// servers too old for the "My appointments"/"All appointments" split.
+t('attendance', 'Upcoming appointments')
 t('attendance', 'Up to {count} members')
 t('attendance', "Use the recipient's server locale")
 // TRANSLATORS: {count} is how many personal licenses one group license beats.

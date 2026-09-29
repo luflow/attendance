@@ -1361,7 +1361,10 @@ class AppointmentService {
 	}
 
 	/**
-	 * Get minimal appointment data for navigation menu.
+	 * Get minimal appointment data for navigation menu. Scoped to the user's
+	 * own appointments: every sidebar section it feeds ("Unanswered", "My
+	 * appointments", "Past appointments") is a personal list, and for a holder
+	 * of see_all_appointments the unscoped one would be the whole instance.
 	 */
 	public function getAppointmentsForNavigation(string $userId): array {
 		$currentAppointments = $this->getUpcomingAppointments();
@@ -1379,7 +1382,7 @@ class AppointmentService {
 		$result = [];
 
 		foreach ($appointments as $appointment) {
-			if (!$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
+			if (!$this->visibilityService->isUserOwnAppointment($appointment, $userId)) {
 				continue;
 			}
 
@@ -1409,11 +1412,12 @@ class AppointmentService {
 	 *                             the user has already answered. Implies
 	 *                             upcoming-only (ignored when combined with
 	 *                             $showPastAppointments).
-	 * @param bool $onlyForMe Drop appointments the user is not part of the
-	 *                        target audience for. Same predicate as
-	 *                        VisibilityService::isUserTargetAttendee, so it
-	 *                        bypasses the manage-permission "see everything"
-	 *                        bypass.
+	 * @param bool $onlyForMe Keep only the user's own appointments: the ones
+	 *                        addressed to them or organized by them. Same
+	 *                        predicate as VisibilityService::isUserOwnAppointment,
+	 *                        so it bypasses the see_all_appointments "see
+	 *                        everything" bypass. This is the "My appointments"
+	 *                        view.
 	 * @param bool $includeResponseSummary Attach the full response overview
 	 *                                     (other attendees' answers and roster) to each appointment. Gate on
 	 *                                     the caller's PERMISSION_SEE_RESPONSE_OVERVIEW.
@@ -1448,10 +1452,9 @@ class AppointmentService {
 		// "Unanswered only" makes no sense on past appointments — silently
 		// suppress to keep the API surface single-purpose.
 		$unansweredOnly = $unansweredOnly && !$showPastAppointments;
-		// "Unanswered" only makes sense for appointments actually addressed to
-		// the user. For managers, the visibility check otherwise lets through
-		// every unanswered appointment in the system, which defeats the inbox.
-		$onlyForMe = $onlyForMe || $unansweredOnly || $notScheduledOut || $onlyScheduled;
+		// Both scheduling filters are about the user's own place in an
+		// appointment, so letting through other people's would be odd.
+		$onlyForMe = $onlyForMe || $notScheduledOut || $onlyScheduled;
 
 		$globalManage = $this->permissionService->canManageAppointments($userId);
 		$result = [];
@@ -1460,7 +1463,14 @@ class AppointmentService {
 			if (!$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
 				continue;
 			}
-			if ($onlyForMe && !$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
+			if ($onlyForMe && !$this->visibilityService->isUserOwnAppointment($appointment, $userId)) {
+				continue;
+			}
+			// The unanswered inbox is strictly what the user was asked to
+			// answer — organizing an appointment is not being asked, and for
+			// managers the visibility check otherwise lets through every
+			// unanswered appointment in the system.
+			if ($unansweredOnly && !$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
 				continue;
 			}
 			if ($unansweredOnly && ($appointment->isClosed() || $appointment->isCancelled())) {

@@ -621,9 +621,6 @@ OC.L10N.register(
     "_{count} device registered for push notifications_::_{count} devices registered for push notifications_" : ["{count} Gerät für Push-Benachrichtigungen registriert","{count} Geräte für Push-Benachrichtigungen registriert"],
     "Inquiry status" : "Anfragestatus",
     "Opened" : "Geöffnet",
-    "Relevance" : "Wichtigkeit",
-    "Only for me" : "Nur für mich",
-    "Only for me, not scheduled out" : "Nur für mich, nicht ausgeplant",
     "Only scheduled" : "Nur eingeplante",
     "Category: {category}" : "Kategorie: {category}",
     "No appointments yet" : "Noch keine Termine",
@@ -991,6 +988,12 @@ OC.L10N.register(
     "Several appointments of a series changed at once" : "Mehrere Termine einer Serie wurden auf einmal geändert",
     "Notifications are delivered via UnifiedPush — no Google Play required" : "Benachrichtigungen werden über UnifiedPush zugestellt — Google Play wird nicht benötigt",
     "See prices" : "Preise anzeigen",
-    "Failed to search teams" : "Teams konnten nicht durchsucht werden"
+    "Failed to search teams" : "Teams konnten nicht durchsucht werden",
+    "My appointments" : "Meine Termine",
+    "Not scheduled out" : "Nicht ausgeplant",
+    "May see all appointments" : "Darf alle Termine sehen",
+    "See every appointment on the server, not just the own ones." : "Alle Termine auf dem Server sehen, nicht nur die eigenen.",
+    "Users who can manage appointments always see all appointments." : "Benutzer, die Termine verwalten dürfen, sehen immer alle Termine.",
+    "Every user can see every appointment." : "Jeder Benutzer kann alle Termine sehen."
 },
 "nplurals=2; plural=(n != 1);");

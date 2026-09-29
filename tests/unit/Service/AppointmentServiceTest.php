@@ -1615,14 +1615,14 @@ class AppointmentServiceTest extends TestCase {
 	}
 
 	public function testNotScheduledOutFilterImpliesOnlyForMe(): void {
-		// A manager sees every appointment by default; the relevance filter must
-		// still cut those the manager is not part of the audience for.
+		// A manager sees every appointment by default; the scheduling filter must
+		// still cut the ones that are none of the manager's own.
 		$foreign = $this->createAppointment(1, 'Bob only');
 
 		$this->appointmentMapper->method('findUpcoming')->willReturn([$foreign]);
 		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
 		$this->visibilityService->expects($this->once())
-			->method('isUserTargetAttendee')
+			->method('isUserOwnAppointment')
 			->willReturn(false);
 		$this->attachmentService->method('getAttachments')->willReturn([]);
 
@@ -1630,6 +1630,34 @@ class AppointmentServiceTest extends TestCase {
 			'alice',
 			notScheduledOut: true,
 		));
+	}
+
+	// --- "My appointments" scope ---
+
+	public function testOnlyForMeKeepsAppointmentsTheUserOrganizes(): void {
+		$organized = $this->createAppointment(1, 'Bob organizes this');
+
+		$this->appointmentMapper->method('findUpcoming')->willReturn([$organized]);
+		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
+		// Not invited, but organizing it — "My appointments" is not just the audience.
+		$this->visibilityService->method('isUserOwnAppointment')->willReturn(true);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(false);
+		$this->attachmentService->method('getAttachments')->willReturn([]);
+
+		$this->assertCount(1, $this->service->getAppointmentsWithUserResponses('bob', onlyForMe: true));
+	}
+
+	public function testUnansweredInboxSkipsAppointmentsTheUserOnlyOrganizes(): void {
+		$organized = $this->createAppointment(1, 'Bob organizes this');
+
+		$this->appointmentMapper->method('findUpcoming')->willReturn([$organized]);
+		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
+		$this->visibilityService->method('isUserOwnAppointment')->willReturn(true);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(false);
+		$this->attachmentService->method('getAttachments')->willReturn([]);
+
+		// Organizing an appointment is not being asked to answer it.
+		$this->assertSame([], $this->service->getAppointmentsWithUserResponses('bob', unansweredOnly: true));
 	}
 
 	// --- onboarding entry point ---

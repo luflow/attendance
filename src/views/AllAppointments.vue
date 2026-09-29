@@ -260,8 +260,8 @@ import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcChip, NcEmptyContent, NcPopover } from '@nextcloud/vue'
 import { create as createConfetti } from 'canvas-confetti'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import AccountIcon from 'vue-material-design-icons/Account.vue'
 import CalendarBlankIcon from 'vue-material-design-icons/CalendarBlank.vue'
+import CalendarCheckIcon from 'vue-material-design-icons/CalendarCheck.vue'
 import CalendarPlusIcon from 'vue-material-design-icons/CalendarPlus.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
 import CheckCircleIcon from 'vue-material-design-icons/CheckCircle.vue'
@@ -333,11 +333,11 @@ const FILTER_STORAGE_KEY = 'attendance:list-filters'
 const F = Object.freeze({
 	RESPONSE: 'response',
 	STATUS: 'status',
-	AUDIENCE: 'audience',
+	SCHEDULING: 'scheduling',
 })
 const RESPONSE = Object.freeze({ YES: 'yes', MAYBE: 'maybe', NO: 'no', NONE: 'none' })
 const STATUS = Object.freeze({ OPEN: 'open', CLOSED: 'closed', CANCELLED: 'cancelled' })
-const AUDIENCE = Object.freeze({ ME: 'me', ME_SCHEDULED: 'me-scheduled', ME_BOOKED: 'me-booked' })
+const SCHEDULING = Object.freeze({ NOT_OUT: 'not-scheduled-out', ONLY_IN: 'only-scheduled' })
 
 const { permissions, capabilities, config, loadPermissions } = usePermissions()
 const { categories, loadCategories, getCategory } = useCategories()
@@ -367,31 +367,26 @@ const filterDefs = computed(() => [
 		],
 	},
 	{
-		// Server-side: the audience check via VisibilityService::isUserTargetAttendee,
-		// the scheduling check via BookingService::isScheduledOut. Two steps of
-		// the same axis, so they share one filter and exclude each other.
-		id: F.AUDIENCE,
-		label: t('attendance', 'Relevance'),
-		icon: AccountIcon,
+		// Server-side, via BookingService::isScheduledOut/isScheduledIn. Two
+		// steps of the same axis, so they share one filter and exclude each
+		// other. Both narrow to the user's own appointments on their way.
+		id: F.SCHEDULING,
+		// TRANSLATORS: Filter group in the appointment list, about whether the
+		// user got a place when the organizer planned the lineup (German "Einplanung").
+		label: t('attendance', 'Scheduling'),
+		icon: CalendarCheckIcon,
 		options: [
 			{
-				// Without it, managers see every appointment in the system.
-				// Everyone else only ever gets their own — a no-op, so hide it.
-				id: AUDIENCE.ME,
-				label: t('attendance', 'Only for me'),
-				visible: permissions.canManageAppointments,
-			},
-			{
-				id: AUDIENCE.ME_SCHEDULED,
+				id: SCHEDULING.NOT_OUT,
 				// TRANSLATORS: Filter option in the appointment list. Hides appointments
 				// where the user was explicitly not given a place after scheduling
 				// finished (German "nicht ausgeplant" — not "abgesagt", which this app
 				// uses for calling off an appointment).
-				label: t('attendance', 'Only for me, not scheduled out'),
+				label: t('attendance', 'Not scheduled out'),
 				visible: capabilities.bookingEnabled,
 			},
 			{
-				id: AUDIENCE.ME_BOOKED,
+				id: SCHEDULING.ONLY_IN,
 				// TRANSLATORS: Filter option in the appointment list, deliberately terse.
 				// "Scheduled" refers to the person, not the appointment: it keeps only
 				// appointments the user was given a place in when the organizer planned
@@ -481,11 +476,11 @@ const filters = computed(() => filterDefs.value
 
 // Read filter state through the *visible* filters, never through filterValues
 // directly: a value stored back when an option was still available (planning
-// feature later switched off, manage permission revoked) must stop taking
-// effect, not keep filtering invisibly.
-const activeAudience = computed(() => {
+// feature later switched off) must stop taking effect, not keep filtering
+// invisibly.
+const activeScheduling = computed(() => {
 	if (!viewDef.value.filtersApply) return null
-	return filters.value.find((f) => f.id === F.AUDIENCE)?.value?.id ?? null
+	return filters.value.find((f) => f.id === F.SCHEDULING)?.value?.id ?? null
 })
 
 const activeFilters = computed(() => filters.value.filter((f) => f.value))
@@ -643,13 +638,12 @@ async function loadAppointments(skipLoadingSpinner = false) {
 			loading.value = true
 		}
 		const url = generateUrl('/apps/attendance/api/appointments')
-		// notScheduledOut implies onlyForMe server-side, so it never needs both.
-		const audienceParams = {
-			[AUDIENCE.ME]: { onlyForMe: true },
-			[AUDIENCE.ME_SCHEDULED]: { notScheduledOut: true },
-			[AUDIENCE.ME_BOOKED]: { onlyScheduled: true },
-		}[activeAudience.value] ?? {}
-		const params = { ...audienceParams, ...viewDef.value.params }
+		// Both imply onlyForMe server-side, so neither needs to send it.
+		const schedulingParams = {
+			[SCHEDULING.NOT_OUT]: { notScheduledOut: true },
+			[SCHEDULING.ONLY_IN]: { onlyScheduled: true },
+		}[activeScheduling.value] ?? {}
+		const params = { ...viewDef.value.params, ...schedulingParams }
 		if (viewDef.value.mixesPastAndUpcoming) {
 			const [upcoming, past] = await Promise.all([
 				axios.get(url, { params }),
@@ -676,10 +670,10 @@ async function loadAppointments(skipLoadingSpinner = false) {
 	}
 }
 
-// The audience filter is server-side, so flipping it requires a refetch. Watch
-// the raw value, which only ever moves through setFilter — activeAudience also
-// flips when permissions arrive at mount, which onMounted already fetches for.
-watch(() => filterValues.value[F.AUDIENCE], () => {
+// The scheduling filter is server-side, so flipping it requires a refetch. Watch
+// the raw value, which only ever moves through setFilter — activeScheduling also
+// flips when capabilities arrive at mount, which onMounted already fetches for.
+watch(() => filterValues.value[F.SCHEDULING], () => {
 	loadAppointments(true)
 })
 

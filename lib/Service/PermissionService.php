@@ -39,6 +39,7 @@ class PermissionService {
 	public const PERMISSION_CREATE_APPOINTMENTS = 'create_appointments';
 	public const PERMISSION_RESPOND_FOR_OTHERS = 'respond_for_others';
 	public const PERMISSION_SEE_STATISTICS = 'see_statistics';
+	public const PERMISSION_SEE_ALL_APPOINTMENTS = 'see_all_appointments';
 
 	public const MODE_ALL = 'all';
 	public const MODE_GROUPS = 'groups';
@@ -56,6 +57,7 @@ class PermissionService {
 		self::PERMISSION_CREATE_APPOINTMENTS,
 		self::PERMISSION_RESPOND_FOR_OTHERS,
 		self::PERMISSION_SEE_STATISTICS,
+		self::PERMISSION_SEE_ALL_APPOINTMENTS,
 	];
 
 	private const GUEST_BLOCKED_PERMISSIONS = [
@@ -64,6 +66,7 @@ class PermissionService {
 		self::PERMISSION_CREATE_APPOINTMENTS,
 		self::PERMISSION_RESPOND_FOR_OTHERS,
 		self::PERMISSION_SEE_STATISTICS,
+		self::PERMISSION_SEE_ALL_APPOINTMENTS,
 	];
 
 	/**
@@ -77,6 +80,7 @@ class PermissionService {
 		self::PERMISSION_CREATE_APPOINTMENTS,
 		self::PERMISSION_RESPOND_FOR_OTHERS,
 		self::PERMISSION_SEE_STATISTICS,
+		self::PERMISSION_SEE_ALL_APPOINTMENTS,
 	];
 
 	public function __construct(
@@ -399,6 +403,16 @@ class PermissionService {
 	 */
 	public function canSeeStatistics(string $userId): bool {
 		return $this->hasPermission($userId, self::PERMISSION_SEE_STATISTICS);
+	}
+
+	/**
+	 * Check if user may see every appointment on the instance, not just the
+	 * ones addressed to them or organized by them. Managers hold it implicitly
+	 * — they can edit any appointment, so hiding it from them is pointless.
+	 */
+	public function canSeeAllAppointments(string $userId): bool {
+		return $this->hasPermission($userId, self::PERMISSION_SEE_ALL_APPOINTMENTS)
+			|| $this->canManageAppointments($userId);
 	}
 
 	/**
