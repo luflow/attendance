@@ -9,7 +9,7 @@ export const VIEWS = Object.freeze({
 		heading: () => t('attendance', 'Upcoming appointments'),
 		params: {},
 		mixesPastAndUpcoming: false,
-		includesCancelled: false,
+		includesCancelled: true,
 		filtersApply: true,
 		showsAwaitingBanner: true,
 		celebratesEmpty: false,
@@ -19,7 +19,7 @@ export const VIEWS = Object.freeze({
 		heading: () => t('attendance', 'Past appointments'),
 		params: { showPastAppointments: true },
 		mixesPastAndUpcoming: false,
-		includesCancelled: false,
+		includesCancelled: true,
 		filtersApply: true,
 		// Nothing is left to answer here.
 		showsAwaitingBanner: false,

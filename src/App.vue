@@ -126,10 +126,10 @@
 					<template
 						v-if="
 							pastAppointmentsExpanded
-								&& activePastAppointments.length > 0
+								&& pastAppointments.length > 0
 						">
 						<NcAppNavigationItem
-							v-for="appointment in activePastAppointments"
+							v-for="appointment in pastAppointments"
 							:key="appointment.id"
 							:name="formatAppointmentDisplay(appointment)"
 							:active="
@@ -623,14 +623,10 @@ function onSearchInput() {
 // Use the shared permissions composable
 const { permissions, capabilities, config, loadPermissions } = usePermissions()
 
-// Cancelled appointments are only listed on the "All" view, which gives them
-// their own section — the scoped lists (here and in AllAppointments.vue) leave
-// them out, so the sidebar and the main list agree on what "upcoming" means.
-const activeAppointments = computed(() => currentAppointments.value.filter((a) => !a.cancelledAt))
-const activePastAppointments = computed(() => pastAppointments.value.filter((a) => !a.cancelledAt))
-
 const unansweredAppointments = computed(() => {
-	return activeAppointments.value.filter((appointment) => {
+	return currentAppointments.value.filter((appointment) => {
+		// A cancelled appointment is no to-do, so it never counts as unanswered.
+		if (appointment.cancelledAt) return false
 		const noResponse = !appointment.userResponse || appointment.userResponse === null
 		const open = !appointment.closedAt
 		// Managers see everything via canUserSeeAppointment; only flag the
@@ -639,13 +635,13 @@ const unansweredAppointments = computed(() => {
 	})
 })
 
-// Closed-but-unanswered appointments bucket here so they don't vanish from
-// the UI (no longer "unanswered", never answered).
+// Closed-but-unanswered and cancelled appointments bucket here so they don't
+// vanish from the UI (no longer "unanswered", never answered).
 const answeredAppointments = computed(() => {
-	return activeAppointments.value.filter((appointment) => {
+	return currentAppointments.value.filter((appointment) => {
 		const hasResponse = appointment.userResponse && appointment.userResponse !== null
 		const closedWithoutResponse = !hasResponse && appointment.closedAt
-		return hasResponse || closedWithoutResponse
+		return hasResponse || closedWithoutResponse || Boolean(appointment.cancelledAt)
 	})
 })
 

@@ -570,8 +570,8 @@ const visibleAppointments = computed(() => {
 	const status = filterValues.value[F.STATUS]
 	const response = filterValues.value[F.RESPONSE]
 	return appointments.value.filter((appointment) => {
-		// Cancelled appointments drop out of the active lists — they are only
-		// reachable on the "All" view (own section + cancelled status filter).
+		// The status filter decides who sees cancelled appointments; only the
+		// unanswered to-do list drops them unconditionally.
 		if (!includesCancelled && appointment.cancelledAt) return false
 		if (query) {
 			const haystack = `${appointment.name} ${appointment.description ?? ''}`.toLowerCase()
