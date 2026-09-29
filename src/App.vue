@@ -20,7 +20,7 @@
 			</NcAppNavigationNew>
 			<template #list>
 				<NcAppNavigationItem
-					:name="t('attendance', 'All appointments')"
+					:name="VIEWS.all.heading()"
 					:active="currentView === 'all'"
 					data-test="nav-all"
 					@click.prevent="setView('all')">
@@ -32,7 +32,7 @@
 				<!-- Unanswered Appointments Section -->
 				<NcAppNavigationItem
 					v-if="unansweredAppointments.length > 0"
-					:name="t('attendance', 'Unanswered')"
+					:name="VIEWS.unanswered.heading()"
 					:active="currentView === 'unanswered'"
 					data-test="nav-unanswered"
 					@click.prevent="setView('unanswered')">
@@ -61,7 +61,7 @@
 				</NcAppNavigationItem>
 
 				<NcAppNavigationItem
-					:name="t('attendance', 'My appointments')"
+					:name="VIEWS.current.heading()"
 					:active="currentView === 'current'"
 					data-test="nav-upcoming"
 					@click.prevent="setView('current')">
@@ -110,7 +110,7 @@
 				</NcAppNavigationItem>
 
 				<NcAppNavigationItem
-					:name="t('attendance', 'Past appointments')"
+					:name="VIEWS.past.heading()"
 					:active="currentView === 'past'"
 					:open="pastAppointmentsExpanded"
 					data-test="nav-past"
@@ -837,11 +837,11 @@ function checkRouting() {
 	} else if (isStatisticsRoute) {
 		currentView.value = 'statistics'
 	} else {
-		// Default landing: managers drop into "All appointments" (their natural
-		// overview), everyone else into "Upcoming". Landing in "Unanswered"
-		// was confusing once everything was answered — an empty list as the
-		// first thing you see.
-		currentView.value = permissions.canManageAppointments ? 'all' : 'current'
+		// Default landing: whoever sees every appointment drops into "All
+		// appointments" (their natural overview), everyone else into their own
+		// list. Landing in "Unanswered" was confusing once everything was
+		// answered — an empty list as the first thing you see.
+		currentView.value = permissions.canSeeAllAppointments ? 'all' : 'current'
 	}
 }
 

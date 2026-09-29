@@ -81,8 +81,10 @@ class VisibilityService {
 	/**
 	 * Check if a user is a target attendee for an appointment.
 	 *
-	 * Unlike canUserSeeAppointment(), this does NOT include admin bypass.
-	 * Use this for check-in lists where you only want actual attendees.
+	 * The narrowest of the three scopes: unlike isUserOwnAppointment() it
+	 * leaves out organizers, and unlike canUserSeeAppointment() the see-all
+	 * bypass. Use it where you want the people actually asked — check-in
+	 * lists, the unanswered inbox, the dashboard widget.
 	 *
 	 * @param Appointment $appointment The appointment to check
 	 * @param string $userId The user ID to check

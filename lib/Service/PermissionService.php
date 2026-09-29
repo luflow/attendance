@@ -29,6 +29,15 @@ class PermissionService {
 	private array $rolesCache = [];
 	/** @var array<string, string> */
 	private array $modeCache = [];
+	/**
+	 * Resolved per-user answers, keyed "userId|permission". The list endpoints
+	 * ask the same question for the same user once per appointment (and, in
+	 * ResponseService, once per attendee), and a MODE_GROUPS answer costs a
+	 * user lookup plus the group list every time.
+	 *
+	 * @var array<string, bool>
+	 */
+	private array $permissionCache = [];
 
 	public const PERMISSION_MANAGE_APPOINTMENTS = 'manage_appointments';
 	public const PERMISSION_CHECKIN = 'checkin';
@@ -128,6 +137,7 @@ class PermissionService {
 		$this->config->setAppValue('attendance', $configKey, json_encode($roles, JSON_THROW_ON_ERROR));
 		$this->rolesCache[$permission] = $roles;
 		unset($this->usersWithCache[$permission]);
+		$this->permissionCache = [];
 	}
 
 	/**
@@ -178,6 +188,7 @@ class PermissionService {
 		}
 		$this->appConfig->setValueString('attendance', 'permission_' . $permission . '_mode', $mode);
 		$this->modeCache[$permission] = $mode;
+		// setRolesForPermission drops the resolved per-user answers.
 		$this->setRolesForPermission($permission, $groups);
 	}
 
@@ -185,31 +196,37 @@ class PermissionService {
 	 * Check if a user has a specific permission
 	 */
 	public function hasPermission(string $userId, string $permission): bool {
+		$cacheKey = $userId . '|' . $permission;
+		if (isset($this->permissionCache[$cacheKey])) {
+			return $this->permissionCache[$cacheKey];
+		}
+
 		// Guests must never gain management permissions, regardless of how
 		// groups are configured. Runs before the role lookup so accidental
 		// whitelisting of the `guest_app` group cannot grant admin actions.
 		if (in_array($permission, self::GUEST_BLOCKED_PERMISSIONS, true)
 			&& $this->guestService->isGuestUser($userId)) {
-			return false;
+			return $this->permissionCache[$cacheKey] = false;
 		}
 
 		$mode = $this->getModeForPermission($permission);
 		if ($mode === self::MODE_ALL) {
-			return true;
+			return $this->permissionCache[$cacheKey] = true;
 		}
 		if ($mode === self::MODE_NOBODY) {
-			return false;
+			return $this->permissionCache[$cacheKey] = false;
 		}
 
 		// Get user object and their groups
 		$user = $this->userManager->get($userId);
 		if (!$user) {
-			return false;
+			return $this->permissionCache[$cacheKey] = false;
 		}
 
 		$userGroups = $this->groupManager->getUserGroupIds($user);
 
-		return !empty(array_intersect($this->getRolesForPermission($permission), $userGroups));
+		return $this->permissionCache[$cacheKey]
+			= !empty(array_intersect($this->getRolesForPermission($permission), $userGroups));
 	}
 
 	/**

@@ -1092,13 +1092,14 @@ class AppointmentService {
 	 * @return list<string>
 	 */
 	public function getLocationSuggestions(string $userId, int $limit = 20): array {
-		// A manager sees every appointment (canUserSeeAppointment's own admin
-		// bypass), so skip the per-appointment check entirely for them.
-		$isManager = $this->permissionService->canManageAppointments($userId);
+		// Holders of see_all_appointments see every appointment anyway
+		// (canUserSeeAppointment's own bypass), so skip the per-appointment
+		// check entirely for them.
+		$canSeeAll = $this->permissionService->canSeeAllAppointments($userId);
 
 		$suggestions = [];
 		foreach ($this->appointmentMapper->findWithLocation() as $appointment) {
-			if (!$isManager && !$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
+			if (!$canSeeAll && !$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
 				continue;
 			}
 			$location = $appointment->getLocation();
@@ -1382,7 +1383,11 @@ class AppointmentService {
 		$result = [];
 
 		foreach ($appointments as $appointment) {
-			if (!$this->visibilityService->isUserOwnAppointment($appointment, $userId)) {
+			// Kept apart rather than going through isUserOwnAppointment: the
+			// payload needs the audience answer anyway, and this endpoint is on
+			// the app's startup path.
+			$inAudience = $this->visibilityService->isUserTargetAttendee($appointment, $userId);
+			if (!$inAudience && !$this->permissionService->isOrganizer($appointment, $userId)) {
 				continue;
 			}
 
@@ -1397,8 +1402,7 @@ class AppointmentService {
 					: null,
 				'closedAt' => $this->formatDatetimeToUtc($appointment->getClosedAt()),
 				'cancelledAt' => $this->formatDatetimeToUtc($appointment->getCancelledAt()),
-				'inAudience' => $withAudience
-					&& $this->visibilityService->isUserTargetAttendee($appointment, $userId),
+				'inAudience' => $withAudience && $inAudience,
 			];
 		}
 
@@ -1457,20 +1461,29 @@ class AppointmentService {
 		$onlyForMe = $onlyForMe || $notScheduledOut || $onlyScheduled;
 
 		$globalManage = $this->permissionService->canManageAppointments($userId);
+		// Hoisted like $globalManage: the list runs over every appointment on
+		// the instance, so the group lookups behind it must not repeat per row.
+		$canSeeAll = $this->permissionService->canSeeAllAppointments($userId);
 		$result = [];
 
 		foreach ($appointments as $appointment) {
-			if (!$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
+			// Three nested scopes, each derived from the one below it:
+			// visible ⊇ mine ⊇ asked-to-answer. Evaluated once per appointment
+			// rather than through canUserSeeAppointment/isUserOwnAppointment,
+			// which would redo the audience check two more times.
+			$isAttendee = $this->visibilityService->isUserTargetAttendee($appointment, $userId);
+			$isOwn = $isAttendee || $this->permissionService->isOrganizer($appointment, $userId);
+			if (!$canSeeAll && !$isOwn) {
 				continue;
 			}
-			if ($onlyForMe && !$this->visibilityService->isUserOwnAppointment($appointment, $userId)) {
+			if ($onlyForMe && !$isOwn) {
 				continue;
 			}
 			// The unanswered inbox is strictly what the user was asked to
 			// answer — organizing an appointment is not being asked, and for
-			// managers the visibility check otherwise lets through every
+			// see-all holders the visibility check otherwise lets through every
 			// unanswered appointment in the system.
-			if ($unansweredOnly && !$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
+			if ($unansweredOnly && !$isAttendee) {
 				continue;
 			}
 			if ($unansweredOnly && ($appointment->isClosed() || $appointment->isCancelled())) {
@@ -1518,8 +1531,10 @@ class AppointmentService {
 	/**
 	 * Get upcoming appointments for the dashboard widget. Restricted to
 	 * appointments the user is a target attendee of (incl. unrestricted
-	 * "everyone" appointments) — without admin bypass, so managers don't
-	 * see noise from every appointment in the system.
+	 * "everyone" appointments) — no see-all bypass, so holders don't see noise
+	 * from every appointment in the system. Deliberately narrower than the
+	 * list's "My appointments" scope: the widget is what is asked of you, so
+	 * appointments you only organize stay out of it.
 	 */
 	public function getUpcomingAppointmentsForWidget(string $userId, int $limit = 5): array {
 		$appointments = $this->getUpcomingAppointments();
