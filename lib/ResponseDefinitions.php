@@ -190,7 +190,6 @@ namespace OCA\Attendance;
  *   statisticsAvailable: bool,
  *   talkRoomsAvailable: bool,
  *   talkRoomDeletion: bool,
- *   exportOptions: bool,
  * }
  * @psalm-type AttendanceAuditUserRef = array{
  *   userId: string,

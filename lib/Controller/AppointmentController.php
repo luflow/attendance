@@ -1075,12 +1075,6 @@ class AppointmentController extends Controller {
 			// Server understands DELETE /appointments/{id}/talk-room. Clients
 			// hide the delete action when this is false.
 			'talkRoomDeletion' => true,
-			// Server understands the switchable export columns
-			// (includeRsvp/includeCheckin/includeOrganizers), the seriesIds
-			// filter and GET /export/series. Older servers ignore the extra
-			// parameters and would return a differently shaped sheet, so
-			// clients must hide the options rather than send them blind.
-			'exportOptions' => true,
 		]);
 	}
 

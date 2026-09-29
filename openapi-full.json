@@ -691,8 +691,7 @@
                     "categoriesAvailable",
                     "statisticsAvailable",
                     "talkRoomsAvailable",
-                    "talkRoomDeletion",
-                    "exportOptions"
+                    "talkRoomDeletion"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -759,9 +758,6 @@
                         "type": "boolean"
                     },
                     "talkRoomDeletion": {
-                        "type": "boolean"
-                    },
-                    "exportOptions": {
                         "type": "boolean"
                     }
                 }
