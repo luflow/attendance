@@ -12,6 +12,7 @@ use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\ExportOptions;
 use OCA\Attendance\Service\ExportService;
 use OCA\Attendance\Service\OdsWriter;
+use OCA\Attendance\Service\VisibilityService;
 use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
@@ -41,6 +42,9 @@ class ExportServiceTest extends TestCase {
 	/** @var ConfigService|MockObject */
 	private $configService;
 
+	/** @var VisibilityService|MockObject */
+	private $visibilityService;
+
 	/** @var OdsWriter|MockObject */
 	private $odsWriter;
 
@@ -56,6 +60,17 @@ class ExportServiceTest extends TestCase {
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->configService = $this->createMock(ConfigService::class);
+
+		// Reads the appointment's own columns, like the real service does, so a
+		// test only has to set the restriction it is about.
+		$this->visibilityService = $this->createMock(VisibilityService::class);
+		$this->visibilityService->method('getVisibilitySettings')->willReturnCallback(
+			static fn (Appointment $appointment): array => [
+				'users' => json_decode((string)$appointment->getVisibleUsers(), true) ?: [],
+				'groups' => json_decode((string)$appointment->getVisibleGroups(), true) ?: [],
+				'teams' => json_decode((string)$appointment->getVisibleTeams(), true) ?: [],
+			],
+		);
 
 		// Only write() is stubbed: escape() stays real so the assertions below
 		// see the same escaping the shipped file gets.
@@ -77,6 +92,7 @@ class ExportServiceTest extends TestCase {
 			$this->userManager,
 			$this->groupManager,
 			$this->configService,
+			$this->visibilityService,
 			$this->odsWriter,
 			$l10n,
 		);
@@ -243,6 +259,50 @@ class ExportServiceTest extends TestCase {
 		$this->assertStringNotContainsString('<text:p>Organizers</text:p>', $this->capturedXml);
 	}
 
+	/**
+	 * Regression for issue #252: the group column said which group a person is
+	 * in, picked alphabetically from their memberships — so somebody in "alto"
+	 * and "board" was exported as "alto" even on an appointment only the board
+	 * could see. It has to name the group they are actually here through.
+	 */
+	public function testGroupColumnNamesTheGroupThatGrantsAccess(): void {
+		$this->prepareSingleAppointmentExport([], ['alto', 'board']);
+		$appointment = $this->appointment();
+		$appointment->setVisibleGroups(json_encode(['board']));
+		$this->appointmentMapper->method('findForExport')->willReturn([$appointment]);
+
+		$this->service->exportToOds('admin', ExportOptions::fromWire());
+
+		$this->assertStringContainsString('<text:p>board</text:p>', $this->capturedXml);
+		$this->assertStringNotContainsString('<text:p>alto</text:p>', $this->capturedXml);
+	}
+
+	public function testGroupColumnKeepsTheOrdinaryGroupWhenNothingRestrictsTheAppointment(): void {
+		$this->prepareSingleAppointmentExport([], ['alto', 'board']);
+		$this->appointmentMapper->method('findForExport')->willReturn([$this->appointment()]);
+
+		$this->service->exportToOds('admin', ExportOptions::fromWire());
+
+		$this->assertStringContainsString('<text:p>alto</text:p>', $this->capturedXml);
+	}
+
+	/**
+	 * The restriction decides the order, the whitelist still decides the pick:
+	 * a group nobody tracks by does not become the answer just because it is
+	 * what opened the door.
+	 */
+	public function testGroupColumnStillObeysTheWhitelist(): void {
+		$this->prepareSingleAppointmentExport([], ['alto', 'board'], ['alto']);
+		$appointment = $this->appointment();
+		$appointment->setVisibleGroups(json_encode(['board']));
+		$this->appointmentMapper->method('findForExport')->willReturn([$appointment]);
+
+		$this->service->exportToOds('admin', ExportOptions::fromWire());
+
+		$this->assertStringContainsString('<text:p>alto</text:p>', $this->capturedXml);
+		$this->assertStringNotContainsString('<text:p>board</text:p>', $this->capturedXml);
+	}
+
 	public function testEmptyResultIsRejected(): void {
 		$this->appointmentMapper->method('findForExport')->willReturn([]);
 
@@ -280,8 +340,14 @@ class ExportServiceTest extends TestCase {
 	 * each test only has to set up the part it is about.
 	 *
 	 * @param array<string, string> $extraUsers Further user ID => display name pairs to resolve
+	 * @param list<string> $userGroups The groups every resolved user belongs to
+	 * @param list<string> $whitelistedGroups The admin's response-summary whitelist
 	 */
-	private function prepareSingleAppointmentExport(array $extraUsers = []): void {
+	private function prepareSingleAppointmentExport(
+		array $extraUsers = [],
+		array $userGroups = ['choir'],
+		array $whitelistedGroups = [],
+	): void {
 		$response = new AttendanceResponse();
 		$response->setUserId('carol');
 		$response->setResponse('yes');
@@ -289,8 +355,8 @@ class ExportServiceTest extends TestCase {
 		$response->setComment('On my way');
 		$this->responseMapper->method('findByAppointment')->willReturn([$response]);
 
-		$this->configService->method('getWhitelistedGroups')->willReturn([]);
-		$this->groupManager->method('getUserGroupIds')->willReturn(['choir']);
+		$this->configService->method('getWhitelistedGroups')->willReturn($whitelistedGroups);
+		$this->groupManager->method('getUserGroupIds')->willReturn($userGroups);
 
 		$users = ['carol' => 'Carol Clark'] + $extraUsers;
 		$this->userManager->method('get')->willReturnCallback(

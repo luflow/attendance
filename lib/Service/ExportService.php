@@ -28,6 +28,7 @@ class ExportService {
 	private IUserManager $userManager;
 	private IGroupManager $groupManager;
 	private ConfigService $configService;
+	private VisibilityService $visibilityService;
 	private OdsWriter $odsWriter;
 	private IL10N $l10n;
 
@@ -38,6 +39,7 @@ class ExportService {
 		IUserManager $userManager,
 		IGroupManager $groupManager,
 		ConfigService $configService,
+		VisibilityService $visibilityService,
 		OdsWriter $odsWriter,
 		IL10N $l10n,
 	) {
@@ -47,6 +49,7 @@ class ExportService {
 		$this->userManager = $userManager;
 		$this->groupManager = $groupManager;
 		$this->configService = $configService;
+		$this->visibilityService = $visibilityService;
 		$this->odsWriter = $odsWriter;
 		$this->l10n = $l10n;
 	}
@@ -96,6 +99,48 @@ class ExportService {
 	}
 
 	/**
+	 * Every group that grants access to one of the exported appointments.
+	 * Unrestricted appointments contribute nothing — they are open to
+	 * everybody, so no group of theirs is the one that let a person in.
+	 *
+	 * @param list<\OCA\Attendance\Db\Appointment> $appointments
+	 * @return list<string>
+	 */
+	private function accessGroupsOf(array $appointments): array {
+		$groups = [];
+		foreach ($appointments as $appointment) {
+			foreach ($this->visibilityService->getVisibilitySettings($appointment)['groups'] as $groupId) {
+				$groups[$groupId] = true;
+			}
+		}
+		// A numeric group id comes back from array_keys() as an int.
+		return array_map('strval', array_keys($groups));
+	}
+
+	/**
+	 * The user's groups with the ones granting access to the export first.
+	 *
+	 * The group column answers "through which group is this person here?", and
+	 * the plain membership order is alphabetical: somebody in "alto" and
+	 * "board" was exported as "alto" even on an appointment only the board
+	 * could see (issue #252). Reordering rather than filtering keeps every
+	 * other rule intact — a whitelist still decides among what is left, and
+	 * somebody reached through a team or a direct invitation keeps their
+	 * ordinary group.
+	 *
+	 * @param list<string> $userGroups
+	 * @param list<string> $accessGroups
+	 * @return list<string>
+	 */
+	private function groupsByRelevance(array $userGroups, array $accessGroups): array {
+		if ($accessGroups === []) {
+			return $userGroups;
+		}
+		$granting = array_values(array_intersect($userGroups, $accessGroups));
+		return array_merge($granting, array_values(array_diff($userGroups, $granting)));
+	}
+
+	/**
 	 * Export appointments to an ODS file with optional filtering
 	 *
 	 * @param string $userId The user ID who is exporting
@@ -138,12 +183,15 @@ class ExportService {
 
 		// Get user display names and groups
 		$whitelistedGroups = $this->configService->getWhitelistedGroups();
+		$accessGroups = $this->accessGroupsOf($appointments);
 		$users = [];
 		foreach (array_keys($allUserIds) as $uid) {
 			$user = $this->userManager->get($uid);
 			if ($user) {
-				// Get user's groups
-				$userGroups = $this->groupManager->getUserGroupIds($user);
+				$userGroups = $this->groupsByRelevance(
+					$this->groupManager->getUserGroupIds($user),
+					$accessGroups,
+				);
 
 				// Find first whitelisted group or use "Others"
 				$userGroup = $this->l10n->t('Others');

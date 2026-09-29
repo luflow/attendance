@@ -1794,6 +1794,7 @@
       <code><![CDATA[$responseMapper]]></code>
       <code><![CDATA[$rootFolder]]></code>
       <code><![CDATA[$userManager]]></code>
+      <code><![CDATA[$visibilityService]]></code>
     </PossiblyUnusedParam>
     <RiskyTruthyFalsyComparison>
       <code><![CDATA[$attendanceFolder->nodeExists($filename)]]></code>
