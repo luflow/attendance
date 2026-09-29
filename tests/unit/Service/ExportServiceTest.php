@@ -263,7 +263,8 @@ class ExportServiceTest extends TestCase {
 	 * Regression for issue #252: the group column said which group a person is
 	 * in, picked alphabetically from their memberships — so somebody in "alto"
 	 * and "board" was exported as "alto" even on an appointment only the board
-	 * could see. It has to name the group they are actually here through.
+	 * could see. The column names the groups the response summary would section
+	 * that person under, and a restriction decides those.
 	 */
 	public function testGroupColumnNamesTheGroupThatGrantsAccess(): void {
 		$this->prepareSingleAppointmentExport([], ['alto', 'board']);
@@ -277,21 +278,27 @@ class ExportServiceTest extends TestCase {
 		$this->assertStringNotContainsString('<text:p>alto</text:p>', $this->capturedXml);
 	}
 
-	public function testGroupColumnKeepsTheOrdinaryGroupWhenNothingRestrictsTheAppointment(): void {
+	/**
+	 * Without a grouping configured the overview puts everybody under "Others",
+	 * and an unrestricted appointment gives the column nothing else to go on —
+	 * the alphabetically first membership was never an answer.
+	 */
+	public function testGroupColumnSaysOthersWhenNothingGroupsTheAppointment(): void {
 		$this->prepareSingleAppointmentExport([], ['alto', 'board']);
 		$this->appointmentMapper->method('findForExport')->willReturn([$this->appointment()]);
 
 		$this->service->exportToOds('admin', ExportOptions::fromWire());
 
-		$this->assertStringContainsString('<text:p>alto</text:p>', $this->capturedXml);
+		$this->assertStringContainsString('<text:p>Others</text:p>', $this->capturedXml);
+		$this->assertStringNotContainsString('<text:p>alto</text:p>', $this->capturedXml);
 	}
 
 	/**
-	 * The restriction decides the order, the whitelist still decides the pick:
-	 * a group nobody tracks by does not become the answer just because it is
-	 * what opened the door.
+	 * The admin's list wins over the restriction, exactly as it does in the
+	 * overview: a group nobody tracks by does not become the answer just
+	 * because it is what opened the door.
 	 */
-	public function testGroupColumnStillObeysTheWhitelist(): void {
+	public function testGroupColumnObeysTheConfiguredGroupsOverTheRestriction(): void {
 		$this->prepareSingleAppointmentExport([], ['alto', 'board'], ['alto']);
 		$appointment = $this->appointment();
 		$appointment->setVisibleGroups(json_encode(['board']));
@@ -301,6 +308,40 @@ class ExportServiceTest extends TestCase {
 
 		$this->assertStringContainsString('<text:p>alto</text:p>', $this->capturedXml);
 		$this->assertStringNotContainsString('<text:p>board</text:p>', $this->capturedXml);
+	}
+
+	/**
+	 * "All" sections the overview by every group a person belongs to, so the
+	 * one column they get has to name all of them.
+	 */
+	public function testGroupColumnListsEveryMembershipInAllMode(): void {
+		$this->prepareSingleAppointmentExport(
+			[],
+			['alto', 'board'],
+			[],
+			ConfigService::RESPONSE_SUMMARY_MODE_ALL,
+		);
+		$this->appointmentMapper->method('findForExport')->willReturn([$this->appointment()]);
+
+		$this->service->exportToOds('admin', ExportOptions::fromWire());
+
+		$this->assertStringContainsString('<text:p>alto, board</text:p>', $this->capturedXml);
+	}
+
+	public function testGroupColumnCanBeSwitchedOff(): void {
+		$this->prepareSingleAppointmentExport([], ['alto'], ['alto']);
+		$this->appointmentMapper->method('findForExport')->willReturn([$this->appointment()]);
+
+		$this->service->exportToOds('admin', ExportOptions::fromWire(
+			null, null, null, null,
+			true, true, false, false,
+			false,
+		));
+
+		$this->assertStringNotContainsString('<text:p>Group</text:p>', $this->capturedXml);
+		$this->assertStringNotContainsString('<text:p>alto</text:p>', $this->capturedXml);
+		// One identity column left, so the header block starts one cell earlier.
+		$this->assertStringContainsString('table:style-name="co1" table:number-columns-repeated="1"', $this->capturedXml);
 	}
 
 	public function testEmptyResultIsRejected(): void {
@@ -342,11 +383,13 @@ class ExportServiceTest extends TestCase {
 	 * @param array<string, string> $extraUsers Further user ID => display name pairs to resolve
 	 * @param list<string> $userGroups The groups every resolved user belongs to
 	 * @param list<string> $whitelistedGroups The admin's response-summary whitelist
+	 * @param ?string $groupsMode Grouping mode; null derives the stored default from the whitelist
 	 */
 	private function prepareSingleAppointmentExport(
 		array $extraUsers = [],
 		array $userGroups = ['choir'],
 		array $whitelistedGroups = [],
+		?string $groupsMode = null,
 	): void {
 		$response = new AttendanceResponse();
 		$response->setUserId('carol');
@@ -356,6 +399,12 @@ class ExportServiceTest extends TestCase {
 		$this->responseMapper->method('findByAppointment')->willReturn([$response]);
 
 		$this->configService->method('getWhitelistedGroups')->willReturn($whitelistedGroups);
+		// Same default ConfigService derives: no configured groups, no grouping.
+		$this->configService->method('getResponseSummaryGroupsMode')->willReturn(
+			$groupsMode ?? ($whitelistedGroups === []
+				? ConfigService::RESPONSE_SUMMARY_MODE_NONE
+				: ConfigService::RESPONSE_SUMMARY_MODE_SPECIFIC),
+		);
 		$this->groupManager->method('getUserGroupIds')->willReturn($userGroups);
 
 		$users = ['carol' => 'Carol Clark'] + $extraUsers;

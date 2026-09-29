@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 /**
  * The per-appointment columns an export run writes, plus the organizer row.
  *
- * Held as one object because the four flags travel together everywhere: into
+ * Held as one object because the flags travel together everywhere: into
  * ExportColumnOptions, into the export request (the keys are already the wire
  * names), and back to their defaults when a dialog closes. The defaults are
  * what the export produced before the columns became switchable, so a caller
@@ -34,5 +34,6 @@ function defaultColumns() {
 		includeCheckin: true,
 		includeComments: false,
 		includeOrganizers: false,
+		includeGroup: true,
 	}
 }

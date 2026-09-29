@@ -99,45 +99,67 @@ class ExportService {
 	}
 
 	/**
-	 * Every group that grants access to one of the exported appointments.
-	 * Unrestricted appointments contribute nothing — they are open to
-	 * everybody, so no group of theirs is the one that let a person in.
+	 * Which groups the column may name, lowercased, or null when it may name
+	 * any of them.
 	 *
-	 * @param list<\OCA\Attendance\Db\Appointment> $appointments
-	 * @return list<string>
+	 * Mirrors the rule the response summary sections by
+	 * (ResponseSummaryService::isGroupAllowedCached), so the sheet says what
+	 * the overview shows. In order: the admin's group list decides when the
+	 * mode is "specific"; otherwise the groups a restricted appointment names
+	 * decide, because those are what let people in (issue #252); otherwise
+	 * every group counts in "all" mode and none in "none".
+	 *
+	 * A run covering several appointments takes the union of their
+	 * restrictions — one column cannot answer per appointment.
+	 *
+	 * @param list<Appointment> $appointments
+	 * @param array<array-key, string> $whitelistedGroups
+	 * @return ?list<string> null means "any group"
 	 */
-	private function accessGroupsOf(array $appointments): array {
-		$groups = [];
+	private function nameableGroups(array $appointments, array $whitelistedGroups): ?array {
+		if ($this->configService->getResponseSummaryGroupsMode() === ConfigService::RESPONSE_SUMMARY_MODE_SPECIFIC) {
+			return array_values(array_map('strtolower', $whitelistedGroups));
+		}
+
+		$restrictionGroups = [];
 		foreach ($appointments as $appointment) {
-			foreach ($this->visibilityService->getVisibilitySettings($appointment)['groups'] as $groupId) {
-				$groups[$groupId] = true;
+			// A numerically-named group decodes to an int out of the JSON column.
+			$groups = array_map('strval', $this->visibilityService->getVisibilitySettings($appointment)['groups']);
+			foreach ($groups as $groupId) {
+				$restrictionGroups[strtolower($groupId)] = true;
 			}
 		}
-		// A numeric group id comes back from array_keys() as an int.
-		return array_map('strval', array_keys($groups));
+		if ($restrictionGroups !== []) {
+			return array_keys($restrictionGroups);
+		}
+
+		return $this->configService->getResponseSummaryGroupsMode() === ConfigService::RESPONSE_SUMMARY_MODE_ALL
+			? null
+			: [];
 	}
 
 	/**
-	 * The user's groups with the ones granting access to the export first.
+	 * The group cell for one person: every group of theirs the column may
+	 * name, comma-separated, because that is exactly the set of sections they
+	 * appear under in the overview. "Others" when none qualifies — which is
+	 * also what a person with no tracked group gets there.
 	 *
-	 * The group column answers "through which group is this person here?", and
-	 * the plain membership order is alphabetical: somebody in "alto" and
-	 * "board" was exported as "alto" even on an appointment only the board
-	 * could see (issue #252). Reordering rather than filtering keeps every
-	 * other rule intact — a whitelist still decides among what is left, and
-	 * somebody reached through a team or a direct invitation keeps their
-	 * ordinary group.
+	 * The Guests app's system group stays out unless an admin put it on the
+	 * list, mirroring ResponseSummaryService::isGroupVisibleAsSection: every
+	 * guest belongs to it, so it groups nothing.
 	 *
 	 * @param list<string> $userGroups
-	 * @param list<string> $accessGroups
-	 * @return list<string>
+	 * @param ?list<string> $nameable Lowercased, or null for "any group"
 	 */
-	private function groupsByRelevance(array $userGroups, array $accessGroups): array {
-		if ($accessGroups === []) {
-			return $userGroups;
-		}
-		$granting = array_values(array_intersect($userGroups, $accessGroups));
-		return array_merge($granting, array_values(array_diff($userGroups, $granting)));
+	private function groupCell(array $userGroups, ?array $nameable): string {
+		$named = array_values(array_filter(
+			$userGroups,
+			static fn (string $groupId): bool => (!GuestService::isGuestsSystemGroup($groupId)
+					|| ($nameable !== null && in_array(GuestService::GUESTS_SYSTEM_GROUP, $nameable, true)))
+				&& ($nameable === null || in_array(strtolower($groupId), $nameable, true)),
+		));
+
+		return $named === [] ? $this->l10n->t('Others') : implode(', ', $named);
 	}
 
 	/**
@@ -182,35 +204,21 @@ class ExportService {
 		}
 
 		// Get user display names and groups
-		$whitelistedGroups = $this->configService->getWhitelistedGroups();
-		$accessGroups = $this->accessGroupsOf($appointments);
+		$nameableGroups = $this->nameableGroups(
+			$appointments,
+			$this->configService->getWhitelistedGroups(),
+		);
 		$users = [];
 		foreach (array_keys($allUserIds) as $uid) {
 			$user = $this->userManager->get($uid);
 			if ($user) {
-				$userGroups = $this->groupsByRelevance(
-					$this->groupManager->getUserGroupIds($user),
-					$accessGroups,
-				);
-
-				// Find first whitelisted group or use "Others"
-				$userGroup = $this->l10n->t('Others');
-				if (!empty($whitelistedGroups)) {
-					foreach ($userGroups as $groupId) {
-						if (in_array($groupId, $whitelistedGroups)) {
-							$userGroup = $groupId;
-							break;
-						}
-					}
-				} else {
-					// If no whitelist, use first group or "Others"
-					$userGroup = !empty($userGroups) ? $userGroups[0] : $this->l10n->t('Others');
-				}
-
 				$users[] = [
 					'userId' => $uid,
 					'displayName' => $user->getDisplayName(),
-					'group' => $userGroup,
+					'group' => $this->groupCell(
+						$this->groupManager->getUserGroupIds($user),
+						$nameableGroups,
+					),
 				];
 			}
 		}
@@ -327,13 +335,14 @@ class ExportService {
 	private function getTableXml(array $appointments, array $users, array $appointmentResponses, ExportOptions $options): string {
 		$columns = $this->columnsFor($options);
 		$span = count($columns);
+		$leading = $options->leadingColumns();
 
 		$xml = '
 			<table:table table:name="Attendance" table:print="false">';
 
 		// Add column definitions
 		$xml .= '
-				<table:table-column table:style-name="co1" table:number-columns-repeated="2"/>';
+				<table:table-column table:style-name="co1" table:number-columns-repeated="' . $leading . '"/>';
 		$xml .= '
 				<table:table-column table:style-name="co2" table:number-columns-repeated="' . (count($appointments) * $span) . '"/>';
 
@@ -342,10 +351,8 @@ class ExportService {
 				<table:table-row>
 					<table:table-cell table:style-name="' . OdsWriter::STYLE_HEADER . '" office:value-type="string">
 						<text:p>Name</text:p>
-					</table:table-cell>
-					<table:table-cell table:style-name="' . OdsWriter::STYLE_HEADER . '" office:value-type="string">
-						<text:p>' . $this->l10n->t('Group') . '</text:p>
-					</table:table-cell>';
+					</table:table-cell>'
+			. ($options->includeGroup ? $this->plainCell(OdsWriter::STYLE_HEADER, $this->l10n->t('Group')) : '');
 
 		foreach ($appointments as $appointment) {
 			$xml .= $this->mergedCell(OdsWriter::STYLE_HEADER, $this->odsWriter->escape($appointment->getName()), $span);
@@ -356,13 +363,8 @@ class ExportService {
 
 		// Add second header row with dates
 		$xml .= '
-				<table:table-row>
-					<table:table-cell table:style-name="' . OdsWriter::STYLE_HEADER . '" office:value-type="string">
-						<text:p></text:p>
-					</table:table-cell>
-					<table:table-cell table:style-name="' . OdsWriter::STYLE_HEADER . '" office:value-type="string">
-						<text:p></text:p>
-					</table:table-cell>';
+				<table:table-row>'
+			. str_repeat($this->plainCell(OdsWriter::STYLE_HEADER, ''), $leading);
 
 		foreach ($appointments as $appointment) {
 			$startDate = date('Y-m-d', strtotime($appointment->getStartDatetime()));
@@ -377,13 +379,8 @@ class ExportService {
 
 		// Add third header row with the labels of the columns that are switched on
 		$xml .= '
-				<table:table-row>
-					<table:table-cell table:style-name="' . OdsWriter::STYLE_HEADER . '" office:value-type="string">
-						<text:p></text:p>
-					</table:table-cell>
-					<table:table-cell table:style-name="' . OdsWriter::STYLE_HEADER . '" office:value-type="string">
-						<text:p></text:p>
-					</table:table-cell>';
+				<table:table-row>'
+			. str_repeat($this->plainCell(OdsWriter::STYLE_HEADER, ''), $leading);
 
 		foreach ($appointments as $appointment) {
 			foreach ($columns as $column) {
@@ -403,10 +400,8 @@ class ExportService {
 				<table:table-row>
 					<table:table-cell table:style-name="' . OdsWriter::STYLE_CELL . '" office:value-type="string">
 						<text:p>' . $this->odsWriter->escape($user['displayName']) . '</text:p>
-					</table:table-cell>
-					<table:table-cell table:style-name="' . OdsWriter::STYLE_CELL . '" office:value-type="string">
-						<text:p>' . $this->odsWriter->escape($user['group']) . '</text:p>
-					</table:table-cell>';
+					</table:table-cell>'
+				. ($options->includeGroup ? $this->plainCell(OdsWriter::STYLE_CELL, $this->odsWriter->escape($user['group'])) : '');
 
 			foreach ($appointments as $appointment) {
 				$response = $appointmentResponses[$appointment->getId()][$user['userId']] ?? null;
@@ -425,13 +420,24 @@ class ExportService {
 		}
 
 		if ($options->includeOrganizers) {
-			$xml .= $this->getOrganizerRowXml($appointments, $span);
+			$xml .= $this->getOrganizerRowXml($appointments, $span, $leading);
 		}
 
 		$xml .= '
 			</table:table>';
 
 		return $xml;
+	}
+
+	/**
+	 * One plain cell. The identity columns are written through this so the four
+	 * rows that start with them cannot drift apart when one is switched off.
+	 */
+	private function plainCell(string $style, string $text): string {
+		return '
+					<table:table-cell table:style-name="' . $style . '" office:value-type="string">
+						<text:p>' . $text . '</text:p>
+					</table:table-cell>';
 	}
 
 	/**
@@ -464,15 +470,13 @@ class ExportService {
 	 *
 	 * @param list<Appointment> $appointments
 	 */
-	private function getOrganizerRowXml(array $appointments, int $span): string {
+	private function getOrganizerRowXml(array $appointments, int $span, int $leading): string {
 		$xml = '
 				<table:table-row>
 					<table:table-cell table:style-name="' . OdsWriter::STYLE_HEADER . '" office:value-type="string">
 						<text:p>' . $this->l10n->t('Organizers') . '</text:p>
-					</table:table-cell>
-					<table:table-cell table:style-name="' . OdsWriter::STYLE_CELL . '" office:value-type="string">
-						<text:p></text:p>
-					</table:table-cell>';
+					</table:table-cell>'
+			. str_repeat($this->plainCell(OdsWriter::STYLE_CELL, ''), $leading - 1);
 
 		foreach ($appointments as $appointment) {
 			$names = $this->resolveOrganizerNames($appointment->getOrganizersList());

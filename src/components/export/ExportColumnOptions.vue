@@ -20,6 +20,11 @@
 			{{ t('attendance', 'Select at least one column') }}
 		</NcNoteCard>
 
+		<NcCheckboxRadioSwitch v-model="columns.includeGroup" type="checkbox" class="organizer-option">
+			<!-- TRANSLATORS: Export option. The column names the groups a person is listed under in the response summary. -->
+			{{ t('attendance', 'Add a group column next to the names') }}
+		</NcCheckboxRadioSwitch>
+
 		<NcCheckboxRadioSwitch v-model="columns.includeOrganizers" type="checkbox" class="organizer-option">
 			{{ t('attendance', 'Add a row with the organizers of each appointment') }}
 		</NcCheckboxRadioSwitch>

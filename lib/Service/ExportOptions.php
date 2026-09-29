@@ -27,6 +27,7 @@ final class ExportOptions {
 		public readonly bool $includeCheckin,
 		public readonly bool $includeComments,
 		public readonly bool $includeOrganizers,
+		public readonly bool $includeGroup,
 	) {
 	}
 
@@ -36,9 +37,9 @@ final class ExportOptions {
 	 * down — the mapper treats both the same, the caller should not have to
 	 * know that.
 	 *
-	 * RSVP and check-in default to on and comments to off, which is what the
-	 * export produced before the columns became switchable — an older client
-	 * that sends neither still gets the same file.
+	 * RSVP, check-in and the group column default to on and comments to off,
+	 * which is what the export produced before the columns became switchable —
+	 * an older client that sends neither still gets the same file.
 	 *
 	 * @param ?list<int> $appointmentIds
 	 * @param ?list<string> $seriesIds
@@ -52,6 +53,7 @@ final class ExportOptions {
 		bool $includeCheckin = true,
 		bool $includeComments = false,
 		bool $includeOrganizers = false,
+		bool $includeGroup = true,
 	): self {
 		return new self(
 			$appointmentIds === [] ? null : $appointmentIds,
@@ -62,7 +64,16 @@ final class ExportOptions {
 			$includeCheckin,
 			$includeComments,
 			$includeOrganizers,
+			$includeGroup,
 		);
+	}
+
+	/**
+	 * The identity columns every row starts with: the name, and the group when
+	 * it is switched on.
+	 */
+	public function leadingColumns(): int {
+		return 1 + (int)$this->includeGroup;
 	}
 
 	/**

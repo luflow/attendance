@@ -1024,6 +1024,7 @@ OC.L10N.register(
     "Vacation" : "Urlaub",
     "Visible to the whole team on the vacation calendar." : "Im Urlaubskalender für das gesamte Team sichtbar.",
     "{count} appointments set to \"No\"" : "{count} Termine auf „Nein“ gesetzt",
-    "{count} people can't attend at this time — their answer defaults to \"No\"" : "{count} Personen können zu dieser Zeit nicht teilnehmen — ihre Antwort steht standardmäßig auf „Nein“"
+    "{count} people can't attend at this time — their answer defaults to \"No\"" : "{count} Personen können zu dieser Zeit nicht teilnehmen — ihre Antwort steht standardmäßig auf „Nein“",
+    "Add a group column next to the names" : "Gruppenspalte neben den Namen ergänzen"
 },
 "nplurals=2; plural=(n != 1);");

@@ -212,6 +212,7 @@
       <code><![CDATA[$id]]></code>
       <code><![CDATA[$includeCheckin]]></code>
       <code><![CDATA[$includeComments]]></code>
+      <code><![CDATA[$includeGroup]]></code>
       <code><![CDATA[$includeOrganizers]]></code>
       <code><![CDATA[$includeRsvp]]></code>
       <code><![CDATA[$location]]></code>

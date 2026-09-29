@@ -7069,6 +7069,11 @@
                                         "type": "boolean",
                                         "default": false,
                                         "description": "Whether to append a row listing each appointment's organizers"
+                                    },
+                                    "includeGroup": {
+                                        "type": "boolean",
+                                        "default": true,
+                                        "description": "Whether to include the group column next to the names"
                                     }
                                 }
                             }
