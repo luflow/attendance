@@ -8,7 +8,7 @@
     findUnusedBaselineEntry="true"
     findUnusedCode="true"
 	phpVersion="8.1"
-    errorBaseline="/private/tmp/claude-502/-Users-FlorianLudwig-Projekte-nextcloud-apps-attendance/f484f655-0927-4d5c-baba-2f2ff4025f36/scratchpad/fresh-baseline.xml"
+    errorBaseline="psalm-baseline.xml"
 >
     <projectFiles>
         <directory name="lib" />

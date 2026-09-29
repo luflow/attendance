@@ -1,6 +1,4 @@
-import { test, expect, authHeaders, createAppointmentViaAPI, deleteAllAppointments, checkinUserViaAPI } from './fixtures/nextcloud.js'
-
-const API_BASE = `${process.env.NEXTCLOUD_URL || 'http://localhost:8080'}/index.php`
+import { test, expect, createAppointmentViaAPI, deleteAllAppointments, checkinUserViaAPI, getResponseSummaryViaAPI } from './fixtures/nextcloud.js'
 
 let checkinAppointmentId
 
@@ -171,12 +169,7 @@ test.describe('Attendance App - Bulk Operations', () => {
 		})
 		await checkinUserViaAPI(request, appointment.id, 'test', { response: 'yes' })
 
-		const resp = await request.get(
-			`${API_BASE}/apps/attendance/api/appointments/${appointment.id}`,
-			{ headers: authHeaders() },
-		)
-		expect(resp.ok()).toBeTruthy()
-		const summary = (await resp.json()).responseSummary
+		const summary = await getResponseSummaryViaAPI(request, appointment.id)
 
 		// No answer given, so they are a non-responder — carrying the attendance.
 		expect(summary.yes).toBe(0)

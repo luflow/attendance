@@ -1668,11 +1668,16 @@ class AppointmentService {
 	public function getNonRespondingUserIds(Appointment $appointment): array {
 		$appointmentId = $appointment->getId();
 
-		// Get all responses for this appointment
+		// Get all responses for this appointment. Checking somebody in writes a
+		// row without an answer, so having a row is a different question:
+		// those people are still non-responders, which is how the summary and
+		// the 'both' target below list them.
 		$responses = $this->responseMapper->findByAppointment($appointmentId);
 		$respondedUserIds = [];
 		foreach ($responses as $response) {
-			$respondedUserIds[$response->getUserId()] = true;
+			if ($response->getResponse() !== null) {
+				$respondedUserIds[$response->getUserId()] = true;
+			}
 		}
 
 		// Get all relevant users

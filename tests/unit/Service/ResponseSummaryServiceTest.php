@@ -218,7 +218,7 @@ class ResponseSummaryServiceTest extends TestCase {
 		$appointmentId = 9;
 		$appointment = new Appointment();
 		$appointment->setId($appointmentId);
-		$appointment->setVisibleUsers(json_encode(['wilfried']));
+		$appointment->setVisibleUsers(json_encode(['wilfried', 'no_show']));
 		$appointment->setVisibleGroups('[]');
 		$appointment->setVisibleTeams('[]');
 
@@ -235,55 +235,29 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->configService->method('getWhitelistedTeams')->willReturn([]);
 
 		$this->visibilityService->method('getVisibilitySettings')
-			->willReturn(['users' => ['wilfried'], 'groups' => [], 'teams' => []]);
+			->willReturn(['users' => ['wilfried', 'no_show'], 'groups' => [], 'teams' => []]);
 		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(true);
 		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
 
 		$wilfried = $this->createMock(IUser::class);
 		$wilfried->method('getUID')->willReturn('wilfried');
 		$wilfried->method('getDisplayName')->willReturn('Wilfried');
+		$noShow = $this->createMock(IUser::class);
+		$noShow->method('getUID')->willReturn('no_show');
+		$noShow->method('getDisplayName')->willReturn('No Show');
 		$this->userManager->method('get')->willReturn($wilfried);
 		$this->groupManager->method('getUserGroups')->willReturn([]);
-		$this->visibilityService->method('getTargetAttendees')->willReturn(['wilfried' => $wilfried]);
+		$this->visibilityService->method('getTargetAttendees')
+			->willReturn(['wilfried' => $wilfried, 'no_show' => $noShow]);
 
 		$summary = $this->service->getResponseSummary($appointmentId);
 
-		$this->assertSame(1, $summary['no_response']);
-		$entry = $summary['non_responding_users'][0];
-		$this->assertSame('wilfried', $entry['userId']);
+		// Both never answered; only one of them turned up.
+		$this->assertSame(2, $summary['no_response']);
+		$byId = array_column($summary['non_responding_users'], null, 'userId');
 		// 'yes' is the check-in scale's "present", not an answer.
-		$this->assertSame('yes', $entry['checkinState']);
-	}
-
-	public function testGetResponseSummaryLeavesTheCheckinNullForSomebodyWhoNeverTurnedUp(): void {
-		$appointmentId = 10;
-		$appointment = new Appointment();
-		$appointment->setId($appointmentId);
-		$appointment->setVisibleUsers(json_encode(['wilfried']));
-		$appointment->setVisibleGroups('[]');
-		$appointment->setVisibleTeams('[]');
-
-		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
-		$this->responseMapper->method('findByAppointment')->willReturn([]);
-
-		$this->configService->method('getWhitelistedGroups')->willReturn([]);
-		$this->configService->method('getResponseSummaryGroupsMode')->willReturn(ConfigService::RESPONSE_SUMMARY_MODE_NONE);
-		$this->configService->method('getWhitelistedTeams')->willReturn([]);
-
-		$this->visibilityService->method('getVisibilitySettings')
-			->willReturn(['users' => ['wilfried'], 'groups' => [], 'teams' => []]);
-		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(true);
-		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
-
-		$wilfried = $this->createMock(IUser::class);
-		$wilfried->method('getUID')->willReturn('wilfried');
-		$wilfried->method('getDisplayName')->willReturn('Wilfried');
-		$this->groupManager->method('getUserGroups')->willReturn([]);
-		$this->visibilityService->method('getTargetAttendees')->willReturn(['wilfried' => $wilfried]);
-
-		$summary = $this->service->getResponseSummary($appointmentId);
-
-		$this->assertNull($summary['non_responding_users'][0]['checkinState']);
+		$this->assertSame('yes', $byId['wilfried']['checkinState']);
+		$this->assertNull($byId['no_show']['checkinState']);
 	}
 
 	/**
