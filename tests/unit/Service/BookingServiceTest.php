@@ -193,6 +193,47 @@ class BookingServiceTest extends TestCase {
 		$this->assertSame(['booked' => 0, 'declined' => 0], $sent);
 	}
 
+	/**
+	 * Regression for issue #250: close → reopen → un-schedule the only booked
+	 * person → close again. The "nobody booked" guard used to skip the wave, so
+	 * the earlier "you are scheduled" stayed the last word and the appointment
+	 * kept saying "Scheduled".
+	 */
+	public function testNotifyOnCloseTakesBackAVerdictAfterEverybodyWasUnscheduled(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+		$alice = $this->response('alice', 'yes', null, BookingService::STATUS_BOOKED);
+		$this->responseMapper->method('findByAppointment')->willReturn([$alice]);
+
+		$calls = [];
+		$this->notificationService->method('sendBookingNotification')
+			->willReturnCallback(function ($appt, $userId, $status) use (&$calls): void {
+				$calls[$userId] = $status;
+			});
+		$this->responseMapper->expects($this->once())->method('update')->willReturnArgument(0);
+
+		$sent = $this->service->notifyOnClose($this->appointment());
+
+		$this->assertSame(['booked' => 0, 'declined' => 1], $sent);
+		$this->assertSame(BookingService::STATUS_DECLINED, $calls['alice']);
+		// And the appointment stops claiming she has a place.
+		$this->assertSame(BookingService::STATUS_DECLINED, $this->service->effectiveBookingStatus($alice));
+	}
+
+	public function testNotifyOnCloseStaysSilentWhenPlanningWasNeverUsed(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+		// Nobody booked and nobody ever told anything — the manager does not use
+		// the feature, so closing must not start notifying now.
+		$this->responseMapper->method('findByAppointment')->willReturn([
+			$this->response('alice', 'yes'),
+			$this->response('bob', 'yes'),
+		]);
+		$this->notificationService->expects($this->never())->method('sendBookingNotification');
+		$this->responseMapper->expects($this->never())->method('update');
+
+		$sent = $this->service->notifyOnClose($this->appointment());
+		$this->assertSame(['booked' => 0, 'declined' => 0], $sent);
+	}
+
 	private function appointment(): Appointment {
 		$a = new Appointment();
 		$a->setId(5);

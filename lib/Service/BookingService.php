@@ -172,8 +172,8 @@ class BookingService {
 	 * column on the row the caller already holds.
 	 *
 	 * The wave's own guards come along for free — it skips anyone who did not
-	 * answer yes, and it does not run at all unless somebody got a place, so an
-	 * appointment where planning was never used stays unmarked.
+	 * answer yes, and it stays silent on an appointment where planning was
+	 * never used, so those stay unmarked.
 	 */
 	public function effectiveBookingStatus(AttendanceResponse $response): ?string {
 		return self::effectiveStatusOf($response->getBookingStatus(), $response->getBookingNotifiedStatus());
@@ -190,12 +190,29 @@ class BookingService {
 	}
 
 	/**
+	 * Whether an earlier close already told anyone where they stood on this
+	 * appointment. Distinguishes "the manager does not use planning" from
+	 * "the manager used it and has since taken everybody back out".
+	 *
+	 * @param array<AttendanceResponse> $responses
+	 */
+	private function anyVerdictCommunicated(array $responses): bool {
+		foreach ($responses as $response) {
+			if ($response->getBookingNotifiedStatus() !== null) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Notification wave triggered when an appointment is closed: tell booked
 	 * yes-responders they are planned in and the remaining yes-responders they
 	 * are not. Rules:
-	 *  - Only fires when at least one person is booked. Zero bookings → closing
-	 *    behaves exactly as before (no notification), protecting managers who
-	 *    don't use the feature even while it is enabled.
+	 *  - Only fires once somebody is booked, or once an earlier close already
+	 *    told people where they stood. An appointment nobody was ever scheduled
+	 *    for stays silent, protecting managers who don't use the feature even
+	 *    while it is enabled.
 	 *  - Reopen-safe: each response remembers the last state communicated to it
 	 *    (bookingNotifiedStatus). Re-closing only notifies people whose effective
 	 *    status changed since — no duplicate notifications.
@@ -226,8 +243,11 @@ class BookingService {
 			}
 		}
 
-		// Wave only when at least one person is booked.
-		if ($bookedCount === 0) {
+		// Wave only when at least one person is booked — unless an earlier close
+		// already handed out a verdict. Un-scheduling everybody and closing
+		// again has to take that back; leaving it would keep telling people they
+		// have a place they no longer hold (issue #250).
+		if ($bookedCount === 0 && !$this->anyVerdictCommunicated($responses)) {
 			return $sent;
 		}
 
