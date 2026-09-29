@@ -478,8 +478,9 @@ class AppointmentService {
 		);
 
 		// Booking wave: notify planned-in / not-planned-in yes-responders. No-op
-		// unless the feature is on AND at least one person is booked; reopen-safe
-		// (only diffs against the last communicated state).
+		// unless the feature is on and somebody is booked — or an earlier close
+		// handed out a verdict that now has to be taken back. Reopen-safe:
+		// only diffs against the last communicated state.
 		$this->bookingService->notifyOnClose($updated);
 
 		$this->talkRoomService->openOrSync($updated);

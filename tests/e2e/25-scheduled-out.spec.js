@@ -150,25 +150,13 @@ test.describe('Scheduling — hiding appointments the user was scheduled out of'
 	// standing — and the appointment kept saying so.
 	test('un-scheduling everybody and re-closing takes the verdict back', async ({ request }) => {
 		await forceWipeAllAppointments(request)
-		const appointment = await createAppointmentViaAPI(request, {
-			name: 'Unschedule After Reopen',
-			daysFromNow: 0.01,
-		})
-		await respondToAppointmentViaAPI(request, appointment.id, {
-			response: 'yes',
-			username: 'test',
-			password: 'test',
-		})
-
-		expect(await bookUser(request, appointment.id, 'test')).toBe(200)
-		await closeAppointmentViaAPI(request, appointment.id)
+		const appointment = await closedInquiryWith(request, 'Unschedule After Reopen', ['test'])
 
 		const whileScheduled = await listAppointments(request, { username: 'test', password: 'test' })
 		expect(whileScheduled.find(a => a.name === 'Unschedule After Reopen').userResponse.bookingStatus)
 			.toBe('booked')
 
-		// Scheduling is frozen while closed, so reopening is the documented way
-		// to change it.
+		// Reopening is the documented way to change a frozen plan.
 		await reopenAppointmentViaAPI(request, appointment.id)
 		expect(await unbookUser(request, appointment.id, 'test')).toBe(200)
 		await closeAppointmentViaAPI(request, appointment.id)

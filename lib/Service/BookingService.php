@@ -108,9 +108,12 @@ class BookingService {
 	/**
 	 * Whether the user was scheduled out of an appointment: planning is on, the
 	 * inquiry is closed, at least one person got a place — and this user did
-	 * not. The mirror image of the notifyOnClose() wave below, kept next to it
-	 * on purpose: exactly the people told "you are not scheduled" are the ones
-	 * callers may hide the appointment from.
+	 * not. Kept next to the notifyOnClose() wave below on purpose: the people
+	 * told "you are not scheduled" while somebody else holds a place are
+	 * exactly the ones callers may hide the appointment from. The wave has one
+	 * case this does not follow, deliberately — it retracts an earlier verdict
+	 * once nobody is scheduled any more, and an appointment nobody holds a
+	 * place in stays visible to everyone.
 	 *
 	 * Everything softer stays visible: an open inquiry has decided nothing yet,
 	 * and an appointment nobody was scheduled for is one where the manager
@@ -190,29 +193,13 @@ class BookingService {
 	}
 
 	/**
-	 * Whether an earlier close already told anyone where they stood on this
-	 * appointment. Distinguishes "the manager does not use planning" from
-	 * "the manager used it and has since taken everybody back out".
-	 *
-	 * @param array<AttendanceResponse> $responses
-	 */
-	private function anyVerdictCommunicated(array $responses): bool {
-		foreach ($responses as $response) {
-			if ($response->getBookingNotifiedStatus() !== null) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
 	 * Notification wave triggered when an appointment is closed: tell booked
 	 * yes-responders they are planned in and the remaining yes-responders they
 	 * are not. Rules:
-	 *  - Only fires once somebody is booked, or once an earlier close already
-	 *    told people where they stood. An appointment nobody was ever scheduled
-	 *    for stays silent, protecting managers who don't use the feature even
-	 *    while it is enabled.
+	 *  - Fires once somebody is booked. With nobody booked it only retracts
+	 *    verdicts an earlier close handed out; an appointment nobody was ever
+	 *    scheduled for stays silent, protecting managers who don't use the
+	 *    feature even while it is enabled.
 	 *  - Reopen-safe: each response remembers the last state communicated to it
 	 *    (bookingNotifiedStatus). Re-closing only notifies people whose effective
 	 *    status changed since — no duplicate notifications.
@@ -229,7 +216,7 @@ class BookingService {
 
 		// Effective status per yes-responder: booked → 'booked', otherwise 'declined'.
 		$targets = [];
-		$bookedCount = 0;
+		$anyBooked = false;
 		foreach ($responses as $response) {
 			if ($response->getResponse() !== 'yes') {
 				continue;
@@ -238,17 +225,24 @@ class BookingService {
 				? self::STATUS_BOOKED
 				: self::STATUS_DECLINED;
 			$targets[] = [$response, $status];
-			if ($status === self::STATUS_BOOKED) {
-				$bookedCount++;
-			}
+			$anyBooked = $anyBooked || $status === self::STATUS_BOOKED;
 		}
 
-		// Wave only when at least one person is booked — unless an earlier close
-		// already handed out a verdict. Un-scheduling everybody and closing
-		// again has to take that back; leaving it would keep telling people they
-		// have a place they no longer hold (issue #250).
-		if ($bookedCount === 0 && !$this->anyVerdictCommunicated($responses)) {
-			return $sent;
+		if (!$anyBooked) {
+			// Nobody holds a place, which normally means the manager does not
+			// use planning at all and closing stays silent. The exception is a
+			// verdict an earlier close handed out: un-scheduling everybody has
+			// to take that back rather than leave people on a place they no
+			// longer hold (issue #250). Only those people — telling anyone else
+			// "not scheduled" would be a verdict on an appointment where nobody
+			// was scheduled at all.
+			$targets = array_filter(
+				$targets,
+				static fn (array $target): bool => $target[0]->getBookingNotifiedStatus() !== null,
+			);
+			if ($targets === []) {
+				return $sent;
+			}
 		}
 
 		$now = gmdate('Y-m-d H:i:s');
