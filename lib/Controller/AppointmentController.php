@@ -1302,9 +1302,11 @@ class AppointmentController extends Controller {
 		}
 
 		// Managers and users allowed to create appointments need the picker
-		// for visibility/organizer fields; organizers need it in the edit form.
+		// for visibility/organizer fields; organizers need it in the edit form;
+		// admins need it for the response-summary-teams admin setting.
 		if (!$this->permissionService->canCreateAppointments($user->getUID())
-			&& !$this->appointmentService->isOrganizerAnywhere($user->getUID())) {
+			&& !$this->appointmentService->isOrganizerAnywhere($user->getUID())
+			&& !$this->permissionService->isAdmin($user->getUID())) {
 			return new DataResponse(['error' => 'Insufficient permissions'], 403);
 		}
 
