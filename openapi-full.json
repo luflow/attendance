@@ -7984,7 +7984,8 @@
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "events"
+                                        "events",
+                                        "importedIds"
                                     ],
                                     "properties": {
                                         "events": {
@@ -7994,6 +7995,12 @@
                                                 "additionalProperties": {
                                                     "type": "object"
                                                 }
+                                            }
+                                        },
+                                        "importedIds": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
                                             }
                                         }
                                     }
