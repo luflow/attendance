@@ -57,25 +57,34 @@ class VisibilityService {
 	 * @return bool True if the user can see the appointment
 	 */
 	public function canUserSeeAppointment(Appointment $appointment, string $userId): bool {
-		// Users with manage_appointments permission can always see all appointments
-		if ($this->permissionService->hasPermission($userId, PermissionService::PERMISSION_MANAGE_APPOINTMENTS)) {
+		// see_all_appointments lifts the audience restriction; managers hold it
+		// implicitly.
+		if ($this->permissionService->canSeeAllAppointments($userId)) {
 			return true;
 		}
 
+		return $this->isUserOwnAppointment($appointment, $userId);
+	}
+
+	/**
+	 * "Mine": the user is part of the target audience or organizes it. This is
+	 * what the appointment list scopes to without see_all_appointments, and
+	 * what the "My appointments" view shows to everyone.
+	 */
+	public function isUserOwnAppointment(Appointment $appointment, string $userId): bool {
 		// Organizers always see their own appointment, even when they are not
 		// part of the visibility target audience.
-		if ($this->permissionService->isOrganizer($appointment, $userId)) {
-			return true;
-		}
-
-		return $this->isUserTargetAttendee($appointment, $userId);
+		return $this->permissionService->isOrganizer($appointment, $userId)
+			|| $this->isUserTargetAttendee($appointment, $userId);
 	}
 
 	/**
 	 * Check if a user is a target attendee for an appointment.
 	 *
-	 * Unlike canUserSeeAppointment(), this does NOT include admin bypass.
-	 * Use this for check-in lists where you only want actual attendees.
+	 * The narrowest of the three scopes: unlike isUserOwnAppointment() it
+	 * leaves out organizers, and unlike canUserSeeAppointment() the see-all
+	 * bypass. Use it where you want the people actually asked — check-in
+	 * lists, the unanswered inbox, the dashboard widget.
 	 *
 	 * @param Appointment $appointment The appointment to check
 	 * @param string $userId The user ID to check

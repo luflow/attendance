@@ -29,6 +29,15 @@ class PermissionService {
 	private array $rolesCache = [];
 	/** @var array<string, string> */
 	private array $modeCache = [];
+	/**
+	 * Resolved per-user answers, keyed "userId|permission". The list endpoints
+	 * ask the same question for the same user once per appointment (and, in
+	 * ResponseService, once per attendee), and a MODE_GROUPS answer costs a
+	 * user lookup plus the group list every time.
+	 *
+	 * @var array<string, bool>
+	 */
+	private array $permissionCache = [];
 
 	public const PERMISSION_MANAGE_APPOINTMENTS = 'manage_appointments';
 	public const PERMISSION_CHECKIN = 'checkin';
@@ -39,6 +48,7 @@ class PermissionService {
 	public const PERMISSION_CREATE_APPOINTMENTS = 'create_appointments';
 	public const PERMISSION_RESPOND_FOR_OTHERS = 'respond_for_others';
 	public const PERMISSION_SEE_STATISTICS = 'see_statistics';
+	public const PERMISSION_SEE_ALL_APPOINTMENTS = 'see_all_appointments';
 
 	public const MODE_ALL = 'all';
 	public const MODE_GROUPS = 'groups';
@@ -56,6 +66,7 @@ class PermissionService {
 		self::PERMISSION_CREATE_APPOINTMENTS,
 		self::PERMISSION_RESPOND_FOR_OTHERS,
 		self::PERMISSION_SEE_STATISTICS,
+		self::PERMISSION_SEE_ALL_APPOINTMENTS,
 	];
 
 	private const GUEST_BLOCKED_PERMISSIONS = [
@@ -64,6 +75,7 @@ class PermissionService {
 		self::PERMISSION_CREATE_APPOINTMENTS,
 		self::PERMISSION_RESPOND_FOR_OTHERS,
 		self::PERMISSION_SEE_STATISTICS,
+		self::PERMISSION_SEE_ALL_APPOINTMENTS,
 	];
 
 	/**
@@ -77,6 +89,7 @@ class PermissionService {
 		self::PERMISSION_CREATE_APPOINTMENTS,
 		self::PERMISSION_RESPOND_FOR_OTHERS,
 		self::PERMISSION_SEE_STATISTICS,
+		self::PERMISSION_SEE_ALL_APPOINTMENTS,
 	];
 
 	public function __construct(
@@ -124,6 +137,7 @@ class PermissionService {
 		$this->config->setAppValue('attendance', $configKey, json_encode($roles, JSON_THROW_ON_ERROR));
 		$this->rolesCache[$permission] = $roles;
 		unset($this->usersWithCache[$permission]);
+		$this->permissionCache = [];
 	}
 
 	/**
@@ -174,6 +188,7 @@ class PermissionService {
 		}
 		$this->appConfig->setValueString('attendance', 'permission_' . $permission . '_mode', $mode);
 		$this->modeCache[$permission] = $mode;
+		// setRolesForPermission drops the resolved per-user answers.
 		$this->setRolesForPermission($permission, $groups);
 	}
 
@@ -181,31 +196,37 @@ class PermissionService {
 	 * Check if a user has a specific permission
 	 */
 	public function hasPermission(string $userId, string $permission): bool {
+		$cacheKey = $userId . '|' . $permission;
+		if (isset($this->permissionCache[$cacheKey])) {
+			return $this->permissionCache[$cacheKey];
+		}
+
 		// Guests must never gain management permissions, regardless of how
 		// groups are configured. Runs before the role lookup so accidental
 		// whitelisting of the `guest_app` group cannot grant admin actions.
 		if (in_array($permission, self::GUEST_BLOCKED_PERMISSIONS, true)
 			&& $this->guestService->isGuestUser($userId)) {
-			return false;
+			return $this->permissionCache[$cacheKey] = false;
 		}
 
 		$mode = $this->getModeForPermission($permission);
 		if ($mode === self::MODE_ALL) {
-			return true;
+			return $this->permissionCache[$cacheKey] = true;
 		}
 		if ($mode === self::MODE_NOBODY) {
-			return false;
+			return $this->permissionCache[$cacheKey] = false;
 		}
 
 		// Get user object and their groups
 		$user = $this->userManager->get($userId);
 		if (!$user) {
-			return false;
+			return $this->permissionCache[$cacheKey] = false;
 		}
 
 		$userGroups = $this->groupManager->getUserGroupIds($user);
 
-		return !empty(array_intersect($this->getRolesForPermission($permission), $userGroups));
+		return $this->permissionCache[$cacheKey]
+			= !empty(array_intersect($this->getRolesForPermission($permission), $userGroups));
 	}
 
 	/**
@@ -399,6 +420,16 @@ class PermissionService {
 	 */
 	public function canSeeStatistics(string $userId): bool {
 		return $this->hasPermission($userId, self::PERMISSION_SEE_STATISTICS);
+	}
+
+	/**
+	 * Check if user may see every appointment on the instance, not just the
+	 * ones addressed to them or organized by them. Managers hold it implicitly
+	 * — they can edit any appointment, so hiding it from them is pointless.
+	 */
+	public function canSeeAllAppointments(string $userId): bool {
+		return $this->hasPermission($userId, self::PERMISSION_SEE_ALL_APPOINTMENTS)
+			|| $this->canManageAppointments($userId);
 	}
 
 	/**

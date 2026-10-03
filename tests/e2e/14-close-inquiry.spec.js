@@ -262,11 +262,11 @@ test.describe('Attendance App - Close inquiry (UI)', () => {
 		await expect(cards.filter({ hasText: closeMeetingName })).toHaveCount(0)
 	})
 
-	test('manager Only-for-me filter restricts to appointments targeting the user', async ({ page, request }) => {
-		// admin (a manager) sees every appointment by default. An appointment
-		// targeted at someone else (visibleUsers: ['test']) is visible to admin
-		// but should disappear once "Only for me" is on. An appointment with no
-		// visibility restriction ("everyone") stays — admin is in the audience.
+	test('"My appointments" restricts a manager to their own, "All appointments" does not', async ({ page, request }) => {
+		// admin (a manager) sees every appointment under "All appointments". An
+		// appointment targeted at someone else (visibleUsers: ['test']) must not
+		// show up under "My appointments". One with no visibility restriction
+		// ("everyone") stays — admin is in the audience.
 		const targetedAtOther = await createAppointmentViaAPI(request, {
 			name: 'Audience Filter Other Only',
 			daysFromNow: 11,
@@ -278,15 +278,20 @@ test.describe('Attendance App - Close inquiry (UI)', () => {
 		})
 		expect(targetedAtOther.id).toBeTruthy()
 		expect(everyone.id).toBeTruthy()
+		// The list is already on screen; a reload is what picks the two up.
 		await page.reload()
+		await page.waitForLoadState('networkidle')
+		await page.locator('[data-test="nav-all"]').click()
 		await page.waitForLoadState('networkidle')
 
 		const cards = page.locator('[data-test="appointment-card"]')
 		await expect(cards.filter({ hasText: 'Audience Filter Other Only' }).first()).toBeVisible()
 		await expect(cards.filter({ hasText: 'Audience Filter Everyone' }).first()).toBeVisible()
 
-		await page.locator('[data-test="filter-audience"]').click()
-		await page.getByRole('menuitemradio', { name: 'Only for me' }).click()
+		// The entry lists its appointments underneath, so a click on the entry
+		// itself would land on one of them — aim at its own link.
+		await page.locator('[data-test="nav-upcoming"]').getByRole('link', { name: 'My appointments', exact: true }).click()
+		await expect(page.locator('[data-test="page-heading"]')).toHaveText('My appointments')
 
 		await expect(cards.filter({ hasText: 'Audience Filter Other Only' })).toHaveCount(0)
 		await expect(cards.filter({ hasText: 'Audience Filter Everyone' }).first()).toBeVisible()

@@ -19,6 +19,13 @@ export const PERMISSION_ROWS = {
 		hint: t('attendance', 'Create appointments and manage them as organizer.'),
 		implication: t('attendance', 'Users who can manage appointments can always create appointments.'),
 	},
+	see_all_appointments: {
+		group: 'appointments',
+		title: t('attendance', 'May see all appointments'),
+		hint: t('attendance', 'See every appointment on the server, not just the own ones.'),
+		implication: t('attendance', 'Users who can manage appointments always see all appointments.'),
+		warningWhenAll: t('attendance', 'Every user can see every appointment.'),
+	},
 	see_response_overview: {
 		group: 'responses',
 		title: t('attendance', 'May see detailed response & check-in summary'),

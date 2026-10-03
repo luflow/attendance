@@ -313,8 +313,8 @@ test.describe('Attendance App - Group Visibility Filtering', () => {
 			await attendanceApp()
 			await page.waitForLoadState('networkidle')
 
-			// Navigate to Upcoming Appointments to see all appointments
-			await page.getByRole('link', { name: 'Upcoming Appointments' }).click()
+			// Navigate to "My appointments" — test2 is in the audience, so it is listed there
+			await page.getByRole('link', { name: 'My appointments' }).click()
 			await page.waitForLoadState('networkidle')
 
 			// Should see "Mixed Visibility Meeting" because test2 user was explicitly added

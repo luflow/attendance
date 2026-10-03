@@ -128,7 +128,9 @@ class IcalService {
 			if ($apt->getStartDatetime() < $cutoffDate) {
 				return false;
 			}
-			// Only if user is target attendee (no admin bypass)
+			// Only if user is target attendee — no see-all bypass, and
+			// deliberately narrower than the list's "My appointments": a feed
+			// carries what you are asked to attend, not what you organize.
 			return $this->visibilityService->isUserTargetAttendee($apt, $userId);
 		});
 

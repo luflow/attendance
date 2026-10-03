@@ -117,4 +117,46 @@ class VisibilityServiceTest extends TestCase {
 		// int-key round trip without tripping the string type hint.
 		$this->assertSame(['alice', 456], array_keys($attendees));
 	}
+
+	private function restrictedToAlice(): Appointment {
+		$appointment = new Appointment();
+		$appointment->setVisibleUsers(json_encode(['alice']));
+		$appointment->setVisibleGroups('[]');
+		$appointment->setVisibleTeams('[]');
+		return $appointment;
+	}
+
+	public function testSeeAllAppointmentsLiftsTheAudienceRestriction(): void {
+		$this->permissionService->method('canSeeAllAppointments')->willReturn(true);
+		$this->permissionService->method('isOrganizer')->willReturn(false);
+
+		$service = $this->partialMock(['getTeamMembers']);
+
+		$this->assertTrue($service->canUserSeeAppointment($this->restrictedToAlice(), 'mallory'));
+	}
+
+	public function testWithoutSeeAllAppointmentsOnlyOwnAppointmentsAreVisible(): void {
+		$this->permissionService->method('canSeeAllAppointments')->willReturn(false);
+		$this->permissionService->method('isOrganizer')->willReturn(false);
+
+		$service = $this->partialMock(['getTeamMembers']);
+		$appointment = $this->restrictedToAlice();
+
+		$this->assertTrue($service->canUserSeeAppointment($appointment, 'alice'));
+		$this->assertFalse($service->canUserSeeAppointment($appointment, 'mallory'));
+	}
+
+	public function testOwnAppointmentCoversOrganizersOutsideTheAudience(): void {
+		$this->permissionService->method('canSeeAllAppointments')->willReturn(false);
+		$this->permissionService->method('isOrganizer')
+			->willReturnCallback(static fn (Appointment $a, string $userId): bool => $userId === 'bob');
+
+		$service = $this->partialMock(['getTeamMembers']);
+		$appointment = $this->restrictedToAlice();
+
+		// Bob organizes it without being invited — "My appointments" keeps it.
+		$this->assertTrue($service->isUserOwnAppointment($appointment, 'bob'));
+		$this->assertFalse($service->isUserTargetAttendee($appointment, 'bob'));
+		$this->assertFalse($service->isUserOwnAppointment($appointment, 'mallory'));
+	}
 }

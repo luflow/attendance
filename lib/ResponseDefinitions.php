@@ -166,6 +166,7 @@ namespace OCA\Attendance;
  *   canRespondForOthers: bool,
  *   canSeeStatistics: bool,
  *   canSeeIndividualResponses: bool,
+ *   canSeeAllAppointments: bool,
  * }
  * @psalm-type AttendanceCapabilities = array{
  *   calendarAvailable: bool,
@@ -190,6 +191,7 @@ namespace OCA\Attendance;
  *   statisticsAvailable: bool,
  *   talkRoomsAvailable: bool,
  *   talkRoomDeletion: bool,
+ *   seeAllAppointments: bool,
  * }
  * @psalm-type AttendanceAuditUserRef = array{
  *   userId: string,

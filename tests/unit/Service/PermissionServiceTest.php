@@ -663,4 +663,46 @@ class PermissionServiceTest extends TestCase {
 		$this->assertTrue($this->service->canSeeResponseOverviewFor('alice', $appointment));
 		$this->assertFalse($this->service->canSeeResponseOverviewFor('mallory', $appointment));
 	}
+
+	// --- see all appointments ---
+
+	public function testSeeAllAppointmentsDefaultsToNobody(): void {
+		$this->guestService->method('isGuestUser')->willReturn(false);
+		// Only manage_appointments is stubbed away — the new permission has no
+		// stored mode at all, which is what an install that never saw it looks like.
+		$this->configValues(['permission_manage_appointments_mode' => 'nobody']);
+
+		$this->assertFalse($this->service->canSeeAllAppointments('alice'));
+	}
+
+	public function testManagersSeeAllAppointmentsWithoutTheSeparatePermission(): void {
+		$this->guestService->method('isGuestUser')->willReturn(false);
+		$this->configValues(['permission_manage_appointments_mode' => 'all']);
+
+		$this->assertFalse($this->service->hasPermission('alice', PermissionService::PERMISSION_SEE_ALL_APPOINTMENTS));
+		// Editing any appointment while not seeing it makes no sense, so the
+		// manage permission carries the wider view along.
+		$this->assertTrue($this->service->canSeeAllAppointments('alice'));
+	}
+
+	public function testSeeAllAppointmentsGrantedWithoutManageRights(): void {
+		$this->guestService->method('isGuestUser')->willReturn(false);
+		$this->configValues([
+			'permission_see_all_appointments_mode' => 'groups',
+			'permission_see_all_appointments' => '["office"]',
+			'permission_manage_appointments_mode' => 'groups',
+			'permission_manage_appointments' => '["admins"]',
+		]);
+		$this->userInGroups('alice', ['office']);
+
+		$this->assertTrue($this->service->canSeeAllAppointments('alice'));
+		$this->assertFalse($this->service->canManageAppointments('alice'));
+	}
+
+	public function testGuestsNeverSeeAllAppointments(): void {
+		$this->guestService->method('isGuestUser')->with('guestuser')->willReturn(true);
+		$this->configValues(['permission_see_all_appointments_mode' => 'all']);
+
+		$this->assertFalse($this->service->canSeeAllAppointments('guestuser'));
+	}
 }

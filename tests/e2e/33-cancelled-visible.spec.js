@@ -47,7 +47,7 @@ test.describe('Cancelled appointments stay in the list (#239)', () => {
 		await page.evaluate((key) => window.localStorage.removeItem(key), FILTER_STORAGE_KEY)
 		// The entry lists its appointments underneath, so a click on the entry
 		// itself would land on one of them — aim at its own link.
-		await page.locator('[data-test="nav-upcoming"]').getByRole('link', { name: 'Upcoming appointments', exact: true }).click()
+		await page.locator('[data-test="nav-upcoming"]').getByRole('link', { name: 'My appointments', exact: true }).click()
 		await page.waitForLoadState('networkidle')
 
 		const cards = page.locator('[data-test="appointment-card"]')
