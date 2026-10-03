@@ -9,9 +9,9 @@
 		</div>
 
 		<div v-if="viewDef.celebratesEmpty && !loading" class="unanswered-banner-container">
-			<div v-if="appointments.length > 0" class="unanswered-banner pending">
+			<div v-if="total > 0" class="unanswered-banner pending">
 				<ProgressQuestion :size="20" />
-				<span>{{ n('attendance', '%n appointment awaiting your response', '%n appointments awaiting your response', appointments.length) }}</span>
+				<span>{{ n('attendance', '%n appointment awaiting your response', '%n appointments awaiting your response', total) }}</span>
 			</div>
 			<div v-else class="unanswered-banner complete">
 				<!-- TRANSLATORS: Empty state when nothing is left to answer. "responded to" means an answer was given, NOT that the person attended. -->
@@ -186,9 +186,9 @@
 		</div>
 
 		<!-- Appointments List -->
-		<div class="appointments-list">
+		<div class="appointments-list" data-test="appointment-list" :aria-busy="busy">
 			<LoadingState v-if="loading" :text="t('attendance', 'Loading\u00A0…')" />
-			<NcEmptyContent v-else-if="visibleAppointments.length === 0 && !showCelebration"
+			<NcEmptyContent v-else-if="appointments.length === 0 && !showCelebration"
 				:name="emptyState.name"
 				:description="emptyState.description"
 				data-test="appointments-empty-state">
@@ -235,6 +235,17 @@
 						@closedToggled="handleClosedToggled"
 						@showAuditLog="(id) => emit('showAuditLog', id)" />
 				</template>
+				<!-- Scrolling near the end loads the next page; the button is the
+				     same action for keyboards and for a browser that never fires. -->
+				<div v-if="hasMore"
+					ref="loadMoreSentinel"
+					class="load-more"
+					data-test="appointments-load-more">
+					<NcLoadingIcon v-if="loadingMore" :size="28" />
+					<NcButton v-else variant="tertiary" @click="loadMore">
+						{{ t('attendance', 'Load more') }}
+					</NcButton>
+				</div>
 			</div>
 		</div>
 
@@ -257,9 +268,9 @@
 import axios from '@nextcloud/axios'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
-import { NcButton, NcChip, NcEmptyContent, NcPopover } from '@nextcloud/vue'
+import { NcButton, NcChip, NcEmptyContent, NcLoadingIcon, NcPopover } from '@nextcloud/vue'
 import { create as createConfetti } from 'canvas-confetti'
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import AccountIcon from 'vue-material-design-icons/AccountOutline.vue'
 import CalendarBlankIcon from 'vue-material-design-icons/CalendarBlank.vue'
 import CalendarCheckIcon from 'vue-material-design-icons/CalendarCheck.vue'
@@ -279,9 +290,8 @@ import SingleAppointmentExportDialog from '../components/SingleAppointmentExport
 import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
 import { useCategories } from '../composables/useCategories.js'
 import { useCategoryFilterChips } from '../composables/useCategoryFilterChips.js'
+import { usePagedAppointments } from '../composables/usePagedAppointments.js'
 import { usePermissions } from '../composables/usePermissions.js'
-import { isAttendee, isOrganizer } from '../utils/appointment.js'
-import { appointmentListCache } from '../utils/appointmentListCache.js'
 import { categoryIconComponent } from '../utils/categoryIcons.js'
 import { VIEWS } from './appointmentViews.js'
 
@@ -320,8 +330,6 @@ const activeSearch = computed(() => props.searchQuery.trim())
 const viewDef = computed(() => VIEWS[props.view])
 const pageHeading = computed(() => viewDef.value.heading())
 
-const cachedAppointments = appointmentListCache.get(props.view)
-const appointments = ref(cachedAppointments ?? [])
 const exportDialogVisible = ref(false)
 const selectedAppointmentForExport = ref(null)
 const showDeleteDialog = ref(false)
@@ -345,18 +353,23 @@ const STATUS = Object.freeze({ OPEN: 'open', CLOSED: 'closed', CANCELLED: 'cance
 const SCHEDULING = Object.freeze({ NOT_OUT: 'not-scheduled-out', ONLY_IN: 'only-scheduled' })
 const ROLE = Object.freeze({ ATTENDEE: 'attendee', ORGANIZER: 'organizer', UNINVOLVED: 'uninvolved' })
 
-function hasRole(appointment, role) {
-	if (role === ROLE.ATTENDEE) return isAttendee(appointment)
-	if (role === ROLE.ORGANIZER) return isOrganizer(appointment)
-	return !isAttendee(appointment) && !isOrganizer(appointment)
-}
+const {
+	appointments,
+	total,
+	facets,
+	loading,
+	loadingMore,
+	busy,
+	hasMore,
+	restored,
+	reload,
+	loadMore,
+} = usePagedAppointments(currentListParams, props.view)
 
 // A role is only offered while it tells some appointments apart from others —
-// a member who is simply invited everywhere gets no role filter at all.
-const splittingRoles = computed(() => Object.values(ROLE).filter((role) => {
-	const matching = appointments.value.filter((appointment) => hasRole(appointment, role)).length
-	return matching > 0 && matching < appointments.value.length
-}))
+// a member who is simply invited everywhere gets no role filter at all. The
+// server works that out over the whole list, not just the loaded part.
+const splittingRoles = computed(() => facets.value.roles)
 
 const { capabilities, config, loadPermissions } = usePermissions()
 const { categories, loadCategories, getCategory } = useCategories()
@@ -462,8 +475,6 @@ function loadStoredLocationFilter() {
 	}
 }
 
-const availableLocations = computed(() => [...new Set(appointments.value.map((a) => a.location).filter(Boolean))].sort())
-
 function toggleLocationFilter(location) {
 	selectedLocations.value = selectedLocations.value.includes(location)
 		? selectedLocations.value.filter((l) => l !== location)
@@ -483,11 +494,6 @@ function loadStoredCategoryFilter() {
 		return []
 	}
 }
-
-const availableCategories = computed(() => {
-	const usedIds = new Set(appointments.value.map((a) => a.categoryId).filter((id) => id !== null && id !== undefined))
-	return categories.filter((category) => usedIds.has(category.id))
-})
 
 const { selectedCategoryChips, categoryChipLabel } = useCategoryFilterChips(selectedCategoryIds, getCategory)
 
@@ -523,9 +529,10 @@ const filters = computed(() => filterDefs.value
 // directly: a value stored back when an option was still available (planning
 // feature later switched off) must stop taking effect, not keep filtering
 // invisibly.
-const activeOptionId = (id) => filters.value.find((f) => f.id === id)?.value?.id ?? null
-const activeScheduling = computed(() => (viewDef.value.filtersApply ? activeOptionId(F.SCHEDULING) : null))
-const activeRole = computed(() => activeOptionId(F.ROLE))
+function activeFilterValue(id) {
+	if (!viewDef.value.filtersApply) return null
+	return filters.value.find((f) => f.id === id)?.value?.id ?? null
+}
 
 const activeFilters = computed(() => filters.value.filter((f) => f.value))
 
@@ -603,48 +610,70 @@ const emptyState = computed(() => {
 	}
 })
 
-const visibleAppointments = computed(() => {
-	const query = props.searchQuery.trim().toLowerCase()
-	const { filtersApply: applyFilters, includesCancelled } = viewDef.value
-	const status = filterValues.value[F.STATUS]
-	const response = filterValues.value[F.RESPONSE]
-	const role = activeRole.value
-	return appointments.value.filter((appointment) => {
-		// The status filter decides who sees cancelled appointments; only the
-		// unanswered to-do list drops them unconditionally.
-		if (!includesCancelled && appointment.cancelledAt) return false
-		if (query) {
-			const haystack = `${appointment.name} ${appointment.description ?? ''}`.toLowerCase()
-			if (!haystack.includes(query)) return false
-		}
-		if (!applyFilters) return true
-		if (status === STATUS.OPEN && (appointment.closedAt || appointment.cancelledAt)) return false
-		if (status === STATUS.CLOSED && (!appointment.closedAt || appointment.cancelledAt)) return false
-		if (status === STATUS.CANCELLED && !appointment.cancelledAt) return false
-		if (response) {
-			const userResponse = appointment.userResponse?.response ?? null
-			if (response === RESPONSE.NONE && userResponse !== null) return false
-			if (response !== RESPONSE.NONE && userResponse !== response) return false
-		}
-		if (role && !hasRole(appointment, role)) return false
-		if (selectedLocations.value.length && !selectedLocations.value.includes(appointment.location)) return false
-		if (selectedCategoryIds.value.length && !selectedCategoryIds.value.includes(appointment.categoryId)) return false
-		return true
-	})
+// Typing must not fire a request per keystroke; everything else applies at once.
+const debouncedSearch = ref(activeSearch.value)
+let searchTimer = null
+watch(activeSearch, (query) => {
+	clearTimeout(searchTimer)
+	searchTimer = setTimeout(() => {
+		debouncedSearch.value = query
+	}, 300)
 })
+
+// Every filter runs on the server — the list held here is only a page of it.
+const listParams = computed(() => {
+	const { params, filtersApply, mixesPastAndUpcoming } = viewDef.value
+	// Both imply onlyForMe server-side, so neither needs to send it.
+	const scheduling = {
+		[SCHEDULING.NOT_OUT]: { notScheduledOut: true },
+		[SCHEDULING.ONLY_IN]: { onlyScheduled: true },
+	}[activeFilterValue(F.SCHEDULING)] ?? {}
+	const filterParams = filtersApply
+		? {
+				status: activeFilterValue(F.STATUS),
+				response: activeFilterValue(F.RESPONSE),
+				// Sent as stored: which roles are on offer is only known once the
+				// list is in, and the server ignores one that does not split it.
+				role: filterValues.value[F.ROLE] ?? null,
+				locations: selectedLocations.value,
+				categoryIds: selectedCategoryIds.value,
+			}
+		: {}
+	return {
+		...params,
+		...scheduling,
+		...filterParams,
+		search: debouncedSearch.value || null,
+		// The All view keeps cancelled appointments in a section of their own.
+		cancelledLast: mixesPastAndUpcoming || null,
+	}
+})
+
+function currentListParams() {
+	return listParams.value
+}
+
+// The filters offer what occurs in the whole list, not just in the loaded part.
+const availableLocations = computed(() => facets.value.locations)
+const availableCategories = computed(() => categories.filter((category) => facets.value.categoryIds.includes(category.id)))
+
+// Reload what is on screen without a spinner or a jump back to the top.
+const refresh = () => reload({ silent: true, keepLoaded: true })
 
 // All view shows upcoming + past back-to-back; subdivide so the user knows
 // where the boundary is. Other views are a single homogeneous list.
 const visibleSections = computed(() => {
 	if (!viewDef.value.mixesPastAndUpcoming) {
-		return [{ key: 'all', label: '', items: visibleAppointments.value }]
+		return [{ key: 'all', label: '', items: appointments.value }]
 	}
 	// Cancelled appointments get their own section at the bottom, regardless of
-	// past/upcoming, so they stay visible but clearly set apart.
-	const active = visibleAppointments.value.filter((a) => !a.cancelledAt)
-	const cancelled = visibleAppointments.value.filter((a) => a.cancelledAt)
-	const upcoming = active.filter((a) => !a._isPast)
-	const past = active.filter((a) => a._isPast)
+	// past/upcoming, so they stay visible but clearly set apart. The server
+	// sorts the pages the same way (cancelledLast) and says which half an
+	// appointment belongs to — don't re-derive that from end_datetime here.
+	const active = appointments.value.filter((a) => !a.cancelledAt)
+	const cancelled = appointments.value.filter((a) => a.cancelledAt)
+	const upcoming = active.filter((a) => !a.isPast)
+	const past = active.filter((a) => a.isPast)
 	return [
 		upcoming.length && { key: 'upcoming', label: t('attendance', 'Upcoming'), items: upcoming },
 		past.length && { key: 'past', label: t('attendance', 'Past'), items: past },
@@ -663,61 +692,54 @@ function handleClosedToggled(updated) {
 	// under "Upcoming"). The parent recomputes those sections from freshly
 	// loaded data, so trigger the same refresh answering does.
 	emit('responseUpdated')
+	// With a status filter on, the appointment may no longer belong here.
+	if (activeFilterValue(F.STATUS)) {
+		refresh()
+	}
 }
-const loading = ref(!cachedAppointments)
 
 // Nothing left to answer: the celebratory "Hurray!" banner is the empty state
 // here, so neither the heading nor the generic empty-state card belongs.
-const showCelebration = computed(() => viewDef.value.celebratesEmpty && !loading.value && appointments.value.length === 0)
+const showCelebration = computed(() => viewDef.value.celebratesEmpty && !loading.value && total.value === 0)
 
 // Use the shared response composable
 const { submitResponse: submitResponseApi } = useAppointmentResponse({
 	onSuccess: () => {
 		emit('responseUpdated')
-		loadAppointments(true)
+		refresh()
 	},
 })
 
-async function loadAppointments(skipLoadingSpinner = false) {
-	try {
-		if (!skipLoadingSpinner) {
-			loading.value = true
-		}
-		const url = generateUrl('/apps/attendance/api/appointments')
-		// Both imply onlyForMe server-side, so neither needs to send it.
-		const schedulingParams = {
-			[SCHEDULING.NOT_OUT]: { notScheduledOut: true },
-			[SCHEDULING.ONLY_IN]: { onlyScheduled: true },
-		}[activeScheduling.value] ?? {}
-		const params = { ...viewDef.value.params, ...schedulingParams }
-		if (viewDef.value.mixesPastAndUpcoming) {
-			const [upcoming, past] = await Promise.all([
-				axios.get(url, { params }),
-				axios.get(url, { params: { ...params, showPastAppointments: true } }),
-			])
-			// Tag for the All-view section split — the server already partitions,
-			// don't re-derive from end_datetime in the browser.
-			appointments.value = [
-				...upcoming.data.map((a) => ({ ...a, _isPast: false })),
-				...past.data.map((a) => ({ ...a, _isPast: true })),
-			]
-		} else {
-			const response = await axios.get(url, { params })
-			appointments.value = response.data
-		}
-		appointmentListCache.set(props.view, appointments.value)
-	} catch (error) {
-		console.error('Failed to load appointments:', error)
-	} finally {
-		loading.value = false
+// Capabilities arriving at mount can flip the scheduling filter; the first
+// load in onMounted already covers that, so only later changes refetch.
+let listReady = false
+watch(listParams, (next, previous) => {
+	if (listReady && JSON.stringify(next) !== JSON.stringify(previous)) {
+		reload({ silent: true })
 	}
-}
+})
 
-// The scheduling filter is server-side, so flipping it requires a refetch. Watch
-// the raw value, which only ever moves through setFilter — activeScheduling also
-// flips when capabilities arrive at mount, which onMounted already fetches for.
-watch(() => filterValues.value[F.SCHEDULING], () => {
-	loadAppointments(true)
+const loadMoreSentinel = ref(null)
+let loadMoreObserver = null
+// The sentinel only exists while there is more to load, so follow it around.
+watch(loadMoreSentinel, (element) => {
+	loadMoreObserver?.disconnect()
+	if (!element || typeof IntersectionObserver === 'undefined') return
+	loadMoreObserver = new IntersectionObserver((entries) => {
+		if (entries.some((entry) => entry.isIntersecting)) {
+			loadMore()
+		}
+	}, { rootMargin: '600px 0px' })
+	loadMoreObserver.observe(element)
+})
+// An observer only reports changes: a sentinel still in view after a page
+// arrived would never fire again, so it is observed afresh each time.
+watch(() => appointments.value.length, async () => {
+	await nextTick()
+	if (loadMoreObserver && loadMoreSentinel.value) {
+		loadMoreObserver.unobserve(loadMoreSentinel.value)
+		loadMoreObserver.observe(loadMoreSentinel.value)
+	}
 })
 
 async function submitResponse(appointmentId, response, acceptWaitlist = false) {
@@ -740,7 +762,7 @@ async function handleDeleteConfirm(scope) {
 		await axios.delete(generateUrl(`/apps/attendance/api/appointments/${pendingDeleteAppointment.value.id}`), {
 			data: { scope },
 		})
-		await loadAppointments(true)
+		await refresh()
 		emit('appointmentDeleted')
 	} catch (error) {
 		console.error('Failed to delete appointment:', error)
@@ -796,6 +818,8 @@ onBeforeUnmount(() => {
 	persistFilterValues.cancel()
 	persistSelectedLocations.cancel()
 	persistSelectedCategoryIds.cancel()
+	clearTimeout(searchTimer)
+	loadMoreObserver?.disconnect()
 })
 
 function triggerConfetti() {
@@ -816,16 +840,17 @@ watch(loading, () => {
 })
 
 // Also trigger confetti when appointments list becomes empty (after responding to last one)
-watch(() => appointments.value.length, (_, oldLength) => {
-	if (showCelebration.value && oldLength > 0) {
+watch(total, (_, oldTotal) => {
+	if (showCelebration.value && oldTotal > 0) {
 		triggerConfetti()
 	}
 })
 
 onMounted(async () => {
 	await loadPermissions()
-	// A cached list is already on screen; refresh it without the spinner.
-	await loadAppointments(Boolean(cachedAppointments))
+	// A list restored from the cache is on screen already: refresh it in place.
+	await (restored ? refresh() : reload())
+	listReady = true
 })
 </script>
 
@@ -853,6 +878,13 @@ onMounted(async () => {
 .page-heading {
 	max-width: 800px;
 	margin-inline: auto;
+}
+
+.load-more {
+	display: flex;
+	justify-content: center;
+	min-height: 44px;
+	margin-top: 4px;
 }
 
 .section-heading {

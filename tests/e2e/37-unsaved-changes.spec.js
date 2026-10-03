@@ -2,6 +2,7 @@ import {
 	createAppointmentViaAPI,
 	deleteAppointmentViaAPI,
 	expect,
+	loadWholeAppointmentList,
 	test,
 } from './fixtures/nextcloud.js'
 
@@ -10,8 +11,8 @@ import {
 test.describe('Unsaved changes and the way back (#232, #233)', () => {
 	test.describe.configure({ mode: 'serial' })
 
-	// Enough of them, far enough ahead, that the last one sits below the fold.
-	const names = Array.from({ length: 14 }, (_, i) => `Leave Guard ${String(i + 1).padStart(2, '0')}`)
+	// More than one page of the list, so the last one is only reached by paging.
+	const names = Array.from({ length: 25 }, (_, i) => `Leave Guard ${String(i + 1).padStart(2, '0')}`)
 	const editedName = 'Leave Guard Edited'
 	const created = []
 
@@ -31,6 +32,7 @@ test.describe('Unsaved changes and the way back (#232, #233)', () => {
 	const listCard = (page, name) => page.locator('[data-test="appointment-card"]').filter({ hasText: name })
 
 	async function openEditFromDetail(page, name) {
+		await loadWholeAppointmentList(page)
 		await listCard(page, name).locator('[data-test="appointment-title-link"]').click()
 		await page.waitForURL(/\/appointment\/\d+$/)
 		await page.getByRole('button', { name: 'Actions' }).first().click()
@@ -110,6 +112,8 @@ test.describe('Unsaved changes and the way back (#232, #233)', () => {
 		const scrollTop = () => scroller.evaluate((el) => el.scrollTop)
 		const card = listCard(page, names.at(-1))
 
+		// Several pages deep, so the way back has to bring all of them along.
+		await loadWholeAppointmentList(page)
 		await card.scrollIntoViewIfNeeded()
 		const leftAt = await scrollTop()
 		expect(leftAt).toBeGreaterThan(0)

@@ -55,6 +55,7 @@ export default defineConfig({
 				'24-close-nav-resort.spec.js',
 				'30-location.spec.js',
 				'35-cancelled-visible.spec.js',
+				'36-pagination.spec.js',
 				'checkin.spec.js',
 			],
 			fullyParallel: false, // tests within a file stay sequential
@@ -102,7 +103,7 @@ export default defineConfig({
 				'34-see-all-appointments.spec.js',
 				// Measures the list's scroll position, which appointments created
 				// by other files mid-test would shift.
-				'36-unsaved-changes.spec.js',
+				'37-unsaved-changes.spec.js',
 			],
 			fullyParallel: false,
 			workers: 1,

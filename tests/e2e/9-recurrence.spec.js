@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures/nextcloud.js'
+import { expect, loadWholeAppointmentList, test } from './fixtures/nextcloud.js'
 
 /**
  * Navigate to the create appointment form and fill in basic fields + start/end dates.
@@ -215,6 +215,7 @@ test.describe('Attendance App - Recurrence', () => {
 		// Wait for navigation back to appointment list
 		await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 		await page.waitForLoadState('networkidle')
+		await loadWholeAppointmentList(page)
 
 		// Verify exactly 3 appointment cards were created with this name
 		const weeklyCards = page.locator('[data-test="appointment-card"]', { hasText: 'Weekly Standup Recurring' })
@@ -243,6 +244,7 @@ test.describe('Attendance App - Recurrence', () => {
 		// Wait for navigation back
 		await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 		await page.waitForLoadState('networkidle')
+		await loadWholeAppointmentList(page)
 
 		// Verify exactly 3 appointment cards were created with this name
 		const dailyCards = page.locator('[data-test="appointment-card"]', { hasText: 'Daily Checkin Recurring' })
@@ -296,6 +298,7 @@ test.describe('Attendance App - Recurrence', () => {
 		// Wait for navigation back to appointment list
 		await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 		await page.waitForLoadState('networkidle')
+		await loadWholeAppointmentList(page)
 
 		// Verify exactly 6 appointment cards were created with this name
 		const triweeklyCards = page.locator('[data-test="appointment-card"]', { hasText: 'Triweekly Wednesday Sync' })
@@ -308,6 +311,7 @@ test.describe('Attendance App - Recurrence', () => {
 		await page.getByRole('button', { name: 'Save' }).click()
 		await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 		await page.waitForLoadState('networkidle')
+		await loadWholeAppointmentList(page)
 
 		// Open the appointment for editing
 		const card = page.locator('[data-test="appointment-card"]', { hasText: 'Edit Test Appointment' })

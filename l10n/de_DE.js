@@ -339,6 +339,7 @@ OC.L10N.register(
     "No activity yet" : "Bislang keine Aktivitäten",
     "Responses and check-ins will appear here." : "Antworten und Check-ins werden hier angezeigt.",
     "Load older entries" : "Ältere Einträge laden",
+    "Load more" : "Mehr laden",
     "Close and notify?" : "Schließen und benachrichtigen?",
     "Closing notifies these people about their scheduling status." : "Durch das Schließen werden diese Personen über ihren Terminstatus informiert.",
     "Show less" : "Weniger anzeigen",

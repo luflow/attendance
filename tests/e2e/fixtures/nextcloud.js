@@ -731,6 +731,33 @@ export async function pickFilterOption(page, filterId, name) {
 	await expect(page.getByRole('menuitemradio', { name })).toBeHidden()
 }
 
+/**
+ * Scroll the appointment list to its end. It loads page by page, so a test
+ * that counts cards — or looks for one further down — has to see all of it
+ * first. Returns at once on a view without a list.
+ *
+ * @param {import('@playwright/test').Page} page
+ */
+export async function loadWholeAppointmentList(page) {
+	const list = page.locator('[data-test="appointment-list"]')
+	if (await list.count() === 0) {
+		return
+	}
+	// A list still (re)loading has no end to scroll to yet.
+	await expect(list).toHaveAttribute('aria-busy', 'false')
+
+	const more = page.locator('[data-test="appointments-load-more"]')
+	const cards = page.locator('[data-test="appointment-card"]')
+	while (await more.count() > 0) {
+		const loaded = await cards.count()
+		await more.scrollIntoViewIfNeeded()
+		// Either the next page arrives, or it was the last and the marker goes.
+		await expect(async () => {
+			expect(await more.count() === 0 || await cards.count() > loaded).toBe(true)
+		}).toPass({ timeout: 15000 })
+	}
+}
+
 // ---------------------------------------------------------------------------
 // Playwright test fixtures
 // ---------------------------------------------------------------------------

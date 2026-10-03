@@ -1,4 +1,4 @@
-import { test, expect } from './fixtures/nextcloud.js'
+import { expect, loadWholeAppointmentList, test } from './fixtures/nextcloud.js'
 
 /**
  * Create a recurring series of appointments via the bulk/recurrence UI.
@@ -42,6 +42,7 @@ async function createRecurringSeries(page, { name, count = 3, daysFromNow = 5 } 
 	// Wait for navigation back
 	await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 	await page.waitForLoadState('networkidle')
+	await loadWholeAppointmentList(page)
 
 	return name
 }
@@ -112,6 +113,7 @@ test.describe('Attendance App - Series Management', () => {
 		await page.getByRole('button', { name: 'Save' }).click()
 		await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 		await page.waitForLoadState('networkidle')
+		await loadWholeAppointmentList(page)
 
 		// Click delete on that card
 		const card = page.locator('[data-test="appointment-card"]', { hasText: 'Standalone Delete Dialog Test' })
@@ -334,10 +336,12 @@ test.describe('Attendance App - Series Management', () => {
 		await dialog.getByRole('button', { name: 'Save' }).click()
 		await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 		await page.waitForLoadState('networkidle')
+		await loadWholeAppointmentList(page)
 
 		// Navigate back to the list view (save redirects to detail view)
 		await page.getByRole('link', { name: 'My appointments' }).click()
 		await page.waitForLoadState('networkidle')
+		await loadWholeAppointmentList(page)
 
 		// The edited one should have the new name
 		await expect(page.locator('[data-test="appointment-card"]', { hasText: 'Edited Single Occurrence' })).toHaveCount(1)
@@ -380,10 +384,12 @@ test.describe('Attendance App - Series Management', () => {
 		await dialog.getByRole('button', { name: 'Save' }).click()
 		await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 		await page.waitForLoadState('networkidle')
+		await loadWholeAppointmentList(page)
 
 		// Navigate back to the list view (save redirects to detail view)
 		await page.getByRole('link', { name: 'My appointments' }).click()
 		await page.waitForLoadState('networkidle')
+		await loadWholeAppointmentList(page)
 
 		// All 3 should now have the new name
 		await expect(page.locator('[data-test="appointment-card"]', { hasText: 'Renamed All Series' })).toHaveCount(3)
@@ -416,6 +422,7 @@ test.describe('Attendance App - Series Management', () => {
 		await page.getByRole('button', { name: 'Save' }).click()
 		await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 		await page.waitForLoadState('networkidle')
+		await loadWholeAppointmentList(page)
 
 		// Edit it
 		const card = page.locator('[data-test="appointment-card"]', { hasText: 'No Series Dialog Test' })
@@ -437,6 +444,7 @@ test.describe('Attendance App - Series Management', () => {
 		// Should navigate directly — NO series dialog
 		await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 		await page.waitForLoadState('networkidle')
+		await loadWholeAppointmentList(page)
 
 		// Verify the update happened
 		await expect(page.locator('[data-test="appointment-card"]', { hasText: 'No Series Dialog Test (Edited)' })).toHaveCount(1)
@@ -496,6 +504,7 @@ test.describe('Attendance App - Series Management', () => {
 		await page.getByRole('dialog', { name: 'Unsaved changes' }).getByRole('button', { name: 'Discard changes' }).click()
 		await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 		await page.waitForLoadState('networkidle')
+		await loadWholeAppointmentList(page)
 
 		// Original name should still be there, changed name should not
 		await expect(getSeriesCards(page, name)).toHaveCount(3)
@@ -530,6 +539,7 @@ test.describe('Attendance App - Series Management', () => {
 		await page.getByRole('button', { name: 'Save' }).click()
 		await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 		await page.waitForLoadState('networkidle')
+		await loadWholeAppointmentList(page)
 
 		// The copy should exist and NOT have a series indicator
 		const copyCard = page.locator('[data-test="appointment-card"]', { hasText: '(Copy)' })

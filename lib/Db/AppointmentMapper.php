@@ -121,7 +121,7 @@ class AppointmentMapper extends QBMapper {
 	}
 
 	/**
-	 * @return array
+	 * @return list<Appointment>
 	 */
 	public function findUpcoming(): array {
 		$qb = $this->db->getQueryBuilder();
@@ -134,7 +134,9 @@ class AppointmentMapper extends QBMapper {
 					$qb->expr()->gte('end_datetime', $qb->createNamedParameter(gmdate('Y-m-d H:i:s')))
 				)
 			)
-			->orderBy('start_datetime', 'ASC');
+			->orderBy('start_datetime', 'ASC')
+			// Paged lists need the same order on every request, ties included.
+			->addOrderBy('id', 'ASC');
 
 		return $this->findEntities($qb);
 	}
@@ -166,10 +168,12 @@ class AppointmentMapper extends QBMapper {
 	}
 
 	/**
-	 * Find past appointments (end_datetime < now)
-	 * @return array
+	 * Find past appointments (end_datetime < now), newest first.
+	 *
+	 * @param ?int $limit Stop after this many rows; null reads them all
+	 * @return list<Appointment>
 	 */
-	public function findPast(): array {
+	public function findPast(?int $limit = null, int $offset = 0): array {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
@@ -180,7 +184,12 @@ class AppointmentMapper extends QBMapper {
 					$qb->expr()->lt('end_datetime', $qb->createNamedParameter(gmdate('Y-m-d H:i:s')))
 				)
 			)
-			->orderBy('start_datetime', 'DESC'); // Newest first for past appointments
+			->orderBy('start_datetime', 'DESC')
+			->addOrderBy('id', 'DESC');
+
+		if ($limit !== null) {
+			$qb->setMaxResults($limit)->setFirstResult($offset);
+		}
 
 		return $this->findEntities($qb);
 	}
