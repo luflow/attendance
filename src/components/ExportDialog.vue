@@ -57,7 +57,7 @@
 							variant="tertiary"
 							:disabled="
 								selectedAppointments.length
-									=== availableAppointments.length
+									=== (availableAppointments?.length ?? 0)
 							"
 							@click="selectAllAppointments">
 							{{ t("attendance", "Select all") }}
@@ -71,7 +71,9 @@
 					</div>
 				</div>
 
-				<ul class="event-list">
+				<NcLoadingIcon v-if="availableAppointments === null" :size="24" />
+
+				<ul v-else class="event-list">
 					<li
 						v-for="appointment in availableAppointments"
 						:key="appointment.id"
@@ -290,10 +292,6 @@ const props = defineProps({
 		type: Boolean,
 		required: true,
 	},
-	availableAppointments: {
-		type: Array,
-		default: () => [],
-	},
 })
 
 const emit = defineEmits(['close'])
@@ -315,10 +313,16 @@ const series = ref(null)
 const seriesSearchQuery = ref('')
 const showFinishedSeries = ref(false)
 
+// null until the appointment filter is picked, like the series above: the
+// sidebar only ever holds a page of the past appointments, not all of them.
+const availableAppointments = ref(null)
+
 // Watch filter type changes to reset selections
 watch(filterType, (newType) => {
 	if (newType !== 'selected') {
 		selectedAppointments.value = []
+	} else if (availableAppointments.value === null) {
+		loadAvailableAppointments()
 	}
 	if (newType !== 'series') {
 		selectedSeries.value = []
@@ -327,6 +331,17 @@ watch(filterType, (newType) => {
 		loadSeries()
 	}
 })
+
+async function loadAvailableAppointments() {
+	try {
+		const response = await axios.get(generateUrl('/apps/attendance/api/appointments/navigation'))
+		availableAppointments.value = [...response.data.current, ...response.data.past]
+	} catch (error) {
+		console.error('Failed to load appointments for the export:', error)
+		showError(t('attendance', 'Failed to load appointment data'))
+		availableAppointments.value = []
+	}
+}
 
 async function loadSeries() {
 	try {
@@ -407,7 +422,7 @@ function toggleAppointment(id) {
 }
 
 function selectAllAppointments() {
-	selectedAppointments.value = props.availableAppointments.map((appointment) => appointment.id)
+	selectedAppointments.value = (availableAppointments.value ?? []).map((appointment) => appointment.id)
 }
 
 function deselectAllAppointments() {
@@ -491,6 +506,8 @@ watch(
 		if (!show) {
 			filterType.value = 'all'
 			selectedAppointments.value = []
+			// Refetched next time, so the list never shows a stale state.
+			availableAppointments.value = null
 			selectedSeries.value = []
 			seriesSearchQuery.value = ''
 			showFinishedSeries.value = false

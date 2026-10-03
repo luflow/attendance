@@ -176,6 +176,61 @@
                     }
                 }
             },
+            "AppointmentPage": {
+                "type": "object",
+                "required": [
+                    "appointments",
+                    "total",
+                    "unansweredCount",
+                    "facets"
+                ],
+                "properties": {
+                    "appointments": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AppointmentWithResponse"
+                        }
+                    },
+                    "total": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "unansweredCount": {
+                        "type": "integer",
+                        "format": "int64",
+                        "nullable": true
+                    },
+                    "facets": {
+                        "type": "object",
+                        "required": [
+                            "locations",
+                            "categoryIds",
+                            "roles"
+                        ],
+                        "properties": {
+                            "locations": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "categoryIds": {
+                                "type": "array",
+                                "items": {
+                                    "type": "integer",
+                                    "format": "int64"
+                                }
+                            },
+                            "roles": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             "AppointmentWithResponse": {
                 "type": "object",
                 "required": [
@@ -342,6 +397,9 @@
                     },
                     "myPermissions": {
                         "$ref": "#/components/schemas/MyPermissions"
+                    },
+                    "isPast": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -546,7 +604,8 @@
                     "talkRoomDeletion",
                     "seeAllAppointments",
                     "vacationManagementEnabled",
-                    "roleFilter"
+                    "roleFilter",
+                    "pagination"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -631,6 +690,9 @@
                         "type": "boolean"
                     },
                     "roleFilter": {
+                        "type": "boolean"
+                    },
+                    "pagination": {
                         "type": "boolean"
                     }
                 }
@@ -2000,6 +2062,7 @@
             "get": {
                 "operationId": "appointment-index",
                 "summary": "List appointments visible to the current user",
+                "description": "Without $limit the whole list is returned as a plain array. With it the list is paged and wrapped in an object that also carries the total, the unanswered count and the values the filters can offer.",
                 "tags": [
                     "appointment"
                 ],
@@ -2015,7 +2078,7 @@
                     {
                         "name": "showPastAppointments",
                         "in": "query",
-                        "description": "Whether to show past appointments instead of upcoming ones",
+                        "description": "Whether to show past appointments instead of upcoming ones. Superseded by $timeframe when that is given.",
                         "schema": {
                             "type": "boolean",
                             "default": false
@@ -2024,7 +2087,7 @@
                     {
                         "name": "unansweredOnly",
                         "in": "query",
-                        "description": "When true, only return upcoming appointments that the user has not answered yet AND that are still open. Ignored when $showPastAppointments is true.",
+                        "description": "When true, only return upcoming appointments that the user has not answered yet AND that are still open. Ignored unless the upcoming appointments are listed.",
                         "schema": {
                             "type": "boolean",
                             "default": false
@@ -2056,6 +2119,113 @@
                             "type": "boolean",
                             "default": false
                         }
+                    },
+                    {
+                        "name": "timeframe",
+                        "in": "query",
+                        "description": "Which appointments to list: `upcoming` (soonest first), `past` (most recent first) or `all` (upcoming, then past)",
+                        "schema": {
+                            "type": "string",
+                            "nullable": true,
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Keep only appointments whose name or description contains this text",
+                        "schema": {
+                            "type": "string",
+                            "default": ""
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Keep only appointments whose inquiry is `open`, `closed` or `cancelled`",
+                        "schema": {
+                            "type": "string",
+                            "nullable": true,
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "response",
+                        "in": "query",
+                        "description": "Keep only appointments the user answered `yes`, `maybe` or `no` — or not at all (`none`)",
+                        "schema": {
+                            "type": "string",
+                            "nullable": true,
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "role",
+                        "in": "query",
+                        "description": "Keep only appointments the user is an `attendee` of, an `organizer` of, or neither (`uninvolved`). Ignored unless the role tells some of the listed appointments apart from others.",
+                        "schema": {
+                            "type": "string",
+                            "nullable": true,
+                            "default": null
+                        }
+                    },
+                    {
+                        "name": "locations[]",
+                        "in": "query",
+                        "description": "Keep only appointments at one of these locations",
+                        "schema": {
+                            "type": "array",
+                            "default": [],
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    {
+                        "name": "categoryIds[]",
+                        "in": "query",
+                        "description": "Keep only appointments in one of these categories",
+                        "schema": {
+                            "type": "array",
+                            "default": [],
+                            "items": {
+                                "type": "integer",
+                                "format": "int64"
+                            }
+                        }
+                    },
+                    {
+                        "name": "cancelledLast",
+                        "in": "query",
+                        "description": "List cancelled appointments behind all others instead of by date among them",
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Page size. Switches the response to the paged object.",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "nullable": true,
+                            "default": null,
+                            "minimum": 1,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "description": "Number of matching appointments to skip",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "default": 0,
+                            "minimum": 0
+                        }
                     }
                 ],
                 "responses": {
@@ -2064,10 +2234,17 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/AppointmentWithResponse"
-                                    }
+                                    "anyOf": [
+                                        {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/AppointmentWithResponse"
+                                            }
+                                        },
+                                        {
+                                            "$ref": "#/components/schemas/AppointmentPage"
+                                        }
+                                    ]
                                 }
                             }
                         }
@@ -2513,6 +2690,32 @@
                         "basic_auth": []
                     }
                 ],
+                "parameters": [
+                    {
+                        "name": "pastLimit",
+                        "in": "query",
+                        "description": "Page size for the past entries. Without it all of them are returned.",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "nullable": true,
+                            "default": null,
+                            "minimum": 0,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "pastOffset",
+                        "in": "query",
+                        "description": "Number of past entries to skip",
+                        "schema": {
+                            "type": "integer",
+                            "format": "int64",
+                            "default": 0,
+                            "minimum": 0
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "",
@@ -2522,7 +2725,8 @@
                                     "type": "object",
                                     "required": [
                                         "current",
-                                        "past"
+                                        "past",
+                                        "pastHasMore"
                                     ],
                                     "properties": {
                                         "current": {
@@ -2536,6 +2740,9 @@
                                             "items": {
                                                 "$ref": "#/components/schemas/NavigationAppointment"
                                             }
+                                        },
+                                        "pastHasMore": {
+                                            "type": "boolean"
                                         }
                                     }
                                 }

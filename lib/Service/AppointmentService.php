@@ -20,6 +20,8 @@ use OCP\Share\IShare;
 /**
  * Core service for managing appointments and responses.
  * Delegates to specialized services for summary, visibility, and check-in operations.
+ *
+ * @psalm-type ListRow = array{appointment: Appointment, isAttendee: bool, isOrganizer: bool, isPast: bool}
  */
 class AppointmentService {
 	use DatetimeFormatTrait;
@@ -33,6 +35,9 @@ class AppointmentService {
 	 * otherwise its push degrades to the generic fallback wording.
 	 */
 	private const NOTIFIED_UPDATE_FIELDS = ['time', 'location'];
+
+	/** Rows read per round when paging the sidebar's past appointments. */
+	private const NAVIGATION_CHUNK_SIZE = 200;
 
 	private AppointmentMapper $appointmentMapper;
 	private AttendanceResponseMapper $responseMapper;
@@ -1244,6 +1249,8 @@ class AppointmentService {
 
 	/**
 	 * Get upcoming appointments.
+	 *
+	 * @return list<Appointment>
 	 */
 	public function getUpcomingAppointments(): array {
 		return $this->appointmentMapper->findUpcoming();
@@ -1251,6 +1258,8 @@ class AppointmentService {
 
 	/**
 	 * Get past appointments.
+	 *
+	 * @return list<Appointment>
 	 */
 	public function getPastAppointments(): array {
 		return $this->appointmentMapper->findPast();
@@ -1570,32 +1579,77 @@ class AppointmentService {
 	 * own appointments: every sidebar section it feeds ("Unanswered", "My
 	 * appointments", "Past appointments") is a personal list, and for a holder
 	 * of see_all_appointments the unscoped one would be the whole instance.
+	 *
+	 * @param ?int $pastLimit Page size for the past entries, which grow without
+	 *                        bound; null returns all of them
+	 * @return array{current: list<array<string, mixed>>, past: list<array<string, mixed>>, pastHasMore: bool}
 	 */
-	public function getAppointmentsForNavigation(string $userId): array {
-		$currentAppointments = $this->getUpcomingAppointments();
-		$pastAppointments = $this->getPastAppointments();
+	public function getAppointmentsForNavigation(string $userId, ?int $pastLimit = null, int $pastOffset = 0): array {
+		$current = $this->buildNavigationData($this->ownAppointments($this->getUpcomingAppointments(), $userId), $userId);
+
+		if ($pastLimit === null) {
+			return [
+				'current' => $current,
+				'past' => $this->buildNavigationData($this->ownAppointments($this->getPastAppointments(), $userId), $userId),
+				'pastHasMore' => false,
+			];
+		}
+
+		$pastLimit = max(0, min(AppointmentListQuery::MAX_LIMIT, $pastLimit));
+		$pastOffset = max(0, $pastOffset);
+		// One more than the page holds tells whether another page follows.
+		$wanted = $pastOffset + $pastLimit + 1;
+
+		// Read in chunks and stop once the page is full, so an instance's whole
+		// history is only walked by somebody who pages that far.
+		$own = [];
+		for ($chunkStart = 0; count($own) < $wanted; $chunkStart += self::NAVIGATION_CHUNK_SIZE) {
+			$chunk = $this->appointmentMapper->findPast(self::NAVIGATION_CHUNK_SIZE, $chunkStart);
+			array_push($own, ...$this->ownAppointments($chunk, $userId));
+			if (count($chunk) < self::NAVIGATION_CHUNK_SIZE) {
+				break;
+			}
+		}
 
 		return [
-			// Past list skips inAudience: it's only used by the "Unanswered"
-			// sidebar, which never reads past entries.
-			'current' => $this->buildNavigationData($currentAppointments, $userId, true),
-			'past' => $this->buildNavigationData($pastAppointments, $userId, false),
+			'current' => $current,
+			'past' => $this->buildNavigationData(array_slice($own, $pastOffset, $pastLimit), $userId),
+			'pastHasMore' => count($own) > $pastOffset + $pastLimit,
 		];
 	}
 
-	private function buildNavigationData(array $appointments, string $userId, bool $withAudience): array {
-		$result = [];
-
+	/**
+	 * The appointments addressed to the user or organized by them, each with
+	 * the audience verdict the navigation payload carries anyway.
+	 *
+	 * @param array<Appointment> $appointments
+	 * @return list<array{appointment: Appointment, inAudience: bool}>
+	 */
+	private function ownAppointments(array $appointments, string $userId): array {
+		$own = [];
 		foreach ($appointments as $appointment) {
-			// Kept apart rather than going through isUserOwnAppointment: the
-			// payload needs the audience answer anyway, and this endpoint is on
-			// the app's startup path.
 			$inAudience = $this->visibilityService->isUserTargetAttendee($appointment, $userId);
-			if (!$inAudience && !$this->permissionService->isOrganizer($appointment, $userId)) {
-				continue;
+			if ($inAudience || $this->permissionService->isOrganizer($appointment, $userId)) {
+				$own[] = ['appointment' => $appointment, 'inAudience' => $inAudience];
 			}
+		}
 
-			$userResponse = $this->getUserResponse($appointment->getId(), $userId);
+		return $own;
+	}
+
+	/**
+	 * @param list<array{appointment: Appointment, inAudience: bool}> $own
+	 * @return list<array<string, mixed>>
+	 */
+	private function buildNavigationData(array $own, string $userId): array {
+		$responses = $this->responseMapper->findByUserForAppointments(
+			$userId,
+			array_map(static fn (array $entry): int => $entry['appointment']->getId(), $own),
+		);
+
+		$result = [];
+		foreach ($own as ['appointment' => $appointment, 'inAudience' => $inAudience]) {
+			$userResponse = $responses[$appointment->getId()] ?? null;
 
 			$result[] = [
 				'id' => $appointment->getId(),
@@ -1606,7 +1660,7 @@ class AppointmentService {
 					: null,
 				'closedAt' => $this->formatDatetimeToUtc($appointment->getClosedAt()),
 				'cancelledAt' => $this->formatDatetimeToUtc($appointment->getCancelledAt()),
-				'inAudience' => $withAudience && $inAudience,
+				'inAudience' => $inAudience,
 			];
 		}
 
@@ -1614,33 +1668,10 @@ class AppointmentService {
 	}
 
 	/**
-	 * Get appointments with user responses.
+	 * Get appointments with user responses — the whole list of one timeframe.
+	 * See getAppointmentPage() for the parameters.
 	 *
-	 * @param bool $unansweredOnly Drop closed inquiries and any appointment
-	 *                             the user has already answered. Implies
-	 *                             upcoming-only (ignored when combined with
-	 *                             $showPastAppointments).
-	 * @param bool $onlyForMe Keep only the user's own appointments: the ones
-	 *                        addressed to them or organized by them. Same
-	 *                        predicate as VisibilityService::isUserOwnAppointment,
-	 *                        so it bypasses the see_all_appointments "see
-	 *                        everything" bypass. This is the "My appointments"
-	 *                        view.
-	 * @param bool $includeResponseSummary Attach the full response overview
-	 *                                     (other attendees' answers and roster) to each appointment. Gate on
-	 *                                     the caller's PERMISSION_SEE_RESPONSE_OVERVIEW.
-	 * @param bool $includeComments Include free-text comments in that overview.
-	 *                              Gate on the caller's PERMISSION_SEE_COMMENTS.
-	 * @param bool $includeResponseCounts Attach the aggregate counts (no names)
-	 *                                    when the full overview is withheld. Gate on
-	 *                                    the caller's PERMISSION_SEE_RESPONSE_COUNTS.
-	 * @param bool $notScheduledOut Drop appointments the user was scheduled out
-	 *                              of (see isScheduledOut). Implies $onlyForMe —
-	 *                              a relevance filter that still let through
-	 *                              other people's appointments would be odd.
-	 * @param bool $onlyScheduled Keep only appointments the user holds a place
-	 *                            in (see isScheduledIn). The strictest step of
-	 *                            the same axis, so it also implies $onlyForMe.
+	 * @return list<array<array-key, mixed>>
 	 */
 	public function getAppointmentsWithUserResponses(
 		string $userId,
@@ -1653,58 +1684,122 @@ class AppointmentService {
 		bool $notScheduledOut = false,
 		bool $onlyScheduled = false,
 	): array {
-		$appointments = $showPastAppointments
-			? $this->getPastAppointments()
-			: $this->getUpcomingAppointments();
+		return $this->getAppointmentPage(
+			$userId,
+			AppointmentListQuery::fromWire(
+				$showPastAppointments ? AppointmentListQuery::TIMEFRAME_PAST : AppointmentListQuery::TIMEFRAME_UPCOMING,
+				$unansweredOnly,
+				$onlyForMe,
+				$notScheduledOut,
+				$onlyScheduled,
+			),
+			$includeResponseSummary,
+			$includeComments,
+			$includeResponseCounts,
+		)['appointments'];
+	}
 
-		// "Unanswered only" makes no sense on past appointments — silently
-		// suppress to keep the API surface single-purpose.
-		$unansweredOnly = $unansweredOnly && !$showPastAppointments;
-		// Both scheduling filters are about the user's own place in an
-		// appointment, so letting through other people's would be odd.
-		$onlyForMe = $onlyForMe || $notScheduledOut || $onlyScheduled;
+	/**
+	 * The appointment list for a query: the page it asks for (or everything,
+	 * unpaged), with what a client needs to page on and to offer its filters.
+	 * Deciding who sees what covers every appointment in the timeframe — the
+	 * total depends on it — but stays cheap; summaries, attachments and display
+	 * names are only built for the appointments actually returned.
+	 *
+	 * The scope flags on the query:
+	 * - unansweredOnly drops closed inquiries and anything the user answered.
+	 * - onlyForMe keeps the appointments addressed to the user or organized by
+	 *   them — the predicate of VisibilityService::isUserOwnAppointment, so it
+	 *   bypasses the see_all_appointments "see everything" bypass.
+	 * - notScheduledOut / onlyScheduled follow BookingService::isScheduledOut
+	 *   and isScheduledIn; both imply onlyForMe.
+	 *
+	 * @param bool $includeResponseSummary Attach the full response overview
+	 *                                     (other attendees' answers and roster) to each appointment. Gate on
+	 *                                     the caller's PERMISSION_SEE_RESPONSE_OVERVIEW.
+	 * @param bool $includeComments Include free-text comments in that overview.
+	 *                              Gate on the caller's PERMISSION_SEE_COMMENTS.
+	 * @param bool $includeResponseCounts Attach the aggregate counts (no names)
+	 *                                    when the full overview is withheld. Gate on
+	 *                                    the caller's PERMISSION_SEE_RESPONSE_COUNTS.
+	 * @return array{
+	 *     appointments: list<array<array-key, mixed>>,
+	 *     total: int,
+	 *     unansweredCount: ?int,
+	 *     facets: array{locations: list<string>, categoryIds: list<int>, roles: list<string>},
+	 * }
+	 */
+	public function getAppointmentPage(
+		string $userId,
+		AppointmentListQuery $query,
+		bool $includeResponseSummary = false,
+		bool $includeComments = false,
+		bool $includeResponseCounts = false,
+	): array {
+		$rows = $this->scopedListRows($userId, $query);
+
+		/** @var array<int, ?AttendanceResponse> $responses */
+		$responses = [];
+		if (!$query->isPaged() || $query->unansweredOnly || $query->response !== null) {
+			$this->loadUserResponses($responses, $userId, $rows);
+		}
+
+		$unansweredCount = $query->isPaged() && $query->coversUpcoming()
+			? $this->countUnanswered($responses, $userId, $rows)
+			: null;
+
+		if ($query->unansweredOnly) {
+			$rows = array_values(array_filter(
+				$rows,
+				static fn (array $row): bool => !self::hasAnswered($responses[$row['appointment']->getId()] ?? null),
+			));
+		}
+		if ($query->notScheduledOut) {
+			$rows = array_values(array_filter(
+				$rows,
+				fn (array $row): bool => !$this->bookingService->isScheduledOut($row['appointment'], $userId),
+			));
+		}
+		if ($query->onlyScheduled) {
+			$rows = array_values(array_filter(
+				$rows,
+				fn (array $row): bool => $this->bookingService->isScheduledIn($row['appointment'], $userId),
+			));
+		}
+
+		// Taken before the filters below, so picking one location still leaves
+		// the others on offer.
+		$facets = $this->listFacets($rows);
+		// A role that is not on offer must not keep filtering invisibly.
+		$role = in_array($query->role, $facets['roles'], true) ? $query->role : null;
+
+		$rows = array_values(array_filter(
+			$rows,
+			static fn (array $row): bool => ($role === null || self::hasRole($row, $role))
+				&& self::matchesListFilters(
+					$row['appointment'],
+					$responses[$row['appointment']->getId()] ?? null,
+					$query,
+				),
+		));
+
+		if ($query->cancelledLast) {
+			$rows = [
+				...array_filter($rows, static fn (array $row): bool => !$row['appointment']->isCancelled()),
+				...array_filter($rows, static fn (array $row): bool => $row['appointment']->isCancelled()),
+			];
+		}
+
+		$total = count($rows);
+		if ($query->isPaged()) {
+			$rows = array_slice($rows, $query->offset, $query->limit);
+		}
+		$this->loadUserResponses($responses, $userId, $rows);
 
 		$globalManage = $this->permissionService->canManageAppointments($userId);
-		// Hoisted like $globalManage: the list runs over every appointment on
-		// the instance, so the group lookups behind it must not repeat per row.
-		$canSeeAll = $this->permissionService->canSeeAllAppointments($userId);
-		$result = [];
-
-		foreach ($appointments as $appointment) {
-			// Three nested scopes, each derived from the one below it:
-			// visible ⊇ mine ⊇ asked-to-answer. Evaluated once per appointment
-			// rather than through canUserSeeAppointment/isUserOwnAppointment,
-			// which would redo the audience check two more times.
-			$isAttendee = $this->visibilityService->isUserTargetAttendee($appointment, $userId);
-			$isOwn = $isAttendee || $this->permissionService->isOrganizer($appointment, $userId);
-			if (!$canSeeAll && !$isOwn) {
-				continue;
-			}
-			if ($onlyForMe && !$isOwn) {
-				continue;
-			}
-			// The unanswered inbox is strictly what the user was asked to
-			// answer — organizing an appointment is not being asked, and for
-			// see-all holders the visibility check otherwise lets through every
-			// unanswered appointment in the system.
-			if ($unansweredOnly && !$isAttendee) {
-				continue;
-			}
-			if ($unansweredOnly && ($appointment->isClosed() || $appointment->isCancelled())) {
-				continue;
-			}
-			if ($notScheduledOut && $this->bookingService->isScheduledOut($appointment, $userId)) {
-				continue;
-			}
-			if ($onlyScheduled && !$this->bookingService->isScheduledIn($appointment, $userId)) {
-				continue;
-			}
-
-			$userResponse = $this->getUserResponse($appointment->getId(), $userId);
-			$hasResponse = $userResponse && $userResponse->getResponse() !== null;
-			if ($unansweredOnly && $hasResponse) {
-				continue;
-			}
+		$appointments = [];
+		foreach ($rows as ['appointment' => $appointment, 'isAttendee' => $isAttendee, 'isPast' => $isPast]) {
+			$userResponse = $responses[$appointment->getId()] ?? null;
 
 			$myPermissions = $this->buildMyPermissions(
 				$appointment,
@@ -1726,11 +1821,199 @@ class AppointmentService {
 			}
 			$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
 			$appointmentData['myPermissions'] = $myPermissions;
-			$appointmentData = $this->hideTalkRoomFromOutsiders($appointmentData, $myPermissions['canEdit'], $userResponse);
-			$result[] = $appointmentData;
+			$appointmentData['isPast'] = $isPast;
+			$appointments[] = $this->hideTalkRoomFromOutsiders($appointmentData, $myPermissions['canEdit'], $userResponse);
 		}
 
-		return $result;
+		return [
+			'appointments' => $appointments,
+			'total' => $total,
+			'unansweredCount' => $unansweredCount,
+			'facets' => $facets,
+		];
+	}
+
+	/**
+	 * Every appointment of the query's timeframe that falls into its scope,
+	 * in list order: upcoming ones soonest first, then past ones newest first.
+	 *
+	 * @return list<ListRow>
+	 */
+	private function scopedListRows(string $userId, AppointmentListQuery $query): array {
+		// Hoisted: the list runs over every appointment on the instance, so the
+		// group lookups behind this must not repeat per row.
+		$canSeeAll = $this->permissionService->canSeeAllAppointments($userId);
+
+		$timeframes = [];
+		if ($query->coversUpcoming()) {
+			$timeframes[] = [$this->getUpcomingAppointments(), false];
+		}
+		if ($query->coversPast()) {
+			$timeframes[] = [$this->getPastAppointments(), true];
+		}
+
+		$rows = [];
+		foreach ($timeframes as [$appointments, $isPast]) {
+			foreach ($appointments as $appointment) {
+				// Three nested scopes, each derived from the one below it:
+				// visible ⊇ mine ⊇ asked-to-answer. Evaluated once per appointment
+				// rather than through canUserSeeAppointment/isUserOwnAppointment,
+				// which would redo the audience check two more times.
+				$isAttendee = $this->visibilityService->isUserTargetAttendee($appointment, $userId);
+				$isOrganizer = $this->permissionService->isOrganizer($appointment, $userId);
+				$isOwn = $isAttendee || $isOrganizer;
+				if (!$canSeeAll && !$isOwn) {
+					continue;
+				}
+				if ($query->onlyForMe && !$isOwn) {
+					continue;
+				}
+				// The unanswered inbox is strictly what the user was asked to
+				// answer — organizing an appointment is not being asked, and for
+				// see-all holders the visibility check otherwise lets through every
+				// unanswered appointment in the system.
+				if ($query->unansweredOnly && !self::awaitsAnswerFrom($appointment, $isAttendee)) {
+					continue;
+				}
+
+				$rows[] = ['appointment' => $appointment, 'isAttendee' => $isAttendee, 'isOrganizer' => $isOrganizer, 'isPast' => $isPast];
+			}
+		}
+
+		return $rows;
+	}
+
+	/**
+	 * Fetch the user's own responses for the rows not looked up yet, in one
+	 * query rather than one per appointment.
+	 *
+	 * @param array<int, ?AttendanceResponse> $responses Lookup by appointment id, extended in place
+	 * @param array<ListRow> $rows
+	 */
+	private function loadUserResponses(array &$responses, string $userId, array $rows): void {
+		$missing = [];
+		foreach ($rows as $row) {
+			$id = $row['appointment']->getId();
+			if (!array_key_exists($id, $responses)) {
+				$missing[] = $id;
+			}
+		}
+		if ($missing === []) {
+			return;
+		}
+
+		$found = $this->responseMapper->findByUserForAppointments($userId, $missing);
+		foreach ($missing as $id) {
+			$responses[$id] = $found[$id] ?? null;
+		}
+	}
+
+	/**
+	 * How many upcoming appointments still wait for the user's answer — the
+	 * size of the unanswered inbox, whatever the query itself filters on.
+	 *
+	 * @param array<int, ?AttendanceResponse> $responses
+	 * @param list<ListRow> $rows
+	 */
+	private function countUnanswered(array &$responses, string $userId, array $rows): int {
+		$awaiting = array_filter(
+			$rows,
+			static fn (array $row): bool => !$row['isPast'] && self::awaitsAnswerFrom($row['appointment'], $row['isAttendee']),
+		);
+		$this->loadUserResponses($responses, $userId, $awaiting);
+
+		return count(array_filter(
+			$awaiting,
+			static fn (array $row): bool => !self::hasAnswered($responses[$row['appointment']->getId()] ?? null),
+		));
+	}
+
+	private static function awaitsAnswerFrom(Appointment $appointment, bool $isAttendee): bool {
+		return $isAttendee && !$appointment->isClosed() && !$appointment->isCancelled();
+	}
+
+	/**
+	 * A row with response=NULL exists when somebody was checked in before they
+	 * ever answered; that is still "no response".
+	 */
+	private static function hasAnswered(?AttendanceResponse $response): bool {
+		return $response !== null && $response->getResponse() !== null;
+	}
+
+	/**
+	 * What the clients' filter controls can offer for these rows — a paged
+	 * client no longer holds the list to work that out itself.
+	 *
+	 * @param list<ListRow> $rows
+	 * @return array{locations: list<string>, categoryIds: list<int>, roles: list<string>}
+	 */
+	private function listFacets(array $rows): array {
+		$locations = [];
+		$categoryIds = [];
+		foreach ($rows as $row) {
+			$location = $row['appointment']->getLocation();
+			if ($location !== null && $location !== '') {
+				$locations[$location] = true;
+			}
+			$categoryId = $row['appointment']->getCategoryId();
+			if ($categoryId !== null) {
+				$categoryIds[$categoryId] = true;
+			}
+		}
+
+		$locations = array_map('strval', array_keys($locations));
+		sort($locations, SORT_STRING);
+
+		// A role is only worth offering while it tells some appointments apart
+		// from others — somebody simply invited everywhere gets none at all.
+		$roles = [];
+		foreach (AppointmentListQuery::ROLES as $role) {
+			$matching = count(array_filter($rows, static fn (array $row): bool => self::hasRole($row, $role)));
+			if ($matching > 0 && $matching < count($rows)) {
+				$roles[] = $role;
+			}
+		}
+
+		return ['locations' => $locations, 'categoryIds' => array_keys($categoryIds), 'roles' => $roles];
+	}
+
+	/**
+	 * @param ListRow $row
+	 */
+	private static function hasRole(array $row, string $role): bool {
+		return match ($role) {
+			AppointmentListQuery::ROLE_ATTENDEE => $row['isAttendee'],
+			AppointmentListQuery::ROLE_ORGANIZER => $row['isOrganizer'],
+			default => !$row['isAttendee'] && !$row['isOrganizer'],
+		};
+	}
+
+	private static function matchesListFilters(Appointment $appointment, ?AttendanceResponse $userResponse, AppointmentListQuery $query): bool {
+		// "Open"/"closed" are about inquiries that still take responses, which
+		// a cancelled one does not — it only ever matches "cancelled".
+		$status = match (true) {
+			$appointment->isCancelled() => AppointmentListQuery::STATUS_CANCELLED,
+			$appointment->isClosed() => AppointmentListQuery::STATUS_CLOSED,
+			default => AppointmentListQuery::STATUS_OPEN,
+		};
+		if ($query->status !== null && $query->status !== $status) {
+			return false;
+		}
+
+		if ($query->response !== null
+			&& ($userResponse?->getResponse() ?? AppointmentListQuery::RESPONSE_NONE) !== $query->response) {
+			return false;
+		}
+
+		if ($query->locations !== [] && !in_array($appointment->getLocation(), $query->locations, true)) {
+			return false;
+		}
+		if ($query->categoryIds !== [] && !in_array($appointment->getCategoryId(), $query->categoryIds, true)) {
+			return false;
+		}
+
+		return $query->search === ''
+			|| mb_stripos($appointment->getName() . ' ' . ($appointment->getDescription() ?? ''), $query->search) !== false;
 	}
 
 	/**
