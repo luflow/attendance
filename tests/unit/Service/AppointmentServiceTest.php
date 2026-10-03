@@ -1781,6 +1781,35 @@ class AppointmentServiceTest extends TestCase {
 		));
 	}
 
+	// --- reminder targets ---
+
+	/**
+	 * Checking somebody in writes a response row with no answer. "Non-responder"
+	 * has to keep meaning "has not answered" — the summary lists such a person
+	 * as one and offers a reminder bell next to their name (issue #229), so a
+	 * bulk reminder must not silently skip exactly them.
+	 */
+	public function testNonResponderRemindersReachSomebodyWhoWasOnlyCheckedIn(): void {
+		$appointment = $this->createAppointment(1, 'Rehearsal');
+
+		$checkinOnly = new AttendanceResponse();
+		$checkinOnly->setUserId('wilfried');
+		$checkinOnly->setResponse(null);
+		$checkinOnly->setCheckinState('yes');
+		$answered = $this->createResponse(2, 'alice', 'yes');
+
+		$this->responseMapper->method('findByAppointment')->willReturn([$checkinOnly, $answered]);
+		$this->configService->method('getWhitelistedGroups')->willReturn([]);
+		$this->visibilityService->method('getRelevantUsersForAppointment')->willReturn([
+			'wilfried' => $this->createMock(\OCP\IUser::class),
+			'alice' => $this->createMock(\OCP\IUser::class),
+		]);
+
+		$targets = $this->service->getReminderTargetUserIds($appointment, 'non_responders');
+
+		$this->assertSame(['wilfried'], $targets);
+	}
+
 	// --- onboarding entry point ---
 
 	public function testHasAnyAppointmentReportsAFreshInstance(): void {

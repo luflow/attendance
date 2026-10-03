@@ -209,6 +209,58 @@ class ResponseSummaryServiceTest extends TestCase {
 	}
 
 	/**
+	 * Regression for issue #229: somebody who never answered but was checked in
+	 * has a response row carrying only a check-in state. That row is no answer,
+	 * so the summary lists them among the non-responders — but it dropped the
+	 * check-in with it, and the organizer could not see they had turned up.
+	 */
+	public function testGetResponseSummaryKeepsTheCheckinOfSomebodyWhoNeverAnswered(): void {
+		$appointmentId = 9;
+		$appointment = new Appointment();
+		$appointment->setId($appointmentId);
+		$appointment->setVisibleUsers(json_encode(['wilfried', 'no_show']));
+		$appointment->setVisibleGroups('[]');
+		$appointment->setVisibleTeams('[]');
+
+		$checkinOnly = new AttendanceResponse();
+		$checkinOnly->setUserId('wilfried');
+		$checkinOnly->setResponse(null);
+		$checkinOnly->setCheckinState('yes');
+
+		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
+		$this->responseMapper->method('findByAppointment')->willReturn([$checkinOnly]);
+
+		$this->configService->method('getWhitelistedGroups')->willReturn([]);
+		$this->configService->method('getResponseSummaryGroupsMode')->willReturn(ConfigService::RESPONSE_SUMMARY_MODE_NONE);
+		$this->configService->method('getWhitelistedTeams')->willReturn([]);
+
+		$this->visibilityService->method('getVisibilitySettings')
+			->willReturn(['users' => ['wilfried', 'no_show'], 'groups' => [], 'teams' => []]);
+		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(true);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+
+		$wilfried = $this->createMock(IUser::class);
+		$wilfried->method('getUID')->willReturn('wilfried');
+		$wilfried->method('getDisplayName')->willReturn('Wilfried');
+		$noShow = $this->createMock(IUser::class);
+		$noShow->method('getUID')->willReturn('no_show');
+		$noShow->method('getDisplayName')->willReturn('No Show');
+		$this->userManager->method('get')->willReturn($wilfried);
+		$this->groupManager->method('getUserGroups')->willReturn([]);
+		$this->visibilityService->method('getTargetAttendees')
+			->willReturn(['wilfried' => $wilfried, 'no_show' => $noShow]);
+
+		$summary = $this->service->getResponseSummary($appointmentId);
+
+		// Both never answered; only one of them turned up.
+		$this->assertSame(2, $summary['no_response']);
+		$byId = array_column($summary['non_responding_users'], null, 'userId');
+		// 'yes' is the check-in scale's "present", not an answer.
+		$this->assertSame('yes', $byId['wilfried']['checkinState']);
+		$this->assertNull($byId['no_show']['checkinState']);
+	}
+
+	/**
 	 * Regression: members reaching an appointment only through a visibility
 	 * group outside the admin whitelist used to vanish — no group section
 	 * (correct), but also no Others entry and no global non-responder count.
