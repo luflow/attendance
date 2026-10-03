@@ -13,7 +13,6 @@ OC.L10N.register(
     "Yes" : "Ja",
     "No" : "Nein",
     "Maybe" : "Vielleicht",
-    "My attendance" : "Meine Anwesenheit",
     "Attendance" : "Anwesenheit",
     "Response missing: %1$s on %2$s" : "Antwort fehlt: „%1$s“ am %2$s",
     "New appointment: %1$s on %2$s" : "Neuer Termin: „%1$s“ am %2$s",
