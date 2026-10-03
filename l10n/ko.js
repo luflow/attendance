@@ -1,6 +1,7 @@
 OC.L10N.register(
     "attendance",
     {
+    "Attendance" : "출석",
     "This appointment no longer exists." : "이 예약은 더 이상 유효하지 않습니다.",
     "Response recorded" : "응답이 기록되었습니다",
     "An error occurred while recording your response. Please try again." : "응답을 기록하는 동안 오류가 발생했습니다. 다시 시도해 주세요.",
@@ -11,7 +12,6 @@ OC.L10N.register(
     "Yes" : "예",
     "No" : "아니오",
     "Maybe" : "아마도",
-    "Attendance" : "출석",
     "Response missing: %1$s on %2$s" : "응답이 누락되었습니다: %2$s의 %1$s",
     "New appointment: %1$s on %2$s" : "새로운 약속: %2$s의 %1$s",
     "Others" : "기타",

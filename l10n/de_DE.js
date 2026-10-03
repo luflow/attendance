@@ -991,6 +991,7 @@ OC.L10N.register(
     "Several appointments of a series changed at once" : "Mehrere Termine einer Serie wurden auf einmal geändert",
     "Notifications are delivered via UnifiedPush — no Google Play required" : "Benachrichtigungen werden über UnifiedPush zugestellt — Google Play wird nicht benötigt",
     "See prices" : "Preise anzeigen",
+    "Failed to search teams" : "Teams konnten nicht durchsucht werden",
     "Add vacation" : "Urlaub hinzufügen",
     "Delete vacation" : "Urlaub löschen",
     "Do you want to delete this vacation entry?" : "Soll dieser Urlaubseintrag gelöscht werden?",

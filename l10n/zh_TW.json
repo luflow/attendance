@@ -1,4 +1,5 @@
 { "translations": {
+    "Attendance" : "出席情況",
     "This appointment no longer exists." : "此預約已不存在。",
     "Response recorded" : "已記錄回應",
     "An error occurred while recording your response. Please try again." : "記錄您的回應時發生錯誤。請再試一次。",
@@ -9,7 +10,6 @@
     "Yes" : "是",
     "No" : "否",
     "Maybe" : "也許",
-    "Attendance" : "出席情況",
     "Response missing: %1$s on %2$s" : "缺少回應：%1$s 於 %2$s",
     "New appointment: %1$s on %2$s" : "新預約：%1$s 於 %2$s",
     "Someone" : "某人",

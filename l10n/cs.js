@@ -1,6 +1,7 @@
 OC.L10N.register(
     "attendance",
     {
+    "Attendance" : "Přítomnost",
     "This appointment no longer exists." : "Tato schůzka už neexistuje.",
     "Response recorded" : "Odpověď zaznamenána",
     "An error occurred while recording your response. Please try again." : "Při zaznamenávání vaší odpovědi došlo k chybě. Prosím zkuste to znovu.",
@@ -12,7 +13,6 @@ OC.L10N.register(
     "No" : "Ne",
     "Maybe" : "Možná",
     "My attendance" : "Má přítomnost",
-    "Attendance" : "Přítomnost",
     "Response missing: %1$s on %2$s" : "Chybí odpověď: %1$s na %2$s",
     "New appointment: %1$s on %2$s" : "Nová schůzka: %1$s na %2$s",
     "Someone" : "Někdo",

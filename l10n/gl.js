@@ -1,6 +1,7 @@
 OC.L10N.register(
     "attendance",
     {
+    "Attendance" : "Asistencia",
     "This appointment no longer exists." : "Esta cita xa non existe.",
     "Response recorded" : "Resposta rexistrada",
     "An error occurred while recording your response. Please try again." : "Ocorreu un erro mentres rexistraba a súa resposta. Ténteo de novo.",
@@ -11,7 +12,6 @@ OC.L10N.register(
     "Yes" : "Si",
     "No" : "Non",
     "Maybe" : "Quizais",
-    "Attendance" : "Asistencia",
     "Response missing: %1$s on %2$s" : "Falta a resposta: %1$s en %2$s",
     "New appointment: %1$s on %2$s" : "Nova cita %1$s o %2$s",
     "Someone" : "Alguén",

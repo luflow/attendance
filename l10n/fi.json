@@ -1,4 +1,5 @@
 { "translations": {
+    "Attendance" : "Osallistuminen",
     "This appointment no longer exists." : "Tätä tapaamista ei ole enää olemassa.",
     "Invalid response type." : "Virheellinen vastauksen tyyppi.",
     "This link is invalid. Please use the link from your notification." : "Tämä linkki on virheellinen. Käytä ilmoituksessasi olevaa linkkiä.",
@@ -7,7 +8,6 @@
     "Yes" : "Kyllä",
     "No" : "Ei",
     "Maybe" : "Ehkä",
-    "Attendance" : "Osallistuminen",
     "Someone" : "Joku",
     "Others" : "Muut",
     "Group" : "Ryhmä",
@@ -42,6 +42,7 @@
     "Not now" : "Ei nyt",
     "Active filters" : "Aktiiviset suodattimet",
     "No connection" : "Ei yhteyttä",
+    "Last updated {time}" : "Viimeksi päivitetty {time}",
     "Subscribe" : "Tilaa",
     "Subscription" : "Tilaus",
     "Active" : "Aktiivinen",

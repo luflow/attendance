@@ -34,6 +34,8 @@
 
 <script setup>
 import axios from '@nextcloud/axios'
+import { showError } from '@nextcloud/dialogs'
+import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import { NcSelect } from '@nextcloud/vue'
 import { computed, ref } from 'vue'
@@ -87,6 +89,7 @@ async function search(query) {
 			.map((item) => ({ id: item.id, label: item.label, type: 'team' }))
 	} catch (error) {
 		console.error('Error searching teams:', error)
+		showError(error.response?.data?.error || t('attendance', 'Failed to search teams'))
 	} finally {
 		isSearching.value = false
 	}

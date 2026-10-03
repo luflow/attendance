@@ -1,6 +1,7 @@
 OC.L10N.register(
     "attendance",
     {
+    "Attendance" : "Mahudhurio",
     "This appointment no longer exists." : "Uteuzi huu haupo tena.",
     "Response recorded" : "Jibu limerekodiwa",
     "An error occurred while recording your response. Please try again." : "Hitilafu ilitokea wakati wa kurekodi jibu lako. Tafadhali jaribu tena.",
@@ -11,7 +12,6 @@ OC.L10N.register(
     "Yes" : "Ndiyo",
     "No" : "Hapana",
     "Maybe" : "Labda",
-    "Attendance" : "Mahudhurio",
     "Response missing: %1$s on %2$s" : "Jibu halipo: %1$s kwenye %2$s",
     "New appointment: %1$s on %2$s" : "Miadi mpya: %1$s kwenye %2$s",
     "Someone" : "Mtu fulani",
