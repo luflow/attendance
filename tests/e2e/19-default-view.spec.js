@@ -61,24 +61,24 @@ test.describe('Default landing view — role-aware', () => {
 	})
 
 	// Landing in "Unanswered" meant an empty list as the first thing you see
-	// once everything was answered, so non-managers start in "Upcoming" — which
-	// is also what the bare app URL maps to.
-	test('regular user lands on "Upcoming appointments"', async ({ page, loginAsUser, attendanceApp }) => {
+	// once everything was answered, so non-managers start in "My appointments"
+	// — which is also what the bare app URL maps to.
+	test('regular user lands on "My appointments"', async ({ page, loginAsUser, attendanceApp }) => {
 		await loginAsUser('test', 'test')
 		await landOnAttendance(page, attendanceApp)
 		await page.reload()
 		await page.waitForLoadState('networkidle')
 
-		await expect(page.locator('[data-test="page-heading"]')).toHaveText('Upcoming appointments')
+		await expect(page.locator('[data-test="page-heading"]')).toHaveText('My appointments')
 	})
 })
 
 test.describe('Sidebar order — "All appointments" sits at the top', () => {
-	test('admin sidebar lists All before Upcoming and Past', async ({ page, loginAsUser, attendanceApp }) => {
+	test('admin sidebar lists All before My and Past', async ({ page, loginAsUser, attendanceApp }) => {
 		await loginAsUser('admin', 'admin')
 		await landOnAttendance(page, attendanceApp)
 
-		// DOM order check — All must precede Upcoming and Past in the navigation list.
+		// DOM order check — All must precede My and Past in the navigation list.
 		const navItems = page.locator('[data-test="nav-all"], [data-test="nav-upcoming"], [data-test="nav-past"]')
 		await expect(navItems).toHaveCount(3)
 		const orderedTestIds = await navItems.evaluateAll((els) =>

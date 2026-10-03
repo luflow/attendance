@@ -18,7 +18,7 @@ test.describe('Attendance App - Basic Navigation', () => {
 		await expect(page.locator('#app-content-vue')).toBeVisible()
 		
 		// Check for navigation
-		await expect(page.getByRole('link', { name: /upcoming appointments/i })).toBeVisible()
+		await expect(page.getByRole('link', { name: /my appointments/i })).toBeVisible()
 	})
 
 	test('should display navigation sections', async ({ page, loginAsUser, attendanceApp }) => {

@@ -110,7 +110,7 @@ class AppointmentController extends Controller {
 	 *
 	 * @param bool $showPastAppointments Whether to show past appointments instead of upcoming ones
 	 * @param bool $unansweredOnly When true, only return upcoming appointments that the user has not answered yet AND that are still open. Ignored when $showPastAppointments is true.
-	 * @param bool $onlyForMe When true, restrict the result to appointments the user is part of the target audience for (visibleUsers/Groups/Teams membership; appointments with no visibility restriction count as "for everyone" and are included). Useful for managers, who otherwise see every appointment in the system.
+	 * @param bool $onlyForMe When true, restrict the result to the user's own appointments: the ones they are part of the target audience for (visibleUsers/Groups/Teams membership; appointments with no visibility restriction count as "for everyone" and are included) plus the ones they organize. This is the "My appointments" view; without it, holders of see_all_appointments get every appointment on the instance.
 	 * @param bool $notScheduledOut When true, additionally drop closed appointments where somebody was scheduled but the user was not. Only has an effect while the planning feature is enabled; appointments nobody was scheduled for stay visible to everyone. Implies $onlyForMe.
 	 * @param bool $onlyScheduled When true, return only appointments the user has been given a place in. Only has an effect while the planning feature is enabled. Open inquiries count as soon as a manager booked the user — being booked is an explicit act, unlike not being booked. Implies $onlyForMe.
 	 * @return DataResponse<Http::STATUS_OK, list<AttendanceAppointmentWithResponse>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
@@ -1028,6 +1028,7 @@ class AppointmentController extends Controller {
 			'canRespondForOthers' => $this->permissionService->canRespondForOthers($user->getUID()),
 			'canSeeStatistics' => $this->permissionService->canSeeStatistics($user->getUID()),
 			'canSeeIndividualResponses' => $this->permissionService->canSeeIndividualResponses($user->getUID()),
+			'canSeeAllAppointments' => $this->permissionService->canSeeAllAppointments($user->getUID()),
 		]);
 	}
 
@@ -1117,6 +1118,11 @@ class AppointmentController extends Controller {
 			// Server understands DELETE /appointments/{id}/talk-room. Clients
 			// hide the delete action when this is false.
 			'talkRoomDeletion' => true,
+			// Server knows the see_all_appointments permission, and index(onlyForMe)
+			// keeps the appointments the user organizes as well. On older servers
+			// that scope drops them, so clients must not label such a view
+			// "My appointments" without this flag.
+			'seeAllAppointments' => true,
 			// Server supports personal vacation periods (GET/POST/PUT/DELETE
 			// /vacations), the create-appointment conflict hint, the team
 			// overview, and auto-"no" responses for invitees on vacation.

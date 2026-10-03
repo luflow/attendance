@@ -192,7 +192,7 @@ test.describe('Attendance App - User Responses', () => {
 		await attendanceApp()
 		await page.waitForLoadState('networkidle')
 
-		await page.getByRole('link', { name: 'Upcoming Appointments' }).click()
+		await page.getByRole('link', { name: 'My appointments' }).click()
 		await page.waitForLoadState('networkidle')
 
 		await page.getByRole('button', { name: 'Yes', exact: true }).first().click()
@@ -217,7 +217,7 @@ test.describe('Attendance App - User Responses', () => {
 		await page.reload()
 		await page.waitForLoadState('networkidle')
 
-		await page.getByRole('link', { name: 'Upcoming Appointments' }).click()
+		await page.getByRole('link', { name: 'My appointments' }).click()
 		await page.waitForLoadState('networkidle')
 
 		await openCommentField(page.locator('[data-test="button-toggle-comment"]').first())

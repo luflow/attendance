@@ -16,6 +16,7 @@ const DEFAULTS = {
 		canRespondForOthers: false,
 		canSeeStatistics: false,
 		canSeeIndividualResponses: false,
+		canSeeAllAppointments: false,
 	},
 	capabilities: {
 		calendarAvailable: false,
@@ -90,6 +91,7 @@ export function usePermissions() {
 			state.permissions.canRespondForOthers = permissionsRes.data.canRespondForOthers === true
 			state.permissions.canSeeStatistics = permissionsRes.data.canSeeStatistics === true
 			state.permissions.canSeeIndividualResponses = permissionsRes.data.canSeeIndividualResponses === true
+			state.permissions.canSeeAllAppointments = permissionsRes.data.canSeeAllAppointments === true
 
 			state.capabilities.calendarAvailable = capabilitiesRes.data.calendarAvailable || false
 			state.capabilities.calendarSyncEnabled = capabilitiesRes.data.calendarSyncEnabled || false

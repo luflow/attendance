@@ -544,6 +544,7 @@
                     "statisticsAvailable",
                     "talkRoomsAvailable",
                     "talkRoomDeletion",
+                    "seeAllAppointments",
                     "vacationManagementEnabled"
                 ],
                 "properties": {
@@ -620,6 +621,9 @@
                         "type": "boolean"
                     },
                     "talkRoomDeletion": {
+                        "type": "boolean"
+                    },
+                    "seeAllAppointments": {
                         "type": "boolean"
                     },
                     "vacationManagementEnabled": {
@@ -1858,7 +1862,8 @@
                     "canSelfCheckin",
                     "canRespondForOthers",
                     "canSeeStatistics",
-                    "canSeeIndividualResponses"
+                    "canSeeIndividualResponses",
+                    "canSeeAllAppointments"
                 ],
                 "properties": {
                     "canManageAppointments": {
@@ -1889,6 +1894,9 @@
                         "type": "boolean"
                     },
                     "canSeeIndividualResponses": {
+                        "type": "boolean"
+                    },
+                    "canSeeAllAppointments": {
                         "type": "boolean"
                     }
                 }
@@ -2017,7 +2025,7 @@
                     {
                         "name": "onlyForMe",
                         "in": "query",
-                        "description": "When true, restrict the result to appointments the user is part of the target audience for (visibleUsers/Groups/Teams membership; appointments with no visibility restriction count as \"for everyone\" and are included). Useful for managers, who otherwise see every appointment in the system.",
+                        "description": "When true, restrict the result to the user's own appointments: the ones they are part of the target audience for (visibleUsers/Groups/Teams membership; appointments with no visibility restriction count as \"for everyone\" and are included) plus the ones they organize. This is the \"My appointments\" view; without it, holders of see_all_appointments get every appointment on the instance.",
                         "schema": {
                             "type": "boolean",
                             "default": false

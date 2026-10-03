@@ -20,7 +20,7 @@
 			</NcAppNavigationNew>
 			<template #list>
 				<NcAppNavigationItem
-					:name="t('attendance', 'All appointments')"
+					:name="VIEWS.all.heading()"
 					:active="currentView === 'all'"
 					data-test="nav-all"
 					@click.prevent="setView('all')">
@@ -32,7 +32,7 @@
 				<!-- Unanswered Appointments Section -->
 				<NcAppNavigationItem
 					v-if="unansweredAppointments.length > 0"
-					:name="t('attendance', 'Unanswered')"
+					:name="VIEWS.unanswered.heading()"
 					:active="currentView === 'unanswered'"
 					data-test="nav-unanswered"
 					@click.prevent="setView('unanswered')">
@@ -61,7 +61,7 @@
 				</NcAppNavigationItem>
 
 				<NcAppNavigationItem
-					:name="t('attendance', 'Upcoming appointments')"
+					:name="VIEWS.current.heading()"
 					:active="currentView === 'current'"
 					data-test="nav-upcoming"
 					@click.prevent="setView('current')">
@@ -110,7 +110,7 @@
 				</NcAppNavigationItem>
 
 				<NcAppNavigationItem
-					:name="t('attendance', 'Past appointments')"
+					:name="VIEWS.past.heading()"
 					:active="currentView === 'past'"
 					:open="pastAppointmentsExpanded"
 					data-test="nav-past"
@@ -126,10 +126,10 @@
 					<template
 						v-if="
 							pastAppointmentsExpanded
-								&& activePastAppointments.length > 0
+								&& pastAppointments.length > 0
 						">
 						<NcAppNavigationItem
-							v-for="appointment in activePastAppointments"
+							v-for="appointment in pastAppointments"
 							:key="appointment.id"
 							:name="formatAppointmentDisplay(appointment)"
 							:active="
@@ -564,6 +564,9 @@ t('attendance', 'This tag is write-protected.')
 t('attendance', 'Too expensive')
 t('attendance', 'Try again')
 t('attendance', 'Unlimited members')
+// TRANSLATORS: Appointment list heading in the mobile app, still used against
+// servers too old for the "My appointments"/"All appointments" split.
+t('attendance', 'Upcoming appointments')
 t('attendance', 'Up to {count} members')
 t('attendance', "Use the recipient's server locale")
 // TRANSLATORS: {count} is how many personal licenses one group license beats.
@@ -649,14 +652,10 @@ function onSearchInput() {
 // Use the shared permissions composable
 const { permissions, capabilities, config, loadPermissions } = usePermissions()
 
-// Cancelled appointments are only listed on the "All" view, which gives them
-// their own section — the scoped lists (here and in AllAppointments.vue) leave
-// them out, so the sidebar and the main list agree on what "upcoming" means.
-const activeAppointments = computed(() => currentAppointments.value.filter((a) => !a.cancelledAt))
-const activePastAppointments = computed(() => pastAppointments.value.filter((a) => !a.cancelledAt))
-
 const unansweredAppointments = computed(() => {
-	return activeAppointments.value.filter((appointment) => {
+	return currentAppointments.value.filter((appointment) => {
+		// A cancelled appointment is no to-do, so it never counts as unanswered.
+		if (appointment.cancelledAt) return false
 		const noResponse = !appointment.userResponse || appointment.userResponse === null
 		const open = !appointment.closedAt
 		// Managers see everything via canUserSeeAppointment; only flag the
@@ -665,13 +664,13 @@ const unansweredAppointments = computed(() => {
 	})
 })
 
-// Closed-but-unanswered appointments bucket here so they don't vanish from
-// the UI (no longer "unanswered", never answered).
+// Closed-but-unanswered and cancelled appointments bucket here so they don't
+// vanish from the UI (no longer "unanswered", never answered).
 const answeredAppointments = computed(() => {
-	return activeAppointments.value.filter((appointment) => {
+	return currentAppointments.value.filter((appointment) => {
 		const hasResponse = appointment.userResponse && appointment.userResponse !== null
 		const closedWithoutResponse = !hasResponse && appointment.closedAt
-		return hasResponse || closedWithoutResponse
+		return hasResponse || closedWithoutResponse || Boolean(appointment.cancelledAt)
 	})
 })
 
@@ -864,11 +863,11 @@ function checkRouting() {
 	} else if (isStatisticsRoute) {
 		currentView.value = 'statistics'
 	} else {
-		// Default landing: managers drop into "All appointments" (their natural
-		// overview), everyone else into "Upcoming". Landing in "Unanswered"
-		// was confusing once everything was answered — an empty list as the
-		// first thing you see.
-		currentView.value = permissions.canManageAppointments ? 'all' : 'current'
+		// Default landing: whoever sees every appointment drops into "All
+		// appointments" (their natural overview), everyone else into their own
+		// list. Landing in "Unanswered" was confusing once everything was
+		// answered — an empty list as the first thing you see.
+		currentView.value = permissions.canSeeAllAppointments ? 'all' : 'current'
 	}
 }
 

@@ -54,6 +54,7 @@ export default defineConfig({
 				'22-response-rescind.spec.js',
 				'24-close-nav-resort.spec.js',
 				'30-location.spec.js',
+				'33-cancelled-visible.spec.js',
 				'checkin.spec.js',
 			],
 			fullyParallel: false, // tests within a file stay sequential
@@ -97,6 +98,8 @@ export default defineConfig({
 				'32-statistics.spec.js',
 				// Wipes every appointment before each test.
 				'33-attendance-limit.spec.js',
+				// Grants see_all_appointments to a dedicated group.
+				'34-see-all-appointments.spec.js',
 			],
 			fullyParallel: false,
 			workers: 1,
