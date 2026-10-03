@@ -255,9 +255,6 @@ test.describe('Attendance App - Close inquiry (UI)', () => {
 			[FILTER_STORAGE_KEY, 'closed'],
 		)
 		await page.reload()
-		// `networkidle` flakes on a heavily-seeded DB (manage-perm fans out
-		// to one /responses request per visible appointment); the assertion
-		// auto-waits for the right state anyway.
 		await expect(cards.filter({ hasText: closedName }).first()).toBeVisible()
 		await expect(cards.filter({ hasText: closeMeetingName })).toHaveCount(0)
 	})

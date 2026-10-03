@@ -358,7 +358,7 @@ const splittingRoles = computed(() => Object.values(ROLE).filter((role) => {
 	return matching > 0 && matching < appointments.value.length
 }))
 
-const { permissions, capabilities, config, loadPermissions } = usePermissions()
+const { capabilities, config, loadPermissions } = usePermissions()
 const { categories, loadCategories, getCategory } = useCategories()
 loadCategories()
 
@@ -706,10 +706,6 @@ async function loadAppointments(skipLoadingSpinner = false) {
 			appointments.value = response.data
 		}
 		appointmentListCache.set(props.view, appointments.value)
-
-		if (permissions.canManageAppointments) {
-			await loadDetailedResponses()
-		}
 	} catch (error) {
 		console.error('Failed to load appointments:', error)
 	} finally {
@@ -723,19 +719,6 @@ async function loadAppointments(skipLoadingSpinner = false) {
 watch(() => filterValues.value[F.SCHEDULING], () => {
 	loadAppointments(true)
 })
-
-async function loadDetailedResponses() {
-	// Hundreds of serial XHRs in the All view used to take seconds. The
-	// requests are independent — fan them out and let the browser pipeline.
-	await Promise.all(appointments.value.map(async (appointment) => {
-		try {
-			const response = await axios.get(generateUrl(`/apps/attendance/api/appointments/${appointment.id}/responses`))
-			appointment.detailedResponses = response.data
-		} catch (error) {
-			console.error(`Failed to load detailed responses for appointment ${appointment.id}:`, error)
-		}
-	}))
-}
 
 async function submitResponse(appointmentId, response, acceptWaitlist = false) {
 	const appointment = appointments.value.find((a) => a.id === appointmentId)
