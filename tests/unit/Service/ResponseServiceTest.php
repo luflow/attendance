@@ -50,11 +50,14 @@ class ResponseServiceTest extends TestCase {
 			$this->createMock(NotificationService::class),
 			$this->createMock(AuditEventService::class),
 		);
+		// Quick-response links only ever reach people in the audience.
+		$visibilityService = $this->createMock(VisibilityService::class);
+		$visibilityService->method('isUserTargetAttendee')->willReturn(true);
 
 		$this->service = new ResponseService(
 			$this->appointmentMapper,
 			$this->responseMapper,
-			$this->createMock(VisibilityService::class),
+			$visibilityService,
 			$this->createMock(NotificationService::class),
 			$this->createMock(IGroupManager::class),
 			$this->createMock(IUserManager::class),
@@ -62,7 +65,7 @@ class ResponseServiceTest extends TestCase {
 			$this->createMock(AuditEventService::class),
 			$this->createMock(OrgCalendarSyncService::class),
 			$this->createMock(TalkRoomService::class),
-			new ResponsePolicyService($this->configService, $capacityService),
+			new ResponsePolicyService($this->configService, $capacityService, $visibilityService),
 			$capacityService,
 		);
 	}

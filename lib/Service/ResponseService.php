@@ -106,7 +106,7 @@ class ResponseService {
 		// link cannot slip past a rule the app enforces. A signed link carries no
 		// waitlist intent, so a full appointment turns it away with a message
 		// rather than queueing somebody who never asked to wait.
-		$this->responsePolicyService->assertResponseAllowed($appointment, $response, $beforeResponse);
+		$this->responsePolicyService->assertResponseAllowed($appointment, $userId, $response, $beforeResponse);
 
 		if ($existingResponse !== null) {
 			$existingResponse->setResponse($response);

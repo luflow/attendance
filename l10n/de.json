@@ -1046,6 +1046,8 @@
     "Visible to the whole team on the vacation calendar." : "Im Urlaubskalender für das gesamte Team sichtbar.",
     "{count} appointments set to \"No\"" : "{count} Termine auf „Nein“ gesetzt",
     "{count} people can't attend at this time — their answer defaults to \"No\"" : "{count} Personen können zu dieser Zeit nicht teilnehmen — ihre Antwort steht standardmäßig auf „Nein“",
-    "Add a group column next to the names" : "Gruppenspalte neben den Namen ergänzen"
+    "Add a group column next to the names" : "Gruppenspalte neben den Namen ergänzen",
+    "You organize this appointment but are not an attendee, so you cannot respond." : "Du bist nur Organisator dieses Termins und kein Teilnehmer, daher kannst du keine Antwort abgeben.",
+    "You are not an attendee of this appointment, so you cannot respond." : "Du bist kein Teilnehmer dieses Termins, daher kannst du keine Antwort abgeben."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

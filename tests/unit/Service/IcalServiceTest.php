@@ -46,7 +46,9 @@ class IcalServiceTest extends TestCase {
 
 		$urlGenerator = $this->createMock(IURLGenerator::class);
 		$urlGenerator->method('getAbsoluteURL')->willReturn('https://example.test/');
-		$urlGenerator->method('linkToRouteAbsolute')->willReturn('https://example.test/app');
+		$urlGenerator->method('linkToRouteAbsolute')->willReturnCallback(
+			fn (string $route, array $params = []) => 'https://example.test/' . $route . '/' . implode('/', $params),
+		);
 
 		$this->service = new IcalService(
 			$this->createMock(IcalTokenMapper::class),
@@ -203,6 +205,51 @@ class IcalServiceTest extends TestCase {
 	public function testNoCategoriesPropertyEmittedWhenNotSet(): void {
 		$out = $this->generate($this->appointment(), null);
 		$this->assertStringNotContainsString('CATEGORIES:', $out);
+	}
+
+	/** Issue #272: the link used a "#/appointment/…" fragment the app never routed. */
+	public function testEventLinksToTheAppointmentRoute(): void {
+		$out = $this->generate($this->appointment(), null);
+
+		$this->assertStringContainsString("URL:https://example.test/attendance.page.appointment/5\r\n", $out);
+		$this->assertStringNotContainsString('#/', $out);
+	}
+
+	public function testVtimezoneListsTheClockChangesAroundThePeriod(): void {
+		$lines = IcalService::vtimezoneLines(
+			new \DateTimeZone('Europe/Berlin'),
+			new \DateTimeImmutable('2026-10-05 17:30:00', new \DateTimeZone('UTC')),
+			new \DateTimeImmutable('2026-10-05 19:30:00', new \DateTimeZone('UTC')),
+		);
+
+		$this->assertSame(['BEGIN:VTIMEZONE', 'TZID:Europe/Berlin'], array_slice($lines, 0, 2));
+		$this->assertSame('END:VTIMEZONE', end($lines));
+		$observances = array_chunk(array_slice($lines, 2, -1), 6);
+		// The change in force on the day: summer time since the last Sunday of March
+		$this->assertContains(
+			['BEGIN:DAYLIGHT', 'DTSTART:20260329T020000', 'TZOFFSETFROM:+0100', 'TZOFFSETTO:+0200', 'TZNAME:CEST', 'END:DAYLIGHT'],
+			$observances,
+		);
+		$this->assertContains(
+			['BEGIN:STANDARD', 'DTSTART:20261025T030000', 'TZOFFSETFROM:+0200', 'TZOFFSETTO:+0100', 'TZNAME:CET', 'END:STANDARD'],
+			$observances,
+		);
+	}
+
+	public function testVtimezoneOfAZoneWithoutClockChanges(): void {
+		$when = new \DateTimeImmutable('2026-10-05 12:00:00', new \DateTimeZone('UTC'));
+
+		$this->assertSame([
+			'BEGIN:VTIMEZONE',
+			'TZID:Asia/Kolkata',
+			'BEGIN:STANDARD',
+			'DTSTART:19700101T000000',
+			'TZOFFSETFROM:+0530',
+			'TZOFFSETTO:+0530',
+			'TZNAME:IST',
+			'END:STANDARD',
+			'END:VTIMEZONE',
+		], IcalService::vtimezoneLines(new \DateTimeZone('Asia/Kolkata'), $when, $when));
 	}
 
 	public function testNoCategoriesPropertyEmittedWhenCategoryDeleted(): void {

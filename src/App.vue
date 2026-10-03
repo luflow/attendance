@@ -823,7 +823,17 @@ function formatAppointmentDisplay(appointment) {
 	return `${appointment.name}\n${dateTimeStr}`
 }
 
+// Calendar events written up to 1.53 link to …/attendance/#/appointment/42, a
+// route the app never had. Those links sit in calendars, so send them on.
+function redirectLegacyHashLink() {
+	const match = window.location.hash.match(/^#\/appointment\/(\d+)$/)
+	if (match) {
+		window.history.replaceState(null, '', appBaseUrl() + '/appointment/' + match[1])
+	}
+}
+
 function checkRouting() {
+	redirectLegacyHashLink()
 	const path = window.location.pathname
 	const checkinMatch = path.match(/\/checkin\/(\d+)/)
 	const appointmentMatch = path.match(/\/appointment\/(\d+)/)

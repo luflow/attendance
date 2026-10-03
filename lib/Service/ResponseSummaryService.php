@@ -323,12 +323,11 @@ class ResponseSummaryService {
 	}
 
 	/**
-	 * Whether a response should be excluded as a non-attendee's admin
-	 * bypass: a manager can see (and thus respond to) any appointment via
-	 * PERMISSION_MANAGE_APPOINTMENTS without being part of its actual
-	 * audience. Only that case is filtered — a regular user who answered
-	 * while still a target attendee keeps their response even if they later
-	 * leave the group/team (issue #213).
+	 * Whether a response is a manager's answer to an appointment they were
+	 * never part of — possible until issue #251, and such rows remain. Only
+	 * that case is filtered: a regular user who answered while still a target
+	 * attendee keeps their response even if they later leave the group/team
+	 * (issue #213).
 	 */
 	private function isNonAttendeeAdminResponse(Appointment $appointment, string $userId): bool {
 		return !$this->visibilityService->isUserTargetAttendee($appointment, $userId)
