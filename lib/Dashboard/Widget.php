@@ -56,7 +56,7 @@ class Widget implements IAPIWidget {
 	 * @inheritDoc
 	 */
 	public function getTitle(): string {
-		return $this->l10n->t('My attendance');
+		return $this->l10n->t('My appointments');
 	}
 
 	/**

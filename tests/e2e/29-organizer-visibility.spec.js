@@ -8,6 +8,7 @@ import {
 	respondToAppointmentViaAPI,
 	deleteAllAppointments,
 	PERMISSIVE_PERMISSIONS,
+	pickFilterOption,
 } from './fixtures/nextcloud.js'
 
 /**
@@ -138,6 +139,39 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 			password: 'test3',
 		})
 		expect(refused.error).toMatch(/attendees/i)
+	})
+
+	test('role filter tells attending from organizing', async ({ page, loginAsUser, attendanceApp }) => {
+		await loginAsUser('test3', 'test3')
+		await attendanceApp()
+		await page.waitForLoadState('networkidle')
+		await openAllAppointments(page)
+
+		await pickFilterOption(page, 'role', 'I am an organizer')
+		await expect(cardFor(page, ORGANIZED)).toBeVisible()
+		await expect(cardFor(page, OUTSIDE)).toBeVisible()
+		await expect(cardFor(page, OTHER)).toBeHidden()
+
+		await pickFilterOption(page, 'role', 'I am an attendee')
+		await expect(cardFor(page, ORGANIZED)).toBeVisible()
+		await expect(cardFor(page, OTHER)).toBeVisible()
+		await expect(cardFor(page, OUTSIDE)).toBeHidden()
+
+		// test3 is part of everything they see, so there is nothing to single out.
+		await page.locator('[data-test="filter-role"]').click()
+		await expect(page.getByRole('menuitemradio', { name: 'Not involved' })).toHaveCount(0)
+	})
+
+	test('role filter singles out what a manager is not involved in', async ({ page, loginAsUser, attendanceApp }) => {
+		await loginAsUser('admin', 'admin')
+		await attendanceApp()
+		await page.waitForLoadState('networkidle')
+		await openAllAppointments(page)
+
+		await pickFilterOption(page, 'role', 'Not involved')
+		await expect(cardFor(page, OUTSIDE)).toBeVisible()
+		await expect(cardFor(page, ORGANIZED)).toBeHidden()
+		await expect(cardFor(page, OTHER)).toBeHidden()
 	})
 
 	test('organizer sees no summary on appointments they do not organize', async ({ page, loginAsUser, attendanceApp }) => {

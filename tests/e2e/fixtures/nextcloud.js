@@ -714,6 +714,23 @@ export async function openCommentField(toggle) {
 	}).toPass({ timeout: 15000 })
 }
 
+/**
+ * Pick an option from one of the appointment list's filter popovers.
+ *
+ * The popover stays open after a choice, and a second click on its trigger
+ * would close it instead of opening it again — so close it after each pick.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {string} filterId The filter's id, as in data-test="filter-<id>"
+ * @param {string} name The option's label
+ */
+export async function pickFilterOption(page, filterId, name) {
+	await page.locator(`[data-test="filter-${filterId}"]`).click()
+	await page.getByRole('menuitemradio', { name }).click()
+	await page.keyboard.press('Escape')
+	await expect(page.getByRole('menuitemradio', { name })).toBeHidden()
+}
+
 // ---------------------------------------------------------------------------
 // Playwright test fixtures
 // ---------------------------------------------------------------------------

@@ -48,14 +48,14 @@ test.describe('Attendance App - Dashboard Widget Voting', () => {
 		await expect(page.getByRole('dialog')).toBeVisible()
 		await expect(page.getByRole('heading', { name: 'Edit widgets' })).toBeVisible()
 
-		const attendanceLabel = page.getByRole('dialog').getByText('Attendance')
+		const attendanceLabel = page.getByRole('dialog').getByText('My appointments')
 		await attendanceLabel.click()
-		await expect(page.getByRole('checkbox', { name: 'Attendance' })).toBeChecked()
+		await expect(page.getByRole('checkbox', { name: 'My appointments' })).toBeChecked()
 
 		await page.getByRole('button', { name: 'Close' }).click()
 		await expect(page.getByRole('dialog')).not.toBeVisible()
 
-		await expect(page.getByRole('heading', { name: 'Attendance', level: 2 })).toBeVisible()
+		await expect(page.getByRole('heading', { name: 'My appointments', level: 2 })).toBeVisible()
 	})
 
 	test('should vote on appointment from dashboard', async ({ page }) => {
@@ -126,7 +126,7 @@ test.describe('Attendance App - Dashboard Widget Voting', () => {
 		await page.goto('/apps/dashboard/')
 		await page.waitForLoadState('networkidle')
 
-		const widget = page.locator('.appointment-widget-container').or(page.getByRole('heading', { name: 'Attendance' }).locator('..'))
+		const widget = page.locator('.appointment-widget-container').or(page.getByRole('heading', { name: 'My appointments' }).locator('..'))
 
 		const description = widget.locator('.appointment-description').or(widget.locator('p')).first()
 		if (await description.isVisible()) {
@@ -194,7 +194,7 @@ test.describe('Attendance App - Dashboard Widget Navigation', () => {
 		await page.goto('/apps/dashboard/')
 		await page.waitForLoadState('networkidle')
 
-		const widget = page.locator('.appointment-widget-container').or(page.getByRole('heading', { name: 'Attendance' }).locator('..'))
+		const widget = page.locator('.appointment-widget-container').or(page.getByRole('heading', { name: 'My appointments' }).locator('..'))
 		const appointments = widget.getByRole('heading', { level: 3 })
 		const count = await appointments.count()
 

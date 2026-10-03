@@ -260,6 +260,7 @@ import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcChip, NcEmptyContent, NcPopover } from '@nextcloud/vue'
 import { create as createConfetti } from 'canvas-confetti'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import AccountIcon from 'vue-material-design-icons/AccountOutline.vue'
 import CalendarBlankIcon from 'vue-material-design-icons/CalendarBlank.vue'
 import CalendarCheckIcon from 'vue-material-design-icons/CalendarCheck.vue'
 import CalendarPlusIcon from 'vue-material-design-icons/CalendarPlus.vue'
@@ -279,6 +280,7 @@ import { useAppointmentResponse } from '../composables/useAppointmentResponse.js
 import { useCategories } from '../composables/useCategories.js'
 import { useCategoryFilterChips } from '../composables/useCategoryFilterChips.js'
 import { usePermissions } from '../composables/usePermissions.js'
+import { isAttendee, isOrganizer } from '../utils/appointment.js'
 import { categoryIconComponent } from '../utils/categoryIcons.js'
 import { VIEWS } from './appointmentViews.js'
 
@@ -334,10 +336,25 @@ const F = Object.freeze({
 	RESPONSE: 'response',
 	STATUS: 'status',
 	SCHEDULING: 'scheduling',
+	ROLE: 'role',
 })
 const RESPONSE = Object.freeze({ YES: 'yes', MAYBE: 'maybe', NO: 'no', NONE: 'none' })
 const STATUS = Object.freeze({ OPEN: 'open', CLOSED: 'closed', CANCELLED: 'cancelled' })
 const SCHEDULING = Object.freeze({ NOT_OUT: 'not-scheduled-out', ONLY_IN: 'only-scheduled' })
+const ROLE = Object.freeze({ ATTENDEE: 'attendee', ORGANIZER: 'organizer', UNINVOLVED: 'uninvolved' })
+
+function hasRole(appointment, role) {
+	if (role === ROLE.ATTENDEE) return isAttendee(appointment)
+	if (role === ROLE.ORGANIZER) return isOrganizer(appointment)
+	return !isAttendee(appointment) && !isOrganizer(appointment)
+}
+
+// A role is only offered while it tells some appointments apart from others —
+// a member who is simply invited everywhere gets no role filter at all.
+const splittingRoles = computed(() => Object.values(ROLE).filter((role) => {
+	const matching = appointments.value.filter((appointment) => hasRole(appointment, role)).length
+	return matching > 0 && matching < appointments.value.length
+}))
 
 const { permissions, capabilities, config, loadPermissions } = usePermissions()
 const { categories, loadCategories, getCategory } = useCategories()
@@ -394,6 +411,32 @@ const filterDefs = computed(() => [
 				// "Only [appointments I am] scheduled [in]".
 				label: t('attendance', 'Only scheduled'),
 				visible: capabilities.bookingEnabled && capabilities.scheduledFilter,
+			},
+		],
+	},
+	{
+		id: F.ROLE,
+		// TRANSLATORS: Filter group in the appointment list, about how the user relates to an appointment: invited to it, organizing it, or neither (German "Meine Rolle").
+		label: t('attendance', 'My role'),
+		icon: AccountIcon,
+		options: [
+			{
+				id: ROLE.ATTENDEE,
+				// TRANSLATORS: Filter option under "My role". Keeps the appointments the user is invited to, whatever they answered — not "I said yes" (German "Ich nehme teil").
+				label: t('attendance', 'I am an attendee'),
+				visible: splittingRoles.value.includes(ROLE.ATTENDEE),
+			},
+			{
+				id: ROLE.ORGANIZER,
+				// TRANSLATORS: Filter option under "My role". Keeps the appointments the user is listed as an organizer of (German "Ich organisiere").
+				label: t('attendance', 'I am an organizer'),
+				visible: splittingRoles.value.includes(ROLE.ORGANIZER),
+			},
+			{
+				id: ROLE.UNINVOLVED,
+				// TRANSLATORS: Filter option under "My role". Keeps the appointments the user is neither invited to nor organizing — they only see them through a permission (German "Nicht beteiligt").
+				label: t('attendance', 'Not involved'),
+				visible: splittingRoles.value.includes(ROLE.UNINVOLVED),
 			},
 		],
 	},
@@ -478,10 +521,9 @@ const filters = computed(() => filterDefs.value
 // directly: a value stored back when an option was still available (planning
 // feature later switched off) must stop taking effect, not keep filtering
 // invisibly.
-const activeScheduling = computed(() => {
-	if (!viewDef.value.filtersApply) return null
-	return filters.value.find((f) => f.id === F.SCHEDULING)?.value?.id ?? null
-})
+const activeOptionId = (id) => filters.value.find((f) => f.id === id)?.value?.id ?? null
+const activeScheduling = computed(() => (viewDef.value.filtersApply ? activeOptionId(F.SCHEDULING) : null))
+const activeRole = computed(() => activeOptionId(F.ROLE))
 
 const activeFilters = computed(() => filters.value.filter((f) => f.value))
 
@@ -564,6 +606,7 @@ const visibleAppointments = computed(() => {
 	const { filtersApply: applyFilters, includesCancelled } = viewDef.value
 	const status = filterValues.value[F.STATUS]
 	const response = filterValues.value[F.RESPONSE]
+	const role = activeRole.value
 	return appointments.value.filter((appointment) => {
 		// The status filter decides who sees cancelled appointments; only the
 		// unanswered to-do list drops them unconditionally.
@@ -581,6 +624,7 @@ const visibleAppointments = computed(() => {
 			if (response === RESPONSE.NONE && userResponse !== null) return false
 			if (response !== RESPONSE.NONE && userResponse !== response) return false
 		}
+		if (role && !hasRole(appointment, role)) return false
 		if (selectedLocations.value.length && !selectedLocations.value.includes(appointment.location)) return false
 		if (selectedCategoryIds.value.length && !selectedCategoryIds.value.includes(appointment.categoryId)) return false
 		return true
