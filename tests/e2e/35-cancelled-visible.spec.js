@@ -1,9 +1,9 @@
 import {
-	test,
-	expect,
 	cancelAppointmentViaAPI,
 	createAppointmentViaAPI,
 	deleteAppointmentViaAPI,
+	expect,
+	test,
 } from './fixtures/nextcloud.js'
 
 // Regression for #239: a cancelled appointment used to drop out of the list
