@@ -88,7 +88,7 @@ test.describe('Attendance App - Organization calendar', () => {
 			expect(ics).toContain('SUMMARY:Org Push Create')
 			expect(ics).toContain('DESCRIPTION:Rehearsal in the club house')
 			expect(ics).toContain('--- Attendance ---')
-			expect(ics).toContain(`/apps/attendance/#/appointment/${appointment.id}`)
+			expect(ics).toContain(`/apps/attendance/appointment/${appointment.id}`)
 			expect(ics).toContain('STATUS:CONFIRMED')
 
 			await deleteAppointmentViaAPI(request, appointment.id)
@@ -226,7 +226,7 @@ test.describe('Attendance App - Organization calendar', () => {
 				uid: appointment.calendarEventUid,
 				summary: 'Org Roundtrip Edited',
 				description: 'Edited text\\n\\n--- Attendance ---\\n1 attending\\, 0 declined\\, 0 maybe'
-					+ `\\nView or change your response:\\n${BASE_URL}/apps/attendance/#/appointment/${appointment.id}`,
+					+ `\\nView or change your response:\\n${BASE_URL}/apps/attendance/appointment/${appointment.id}`,
 				dtstart: toICalDate(start),
 				dtend: toICalDate(end),
 				calendarName: CALENDAR_NAME,

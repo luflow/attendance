@@ -428,7 +428,7 @@ class IcalService {
 	 * Absolute deep link to an appointment in the web app.
 	 */
 	public function getAppointmentUrl(int $appointmentId): string {
-		return $this->urlGenerator->linkToRouteAbsolute('attendance.page.index') . '#/appointment/' . $appointmentId;
+		return $this->urlGenerator->linkToRouteAbsolute('attendance.page.appointment', ['id' => $appointmentId]);
 	}
 
 	/**
@@ -494,6 +494,58 @@ class IcalService {
 	 */
 	public static function icalPropertyName(string $line): string {
 		return strtoupper(substr($line, 0, strcspn($line, ';:')));
+	}
+
+	/**
+	 * The VTIMEZONE a document owes every TZID it uses (RFC 5545 3.6.5), cut
+	 * down to the clock changes within a year of the given period.
+	 *
+	 * @return list<string> Unfolded lines
+	 */
+	public static function vtimezoneLines(\DateTimeZone $zone, \DateTimeInterface $from, \DateTimeInterface $to): array {
+		$margin = 366 * 86400;
+		$transitions = $zone->getTransitions($from->getTimestamp() - $margin, $to->getTimestamp() + $margin);
+		if ($transitions === false) {
+			$transitions = [];
+		}
+		// The first entry is the state at the start of the window, not a change.
+		$current = array_shift($transitions) ?? ['offset' => $zone->getOffset($from), 'abbr' => $zone->getName()];
+
+		$lines = ['BEGIN:VTIMEZONE', 'TZID:' . $zone->getName()];
+		if ($transitions === []) {
+			array_push($lines, ...self::observance('STANDARD', '19700101T000000', $current['offset'], $current));
+		}
+		foreach ($transitions as $transition) {
+			// Onsets are wall-clock times in the offset that applied until then.
+			$onset = gmdate('Ymd\THis', $transition['ts'] + $current['offset']);
+			$type = $transition['isdst'] ? 'DAYLIGHT' : 'STANDARD';
+			array_push($lines, ...self::observance($type, $onset, $current['offset'], $transition));
+			$current = $transition;
+		}
+		$lines[] = 'END:VTIMEZONE';
+
+		return $lines;
+	}
+
+	/**
+	 * @param array{offset: int, abbr: string, ...} $state What applies from the onset on
+	 * @return list<string>
+	 */
+	private static function observance(string $type, string $onset, int $offsetBefore, array $state): array {
+		return [
+			'BEGIN:' . $type,
+			'DTSTART:' . $onset,
+			'TZOFFSETFROM:' . self::utcOffset($offsetBefore),
+			'TZOFFSETTO:' . self::utcOffset($state['offset']),
+			'TZNAME:' . $state['abbr'],
+			'END:' . $type,
+		];
+	}
+
+	private static function utcOffset(int $seconds): string {
+		$minutes = intdiv(abs($seconds), 60);
+
+		return sprintf('%s%02d%02d', $seconds < 0 ? '-' : '+', intdiv($minutes, 60), $minutes % 60);
 	}
 
 	/**
