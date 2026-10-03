@@ -55,6 +55,7 @@ export default defineConfig({
 				'24-close-nav-resort.spec.js',
 				'30-location.spec.js',
 				'35-cancelled-visible.spec.js',
+				'36-pagination.spec.js',
 				'checkin.spec.js',
 			],
 			fullyParallel: false, // tests within a file stay sequential

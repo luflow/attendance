@@ -57,6 +57,32 @@ class AttendanceResponseMapper extends QBMapper {
 	}
 
 	/**
+	 * One user's rows for a set of appointments, keyed by appointment id — the
+	 * list paths would otherwise look each appointment up on its own.
+	 *
+	 * @param list<int> $appointmentIds
+	 * @return array<int, AttendanceResponse>
+	 */
+	public function findByUserForAppointments(string $userId, array $appointmentIds): array {
+		$byAppointment = [];
+
+		// Chunked: databases cap the number of values an IN list may carry.
+		foreach (array_chunk($appointmentIds, 1000) as $chunk) {
+			$qb = $this->db->getQueryBuilder();
+			$qb->select('*')
+				->from($this->getTableName())
+				->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
+				->andWhere($qb->expr()->in('appointment_id', $qb->createNamedParameter($chunk, IQueryBuilder::PARAM_INT_ARRAY)));
+
+			foreach ($this->findEntities($qb) as $response) {
+				$byAppointment[$response->getAppointmentId()] = $response;
+			}
+		}
+
+		return $byAppointment;
+	}
+
+	/**
 	 * @param int $appointmentId
 	 * @return list<AttendanceResponse>
 	 */

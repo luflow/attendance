@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Controller;
 
+use OCA\Attendance\Service\AppointmentListQuery;
 use OCA\Attendance\Service\AppointmentService;
 use OCA\Attendance\Service\AttachmentService;
 use OCA\Attendance\Service\BookingService;
@@ -31,6 +32,7 @@ use OCP\IUserSession;
 use OCP\Security\ISecureRandom;
 
 /**
+ * @psalm-import-type AttendanceAppointmentPage from \OCA\Attendance\ResponseDefinitions
  * @psalm-import-type AttendanceExportSeries from \OCA\Attendance\ResponseDefinitions
  */
 class AppointmentController extends Controller {
@@ -108,17 +110,47 @@ class AppointmentController extends Controller {
 	/**
 	 * List appointments visible to the current user
 	 *
-	 * @param bool $showPastAppointments Whether to show past appointments instead of upcoming ones
-	 * @param bool $unansweredOnly When true, only return upcoming appointments that the user has not answered yet AND that are still open. Ignored when $showPastAppointments is true.
+	 * Without $limit the whole list is returned as a plain array. With it the
+	 * list is paged and wrapped in an object that also carries the total, the
+	 * unanswered count and the values the filters can offer.
+	 *
+	 * @param bool $showPastAppointments Whether to show past appointments instead of upcoming ones. Superseded by $timeframe when that is given.
+	 * @param bool $unansweredOnly When true, only return upcoming appointments that the user has not answered yet AND that are still open. Ignored unless the upcoming appointments are listed.
 	 * @param bool $onlyForMe When true, restrict the result to the user's own appointments: the ones they are part of the target audience for (visibleUsers/Groups/Teams membership; appointments with no visibility restriction count as "for everyone" and are included) plus the ones they organize. This is the "My appointments" view; without it, holders of see_all_appointments get every appointment on the instance.
 	 * @param bool $notScheduledOut When true, additionally drop closed appointments where somebody was scheduled but the user was not. Only has an effect while the planning feature is enabled; appointments nobody was scheduled for stay visible to everyone. Implies $onlyForMe.
 	 * @param bool $onlyScheduled When true, return only appointments the user has been given a place in. Only has an effect while the planning feature is enabled. Open inquiries count as soon as a manager booked the user — being booked is an explicit act, unlike not being booked. Implies $onlyForMe.
-	 * @return DataResponse<Http::STATUS_OK, list<AttendanceAppointmentWithResponse>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
+	 * @param ?string $timeframe Which appointments to list: `upcoming` (soonest first), `past` (most recent first) or `all` (upcoming, then past)
+	 * @param string $search Keep only appointments whose name or description contains this text
+	 * @param ?string $status Keep only appointments whose inquiry is `open`, `closed` or `cancelled`
+	 * @param ?string $response Keep only appointments the user answered `yes`, `maybe` or `no` — or not at all (`none`)
+	 * @param ?string $role Keep only appointments the user is an `attendee` of, an `organizer` of, or neither (`uninvolved`). Ignored unless the role tells some of the listed appointments apart from others.
+	 * @param list<string> $locations Keep only appointments at one of these locations
+	 * @param list<int> $categoryIds Keep only appointments in one of these categories
+	 * @param bool $cancelledLast List cancelled appointments behind all others instead of by date among them
+	 * @param int<1, 100>|null $limit Page size. Switches the response to the paged object.
+	 * @param int<0, max> $offset Number of matching appointments to skip
+	 * @return DataResponse<Http::STATUS_OK, list<AttendanceAppointmentWithResponse>|AttendanceAppointmentPage, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI]
-	public function index(bool $showPastAppointments = false, bool $unansweredOnly = false, bool $onlyForMe = false, bool $notScheduledOut = false, bool $onlyScheduled = false): DataResponse {
+	public function index(
+		bool $showPastAppointments = false,
+		bool $unansweredOnly = false,
+		bool $onlyForMe = false,
+		bool $notScheduledOut = false,
+		bool $onlyScheduled = false,
+		?string $timeframe = null,
+		string $search = '',
+		?string $status = null,
+		?string $response = null,
+		?string $role = null,
+		array $locations = [],
+		array $categoryIds = [],
+		bool $cancelledLast = false,
+		?int $limit = null,
+		int $offset = 0,
+	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
@@ -133,44 +165,60 @@ class AppointmentController extends Controller {
 		$canSeeComments = $canSeeResponseOverview && $this->permissionService->canSeeComments($user->getUID());
 		$canSeeResponseCounts = $this->permissionService->canSeeResponseCounts($user->getUID());
 
-		$appointments = $this->appointmentService->getAppointmentsWithUserResponses(
-			$user->getUID(),
-			$showPastAppointments,
+		$query = AppointmentListQuery::fromWire(
+			$timeframe ?? ($showPastAppointments ? AppointmentListQuery::TIMEFRAME_PAST : AppointmentListQuery::TIMEFRAME_UPCOMING),
 			$unansweredOnly,
 			$onlyForMe,
+			$notScheduledOut,
+			$onlyScheduled,
+			$search,
+			$status,
+			$response,
+			$role,
+			$locations,
+			$categoryIds,
+			$cancelledLast,
+			$limit,
+			$offset,
+		);
+
+		$page = $this->appointmentService->getAppointmentPage(
+			$user->getUID(),
+			$query,
 			$canSeeResponseOverview,
 			$canSeeComments,
 			$canSeeResponseCounts,
-			$notScheduledOut,
-			$onlyScheduled,
 		);
 
 		// Add checkin summary to each appointment the user may see at least
 		// the aggregate numbers for — it only ever carries counts, no names.
-		foreach ($appointments as &$appointment) {
+		foreach ($page['appointments'] as &$appointment) {
 			if ($appointment['myPermissions']['canSeeResponseCounts']) {
 				$appointment['checkinSummary'] = $this->checkinService->getCheckinSummary($appointment['id']);
 			}
 		}
+		unset($appointment);
 
-		return new DataResponse($appointments);
+		return new DataResponse($query->isPaged() ? $page : $page['appointments']);
 	}
 
 	/**
 	 * Get minimal appointment data for navigation menu
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{current: list<AttendanceNavigationAppointment>, past: list<AttendanceNavigationAppointment>}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
+	 * @param int<0, 100>|null $pastLimit Page size for the past entries. Without it all of them are returned.
+	 * @param int<0, max> $pastOffset Number of past entries to skip
+	 * @return DataResponse<Http::STATUS_OK, array{current: list<AttendanceNavigationAppointment>, past: list<AttendanceNavigationAppointment>, pastHasMore: bool}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI]
-	public function navigation(): DataResponse {
+	public function navigation(?int $pastLimit = null, int $pastOffset = 0): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
-		$appointments = $this->appointmentService->getAppointmentsForNavigation($user->getUID());
+		$appointments = $this->appointmentService->getAppointmentsForNavigation($user->getUID(), $pastLimit, $pastOffset);
 		return new DataResponse($appointments);
 	}
 
@@ -1132,6 +1180,12 @@ class AppointmentController extends Controller {
 			// reads as "invited" and only organizing could be told apart, so
 			// clients offer the "My role" filter whole or not at all.
 			'roleFilter' => true,
+			// Server pages and filters GET /appointments (limit/offset, timeframe,
+			// search, status, response, role, locations, categoryIds) and pages the past
+			// entries of /appointments/navigation. Older servers ignore all of
+			// that and answer with the full list, so clients without this flag
+			// must keep loading everything and filtering it themselves.
+			'pagination' => true,
 		]);
 	}
 

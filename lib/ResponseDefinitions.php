@@ -124,6 +124,13 @@ namespace OCA\Attendance;
  *   responseSummary?: array<string, mixed>,
  *   attachments: list<array<string, mixed>>,
  *   myPermissions: AttendanceMyPermissions,
+ *   isPast?: bool,
+ * }
+ * @psalm-type AttendanceAppointmentPage = array{
+ *   appointments: list<AttendanceAppointmentWithResponse>,
+ *   total: int,
+ *   unansweredCount: ?int,
+ *   facets: array{locations: list<string>, categoryIds: list<int>, roles: list<string>},
  * }
  * @psalm-type AttendanceNavigationAppointment = array{
  *   id: int,
@@ -229,6 +236,7 @@ namespace OCA\Attendance;
  *   seeAllAppointments: bool,
  *   vacationManagementEnabled: bool,
  *   roleFilter: bool,
+ *   pagination: bool,
  * }
  * @psalm-type AttendanceAuditUserRef = array{
  *   userId: string,

@@ -3,6 +3,7 @@ import {
 	createAppointmentViaAPI,
 	deleteAppointmentViaAPI,
 	expect,
+	loadWholeAppointmentList,
 	pickFilterOption,
 	test,
 } from './fixtures/nextcloud.js'
@@ -40,7 +41,7 @@ test.describe('Cancelled appointments stay in the list (#239)', () => {
 		// The entry lists its appointments underneath, so a click on the entry
 		// itself would land on one of them — aim at its own link.
 		await page.locator('[data-test="nav-upcoming"]').getByRole('link', { name: 'My appointments', exact: true }).click()
-		await page.waitForLoadState('networkidle')
+		await loadWholeAppointmentList(page)
 
 		const cards = page.locator('[data-test="appointment-card"]')
 		const cancelledCard = cards.filter({ hasText: cancelledName })
@@ -51,12 +52,14 @@ test.describe('Cancelled appointments stay in the list (#239)', () => {
 
 		// "Opened" is about inquiries that still take responses — a cancelled one does not.
 		await pickFilterOption(page, 'status', 'Opened')
+		await loadWholeAppointmentList(page)
 		await expect(cancelledCard).toHaveCount(0)
 		await expect(cards.filter({ hasText: openName }).first()).toBeVisible()
 
 		// "Cancelled" used to come up empty on this view because the list dropped
 		// cancelled appointments before the filter ever ran.
 		await pickFilterOption(page, 'status', 'Cancelled')
+		await loadWholeAppointmentList(page)
 		await expect(cancelledCard.first()).toBeVisible()
 		await expect(cards.filter({ hasText: openName })).toHaveCount(0)
 	})

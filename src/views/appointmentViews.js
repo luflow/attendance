@@ -22,7 +22,7 @@ export const VIEWS = Object.freeze({
 	},
 	past: {
 		heading: () => t('attendance', 'Past appointments'),
-		params: { showPastAppointments: true, onlyForMe: true },
+		params: { timeframe: 'past', onlyForMe: true },
 		mixesPastAndUpcoming: false,
 		includesCancelled: true,
 		filtersApply: true,
@@ -45,7 +45,7 @@ export const VIEWS = Object.freeze({
 	all: {
 		// Deliberately unscoped: everything the user may see.
 		heading: () => t('attendance', 'All appointments'),
-		params: {},
+		params: { timeframe: 'all' },
 		mixesPastAndUpcoming: true,
 		includesCancelled: true,
 		filtersApply: true,

@@ -144,6 +144,16 @@
 								<ChevronRightIcon :size="20" />
 							</template>
 						</NcAppNavigationItem>
+						<NcAppNavigationItem
+							v-if="pastHasMore"
+							:name="t('attendance', 'Load more')"
+							:loading="loadingMorePast"
+							data-test="nav-past-load-more"
+							@click.prevent="loadMorePastAppointments">
+							<template #icon>
+								<DotsHorizontalIcon :size="20" />
+							</template>
+						</NcAppNavigationItem>
 					</template>
 				</NcAppNavigationItem>
 			</template>
@@ -259,7 +269,6 @@
 		<!-- Export Dialog -->
 		<ExportDialog
 			:show="showExportDialog"
-			:availableAppointments="allAppointments"
 			@close="showExportDialog = false" />
 
 		<!-- Setup wizard (admins only, offered while the instance has no appointments) -->
@@ -291,6 +300,7 @@ import ChartLineIcon from 'vue-material-design-icons/ChartLine.vue'
 import CheckCircle from 'vue-material-design-icons/CheckCircle.vue'
 import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
 import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
+import DotsHorizontalIcon from 'vue-material-design-icons/DotsHorizontal.vue'
 import DownloadIcon from 'vue-material-design-icons/Download.vue'
 import FormatListBulletedIcon from 'vue-material-design-icons/FormatListBulleted.vue'
 import HelpCircle from 'vue-material-design-icons/HelpCircle.vue'
@@ -625,7 +635,13 @@ const checkinAppointmentId = ref(null)
 const appointmentDetailId = ref(null)
 const formAppointmentId = ref(null) // For edit/copy modes
 const currentAppointments = ref([])
+// Past entries only ever grow, so the sidebar holds a page of them and
+// fetches the next one on request.
+const NAV_PAST_PAGE_SIZE = 20
+const NAV_PAST_MAX_PAGE_SIZE = 100
 const pastAppointments = ref([])
+const pastHasMore = ref(false)
+const loadingMorePast = ref(false)
 // Scroll target carried into the appointment-detail view; cleared by the
 // child once it has scrolled. Used by the "Show activity history" action.
 const appointmentDetailScrollTarget = ref(null)
@@ -672,10 +688,6 @@ const answeredAppointments = computed(() => {
 		const closedWithoutResponse = !hasResponse && appointment.closedAt
 		return hasResponse || closedWithoutResponse || Boolean(appointment.cancelledAt)
 	})
-})
-
-const allAppointments = computed(() => {
-	return [...currentAppointments.value, ...pastAppointments.value]
 })
 
 // Every in-app navigation rebuilds the URL from the app root, so it first has
@@ -738,14 +750,42 @@ function openAuditLog(appointmentId) {
 	navigateToAppointment(appointmentId)
 }
 
+async function fetchNavigation(pastLimit, pastOffset = 0) {
+	const response = await axios.get(generateUrl('/apps/attendance/api/appointments/navigation'), {
+		params: { pastLimit, pastOffset },
+	})
+	return response.data
+}
+
 async function loadAppointments() {
 	try {
-		// Use lightweight navigation endpoint (single call, minimal data)
-		const response = await axios.get(generateUrl('/apps/attendance/api/appointments/navigation'))
-		currentAppointments.value = response.data.current
-		pastAppointments.value = response.data.past
+		// A refresh keeps as many past entries as are listed.
+		const pastLimit = Math.min(NAV_PAST_MAX_PAGE_SIZE, Math.max(NAV_PAST_PAGE_SIZE, pastAppointments.value.length))
+		const navigation = await fetchNavigation(pastLimit)
+		currentAppointments.value = navigation.current
+		pastAppointments.value = navigation.past
+		pastHasMore.value = navigation.pastHasMore
 	} catch (error) {
 		console.error('Failed to load appointments for navigation:', error)
+	}
+}
+
+async function loadMorePastAppointments() {
+	if (loadingMorePast.value) return
+	loadingMorePast.value = true
+	try {
+		const navigation = await fetchNavigation(NAV_PAST_PAGE_SIZE, pastAppointments.value.length)
+		const known = new Set(pastAppointments.value.map((appointment) => appointment.id))
+		currentAppointments.value = navigation.current
+		pastAppointments.value = [
+			...pastAppointments.value,
+			...navigation.past.filter((appointment) => !known.has(appointment.id)),
+		]
+		pastHasMore.value = navigation.pastHasMore
+	} catch (error) {
+		console.error('Failed to load more past appointments:', error)
+	} finally {
+		loadingMorePast.value = false
 	}
 }
 

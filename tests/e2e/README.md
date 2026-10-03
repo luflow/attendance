@@ -201,8 +201,17 @@ All interactive elements in the app have `data-test` attributes for reliable tes
 - `nav-unanswered-appointment` - Individual unanswered appointment
 - `nav-upcoming-appointment` - Individual upcoming appointment
 - `nav-past-appointment-{id}` - Individual past appointment
+- `nav-past-load-more` - Loads the next page of past appointments
 - `button-create-appointment` - Create new appointment button
 - `button-export` - Export appointments button
+
+### Appointment List
+- `appointment-list` - List container; carries `aria-busy="true"` while a request for it is out
+- `appointments-load-more` - End-of-list marker while more pages exist; scrolling it into view loads the next one
+
+The list is paged, so a card further down may not be in the DOM yet. Call
+`loadWholeAppointmentList(page)` from the fixtures before counting cards or
+looking for one that is not among the first 20.
 
 ### Appointment Card
 - `appointment-card` - Main appointment card container
