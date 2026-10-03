@@ -491,8 +491,9 @@ test.describe('Attendance App - Series Management', () => {
 		await dialog.getByRole('button', { name: 'Cancel' }).click()
 		await expect(dialog).not.toBeVisible()
 
-		// Still on the edit form — navigate back
+		// Still on the edit form — leave it and throw the change away
 		await page.getByRole('button', { name: 'Cancel' }).click()
+		await page.getByRole('dialog', { name: 'Unsaved changes' }).getByRole('button', { name: 'Discard changes' }).click()
 		await page.waitForURL(/.*\/apps\/attendance(?!\/(create|edit|copy))/)
 		await page.waitForLoadState('networkidle')
 

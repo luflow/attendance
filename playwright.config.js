@@ -100,6 +100,9 @@ export default defineConfig({
 				'33-attendance-limit.spec.js',
 				// Grants see_all_appointments to a dedicated group.
 				'34-see-all-appointments.spec.js',
+				// Measures the list's scroll position, which appointments created
+				// by other files mid-test would shift.
+				'36-unsaved-changes.spec.js',
 			],
 			fullyParallel: false,
 			workers: 1,

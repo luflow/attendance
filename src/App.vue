@@ -180,7 +180,7 @@
 		</NcAppNavigation>
 
 		<!-- Main content area -->
-		<NcAppContent>
+		<NcAppContent ref="appContent">
 			<div class="attendance-content" :class="{ 'attendance-content--below-toggle': hasNavigation }">
 				<div v-if="hasNavigation && config.mobileAppBannerEnabled && !config.hasPushDevice"
 					class="mobile-banner-container">
@@ -205,7 +205,7 @@
 					:calendarAvailable="capabilities.calendarAvailable"
 					:calendarSyncEnabled="capabilities.calendarSyncEnabled"
 					@saved="handleFormSaved"
-					@cancelled="handleFormCancelled" />
+					@cancelled="goBack" />
 
 				<!-- Appointment Detail View -->
 				<AppointmentDetail
@@ -217,6 +217,7 @@
 					@appointmentDeleted="handleAppointmentDeleted"
 					@editAppointment="editAppointment"
 					@copyAppointment="copyAppointment"
+					@back="goBack"
 					@navigateToUnanswered="setView('unanswered')"
 					@scrollTargetConsumed="appointmentDetailScrollTarget = null" />
 
@@ -282,7 +283,7 @@ import {
 	NcAppNavigationSearch,
 	NcContent,
 } from '@nextcloud/vue'
-import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, nextTick, onMounted, ref, watch } from 'vue'
 import BellAlertIcon from 'vue-material-design-icons/BellAlert.vue'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import CalendarClockIcon from 'vue-material-design-icons/CalendarClock.vue'
@@ -307,6 +308,7 @@ import AppointmentForm from './views/AppointmentForm.vue'
 import CheckinView from './views/Checkin.vue'
 import StatisticsOverview from './views/StatisticsOverview.vue'
 import { usePermissions } from './composables/usePermissions.js'
+import { confirmLeave, hasUnsavedChanges } from './composables/useUnsavedChanges.js'
 import { formatDateTime } from './utils/datetime.js'
 import { VIEWS } from './views/appointmentViews.js'
 
@@ -678,13 +680,9 @@ const allAppointments = computed(() => {
 	return [...currentAppointments.value, ...pastAppointments.value]
 })
 
-// Every in-app navigation rebuilds the URL from the app root, so it first has
-// to drop whichever view segment is currently on it. Four of these five call
-// sites used to carry their own copy of the pattern and one of them had gone
-// out of sync — it was missing "all", so opening an appointment from the All
-// view produced /apps/attendance/all/appointment/42, which works via pushState
-// but 404s the moment anyone reloads or shares the link.
-const VIEW_SEGMENT = /\/(all|past|unanswered|statistics|appointment\/\d+|checkin\/\d+|create|edit\/\d+|copy\/\d+)?$/
+// The view segment the app's URL ends in: "/all", "/edit/42", or nothing on the
+// app root. The one list of routes, for building URLs and for reading them.
+const VIEW_SEGMENT = /\/(?:(all|past|unanswered|statistics|create)|(appointment|checkin|edit|copy)\/(\d+))?$/
 
 /**
  * The app's root URL, with any current view segment stripped off.
@@ -695,42 +693,137 @@ function appBaseUrl() {
 	return window.location.pathname.replace(VIEW_SEGMENT, '')
 }
 
-function setView(view) {
-	if (VIEWS[view]?.resetsSearch && view !== currentView.value) {
+function routeUrl({ view, appointmentId }) {
+	// "My appointments" is the one view that sits on the app root.
+	const segment = view === 'current' ? '' : `/${view}`
+	return appBaseUrl() + segment + (appointmentId ? `/${appointmentId}` : '')
+}
+
+// Whoever sees every appointment lands in "All appointments", everyone else in
+// their own list.
+function defaultView() {
+	return permissions.canSeeAllAppointments ? 'all' : 'current'
+}
+
+function routeFromUrl() {
+	const [, plainView, viewWithId, id] = window.location.pathname.match(VIEW_SEGMENT) ?? []
+	if (viewWithId) {
+		return { view: viewWithId, appointmentId: parseInt(id) }
+	}
+	return { view: plainView ?? defaultView() }
+}
+
+// Calendar events written up to 1.53 link to …/attendance/#/appointment/42, a
+// route the app never had. Those links sit in calendars, so send them on.
+function redirectLegacyHashLink() {
+	const match = window.location.hash.match(/^#\/appointment\/(\d+)$/)
+	if (match) {
+		window.history.replaceState(null, '', appBaseUrl() + '/appointment/' + match[1])
+	}
+}
+
+function currentRoute() {
+	redirectLegacyHashLink()
+	// The app root serves both the default landing and "My appointments"; only
+	// the entry's state tells which of the two it was.
+	const state = window.history.state
+	return state?.view ? state : routeFromUrl()
+}
+
+function showRoute({ view, appointmentId = null }) {
+	checkinAppointmentId.value = view === 'checkin' ? appointmentId : null
+	appointmentDetailId.value = view === 'appointment' ? appointmentId : null
+	formAppointmentId.value = view === 'edit' || view === 'copy' ? appointmentId : null
+	currentView.value = view
+}
+
+// Position in this app's history, stamped into every state it writes: gives a
+// traversal's direction and whether "Back" has an in-app entry to return to.
+let historyIdx = 0
+// Scroll offset each history entry was left at, by position.
+const scrollPositions = new Map()
+// Set while the app traverses the history itself, so popstate leaves it alone.
+let ownTraversal = null
+
+const appContent = ref(null)
+
+function rememberScroll() {
+	scrollPositions.set(historyIdx, appContent.value?.$el.scrollTop ?? 0)
+}
+
+async function scrollContentTo(top) {
+	await nextTick()
+	if (appContent.value) {
+		appContent.value.$el.scrollTop = top
+	}
+}
+
+async function navigate(route, { replace = false } = {}) {
+	if (!(await confirmLeave())) return
+	if (VIEWS[route.view]?.resetsSearch && route.view !== currentView.value) {
 		searchQuery.value = ''
 	}
-	currentView.value = view
-
-	const baseUrl = appBaseUrl()
-	let newUrl = baseUrl
-
-	if (view === 'past') {
-		newUrl = baseUrl + '/past'
-	} else if (view === 'unanswered') {
-		newUrl = baseUrl + '/unanswered'
-	} else if (view === 'all') {
-		newUrl = baseUrl + '/all'
-	} else if (view === 'statistics') {
-		newUrl = baseUrl + '/statistics'
-	} else if (view === 'current') {
-		newUrl = baseUrl
+	if (replace) {
+		window.history.replaceState({ ...route, idx: historyIdx }, '', routeUrl(route))
+	} else {
+		rememberScroll()
+		historyIdx += 1
+		window.history.pushState({ ...route, idx: historyIdx }, '', routeUrl(route))
 	}
+	showRoute(route)
+	scrollContentTo(0)
+}
 
-	window.history.pushState({ view }, '', newUrl)
+function traverse(delta) {
+	return new Promise((resolve) => {
+		ownTraversal = resolve
+		window.history.go(delta)
+	})
+}
+
+// Follow a traversal the browser has already made: show what the entry holds
+// and scroll to where it was left.
+function enterHistoryEntry() {
+	rememberScroll()
+	historyIdx = window.history.state?.idx ?? historyIdx
+	showRoute(currentRoute())
+	scrollContentTo(scrollPositions.get(historyIdx) ?? 0)
+}
+
+async function onPopState() {
+	if (ownTraversal) {
+		const done = ownTraversal
+		ownTraversal = null
+		done()
+		return
+	}
+	const delta = (window.history.state?.idx ?? historyIdx) - historyIdx
+	if (delta !== 0 && hasUnsavedChanges()) {
+		// The browser has already left the form: step back onto it, then ask.
+		await traverse(-delta)
+		if (!(await confirmLeave())) return
+		await traverse(delta)
+	}
+	enterHistoryEntry()
+}
+
+async function goBack() {
+	// Opened straight from a link: nothing of this app to go back to.
+	if (historyIdx === 0) {
+		navigate({ view: defaultView() })
+		return
+	}
+	if (!(await confirmLeave())) return
+	await traverse(-1)
+	enterHistoryEntry()
+}
+
+function setView(view) {
+	navigate({ view })
 }
 
 function navigateToAppointment(appointmentId) {
-	currentView.value = 'appointment'
-	appointmentDetailId.value = appointmentId
-
-	const baseUrl = appBaseUrl()
-	const newUrl = baseUrl + '/appointment/' + appointmentId
-
-	window.history.pushState(
-		{ view: 'appointment', appointmentId },
-		'',
-		newUrl,
-	)
+	navigate({ view: 'appointment', appointmentId })
 }
 
 function openAuditLog(appointmentId) {
@@ -750,65 +843,34 @@ async function loadAppointments() {
 }
 
 function createNewAppointment() {
-	currentView.value = 'create'
-	formAppointmentId.value = null
-
-	const baseUrl = appBaseUrl()
-	const newUrl = baseUrl + '/create'
-
-	window.history.pushState({ view: 'create' }, '', newUrl)
+	navigate({ view: 'create' })
 }
 
 function editAppointment(appointment) {
-	currentView.value = 'edit'
-	formAppointmentId.value = appointment.id
-
-	const baseUrl = appBaseUrl()
-	const newUrl = baseUrl + '/edit/' + appointment.id
-
-	window.history.pushState(
-		{ view: 'edit', appointmentId: appointment.id },
-		'',
-		newUrl,
-	)
+	navigate({ view: 'edit', appointmentId: appointment.id, fromDetail: currentView.value === 'appointment' })
 }
 
 function copyAppointment(appointment) {
-	currentView.value = 'copy'
-	formAppointmentId.value = appointment.id
-
-	const baseUrl = appBaseUrl()
-	const newUrl = baseUrl + '/copy/' + appointment.id
-
-	window.history.pushState(
-		{ view: 'copy', appointmentId: appointment.id },
-		'',
-		newUrl,
-	)
+	navigate({ view: 'copy', appointmentId: appointment.id })
 }
 
 async function handleAppointmentDeleted() {
 	await loadAppointments()
-	setView('current')
+	// Takes the place of the deleted appointment's entry, so "back" cannot land on it.
+	navigate({ view: 'current' }, { replace: true })
 }
 
+// The form's history entry is used up once it saved, so whatever follows takes
+// its place instead of leaving it behind for "back" to stop at.
 async function handleFormSaved(appointmentId) {
 	await loadAppointments()
 
-	// Navigate to the saved appointment's detail view
-	if (appointmentId) {
-		navigateToAppointment(appointmentId)
+	if (!appointmentId) {
+		navigate({ view: 'current' }, { replace: true })
+	} else if (window.history.state?.fromDetail) {
+		await goBack()
 	} else {
-		setView('current')
-	}
-}
-
-function handleFormCancelled() {
-	// Go back to the previous view or default to current
-	if (window.history.length > 1) {
-		window.history.back()
-	} else {
-		setView('current')
+		navigate({ view: 'appointment', appointmentId }, { replace: true })
 	}
 }
 
@@ -821,64 +883,6 @@ function formatAppointmentDisplay(appointment) {
 		return `${dateTimeStr}\n${appointment.name}`
 	}
 	return `${appointment.name}\n${dateTimeStr}`
-}
-
-// Calendar events written up to 1.53 link to …/attendance/#/appointment/42, a
-// route the app never had. Those links sit in calendars, so send them on.
-function redirectLegacyHashLink() {
-	const match = window.location.hash.match(/^#\/appointment\/(\d+)$/)
-	if (match) {
-		window.history.replaceState(null, '', appBaseUrl() + '/appointment/' + match[1])
-	}
-}
-
-function checkRouting() {
-	redirectLegacyHashLink()
-	const path = window.location.pathname
-	const checkinMatch = path.match(/\/checkin\/(\d+)/)
-	const appointmentMatch = path.match(/\/appointment\/(\d+)/)
-	const editMatch = path.match(/\/edit\/(\d+)/)
-	const copyMatch = path.match(/\/copy\/(\d+)/)
-	const isCreateRoute = path.endsWith('/create')
-	const isPastRoute = path.endsWith('/past')
-	const isUnansweredRoute = path.endsWith('/unanswered')
-	const isAllRoute = path.endsWith('/all')
-	const isStatisticsRoute = path.endsWith('/statistics')
-
-	// Reset all state
-	checkinAppointmentId.value = null
-	appointmentDetailId.value = null
-	formAppointmentId.value = null
-
-	if (checkinMatch) {
-		currentView.value = 'checkin'
-		checkinAppointmentId.value = parseInt(checkinMatch[1])
-	} else if (isCreateRoute) {
-		currentView.value = 'create'
-	} else if (editMatch) {
-		currentView.value = 'edit'
-		formAppointmentId.value = parseInt(editMatch[1])
-	} else if (copyMatch) {
-		currentView.value = 'copy'
-		formAppointmentId.value = parseInt(copyMatch[1])
-	} else if (appointmentMatch) {
-		currentView.value = 'appointment'
-		appointmentDetailId.value = parseInt(appointmentMatch[1])
-	} else if (isPastRoute) {
-		currentView.value = 'past'
-	} else if (isUnansweredRoute) {
-		currentView.value = 'unanswered'
-	} else if (isAllRoute) {
-		currentView.value = 'all'
-	} else if (isStatisticsRoute) {
-		currentView.value = 'statistics'
-	} else {
-		// Default landing: whoever sees every appointment drops into "All
-		// appointments" (their natural overview), everyone else into their own
-		// list. Landing in "Unanswered" was confusing once everything was
-		// answered — an empty list as the first thing you see.
-		currentView.value = permissions.canSeeAllAppointments ? 'all' : 'current'
-	}
 }
 
 // Track if appointments have been loaded for navigation
@@ -902,23 +906,23 @@ watch(currentView, async (newView, oldView) => {
 
 onMounted(async () => {
 	// Both server fetches are independent — fan out before awaiting either.
-	// checkRouting then resolves the bare-URL default view (manager → All,
-	// others → Upcoming) once permissions are in.
+	// The bare-URL default view (manager → All, others → Upcoming) can only be
+	// resolved once permissions are in.
 	const permissionsPromise = loadPermissions()
 	const isCheckinView = /\/checkin\/\d+/.test(window.location.pathname)
 	const appointmentsPromise = isCheckinView ? null : loadAppointments()
 
 	await permissionsPromise
-	checkRouting()
+	historyIdx = window.history.state?.idx ?? 0
+	showRoute(currentRoute())
+	window.history.replaceState({ ...window.history.state, idx: historyIdx }, '')
 
 	if (appointmentsPromise) {
 		await appointmentsPromise
 		appointmentsLoaded.value = true
 	}
 
-	window.addEventListener('popstate', () => {
-		checkRouting()
-	})
+	window.addEventListener('popstate', onPopState)
 })
 </script>
 

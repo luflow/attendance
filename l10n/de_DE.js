@@ -1053,6 +1053,10 @@ OC.L10N.register(
     "My role" : "Meine Rolle",
     "I am an attendee" : "Ich nehme teil",
     "I am an organizer" : "Ich organisiere",
-    "Not involved" : "Nicht beteiligt"
+    "Not involved" : "Nicht beteiligt",
+    "Unsaved changes" : "Ungespeicherte Änderungen",
+    "Your changes have not been saved. Do you want to discard them?" : "Die Änderungen wurden noch nicht gespeichert. Sollen sie verworfen werden?",
+    "Discard changes" : "Änderungen verwerfen",
+    "Keep editing" : "Weiter bearbeiten"
 },
 "nplurals=2; plural=(n != 1);");

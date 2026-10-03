@@ -281,6 +281,7 @@ import { useCategories } from '../composables/useCategories.js'
 import { useCategoryFilterChips } from '../composables/useCategoryFilterChips.js'
 import { usePermissions } from '../composables/usePermissions.js'
 import { isAttendee, isOrganizer } from '../utils/appointment.js'
+import { appointmentListCache } from '../utils/appointmentListCache.js'
 import { categoryIconComponent } from '../utils/categoryIcons.js'
 import { VIEWS } from './appointmentViews.js'
 
@@ -319,7 +320,8 @@ const activeSearch = computed(() => props.searchQuery.trim())
 const viewDef = computed(() => VIEWS[props.view])
 const pageHeading = computed(() => viewDef.value.heading())
 
-const appointments = ref([])
+const cachedAppointments = appointmentListCache.get(props.view)
+const appointments = ref(cachedAppointments ?? [])
 const exportDialogVisible = ref(false)
 const selectedAppointmentForExport = ref(null)
 const showDeleteDialog = ref(false)
@@ -662,7 +664,7 @@ function handleClosedToggled(updated) {
 	// loaded data, so trigger the same refresh answering does.
 	emit('responseUpdated')
 }
-const loading = ref(true)
+const loading = ref(!cachedAppointments)
 
 // Nothing left to answer: the celebratory "Hurray!" banner is the empty state
 // here, so neither the heading nor the generic empty-state card belongs.
@@ -703,6 +705,7 @@ async function loadAppointments(skipLoadingSpinner = false) {
 			const response = await axios.get(url, { params })
 			appointments.value = response.data
 		}
+		appointmentListCache.set(props.view, appointments.value)
 
 		if (permissions.canManageAppointments) {
 			await loadDetailedResponses()
@@ -838,7 +841,8 @@ watch(() => appointments.value.length, (_, oldLength) => {
 
 onMounted(async () => {
 	await loadPermissions()
-	await loadAppointments()
+	// A cached list is already on screen; refresh it without the spinner.
+	await loadAppointments(Boolean(cachedAppointments))
 })
 </script>
 
