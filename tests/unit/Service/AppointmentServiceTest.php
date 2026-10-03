@@ -124,7 +124,7 @@ class AppointmentServiceTest extends TestCase {
 			$this->notificationService,
 			$this->auditEventService,
 		);
-		$this->responsePolicyService = new ResponsePolicyService($this->configService, $this->capacityService);
+		$this->responsePolicyService = new ResponsePolicyService($this->configService, $this->capacityService, $this->visibilityService);
 		$this->vacationService = $this->createMock(VacationService::class);
 
 		$this->service = new AppointmentService(
@@ -695,6 +695,7 @@ class AppointmentServiceTest extends TestCase {
 	}
 
 	public function testSubmitResponseRejectsMaybeWhereTheAppointmentDoesNotOfferIt(): void {
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
 		$appointment = new Appointment();
 		$appointment->setId(9);
 		$appointment->setAllowMaybe(false);
@@ -710,6 +711,7 @@ class AppointmentServiceTest extends TestCase {
 	}
 
 	public function testSubmitResponseForUserRejectsMaybeWhereTheAppointmentDoesNotOfferIt(): void {
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
 		$appointment = new Appointment();
 		$appointment->setId(9);
 		$appointment->setAllowMaybe(false);
@@ -725,6 +727,7 @@ class AppointmentServiceTest extends TestCase {
 	}
 
 	public function testSubmitResponseKeepsMaybeWhereTheAppointmentStillOffersIt(): void {
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
 		$appointment = new Appointment();
 		$appointment->setId(9);
 		$appointment->setAllowMaybe(true);
@@ -1122,6 +1125,7 @@ class AppointmentServiceTest extends TestCase {
 	}
 
 	public function testSubmitResponseCreatesNewResponse(): void {
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
 		$appointmentId = 1;
 		$userId = 'testuser';
 		$response = 'yes';
@@ -1163,6 +1167,7 @@ class AppointmentServiceTest extends TestCase {
 	}
 
 	public function testSubmitResponseUpdatesExistingResponse(): void {
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
 		$appointmentId = 1;
 		$userId = 'testuser';
 		$response = 'no';
@@ -1278,6 +1283,7 @@ class AppointmentServiceTest extends TestCase {
 	}
 
 	public function testSubmitResponseForUserCreatesNewResponseWithAdminSource(): void {
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
 		$appointmentId = 1;
 		$targetUserId = 'phoneuser';
 		$actorUserId = 'manager';
@@ -1334,6 +1340,7 @@ class AppointmentServiceTest extends TestCase {
 	}
 
 	public function testSubmitResponseForUserPreservesExistingComment(): void {
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
 		$appointmentId = 1;
 		$targetUserId = 'phoneuser';
 		$actorUserId = 'manager';
@@ -1457,6 +1464,39 @@ class AppointmentServiceTest extends TestCase {
 
 		$this->expectException(\InvalidArgumentException::class);
 		$this->service->submitResponseForUser($appointment, 'stranger', 'yes', 'manager');
+	}
+
+	/** Issue #251: an organizer outside the audience answered, and the answer showed up nowhere. */
+	public function testSubmitResponseRejectsViewerOutsideTheAudience(): void {
+		$appointment = new Appointment();
+		$appointment->setId(1);
+		$this->appointmentMapper->method('find')->willReturn($appointment);
+		// Organizers and see-all holders see the appointment without being asked.
+		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(false);
+
+		$this->responseMapper->expects($this->never())->method('insert');
+		$this->responseMapper->expects($this->never())->method('update');
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Only attendees of this appointment can respond to it.');
+		$this->service->submitResponse(1, 'organizer', 'yes');
+	}
+
+	public function testSubmitResponseForUserRejectsTargetWhoOnlySeesTheAppointment(): void {
+		$appointment = new Appointment();
+		$appointment->setId(1);
+
+		$this->userManager->method('get')->willReturn($this->createMock(\OCP\IUser::class));
+		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(false);
+
+		$this->responseMapper->expects($this->never())->method('insert');
+		$this->responseMapper->expects($this->never())->method('update');
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Only attendees of this appointment can respond to it.');
+		$this->service->submitResponseForUser($appointment, 'organizer', 'yes', 'manager');
 	}
 
 	public function testSubmitResponseForUserThrowsForInvalidResponse(): void {
@@ -1867,7 +1907,11 @@ class AppointmentServiceTest extends TestCase {
 		$this->visibilityService->method('isUserTargetAttendee')->willReturn(false);
 		$this->attachmentService->method('getAttachments')->willReturn([]);
 
-		$this->assertCount(1, $this->service->getAppointmentsWithUserResponses('bob', onlyForMe: true));
+		$appointments = $this->service->getAppointmentsWithUserResponses('bob', onlyForMe: true);
+
+		$this->assertCount(1, $appointments);
+		// Clients hide the answer buttons on this flag (issue #251)
+		$this->assertFalse($appointments[0]['myPermissions']['isAttendee']);
 	}
 
 	public function testUnansweredInboxSkipsAppointmentsTheUserOnlyOrganizes(): void {

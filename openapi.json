@@ -769,6 +769,7 @@
                 "type": "object",
                 "required": [
                     "isOrganizer",
+                    "isAttendee",
                     "canEdit",
                     "canSeeResponses",
                     "canSeeResponseCounts",
@@ -777,6 +778,9 @@
                 ],
                 "properties": {
                     "isOrganizer": {
+                        "type": "boolean"
+                    },
+                    "isAttendee": {
                         "type": "boolean"
                     },
                     "canEdit": {

@@ -16,7 +16,9 @@ use OCA\Attendance\Service\OrgCalendarSyncService;
 use OCP\Calendar\ICalendar;
 use OCP\Calendar\ICalendarIsWritable;
 use OCP\Calendar\ICreateFromString;
+use OCP\Config\IUserConfig;
 use OCP\IConfig;
+use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\L10N\IFactory as IL10NFactory;
@@ -143,7 +145,7 @@ class OrgCalendarSyncServiceTest extends TestCase {
 	private TestableOrgCalendarSyncService $service;
 
 	/** Deep link line the app block ends with, unescaped */
-	private const LINK_LINE = "View or change your response:\nhttps://cloud.example.com/apps/attendance/#/appointment/5";
+	private const LINK_LINE = "View or change your response:\nhttps://cloud.example.com/apps/attendance/appointment/5";
 
 	protected function setUp(): void {
 		$this->calendarService = $this->createMock(CalendarService::class);
@@ -157,9 +159,9 @@ class OrgCalendarSyncServiceTest extends TestCase {
 
 		$this->icalService->method('foldIcalContent')->willReturnArgument(0);
 		$this->icalService->method('getAppointmentUrl')
-			->willReturnCallback(fn (int $id) => 'https://cloud.example.com/apps/attendance/#/appointment/' . $id);
+			->willReturnCallback(fn (int $id) => 'https://cloud.example.com/apps/attendance/appointment/' . $id);
 		$this->icalService->method('appointmentLinkLine')->willReturnCallback(
-			fn (IL10N $l, int $id) => "View or change your response:\nhttps://cloud.example.com/apps/attendance/#/appointment/$id",
+			fn (IL10N $l, int $id) => "View or change your response:\nhttps://cloud.example.com/apps/attendance/appointment/$id",
 		);
 
 		$this->urlGenerator->method('getAbsoluteURL')->willReturn('https://cloud.example.com/');
@@ -178,6 +180,13 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$config = $this->createMock(IConfig::class);
 		$config->method('getSystemValueString')->willReturn('en');
 
+		$userConfig = $this->createMock(IUserConfig::class);
+		$userConfig->method('getValueString')->willReturnCallback(fn () => $this->creatorTimezone);
+		$dateTimeZone = $this->createMock(IDateTimeZone::class);
+		$dateTimeZone->method('getDefaultTimeZone')->willReturnCallback(
+			fn () => new \DateTimeZone($this->instanceTimezone),
+		);
+
 		$this->service = new TestableOrgCalendarSyncService(
 			$this->calendarService,
 			$this->appointmentMapper,
@@ -189,8 +198,21 @@ class OrgCalendarSyncServiceTest extends TestCase {
 			$config,
 			$this->createMock(LoggerInterface::class),
 			$this->categoryMapper,
+			$userConfig,
+			$dateTimeZone,
 		);
 		$this->service->fakeBackend = $this->backend;
+	}
+
+	/** What the creator's core/timezone holds; empty when they never logged in */
+	private string $creatorTimezone = '';
+	private string $instanceTimezone = 'UTC';
+
+	private function appointmentBy(string $timezone): Appointment {
+		$this->creatorTimezone = $timezone;
+		$appointment = $this->buildAppointment();
+		$appointment->setCreatedBy('alice');
+		return $appointment;
 	}
 
 	/** @var array<string, int> */
@@ -374,6 +396,103 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->assertStringContainsString('DESCRIPTION:Bring instruments', $ics);
 		$this->assertStringContainsString('STATUS:CONFIRMED', $ics);
 		$this->assertStringNotContainsString('SUMMARY:Old title', $ics);
+	}
+
+	/** Issue #261: events landed in UTC, so the Calendar app edited them as UTC. */
+	public function testNewEventIsWrittenInTheCreatorsTimezone(): void {
+		$appointment = $this->appointmentBy('Europe/Berlin');
+
+		$ics = $this->service->buildIcs($appointment, 'attendance-org-5@cloud.example.com');
+
+		$this->assertStringContainsString("DTSTART;TZID=Europe/Berlin:20260901T200000\r\n", $ics);
+		$this->assertStringContainsString("DTEND;TZID=Europe/Berlin:20260901T220000\r\n", $ics);
+		// RFC 5545 wants the zone defined in the document, ahead of the event
+		$this->assertLessThan(strpos($ics, 'BEGIN:VEVENT'), strpos($ics, "BEGIN:VTIMEZONE\r\nTZID:Europe/Berlin\r\n"));
+	}
+
+	public function testNewEventFallsBackToTheInstanceTimezone(): void {
+		$this->instanceTimezone = 'America/New_York';
+
+		$ics = $this->service->buildIcs($this->buildAppointment(), 'attendance-org-5@cloud.example.com');
+
+		$this->assertStringContainsString("DTSTART;TZID=America/New_York:20260901T140000\r\n", $ics);
+	}
+
+	/** PHP reads an abbreviation as a fixed offset — it would lose daylight saving. */
+	public function testAbbreviatedTimezoneIsNotUsed(): void {
+		$appointment = $this->appointmentBy('CET');
+
+		$ics = $this->service->buildIcs($appointment, 'attendance-org-5@cloud.example.com');
+
+		$this->assertStringContainsString("DTSTART:20260901T180000Z\r\n", $ics);
+		$this->assertStringNotContainsString('VTIMEZONE', $ics);
+	}
+
+	/** Issue #261: an edit in the app reset the zone picked in the Calendar app. */
+	public function testPatchKeepsTheTimezoneTheEventAlreadyHas(): void {
+		$appointment = $this->appointmentBy('Europe/Berlin');
+		$existing = "BEGIN:VCALENDAR\r\n"
+			. "VERSION:2.0\r\n"
+			. "BEGIN:VTIMEZONE\r\n"
+			. "TZID:America/New_York\r\n"
+			. "X-KEPT:as the Calendar app wrote it\r\n"
+			. "END:VTIMEZONE\r\n"
+			. "BEGIN:VEVENT\r\n"
+			. "UID:attendance-org-5@cloud.example.com\r\n"
+			. "DTSTART;TZID=America/New_York:20260901T140000\r\n"
+			. "DTEND;TZID=America/New_York:20260901T160000\r\n"
+			. "END:VEVENT\r\n"
+			. "END:VCALENDAR\r\n";
+
+		$ics = $this->service->patchIcs($existing, $appointment);
+
+		$this->assertStringContainsString("DTSTART;TZID=America/New_York:20260901T140000\r\n", $ics);
+		$this->assertStringContainsString('X-KEPT:as the Calendar app wrote it', $ics);
+		$this->assertSame(1, substr_count($ics, 'BEGIN:VTIMEZONE'));
+	}
+
+	public function testPatchRedefinesTheTimezoneWhenTheEventMoves(): void {
+		$appointment = $this->buildAppointment();
+		$existing = "BEGIN:VCALENDAR\r\n"
+			. "BEGIN:VTIMEZONE\r\n"
+			. "TZID:Europe/Berlin\r\n"
+			. "X-STALE:covers 2024 only\r\n"
+			. "END:VTIMEZONE\r\n"
+			. "BEGIN:VEVENT\r\n"
+			. "DTSTART;TZID=Europe/Berlin:20240901T200000\r\n"
+			. "DTEND;TZID=Europe/Berlin:20240901T220000\r\n"
+			. "END:VEVENT\r\n"
+			. "END:VCALENDAR\r\n";
+
+		$ics = $this->service->patchIcs($existing, $appointment);
+
+		$this->assertStringContainsString("DTSTART;TZID=Europe/Berlin:20260901T200000\r\n", $ics);
+		$this->assertStringNotContainsString('X-STALE', $ics);
+		$this->assertSame(1, substr_count($ics, 'BEGIN:VTIMEZONE'));
+		$this->assertStringContainsString("DTSTART:20260329T020000\r\n", $ics);
+	}
+
+	/** Events written before the fix are UTC and heal on their next sync. */
+	public function testPatchMovesUtcEventIntoTheCreatorsTimezone(): void {
+		$appointment = $this->appointmentBy('Europe/Berlin');
+		$existing = "BEGIN:VCALENDAR\r\n"
+			. "BEGIN:VEVENT\r\n"
+			. "DTSTART:20260901T180000Z\r\n"
+			. "DTEND:20260901T200000Z\r\n"
+			. "URL:https://cloud.example.com/apps/attendance/#/appointment/5\r\n"
+			. "END:VEVENT\r\n"
+			. "END:VCALENDAR\r\n";
+
+		$ics = $this->service->patchIcs($existing, $appointment);
+
+		$this->assertStringContainsString("DTSTART;TZID=Europe/Berlin:20260901T200000\r\n", $ics);
+		$this->assertStringNotContainsString('DTSTART:20260901T180000Z', $ics);
+		$this->assertLessThan(strpos($ics, 'BEGIN:VEVENT'), strpos($ics, "BEGIN:VTIMEZONE\r\nTZID:Europe/Berlin\r\n"));
+		// Issue #272: the broken deep link heals along with it
+		$this->assertStringContainsString("URL:https://cloud.example.com/apps/attendance/appointment/5\r\n", $ics);
+		$this->assertStringNotContainsString('#/appointment', $ics);
+		// A second pass finds nothing left to do, so the no-op skip still holds
+		$this->assertTrue($this->service->matchesIgnoringTimestamps($ics, $this->service->patchIcs($ics, $appointment)));
 	}
 
 	public function testPatchDropsClearedDescriptionTextButKeepsTheBlock(): void {

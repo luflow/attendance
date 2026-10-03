@@ -1106,6 +1106,7 @@ class AppointmentService {
 			$includeResponseSummary,
 			$includeComments,
 			$includeResponseCounts,
+			$this->visibilityService->isUserTargetAttendee($appointment, $userId),
 		);
 
 		$appointmentData = $this->serializeAppointment($appointment);
@@ -1148,7 +1149,7 @@ class AppointmentService {
 	 * The summary tier the viewer gets on this appointment: the full overview,
 	 * the aggregate counts, or nothing.
 	 *
-	 * @param array{isOrganizer: bool, canEdit: bool, canSeeResponses: bool, canSeeResponseCounts: bool, canSeeComments: bool, canSeeAuditLog: bool} $myPermissions
+	 * @param array{isOrganizer: bool, isAttendee: bool, canEdit: bool, canSeeResponses: bool, canSeeResponseCounts: bool, canSeeComments: bool, canSeeAuditLog: bool} $myPermissions
 	 */
 	private function buildResponseSummaryFor(array $myPermissions, int $appointmentId): ?array {
 		if ($myPermissions['canSeeResponses']) {
@@ -1170,7 +1171,8 @@ class AppointmentService {
 	 * but takes the global flags precomputed so the list endpoint does not
 	 * redo the group lookups per appointment.
 	 *
-	 * @return array{isOrganizer: bool, canEdit: bool, canSeeResponses: bool, canSeeResponseCounts: bool, canSeeComments: bool, canSeeAuditLog: bool}
+	 * @param bool $isAttendee In the audience, i.e. asked to answer
+	 * @return array{isOrganizer: bool, isAttendee: bool, canEdit: bool, canSeeResponses: bool, canSeeResponseCounts: bool, canSeeComments: bool, canSeeAuditLog: bool}
 	 */
 	private function buildMyPermissions(
 		Appointment $appointment,
@@ -1179,6 +1181,7 @@ class AppointmentService {
 		bool $globalSeeResponses,
 		bool $globalSeeComments,
 		bool $globalSeeCounts,
+		bool $isAttendee,
 	): array {
 		$isOrganizer = $this->permissionService->isOrganizer($appointment, $userId);
 		$canEdit = $globalManage || $isOrganizer;
@@ -1193,6 +1196,7 @@ class AppointmentService {
 
 		return [
 			'isOrganizer' => $isOrganizer,
+			'isAttendee' => $isAttendee,
 			'canEdit' => $canEdit,
 			'canSeeResponses' => $canSeeResponses,
 			'canSeeResponseCounts' => $globalSeeCounts || $canSeeResponses,
@@ -1351,8 +1355,8 @@ class AppointmentService {
 			throw new \InvalidArgumentException('User not found');
 		}
 
-		// The target must be part of the appointment's audience — a manager
-		// cannot invent responses for people the inquiry never reached.
+		// The target must at least see the appointment; whether they may be
+		// given an answer is the response policy's call in applyResponse().
 		if (!$this->visibilityService->canUserSeeAppointment($appointment, $targetUserId)) {
 			throw new \InvalidArgumentException('User is not part of this appointment\'s audience');
 		}
@@ -1423,6 +1427,7 @@ class AppointmentService {
 		// organizer answering for somebody else may exceed a limit.
 		$this->responsePolicyService->assertResponseAllowed(
 			$appointment,
+			$userId,
 			$response,
 			$beforeResponse,
 			$acceptWaitlist,
@@ -1708,6 +1713,7 @@ class AppointmentService {
 				$includeResponseSummary,
 				$includeComments,
 				$includeResponseCounts,
+				$isAttendee,
 			);
 
 			$appointmentData = $this->serializeAppointment($appointment);

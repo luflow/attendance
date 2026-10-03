@@ -8,6 +8,7 @@ use OCA\Attendance\Controller\QuickResponseController;
 use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Service\QuickResponseTokenService;
 use OCA\Attendance\Service\ResponseService;
+use OCA\Attendance\Service\VisibilityService;
 use OCP\AppFramework\Http;
 use OCP\IInitialStateService;
 use OCP\IL10N;
@@ -33,6 +34,8 @@ class QuickResponseControllerTest extends TestCase {
 	private $userManager;
 	/** @var LoggerInterface|MockObject */
 	private $logger;
+	/** @var VisibilityService|MockObject */
+	private $visibilityService;
 
 	private QuickResponseController $controller;
 
@@ -44,6 +47,7 @@ class QuickResponseControllerTest extends TestCase {
 		$this->l = $this->createMock(IL10N::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
+		$this->visibilityService = $this->createMock(VisibilityService::class);
 
 		// Pass-through translator — keeps message assertions readable.
 		$this->l->method('t')->willReturnCallback(
@@ -62,6 +66,7 @@ class QuickResponseControllerTest extends TestCase {
 			$this->l,
 			$this->userManager,
 			$this->logger,
+			$this->visibilityService,
 		);
 	}
 
@@ -77,8 +82,9 @@ class QuickResponseControllerTest extends TestCase {
 		return $apt;
 	}
 
-	private function primeValidationDependencies(Appointment $appointment, string $userId = 'alice'): void {
+	private function primeValidationDependencies(Appointment $appointment, string $userId = 'alice', bool $attendee = true): void {
 		// Stub out everything the validator checks *before* the isClosed branch.
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn($attendee);
 		$this->tokenService->method('verifyToken')->willReturn(true);
 		$this->tokenService->method('isExpired')->willReturn(false);
 		$this->tokenService->method('getAppointment')->willReturn($appointment);
@@ -134,6 +140,16 @@ class QuickResponseControllerTest extends TestCase {
 
 		$this->assertFalse($result['error']);
 		$this->assertArrayNotHasKey('closed', $result);
+	}
+
+	/** Issue #251: an admin's test reminder carries links for an appointment they are not part of. */
+	public function testValidatorTurnsAwaySomebodyOutsideTheAudience(): void {
+		$this->primeValidationDependencies($this->makeAppointment(closed: false), attendee: false);
+
+		$result = $this->invokeValidator(42, 'yes', 'sometoken', 'alice');
+
+		$this->assertTrue($result['error']);
+		$this->assertSame('You are not an attendee of this appointment, so you cannot respond.', $result['errorMessage']);
 	}
 
 	public function testConfirmResponseOnClosedAppointmentReturnsBadRequest(): void {

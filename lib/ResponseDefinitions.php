@@ -39,6 +39,7 @@ namespace OCA\Attendance;
  * }
  * @psalm-type AttendanceMyPermissions = array{
  *   isOrganizer: bool,
+ *   isAttendee: bool,
  *   canEdit: bool,
  *   canSeeResponses: bool,
  *   canSeeResponseCounts: bool,
