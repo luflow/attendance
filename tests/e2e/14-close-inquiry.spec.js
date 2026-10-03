@@ -278,6 +278,9 @@ test.describe('Attendance App - Close inquiry (UI)', () => {
 		})
 		expect(targetedAtOther.id).toBeTruthy()
 		expect(everyone.id).toBeTruthy()
+		// The list is already on screen; a reload is what picks the two up.
+		await page.reload()
+		await page.waitForLoadState('networkidle')
 		await page.locator('[data-test="nav-all"]').click()
 		await page.waitForLoadState('networkidle')
 
@@ -285,7 +288,9 @@ test.describe('Attendance App - Close inquiry (UI)', () => {
 		await expect(cards.filter({ hasText: 'Audience Filter Other Only' }).first()).toBeVisible()
 		await expect(cards.filter({ hasText: 'Audience Filter Everyone' }).first()).toBeVisible()
 
-		await page.locator('[data-test="nav-upcoming"]').click()
+		// The entry lists its appointments underneath, so a click on the entry
+		// itself would land on one of them — aim at its own link.
+		await page.locator('[data-test="nav-upcoming"]').getByRole('link', { name: 'My appointments', exact: true }).click()
 		await expect(page.locator('[data-test="page-heading"]')).toHaveText('My appointments')
 
 		await expect(cards.filter({ hasText: 'Audience Filter Other Only' })).toHaveCount(0)

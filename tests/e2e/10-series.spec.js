@@ -336,7 +336,7 @@ test.describe('Attendance App - Series Management', () => {
 		await page.waitForLoadState('networkidle')
 
 		// Navigate back to the list view (save redirects to detail view)
-		await page.getByRole('link', { name: 'Upcoming Appointments' }).click()
+		await page.getByRole('link', { name: 'My appointments' }).click()
 		await page.waitForLoadState('networkidle')
 
 		// The edited one should have the new name
@@ -382,7 +382,7 @@ test.describe('Attendance App - Series Management', () => {
 		await page.waitForLoadState('networkidle')
 
 		// Navigate back to the list view (save redirects to detail view)
-		await page.getByRole('link', { name: 'Upcoming Appointments' }).click()
+		await page.getByRole('link', { name: 'My appointments' }).click()
 		await page.waitForLoadState('networkidle')
 
 		// All 3 should now have the new name

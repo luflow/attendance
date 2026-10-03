@@ -144,7 +144,7 @@ test.describe('Attendance App - Dashboard Widget Voting', () => {
 		await page.waitForLoadState('networkidle')
 		await expect(page).toHaveURL(/\/apps\/attendance/)
 
-		await expect(page.getByRole('link', { name: 'Upcoming Appointments' })).toBeVisible()
+		await expect(page.getByRole('link', { name: 'My appointments' })).toBeVisible()
 		await expect(page.getByRole('button', { name: 'Create Appointment' })).toBeVisible()
 	})
 
