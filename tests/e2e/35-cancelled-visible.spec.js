@@ -3,6 +3,7 @@ import {
 	createAppointmentViaAPI,
 	deleteAppointmentViaAPI,
 	expect,
+	pickFilterOption,
 	test,
 } from './fixtures/nextcloud.js'
 
@@ -10,15 +11,6 @@ import {
 // entirely, so participants just saw it vanish. The status filter decides now —
 // the unfiltered list keeps it, marked as cancelled.
 const FILTER_STORAGE_KEY = 'attendance:list-filters'
-
-// The popover stays open after a choice, and a second click on its trigger
-// would close it instead of opening it again — so close it after each pick.
-async function pickStatus(page, name) {
-	await page.locator('[data-test="filter-status"]').click()
-	await page.getByRole('menuitemradio', { name }).click()
-	await page.keyboard.press('Escape')
-	await expect(page.getByRole('menuitemradio', { name })).toBeHidden()
-}
 
 test.describe('Cancelled appointments stay in the list (#239)', () => {
 	test.describe.configure({ mode: 'serial' })
@@ -58,13 +50,13 @@ test.describe('Cancelled appointments stay in the list (#239)', () => {
 		await expect(cancelledCard.first().locator('[data-test="cancelled-badge"]')).toBeVisible()
 
 		// "Opened" is about inquiries that still take responses — a cancelled one does not.
-		await pickStatus(page, 'Opened')
+		await pickFilterOption(page, 'status', 'Opened')
 		await expect(cancelledCard).toHaveCount(0)
 		await expect(cards.filter({ hasText: openName }).first()).toBeVisible()
 
 		// "Cancelled" used to come up empty on this view because the list dropped
 		// cancelled appointments before the filter ever ran.
-		await pickStatus(page, 'Cancelled')
+		await pickFilterOption(page, 'status', 'Cancelled')
 		await expect(cancelledCard.first()).toBeVisible()
 		await expect(cards.filter({ hasText: openName })).toHaveCount(0)
 	})

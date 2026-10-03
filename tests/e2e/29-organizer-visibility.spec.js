@@ -8,6 +8,7 @@ import {
 	respondToAppointmentViaAPI,
 	deleteAllAppointments,
 	PERMISSIVE_PERMISSIONS,
+	pickFilterOption,
 } from './fixtures/nextcloud.js'
 
 /**
@@ -85,15 +86,6 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 	const cardFor = (page, name) =>
 		page.locator('[data-test="appointment-card"]', { hasText: name }).first()
 
-	// The popover stays open after a choice, and a second click on its trigger
-	// would close it instead of opening it again — so close it after each pick.
-	async function pickRole(page, name) {
-		await page.locator('[data-test="filter-role"]').click()
-		await page.getByRole('menuitemradio', { name }).click()
-		await page.keyboard.press('Escape')
-		await expect(page.getByRole('menuitemradio', { name })).toBeHidden()
-	}
-
 	test.afterAll(async ({ request }) => {
 		await deleteAllAppointments(request)
 		await resetAdminSettings(request)
@@ -155,12 +147,12 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 		await page.waitForLoadState('networkidle')
 		await openAllAppointments(page)
 
-		await pickRole(page, 'I am an organizer')
+		await pickFilterOption(page, 'role', 'I am an organizer')
 		await expect(cardFor(page, ORGANIZED)).toBeVisible()
 		await expect(cardFor(page, OUTSIDE)).toBeVisible()
 		await expect(cardFor(page, OTHER)).toBeHidden()
 
-		await pickRole(page, 'I am an attendee')
+		await pickFilterOption(page, 'role', 'I am an attendee')
 		await expect(cardFor(page, ORGANIZED)).toBeVisible()
 		await expect(cardFor(page, OTHER)).toBeVisible()
 		await expect(cardFor(page, OUTSIDE)).toBeHidden()
@@ -176,7 +168,7 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 		await page.waitForLoadState('networkidle')
 		await openAllAppointments(page)
 
-		await pickRole(page, 'Not involved')
+		await pickFilterOption(page, 'role', 'Not involved')
 		await expect(cardFor(page, OUTSIDE)).toBeVisible()
 		await expect(cardFor(page, ORGANIZED)).toBeHidden()
 		await expect(cardFor(page, OTHER)).toBeHidden()
