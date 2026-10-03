@@ -1,5 +1,8 @@
 <template>
 	<div class="appointment-detail" data-test="appointment-detail-view">
+		<div class="detail-header">
+			<BackButton @click="emit('back')" />
+		</div>
 		<div v-if="unansweredCount > 0"
 			class="unanswered-banner"
 			role="button"
@@ -11,9 +14,6 @@
 		<LoadingState v-if="loading" :text="t('attendance', 'Loading\u00A0…')" data-test="loading-state" />
 		<div v-else-if="error" class="error-state" data-test="error-state">
 			<p>{{ error }}</p>
-			<NcButton data-test="button-back" @click="goBack">
-				{{ t('attendance', 'Back') }}
-			</NcButton>
 		</div>
 		<div v-else-if="appointment" class="appointment-content">
 			<!-- Use reusable AppointmentCard component -->
@@ -51,12 +51,12 @@
 import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { generateUrl } from '@nextcloud/router'
-import { NcButton } from '@nextcloud/vue'
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
 import AppointmentCard from '../components/appointment/AppointmentCard.vue'
 import AuditTimeline from '../components/appointment/AuditTimeline.vue'
 import DeleteAppointmentDialog from '../components/appointment/DeleteAppointmentDialog.vue'
+import BackButton from '../components/common/BackButton.vue'
 import LoadingState from '../components/common/LoadingState.vue'
 import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
 import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
@@ -79,7 +79,7 @@ const props = defineProps({
 	},
 })
 
-const emit = defineEmits(['responseUpdated', 'editAppointment', 'copyAppointment', 'navigateToUnanswered', 'appointmentDeleted', 'scrollTargetConsumed'])
+const emit = defineEmits(['responseUpdated', 'editAppointment', 'copyAppointment', 'navigateToUnanswered', 'appointmentDeleted', 'scrollTargetConsumed', 'back'])
 
 const auditTimeline = ref(null)
 
@@ -112,10 +112,6 @@ const { submitResponse: submitResponseApi } = useAppointmentResponse({
 		loadAppointment()
 	},
 })
-
-function goBack() {
-	window.history.back()
-}
 
 function startCheckin(appointmentId) {
 	window.location.href = generateUrl(`/apps/attendance/checkin/${appointmentId}`)
@@ -247,6 +243,10 @@ watch(() => props.appointmentId, async (newId, oldId) => {
 	}
 }
 
+.detail-header {
+	margin-bottom: 8px;
+}
+
 .unanswered-banner {
 	display: flex;
 	align-items: center;
@@ -282,7 +282,6 @@ watch(() => props.appointmentId, async (newId, oldId) => {
 
 	p {
 		color: var(--color-error);
-		margin-bottom: 20px;
 	}
 }
 </style>

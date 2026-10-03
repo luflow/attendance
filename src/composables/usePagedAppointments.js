@@ -6,18 +6,24 @@ export const PAGE_SIZE = 20
 // The server's cap on `limit`; a reload of a long list goes in rounds of this.
 const MAX_PAGE_SIZE = 100
 
+// What each list last held, so that coming back renders at once (and can
+// restore the scroll position) while the fresh copy loads.
+const cache = new Map()
+
 /**
  * Pages through the appointment list. The server filters and counts, so what
  * is held here is only ever the part of the list scrolled into so far.
  *
  * @param {() => object} params Scope and filters of the list, read on every request.
- * @return {object} List state plus `reload` and `loadMore`.
+ * @param {string} cacheKey Names the list, so a later instance starts from what this one held.
+ * @return {object} List state plus `reload` and `loadMore`; `restored` when it started from the cache.
  */
-export function usePagedAppointments(params) {
-	const appointments = ref([])
-	const total = ref(0)
-	const facets = ref({ locations: [], categoryIds: [], roles: [] })
-	const loading = ref(true)
+export function usePagedAppointments(params, cacheKey) {
+	const cached = cache.get(cacheKey)
+	const appointments = ref(cached?.appointments ?? [])
+	const total = ref(cached?.total ?? 0)
+	const facets = ref(cached?.facets ?? { locations: [], categoryIds: [], roles: [] })
+	const loading = ref(!cached)
 	const loadingMore = ref(false)
 	const hasMore = computed(() => appointments.value.length < total.value)
 	// True while any request for the list is out, the silent ones included.
@@ -27,6 +33,10 @@ export function usePagedAppointments(params) {
 	// Bumped by every reload, so an answer to an older request is dropped
 	// instead of overwriting the list the newer one produced.
 	let generation = 0
+
+	function remember() {
+		cache.set(cacheKey, { appointments: appointments.value, total: total.value, facets: facets.value })
+	}
 
 	async function fetchPage(offset, limit) {
 		const response = await axios.get(generateUrl('/apps/attendance/api/appointments'), {
@@ -61,6 +71,7 @@ export function usePagedAppointments(params) {
 			appointments.value = loaded
 			total.value = page.total
 			facets.value = page.facets
+			remember()
 		} catch (error) {
 			console.error('Failed to load appointments:', error)
 		} finally {
@@ -88,6 +99,7 @@ export function usePagedAppointments(params) {
 			// Nothing new means paging has run dry, whatever the count claims.
 			total.value = added.length > 0 ? page.total : appointments.value.length
 			facets.value = page.facets
+			remember()
 		} catch (error) {
 			console.error('Failed to load more appointments:', error)
 		} finally {
@@ -96,5 +108,5 @@ export function usePagedAppointments(params) {
 		}
 	}
 
-	return { appointments, total, facets, loading, loadingMore, busy, hasMore, reload, loadMore }
+	return { appointments, total, facets, loading, loadingMore, busy, hasMore, restored: Boolean(cached), reload, loadMore }
 }

@@ -2,15 +2,7 @@
 	<div class="appointment-form-view" data-test="appointment-form-view">
 		<div class="form-header">
 			<div class="header-actions">
-				<NcButton
-					variant="tertiary"
-					data-test="button-back"
-					@click="goBack">
-					<template #icon>
-						<ArrowLeft :size="20" />
-					</template>
-					{{ t("attendance", "Back") }}
-				</NcButton>
+				<BackButton @click="goBack" />
 				<NcButton
 					v-if="mode === 'create' && props.calendarAvailable"
 					variant="tertiary"
@@ -526,7 +518,10 @@
 				</NcSelect>
 			</div>
 
-			<div class="form-actions">
+			<div class="form-actions" data-test="form-actions">
+				<span v-if="isDirty" class="form-actions__hint" data-test="unsaved-hint">
+					{{ t("attendance", "Unsaved changes") }}
+				</span>
 				<NcButton
 					variant="secondary"
 					data-test="button-cancel"
@@ -582,13 +577,12 @@ import {
 	NcSelect,
 	NcTextField,
 } from '@nextcloud/vue'
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import Account from 'vue-material-design-icons/Account.vue'
 import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
 import AccountPlus from 'vue-material-design-icons/AccountPlus.vue'
 import AccountQuestion from 'vue-material-design-icons/AccountQuestion.vue'
 import AccountStar from 'vue-material-design-icons/AccountStar.vue'
-import ArrowLeft from 'vue-material-design-icons/ArrowLeft.vue'
 import CalendarImport from 'vue-material-design-icons/CalendarImport.vue'
 import CalendarSync from 'vue-material-design-icons/CalendarSync.vue'
 import LinkVariant from 'vue-material-design-icons/LinkVariant.vue'
@@ -598,10 +592,12 @@ import RepeatIcon from 'vue-material-design-icons/Repeat.vue'
 import RecurrenceSelector from '../components/appointment/RecurrenceSelector.vue'
 import SeriesActionDialog from '../components/appointment/SeriesActionDialog.vue'
 import CalendarEventPicker from '../components/calendar/CalendarEventPicker.vue'
+import BackButton from '../components/common/BackButton.vue'
 import LoadingState from '../components/common/LoadingState.vue'
 import MarkdownEditor from '../components/common/MarkdownEditor.vue'
 import { useCategories } from '../composables/useCategories.js'
 import { usePermissions } from '../composables/usePermissions.js'
+import { useUnsavedChanges } from '../composables/useUnsavedChanges.js'
 import { categoryIconComponent } from '../utils/categoryIcons.js'
 import { formatGroupLabel } from '../utils/groups.js'
 
@@ -1420,6 +1416,47 @@ function removeAttachment(fileId) {
 
 const attachmentFileIds = computed(() => attachments.value.map((a) => a.fileId))
 
+const sorted = (list) => [...list].sort()
+
+// Everything the user can change, as one comparable value. Selections are
+// sorted so that removing an entry and adding it back counts as unchanged.
+const formSnapshot = computed(() => JSON.stringify({
+	...formData,
+	location: formData.location || '',
+	categoryId: formData.categoryId || null,
+	visibleUsers: sorted(formData.visibleUsers),
+	visibleGroups: sorted(formData.visibleGroups),
+	visibleTeams: sorted(formData.visibleTeams),
+	organizers: sorted(formData.organizers),
+	deadline: [
+		deadlineMode.value,
+		deadlineRelativeValueStr.value,
+		deadlineRelativeUnit.value,
+		deadlineAbsolute.value,
+		deadlineAbsoluteLiteral.value,
+	],
+	sendNotification: sendNotification.value,
+	createTalkRoom: createTalkRoom.value,
+	allowMaybe: allowMaybe.value,
+	maxAttendees: maxAttendeesInput.value,
+	waitlistEnabled: waitlistEnabled.value,
+	attachments: attachmentFileIds.value,
+	calendarReference: calendarReference.value,
+	recurrence: recurrenceOccurrences.value,
+}))
+
+// What the form held when it opened or last saved; null until it has loaded.
+const cleanSnapshot = ref(null)
+const isDirty = computed(() => cleanSnapshot.value !== null && formSnapshot.value !== cleanSnapshot.value)
+useUnsavedChanges(() => isDirty.value)
+
+// The parent navigates away on "saved", which must not ask about the changes
+// that were just written.
+function emitSaved(appointmentId) {
+	cleanSnapshot.value = formSnapshot.value
+	emit('saved', appointmentId)
+}
+
 function toServerTimezone(datetime) {
 	if (!datetime) return datetime
 	const date = new Date(datetime)
@@ -1494,7 +1531,7 @@ async function handleBulkImport(eventDataList) {
 			))
 		}
 
-		emit('saved')
+		emitSaved()
 	} catch (error) {
 		console.error('Bulk import failed:', error)
 		showError(t('attendance', 'Error importing appointments'))
@@ -1567,7 +1604,7 @@ async function handleRecurringCreate() {
 			))
 		}
 
-		emit('saved')
+		emitSaved()
 	} catch (error) {
 		console.error('Failed to create recurring appointments:', error)
 		showError(t('attendance', 'Error creating appointments'))
@@ -1710,7 +1747,7 @@ async function saveAppointment(scope = 'single') {
 			showSuccess(t('attendance', 'Appointment created'))
 		}
 
-		emit('saved', appointmentId)
+		emitSaved(appointmentId)
 	} catch (error) {
 		console.error('Failed to save appointment:', error)
 		// Surface server-side rule violations (e.g. organizer removal rules)
@@ -1724,12 +1761,18 @@ async function saveAppointment(scope = 'single') {
 }
 
 onMounted(async () => {
-	await Promise.all([loadTrackingGroups(), loadPermissions(), loadLocationSuggestions(), loadCategories()])
+	const loaded = Promise.all([loadTrackingGroups(), loadPermissions(), loadLocationSuggestions(), loadCategories()])
 	if (props.mode === 'edit' || props.mode === 'copy') {
+		await loaded
 		await loadAppointment()
 	} else {
+		// Ahead of the loads: a new form is on screen at once, and whatever is
+		// typed while they run has to count as a change.
 		prefillCurrentUserAsOrganizer()
 	}
+	// The selection watchers copy into formData a tick later.
+	await nextTick()
+	cleanSnapshot.value = formSnapshot.value
 })
 
 onBeforeUnmount(() => {
@@ -1927,12 +1970,27 @@ onBeforeUnmount(() => {
     }
 }
 
+/* Floats over the form while it scrolls, so saving never depends on reaching
+ * the end of the page. */
 .form-actions {
+    position: sticky;
+    bottom: 12px;
+    z-index: 10;
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     justify-content: flex-end;
     gap: 10px;
-    padding-top: 16px;
-    border-top: 1px solid var(--color-border);
+    padding: 12px 16px;
+    background: var(--color-main-background);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-large);
+    box-shadow: 0 2px 12px var(--color-box-shadow);
+}
+
+.form-actions__hint {
+    margin-inline-end: auto;
+    color: var(--color-text-maxcontrast);
 }
 
 .series-info-header {

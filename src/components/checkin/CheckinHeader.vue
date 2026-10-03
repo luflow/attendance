@@ -1,17 +1,11 @@
 <template>
 	<div class="checkin-header">
-		<NcButton variant="tertiary" data-test="button-back" @click="$emit('back')">
-			<template #icon>
-				<ArrowLeftIcon />
-			</template>
-			{{ t('attendance', 'Back') }}
-		</NcButton>
+		<BackButton @click="$emit('back')" />
 	</div>
 </template>
 
 <script setup>
-import { NcButton } from '@nextcloud/vue'
-import ArrowLeftIcon from 'vue-material-design-icons/ArrowLeft.vue'
+import BackButton from '../common/BackButton.vue'
 
 defineEmits(['back'])
 </script>

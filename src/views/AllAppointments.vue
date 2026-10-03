@@ -361,9 +361,10 @@ const {
 	loadingMore,
 	busy,
 	hasMore,
+	restored,
 	reload,
 	loadMore,
-} = usePagedAppointments(currentListParams)
+} = usePagedAppointments(currentListParams, props.view)
 
 // A role is only offered while it tells some appointments apart from others —
 // a member who is simply invited everywhere gets no role filter at all. The
@@ -847,7 +848,8 @@ watch(total, (_, oldTotal) => {
 
 onMounted(async () => {
 	await loadPermissions()
-	await reload()
+	// A list restored from the cache is on screen already: refresh it in place.
+	await (restored ? refresh() : reload())
 	listReady = true
 })
 </script>
