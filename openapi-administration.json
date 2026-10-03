@@ -228,7 +228,8 @@
                     "categoriesAvailable",
                     "statisticsAvailable",
                     "talkRoomsAvailable",
-                    "talkRoomDeletion"
+                    "talkRoomDeletion",
+                    "vacationManagementEnabled"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -295,6 +296,9 @@
                         "type": "boolean"
                     },
                     "talkRoomDeletion": {
+                        "type": "boolean"
+                    },
+                    "vacationManagementEnabled": {
                         "type": "boolean"
                     }
                 }
