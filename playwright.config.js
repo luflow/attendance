@@ -95,6 +95,8 @@ export default defineConfig({
 				'31-category.spec.js',
 				// Grants and revokes see_statistics instance-wide.
 				'32-statistics.spec.js',
+				// Wipes every appointment before each test.
+				'33-attendance-limit.spec.js',
 			],
 			fullyParallel: false,
 			workers: 1,
