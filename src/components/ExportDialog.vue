@@ -30,6 +30,14 @@
 
 					<NcCheckboxRadioSwitch
 						v-model="filterType"
+						value="series"
+						name="filter_type"
+						type="radio">
+						{{ t("attendance", "Appointment series") }}
+					</NcCheckboxRadioSwitch>
+
+					<NcCheckboxRadioSwitch
+						v-model="filterType"
 						value="dateRange"
 						name="filter_type"
 						type="radio">
@@ -85,6 +93,76 @@
 						</NcCheckboxRadioSwitch>
 					</li>
 				</ul>
+			</div>
+
+			<!-- Series Selection -->
+			<div v-if="filterType === 'series'" class="filter-section">
+				<label class="section-label">{{
+					t("attendance", "Select series")
+				}}</label>
+
+				<NcLoadingIcon v-if="series === null" :size="24" />
+
+				<NcEmptyContent
+					v-else-if="series.length === 0"
+					:name="t('attendance', 'No series found')"
+					:description="
+						t(
+							'attendance',
+							'Series appear here once an appointment repeats regularly.',
+						)
+					">
+					<template #icon>
+						<RepeatIcon :size="20" />
+					</template>
+				</NcEmptyContent>
+
+				<template v-else>
+					<NcTextField
+						v-if="showSeriesSearch"
+						v-model="seriesSearchQuery"
+						:placeholder="t('attendance', 'Search series …')"
+						class="series-search" />
+
+					<p v-if="filteredSeries.length === 0" class="no-matches">
+						{{ t("attendance", "No series match your search") }}
+					</p>
+
+					<div v-if="ongoingSeries.length" class="series-group">
+						<h4 class="series-group-title">
+							{{ t("attendance", "Ongoing and upcoming") }}
+						</h4>
+						<ExportSeriesList
+							:entries="ongoingSeries"
+							:selected="selectedSeries"
+							@toggle="toggleSeries" />
+					</div>
+
+					<div v-if="finishedSeries.length" class="series-group">
+						<NcButton
+							variant="tertiary"
+							class="series-group-toggle"
+							@click="showFinishedSeries = !showFinishedSeries">
+							<template #icon>
+								<ChevronDownIcon
+									v-if="showFinishedSeries"
+									:size="20" />
+								<ChevronRightIcon v-else :size="20" />
+							</template>
+							{{
+								t("attendance", "Finished ({count})", {
+									count: finishedSeries.length,
+								})
+							}}
+						</NcButton>
+
+						<ExportSeriesList
+							v-if="showFinishedSeries"
+							:entries="finishedSeries"
+							:selected="selectedSeries"
+							@toggle="toggleSeries" />
+					</div>
+				</template>
 			</div>
 
 			<!-- Date Range Options -->
@@ -155,11 +233,10 @@
 			<!-- Export Options -->
 			<div class="filter-section">
 				<h3>{{ t("attendance", "Export options") }}</h3>
-				<NcCheckboxRadioSwitch
-					v-model="includeComments"
-					type="checkbox">
-					{{ t("attendance", "Include comments in export") }}
-				</NcCheckboxRadioSwitch>
+
+				<ExportColumnOptions
+					v-model="columns"
+					:hasAnyColumn="hasAnyColumn" />
 			</div>
 
 			<!-- Export Button -->
@@ -185,18 +262,28 @@
 
 <script setup>
 import axios from '@nextcloud/axios'
-import { showError, showSuccess } from '@nextcloud/dialogs'
+import { showError } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import {
 	NcButton,
 	NcCheckboxRadioSwitch,
+	NcEmptyContent,
 	NcLoadingIcon,
 	NcModal,
+	NcTextField,
 } from '@nextcloud/vue'
 import { computed, ref, watch } from 'vue'
+import ChevronDownIcon from 'vue-material-design-icons/ChevronDown.vue'
+import ChevronRightIcon from 'vue-material-design-icons/ChevronRight.vue'
 import DownloadIcon from 'vue-material-design-icons/Download.vue'
-import { formatDateTime } from '../utils/datetime.js'
+import RepeatIcon from 'vue-material-design-icons/Repeat.vue'
+import ExportColumnOptions from './export/ExportColumnOptions.vue'
+import ExportSeriesList from './export/ExportSeriesList.vue'
+import { useExportColumns } from '../composables/useExportColumns.js'
+import { useExportRequest } from '../composables/useExportRequest.js'
+import { formatDate, formatDateTime } from '../utils/datetime.js'
+import { toggled } from '../utils/statisticsColumns.js'
 
 const props = defineProps({
 	show: {
@@ -214,23 +301,64 @@ const emit = defineEmits(['close'])
 // Export filter options
 const filterType = ref('all')
 const selectedAppointments = ref([])
+const selectedSeries = ref([])
 const dateRangePreset = ref('month')
 const customStartDate = ref('')
 const customEndDate = ref('')
-const includeComments = ref(false)
-const exporting = ref(false)
+
+const { columns, hasAnyColumn, resetColumns } = useExportColumns()
+const { exporting, runExport } = useExportRequest(t('attendance', 'Failed to export appointments'))
+
+// null until the series filter is picked for the first time, which is also
+// what tells the template to show the spinner rather than "no series".
+const series = ref(null)
+const seriesSearchQuery = ref('')
+const showFinishedSeries = ref(false)
 
 // Watch filter type changes to reset selections
 watch(filterType, (newType) => {
 	if (newType !== 'selected') {
 		selectedAppointments.value = []
 	}
+	if (newType !== 'series') {
+		selectedSeries.value = []
+		seriesSearchQuery.value = ''
+	} else if (series.value === null) {
+		loadSeries()
+	}
 })
 
+async function loadSeries() {
+	try {
+		const response = await axios.get(generateUrl('/apps/attendance/api/export/series'))
+		series.value = response.data
+	} catch (error) {
+		console.error('Failed to load appointment series:', error)
+		showError(t('attendance', 'Failed to load appointment series'))
+		series.value = []
+	}
+}
+
 // Computed properties
+const showSeriesSearch = computed(() => (series.value?.length ?? 0) > 5)
+
+const filteredSeries = computed(() => {
+	const entries = series.value ?? []
+	const query = seriesSearchQuery.value.toLowerCase().trim()
+	if (!query) return entries
+
+	return entries.filter((entry) => entry.name.toLowerCase().includes(query))
+})
+
+const ongoingSeries = computed(() => filteredSeries.value.filter((entry) => entry.ongoing))
+
+const finishedSeries = computed(() => filteredSeries.value.filter((entry) => !entry.ongoing))
+
 const canExport = computed(() => {
+	if (!hasAnyColumn.value) return false
 	if (filterType.value === 'all') return true
 	if (filterType.value === 'selected') return selectedAppointments.value.length > 0
+	if (filterType.value === 'series') return selectedSeries.value.length > 0
 	if (
 		filterType.value === 'dateRange'
 		&& dateRangePreset.value === 'custom'
@@ -239,6 +367,10 @@ const canExport = computed(() => {
 	}
 	return filterType.value === 'dateRange'
 })
+
+function toggleSeries(seriesId) {
+	selectedSeries.value = toggled(selectedSeries.value, seriesId)
+}
 
 function getDateRangePreview() {
 	const now = new Date()
@@ -265,10 +397,6 @@ function getDateRangePreview() {
 	}
 }
 
-function formatDate(date) {
-	return date.toLocaleDateString()
-}
-
 function toggleAppointment(id) {
 	const index = selectedAppointments.value.indexOf(id)
 	if (index === -1) {
@@ -289,32 +417,8 @@ function deselectAllAppointments() {
 async function handleExport() {
 	if (!canExport.value) return
 
-	exporting.value = true
-
-	try {
-		const exportData = buildExportData()
-		const response = await axios.post(
-			generateUrl('/apps/attendance/api/export'),
-			exportData,
-		)
-
-		showSuccess(t('attendance', 'Export created: {filename}', {
-			filename: response.data.filename,
-		}))
-
-		// Redirect to Files app to show the exported file
-		const filesUrl = generateUrl('/apps/files/?dir=/Attendance')
-		window.location.href = filesUrl
-
+	if (await runExport(buildExportData())) {
 		emit('close')
-	} catch (error) {
-		console.error('Failed to export appointments:', error)
-		const errorMessage
-			= error.response?.data?.error
-				|| t('attendance', 'Failed to export appointments')
-		showError(errorMessage)
-	} finally {
-		exporting.value = false
 	}
 }
 
@@ -365,12 +469,12 @@ function formatIsoDate(date) {
 }
 
 function buildExportData() {
-	const data = {
-		includeComments: includeComments.value,
-	}
+	const data = { ...columns.value }
 
 	if (filterType.value === 'selected') {
 		data.appointmentIds = selectedAppointments.value
+	} else if (filterType.value === 'series') {
+		data.seriesIds = selectedSeries.value
 	} else if (filterType.value === 'dateRange') {
 		const { startDate, endDate } = getCalculatedDateRange()
 		data.startDate = startDate
@@ -387,11 +491,13 @@ watch(
 		if (!show) {
 			filterType.value = 'all'
 			selectedAppointments.value = []
+			selectedSeries.value = []
+			seriesSearchQuery.value = ''
+			showFinishedSeries.value = false
 			dateRangePreset.value = 'month'
 			customStartDate.value = ''
 			customEndDate.value = ''
-			includeComments.value = false
-			exporting.value = false
+			resetColumns()
 		}
 	},
 )
@@ -496,6 +602,30 @@ watch(
 
 .event-date {
     font-size: 13px;
+    color: var(--color-text-maxcontrast);
+}
+
+.series-search {
+    margin-bottom: 12px;
+}
+
+.series-group + .series-group {
+    margin-top: 12px;
+}
+
+.series-group-title {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-maxcontrast);
+}
+
+.series-group-toggle {
+    margin-bottom: 8px;
+}
+
+.no-matches {
+    margin: 0;
     color: var(--color-text-maxcontrast);
 }
 

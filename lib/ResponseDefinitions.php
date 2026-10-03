@@ -358,6 +358,14 @@ namespace OCA\Attendance;
  *   path: string,
  *   filename: string,
  * }
+ * @psalm-type AttendanceExportSeries = array{
+ *   seriesId: string,
+ *   name: string,
+ *   startDatetime: string,
+ *   endDatetime: string,
+ *   appointmentCount: int,
+ *   ongoing: bool,
+ * }
  * @psalm-type AttendanceReminderResult = array{
  *   sent: int,
  * }

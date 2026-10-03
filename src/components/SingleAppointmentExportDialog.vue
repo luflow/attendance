@@ -13,11 +13,9 @@
 
 			<div class="export-options">
 				<h3>{{ t('attendance', 'Export options') }}</h3>
-				<NcCheckboxRadioSwitch
-					v-model="includeComments"
-					type="checkbox">
-					{{ t('attendance', 'Include comments in export') }}
-				</NcCheckboxRadioSwitch>
+				<ExportColumnOptions
+					v-model="columns"
+					:hasAnyColumn="hasAnyColumn" />
 			</div>
 
 			<div class="button-row">
@@ -26,7 +24,7 @@
 					{{ t('attendance', 'Cancel') }}
 				</NcButton>
 				<NcButton
-					:disabled="exporting"
+					:disabled="exporting || !hasAnyColumn"
 					variant="primary"
 					@click="handleExport">
 					<template #icon>
@@ -41,13 +39,12 @@
 </template>
 
 <script setup>
-import axios from '@nextcloud/axios'
-import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
-import { generateUrl } from '@nextcloud/router'
-import { NcButton, NcCheckboxRadioSwitch, NcLoadingIcon, NcModal } from '@nextcloud/vue'
-import { ref } from 'vue'
+import { NcButton, NcLoadingIcon, NcModal } from '@nextcloud/vue'
 import DownloadIcon from 'vue-material-design-icons/Download.vue'
+import ExportColumnOptions from './export/ExportColumnOptions.vue'
+import { useExportColumns } from '../composables/useExportColumns.js'
+import { useExportRequest } from '../composables/useExportRequest.js'
 import { formatDateTime } from '../utils/datetime.js'
 
 const props = defineProps({
@@ -63,33 +60,19 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
-const includeComments = ref(false)
-const exporting = ref(false)
+const { columns, hasAnyColumn } = useExportColumns()
+const { exporting, runExport } = useExportRequest(t('attendance', 'Failed to export appointment'))
 
 async function handleExport() {
-	if (!props.appointment) return
+	if (!props.appointment || !hasAnyColumn.value) return
 
-	exporting.value = true
+	const created = await runExport({
+		appointmentIds: [props.appointment.id],
+		...columns.value,
+	})
 
-	try {
-		const response = await axios.post(generateUrl('/apps/attendance/api/export'), {
-			appointmentIds: [props.appointment.id],
-			includeComments: includeComments.value,
-		})
-
-		showSuccess(t('attendance', 'Export created: {filename}', { filename: response.data.filename }))
-
-		// Redirect to Files app to show the exported file
-		const filesUrl = generateUrl('/apps/files/?dir=/Attendance')
-		window.location.href = filesUrl
-
+	if (created) {
 		emit('close')
-	} catch (error) {
-		console.error('Failed to export appointment:', error)
-		const errorMessage = error.response?.data?.error || t('attendance', 'Failed to export appointment')
-		showError(errorMessage)
-	} finally {
-		exporting.value = false
 	}
 }
 </script>

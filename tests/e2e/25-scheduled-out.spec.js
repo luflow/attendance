@@ -7,6 +7,7 @@ import {
 	deleteAllAppointments,
 	forceWipeAllAppointments,
 	listAppointmentsViaAPI,
+	reopenAppointmentViaAPI,
 	respondToAppointmentViaAPI,
 	saveAdminSettings,
 } from './fixtures/nextcloud.js'
@@ -28,6 +29,14 @@ async function listAppointments(request, options) {
 async function bookUser(request, appointmentId, userId) {
 	const resp = await request.post(
 		`${BASE}/apps/attendance/api/appointments/${appointmentId}/book/${userId}`,
+		{ headers: authHeaders() },
+	)
+	return resp.status()
+}
+
+async function unbookUser(request, appointmentId, userId) {
+	const resp = await request.post(
+		`${BASE}/apps/attendance/api/appointments/${appointmentId}/unbook/${userId}`,
 		{ headers: authHeaders() },
 	)
 	return resp.status()
@@ -133,5 +142,27 @@ test.describe('Scheduling — hiding appointments the user was scheduled out of'
 			notScheduledOut: true,
 		})
 		expect(filtered.map(a => a.name)).toContain('Still Open')
+	})
+
+	// Regression for #250: the verdict has to be revocable. Closing used to skip
+	// its notification wave whenever nobody was booked, so un-scheduling the
+	// only booked person and closing again left the earlier "you are scheduled"
+	// standing — and the appointment kept saying so.
+	test('un-scheduling everybody and re-closing takes the verdict back', async ({ request }) => {
+		await forceWipeAllAppointments(request)
+		const appointment = await closedInquiryWith(request, 'Unschedule After Reopen', ['test'])
+
+		const whileScheduled = await listAppointments(request, { username: 'test', password: 'test' })
+		expect(whileScheduled.find(a => a.name === 'Unschedule After Reopen').userResponse.bookingStatus)
+			.toBe('booked')
+
+		// Reopening is the documented way to change a frozen plan.
+		await reopenAppointmentViaAPI(request, appointment.id)
+		expect(await unbookUser(request, appointment.id, 'test')).toBe(200)
+		await closeAppointmentViaAPI(request, appointment.id)
+
+		const afterUnschedule = await listAppointments(request, { username: 'test', password: 'test' })
+		expect(afterUnschedule.find(a => a.name === 'Unschedule After Reopen').userResponse.bookingStatus)
+			.toBe('declined')
 	})
 })

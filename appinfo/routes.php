@@ -98,6 +98,7 @@ return [
 
 		// Export
 		['name' => 'appointment#export', 'url' => '/api/export', 'verb' => 'POST'],
+		['name' => 'appointment#exportSeries', 'url' => '/api/export/series', 'verb' => 'GET'],
 
 		// Statistics
 		// NOTE: Specific routes must come BEFORE wildcard {targetUserId} routes

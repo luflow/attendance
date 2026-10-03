@@ -11,6 +11,7 @@ use OCA\Attendance\Service\CalendarService;
 use OCA\Attendance\Service\CheckinService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\DeadlineUpdate;
+use OCA\Attendance\Service\ExportOptions;
 use OCA\Attendance\Service\ExportService;
 use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\NotificationService;
@@ -29,6 +30,9 @@ use OCP\IUser;
 use OCP\IUserSession;
 use OCP\Security\ISecureRandom;
 
+/**
+ * @psalm-import-type AttendanceExportSeries from \OCA\Attendance\ResponseDefinitions
+ */
 class AppointmentController extends Controller {
 	private AppointmentService $appointmentService;
 	private AttachmentService $attachmentService;
@@ -1293,12 +1297,27 @@ class AppointmentController extends Controller {
 	 * @param ?string $startDate Start date filter in Y-m-d format
 	 * @param ?string $endDate End date filter in Y-m-d format
 	 * @param bool $includeComments Whether to include user comments in the export
+	 * @param ?list<string> $seriesIds Series to export in full, or null for no series filter
+	 * @param bool $includeRsvp Whether to include the RSVP column per appointment
+	 * @param bool $includeCheckin Whether to include the check-in column per appointment
+	 * @param bool $includeOrganizers Whether to append a row listing each appointment's organizers
+	 * @param bool $includeGroup Whether to include the group column next to the names
 	 * @return DataResponse<Http::STATUS_OK, AttendanceExportResult, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI]
-	public function export(?array $appointmentIds = null, ?string $startDate = null, ?string $endDate = null, bool $includeComments = false): DataResponse {
+	public function export(
+		?array $appointmentIds = null,
+		?string $startDate = null,
+		?string $endDate = null,
+		bool $includeComments = false,
+		?array $seriesIds = null,
+		bool $includeRsvp = true,
+		bool $includeCheckin = true,
+		bool $includeOrganizers = false,
+		bool $includeGroup = true,
+	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
@@ -1322,8 +1341,24 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'endDate must be after startDate'], 400);
 		}
 
+		$options = ExportOptions::fromWire(
+			$appointmentIds,
+			$startDate,
+			$endDate,
+			$seriesIds,
+			$includeRsvp,
+			$includeCheckin,
+			$includeComments,
+			$includeOrganizers,
+			$includeGroup,
+		);
+
+		if (!$options->hasAnyColumn()) {
+			return new DataResponse(['error' => 'At least one of RSVP, check-in or comments must be included'], 400);
+		}
+
 		try {
-			$result = $this->exportService->exportToOds($user->getUID(), $appointmentIds, $startDate, $endDate, $includeComments);
+			$result = $this->exportService->exportToOds($user->getUID(), $options);
 			return new DataResponse([
 				'path' => $result['path'],
 				'filename' => $result['filename'],
@@ -1331,6 +1366,27 @@ class AppointmentController extends Controller {
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 400);
 		}
+	}
+
+	/**
+	 * List the appointment series the export can filter by, ongoing ones first
+	 *
+	 * @return DataResponse<Http::STATUS_OK, list<AttendanceExportSeries>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function exportSeries(): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		if (!$this->permissionService->canManageAppointments($user->getUID())) {
+			return new DataResponse(['error' => 'Insufficient permissions to export appointments'], 403);
+		}
+
+		return new DataResponse($this->exportService->getSeriesOverview());
 	}
 
 	/**

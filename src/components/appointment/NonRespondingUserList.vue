@@ -9,6 +9,12 @@
 				:key="user.userId"
 				class="pending-user"
 				:class="{ 'pending-user--pending': remindingUsers.has(user.userId) }">
+				<!-- Turning up without ever answering is a real case, and the
+					 name alone would hide it (issue #229). -->
+				<ResponseDot
+					v-if="user.checkinState"
+					:response="user.checkinState"
+					kind="checkin" />
 				{{ user.displayName }}
 				<SetAnswerPopover
 					v-if="canSetAnswer && appointmentId"
@@ -62,6 +68,7 @@ import { computed } from 'vue'
 import BellRingOutlineIcon from 'vue-material-design-icons/BellRingOutline.vue'
 import PencilOutlineIcon from 'vue-material-design-icons/PencilOutline.vue'
 import RemindUserPopover from './RemindUserPopover.vue'
+import ResponseDot from './ResponseDot.vue'
 import SetAnswerPopover from './SetAnswerPopover.vue'
 import { RESPONSE_ORDER } from '../../utils/response.js'
 

@@ -19,3 +19,7 @@ spl_autoload_register(function ($class) {
 // same stubs psalm reads make its classes mockable here, so TalkRoomService can
 // be tested against the shape it actually calls.
 require_once __DIR__ . '/stubs/talk.php';
+
+// Some OCP interfaces name private `OC\` classes in their signatures, which
+// nextcloud/ocp does not ship — without these, PHPUnit cannot mock them.
+require_once __DIR__ . '/stubs/oc-internals.php';

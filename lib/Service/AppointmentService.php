@@ -616,8 +616,9 @@ class AppointmentService {
 		);
 
 		// Booking wave: notify planned-in / not-planned-in yes-responders. No-op
-		// unless the feature is on AND at least one person is booked; reopen-safe
-		// (only diffs against the last communicated state).
+		// unless the feature is on and somebody is booked — or an earlier close
+		// handed out a verdict that now has to be taken back. Reopen-safe:
+		// only diffs against the last communicated state.
 		$this->bookingService->notifyOnClose($updated);
 
 		// Anyone still in line keeps the date free for a spot that is no longer
@@ -1866,11 +1867,16 @@ class AppointmentService {
 	public function getNonRespondingUserIds(Appointment $appointment): array {
 		$appointmentId = $appointment->getId();
 
-		// Get all responses for this appointment
+		// Get all responses for this appointment. Checking somebody in writes a
+		// row without an answer, so having a row is a different question:
+		// those people are still non-responders, which is how the summary and
+		// the 'both' target below list them.
 		$responses = $this->responseMapper->findByAppointment($appointmentId);
 		$respondedUserIds = [];
 		foreach ($responses as $response) {
-			$respondedUserIds[$response->getUserId()] = true;
+			if ($response->getResponse() !== null) {
+				$respondedUserIds[$response->getUserId()] = true;
+			}
 		}
 
 		// Get all relevant users
