@@ -11,6 +11,15 @@ import {
 // the unfiltered list keeps it, marked as cancelled.
 const FILTER_STORAGE_KEY = 'attendance:list-filters'
 
+// The popover stays open after a choice, and a second click on its trigger
+// would close it instead of opening it again — so close it after each pick.
+async function pickStatus(page, name) {
+	await page.locator('[data-test="filter-status"]').click()
+	await page.getByRole('menuitemradio', { name }).click()
+	await page.keyboard.press('Escape')
+	await expect(page.getByRole('menuitemradio', { name })).toBeHidden()
+}
+
 test.describe('Cancelled appointments stay in the list (#239)', () => {
 	test.describe.configure({ mode: 'serial' })
 
@@ -36,7 +45,9 @@ test.describe('Cancelled appointments stay in the list (#239)', () => {
 		await loginAsUser('admin', 'admin')
 		await attendanceApp()
 		await page.evaluate((key) => window.localStorage.removeItem(key), FILTER_STORAGE_KEY)
-		await page.locator('[data-test="nav-upcoming"]').click()
+		// The entry lists its appointments underneath, so a click on the entry
+		// itself would land on one of them — aim at its own link.
+		await page.locator('[data-test="nav-upcoming"]').getByRole('link', { name: 'Upcoming appointments', exact: true }).click()
 		await page.waitForLoadState('networkidle')
 
 		const cards = page.locator('[data-test="appointment-card"]')
@@ -47,15 +58,13 @@ test.describe('Cancelled appointments stay in the list (#239)', () => {
 		await expect(cancelledCard.first().locator('[data-test="cancelled-badge"]')).toBeVisible()
 
 		// "Opened" is about inquiries that still take responses — a cancelled one does not.
-		await page.locator('[data-test="filter-status"]').click()
-		await page.getByRole('menuitemradio', { name: 'Opened' }).click()
+		await pickStatus(page, 'Opened')
 		await expect(cancelledCard).toHaveCount(0)
 		await expect(cards.filter({ hasText: openName }).first()).toBeVisible()
 
 		// "Cancelled" used to come up empty on this view because the list dropped
 		// cancelled appointments before the filter ever ran.
-		await page.locator('[data-test="filter-status"]').click()
-		await page.getByRole('menuitemradio', { name: 'Cancelled' }).click()
+		await pickStatus(page, 'Cancelled')
 		await expect(cancelledCard.first()).toBeVisible()
 		await expect(cards.filter({ hasText: openName })).toHaveCount(0)
 	})
