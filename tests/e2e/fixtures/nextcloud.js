@@ -204,6 +204,17 @@ export async function listAppointmentsViaAPI(request, { showPast = true, unanswe
 }
 
 /**
+ * Fetch one appointment's response summary. Needs a caller who may see the
+ * overview — it is omitted from the payload otherwise.
+ */
+export async function getResponseSummaryViaAPI(request, id, { username = 'admin', password = 'admin' } = {}) {
+	const resp = await resilientJson(() => request.get(`${API_BASE}/apps/attendance/api/appointments/${id}`, {
+		headers: authHeaders(username, password),
+	}))
+	return (await resp.json()).responseSummary
+}
+
+/**
  * Close an appointment inquiry. Returns the updated appointment payload.
  */
 export async function closeAppointmentViaAPI(request, id, { username = 'admin', password = 'admin' } = {}) {

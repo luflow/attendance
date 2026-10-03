@@ -151,6 +151,26 @@ namespace OCA\Attendance;
  *   name: string,
  *   icon: string,
  * }
+ * @psalm-type AttendanceVacationData = array{
+ *   id: int,
+ *   userId: string,
+ *   startDate: string,
+ *   endDate: string,
+ *   note: ?string,
+ *   createdAt: string,
+ *   updatedAt: string,
+ * }
+ * @psalm-type AttendanceVacationEntry = array{
+ *   userId: string,
+ *   displayName: string,
+ *   startDate: string,
+ *   endDate: string,
+ *   note: ?string,
+ * }
+ * @psalm-type AttendanceVacationConflicts = array{
+ *   count: int,
+ *   users: list<AttendanceVacationEntry>,
+ * }
  * @psalm-type AttendanceGroupOption = array{id: string, displayName: string}
  * @psalm-type AttendanceTeamOption = array{id: string, displayName: string}
  * @psalm-type AttendancePermissionSetting = array{mode: string, groups: list<string>}
@@ -192,6 +212,7 @@ namespace OCA\Attendance;
  *   talkRoomsAvailable: bool,
  *   talkRoomDeletion: bool,
  *   seeAllAppointments: bool,
+ *   vacationManagementEnabled: bool,
  * }
  * @psalm-type AttendanceAuditUserRef = array{
  *   userId: string,
@@ -323,6 +344,14 @@ namespace OCA\Attendance;
  * @psalm-type AttendanceExportResult = array{
  *   path: string,
  *   filename: string,
+ * }
+ * @psalm-type AttendanceExportSeries = array{
+ *   seriesId: string,
+ *   name: string,
+ *   startDatetime: string,
+ *   endDatetime: string,
+ *   appointmentCount: int,
+ *   ongoing: bool,
  * }
  * @psalm-type AttendanceReminderResult = array{
  *   sent: int,

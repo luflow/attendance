@@ -6,8 +6,10 @@ namespace OCA\Attendance\Service;
 
 use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
+use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCP\IGroupManager;
+use OCP\IUser;
 use OCP\IUserManager;
 
 /**
@@ -138,6 +140,8 @@ class ResponseSummaryService {
 	 *
 	 * Optimized to only load relevant users based on appointment visibility
 	 * and whitelisted groups/teams, avoiding loading ALL users in large instances.
+	 *
+	 * @param list<AttendanceResponse> $responses
 	 */
 	private function buildCache(Appointment $appointment, array $responses): array {
 		// Cache whitelisted groups (called once instead of per-group)
@@ -157,6 +161,17 @@ class ResponseSummaryService {
 		$visibilitySettings = $this->visibilityService->getVisibilitySettings($appointment);
 		$appointmentHasRestrictions = $this->visibilityService->hasRestrictedVisibility($appointment);
 		$appointmentVisibleGroupsLower = array_map('strtolower', $visibilitySettings['groups']);
+
+		// Somebody can turn up without ever answering: their row carries a
+		// check-in state and no response, so processResponse() drops it and
+		// they only ever reach the summary as a bare name. Keep the state here
+		// so the chips can show it (issue #229).
+		$checkinStates = [];
+		foreach ($responses as $response) {
+			if ($response->isCheckedIn()) {
+				$checkinStates[$response->getUserId()] = $response->getCheckinState();
+			}
+		}
 
 		// Pre-fetch all users from responses
 		$userIds = array_unique(array_map(fn ($r) => $r->getUserId(), $responses));
@@ -233,12 +248,28 @@ class ResponseSummaryService {
 			'teamInfo' => $teamInfo,
 			'users' => $users,
 			'userGroups' => $userGroups,
+			'checkinStates' => $checkinStates,
 			'groupUsers' => $groupUsers,
 			'allUsers' => $targetAttendees,
 			'allUserGroups' => $allUserGroups,
 			// Appointment-specific visibility restrictions
 			'appointmentHasRestrictions' => $appointmentHasRestrictions,
 			'appointmentVisibleGroupsLower' => $appointmentVisibleGroupsLower,
+		];
+	}
+
+	/**
+	 * The chip shape for somebody with no answer to show — a non-responder or a
+	 * "maybe". Carries the check-in state: attending without answering is
+	 * exactly the case the organizer has to be able to see.
+	 */
+	private function pendingUserData(IUser $user, array $cache): array {
+		$userId = $user->getUID();
+		return [
+			'userId' => $userId,
+			'displayName' => $user->getDisplayName(),
+			'isGuest' => $this->guestService->isGuestUser($userId),
+			'checkinState' => $cache['checkinStates'][$userId] ?? null,
 		];
 	}
 
@@ -509,17 +540,9 @@ class ResponseSummaryService {
 
 				$userResponse = $respondedUserIds[$userId] ?? null;
 				if ($userResponse === null) {
-					$nonRespondingUsers[] = [
-						'userId' => $userId,
-						'displayName' => $user->getDisplayName(),
-						'isGuest' => $this->guestService->isGuestUser($userId),
-					];
+					$nonRespondingUsers[] = $this->pendingUserData($user, $cache);
 				} elseif ($userResponse === 'maybe') {
-					$maybeUsers[] = [
-						'userId' => $userId,
-						'displayName' => $user->getDisplayName(),
-						'isGuest' => $this->guestService->isGuestUser($userId),
-					];
+					$maybeUsers[] = $this->pendingUserData($user, $cache);
 				}
 			}
 
@@ -575,11 +598,7 @@ class ResponseSummaryService {
 				if ($userResponse === null || $userResponse === 'maybe') {
 					$user = $this->userManager->get($userId);
 					if ($user) {
-						$userData = [
-							'userId' => $userId,
-							'displayName' => $user->getDisplayName(),
-							'isGuest' => $this->guestService->isGuestUser($userId),
-						];
+						$userData = $this->pendingUserData($user, $cache);
 						if ($userResponse === null) {
 							$nonRespondingUsers[] = $userData;
 						} else {
@@ -656,11 +675,7 @@ class ResponseSummaryService {
 				continue;
 			}
 
-			$userData = [
-				'userId' => $userId,
-				'displayName' => $user->getDisplayName(),
-				'isGuest' => $this->guestService->isGuestUser($userId),
-			];
+			$userData = $this->pendingUserData($user, $cache);
 
 			if ($userResponse === null) {
 				$totalNonResponding[] = $userData;

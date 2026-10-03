@@ -13,11 +13,6 @@
       <code><![CDATA[Provider]]></code>
     </UnusedClass>
   </file>
-  <file src="lib/Activity/Setting/AttendanceActivitySetting.php">
-    <PossiblyUnusedMethod>
-      <code><![CDATA[__construct]]></code>
-    </PossiblyUnusedMethod>
-  </file>
   <file src="lib/Activity/Setting/AppointmentCancelledSetting.php">
     <UnusedClass>
       <code><![CDATA[AppointmentCancelledSetting]]></code>
@@ -32,6 +27,11 @@
     <UnusedClass>
       <code><![CDATA[AppointmentsSeriesUpdatedSetting]]></code>
     </UnusedClass>
+  </file>
+  <file src="lib/Activity/Setting/AttendanceActivitySetting.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
   </file>
   <file src="lib/Activity/Setting/BookingConfirmedSetting.php">
     <UnusedClass>
@@ -110,6 +110,11 @@
       <code><![CDATA[__construct]]></code>
     </PossiblyUnusedMethod>
   </file>
+  <file src="lib/BackgroundJob/TalkRoomSyncJob.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
   <file src="lib/Controller/AdminController.php">
     <ClassMustBeFinal>
       <code><![CDATA[AdminController]]></code>
@@ -149,11 +154,6 @@
       <code><![CDATA[AdminController]]></code>
     </UnusedClass>
   </file>
-  <file src="lib/BackgroundJob/TalkRoomSyncJob.php">
-    <PossiblyUnusedMethod>
-      <code><![CDATA[__construct]]></code>
-    </PossiblyUnusedMethod>
-  </file>
   <file src="lib/Controller/AppointmentController.php">
     <ClassMustBeFinal>
       <code><![CDATA[AppointmentController]]></code>
@@ -171,10 +171,6 @@
       <code><![CDATA[$existingFileId]]></code>
       <code><![CDATA[$fileId]]></code>
     </MixedAssignment>
-    <MixedReturnTypeCoercion>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, list<array{id: string, label: string, type: string, icon: string, isGuest: bool}>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>]]></code>
-      <code><![CDATA[new DataResponse($results)]]></code>
-    </MixedReturnTypeCoercion>
     <PossiblyUnusedParam>
       <code><![CDATA[$appointmentId]]></code>
       <code><![CDATA[$appointmentId]]></code>
@@ -214,7 +210,11 @@
       <code><![CDATA[$id]]></code>
       <code><![CDATA[$id]]></code>
       <code><![CDATA[$id]]></code>
+      <code><![CDATA[$includeCheckin]]></code>
       <code><![CDATA[$includeComments]]></code>
+      <code><![CDATA[$includeGroup]]></code>
+      <code><![CDATA[$includeOrganizers]]></code>
+      <code><![CDATA[$includeRsvp]]></code>
       <code><![CDATA[$location]]></code>
       <code><![CDATA[$location]]></code>
       <code><![CDATA[$name]]></code>
@@ -234,6 +234,7 @@
       <code><![CDATA[$scope]]></code>
       <code><![CDATA[$sendNotification]]></code>
       <code><![CDATA[$sendNotification]]></code>
+      <code><![CDATA[$seriesIds]]></code>
       <code><![CDATA[$showPastAppointments]]></code>
       <code><![CDATA[$startDate]]></code>
       <code><![CDATA[$startDatetime]]></code>
@@ -309,15 +310,6 @@
     <ClassMustBeFinal>
       <code><![CDATA[CalendarController]]></code>
     </ClassMustBeFinal>
-    <LessSpecificReturnStatement>
-      <code><![CDATA[new DataResponse([
-				'events' => $events,
-				'importedIds' => $importedIds,
-			])]]></code>
-    </LessSpecificReturnStatement>
-    <MoreSpecificReturnType>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, array{events: list<array<string, mixed>>}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>]]></code>
-    </MoreSpecificReturnType>
     <UnusedClass>
       <code><![CDATA[CalendarController]]></code>
     </UnusedClass>
@@ -346,20 +338,6 @@
     <ClassMustBeFinal>
       <code><![CDATA[IcalController]]></code>
     </ClassMustBeFinal>
-    <MixedReturnTypeCoercion>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, array{feedUrl: string, createdAt: ?string, lastUsedAt: ?string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, array{feedUrl: string, createdAt: ?string, lastUsedAt: ?string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>]]></code>
-      <code><![CDATA[new DataResponse([
-				'feedUrl' => $feedUrl,
-				'createdAt' => $tokenData['createdAt'],
-				'lastUsedAt' => $tokenData['lastUsedAt'],
-			])]]></code>
-      <code><![CDATA[new DataResponse([
-				'feedUrl' => $feedUrl,
-				'createdAt' => $tokenData['createdAt'],
-				'lastUsedAt' => $tokenData['lastUsedAt'],
-			])]]></code>
-    </MixedReturnTypeCoercion>
     <UnusedClass>
       <code><![CDATA[IcalController]]></code>
     </UnusedClass>
@@ -426,6 +404,37 @@
     <RiskyTruthyFalsyComparison>
       <code><![CDATA[!$userId]]></code>
     </RiskyTruthyFalsyComparison>
+  </file>
+  <file src="lib/Controller/VacationController.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[VacationController]]></code>
+    </ClassMustBeFinal>
+    <PossiblyUnusedParam>
+      <code><![CDATA[$endDate]]></code>
+      <code><![CDATA[$endDate]]></code>
+      <code><![CDATA[$endDatetime]]></code>
+      <code><![CDATA[$from]]></code>
+      <code><![CDATA[$id]]></code>
+      <code><![CDATA[$note]]></code>
+      <code><![CDATA[$note]]></code>
+      <code><![CDATA[$startDate]]></code>
+      <code><![CDATA[$startDate]]></code>
+      <code><![CDATA[$startDatetime]]></code>
+      <code><![CDATA[$to]]></code>
+      <code><![CDATA[$visibleGroups]]></code>
+      <code><![CDATA[$visibleTeams]]></code>
+      <code><![CDATA[$visibleUsers]]></code>
+    </PossiblyUnusedParam>
+    <UndefinedDocblockClass>
+      <code><![CDATA[DataResponse<Http::STATUS_CREATED, AttendanceVacationData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>]]></code>
+      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceVacationConflicts, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>]]></code>
+      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceVacationData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
+      <code><![CDATA[DataResponse<Http::STATUS_OK, list<AttendanceVacationData>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>]]></code>
+      <code><![CDATA[DataResponse<Http::STATUS_OK, list<AttendanceVacationEntry>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>]]></code>
+    </UndefinedDocblockClass>
+    <UnusedClass>
+      <code><![CDATA[VacationController]]></code>
+    </UnusedClass>
   </file>
   <file src="lib/Dashboard/Widget.php">
     <ClassMustBeFinal>
@@ -802,6 +811,41 @@
       <code><![CDATA[deleteByAppointment]]></code>
       <code><![CDATA[deleteOldReminders]]></code>
       <code><![CDATA[findLatestForUser]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Db/Vacation.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[Vacation]]></code>
+    </ClassMustBeFinal>
+    <MissingOverrideAttribute>
+      <code><![CDATA[public function jsonSerialize(): array {]]></code>
+    </MissingOverrideAttribute>
+    <MissingPropertyType>
+      <code><![CDATA[$createdAt]]></code>
+      <code><![CDATA[$endDate]]></code>
+      <code><![CDATA[$note]]></code>
+      <code><![CDATA[$startDate]]></code>
+      <code><![CDATA[$updatedAt]]></code>
+      <code><![CDATA[$userId]]></code>
+    </MissingPropertyType>
+    <PossiblyUnusedProperty>
+      <code><![CDATA[$createdAt]]></code>
+      <code><![CDATA[$endDate]]></code>
+      <code><![CDATA[$note]]></code>
+      <code><![CDATA[$startDate]]></code>
+      <code><![CDATA[$updatedAt]]></code>
+      <code><![CDATA[$userId]]></code>
+    </PossiblyUnusedProperty>
+    <PropertyNotSetInConstructor>
+      <code><![CDATA[Vacation]]></code>
+    </PropertyNotSetInConstructor>
+  </file>
+  <file src="lib/Db/VacationMapper.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[VacationMapper]]></code>
+    </ClassMustBeFinal>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
     </PossiblyUnusedMethod>
   </file>
   <file src="lib/Listener/CalendarObjectUpdateListener.php">
@@ -1246,6 +1290,16 @@
       <code><![CDATA[Version000021Date20260808120000]]></code>
     </UnusedClass>
   </file>
+  <file src="lib/Migration/Version000022Date20260816120000.php">
+    <UnusedClass>
+      <code><![CDATA[Version000022Date20260816120000]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Migration/Version000023Date20260917000000.php">
+    <UnusedClass>
+      <code><![CDATA[Version000023Date20260917000000]]></code>
+    </UnusedClass>
+  </file>
   <file src="lib/Notification/Notifier.php">
     <ClassMustBeFinal>
       <code><![CDATA[Notifier]]></code>
@@ -1299,11 +1353,6 @@
       <code><![CDATA[ResponseDefinitions]]></code>
     </UnusedClass>
   </file>
-  <file src="lib/Migration/Version000022Date20260816120000.php">
-    <UnusedClass>
-      <code><![CDATA[Version000022Date20260816120000]]></code>
-    </UnusedClass>
-  </file>
   <file src="lib/Service/AppointmentService.php">
     <ArgumentTypeCoercion>
       <code><![CDATA[$siblings]]></code>
@@ -1330,8 +1379,6 @@
       <code><![CDATA[$teamId]]></code>
       <code><![CDATA[$teamId]]></code>
       <code><![CDATA[$userId]]></code>
-      <code><![CDATA[$userIds]]></code>
-      <code><![CDATA[$userIds]]></code>
     </MixedArgument>
     <MixedArrayAccess>
       <code><![CDATA[$item['label']]]></code>
@@ -1343,9 +1390,6 @@
       <code><![CDATA[$resultData[$category]]]></code>
       <code><![CDATA[$resultData['exact']]]></code>
     </MixedArrayAccess>
-    <MixedArrayAssignment>
-      <code><![CDATA[$userIds[]]]></code>
-    </MixedArrayAssignment>
     <MixedAssignment>
       <code><![CDATA[$appointment]]></code>
       <code><![CDATA[$appointment]]></code>
@@ -1362,10 +1406,6 @@
       <code><![CDATA[$teamId]]></code>
       <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
-      <code><![CDATA[$userIds]]></code>
-      <code><![CDATA[$visibleGroupsList]]></code>
-      <code><![CDATA[$visibleTeamsList]]></code>
-      <code><![CDATA[$visibleUsersList]]></code>
     </MixedAssignment>
     <MixedMethodCall>
       <code><![CDATA[asArray]]></code>
@@ -1418,6 +1458,7 @@
       <code><![CDATA[getAppointmentsForNavigation]]></code>
       <code><![CDATA[getAppointmentsWithUserResponses]]></code>
       <code><![CDATA[getReminderTargetUserIds]]></code>
+      <code><![CDATA[previewAudience]]></code>
       <code><![CDATA[reopenAppointment]]></code>
       <code><![CDATA[submitResponse]]></code>
       <code><![CDATA[submitResponseForUser]]></code>
@@ -1434,11 +1475,6 @@
     <RedundantCastGivenDocblockType>
       <code><![CDATA[(string)$existingResponse->getComment()]]></code>
     </RedundantCastGivenDocblockType>
-    <RiskyTruthyFalsyComparison>
-      <code><![CDATA[empty($visibleGroupsList)]]></code>
-      <code><![CDATA[empty($visibleTeamsList)]]></code>
-      <code><![CDATA[empty($visibleUsersList)]]></code>
-    </RiskyTruthyFalsyComparison>
     <UnusedForeachValue>
       <code><![CDATA[$user]]></code>
       <code><![CDATA[$user]]></code>
@@ -1701,6 +1737,12 @@
       <code><![CDATA[isUnchanged]]></code>
     </PossiblyUnusedMethod>
   </file>
+  <file src="lib/Service/ExportOptions.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[fromWire]]></code>
+      <code><![CDATA[hasAnyColumn]]></code>
+    </PossiblyUnusedMethod>
+  </file>
   <file src="lib/Service/ExportService.php">
     <ClassMustBeFinal>
       <code><![CDATA[ExportService]]></code>
@@ -1713,56 +1755,23 @@
     <MixedArgument>
       <code><![CDATA[$a->getStartDatetime()]]></code>
       <code><![CDATA[$a['displayName']]]></code>
-      <code><![CDATA[$appointment->getName()]]></code>
-      <code><![CDATA[$appointment->getStartDatetime()]]></code>
       <code><![CDATA[$b->getStartDatetime()]]></code>
       <code><![CDATA[$b['displayName']]]></code>
-      <code><![CDATA[$checkinValue]]></code>
-      <code><![CDATA[$location]]></code>
-      <code><![CDATA[$response->getComment()]]></code>
-      <code><![CDATA[$rsvpValue]]></code>
-      <code><![CDATA[$user['displayName']]]></code>
-      <code><![CDATA[$user['group']]]></code>
     </MixedArgument>
     <MixedArrayAccess>
       <code><![CDATA[$a['displayName']]]></code>
-      <code><![CDATA[$appointmentResponses[$appointment->getId()][$user['userId']]]]></code>
       <code><![CDATA[$b['displayName']]]></code>
-      <code><![CDATA[$user['displayName']]]></code>
-      <code><![CDATA[$user['group']]]></code>
-      <code><![CDATA[$user['userId']]]></code>
     </MixedArrayAccess>
-    <MixedArrayOffset>
-      <code><![CDATA[$appointmentResponses[$appointment->getId()]]]></code>
-      <code><![CDATA[$appointmentResponses[$appointment->getId()][$user['userId']]]]></code>
-    </MixedArrayOffset>
     <MixedAssignment>
-      <code><![CDATA[$appointment]]></code>
-      <code><![CDATA[$appointment]]></code>
-      <code><![CDATA[$appointment]]></code>
-      <code><![CDATA[$appointment]]></code>
       <code><![CDATA[$attendanceFolder]]></code>
-      <code><![CDATA[$checkinValue]]></code>
       <code><![CDATA[$existingFile]]></code>
       <code><![CDATA[$file]]></code>
-      <code><![CDATA[$location]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$rsvpValue]]></code>
-      <code><![CDATA[$user]]></code>
       <code><![CDATA[$userFolder]]></code>
     </MixedAssignment>
     <MixedMethodCall>
       <code><![CDATA[delete]]></code>
       <code><![CDATA[get]]></code>
       <code><![CDATA[get]]></code>
-      <code><![CDATA[getCheckinState]]></code>
-      <code><![CDATA[getComment]]></code>
-      <code><![CDATA[getComment]]></code>
-      <code><![CDATA[getId]]></code>
-      <code><![CDATA[getLocation]]></code>
-      <code><![CDATA[getName]]></code>
-      <code><![CDATA[getResponse]]></code>
-      <code><![CDATA[getStartDatetime]]></code>
       <code><![CDATA[getStartDatetime]]></code>
       <code><![CDATA[getStartDatetime]]></code>
       <code><![CDATA[newFile]]></code>
@@ -1770,9 +1779,6 @@
       <code><![CDATA[nodeExists]]></code>
       <code><![CDATA[putContent]]></code>
     </MixedMethodCall>
-    <MixedOperand>
-      <code><![CDATA[$appointmentIds[0]]]></code>
-    </MixedOperand>
     <PossiblyFalseArgument>
       <code><![CDATA[strtotime($appointment->getStartDatetime())]]></code>
     </PossiblyFalseArgument>
@@ -1789,19 +1795,14 @@
       <code><![CDATA[$responseMapper]]></code>
       <code><![CDATA[$rootFolder]]></code>
       <code><![CDATA[$userManager]]></code>
+      <code><![CDATA[$visibilityService]]></code>
     </PossiblyUnusedParam>
     <RiskyTruthyFalsyComparison>
       <code><![CDATA[$attendanceFolder->nodeExists($filename)]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
     </RiskyTruthyFalsyComparison>
     <UnusedForeachValue>
       <code><![CDATA[$appointment]]></code>
     </UnusedForeachValue>
-    <UnusedVariable>
-      <code><![CDATA[$columnCount]]></code>
-    </UnusedVariable>
   </file>
   <file src="lib/Service/GuestService.php">
     <ClassMustBeFinal>
@@ -1987,9 +1988,6 @@
     <ClassMustBeFinal>
       <code><![CDATA[ResponseSummaryService]]></code>
     </ClassMustBeFinal>
-    <MissingClosureReturnType>
-      <code><![CDATA[fn ($r) => $r->getUserId()]]></code>
-    </MissingClosureReturnType>
     <MissingParamType>
       <code><![CDATA[$response]]></code>
       <code><![CDATA[$response]]></code>
@@ -2013,7 +2011,6 @@
       <code><![CDATA[$teamMemberIds]]></code>
       <code><![CDATA[$teamMemberIds]]></code>
       <code><![CDATA[$user->getUID()]]></code>
-      <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
     </MixedArgument>
     <MixedArrayAccess>
@@ -2068,8 +2065,6 @@
       <code><![CDATA[$byTeam[$teamId]]]></code>
       <code><![CDATA[$sortedByGroup[$groupId]]]></code>
       <code><![CDATA[$sortedByTeam[$teamId]]]></code>
-      <code><![CDATA[$userGroups[$userId]]]></code>
-      <code><![CDATA[$users[$userId]]]></code>
     </MixedArrayOffset>
     <MixedAssignment>
       <code><![CDATA[$gid]]></code>
@@ -2102,7 +2097,6 @@
       <code><![CDATA[$userGroups]]></code>
       <code><![CDATA[$userGroups]]></code>
       <code><![CDATA[$userId]]></code>
-      <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userResponse]]></code>
       <code><![CDATA[$userResponse]]></code>
     </MixedAssignment>
@@ -2112,7 +2106,6 @@
       <code><![CDATA[getGID]]></code>
       <code><![CDATA[getResponse]]></code>
       <code><![CDATA[getUID]]></code>
-      <code><![CDATA[getUserId]]></code>
       <code><![CDATA[getUserId]]></code>
       <code><![CDATA[jsonSerialize]]></code>
     </MixedMethodCall>
@@ -2203,6 +2196,18 @@
     <PossiblyUnusedReturnValue>
       <code><![CDATA[?string]]></code>
     </PossiblyUnusedReturnValue>
+  </file>
+  <file src="lib/Service/VacationService.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[VacationService]]></code>
+    </ClassMustBeFinal>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+      <code><![CDATA[create]]></code>
+      <code><![CDATA[findConflicts]]></code>
+      <code><![CDATA[getForUser]]></code>
+      <code><![CDATA[update]]></code>
+    </PossiblyUnusedMethod>
   </file>
   <file src="lib/Service/VisibilityService.php">
     <ClassMustBeFinal>
