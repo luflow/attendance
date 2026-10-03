@@ -143,9 +143,10 @@ class BookingServiceTest extends TestCase {
 		$this->assertSame(['booked' => 0, 'declined' => 0], $sent);
 	}
 
-	public function testNotifyOnCloseSkippedWhenNobodyBooked(): void {
+	public function testNotifyOnCloseStaysSilentWhenPlanningWasNeverUsed(): void {
 		$this->configService->method('isBookingEnabled')->willReturn(true);
-		// Two yes-responders, none booked → no wave, closing stays silent.
+		// Two yes-responders, none booked, none ever told anything → the manager
+		// does not use the feature, so closing stays silent.
 		$this->responseMapper->method('findByAppointment')->willReturn([
 			$this->response('alice', 'yes'),
 			$this->response('bob', 'yes'),
@@ -191,6 +192,53 @@ class BookingServiceTest extends TestCase {
 
 		$sent = $this->service->notifyOnClose($this->appointment());
 		$this->assertSame(['booked' => 0, 'declined' => 0], $sent);
+	}
+
+	/**
+	 * Regression for issue #250: close → reopen → un-schedule the only booked
+	 * person → close again. The "nobody booked" guard used to skip the wave, so
+	 * the earlier "you are scheduled" stayed the last word and the appointment
+	 * kept saying "Scheduled".
+	 */
+	public function testNotifyOnCloseTakesBackAVerdictAfterEverybodyWasUnscheduled(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+		$alice = $this->response('alice', 'yes', null, BookingService::STATUS_BOOKED);
+		$this->responseMapper->method('findByAppointment')->willReturn([$alice]);
+
+		$this->notificationService->expects($this->once())
+			->method('sendBookingNotification')
+			->with($this->anything(), 'alice', BookingService::STATUS_DECLINED);
+		$this->responseMapper->expects($this->once())->method('update')->willReturnArgument(0);
+
+		$sent = $this->service->notifyOnClose($this->appointment());
+
+		$this->assertSame(['booked' => 0, 'declined' => 1], $sent);
+		// And the appointment stops claiming she has a place.
+		$this->assertSame(BookingService::STATUS_DECLINED, $this->service->effectiveBookingStatus($alice));
+	}
+
+	/**
+	 * The retraction is per person: it takes back what somebody was told, it
+	 * does not turn "nobody is scheduled" into a verdict against people who
+	 * were never in the plan to begin with.
+	 */
+	public function testNotifyOnCloseRetractionSparesSomebodyWhoWasNeverTold(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+		$alice = $this->response('alice', 'yes', null, BookingService::STATUS_BOOKED);
+		// Answered after the reopen, so no earlier close ever reached her.
+		$bob = $this->response('bob', 'yes');
+		$this->responseMapper->method('findByAppointment')->willReturn([$alice, $bob]);
+
+		$this->notificationService->expects($this->once())
+			->method('sendBookingNotification')
+			->with($this->anything(), 'alice', BookingService::STATUS_DECLINED);
+		$this->responseMapper->expects($this->once())->method('update')->willReturnArgument(0);
+
+		$sent = $this->service->notifyOnClose($this->appointment());
+
+		$this->assertSame(['booked' => 0, 'declined' => 1], $sent);
+		// Nobody holds a place here, so Bob's appointment stays unmarked.
+		$this->assertNull($this->service->effectiveBookingStatus($bob));
 	}
 
 	private function appointment(): Appointment {
