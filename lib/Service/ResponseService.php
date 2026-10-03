@@ -26,6 +26,8 @@ class ResponseService {
 	private AuditEventService $auditEventService;
 	private OrgCalendarSyncService $orgCalendarSyncService;
 	private TalkRoomService $talkRoomService;
+	private ResponsePolicyService $responsePolicyService;
+	private CapacityService $capacityService;
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -38,6 +40,8 @@ class ResponseService {
 		AuditEventService $auditEventService,
 		OrgCalendarSyncService $orgCalendarSyncService,
 		TalkRoomService $talkRoomService,
+		ResponsePolicyService $responsePolicyService,
+		CapacityService $capacityService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -49,6 +53,8 @@ class ResponseService {
 		$this->auditEventService = $auditEventService;
 		$this->orgCalendarSyncService = $orgCalendarSyncService;
 		$this->talkRoomService = $talkRoomService;
+		$this->responsePolicyService = $responsePolicyService;
+		$this->capacityService = $capacityService;
 	}
 
 	// Response source constants
@@ -76,12 +82,9 @@ class ResponseService {
 		string $comment = '',
 		string $source = self::SOURCE_APP,
 	): AttendanceResponse {
-		if (!in_array($response, ['yes', 'no', 'maybe'])) {
-			throw new \InvalidArgumentException('Invalid response. Must be yes, no, or maybe.');
-		}
-
 		// Check if appointment exists and is still open for responses
 		$appointment = $this->appointmentMapper->find($appointmentId);
+
 		if ($appointment->isClosed()) {
 			throw new \RuntimeException('This appointment is closed and no longer accepts responses.');
 		}
@@ -89,22 +92,30 @@ class ResponseService {
 			throw new \RuntimeException('This appointment was cancelled and no longer accepts responses.');
 		}
 
-		$beforeResponse = null;
-		$beforeComment = '';
-
-		// Check if user already responded
+		$existingResponse = null;
 		try {
 			$existingResponse = $this->responseMapper->findByAppointmentAndUser($appointmentId, $userId);
-			$beforeResponse = $existingResponse->getResponse();
-			$beforeComment = (string)$existingResponse->getComment();
-			// Update existing response
+		} catch (DoesNotExistException $e) {
+			// First answer from this person.
+		}
+
+		$beforeResponse = $existingResponse?->getResponse();
+		$beforeComment = $existingResponse === null ? '' : (string)$existingResponse->getComment();
+
+		// Same guards AppointmentService::applyResponse() runs, so a quick-response
+		// link cannot slip past a rule the app enforces. A signed link carries no
+		// waitlist intent, so a full appointment turns it away with a message
+		// rather than queueing somebody who never asked to wait.
+		$this->responsePolicyService->assertResponseAllowed($appointment, $response, $beforeResponse);
+
+		if ($existingResponse !== null) {
 			$existingResponse->setResponse($response);
 			$existingResponse->setComment($comment);
 			$existingResponse->setRespondedAt(gmdate('Y-m-d H:i:s'));
 			$existingResponse->setResponseSource($source);
+			$this->capacityService->applySpotClaim($existingResponse, $beforeResponse, $response);
 			$result = $this->responseMapper->update($existingResponse);
-		} catch (DoesNotExistException $e) {
-			// Create new response
+		} else {
 			$attendanceResponse = new AttendanceResponse();
 			$attendanceResponse->setAppointmentId($appointmentId);
 			$attendanceResponse->setUserId($userId);
@@ -112,8 +123,12 @@ class ResponseService {
 			$attendanceResponse->setComment($comment);
 			$attendanceResponse->setRespondedAt(gmdate('Y-m-d H:i:s'));
 			$attendanceResponse->setResponseSource($source);
+			$this->capacityService->applySpotClaim($attendanceResponse, null, $response);
 			$result = $this->responseMapper->insert($attendanceResponse);
 		}
+
+		// Mirrors AppointmentService::applyResponse(): the queue moved.
+		$this->capacityService->syncWaitlistNotifications($appointment);
 
 		$auditSource = $source === self::SOURCE_QUICK_LINK
 			? \OCA\Attendance\Audit\Verb::SOURCE_QUICK_LINK

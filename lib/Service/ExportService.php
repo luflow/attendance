@@ -31,6 +31,7 @@ class ExportService {
 	private VisibilityService $visibilityService;
 	private OdsWriter $odsWriter;
 	private IL10N $l10n;
+	private CapacityService $capacityService;
 
 	public function __construct(
 		AppointmentMapper $appointmentMapper,
@@ -42,6 +43,7 @@ class ExportService {
 		VisibilityService $visibilityService,
 		OdsWriter $odsWriter,
 		IL10N $l10n,
+		CapacityService $capacityService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -52,6 +54,7 @@ class ExportService {
 		$this->visibilityService = $visibilityService;
 		$this->odsWriter = $odsWriter;
 		$this->l10n = $l10n;
+		$this->capacityService = $capacityService;
 	}
 
 	/**
@@ -191,6 +194,10 @@ class ExportService {
 		// Collect all unique users who have responded or checked in
 		$allUserIds = [];
 		$appointmentResponses = [];
+		// Who actually holds a spot, per limited appointment. Resolved once here
+		// rather than per cell: this is a users x appointments matrix, and the
+		// queue is one query.
+		$confirmedIds = [];
 
 		foreach ($appointments as $appointment) {
 			$responses = $this->responseMapper->findByAppointment($appointment->getId());
@@ -200,6 +207,13 @@ class ExportService {
 				$respUserId = $response->getUserId();
 				$allUserIds[$respUserId] = true;
 				$appointmentResponses[$appointment->getId()][$respUserId] = $response;
+			}
+
+			if ($this->capacityService->limitOf($appointment) !== null) {
+				$confirmed = $this->capacityService->split($appointment)['confirmed'];
+				$confirmedIds[$appointment->getId()] = array_flip(
+					array_map(static fn ($row): string => $row->getUserId(), $confirmed),
+				);
 			}
 		}
 
@@ -228,7 +242,7 @@ class ExportService {
 			return strcmp($a['displayName'], $b['displayName']);
 		});
 
-		$odsContent = $this->odsWriter->write($this->getTableXml($appointments, $users, $appointmentResponses, $options));
+		$odsContent = $this->odsWriter->write($this->getTableXml($appointments, $users, $appointmentResponses, $options, $confirmedIds));
 
 		// Create the Attendance folder
 		try {
@@ -287,7 +301,9 @@ class ExportService {
 	 * leave the two out of step, and a further column is one entry rather than
 	 * a branch in each loop.
 	 *
-	 * @return list<array{label: string, render: callable(?AttendanceResponse): array{0: string, 1: string}}>
+	 * The bool handed to render says the person is only waiting for a spot.
+	 *
+	 * @return list<array{label: string, render: callable(?AttendanceResponse, bool): array{0: string, 1: string}}>
 	 */
 	private function columnsFor(ExportOptions $options): array {
 		$columns = [];
@@ -295,7 +311,13 @@ class ExportService {
 		if ($options->includeRsvp) {
 			$columns[] = [
 				'label' => 'RSVP',
-				'render' => function (?AttendanceResponse $response): array {
+				'render' => function (?AttendanceResponse $response, bool $waitlisted): array {
+					// "Yes" would be wrong on the sheet an organizer takes to the door. Amber
+					// is unambiguous: an appointment with a limit never offers "Maybe".
+					if ($waitlisted) {
+						// TRANSLATORS Cell value in the exported spreadsheet — the person answered yes but the appointment was full, so they are waiting for a spot (German "Warteliste").
+						return [OdsWriter::STYLE_MAYBE, $this->l10n->t('Waitlist')];
+					}
 					$value = $response?->getResponse();
 					return [$this->getResponseCellStyle($value), $this->formatResponse($value)];
 				},
@@ -331,8 +353,9 @@ class ExportService {
 	 * @param list<Appointment> $appointments
 	 * @param list<array{userId: string, displayName: string, group: string}> $users
 	 * @param array<int, array<string, AttendanceResponse>> $appointmentResponses Keyed by appointment id, then user id
+	 * @param array<int, array<string, int>> $confirmedIds user IDs holding a spot, per limited appointment
 	 */
-	private function getTableXml(array $appointments, array $users, array $appointmentResponses, ExportOptions $options): string {
+	private function getTableXml(array $appointments, array $users, array $appointmentResponses, ExportOptions $options, array $confirmedIds = []): string {
 		$columns = $this->columnsFor($options);
 		$span = count($columns);
 		$leading = $options->leadingColumns();
@@ -406,8 +429,12 @@ class ExportService {
 			foreach ($appointments as $appointment) {
 				$response = $appointmentResponses[$appointment->getId()][$user['userId']] ?? null;
 
+				$waitlisted = $response?->getResponse() === 'yes'
+					&& isset($confirmedIds[$appointment->getId()])
+					&& !isset($confirmedIds[$appointment->getId()][$user['userId']]);
+
 				foreach ($columns as $column) {
-					[$style, $content] = $column['render']($response);
+					[$style, $content] = $column['render']($response, $waitlisted);
 					$xml .= '
 					<table:table-cell table:style-name="' . $style . '" office:value-type="string">
 						<text:p>' . $content . '</text:p>

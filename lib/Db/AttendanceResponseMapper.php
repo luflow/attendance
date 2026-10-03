@@ -74,6 +74,34 @@ class AttendanceResponseMapper extends QBMapper {
 	}
 
 	/**
+	 * The yes-responses of one appointment in the order they claimed their spot.
+	 *
+	 * This is the attendance queue an capacity limit slices: the first
+	 * max_attendees hold a place, the rest are waiting. spot_claimed_at is set
+	 * whenever a response becomes a yes and cleared when it stops being one, so
+	 * every row here has one — Version000024 seeded the rows that predate it.
+	 * Two claims within the same second fall back to insertion order.
+	 *
+	 * @return list<AttendanceResponse>
+	 */
+	public function findClaimedSpots(int $appointmentId): array {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select('*')
+			->from($this->getTableName())
+			->where(
+				$qb->expr()->eq('appointment_id', $qb->createNamedParameter($appointmentId, IQueryBuilder::PARAM_INT))
+			)
+			->andWhere(
+				$qb->expr()->eq('response', $qb->createNamedParameter('yes'))
+			)
+			->orderBy('spot_claimed_at', 'ASC')
+			->addOrderBy('id', 'ASC');
+
+		return $this->findEntities($qb);
+	}
+
+	/**
 	 * The few columns the statistics evaluate, for a set of appointments, in
 	 * one query. Deliberately not entities: at the 1000-appointment cap this
 	 * can be hundreds of thousands of rows, and hydrating all 15 columns of

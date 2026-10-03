@@ -8,6 +8,7 @@ use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
+use OCA\Attendance\Service\CapacityService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\ExportOptions;
 use OCA\Attendance\Service\ExportService;
@@ -48,6 +49,9 @@ class ExportServiceTest extends TestCase {
 	/** @var OdsWriter|MockObject */
 	private $odsWriter;
 
+	/** @var CapacityService|MockObject */
+	private $capacityService;
+
 	private ExportService $service;
 
 	/** The sheet XML the last exportToOds() run handed to the writer. */
@@ -85,6 +89,8 @@ class ExportServiceTest extends TestCase {
 		$l10n = $this->createMock(IL10N::class);
 		$l10n->method('t')->willReturnArgument(0);
 
+		$this->capacityService = $this->createMock(CapacityService::class);
+
 		$this->service = new ExportService(
 			$this->appointmentMapper,
 			$this->responseMapper,
@@ -95,6 +101,7 @@ class ExportServiceTest extends TestCase {
 			$this->visibilityService,
 			$this->odsWriter,
 			$l10n,
+			$this->capacityService,
 		);
 	}
 
@@ -212,6 +219,37 @@ class ExportServiceTest extends TestCase {
 
 		$this->assertStringContainsString('<text:p>RSVP</text:p>', $this->capturedXml);
 		$this->assertStringNotContainsString('<text:p>Comment</text:p>', $this->capturedXml);
+	}
+
+	public function testAYesWithoutASpotIsExportedAsWaitlist(): void {
+		$this->prepareSingleAppointmentExport();
+		$this->appointmentMapper->method('findForExport')->willReturn([$this->appointment()]);
+
+		// Somebody else holds the only spot, so carol's yes is a place in line.
+		$holder = new AttendanceResponse();
+		$holder->setUserId('dave');
+		$this->capacityService->method('limitOf')->willReturn(1);
+		$this->capacityService->method('split')->willReturn(['confirmed' => [$holder], 'waiting' => []]);
+
+		$this->service->exportToOds('admin', ExportOptions::fromWire());
+
+		$this->assertStringContainsString('<text:p>Waitlist</text:p>', $this->capturedXml);
+		$this->assertStringNotContainsString('<text:p>Yes</text:p>', $this->capturedXml);
+	}
+
+	public function testAYesHoldingASpotStaysAYes(): void {
+		$this->prepareSingleAppointmentExport();
+		$this->appointmentMapper->method('findForExport')->willReturn([$this->appointment()]);
+
+		$holder = new AttendanceResponse();
+		$holder->setUserId('carol');
+		$this->capacityService->method('limitOf')->willReturn(1);
+		$this->capacityService->method('split')->willReturn(['confirmed' => [$holder], 'waiting' => []]);
+
+		$this->service->exportToOds('admin', ExportOptions::fromWire());
+
+		$this->assertStringContainsString('<text:p>Yes</text:p>', $this->capturedXml);
+		$this->assertStringNotContainsString('<text:p>Waitlist</text:p>', $this->capturedXml);
 	}
 
 	public function testOrganizerRowListsDisplayNamesCommaSeparated(): void {

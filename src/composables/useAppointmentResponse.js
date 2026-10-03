@@ -65,13 +65,15 @@ export function useAppointmentResponse(options = {}) {
 	 * @param {number} appointmentId - The appointment ID
 	 * @param {string|null} response - The response (yes, no, maybe) or null to withdraw
 	 * @param {string} comment - The comment text
+	 * @param {boolean} [acceptWaitlist] - Take a place in line if the appointment turns out to be full
 	 * @return {Promise<object>} The axios response
 	 */
-	const postRespond = async (appointmentId, response, comment) => {
+	const postRespond = async (appointmentId, response, comment, acceptWaitlist = false) => {
 		const url = generateUrl('/apps/attendance/api/appointments/{id}/respond', { id: appointmentId })
 		const axiosResponse = await axios.post(url, {
 			response,
 			comment,
+			acceptWaitlist,
 		})
 
 		if (axiosResponse.status < 200 || axiosResponse.status >= 300) {
@@ -87,13 +89,14 @@ export function useAppointmentResponse(options = {}) {
 	 * @param {number} appointmentId - The appointment ID
 	 * @param {string|null} response - The response (yes, no, maybe) or null to withdraw
 	 * @param {string} comment - Optional comment
+	 * @param {boolean} [acceptWaitlist] - Take a place in line if the appointment turns out to be full
 	 * @return {Promise<object>} The API response
 	 */
-	const submitResponse = async (appointmentId, response, comment = '') => {
+	const submitResponse = async (appointmentId, response, comment = '', acceptWaitlist = false) => {
 		const t = window.t || ((app, text) => text)
 
 		try {
-			const axiosResponse = await postRespond(appointmentId, response, comment)
+			const axiosResponse = await postRespond(appointmentId, response, comment, acceptWaitlist)
 
 			showSuccess(response === null
 				? t('attendance', 'Response withdrawn')
@@ -106,7 +109,10 @@ export function useAppointmentResponse(options = {}) {
 			return axiosResponse.data
 		} catch (error) {
 			console.error('Failed to submit response:', error)
-			showError(t('attendance', 'Error updating response'))
+			// The server explains a refusal the client could not foresee — most
+			// of all somebody taking the last spot between the page load and
+			// the click — so show what it said rather than a generic failure.
+			showError(error?.response?.data?.error || t('attendance', 'Error updating response'))
 
 			if (onError) {
 				onError(error)

@@ -41,7 +41,12 @@
 			:appointmentId="item.id"
 			:userResponse="item.userResponse?.response ?? null"
 			:comment="item.userResponse?.comment || ''"
-			@submitResponse="(id, response) => emit('respond', id, response)" />
+			:responseOptions="responseOptions"
+			:isFull="item.isFull === true"
+			:waitlistEnabled="item.waitlistEnabled === true"
+			:waitlisted="item.userResponse?.waitlisted === true"
+			:waitlistPosition="item.userResponse?.waitlistPosition ?? null"
+			@submitResponse="(id, response, acceptWaitlist) => emit('respond', id, response, acceptWaitlist)" />
 	</div>
 </template>
 
@@ -51,6 +56,7 @@ import { computed } from 'vue'
 import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
 import ResponseEditor from '../appointment/ResponseEditor.vue'
 import { formatDateTime } from '../../utils/datetime.js'
+import { responseOptionsFor } from '../../utils/response.js'
 
 const props = defineProps({
 	item: {
@@ -68,6 +74,10 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['respond', 'openCheckin', 'openDetail'])
+
+// Answers this appointment offers — the buttons must not show one the server
+// would reject.
+const responseOptions = computed(() => responseOptionsFor(props.item.allowMaybe))
 
 const formattedDate = computed(() => formatDateTime(props.item.subText))
 </script>

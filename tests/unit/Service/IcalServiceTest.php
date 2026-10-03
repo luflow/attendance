@@ -12,7 +12,9 @@ use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Db\Category;
 use OCA\Attendance\Db\CategoryMapper;
 use OCA\Attendance\Db\IcalTokenMapper;
+use OCA\Attendance\Service\AuditEventService;
 use OCA\Attendance\Service\BookingService;
+use OCA\Attendance\Service\CapacityService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\IcalService;
 use OCA\Attendance\Service\NotificationService;
@@ -30,6 +32,9 @@ class IcalServiceTest extends TestCase {
 	private ConfigService $configService;
 	private AppointmentAttachmentMapper $attachmentMapper;
 	private CategoryMapper $categoryMapper;
+
+	/** @var AttendanceResponseMapper|MockObject */
+	private $responseMapper;
 	private IcalService $service;
 
 	protected function setUp(): void {
@@ -37,6 +42,7 @@ class IcalServiceTest extends TestCase {
 		$this->attachmentMapper = $this->createMock(AppointmentAttachmentMapper::class);
 		$this->attachmentMapper->method('findByAppointment')->willReturn([]);
 		$this->categoryMapper = $this->createMock(CategoryMapper::class);
+		$this->responseMapper = $this->createMock(AttendanceResponseMapper::class);
 
 		$urlGenerator = $this->createMock(IURLGenerator::class);
 		$urlGenerator->method('getAbsoluteURL')->willReturn('https://example.test/');
@@ -63,6 +69,13 @@ class IcalServiceTest extends TestCase {
 			$this->createMock(IL10NFactory::class),
 			$this->createMock(IConfig::class),
 			$this->categoryMapper,
+			// Real again: whether a yes holds a spot is what decides the title and
+			// the busy flag, and it only reads the queue it is handed.
+			new CapacityService(
+				$this->responseMapper,
+				$this->createMock(NotificationService::class),
+				$this->createMock(AuditEventService::class),
+			),
 		);
 	}
 
