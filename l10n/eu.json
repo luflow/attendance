@@ -181,6 +181,7 @@
     "Automatic" : "Automatikoa",
     "name" : "izena",
     "description" : "deskribapena",
-    "time" : "aldiz"
+    "time" : "aldiz",
+    "All groups" : "Talde guztiak"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

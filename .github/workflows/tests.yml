@@ -119,6 +119,28 @@ jobs:
       - name: Install composer dependencies
         run: composer install --prefer-dist --no-progress
 
+      # German is hand-maintained (see .tx/config) — a string added with a
+      # fresh t()/n() call stays English until someone runs the
+      # l10n-autotranslate skill. This catches the ones that got missed.
+      - name: Check for strings missing German translation
+        run: |
+          missing=$(python3 .claude/skills/l10n-autotranslate/scripts/find_untranslated.py)
+          count=$(echo "$missing" | python3 -c "import json,sys; print(json.load(sys.stdin)['count'])")
+          if [ "$count" -gt 0 ]; then
+            echo "::error::$count string(s) are missing a German translation — run the l10n-autotranslate skill and commit the result"
+            echo "$missing"
+            exit 1
+          fi
+
+      # No sync catches these — placeholders, German quotes, du/Sie mixing,
+      # duplicate keys, .js/.json parity.
+      - name: Check German l10n files
+        run: python3 scripts/check-german-l10n.py
+
+      # A bad source string reaches 80 languages before anyone notices.
+      - name: Check source strings
+        run: python3 scripts/check-source-strings.py
+
       - name: Run eslint
         run: npm run lint
 

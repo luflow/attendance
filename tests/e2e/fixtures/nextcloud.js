@@ -7,7 +7,7 @@ import { CONTAINER_NAME } from '../setup/container.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const AUTH_DIR = join(__dirname, '..', '.auth')
-const BASE_URL = process.env.NEXTCLOUD_URL || 'http://localhost:8080'
+export const BASE_URL = process.env.NEXTCLOUD_URL || 'http://localhost:8080'
 // Nextcloud app API POST requests need /index.php to avoid redirect issues.
 // OCS provisioning API may or may not need /index.php depending on mod_rewrite config.
 const API_BASE = `${BASE_URL}/index.php`

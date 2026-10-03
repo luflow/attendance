@@ -1,6 +1,7 @@
 OC.L10N.register(
     "attendance",
     {
+    "Attendance" : "출석",
     "This appointment no longer exists." : "이 예약은 더 이상 유효하지 않습니다.",
     "Response recorded" : "응답이 기록되었습니다",
     "An error occurred while recording your response. Please try again." : "응답을 기록하는 동안 오류가 발생했습니다. 다시 시도해 주세요.",
@@ -11,7 +12,6 @@ OC.L10N.register(
     "Yes" : "예",
     "No" : "아니오",
     "Maybe" : "아마도",
-    "Attendance" : "출석",
     "Response missing: %1$s on %2$s" : "응답이 누락되었습니다: %2$s의 %1$s",
     "New appointment: %1$s on %2$s" : "새로운 약속: %2$s의 %1$s",
     "Others" : "기타",
@@ -198,8 +198,6 @@ OC.L10N.register(
     "Failed to save settings" : "설정을 저장하는 데 실패했습니다",
     "Failed to load settings" : "설정을 불러오는 데 실패했습니다",
     "Link copied" : "링크 복사됨",
-    "Select which groups to include in response summaries. Users outside these groups will appear under Others. Leave empty to include all groups." : "응답 요약에 포함할 그룹을 선택하세요. 선택한 그룹에 속하지 않는 사용자는 '기타' 항목에 표시됩니다. 모든 그룹을 포함하려면 비워 두세요.",
-    "Select which teams to include in response summaries. Team members will be grouped together like regular groups." : "답변 요약에 포함할 팀을 선택하세요. 팀 구성원은 일반 그룹처럼 함께 그룹화됩니다.",
     "Search and select teams …" : "팀을 검색하고 선택하세요 …",
     "Preview" : "미리 보기",
     "Enable automatic calendar sync" : "캘린더 자동 동기화 활성화",

@@ -1,6 +1,7 @@
 OC.L10N.register(
     "attendance",
     {
+    "Attendance" : "حضور",
     "This appointment no longer exists." : "این قرار دیگر وجود ندارد.",
     "This appointment is closed and no longer accepts responses." : "این قرار بسته شده و دیگر پاسخ‌ها را نمی‌پذیرد.",
     "Response recorded" : "پاسخ ثبت شد",
@@ -13,7 +14,6 @@ OC.L10N.register(
     "No" : "خیر",
     "Maybe" : "شاید",
     "My attendance" : "حضور من",
-    "Attendance" : "حضور",
     "Response missing: %1$s on %2$s" : "پاسخ گم شده: %1$s در %2$s",
     "New appointment: %1$s on %2$s" : "قرار جدید: %1$s در %2$s",
     "Someone" : "شخصی",
@@ -355,8 +355,7 @@ OC.L10N.register(
     "Test reminder sent for {name}" : "یادآوری آزمایشی برای {name} ارسال شد",
     "No upcoming appointment found" : "قرارداد آینده‌ای یافت نشد",
     "Failed to send test reminder" : "ارسال یادآوری آزمایشی انجام نشد",
-    "Select which groups to include in response summaries. Users outside these groups will appear under Others. Leave empty to include all groups." : "انتخاب کنید کدام گروه‌ها در خلاصه پاسخ‌ها گنجانده شوند. کاربران خارج از این گروه‌ها در بخش «سایرین» نمایش داده می‌شوند. برای گنجاندن همه گروه‌ها، خالی بگذارید.",
-    "Select which teams to include in response summaries. Team members will be grouped together like regular groups." : "انتخاب کنید کدام تیم‌ها در خلاصه پاسخ‌ها گنجانده شوند. اعضای تیم مانند گروه‌های معمولی با هم گروه‌بندی می‌شوند.",
+    "Group by" : "گروه‌بندی بر اساس",
     "Search and select teams …" : "جستجو و انتخاب تیم‌ها …",
     "Delete category" : "حذف دسته",
     "Next reminder run" : "اجرای بعدی یادآوری",
@@ -531,7 +530,6 @@ OC.L10N.register(
     "Period" : "دوره",
     "Year" : "سال",
     "Custom" : "سفارشی  ",
-    "Group by" : "گروه‌بندی بر اساس",
     "Teams" : "تیم‌ها",
     "Filter" : "فیلتر",
     "Show all appointments" : "نمایش تمام قرارهای ملاقات",
@@ -575,6 +573,7 @@ OC.L10N.register(
     "Google Play (Android)" : "Google Play (Android)",
     "Only users who can manage appointments" : "فقط کاربرانی که می‌توانند قرارها را مدیریت کنند",
     "Everyone who can see the response overview" : "همه کسانی که می‌توانند نمای کلی پاسخ را ببینند",
+    "All groups" : "همه گروه‌ها",
     "Non-responders only" : "فقط پاسخ‌نداده‌ها",
     "Maybe responders only" : "فقط پاسخ‌شایدها",
     "Both non-responders and maybe responders" : "هم پاسخ‌نداده‌ها و هم پاسخ‌شایدها"

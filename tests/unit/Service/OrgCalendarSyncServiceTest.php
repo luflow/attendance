@@ -142,6 +142,9 @@ class OrgCalendarSyncServiceTest extends TestCase {
 	private FakeCalDavBackend $backend;
 	private TestableOrgCalendarSyncService $service;
 
+	/** Deep link line the app block ends with, unescaped */
+	private const LINK_LINE = "View or change your response:\nhttps://cloud.example.com/apps/attendance/#/appointment/5";
+
 	protected function setUp(): void {
 		$this->calendarService = $this->createMock(CalendarService::class);
 		$this->appointmentMapper = $this->createMock(AppointmentMapper::class);
@@ -152,10 +155,12 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->categoryMapper = $this->createMock(CategoryMapper::class);
 		$this->backend = new FakeCalDavBackend();
 
-		$this->icalService->method('escapeIcalText')->willReturnArgument(0);
 		$this->icalService->method('foldIcalContent')->willReturnArgument(0);
 		$this->icalService->method('getAppointmentUrl')
 			->willReturnCallback(fn (int $id) => 'https://cloud.example.com/apps/attendance/#/appointment/' . $id);
+		$this->icalService->method('appointmentLinkLine')->willReturnCallback(
+			fn (IL10N $l, int $id) => "View or change your response:\nhttps://cloud.example.com/apps/attendance/#/appointment/$id",
+		);
 
 		$this->urlGenerator->method('getAbsoluteURL')->willReturn('https://cloud.example.com/');
 
@@ -371,7 +376,7 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->assertStringNotContainsString('SUMMARY:Old title', $ics);
 	}
 
-	public function testPatchRemovesDescriptionWhenCleared(): void {
+	public function testPatchDropsClearedDescriptionTextButKeepsTheBlock(): void {
 		$this->configureEnabled();
 		$appointment = $this->buildAppointment();
 		$appointment->setDescription('');
@@ -388,7 +393,12 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		];
 
 		$this->assertTrue($this->service->syncAppointment($appointment));
-		$this->assertStringNotContainsString('DESCRIPTION:', $this->backend->updated[0][2]);
+		$ics = $this->backend->updated[0][2];
+		$this->assertStringNotContainsString('Old text', $ics);
+		$this->assertStringContainsString(
+			'DESCRIPTION:' . IcalService::escapeIcalText(OrgCalendarSyncService::BLOCK_SEPARATOR . "\n" . self::LINK_LINE),
+			$ics,
+		);
 	}
 
 	public function testPatchRemovesLocationWhenNotSet(): void {
@@ -443,44 +453,86 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->assertStringNotContainsString('CATEGORIES:', $this->backend->updated[0][2]);
 	}
 
-	public function testResponseSummaryIsAppendedBehindMarker(): void {
-		$this->configureEnabled();
+	/**
+	 * @return array<string, array{0: string, 1: bool, 2: array<string, int>, 3: string}>
+	 */
+	public static function descriptionProvider(): array {
+		$marker = OrgCalendarSyncService::BLOCK_SEPARATOR;
+		$link = self::LINK_LINE;
+
+		return [
+			'summary and link behind the marker' => [
+				'Bring instruments', true, ['yes' => 2, 'no' => 1, 'maybe' => 1],
+				"Bring instruments\n\n$marker\n2 attending, 1 declined, 1 maybe\n$link",
+			],
+			'link alone while nobody has responded' => [
+				'Bring instruments', true, ['yes' => 0, 'no' => 0, 'maybe' => 0],
+				"Bring instruments\n\n$marker\n$link",
+			],
+			// The switch buys quiet from the per-answer write; the link never changes
+			'link survives the summary switch' => [
+				'Bring instruments', false, ['yes' => 2, 'no' => 1, 'maybe' => 1],
+				"Bring instruments\n\n$marker\n$link",
+			],
+			'block is the whole description' => [
+				'', true, [], "$marker\n$link",
+			],
+		];
+	}
+
+	/**
+	 * @dataProvider descriptionProvider
+	 *
+	 * @param array<string, int> $counts
+	 */
+	public function testEventDescription(string $appointmentDescription, bool $summaryEnabled, array $counts, string $expected): void {
+		$this->configureEnabled($summaryEnabled);
 		$appointment = $this->buildAppointment();
+		$appointment->setDescription($appointmentDescription);
 		$this->appointmentMapper->method('update')->willReturnArgument(0);
-		$this->responseSummary = ['yes' => 2, 'no' => 1, 'maybe' => 1];
+		$this->responseSummary = $counts;
 
 		$this->assertTrue($this->service->syncAppointment($appointment));
-		$ics = $this->backend->created[0][2];
 
 		$this->assertStringContainsString(
-			"DESCRIPTION:Bring instruments\n\n"
-			. OrgCalendarSyncService::SUMMARY_SEPARATOR
-			. "\n2 attending, 1 declined, 1 maybe",
-			$ics,
+			'DESCRIPTION:' . IcalService::escapeIcalText($expected) . "\r\n",
+			$this->backend->created[0][2],
 		);
 	}
 
-	public function testNoSummaryBlockWithoutResponses(): void {
+	/**
+	 * The marker earns its keep only if the strip is the exact inverse of what
+	 * the sync appends — assert the round trip rather than two hand-written
+	 * halves that can drift apart.
+	 */
+	public function testEverythingTheSyncAppendsIsStrippedAgain(): void {
 		$this->configureEnabled();
-		$appointment = $this->buildAppointment();
-		$this->appointmentMapper->method('update')->willReturnArgument(0);
-		$this->responseSummary = ['yes' => 0, 'no' => 0, 'maybe' => 0];
-
-		$this->assertTrue($this->service->syncAppointment($appointment));
-		$this->assertStringNotContainsString(OrgCalendarSyncService::SUMMARY_SEPARATOR, $this->backend->created[0][2]);
-	}
-
-	public function testSummaryOmittedWhenTheAdminSwitchedItOff(): void {
-		$this->configureEnabled(false);
 		$appointment = $this->buildAppointment();
 		$this->appointmentMapper->method('update')->willReturnArgument(0);
 		$this->responseSummary = ['yes' => 2, 'no' => 1, 'maybe' => 1];
 
 		$this->assertTrue($this->service->syncAppointment($appointment));
 
-		$ics = $this->backend->created[0][2];
-		$this->assertStringNotContainsString(OrgCalendarSyncService::SUMMARY_SEPARATOR, $ics);
-		$this->assertStringContainsString('DESCRIPTION:Bring instruments', $ics);
+		$written = $this->descriptionOf($this->backend->created[0][2]);
+		$this->assertSame('Bring instruments', OrgCalendarSyncService::stripAppendedBlock($written));
+	}
+
+	/**
+	 * The DESCRIPTION of a written event, unescaped back to plain text — the
+	 * shape Sabre hands the listener.
+	 */
+	private function descriptionOf(string $ics): string {
+		foreach (IcalService::unfoldIcalContent($ics) as $line) {
+			if (IcalService::icalPropertyName($line) === 'DESCRIPTION') {
+				$escaped = substr($line, strlen('DESCRIPTION:'));
+				return preg_replace_callback(
+					'/\\\\(.)/',
+					fn (array $m) => $m[1] === 'n' ? "\n" : $m[1],
+					$escaped,
+				) ?? $escaped;
+			}
+		}
+		$this->fail('no DESCRIPTION in the written event');
 	}
 
 	/**
@@ -555,16 +607,17 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->assertFalse($this->service->matchesIgnoringTimestamps($folded, $other));
 	}
 
-	public function testStripResponseSummary(): void {
-		$description = "Bring instruments\n\n" . OrgCalendarSyncService::SUMMARY_SEPARATOR . "\n2 attending, 1 declined, 1 maybe";
-		$this->assertSame('Bring instruments', OrgCalendarSyncService::stripResponseSummary($description));
+	public function testStripAppendedBlock(): void {
+		$block = OrgCalendarSyncService::BLOCK_SEPARATOR
+			. "\n2 attending, 1 declined, 1 maybe\n" . self::LINK_LINE;
 
-		// Description that is only a summary block collapses to empty
-		$onlySummary = OrgCalendarSyncService::SUMMARY_SEPARATOR . "\n2 attending, 0 declined, 0 maybe";
-		$this->assertSame('', OrgCalendarSyncService::stripResponseSummary($onlySummary));
+		$this->assertSame('Bring instruments', OrgCalendarSyncService::stripAppendedBlock("Bring instruments\n\n" . $block));
+
+		// Description that is only the block collapses to empty
+		$this->assertSame('', OrgCalendarSyncService::stripAppendedBlock($block));
 
 		// No marker → unchanged
-		$this->assertSame('Plain text', OrgCalendarSyncService::stripResponseSummary('Plain text'));
+		$this->assertSame('Plain text', OrgCalendarSyncService::stripAppendedBlock('Plain text'));
 	}
 
 	public function testSyncAllUpcomingSkipsImportedAppointments(): void {

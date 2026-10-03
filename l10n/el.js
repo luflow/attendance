@@ -1,6 +1,7 @@
 OC.L10N.register(
     "attendance",
     {
+    "Attendance" : "Παρουσίες",
     "This appointment no longer exists." : "Αυτό το ραντεβού δεν υπάρχει πλέον.",
     "This appointment is closed and no longer accepts responses." : "Αυτό το ραντεβού έχει κλείσει και δεν δέχεται πλέον απαντήσεις.",
     "Response recorded" : "Η απάντηση καταγράφηκε",
@@ -13,7 +14,6 @@ OC.L10N.register(
     "No" : "Όχι",
     "Maybe" : "Ίσως",
     "My attendance" : "Η παρουσία μου",
-    "Attendance" : "Παρουσίες",
     "Response missing: %1$s on %2$s" : "Λείπει απάντηση: %1$s στις %2$s",
     "New appointment: %1$s on %2$s" : "Νέο ραντεβού: %1$s στις %2$s",
     "Someone" : "Κάποιος",
@@ -383,8 +383,7 @@ OC.L10N.register(
     "Test reminder sent for {name}" : "Η δοκιμαστική υπενθύμιση στάλθηκε για τον/την {name}",
     "No upcoming appointment found" : "Δεν βρέθηκε επόμενο ραντεβού",
     "Failed to send test reminder" : "Αποτυχία αποστολής δοκιμαστικής υπενθύμισης",
-    "Select which groups to include in response summaries. Users outside these groups will appear under Others. Leave empty to include all groups." : "Επιλέξτε ποιες ομάδες θα περιλαμβάνονται στις συνόψεις απαντήσεων. Οι χρήστες εκτός αυτών των ομάδων θα εμφανίζονται στην ενότητα «Άλλοι». Αφήστε το κενό για να συμπεριληφθούν όλες οι ομάδες.",
-    "Select which teams to include in response summaries. Team members will be grouped together like regular groups." : "Επιλέξτε ποιες ομάδες εργασίας (teams) θα περιλαμβάνονται στις συνόψεις απαντήσεων. Τα μέλη τους θα ομαδοποιούνται όπως οι κανονικές ομάδες.",
+    "Group by" : "Ομαδοποίηση κατά",
     "Search and select teams …" : "Αναζήτηση και επιλογή ομάδων …",
     "Delete category" : "Διαγραφή κατηγορίας",
     "Add category" : "Προσθήκη κατηγορίας",
@@ -570,7 +569,6 @@ OC.L10N.register(
     "Period" : "Περίοδος",
     "Year" : "Έτος",
     "Custom" : "Προσαρμοσμένο",
-    "Group by" : "Ομαδοποίηση κατά",
     "Teams" : "Ομάδες",
     "Filter" : "Φίλτρο",
     "Highlights" : "Σημαντικά",

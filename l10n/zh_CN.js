@@ -139,6 +139,7 @@ OC.L10N.register(
     "Failed to save settings" : "无法保存设置",
     "Failed to load settings" : "无法加载设置",
     "Link copied" : "已复制链接",
+    "Group by" : "按组别分组",
     "Preview" : "预览",
     "Open" : "打开",
     "Push notifications" : "推送通知",
@@ -181,7 +182,6 @@ OC.L10N.register(
     "Period" : "时段",
     "Year" : "年",
     "Custom" : "自定义",
-    "Group by" : "按组别分组",
     "Teams" : "团队",
     "Filter" : "过滤器",
     "Category: {category}" : "类别：{category}",
@@ -191,6 +191,7 @@ OC.L10N.register(
     "Automatic" : "自动",
     "name" : "名称",
     "description" : "描述",
-    "Guests" : "游客"
+    "Guests" : "游客",
+    "All groups" : "所有组"
 },
 "nplurals=1; plural=0;");

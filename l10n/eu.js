@@ -183,6 +183,7 @@ OC.L10N.register(
     "Automatic" : "Automatikoa",
     "name" : "izena",
     "description" : "deskribapena",
-    "time" : "aldiz"
+    "time" : "aldiz",
+    "All groups" : "Talde guztiak"
 },
 "nplurals=2; plural=(n != 1);");

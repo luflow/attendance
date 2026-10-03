@@ -66,6 +66,7 @@
     "Deselect all" : "Kijelölés megszüntetése",
     "Custom range" : "Egyéni tartomány",
     "Start date" : "Kezdés ideje",
+    "End date" : "Befejezés dátuma",
     "Copy URL" : "URL másolása",
     "Copy" : "Másolás",
     "Last accessed" : "Utoljára hozzáférve",
@@ -184,7 +185,9 @@
     "Historic" : "Történelmi",
     "Automatic" : "Automatikus",
     "name" : "név",
+    "description" : "leírás",
     "time" : "alkalom",
-    "Guests" : "Vendégek"
+    "Guests" : "Vendégek",
+    "All groups" : "Összes csoport"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

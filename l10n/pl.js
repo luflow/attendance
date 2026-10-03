@@ -147,6 +147,7 @@ OC.L10N.register(
     "Failed to save settings" : "Nie udało się zapisać ustawień",
     "Failed to load settings" : "Nie udało się wczytać ustawień",
     "Link copied" : "Link skopiowany",
+    "Group by" : "Grupuj według",
     "Preview" : "Podgląd",
     "Open" : "Otwórz",
     "Push notifications" : "Powiadomienia Push",
@@ -189,7 +190,6 @@ OC.L10N.register(
     "Period" : "Kropka",
     "Year" : "Rok",
     "Custom" : "Dowolnie",
-    "Group by" : "Grupuj według",
     "Teams" : "Zespoły",
     "Filter" : "Filtruj",
     "Category: {category}" : "Kategoria: {category}",
@@ -199,6 +199,7 @@ OC.L10N.register(
     "Automatic" : "Automatycznie",
     "name" : "nazwa",
     "description" : "opis",
-    "time" : "raz"
+    "time" : "raz",
+    "All groups" : "Wszystkie grupy"
 },
 "nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && (n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);");

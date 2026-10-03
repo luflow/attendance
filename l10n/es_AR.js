@@ -25,6 +25,7 @@ OC.L10N.register(
     "OK" : "OK",
     "All languages" : "Todos los idiomas",
     "Common" : "Común",
+    "Default" : "Por defecto",
     "Done" : "Terminado",
     "Email" : "Correo electrónico",
     "Groups (required)" : "Grupos (requerido)",

@@ -173,6 +173,7 @@
     "Automatic" : "自動",
     "name" : "名前",
     "description" : "説明",
-    "Guests" : "ゲスト"
+    "Guests" : "ゲスト",
+    "All groups" : "全てのグループ"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

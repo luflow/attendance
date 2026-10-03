@@ -1,6 +1,7 @@
 OC.L10N.register(
     "attendance",
     {
+    "Attendance" : "出席情況",
     "This appointment no longer exists." : "此預約已不存在。",
     "Response recorded" : "已記錄回應",
     "An error occurred while recording your response. Please try again." : "記錄您的回應時發生錯誤。請再試一次。",
@@ -11,7 +12,6 @@ OC.L10N.register(
     "Yes" : "是",
     "No" : "否",
     "Maybe" : "也許",
-    "Attendance" : "出席情況",
     "Response missing: %1$s on %2$s" : "缺少回應：%1$s 於 %2$s",
     "New appointment: %1$s on %2$s" : "新預約：%1$s 於 %2$s",
     "Someone" : "某人",
@@ -292,6 +292,7 @@ OC.L10N.register(
     "Quote" : "引用",
     "Insert link" : "插入連結",
     "Dismiss" : "忽略",
+    "Move {name} up" : "向上移動 {name}",
     "Welcome" : "歡迎",
     "Response summary groups" : "回應摘要群組",
     "Appointment reminders" : "預約提醒",
@@ -325,8 +326,7 @@ OC.L10N.register(
     "Test reminder sent for {name}" : "已向 {name} 傳送測試提醒",
     "No upcoming appointment found" : "找不到即將進行的預約",
     "Failed to send test reminder" : "傳送測試提醒失敗",
-    "Select which groups to include in response summaries. Users outside these groups will appear under Others. Leave empty to include all groups." : "選擇要納入回應摘要的群組。未列於此群組的使用者將顯示於「其他」欄位。若留空則包含所有群組。",
-    "Select which teams to include in response summaries. Team members will be grouped together like regular groups." : "選擇要納入回應摘要的團隊。團隊成員將如同一般群組般被分組。",
+    "Group by" : "按以下規則分組",
     "Search and select teams …" : "搜尋並選取團隊……",
     "Delete category" : "刪除分類",
     "Next reminder run" : "下次提醒執行",
@@ -463,7 +463,6 @@ OC.L10N.register(
     "Period" : "時段",
     "Year" : "年",
     "Custom" : "自訂",
-    "Group by" : "按以下規則分組",
     "Teams" : "團隊",
     "Filter" : "篩選",
     "Show all appointments" : "顯示所有預約",
@@ -484,6 +483,7 @@ OC.L10N.register(
     "description" : "描述",
     "Guests" : "訪客",
     "App Store (iOS)" : "App Store (iOS)",
-    "Google Play (Android)" : "Google Play (Android)"
+    "Google Play (Android)" : "Google Play (Android)",
+    "All groups" : "所有群組"
 },
 "nplurals=1; plural=0;");

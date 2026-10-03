@@ -16,6 +16,13 @@ class ConfigService {
 	public const DEFAULT_PUSH_PROXY_SERVER = 'https://push.anwesenheit.app';
 	public const VALID_REMINDER_TARGETS = ['non_responders', 'maybe', 'both'];
 
+	public const RESPONSE_SUMMARY_MODE_NONE = 'none';
+	public const RESPONSE_SUMMARY_MODE_SPECIFIC = 'specific';
+	public const RESPONSE_SUMMARY_MODE_ALL = 'all';
+	/** Teams have no "all" mode: unlike Nextcloud groups, there is no cheap way to enumerate every team. */
+	public const RESPONSE_SUMMARY_GROUP_MODES = [self::RESPONSE_SUMMARY_MODE_NONE, self::RESPONSE_SUMMARY_MODE_SPECIFIC, self::RESPONSE_SUMMARY_MODE_ALL];
+	public const RESPONSE_SUMMARY_TEAM_MODES = [self::RESPONSE_SUMMARY_MODE_NONE, self::RESPONSE_SUMMARY_MODE_SPECIFIC];
+
 	private IConfig $config;
 	private IAppConfig $appConfig;
 
@@ -42,6 +49,25 @@ class ConfigService {
 	 */
 	public function setWhitelistedGroups(array $groups): void {
 		$this->config->setAppValue(self::APP_ID, 'whitelisted_groups', json_encode($groups));
+	}
+
+	/**
+	 * How the response summary groups by Nextcloud group: no sections at all
+	 * ('none'), only the configured whitelist ('specific'), or every group
+	 * ('all'). With no mode stored yet, derive it from the whitelist so an
+	 * upgrade keeps today's behavior — an empty list means no sections, a
+	 * non-empty one means specific groups.
+	 */
+	public function getResponseSummaryGroupsMode(): string {
+		return $this->getStoredMode(
+			'response_summary_groups_mode',
+			self::RESPONSE_SUMMARY_GROUP_MODES,
+			empty($this->getWhitelistedGroups()) ? self::RESPONSE_SUMMARY_MODE_NONE : self::RESPONSE_SUMMARY_MODE_SPECIFIC,
+		);
+	}
+
+	public function setResponseSummaryGroupsMode(string $mode): void {
+		$this->setStoredMode('response_summary_groups_mode', $mode, self::RESPONSE_SUMMARY_GROUP_MODES);
 	}
 
 	/**
@@ -81,6 +107,48 @@ class ConfigService {
 	 */
 	public function setWhitelistedTeams(array $teams): void {
 		$this->config->setAppValue(self::APP_ID, 'whitelisted_teams', json_encode($teams));
+	}
+
+	/**
+	 * How the response summary groups by Nextcloud team: no sections at all
+	 * ('none') or only the configured whitelist ('specific'). Same
+	 * migration rule as the groups mode: derive from the whitelist when no
+	 * mode is stored yet.
+	 */
+	public function getResponseSummaryTeamsMode(): string {
+		return $this->getStoredMode(
+			'response_summary_teams_mode',
+			self::RESPONSE_SUMMARY_TEAM_MODES,
+			empty($this->getWhitelistedTeams()) ? self::RESPONSE_SUMMARY_MODE_NONE : self::RESPONSE_SUMMARY_MODE_SPECIFIC,
+		);
+	}
+
+	public function setResponseSummaryTeamsMode(string $mode): void {
+		$this->setStoredMode('response_summary_teams_mode', $mode, self::RESPONSE_SUMMARY_TEAM_MODES);
+	}
+
+	/**
+	 * Shared read path for the response-summary mode settings: the stored
+	 * value if it's still a valid mode, otherwise the migration-implied
+	 * default for an install that predates the mode key.
+	 *
+	 * @param list<string> $validModes
+	 */
+	private function getStoredMode(string $key, array $validModes, string $impliedDefault): string {
+		$mode = $this->appConfig->getValueString(self::APP_ID, $key);
+		return in_array($mode, $validModes, true) ? $mode : $impliedDefault;
+	}
+
+	/**
+	 * Shared write path for the response-summary mode settings.
+	 *
+	 * @param list<string> $validModes
+	 */
+	private function setStoredMode(string $key, string $mode, array $validModes): void {
+		if (!in_array($mode, $validModes, true)) {
+			throw new \InvalidArgumentException("Invalid mode for {$key}: {$mode}");
+		}
+		$this->appConfig->setValueString(self::APP_ID, $key, $mode);
 	}
 
 	/**

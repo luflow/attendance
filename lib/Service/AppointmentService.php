@@ -55,6 +55,7 @@ class AppointmentService {
 	private ResponsePolicyService $responsePolicyService;
 	private CapacityService $capacityService;
 	private AppointmentSerializer $appointmentSerializer;
+	private VacationService $vacationService;
 	/** @var array<string, bool> per-request cache for isOrganizerAnywhere() */
 	private array $organizerAnywhereCache = [];
 
@@ -80,6 +81,7 @@ class AppointmentService {
 		ResponsePolicyService $responsePolicyService,
 		CapacityService $capacityService,
 		AppointmentSerializer $appointmentSerializer,
+		VacationService $vacationService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -102,6 +104,7 @@ class AppointmentService {
 		$this->responsePolicyService = $responsePolicyService;
 		$this->capacityService = $capacityService;
 		$this->appointmentSerializer = $appointmentSerializer;
+		$this->vacationService = $vacationService;
 	}
 
 	/**
@@ -188,6 +191,8 @@ class AppointmentService {
 			\OCA\Attendance\Audit\Verb::SOURCE_CLIENT,
 		);
 
+		$this->applyVacationAutoResponses($appointment);
+
 		$this->orgCalendarSyncService->syncAppointment($appointment);
 
 		if ($sendNotification) {
@@ -198,6 +203,100 @@ class AppointmentService {
 		}
 
 		return $appointment;
+	}
+
+	/**
+	 * Default a brand-new appointment's invitees to "no" when they're on
+	 * vacation for its window — they can still change it afterwards through
+	 * the normal respond flow, same as any other answer.
+	 *
+	 * Only runs at creation time: a vacation entered after the appointment
+	 * already exists does not retroactively touch anyone's response.
+	 */
+	private function applyVacationAutoResponses(Appointment $appointment): void {
+		// Nearly every appointment has nobody on vacation, so ask the small
+		// vacation table first and only resolve the audience when it matters.
+		$onVacation = $this->vacationService->findUsersOnVacation(
+			$appointment->getStartDatetime(),
+			$appointment->getEndDatetime(),
+		);
+		if (empty($onVacation)) {
+			return;
+		}
+
+		$invited = $this->recipientsWithout($this->getAffectedUsers($appointment), null);
+		foreach (array_intersect($onVacation, $invited) as $userId) {
+			$response = new AttendanceResponse();
+			$response->setAppointmentId($appointment->getId());
+			$response->setUserId($userId);
+			$response->setResponse('no');
+			$response->setComment('');
+			$response->setRespondedAt(gmdate('Y-m-d H:i:s'));
+			$response->setResponseSource(ResponseService::SOURCE_VACATION);
+			$this->responseMapper->insert($response);
+			$this->auditEventService->recordResponseChange(
+				$appointment->getId(),
+				$userId,
+				null,
+				'',
+				'no',
+				'',
+				\OCA\Attendance\Audit\Verb::SOURCE_VACATION,
+			);
+		}
+	}
+
+	/**
+	 * Answer "no" to every upcoming, still-open appointment inside a vacation
+	 * that reached this user and that they have not answered yet — what a user
+	 * opts into when they record a vacation after appointments already exist.
+	 * An answer already given stays: they may well have picked the gig over
+	 * the holiday.
+	 *
+	 * @return int How many appointments were answered
+	 */
+	public function answerNoDuringVacation(string $userId, string $startDate, string $endDate): int {
+		$answered = 0;
+		$appointments = $this->appointmentMapper->findUpcomingOverlapping($startDate . ' 00:00:00', $endDate . ' 23:59:59');
+		foreach ($appointments as $appointment) {
+			if ($appointment->isClosed() || $appointment->isCancelled()) {
+				continue;
+			}
+			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
+				continue;
+			}
+			$existing = $this->getUserResponse($appointment->getId(), $userId);
+			if ($existing !== null && $existing->getResponse() !== null) {
+				continue;
+			}
+
+			$this->applyResponse(
+				$appointment,
+				$userId,
+				'no',
+				null,
+				ResponseService::SOURCE_VACATION,
+				\OCA\Attendance\Audit\Verb::SOURCE_VACATION,
+				null,
+			);
+			$answered++;
+		}
+
+		return $answered;
+	}
+
+	/**
+	 * Who an audience selection would address, before any appointment exists —
+	 * the same resolution getAffectedUsers() does, so a hint computed from a
+	 * draft and the auto-"no" on the saved appointment can't disagree.
+	 *
+	 * @param array<array-key, string> $visibleUsers
+	 * @param array<array-key, string> $visibleGroups
+	 * @param array<array-key, string> $visibleTeams
+	 * @return list<string>
+	 */
+	public function previewAudience(array $visibleUsers, array $visibleGroups, array $visibleTeams): array {
+		return $this->recipientsWithout($this->resolveAudience($visibleUsers, $visibleGroups, $visibleTeams), null);
 	}
 
 	/**
@@ -1431,7 +1530,14 @@ class AppointmentService {
 		$result = [];
 
 		foreach ($responses as $response) {
-			if (!$this->visibilityService->canUserSeeAppointment($appointment, $response->getUserId())) {
+			$responseUserId = $response->getUserId();
+
+			// A former target attendee keeps their recorded response after
+			// leaving the group/team that made the appointment visible to
+			// them (issue #213) — only a manager's test response on an
+			// appointment they were never part of is filtered.
+			if (!$this->visibilityService->isUserTargetAttendee($appointment, $responseUserId)
+				&& $this->permissionService->canManageAppointments($responseUserId)) {
 				continue;
 			}
 
@@ -1856,10 +1962,18 @@ class AppointmentService {
 		$visibleGroups = $appointment->getVisibleGroups();
 		$visibleTeams = $appointment->getVisibleTeams();
 
-		$visibleUsersList = $visibleUsers ? json_decode($visibleUsers, true) : [];
-		$visibleGroupsList = $visibleGroups ? json_decode($visibleGroups, true) : [];
-		$visibleTeamsList = $visibleTeams ? json_decode($visibleTeams, true) : [];
+		$visibleUsersList = $visibleUsers ? (array)json_decode($visibleUsers, true) : [];
+		$visibleGroupsList = $visibleGroups ? (array)json_decode($visibleGroups, true) : [];
+		$visibleTeamsList = $visibleTeams ? (array)json_decode($visibleTeams, true) : [];
 
+		return $this->resolveAudience($visibleUsersList, $visibleGroupsList, $visibleTeamsList);
+	}
+
+	/**
+	 * The users an audience selection addresses; no selection at all means
+	 * everyone in the whitelist.
+	 */
+	private function resolveAudience(array $visibleUsersList, array $visibleGroupsList, array $visibleTeamsList): array {
 		if (empty($visibleUsersList) && empty($visibleGroupsList) && empty($visibleTeamsList)) {
 			return $this->getAllWhitelistedUsers();
 		}
@@ -1884,9 +1998,14 @@ class AppointmentService {
 	}
 
 	/**
-	 * Get all users in whitelisted groups.
+	 * Get all users in whitelisted groups (or everyone, when no whitelist is
+	 * configured) — the app-wide notion of "everyone", also used by
+	 * VacationController to scope the team vacation overview and the
+	 * create-appointment conflict hint when no narrower audience is given.
+	 *
+	 * @return list<string>
 	 */
-	private function getAllWhitelistedUsers(): array {
+	public function getAllWhitelistedUsers(): array {
 		$whitelistedGroups = $this->configService->getWhitelistedGroups();
 		$userIds = [];
 
@@ -1906,7 +2025,7 @@ class AppointmentService {
 			}
 		}
 
-		return array_unique($userIds);
+		return array_values(array_unique($userIds));
 	}
 
 	/**

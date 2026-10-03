@@ -49,7 +49,7 @@
 
 				<!-- Response summary groups -->
 				<template v-else-if="currentStep.id === 'groups'">
-					<p>{{ t('attendance', 'Pick the groups that should get their own section. Everyone else appears under Others. Leave it empty to include all groups.') }}</p>
+					<p>{{ t('attendance', 'Pick the groups that should get their own section. Everyone else appears under Others. Leave it empty for no grouping — more options are in the Response summary groups section of the admin settings.') }}</p>
 					<GroupSelect
 						v-model="whitelistedGroups"
 						:options="availableGroups"

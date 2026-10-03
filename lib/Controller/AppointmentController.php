@@ -1113,6 +1113,11 @@ class AppointmentController extends Controller {
 			// Server understands DELETE /appointments/{id}/talk-room. Clients
 			// hide the delete action when this is false.
 			'talkRoomDeletion' => true,
+			// Server supports personal vacation periods (GET/POST/PUT/DELETE
+			// /vacations), the create-appointment conflict hint, the team
+			// overview, and auto-"no" responses for invitees on vacation.
+			// Clients hide all of that UI when this is false.
+			'vacationManagementEnabled' => true,
 		]);
 	}
 
@@ -1344,9 +1349,11 @@ class AppointmentController extends Controller {
 		}
 
 		// Managers and users allowed to create appointments need the picker
-		// for visibility/organizer fields; organizers need it in the edit form.
+		// for visibility/organizer fields; organizers need it in the edit form;
+		// admins need it for the response-summary-teams admin setting.
 		if (!$this->permissionService->canCreateAppointments($user->getUID())
-			&& !$this->appointmentService->isOrganizerAnywhere($user->getUID())) {
+			&& !$this->appointmentService->isOrganizerAnywhere($user->getUID())
+			&& !$this->permissionService->isAdmin($user->getUID())) {
 			return new DataResponse(['error' => 'Insufficient permissions'], 403);
 		}
 
