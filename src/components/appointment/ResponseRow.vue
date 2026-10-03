@@ -13,6 +13,7 @@
 					:displayName="response.userName"
 					:currentResponse="response.response"
 					:pending="isSettingAnswer"
+					:responseOptions="responseOptions"
 					@setAnswer="(userId, value) => emit('setAnswer', userId, value)">
 					<template #default="{ pending }">
 						<NcButton
@@ -92,8 +93,14 @@ import PencilOutlineIcon from 'vue-material-design-icons/PencilOutline.vue'
 import RemindUserPopover from './RemindUserPopover.vue'
 import ResponseDot from './ResponseDot.vue'
 import SetAnswerPopover from './SetAnswerPopover.vue'
+import { RESPONSE_ORDER } from '../../utils/response.js'
 
 const props = defineProps({
+	// Which answers this appointment offers, in display order.
+	responseOptions: {
+		type: Array,
+		default: () => RESPONSE_ORDER,
+	},
 	response: {
 		type: Object,
 		required: true,

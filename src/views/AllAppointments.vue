@@ -696,10 +696,10 @@ async function loadDetailedResponses() {
 	}))
 }
 
-async function submitResponse(appointmentId, response) {
+async function submitResponse(appointmentId, response, acceptWaitlist = false) {
 	const appointment = appointments.value.find((a) => a.id === appointmentId)
 	const comment = appointment?.userResponse?.comment || ''
-	await submitResponseApi(appointmentId, response, comment)
+	await submitResponseApi(appointmentId, response, comment, acceptWaitlist)
 }
 
 function deleteAppointment(appointmentId) {

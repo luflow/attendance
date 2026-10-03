@@ -12,7 +12,7 @@
 			<p>{{ t('attendance', 'Set answer for {name}', { name: displayName }) }}</p>
 			<div class="set-answer-popover__options">
 				<NcButton
-					v-for="option in RESPONSE_ORDER"
+					v-for="option in responseOptions"
 					:key="option"
 					:variant="option === currentResponse ? getResponseVariant(option) : 'secondary'"
 					size="small"
@@ -70,6 +70,11 @@ const props = defineProps({
 	pending: {
 		type: Boolean,
 		default: false,
+	},
+	// Which answers this appointment offers, in display order.
+	responseOptions: {
+		type: Array,
+		default: () => RESPONSE_ORDER,
 	},
 })
 

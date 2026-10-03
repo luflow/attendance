@@ -11,16 +11,19 @@ use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Db\Category;
 use OCA\Attendance\Db\CategoryMapper;
+use OCA\Attendance\Service\AppointmentSerializer;
 use OCA\Attendance\Service\AppointmentService;
 use OCA\Attendance\Service\AttachmentService;
 use OCA\Attendance\Service\AuditEventService;
 use OCA\Attendance\Service\BookingService;
+use OCA\Attendance\Service\CapacityService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\DeadlineUpdate;
 use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\NotificationService;
 use OCA\Attendance\Service\OrgCalendarSyncService;
 use OCA\Attendance\Service\PermissionService;
+use OCA\Attendance\Service\ResponsePolicyService;
 use OCA\Attendance\Service\ResponseService;
 use OCA\Attendance\Service\ResponseSummaryService;
 use OCA\Attendance\Service\TalkRoomService;
@@ -87,6 +90,8 @@ class AppointmentServiceTest extends TestCase {
 	private $categoryMapper;
 	private $talkRoomService;
 
+	private ResponsePolicyService $responsePolicyService;
+	private CapacityService $capacityService;
 	/** @var VacationService|MockObject */
 	private $vacationService;
 
@@ -111,6 +116,15 @@ class AppointmentServiceTest extends TestCase {
 		$this->orgCalendarSyncService = $this->createMock(OrgCalendarSyncService::class);
 		$this->categoryMapper = $this->createMock(CategoryMapper::class);
 		$this->talkRoomService = $this->createMock(TalkRoomService::class);
+		// The real policy, not a mock: the guard is the thing these tests need to
+		// see fire. Appointments offer all three answers unless one opts out.
+		$this->configService->method('isMaybeAllowed')->willReturn(true);
+		$this->capacityService = new CapacityService(
+			$this->responseMapper,
+			$this->notificationService,
+			$this->auditEventService,
+		);
+		$this->responsePolicyService = new ResponsePolicyService($this->configService, $this->capacityService);
 		$this->vacationService = $this->createMock(VacationService::class);
 
 		$this->service = new AppointmentService(
@@ -132,6 +146,9 @@ class AppointmentServiceTest extends TestCase {
 			$this->orgCalendarSyncService,
 			$this->categoryMapper,
 			$this->talkRoomService,
+			$this->responsePolicyService,
+			$this->capacityService,
+			new AppointmentSerializer($this->responsePolicyService, $this->capacityService),
 			$this->vacationService,
 		);
 	}
@@ -675,6 +692,63 @@ class AppointmentServiceTest extends TestCase {
 		$this->expectException(\RuntimeException::class);
 		$this->expectExceptionMessage('closed');
 		$this->service->submitResponse(9, 'alice', 'yes');
+	}
+
+	public function testSubmitResponseRejectsMaybeWhereTheAppointmentDoesNotOfferIt(): void {
+		$appointment = new Appointment();
+		$appointment->setId(9);
+		$appointment->setAllowMaybe(false);
+
+		$this->appointmentMapper->method('find')->with(9)->willReturn($appointment);
+		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
+		$this->responseMapper->expects($this->never())->method('insert');
+		$this->responseMapper->expects($this->never())->method('update');
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('maybe');
+		$this->service->submitResponse(9, 'alice', 'maybe');
+	}
+
+	public function testSubmitResponseForUserRejectsMaybeWhereTheAppointmentDoesNotOfferIt(): void {
+		$appointment = new Appointment();
+		$appointment->setId(9);
+		$appointment->setAllowMaybe(false);
+
+		$this->userManager->method('get')->willReturn($this->createMock(\OCP\IUser::class));
+		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
+		$this->responseMapper->expects($this->never())->method('insert');
+		$this->responseMapper->expects($this->never())->method('update');
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('maybe');
+		$this->service->submitResponseForUser($appointment, 'bob', 'maybe', 'manager');
+	}
+
+	public function testSubmitResponseKeepsMaybeWhereTheAppointmentStillOffersIt(): void {
+		$appointment = new Appointment();
+		$appointment->setId(9);
+		$appointment->setAllowMaybe(true);
+
+		$this->appointmentMapper->method('find')->with(9)->willReturn($appointment);
+		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
+		$this->responseMapper->method('findByAppointmentAndUser')
+			->willThrowException(new \OCP\AppFramework\Db\DoesNotExistException('none'));
+		$this->responseMapper->expects($this->once())->method('insert')->willReturnArgument(0);
+
+		$this->assertSame('maybe', $this->service->submitResponse(9, 'alice', 'maybe')->getResponse());
+	}
+
+	public function testSerializeAppointmentResolvesAllowMaybeAgainstTheInstanceDefault(): void {
+		$undecided = new Appointment();
+		$undecided->setId(3);
+
+		$optedOut = new Appointment();
+		$optedOut->setId(4);
+		$optedOut->setAllowMaybe(false);
+
+		// The instance default is true throughout this test class.
+		$this->assertTrue($this->service->serializeAppointment($undecided)['allowMaybe']);
+		$this->assertFalse($this->service->serializeAppointment($optedOut)['allowMaybe']);
 	}
 
 	public function testCancelAppointmentRecordsAuditEventAndNotifies(): void {

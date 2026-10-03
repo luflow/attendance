@@ -38,6 +38,12 @@ use OCP\AppFramework\Db\Entity;
  * @method void setBookingNotifiedStatus(?string $bookingNotifiedStatus)
  * @method string|null getBookingNotifiedAt()
  * @method void setBookingNotifiedAt(?string $bookingNotifiedAt)
+ * @method string|null getSpotClaimedAt()
+ * @method void setSpotClaimedAt(?string $spotClaimedAt)
+ * @method string|null getWaitlistNotifiedStatus()
+ * @method void setWaitlistNotifiedStatus(?string $waitlistNotifiedStatus)
+ * @method string|null getWaitlistNotifiedAt()
+ * @method void setWaitlistNotifiedAt(?string $waitlistNotifiedAt)
  */
 class AttendanceResponse extends Entity implements JsonSerializable {
 	use DatetimeFormatTrait;
@@ -55,6 +61,9 @@ class AttendanceResponse extends Entity implements JsonSerializable {
 	protected $bookingStatus = null;
 	protected $bookingNotifiedStatus = null;
 	protected $bookingNotifiedAt = null;
+	protected $spotClaimedAt = null;
+	protected $waitlistNotifiedStatus = null;
+	protected $waitlistNotifiedAt = null;
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -72,6 +81,9 @@ class AttendanceResponse extends Entity implements JsonSerializable {
 		$this->addType('bookingStatus', 'string');
 		$this->addType('bookingNotifiedStatus', 'string');
 		$this->addType('bookingNotifiedAt', 'string');
+		$this->addType('spotClaimedAt', 'string');
+		$this->addType('waitlistNotifiedStatus', 'string');
+		$this->addType('waitlistNotifiedAt', 'string');
 	}
 
 	public function jsonSerialize(): array {

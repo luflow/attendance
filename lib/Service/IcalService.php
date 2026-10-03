@@ -7,6 +7,7 @@ namespace OCA\Attendance\Service;
 use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentAttachmentMapper;
 use OCA\Attendance\Db\AppointmentMapper;
+use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Db\CategoryMapper;
 use OCA\Attendance\Db\IcalToken;
@@ -34,6 +35,7 @@ class IcalService {
 	private IL10NFactory $l10nFactory;
 	private IConfig $config;
 	private CategoryMapper $categoryMapper;
+	private CapacityService $capacityService;
 
 	private const TOKEN_LENGTH = 64;
 	private const TOKEN_CHARS = 'abcdef0123456789';
@@ -51,6 +53,7 @@ class IcalService {
 		IL10NFactory $l10nFactory,
 		IConfig $config,
 		CategoryMapper $categoryMapper,
+		CapacityService $capacityService,
 	) {
 		$this->icalTokenMapper = $icalTokenMapper;
 		$this->appointmentMapper = $appointmentMapper;
@@ -64,6 +67,7 @@ class IcalService {
 		$this->l10nFactory = $l10nFactory;
 		$this->config = $config;
 		$this->categoryMapper = $categoryMapper;
+		$this->capacityService = $capacityService;
 	}
 
 	/**
@@ -201,7 +205,7 @@ class IcalService {
 	 */
 	private function generateVEvent(
 		Appointment $appointment,
-		$response,
+		?AttendanceResponse $response,
 		string $userId,
 		IL10N $l,
 		string $domain,
@@ -260,6 +264,20 @@ class IcalService {
 			}
 			$summary = $appointment->getName()
 				. ' (' . $l->t('Me') . ': ' . $statusLabel . ')';
+		}
+
+		// A place in line is not a place at the appointment, so the slot stays
+		// free. Unlike the scheduling verdict above this needs no closed check:
+		// "you do not have a spot" is not a judgement the organizer has yet to
+		// make, it is where the person stands right now, and promotion flips it
+		// back on the next poll.
+		if ($responseState === 'yes'
+			&& $this->capacityService->limitOf($appointment) !== null
+			&& !$this->capacityService->holdsSpot($appointment, $userId)) {
+			$transp = 'TRANSPARENT';
+			// TRANSLATORS Status marker appended to the calendar event title — the appointment was full, so the person is waiting for a spot rather than holding one (German "Warteliste").
+			$summary = $appointment->getName()
+				. ' (' . $l->t('Me') . ': ' . $l->t('Waitlist') . ')';
 		}
 
 		// Cancelled appointments: the event will not take place. This is the one

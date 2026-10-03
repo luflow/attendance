@@ -52,6 +52,9 @@ class AppointmentService {
 	private OrgCalendarSyncService $orgCalendarSyncService;
 	private CategoryMapper $categoryMapper;
 	private TalkRoomService $talkRoomService;
+	private ResponsePolicyService $responsePolicyService;
+	private CapacityService $capacityService;
+	private AppointmentSerializer $appointmentSerializer;
 	private VacationService $vacationService;
 	/** @var array<string, bool> per-request cache for isOrganizerAnywhere() */
 	private array $organizerAnywhereCache = [];
@@ -75,6 +78,9 @@ class AppointmentService {
 		OrgCalendarSyncService $orgCalendarSyncService,
 		CategoryMapper $categoryMapper,
 		TalkRoomService $talkRoomService,
+		ResponsePolicyService $responsePolicyService,
+		CapacityService $capacityService,
+		AppointmentSerializer $appointmentSerializer,
 		VacationService $vacationService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
@@ -95,6 +101,9 @@ class AppointmentService {
 		$this->orgCalendarSyncService = $orgCalendarSyncService;
 		$this->categoryMapper = $categoryMapper;
 		$this->talkRoomService = $talkRoomService;
+		$this->responsePolicyService = $responsePolicyService;
+		$this->capacityService = $capacityService;
+		$this->appointmentSerializer = $appointmentSerializer;
 		$this->vacationService = $vacationService;
 	}
 
@@ -120,6 +129,9 @@ class AppointmentService {
 		?string $location = null,
 		?int $categoryId = null,
 		bool $createTalkRoom = false,
+		?bool $allowMaybe = null,
+		?int $maxAttendees = null,
+		bool $waitlistEnabled = true,
 	): Appointment {
 		$this->validateDateRange($startDatetime, $endDatetime);
 
@@ -150,6 +162,11 @@ class AppointmentService {
 		$appointment->setSeriesPosition($seriesPosition);
 		$appointment->setSendNotification($sendNotification);
 		$appointment->setCreateTalkRoom($createTalkRoom);
+		// NULL is a real state here: the appointment has no opinion on "Maybe"
+		// and follows whatever the instance default says, now and later.
+		$appointment->setAllowMaybe($allowMaybe);
+		$appointment->setMaxAttendees($this->normalizeAttendeeLimit($maxAttendees));
+		$appointment->setWaitlistEnabled($waitlistEnabled);
 		$appointment->setResponseDeadline($deadlineFormatted);
 		// The creator freely chooses the initial organizer list; when the client
 		// sends nothing, the creator becomes the sole organizer.
@@ -300,6 +317,9 @@ class AppointmentService {
 		?string $location = null,
 		?int $categoryId = null,
 		?bool $createTalkRoom = null,
+		?bool $allowMaybe = null,
+		?int $maxAttendees = null,
+		?bool $waitlistEnabled = null,
 	): Appointment {
 		$appointment = $this->appointmentMapper->find($id);
 
@@ -343,7 +363,26 @@ class AppointmentService {
 			$appointment->setCreateTalkRoom($createTalkRoom);
 		}
 
+		// Unlike the column, the parameter has no tri-state: null means the
+		// caller left the field alone. Deciding is one-way — an appointment that
+		// has an answer keeps it rather than falling back to the default.
+		if ($allowMaybe !== null) {
+			$appointment->setAllowMaybe($allowMaybe);
+		}
+
+		// Zero and null both mean "no limit", so the field clears itself; there
+		// is no separate way to say "leave it alone". Lowering it below what is
+		// already taken is allowed and demotes nobody — the appointment simply
+		// sits over capacity until people drop out.
+		$appointment->setMaxAttendees($this->normalizeAttendeeLimit($maxAttendees));
+		if ($waitlistEnabled !== null) {
+			$appointment->setWaitlistEnabled($waitlistEnabled);
+		}
+
 		$updated = $this->appointmentMapper->update($appointment);
+
+		// A raised limit lets the next people in line through.
+		$this->capacityService->syncWaitlistNotifications($updated);
 
 		$this->notifyAboutUpdate($before, $updated, $this->commitAppointmentChange($before, $updated), $userId);
 
@@ -582,6 +621,10 @@ class AppointmentService {
 		// only diffs against the last communicated state.
 		$this->bookingService->notifyOnClose($updated);
 
+		// Anyone still in line keeps the date free for a spot that is no longer
+		// coming. Same fire-once marker as the promotions.
+		$this->capacityService->notifyNotPromoted($updated);
+
 		$this->talkRoomService->openOrSync($updated);
 
 		return $updated;
@@ -717,6 +760,9 @@ class AppointmentService {
 	 * @param ?list<string> $organizers New organizer list, or null to leave unchanged
 	 * @param ?string $location Location, applied identically to every affected sibling
 	 * @param ?int $categoryId Category, applied identically to every affected sibling
+	 * @param ?bool $allowMaybe Whether "Maybe" is offered, applied identically to every affected sibling; null leaves it alone
+	 * @param ?int $maxAttendees Attendance limit, applied identically to every affected sibling; null clears it
+	 * @param ?bool $waitlistEnabled Whether a full sibling offers a waitlist; null leaves it alone
 	 * @return list<Appointment> Updated appointments
 	 */
 	public function updateSeriesAppointments(
@@ -735,6 +781,9 @@ class AppointmentService {
 		?string $location = null,
 		?int $categoryId = null,
 		?bool $createTalkRoom = null,
+		?bool $allowMaybe = null,
+		?int $maxAttendees = null,
+		?bool $waitlistEnabled = null,
 	): array {
 		$deadlineUpdate ??= DeadlineUpdate::unchanged();
 		$reference = $this->appointmentMapper->find($referenceId);
@@ -748,6 +797,7 @@ class AppointmentService {
 				$referenceId, $name, $description, $startDatetime, $endDatetime,
 				$userId, $visibleUsers, $visibleGroups, $visibleTeams,
 				$deadlineUpdate, $organizers, $location, $categoryId, $createTalkRoom,
+				$allowMaybe, $maxAttendees, $waitlistEnabled,
 			);
 			return [$updated];
 		}
@@ -759,6 +809,7 @@ class AppointmentService {
 				$referenceId, $name, $description, $startDatetime, $endDatetime,
 				$userId, $visibleUsers, $visibleGroups, $visibleTeams,
 				$deadlineUpdate, $organizers, $location, $categoryId, $createTalkRoom,
+				$allowMaybe, $maxAttendees, $waitlistEnabled,
 			);
 			return [$updated];
 		}
@@ -821,6 +872,13 @@ class AppointmentService {
 			if ($createTalkRoom !== null) {
 				$sibling->setCreateTalkRoom($createTalkRoom);
 			}
+			if ($allowMaybe !== null) {
+				$sibling->setAllowMaybe($allowMaybe);
+			}
+			$sibling->setMaxAttendees($this->normalizeAttendeeLimit($maxAttendees));
+			if ($waitlistEnabled !== null) {
+				$sibling->setWaitlistEnabled($waitlistEnabled);
+			}
 
 			// Apply time deltas
 			$siblingStart = new \DateTime($sibling->getStartDatetime(), new \DateTimeZone('UTC'));
@@ -852,6 +910,7 @@ class AppointmentService {
 			}
 
 			$updatedSibling = $this->appointmentMapper->update($sibling);
+			$this->capacityService->syncWaitlistNotifications($updatedSibling);
 			$edits[] = [
 				'before' => $before,
 				'after' => $updatedSibling,
@@ -1049,14 +1108,14 @@ class AppointmentService {
 			$includeResponseCounts,
 		);
 
-		$appointmentData = $appointment->jsonSerialize();
+		$appointmentData = $this->serializeAppointment($appointment);
 		$appointmentData = $this->enrichVisibilityData($appointmentData);
 		$appointmentData = $this->enrichSeriesCount($appointmentData, $appointment);
 		// Only expose userResponse when the user actually answered yes/no/maybe.
 		// A row with response=NULL exists when an admin checked the user in
 		// before they ever responded; treat that as "no response" (matches list endpoint).
 		$userResponse = $this->getUserResponse($appointment->getId(), $userId);
-		$appointmentData['userResponse'] = $this->serializeUserResponse($userResponse);
+		$appointmentData['userResponse'] = $this->serializeUserResponse($userResponse, $appointment);
 		$responseSummary = $this->buildResponseSummaryFor($myPermissions, $appointment->getId());
 		if ($responseSummary !== null) {
 			$appointmentData['responseSummary'] = $responseSummary;
@@ -1148,13 +1207,28 @@ class AppointmentService {
 	 *
 	 * @return array<string, mixed>|null
 	 */
-	private function serializeUserResponse(?AttendanceResponse $userResponse): ?array {
+	private function serializeUserResponse(?AttendanceResponse $userResponse, ?Appointment $appointment = null): ?array {
 		if ($userResponse === null || $userResponse->getResponse() === null) {
 			return null;
 		}
-		$data = $userResponse->jsonSerialize();
-		$data['bookingStatus'] = $this->bookingService->effectiveBookingStatus($userResponse);
-		return $data;
+		return $this->serializeResponse($userResponse, $appointment);
+	}
+
+	/**
+	 * A response as a client sees it: the row, the scheduling verdict, and
+	 * whether this yes holds a spot or a place in line. The standing is derived,
+	 * so it moves on its own as other people change their answers.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function serializeResponse(AttendanceResponse $response, ?Appointment $appointment = null): array {
+		/** @var array<string, mixed> $data */
+		$data = $response->jsonSerialize();
+		$data['bookingStatus'] = $this->bookingService->effectiveBookingStatus($response);
+		$standing = $appointment === null
+			? ['waitlisted' => false, 'waitlistPosition' => null]
+			: $this->capacityService->standingOf($appointment, $response->getUserId());
+		return $data + $standing;
 	}
 
 	/**
@@ -1226,6 +1300,7 @@ class AppointmentService {
 		string $userId,
 		?string $response,
 		string $comment = '',
+		bool $acceptWaitlist = false,
 	): AttendanceResponse {
 		$this->validateResponseValue($response);
 
@@ -1243,6 +1318,7 @@ class AppointmentService {
 			null,
 			\OCA\Attendance\Audit\Verb::SOURCE_CLIENT,
 			null,
+			$acceptWaitlist,
 		);
 	}
 
@@ -1305,6 +1381,8 @@ class AppointmentService {
 	 *                         can't survive the response that gave it context)
 	 * @param ?string $responseSource value for response_source, or null to leave it untouched
 	 * @param ?string $actorUserId audit actor when acting on someone else's behalf
+	 * @param bool $acceptWaitlist take a place in line when the appointment is
+	 *                             already full, rather than being turned away
 	 */
 	private function applyResponse(
 		Appointment $appointment,
@@ -1314,6 +1392,7 @@ class AppointmentService {
 		?string $responseSource,
 		string $auditSource,
 		?string $actorUserId,
+		bool $acceptWaitlist = false,
 	): AttendanceResponse {
 		$appointmentId = $appointment->getId();
 
@@ -1328,18 +1407,32 @@ class AppointmentService {
 			throw new \RuntimeException('This appointment was cancelled and no longer accepts responses.');
 		}
 
+		$existingResponse = null;
+		try {
+			$existingResponse = $this->responseMapper->findByAppointmentAndUser($appointmentId, $userId);
+		} catch (DoesNotExistException $e) {
+			// First answer from this person.
+		}
+
+		$beforeResponse = $existingResponse?->getResponse();
+		$beforeComment = $existingResponse === null ? '' : (string)$existingResponse->getComment();
+
+		// Same guards ResponseService::submitResponse() runs for quick-response
+		// links, so neither path can accept an answer the other rejects. An
+		// organizer answering for somebody else may exceed a limit.
+		$this->responsePolicyService->assertResponseAllowed(
+			$appointment,
+			$response,
+			$beforeResponse,
+			$acceptWaitlist,
+			$actorUserId !== null,
+		);
+
 		if ($response === null) {
 			$comment = '';
 		}
 
-		$beforeResponse = null;
-		$beforeComment = '';
-
-		try {
-			$existingResponse = $this->responseMapper->findByAppointmentAndUser($appointmentId, $userId);
-			$beforeResponse = $existingResponse->getResponse();
-			$beforeComment = (string)$existingResponse->getComment();
-
+		if ($existingResponse !== null) {
 			// Withdrawing an already-withdrawn (or never-set) response is a no-op:
 			// don't churn responded_at or notification state on repeated clicks.
 			if ($response === null && $beforeResponse === null) {
@@ -1353,8 +1446,9 @@ class AppointmentService {
 			if ($responseSource !== null) {
 				$existingResponse->setResponseSource($responseSource);
 			}
+			$this->capacityService->applySpotClaim($existingResponse, $beforeResponse, $response);
 			$result = $this->responseMapper->update($existingResponse);
-		} catch (DoesNotExistException $e) {
+		} else {
 			// No row to withdraw from — return a transient placeholder rather
 			// than inserting a junk row that filters would have to skip later.
 			if ($response === null) {
@@ -1374,8 +1468,13 @@ class AppointmentService {
 			if ($responseSource !== null) {
 				$attendanceResponse->setResponseSource($responseSource);
 			}
+			$this->capacityService->applySpotClaim($attendanceResponse, null, $response);
 			$result = $this->responseMapper->insert($attendanceResponse);
 		}
+
+		// The queue moved: a withdrawn yes frees a spot for whoever is next, a
+		// fresh one may have taken the last.
+		$this->capacityService->syncWaitlistNotifications($appointment);
 
 		$this->auditEventService->recordResponseChange(
 			$appointmentId,
@@ -1588,10 +1687,10 @@ class AppointmentService {
 				$includeResponseCounts,
 			);
 
-			$appointmentData = $appointment->jsonSerialize();
+			$appointmentData = $this->serializeAppointment($appointment);
 			$appointmentData = $this->enrichVisibilityData($appointmentData);
 			$appointmentData = $this->enrichSeriesCount($appointmentData, $appointment);
-			$appointmentData['userResponse'] = $this->serializeUserResponse($userResponse);
+			$appointmentData['userResponse'] = $this->serializeUserResponse($userResponse, $appointment);
 			$responseSummary = $this->buildResponseSummaryFor($myPermissions, $appointment->getId());
 			if ($responseSummary !== null) {
 				$appointmentData['responseSummary'] = $responseSummary;
@@ -1630,10 +1729,10 @@ class AppointmentService {
 				continue;
 			}
 
-			$appointmentData = $appointment->jsonSerialize();
+			$appointmentData = $this->serializeAppointment($appointment);
 			$appointmentData = $this->enrichVisibilityData($appointmentData);
 			$userResponse = $this->getUserResponse($appointment->getId(), $userId);
-			$appointmentData['userResponse'] = $this->serializeUserResponse($userResponse);
+			$appointmentData['userResponse'] = $this->serializeUserResponse($userResponse, $appointment);
 			$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
 			$appointmentData = $this->hideTalkRoomFromOutsiders(
 				$appointmentData,
@@ -1933,6 +2032,25 @@ class AppointmentService {
 		}
 
 		return array_values(array_unique($userIds));
+	}
+
+	/**
+	 * The appointment as a client sees it. The entity cannot resolve allowMaybe
+	 * on its own — the tri-state column has to be read against the instance
+	 * default — so payloads go through here instead of jsonSerialize().
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function serializeAppointment(Appointment $appointment): array {
+		return $this->appointmentSerializer->serialize($appointment);
+	}
+
+	/**
+	 * A limit of zero or less is how a client says "no limit"; the column keeps
+	 * NULL for that so every reader has one way to ask.
+	 */
+	private function normalizeAttendeeLimit(?int $maxAttendees): ?int {
+		return $maxAttendees === null || $maxAttendees <= 0 ? null : $maxAttendees;
 	}
 
 	/**
