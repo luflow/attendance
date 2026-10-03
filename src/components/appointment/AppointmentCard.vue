@@ -102,7 +102,7 @@
 		</div>
 
 		<!-- Response: editable while the inquiry runs -->
-		<div v-if="acceptsResponses" class="card-section" data-test="response-section">
+		<div v-if="canRespond" class="card-section" data-test="response-section">
 			<h4>{{ t("attendance", "Your response") }}</h4>
 			<ResponseEditor
 				:appointmentId="appointment.id"
@@ -115,6 +115,15 @@
 				:waitlisted="appointment.userResponse?.waitlisted === true"
 				:waitlistPosition="appointment.userResponse?.waitlistPosition ?? null"
 				@submitResponse="(id, response, acceptWaitlist) => emit('submitResponse', id, response, acceptWaitlist)" />
+		</div>
+
+		<!-- Not asked to answer: sees the appointment from outside its audience -->
+		<div v-else-if="acceptsResponses" class="card-section card-section--readonly" data-test="response-section-not-attendee">
+			<h4>{{ t("attendance", "Your response") }}</h4>
+			<div class="closed-info" data-test="not-attendee-note">
+				<InformationIcon :size="16" />
+				<span>{{ notAttendeeNote }}</span>
+			</div>
 		</div>
 
 		<!-- Response: read-only once closed or cancelled -->
@@ -166,6 +175,7 @@ import { generateUrl } from '@nextcloud/router'
 import { NcButton, NcChip } from '@nextcloud/vue'
 import { computed } from 'vue'
 import CalendarRemoveIcon from 'vue-material-design-icons/CalendarRemove.vue'
+import InformationIcon from 'vue-material-design-icons/InformationOutline.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
 import MapMarkerIcon from 'vue-material-design-icons/MapMarkerOutline.vue'
 import Paperclip from 'vue-material-design-icons/Paperclip.vue'
@@ -215,6 +225,8 @@ const {
 	isClosed,
 	isCancelled,
 	acceptsResponses,
+	canRespond,
+	notAttendeeNote,
 	userResponse,
 	canManage,
 	canSeeComments,

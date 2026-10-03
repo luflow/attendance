@@ -7,6 +7,7 @@
  * Keeping that in one place is what lets the two templates diverge freely.
  */
 
+import { translate as t } from '@nextcloud/l10n'
 import { computed, unref } from 'vue'
 import { openStreetMapUrl } from '../utils/appointment.js'
 import { formatDateRange } from '../utils/datetime.js'
@@ -46,6 +47,13 @@ export function useAppointmentCard(appointmentSource) {
 			|| permissions.canManageAppointments
 			|| permissions.canSeeResponseOverview))
 
+	// Organizers and see-all viewers outside the audience see the appointment
+	// without being asked to answer it. Older payloads lack the flag.
+	const canRespond = computed(() => acceptsResponses.value && myPermissions.value.isAttendee !== false)
+	const notAttendeeNote = computed(() => (myPermissions.value.isOrganizer === true
+		? t('attendance', 'You organize this appointment but are not an attendee, so you cannot respond.')
+		: t('attendance', 'You are not an attendee of this appointment, so you cannot respond.')))
+
 	// Users can swap which of name and date leads the card.
 	const dateRange = computed(() => formatDateRange(appointment.value.startDatetime, appointment.value.endDatetime))
 	const dateFirst = computed(() => config.displayOrder === 'date_first')
@@ -62,6 +70,8 @@ export function useAppointmentCard(appointmentSource) {
 		isClosed,
 		isCancelled,
 		acceptsResponses,
+		canRespond,
+		notAttendeeNote,
 		userResponse,
 		canManage,
 		canSeeResponses,

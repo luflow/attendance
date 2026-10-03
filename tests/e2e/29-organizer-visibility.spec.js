@@ -22,6 +22,8 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 
 	const ORGANIZED = 'Organizer Visibility A'
 	const OTHER = 'Organizer Visibility B'
+	const OUTSIDE = 'Organizer Visibility C'
+	let outsideId
 
 	test.beforeAll(async ({ request }) => {
 		// A retry re-runs this hook in a fresh worker; stale A/B copies from
@@ -52,6 +54,14 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 			name: OTHER,
 			daysFromNow: 4,
 		})
+		// test3 organizes this one without being invited to it (issue #251).
+		const outside = await createAppointmentViaAPI(request, {
+			name: OUTSIDE,
+			daysFromNow: 5,
+			organizers: ['test3'],
+			visibleUsers: ['test'],
+		})
+		outsideId = outside.id
 		for (const apt of [organized, other]) {
 			await respondToAppointmentViaAPI(request, apt.id, {
 				response: 'yes',
@@ -101,6 +111,33 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 		await page.waitForLoadState('networkidle')
 		await expect(page.locator('[data-test="response-summary"]')).toBeVisible()
 		await expect(page.locator('[data-test="group-summary"]').first()).toBeVisible()
+	})
+
+	test('organizer outside the audience gets a note instead of answer buttons', async ({ page, request, loginAsUser, attendanceApp }) => {
+		await loginAsUser('test3', 'test3')
+		await attendanceApp()
+		await page.waitForLoadState('networkidle')
+		await openAllAppointments(page)
+
+		// Where they are invited as well, they answer like everybody else.
+		await expect(cardFor(page, ORGANIZED).locator('[data-test="response-yes"]')).toBeVisible()
+
+		const outsideCard = cardFor(page, OUTSIDE)
+		await expect(outsideCard.locator('[data-test="not-attendee-note"]')).toBeVisible()
+		await expect(outsideCard.locator('[data-test="response-yes"]')).toHaveCount(0)
+
+		await outsideCard.locator('[data-test="button-show-details"]').click()
+		await page.waitForLoadState('networkidle')
+		await expect(page.locator('[data-test="not-attendee-note"]')).toBeVisible()
+		await expect(page.locator('[data-test="response-yes"]')).toHaveCount(0)
+
+		// Older mobile clients still show the buttons, so the server refuses too.
+		const refused = await respondToAppointmentViaAPI(request, outsideId, {
+			response: 'yes',
+			username: 'test3',
+			password: 'test3',
+		})
+		expect(refused.error).toMatch(/attendees/i)
 	})
 
 	test('organizer sees no summary on appointments they do not organize', async ({ page, loginAsUser, attendanceApp }) => {

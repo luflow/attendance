@@ -67,7 +67,7 @@
 			</div>
 
 			<ResponseEditor
-				v-if="acceptsResponses"
+				v-if="canRespond"
 				compact
 				data-test="response-section"
 				:appointmentId="appointment.id"
@@ -89,6 +89,13 @@
 					<ShowDetailsLink :appointmentId="appointment.id" @open="emit('openDetail', $event)" />
 				</template>
 			</ResponseEditor>
+			<div v-else-if="acceptsResponses" class="list-card__response" data-test="response-section-not-attendee">
+				<span class="list-card__label">{{ t("attendance", "Your response") }}</span>
+				<span class="list-card__note" data-test="not-attendee-note">{{ notAttendeeNote }}</span>
+				<ShowDetailsLink v-if="!detailLinkInBar"
+					:appointmentId="appointment.id"
+					@open="emit('openDetail', $event)" />
+			</div>
 			<div v-else class="list-card__response" data-test="response-section-readonly">
 				<span class="list-card__label">{{ t("attendance", "Your response") }}</span>
 				<span v-if="userResponse" class="list-card__answer">
@@ -157,6 +164,8 @@ const responseOptions = computed(() => responseOptionsFor(props.appointment.allo
 const {
 	isCancelled,
 	acceptsResponses,
+	canRespond,
+	notAttendeeNote,
 	userResponse,
 	canSeeAuditLog,
 	titleText,

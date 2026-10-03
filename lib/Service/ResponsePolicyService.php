@@ -21,6 +21,7 @@ class ResponsePolicyService {
 	public function __construct(
 		private ConfigService $configService,
 		private CapacityService $capacityService,
+		private VisibilityService $visibilityService,
 	) {
 	}
 
@@ -39,6 +40,7 @@ class ResponsePolicyService {
 	}
 
 	/**
+	 * @param string $userId the person the answer is for
 	 * @param ?string $response the answer about to be stored, or null to withdraw
 	 * @param ?string $currentResponse the answer on record, null when there is none
 	 * @param bool $acceptWaitlist the person asked for a place in line if the
@@ -51,6 +53,7 @@ class ResponsePolicyService {
 	 */
 	public function assertResponseAllowed(
 		Appointment $appointment,
+		string $userId,
 		?string $response,
 		?string $currentResponse = null,
 		bool $acceptWaitlist = false,
@@ -61,6 +64,11 @@ class ResponsePolicyService {
 		}
 		if (!in_array($response, self::RESPONSES, true)) {
 			throw new \InvalidArgumentException('Invalid response. Must be yes, no, maybe, or null.');
+		}
+		// Seeing an appointment is not being asked: organizers and see-all
+		// holders outside its audience have no answer to give (issue #251).
+		if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
+			throw new \InvalidArgumentException('Only attendees of this appointment can respond to it.');
 		}
 		if ($response === 'maybe' && !$this->isMaybeAllowed($appointment)) {
 			throw new \InvalidArgumentException('This appointment does not accept "maybe" as an answer.');

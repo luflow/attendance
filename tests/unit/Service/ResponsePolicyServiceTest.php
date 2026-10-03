@@ -12,6 +12,7 @@ use OCA\Attendance\Service\CapacityService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\NotificationService;
 use OCA\Attendance\Service\ResponsePolicyService;
+use OCA\Attendance\Service\VisibilityService;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -22,11 +23,19 @@ class ResponsePolicyServiceTest extends TestCase {
 	/** @var AttendanceResponseMapper|MockObject */
 	private $responseMapper;
 
+	/** @var VisibilityService|MockObject */
+	private $visibilityService;
+
+	/** Whether the person answering is part of the appointment's audience */
+	private bool $inAudience = true;
+
 	private ResponsePolicyService $service;
 
 	protected function setUp(): void {
 		$this->configService = $this->createMock(ConfigService::class);
 		$this->responseMapper = $this->createMock(AttendanceResponseMapper::class);
+		$this->visibilityService = $this->createMock(VisibilityService::class);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturnCallback(fn () => $this->inAudience);
 		// The real capacity rules, on a mocked queue.
 		$this->service = new ResponsePolicyService(
 			$this->configService,
@@ -35,6 +44,7 @@ class ResponsePolicyServiceTest extends TestCase {
 				$this->createMock(NotificationService::class),
 				$this->createMock(AuditEventService::class),
 			),
+			$this->visibilityService,
 		);
 	}
 
@@ -76,22 +86,39 @@ class ResponsePolicyServiceTest extends TestCase {
 		$this->configService->method('isMaybeAllowed')->willReturn(true);
 
 		$this->expectException(\InvalidArgumentException::class);
-		$this->service->assertResponseAllowed($this->appointment(false), 'maybe');
+		$this->service->assertResponseAllowed($this->appointment(false), 'alice', 'maybe');
 	}
 
 	public function testYesAndNoSurviveWithoutMaybe(): void {
 		$this->configService->method('isMaybeAllowed')->willReturn(true);
 		$appointment = $this->appointment(false);
 
-		$this->service->assertResponseAllowed($appointment, 'yes');
-		$this->service->assertResponseAllowed($appointment, 'no');
+		$this->service->assertResponseAllowed($appointment, 'alice', 'yes');
+		$this->service->assertResponseAllowed($appointment, 'alice', 'no');
 		$this->addToAssertionCount(2);
+	}
+
+	/** Issue #251: an organizer outside the audience answered, and the answer showed up nowhere. */
+	public function testAnswerIsRejectedFromOutsideTheAudience(): void {
+		$this->inAudience = false;
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Only attendees of this appointment can respond to it.');
+		$this->service->assertResponseAllowed($this->appointment(true), 'organizer', 'yes');
+	}
+
+	/** An answer given before that rule can still be taken back. */
+	public function testWithdrawingStaysPossibleFromOutsideTheAudience(): void {
+		$this->inAudience = false;
+
+		$this->service->assertResponseAllowed($this->appointment(true), 'organizer', null, 'yes');
+		$this->addToAssertionCount(1);
 	}
 
 	public function testWithdrawingIsAlwaysAllowed(): void {
 		$this->configService->method('isMaybeAllowed')->willReturn(false);
 
-		$this->service->assertResponseAllowed($this->appointment(false), null);
+		$this->service->assertResponseAllowed($this->appointment(false), 'alice', null);
 		$this->addToAssertionCount(1);
 	}
 
@@ -99,7 +126,7 @@ class ResponsePolicyServiceTest extends TestCase {
 		$this->configService->method('isMaybeAllowed')->willReturn(true);
 
 		$this->expectException(\InvalidArgumentException::class);
-		$this->service->assertResponseAllowed($this->appointment(true), 'perhaps');
+		$this->service->assertResponseAllowed($this->appointment(true), 'alice', 'perhaps');
 	}
 
 	public function testALimitTakesMaybeAwayWhateverTheAppointmentSays(): void {
@@ -114,14 +141,14 @@ class ResponsePolicyServiceTest extends TestCase {
 
 		$this->expectException(\RuntimeException::class);
 		$this->expectExceptionMessage('full');
-		$this->service->assertResponseAllowed($this->appointment(null, 4), 'yes', null);
+		$this->service->assertResponseAllowed($this->appointment(null, 4), 'alice', 'yes', null);
 	}
 
 	public function testAFreshYesIsAcceptedWhenTheWaitlistIsAccepted(): void {
 		$this->configService->method('isMaybeAllowed')->willReturn(true);
 		$this->queueOf(4);
 
-		$this->service->assertResponseAllowed($this->appointment(null, 4), 'yes', null, true);
+		$this->service->assertResponseAllowed($this->appointment(null, 4), 'alice', 'yes', null, true);
 		$this->addToAssertionCount(1);
 	}
 
@@ -130,7 +157,7 @@ class ResponsePolicyServiceTest extends TestCase {
 		$this->queueOf(4);
 
 		$this->expectException(\RuntimeException::class);
-		$this->service->assertResponseAllowed($this->appointment(null, 4, false), 'yes', null, true);
+		$this->service->assertResponseAllowed($this->appointment(null, 4, false), 'alice', 'yes', null, true);
 	}
 
 	public function testResavingAYesIsNeverTurnedAway(): void {
@@ -139,7 +166,7 @@ class ResponsePolicyServiceTest extends TestCase {
 
 		// Somebody already in the queue editing their comment must not be
 		// rejected just because the appointment filled up meanwhile.
-		$this->service->assertResponseAllowed($this->appointment(null, 4), 'yes', 'yes');
+		$this->service->assertResponseAllowed($this->appointment(null, 4), 'alice', 'yes', 'yes');
 		$this->addToAssertionCount(1);
 	}
 
@@ -147,7 +174,7 @@ class ResponsePolicyServiceTest extends TestCase {
 		$this->configService->method('isMaybeAllowed')->willReturn(true);
 		$this->queueOf(4);
 
-		$this->service->assertResponseAllowed($this->appointment(null, 4), 'yes', null, false, true);
+		$this->service->assertResponseAllowed($this->appointment(null, 4), 'alice', 'yes', null, false, true);
 		$this->addToAssertionCount(1);
 	}
 
@@ -156,8 +183,8 @@ class ResponsePolicyServiceTest extends TestCase {
 		$this->queueOf(4);
 		$appointment = $this->appointment(null, 4);
 
-		$this->service->assertResponseAllowed($appointment, 'no', null);
-		$this->service->assertResponseAllowed($appointment, null, 'yes');
+		$this->service->assertResponseAllowed($appointment, 'alice', 'no', null);
+		$this->service->assertResponseAllowed($appointment, 'alice', null, 'yes');
 		$this->addToAssertionCount(2);
 	}
 }

@@ -7,6 +7,7 @@ namespace OCA\Attendance\Controller;
 use OCA\Attendance\AppInfo\Application;
 use OCA\Attendance\Service\QuickResponseTokenService;
 use OCA\Attendance\Service\ResponseService;
+use OCA\Attendance\Service\VisibilityService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\BruteForceProtection;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
@@ -31,6 +32,7 @@ class QuickResponseController extends Controller {
 	private IL10N $l;
 	private IUserManager $userManager;
 	private LoggerInterface $logger;
+	private VisibilityService $visibilityService;
 
 	public function __construct(
 		string $appName,
@@ -41,6 +43,7 @@ class QuickResponseController extends Controller {
 		IL10N $l,
 		IUserManager $userManager,
 		LoggerInterface $logger,
+		VisibilityService $visibilityService,
 	) {
 		parent::__construct($appName, $request);
 		$this->tokenService = $tokenService;
@@ -49,6 +52,7 @@ class QuickResponseController extends Controller {
 		$this->l = $l;
 		$this->userManager = $userManager;
 		$this->logger = $logger;
+		$this->visibilityService = $visibilityService;
 	}
 
 	/**
@@ -319,6 +323,15 @@ class QuickResponseController extends Controller {
 			return [
 				'error' => false,
 				'closed' => true,
+			];
+		}
+
+		// Reminders go to attendees only, but an admin's test reminder and a
+		// link kept after leaving the audience end up here as well.
+		if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
+			return [
+				'error' => true,
+				'errorMessage' => $this->l->t('You are not an attendee of this appointment, so you cannot respond.'),
 			];
 		}
 
