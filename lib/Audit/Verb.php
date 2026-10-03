@@ -81,5 +81,8 @@ final class Verb {
 	public const SOURCE_LEGACY_BACKFILL = 'legacy_backfill';
 	public const SOURCE_AUTO_CLOSE = 'auto_close';
 
+	/** An answer set automatically because the person is on vacation. */
+	public const SOURCE_VACATION = 'vacation';
+
 	public const ANONYMISED_USER = '__deleted_user__';
 }

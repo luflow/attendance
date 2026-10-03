@@ -105,7 +105,7 @@ class CalendarService {
 	 * @param string $calendarUri
 	 * @param string $from Start date in Y-m-d format
 	 * @param string $to End date in Y-m-d format
-	 * @return array Array of events with uid, summary, description, dtstart, dtend
+	 * @return list<array<string, mixed>> Array of events with uid, summary, description, dtstart, dtend
 	 */
 	public function getEventsFromCalendar(string $userId, string $calendarUri, string $from, string $to): array {
 		if (!$this->isCalendarAvailable()) {

@@ -151,6 +151,26 @@ namespace OCA\Attendance;
  *   name: string,
  *   icon: string,
  * }
+ * @psalm-type AttendanceVacationData = array{
+ *   id: int,
+ *   userId: string,
+ *   startDate: string,
+ *   endDate: string,
+ *   note: ?string,
+ *   createdAt: string,
+ *   updatedAt: string,
+ * }
+ * @psalm-type AttendanceVacationEntry = array{
+ *   userId: string,
+ *   displayName: string,
+ *   startDate: string,
+ *   endDate: string,
+ *   note: ?string,
+ * }
+ * @psalm-type AttendanceVacationConflicts = array{
+ *   count: int,
+ *   users: list<AttendanceVacationEntry>,
+ * }
  * @psalm-type AttendanceGroupOption = array{id: string, displayName: string}
  * @psalm-type AttendanceTeamOption = array{id: string, displayName: string}
  * @psalm-type AttendancePermissionSetting = array{mode: string, groups: list<string>}
@@ -190,6 +210,7 @@ namespace OCA\Attendance;
  *   statisticsAvailable: bool,
  *   talkRoomsAvailable: bool,
  *   talkRoomDeletion: bool,
+ *   vacationManagementEnabled: bool,
  * }
  * @psalm-type AttendanceAuditUserRef = array{
  *   userId: string,

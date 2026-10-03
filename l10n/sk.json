@@ -511,6 +511,7 @@
     "Move {name} up" : "Posunúť {name} nahor",
     "Move {name} down" : "Posunúť {name} nadol",
     "Sections appear in this order. Drag an entry or use the arrows to move it." : "Sekcie sa zobrazujú v tomto poradí. Presuňte položku alebo ju posuňte pomocou šípok.",
+    "Failed to search teams" : "Nepodarilo sa vyhľadať tímy",
     "Welcome" : "Vitajte",
     "Attendance collects replies for your appointments, records who actually turned up, and breaks it all down by your Nextcloud groups. The next steps set up who may do what — on a fresh installation most of it is open to every user." : "Attendance zhromažďuje odpovede na vaše stretnutia, zaznamenáva, kto sa skutočne dostavil, a rozdeľuje všetko podľa vašich skupín Nextcloud. Ďalšie kroky nastavia, kto môže čo robiť — pri novej inštalácii je väčšina možností otvorená pre každého používateľa.",
     "Someone has to create the appointments people reply to. Usually that is a small group — a board, a team of trainers, the office." : "Niekto musí vytvoriť stretnutia, na ktoré ľudia odpovedajú. Zvyčajne je to malá skupina — rada, tím trénerov alebo kancelária.",

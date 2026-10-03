@@ -513,6 +513,7 @@ OC.L10N.register(
     "Move {name} up" : "{name} ögesini yukarı taşı",
     "Move {name} down" : "{name} ögesini aşağı taşı",
     "Sections appear in this order. Drag an entry or use the arrows to move it." : "Bölümler bu sırayla görünür. Bir kaydı taşımak için sürükleyin ya da okları kullanın.",
+    "Failed to search teams" : "Takımlar aranamadı",
     "Welcome" : "Hoş geldiniz",
     "Attendance collects replies for your appointments, records who actually turned up, and breaks it all down by your Nextcloud groups. The next steps set up who may do what — on a fresh installation most of it is open to every user." : "Katılım, randevularınız için yanıtları toplar, gerçekte kimlerin geldiğini kaydeder ve hepsini Nextcloud gruplarınıza göre ayırır. Sonraki adımlarda, kimin ne yapabileceğini ayarlayın. Yeni bir kurulumda çoğu şey her kullanıcıya açıktır.",
     "Someone has to create the appointments people reply to. Usually that is a small group — a board, a team of trainers, the office." : "Birinin insanların yanıtladığı randevuları oluşturması gerekiyor. Genellikle bu küçük bir gruptur. Bir yönetim kurulu, bir eğitmen ekibi, ofis.",

@@ -511,6 +511,7 @@
     "Move {name} up" : "Mover {name} para cima",
     "Move {name} down" : "Mover {name} para baixo",
     "Sections appear in this order. Drag an entry or use the arrows to move it." : "As seções aparecem nesta ordem. Arraste uma entrada ou use as setas para movê-la.",
+    "Failed to search teams" : "Falha ao pesquisar equipes",
     "Welcome" : "Boas-vindas",
     "Attendance collects replies for your appointments, records who actually turned up, and breaks it all down by your Nextcloud groups. The next steps set up who may do what — on a fresh installation most of it is open to every user." : "O aplicativo Presença coleta respostas sobre seus compromissos, registra quem realmente compareceu e organiza tudo por grupos do Nextcloud. As próximas etapas definem quem pode fazer o quê — em uma instalação nova, a maior parte das funções está disponível para todos os usuários.",
     "Someone has to create the appointments people reply to. Usually that is a small group — a board, a team of trainers, the office." : "Alguém precisa criar os compromissos aos quais as pessoas respondem. Normalmente, trata-se de um pequeno grupo — um conselho, uma equipe de instrutores, o escritório.",
