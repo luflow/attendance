@@ -9,7 +9,7 @@
 
 import { translate as t } from '@nextcloud/l10n'
 import { computed, unref } from 'vue'
-import { openStreetMapUrl } from '../utils/appointment.js'
+import { isAttendee, isOrganizer, openStreetMapUrl } from '../utils/appointment.js'
 import { formatDateRange } from '../utils/datetime.js'
 import { useCategories } from './useCategories.js'
 import { usePermissions } from './usePermissions.js'
@@ -48,9 +48,9 @@ export function useAppointmentCard(appointmentSource) {
 			|| permissions.canSeeResponseOverview))
 
 	// Organizers and see-all viewers outside the audience see the appointment
-	// without being asked to answer it. Older payloads lack the flag.
-	const canRespond = computed(() => acceptsResponses.value && myPermissions.value.isAttendee !== false)
-	const notAttendeeNote = computed(() => (myPermissions.value.isOrganizer === true
+	// without being asked to answer it.
+	const canRespond = computed(() => acceptsResponses.value && isAttendee(appointment.value))
+	const notAttendeeNote = computed(() => (isOrganizer(appointment.value)
 		? t('attendance', 'You organize this appointment but are not an attendee, so you cannot respond.')
 		: t('attendance', 'You are not an attendee of this appointment, so you cannot respond.')))
 

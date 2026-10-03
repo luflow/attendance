@@ -228,6 +228,7 @@ namespace OCA\Attendance;
  *   talkRoomDeletion: bool,
  *   seeAllAppointments: bool,
  *   vacationManagementEnabled: bool,
+ *   roleFilter: bool,
  * }
  * @psalm-type AttendanceAuditUserRef = array{
  *   userId: string,

@@ -85,6 +85,15 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 	const cardFor = (page, name) =>
 		page.locator('[data-test="appointment-card"]', { hasText: name }).first()
 
+	// The popover stays open after a choice, and a second click on its trigger
+	// would close it instead of opening it again — so close it after each pick.
+	async function pickRole(page, name) {
+		await page.locator('[data-test="filter-role"]').click()
+		await page.getByRole('menuitemradio', { name }).click()
+		await page.keyboard.press('Escape')
+		await expect(page.getByRole('menuitemradio', { name })).toBeHidden()
+	}
+
 	test.afterAll(async ({ request }) => {
 		await deleteAllAppointments(request)
 		await resetAdminSettings(request)
@@ -138,6 +147,39 @@ test.describe('Attendance App - Organizer response visibility (sequential)', () 
 			password: 'test3',
 		})
 		expect(refused.error).toMatch(/attendees/i)
+	})
+
+	test('role filter tells attending from organizing', async ({ page, loginAsUser, attendanceApp }) => {
+		await loginAsUser('test3', 'test3')
+		await attendanceApp()
+		await page.waitForLoadState('networkidle')
+		await openAllAppointments(page)
+
+		await pickRole(page, 'I am an organizer')
+		await expect(cardFor(page, ORGANIZED)).toBeVisible()
+		await expect(cardFor(page, OUTSIDE)).toBeVisible()
+		await expect(cardFor(page, OTHER)).toBeHidden()
+
+		await pickRole(page, 'I am an attendee')
+		await expect(cardFor(page, ORGANIZED)).toBeVisible()
+		await expect(cardFor(page, OTHER)).toBeVisible()
+		await expect(cardFor(page, OUTSIDE)).toBeHidden()
+
+		// test3 is part of everything they see, so there is nothing to single out.
+		await page.locator('[data-test="filter-role"]').click()
+		await expect(page.getByRole('menuitemradio', { name: 'Not involved' })).toHaveCount(0)
+	})
+
+	test('role filter singles out what a manager is not involved in', async ({ page, loginAsUser, attendanceApp }) => {
+		await loginAsUser('admin', 'admin')
+		await attendanceApp()
+		await page.waitForLoadState('networkidle')
+		await openAllAppointments(page)
+
+		await pickRole(page, 'Not involved')
+		await expect(cardFor(page, OUTSIDE)).toBeVisible()
+		await expect(cardFor(page, ORGANIZED)).toBeHidden()
+		await expect(cardFor(page, OTHER)).toBeHidden()
 	})
 
 	test('organizer sees no summary on appointments they do not organize', async ({ page, loginAsUser, attendanceApp }) => {

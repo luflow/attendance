@@ -1128,6 +1128,10 @@ class AppointmentController extends Controller {
 			// overview, and auto-"no" responses for invitees on vacation.
 			// Clients hide all of that UI when this is false.
 			'vacationManagementEnabled' => true,
+			// Server sends myPermissions.isAttendee. Without it every appointment
+			// reads as "invited" and only organizing could be told apart, so
+			// clients offer the "My role" filter whole or not at all.
+			'roleFilter' => true,
 		]);
 	}
 

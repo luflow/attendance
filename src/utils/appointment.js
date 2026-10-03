@@ -96,6 +96,25 @@ export function finalScheduleStatus(appointment, bookingEnabled) {
 }
 
 /**
+ * Whether the viewer is part of the appointment's audience. Payloads without
+ * the flag predate it, when everyone who saw an appointment was asked.
+ *
+ * @param {object} appointment The appointment payload.
+ * @return {boolean} Whether the viewer is invited to it.
+ */
+export function isAttendee(appointment) {
+	return appointment.myPermissions?.isAttendee !== false
+}
+
+/**
+ * @param {object} appointment The appointment payload.
+ * @return {boolean} Whether the viewer is one of its organizers.
+ */
+export function isOrganizer(appointment) {
+	return appointment.myPermissions?.isOrganizer === true
+}
+
+/**
  * Human label for a called-off appointment.
  *
  * @param {string|null|undefined} cancelledAt UTC timestamp of the cancellation.

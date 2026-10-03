@@ -237,7 +237,8 @@
                     "talkRoomsAvailable",
                     "talkRoomDeletion",
                     "seeAllAppointments",
-                    "vacationManagementEnabled"
+                    "vacationManagementEnabled",
+                    "roleFilter"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -319,6 +320,9 @@
                         "type": "boolean"
                     },
                     "vacationManagementEnabled": {
+                        "type": "boolean"
+                    },
+                    "roleFilter": {
                         "type": "boolean"
                     }
                 }

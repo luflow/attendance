@@ -1049,6 +1049,10 @@ OC.L10N.register(
     "{count} people can't attend at this time — their answer defaults to \"No\"" : "{count} Personen können zu dieser Zeit nicht teilnehmen — ihre Antwort steht standardmäßig auf „Nein“",
     "Add a group column next to the names" : "Gruppenspalte neben den Namen ergänzen",
     "You organize this appointment but are not an attendee, so you cannot respond." : "Sie sind nur Organisator dieses Termins und kein Teilnehmer, daher können Sie keine Antwort abgeben.",
-    "You are not an attendee of this appointment, so you cannot respond." : "Sie sind kein Teilnehmer dieses Termins, daher können Sie keine Antwort abgeben."
+    "You are not an attendee of this appointment, so you cannot respond." : "Sie sind kein Teilnehmer dieses Termins, daher können Sie keine Antwort abgeben.",
+    "My role" : "Meine Rolle",
+    "I am an attendee" : "Ich nehme teil",
+    "I am an organizer" : "Ich organisiere",
+    "Not involved" : "Nicht beteiligt"
 },
 "nplurals=2; plural=(n != 1);");
