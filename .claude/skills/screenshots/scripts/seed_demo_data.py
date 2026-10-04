@@ -81,6 +81,7 @@ TEST_LOGINS = ["alice", "john"]
 SERIES_ID = "demo-rehearsal-series"
 COACHING_SERIES_ID = "demo-coaching-series"
 SPRING_SERIES_ID = "demo-spring-project"
+ALLDAY_SERIES_ID = "demo-allday-series"
 
 BERLIN = ZoneInfo("Europe/Berlin")
 
@@ -124,6 +125,8 @@ CATEGORY_FOR = {
     "t_waitlist": "weekend", "t_full": "performance",
     "t_spots": "performance", "t_retract": "performance",
     "t_cancelled": "party",
+    "t_allday_single": "party", "t_allday_multi": "weekend",
+    "t_allday_series": "performance",
 }
 
 # Only a few appointments carry a location — screenshots should show both the
@@ -301,6 +304,30 @@ TEXTS = {
                "eingeplant, Bernd und Sophie haben eine Absage bekommen. Wieder "
                "öffnen, Alice ausplanen, erneut schließen — Alice muss danach als "
                "nicht eingeplant dastehen."),
+    },
+    "t_allday_single": {
+        "en": ("Choir outing (all day)",
+               "Test case: a single all-day appointment — shown as a date without a "
+               "time in every list, card, check-in and notification."),
+        "de": ("Chorausflug (ganztägig)",
+               "Testfall: ein einzelner ganztägiger Termin — überall als Datum ohne "
+               "Uhrzeit, in Listen, Karten, Check-in und Benachrichtigungen."),
+    },
+    "t_allday_multi": {
+        "en": ("Choir trip (3 days, across the clock change)",
+               "Test case: all day, Saturday to Monday over the switch to winter "
+               "time. The last day is named as the end, not the day after it."),
+        "de": ("Chorfahrt (3 Tage, über die Zeitumstellung)",
+               "Testfall: ganztägig, Samstag bis Montag über die Umstellung auf "
+               "Winterzeit. Das Ende nennt den letzten Tag, nicht den Tag danach."),
+    },
+    "t_allday_series": {
+        "en": ("Open day (all-day series)",
+               "Test case: a weekly all-day series over the clock change — every "
+               "occurrence has to stay on whole days."),
+        "de": ("Tag der offenen Tür (ganztägige Serie)",
+               "Testfall: wöchentliche ganztägige Serie über die Zeitumstellung — "
+               "jeder Termin muss auf ganzen Tagen bleiben."),
     },
     "t_coaching": {
         "en": ("Vocal coaching",
@@ -612,6 +639,24 @@ RESPONSES = {
         ("user4", Y, "", "", None),
         ("bob", N, "", "", None),
     ],
+    "t_allday_single": [
+        ("alice", Y, "", "", None),
+        ("jane", Y, "", "", None),
+        ("john", M, "", "", None),
+        ("user3", N, "", "", None),
+    ],
+    "t_allday_multi": [
+        ("alice", Y, "", "", None),
+        ("jane", Y, "", "", None),
+        ("john", Y, "", "", None),
+        ("user6", N, "", "", None),
+        ("bob", M, "", "", None),
+    ],
+    "t_allday_series": [
+        ("alice", Y, "", "", None),
+        ("jane", N, "", "", None),
+        ("bob", Y, "", "", None),
+    ],
     "t_checkin": [
         ("admin", Y, "", Y, "manual"),
         ("alice", Y, "", Y, "self_qr"),
@@ -903,6 +948,20 @@ def build_test_appointments(now: dt.datetime, lang: str) -> list[dict]:
                            series_id=SPRING_SERIES_ID, series_pos=pos,
                            responses=filler_responses(pos, d, today)))
 
+    def all_day(first: dt.date, last: dt.date) -> dict:
+        # The creator's midnight of the first day to the midnight after the last.
+        return dict(start=at(first, 0), end=at(last + dt.timedelta(days=1), 0),
+                    all_day=True)
+
+    appts.append(named("t_allday_single", **all_day(day(1, sun), day(1, sun))))
+    # Sat 24 Oct to Mon 26 Oct 2026 spans the end of summer time (25 Oct).
+    appts.append(named("t_allday_multi",
+                       **all_day(dt.date(2026, 10, 24), dt.date(2026, 10, 26))))
+    for pos, d in enumerate([dt.date(2026, 10, 18), dt.date(2026, 10, 25),
+                             dt.date(2026, 11, 1), dt.date(2026, 11, 8)]):
+        appts.append(named("t_allday_series", series_id=ALLDAY_SERIES_ID,
+                           series_pos=pos, **all_day(d, d)))
+
     for i, a in enumerate(appts, start=TEST_ID_BASE):
         a["id"] = i
         a.setdefault("series_pos", None)
@@ -974,7 +1033,7 @@ def build_sql(appts: list[dict], known_users: set[str], lang: str,
                 "visible_teams, series_id, series_position, send_notification, "
                 "closed_at, response_deadline, cancelled_at, organizers, "
                 "location, category_id, allow_maybe, max_attendees, "
-                "waitlist_enabled")
+                "waitlist_enabled, all_day")
         vals = ", ".join([
             str(a["id"]), q(a["name"]), q(a["desc"]),
             q(a["start"].strftime(fmt)), q(a["end"].strftime(fmt)),
@@ -992,6 +1051,7 @@ def build_sql(appts: list[dict], known_users: set[str], lang: str,
             "NULL" if a.get("allow_maybe") is None else str(int(a["allow_maybe"])),
             q(a.get("max_attendees")),
             str(int(a.get("waitlist", True))),
+            str(int(a.get("all_day", False))),
         ])
         out.append(f"INSERT INTO oc_att_appointments ({cols}) VALUES ({vals});")
 
@@ -1256,7 +1316,8 @@ def main() -> None:
 
     print(f"seeded {len(CATEGORIES)} categories and {len(appts)} appointments "
           f"(IDs {ID_BASE}-{appts[-1]['id']}):")
-    series = {key: sum(a["key"] == key for a in appts) for key in ("t_coaching", "t_spring")}
+    series = {key: sum(a["key"] == key for a in appts)
+              for key in ("t_coaching", "t_spring", "t_allday_series")}
     for a in appts:
         if a["key"] in series:
             continue
