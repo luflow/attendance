@@ -133,7 +133,6 @@ OC.L10N.register(
     "Open" : "Отвори",
     "Push notifications" : "Push известия",
     "or" : "или",
-    "Relevance" : " Съответствие",
     "View all" : "Виж всички",
     "Location" : "Местоположение",
     "Category" : "Категория",

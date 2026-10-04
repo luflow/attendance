@@ -39,7 +39,7 @@ export function useCategories() {
 
 	/**
 	 * @param {?number} categoryId The appointment's category id.
-	 * @return {?object} The category ({ id, name, icon }), or null when unset
+	 * @return {?object} The category ({ id, name, icon, template }), or null when unset
 	 *         or the category has since been deleted.
 	 */
 	const getCategory = (categoryId) => {

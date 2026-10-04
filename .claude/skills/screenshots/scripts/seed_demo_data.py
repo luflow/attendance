@@ -5,9 +5,9 @@ Writes appointments and responses straight into `oc_att_appointments` /
 `oc_att_responses`, so no user logins are needed to produce "everyone has
 answered" screenshots.
 
-Non-destructive: only touches appointment IDs in the reserved range
-101-199 and deletes/re-inserts just those. Existing appointments and every
-other table are left alone.
+Non-destructive: only touches IDs in the reserved range 101-399 and
+deletes/re-inserts just those. Anything created through the UI afterwards
+gets an ID from 1000 up, so it survives a re-run.
 
 All datetimes are naive UTC strings (`Y-m-d H:i:s`) — that is what the app
 stores and what `DatetimeFormatTrait` expects. Times are computed relative
@@ -20,6 +20,8 @@ Usage:
     python3 seed_demo_data.py --lang de     # German UI + data (website shots)
     python3 seed_demo_data.py --no-config   # only appointments, skip
                                             # display names / groups / locale
+    python3 seed_demo_data.py --test-cases  # plus one appointment per case a
+                                            # release test has to look at
 """
 
 from __future__ import annotations
@@ -29,15 +31,22 @@ import datetime as dt
 import json
 import subprocess
 import sys
+from zoneinfo import ZoneInfo
 
 ID_BASE = 101
-ID_MAX = 199
+ID_MAX = 399
+# First ID handed to rows created through the UI after a seed.
+FREE_ID_BASE = 1000
 
 # The redesign showcase (--design-states) lives at the top of the reserved
 # range so it never collides with the ten app store appointments.
 DESIGN_ID_BASE = 151
 
-# Voice groups expected on the instance, plus the conductor group we add so
+# The release test cases (--test-cases) sit above everything a screenshot run
+# seeds, so the two never have to know about each other.
+TEST_ID_BASE = 201
+
+# Voice groups, plus the conductor group we add so
 # the person taking the screenshots does not land in the "Others" bucket of
 # the response summary. The conductor group is per language because the
 # response summary renders group IDs, not display names — renaming the
@@ -65,6 +74,10 @@ MEMBERS = {
 ORGANIZER = "admin"
 
 SERIES_ID = "demo-rehearsal-series"
+COACHING_SERIES_ID = "demo-coaching-series"
+SPRING_SERIES_ID = "demo-spring-project"
+
+BERLIN = ZoneInfo("Europe/Berlin")
 
 # Demo categories, written into `oc_att_categories` in the same reserved ID
 # range as the appointments. Icons must be keys of CategoryService::ICONS.
@@ -87,6 +100,12 @@ CATEGORY_FOR = {
     "d_maybe": "rehearsal", "d_no": "rehearsal",
     "d_booked": "party", "d_declined": "performance",
     "d_cancelled": "rehearsal",
+    "t_nomaybe": "rehearsal", "t_org_only": "rehearsal",
+    "t_not_involved": "rehearsal", "t_checkin": "rehearsal",
+    "t_coaching": "rehearsal", "t_spring": "rehearsal",
+    "t_waitlist": "weekend", "t_full": "performance",
+    "t_spots": "performance", "t_retract": "performance",
+    "t_cancelled": "party",
 }
 
 # Only a few appointments carry a location — screenshots should show both the
@@ -96,6 +115,9 @@ LOCATIONS = {
     "concert": {"en": "Stadtpark, Bamberg", "de": "Stadtpark, Bamberg"},
     "weekend": {"en": "Kloster Banz, Bad Staffelstein",
                 "de": "Kloster Banz, Bad Staffelstein"},
+    "t_waitlist": {"en": "Music school, room 3", "de": "Musikschule, Raum 3"},
+    "t_retract": {"en": "Schloss Seehof, Memmelsdorf",
+                  "de": "Schloss Seehof, Memmelsdorf"},
 }
 
 # Appointment name + description per language, keyed like RESPONSES. The
@@ -179,7 +201,115 @@ TEXTS = {
         "de": ("Chorfahrt Planungstreffen",
                "Kurzes Treffen zur Chorfahrt: Termin, Unterkunft, Programm."),
     },
+    # --- release test cases (--test-cases) ----------------------------------
+    # The name says which case it is, the description what to check.
+    "t_nomaybe": {
+        "en": ("Sectional rehearsal (no “Maybe”)",
+               "Test case: only Yes and No are offered, “Maybe” is switched off for "
+               "this appointment. Nadine is on vacation and was set to No automatically."),
+        "de": ("Registerprobe (ohne „Vielleicht“)",
+               "Testfall: Hier gibt es nur Ja und Nein, „Vielleicht“ ist für diesen "
+               "Termin abgeschaltet. Nadine ist im Urlaub und wurde automatisch auf "
+               "Nein gesetzt."),
+    },
+    "t_waitlist": {
+        "en": ("Vocal workshop (max. 4, waitlist)",
+               "Test case: 4 spots, all taken, Sophie and Lena on the waitlist. "
+               "Answering Yes puts you in line; once somebody with a spot declines, "
+               "the next person moves up."),
+        "de": ("Stimm-Workshop (max. 4, Warteliste)",
+               "Testfall: 4 Plätze, alle belegt, Sophie und Lena stehen auf der "
+               "Warteliste. Mit Ja landest du auf der Warteliste; sagt jemand mit "
+               "Platz ab, rückt die nächste Person nach."),
+    },
+    "t_full": {
+        "en": ("Small ensemble (max. 3, no waitlist)",
+               "Test case: 3 spots, all taken, no waitlist — Yes is refused until "
+               "a spot frees up."),
+        "de": ("Kleines Ensemble (max. 3, ohne Warteliste)",
+               "Testfall: 3 Plätze, alle belegt, keine Warteliste — Ja wird "
+               "abgelehnt, bis ein Platz frei wird."),
+    },
+    "t_spots": {
+        "en": ("Care home concert (max. 8, spots left)",
+               "Test case: 3 of 8 spots taken. Two organizers, Christina and Jana, "
+               "for the organizer row of the export."),
+        "de": ("Vorsingen im Seniorenheim (max. 8, Plätze frei)",
+               "Testfall: 3 von 8 Plätzen belegt. Zwei Organisatorinnen, Christina "
+               "und Jana, für die Organisatoren-Zeile im Export."),
+    },
+    "t_cancelled": {
+        "en": ("Choir social (cancelled)",
+               "Test case: cancelled — stays in the list while no status filter is "
+               "set, and disappears under Opened and Closed."),
+        "de": ("Chor-Stammtisch (abgesagt)",
+               "Testfall: abgesagt — bleibt ohne Statusfilter in der Liste und "
+               "verschwindet unter Offen und Geschlossen."),
+    },
+    "t_org_only": {
+        "en": ("Sopran & Alt sectional (organizer only)",
+               "Test case: Christina organizes this but is not invited — no answer "
+               "buttons, and it does not count as unanswered."),
+        "de": ("Probe Sopran & Alt (nur Organisation)",
+               "Testfall: Christina organisiert, ist aber nicht eingeladen — keine "
+               "Antwort-Buttons, und der Termin zählt nicht als unbeantwortet."),
+    },
+    "t_not_involved": {
+        "en": ("Tenor & Bass sectional (not involved)",
+               "Test case: organized by Jonas for Tenor and Bass only. Christina "
+               "sees it through her manage permission, neither invited nor organizer."),
+        "de": ("Probe Tenor & Bass (nicht beteiligt)",
+               "Testfall: von Jonas nur für Tenor und Bass organisiert. Christina "
+               "sieht den Termin über ihr Verwaltungsrecht, ist weder eingeladen "
+               "noch Organisatorin."),
+    },
+    "t_checkin": {
+        "en": ("Special rehearsal (check-in without answer)",
+               "Test case: Tobias and Markus never answered but were checked in — "
+               "the summary shows the check-in mark next to their names. Nadine "
+               "never answered and did not come."),
+        "de": ("Sonderprobe (Check-in ohne Antwort)",
+               "Testfall: Tobias und Markus haben nie geantwortet, wurden aber "
+               "eingecheckt — die Übersicht zeigt das Check-in-Zeichen neben ihren "
+               "Namen. Nadine hat nie geantwortet und war nicht da."),
+    },
+    "t_retract": {
+        "en": ("Wedding gig (take back scheduling)",
+               "Test case: closed; Christina, Alice, Jana and Jonas are scheduled, "
+               "Bernd and Sophie were told they are not. Reopen, take Alice out of "
+               "the plan, close again — Alice has to end up as not scheduled."),
+        "de": ("Hochzeitsauftritt (Einplanung zurücknehmen)",
+               "Testfall: geschlossen; Christina, Alice, Jana und Jonas sind "
+               "eingeplant, Bernd und Sophie haben eine Absage bekommen. Wieder "
+               "öffnen, Alice ausplanen, erneut schließen — Alice muss danach als "
+               "nicht eingeplant dastehen."),
+    },
+    "t_coaching": {
+        "en": ("Vocal coaching",
+               "Weekly vocal coaching in small groups. A long series — test data "
+               "for paging the list and for the series filter of the export."),
+        "de": ("Stimmbildung",
+               "Wöchentliche Stimmbildung in Kleingruppen. Eine lange Serie — "
+               "Testdaten für das Nachladen der Liste und den Serienfilter im Export."),
+    },
+    "t_spring": {
+        "en": ("Spring project choir",
+               "A finished series — listed under the completed series in the export."),
+        "de": ("Projektchor Frühjahr",
+               "Eine abgeschlossene Serie — steht im Export unter den "
+               "abgeschlossenen Serien."),
+    },
 }
+
+# Vacation periods for --test-cases, as day offsets from today:
+# (user, first day, last day, note per language or None).
+VACATIONS = [
+    ("user5", 5, 19, {"en": "Mallorca", "de": "Mallorca"}),
+    ("john", 45, 52, {"en": "Business trip", "de": "Dienstreise"}),
+    ("admin", 78, 91, {"en": "Christmas break", "de": "Weihnachtsurlaub"}),
+    ("user3", 110, 117, {"en": "Skiing", "de": "Skiurlaub"}),
+    ("alice", -30, -20, None),
+]
 
 # Response comments are authored in English in RESPONSES; `--lang de` swaps
 # them through this table so no English sneaks into a German screenshot.
@@ -403,6 +533,89 @@ RESPONSES = {
         ("user1", N, "", "", None),
         ("john", Y, "", "", None),
     ],
+    # --- release test cases (--test-cases) ----------------------------------
+    # The optional 7th tuple element carries what only these rows need:
+    # "source" (response_source), "notified" (the scheduling verdict a closing
+    # handed out) and "waitlist" (what the person was last told about their
+    # place). A response of None is a row that only holds a check-in.
+    "t_nomaybe": [
+        ("alice", Y, "", "", None),
+        ("user3", N, "", "", None),
+        ("user6", Y, "", "", None),
+        ("jane", Y, "", "", None),
+        ("user1", Y, "", "", None),
+        ("user5", N, "", "", None, None, {"source": "vacation"}),
+        ("john", Y, "", "", None),
+        ("bob", N, "", "", None),
+        ("user2", Y, "", "", None),
+    ],
+    # Row order is the order the spots were claimed in: four in, two waiting.
+    "t_waitlist": [
+        ("alice", Y, "", "", None),
+        ("jane", Y, "", "", None),
+        ("john", Y, "", "", None),
+        ("bob", Y, "", "", None),
+        ("user3", Y, "", "", None, None, {"waitlist": "waitlisted"}),
+        ("user1", Y, "", "", None, None, {"waitlist": "waitlisted"}),
+        ("user6", N, "", "", None),
+        ("user5", N, "", "", None, None, {"source": "vacation"}),
+        ("user2", M, "", "", None),
+    ],
+    "t_full": [
+        ("alice", Y, "", "", None),
+        ("user6", Y, "", "", None),
+        ("user4", Y, "", "", None),
+        ("jane", N, "", "", None),
+        ("bob", M, "", "", None),
+    ],
+    "t_spots": [
+        ("admin", Y, "", "", None),
+        ("john", Y, "", "", None),
+        ("user2", Y, "", "", None),
+        ("user1", N, "", "", None),
+        ("alice", M, "", "", None),
+    ],
+    "t_cancelled": [
+        ("admin", Y, "", "", None),
+        ("alice", Y, "", "", None),
+        ("jane", Y, "", "", None),
+        ("john", N, "", "", None),
+        ("bob", Y, "", "", None),
+    ],
+    "t_org_only": [
+        ("alice", Y, "", "", None),
+        ("user3", Y, "", "", None),
+        ("jane", M, "", "", None),
+        ("user1", Y, "", "", None),
+        ("user5", N, "", "", None, None, {"source": "vacation"}),
+    ],
+    "t_not_involved": [
+        ("john", Y, "", "", None),
+        ("user4", Y, "", "", None),
+        ("bob", N, "", "", None),
+    ],
+    "t_checkin": [
+        ("admin", Y, "", Y, "manual"),
+        ("alice", Y, "", Y, "self_qr"),
+        ("user3", Y, "", Y, "self_qr"),
+        ("user6", M, "", Y, "self_qr"),
+        ("jane", Y, "", Y, "manual"),
+        ("user1", Y, "", N, "manual"),
+        ("john", N, "", "", None),
+        ("bob", Y, "", Y, "self_nfc"),
+        ("user4", None, "", Y, "manual"),
+        ("user2", None, "", Y, "self_qr"),
+    ],
+    "t_retract": [
+        ("admin", Y, "", "", None, "booked", {"notified": "booked"}),
+        ("alice", Y, "", "", None, "booked", {"notified": "booked"}),
+        ("jane", Y, "", "", None, "booked", {"notified": "booked"}),
+        ("john", Y, "", "", None, "booked", {"notified": "booked"}),
+        ("bob", Y, "", "", None, None, {"notified": "declined"}),
+        ("user3", Y, "", "", None, None, {"notified": "declined"}),
+        ("user6", N, "", "", None),
+        ("user1", M, "", "", None),
+    ],
     "weekend": [
         ("admin", Y, "", "", None),
         ("alice", Y, "", "", None),
@@ -482,12 +695,9 @@ def q(v) -> str:
 
 
 def at(day: dt.date, hour: int, minute: int = 0) -> dt.datetime:
-    """Local wall-clock time -> naive UTC. Europe/Berlin summer time is UTC+2.
-
-    Screenshots are taken in summer; a two-hour offset keeps rehearsals at a
-    plausible 20:00 local. Adjust if you shoot in winter.
-    """
-    return dt.datetime.combine(day, dt.time(hour, minute)) - dt.timedelta(hours=2)
+    """Europe/Berlin wall-clock time -> naive UTC, daylight saving included."""
+    local = dt.datetime.combine(day, dt.time(hour, minute), tzinfo=BERLIN)
+    return local.astimezone(dt.timezone.utc).replace(tzinfo=None)
 
 
 def weekday_near(base: dt.date, weekday: int, offset_weeks: int) -> dt.date:
@@ -594,6 +804,99 @@ def build_design_appointments(now: dt.datetime, lang: str) -> list[dict]:
     return appts
 
 
+def on_vacation(user: str, day: dt.date, today: dt.date) -> bool:
+    return any(u == user and first <= (day - today).days <= last
+               for u, first, last, _ in VACATIONS)
+
+
+def filler_responses(pos: int, day: dt.date, today: dt.date) -> list[tuple]:
+    """Deterministic answers for a long series, so 70 rows need no table.
+
+    The further out an occurrence is, the fewer people have answered it. The
+    screenshot account stops answering after the next one or two, which leaves
+    more unanswered appointments than one page holds.
+    """
+    past = day < today
+    weeks_out = (day - today).days // 7
+    rows = []
+    for i, uid in enumerate(MEMBERS):
+        if uid == ORGANIZER and weeks_out >= 2:
+            continue
+        if not past and on_vacation(uid, day, today):
+            rows.append((uid, N, "", "", None, None, {"source": "vacation"}))
+            continue
+        if weeks_out > 6 and (i + pos) % 3:
+            continue
+        roll = (pos * 7 + i * 3) % 10
+        if roll == 9:
+            continue
+        resp = Y if roll < 6 else N if roll < 8 else M
+        checked = past and resp == Y
+        rows.append((uid, resp, "", Y if checked else "",
+                     ("self_qr" if i % 2 else "manual") if checked else None))
+    return rows
+
+
+def build_test_appointments(now: dt.datetime, lang: str) -> list[dict]:
+    """One appointment per case a release test has to look at.
+
+    Plus a 67-part weekly series, about half of it in the past, so every list
+    view has more rows than one page holds, and a finished series for the
+    export's "completed" section.
+    """
+    today = now.date()
+    mon, wed, thu, fri, sat, sun = 0, 2, 3, 4, 5, 6
+
+    def day(weeks: int, weekday: int) -> dt.date:
+        return weekday_near(today, weekday, weeks)
+
+    def named(key: str, **kw) -> dict:
+        name, desc = text(key, lang)
+        return dict(key=key, name=name, desc=desc, **kw)
+
+    yesterday = today - dt.timedelta(days=1)
+    appts = [
+        named("t_not_involved", start=at(day(1, wed), 19, 30), end=at(day(1, wed), 21),
+              groups=["Tenor", "Bass"], organizers=["john"], created_by="john"),
+        named("t_cancelled", start=at(day(1, fri), 20), end=at(day(1, fri), 22),
+              cancelled=True),
+        named("t_org_only", start=at(day(2, mon), 19, 30), end=at(day(2, mon), 21),
+              groups=["Sopran", "Alt"]),
+        named("t_nomaybe", start=at(day(2, wed), 19), end=at(day(2, wed), 21),
+              allow_maybe=False),
+        named("t_waitlist", start=at(day(2, sat), 10), end=at(day(2, sat), 16),
+              max_attendees=4),
+        named("t_full", start=at(day(2, sun), 17), end=at(day(2, sun), 19),
+              max_attendees=3, waitlist=False),
+        named("t_spots", start=at(day(4, fri), 15), end=at(day(4, fri), 16, 30),
+              max_attendees=8, organizers=[ORGANIZER, "jane"]),
+        named("t_retract", start=at(day(4, sat), 14), end=at(day(4, sat), 17),
+              closed=True),
+        named("t_checkin", start=at(yesterday, 19), end=at(yesterday, 21)),
+    ]
+    for pos, weeks in enumerate(range(-30, 37)):
+        d = day(weeks, thu)
+        appts.append(named("t_coaching", start=at(d, 18), end=at(d, 18, 45),
+                           series_id=COACHING_SERIES_ID, series_pos=pos,
+                           responses=filler_responses(pos, d, today)))
+    for pos, weeks in enumerate(range(-24, -20)):
+        d = day(weeks, sat)
+        appts.append(named("t_spring", start=at(d, 10), end=at(d, 13),
+                           series_id=SPRING_SERIES_ID, series_pos=pos,
+                           responses=filler_responses(pos, d, today)))
+
+    for i, a in enumerate(appts, start=TEST_ID_BASE):
+        a["id"] = i
+        a.setdefault("series_pos", None)
+        a.setdefault("deadline", None)
+        # Never in the future: these states exist the moment the seed has run.
+        stamp = min(a["start"] - dt.timedelta(days=7), now - dt.timedelta(hours=1))
+        done = a["start"] if a["end"] < now else None
+        a["closed"] = stamp if a.pop("closed", False) else done
+        a["cancelled"] = stamp if a.pop("cancelled", False) else None
+    return appts
+
+
 def category_ids() -> dict[str, int]:
     return {key: ID_BASE + i for i, (key, _, _) in enumerate(CATEGORIES)}
 
@@ -617,7 +920,8 @@ def build_category_sql(lang: str) -> list[str]:
     return out
 
 
-def build_sql(appts: list[dict], known_users: set[str], lang: str) -> list[str]:
+def build_sql(appts: list[dict], known_users: set[str], lang: str,
+              now: dt.datetime) -> list[str]:
     fmt = "%Y-%m-%d %H:%M:%S"
     out = [
         "SET NAMES utf8mb4;",
@@ -625,57 +929,105 @@ def build_sql(appts: list[dict], known_users: set[str], lang: str) -> list[str]:
         f"DELETE FROM oc_att_appointments WHERE id BETWEEN {ID_BASE} AND {ID_MAX};",
     ]
     out += build_category_sql(lang)
-    groups = json.dumps([CONDUCTOR_GROUPS[lang]] + VOICE_GROUPS)
-    organizers = json.dumps([ORGANIZER])
+    everyone = [CONDUCTOR_GROUPS[lang]] + VOICE_GROUPS
     cat_ids = category_ids()
 
     for a in appts:
-        created = (a["start"] - dt.timedelta(days=9)).strftime(fmt)
+        # Never after the seed itself: an appointment months away exists by now.
+        created_at = min(a["start"] - dt.timedelta(days=9), now - dt.timedelta(days=3))
+        created = created_at.strftime(fmt)
         cat_key = CATEGORY_FOR.get(a["key"])
         location = LOCATIONS.get(a["key"], {}).get(lang)
         cols = ("id, name, description, start_datetime, end_datetime, created_by, "
                 "created_at, updated_at, is_active, visible_users, visible_groups, "
                 "visible_teams, series_id, series_position, send_notification, "
                 "closed_at, response_deadline, cancelled_at, organizers, "
-                "location, category_id")
+                "location, category_id, allow_maybe, max_attendees, "
+                "waitlist_enabled")
         vals = ", ".join([
             str(a["id"]), q(a["name"]), q(a["desc"]),
             q(a["start"].strftime(fmt)), q(a["end"].strftime(fmt)),
-            q(ORGANIZER), q(created), q(created), "1",
-            "NULL", q(groups), "NULL",
-            q(SERIES_ID) if a["series_pos"] is not None else "NULL",
+            q(a.get("created_by", ORGANIZER)), q(created), q(created), "1",
+            "NULL", q(json.dumps(a.get("groups", everyone))), "NULL",
+            q(a.get("series_id", SERIES_ID)) if a["series_pos"] is not None else "NULL",
             str(a["series_pos"]) if a["series_pos"] is not None else "NULL",
             "0",
             q(a["closed"].strftime(fmt)) if a["closed"] else "NULL",
             q(a["deadline"].strftime(fmt)) if a["deadline"] else "NULL",
             q(a["cancelled"].strftime(fmt)) if a.get("cancelled") else "NULL",
-            q(organizers),
+            q(json.dumps(a.get("organizers", [ORGANIZER]))),
             q(location),
             str(cat_ids[cat_key]) if cat_key else "NULL",
+            "NULL" if a.get("allow_maybe") is None else str(int(a["allow_maybe"])),
+            q(a.get("max_attendees")),
+            str(int(a.get("waitlist", True))),
         ])
         out.append(f"INSERT INTO oc_att_appointments ({cols}) VALUES ({vals});")
 
-        for idx, row in enumerate(RESPONSES[a["key"]]):
+        for idx, row in enumerate(a.get("responses") or RESPONSES[a["key"]]):
             user, resp, comment, ci, ci_src = row[:5]
             comment = localize_comment(comment, lang)
             booking = row[5] if len(row) > 5 else None
+            extra = row[6] if len(row) > 6 else {}
             if user not in known_users:
                 continue
-            responded = (a["start"] - dt.timedelta(days=9)
-                         + dt.timedelta(hours=idx * 5 + 2)).strftime(fmt)
+            responded = (created_at + dt.timedelta(hours=idx * 5 + 2)).strftime(fmt)
+            if resp is None:
+                responded = None
+            source = extra.get("source") or ("quick_link" if idx % 4 == 3 else "app")
+            notified = extra.get("notified")
+            waitlist = extra.get("waitlist")
             ci_at = (a["start"] - dt.timedelta(minutes=18)
                      + dt.timedelta(minutes=idx * 3)).strftime(fmt) if ci else None
             ci_by = ("" if not ci else (ORGANIZER if ci_src == "manual" else user))
             rcols = ("appointment_id, user_id, response, comment, responded_at, "
                      "checkin_state, checkin_comment, checkin_by, checkin_at, "
-                     "response_source, checkin_source, booking_status")
+                     "response_source, checkin_source, booking_status, "
+                     "spot_claimed_at, booking_notified_status, "
+                     "booking_notified_at, waitlist_notified_status, "
+                     "waitlist_notified_at")
             rvals = ", ".join([
                 str(a["id"]), q(user), q(resp), q(comment), q(responded),
                 q(ci), q(""), q(ci_by), q(ci_at),
-                q("quick_link" if idx % 4 == 3 else "app"), q(ci_src), q(booking),
+                q(source if resp else None), q(ci_src), q(booking),
+                # The order of these stamps is the order of the waitlist.
+                q(responded if resp == Y else None),
+                q(notified),
+                q(a["closed"].strftime(fmt) if notified and a["closed"] else None),
+                q(waitlist), q(responded if waitlist else None),
             ])
             out.append(f"INSERT INTO oc_att_responses ({rcols}) VALUES ({rvals});")
     return out
+
+
+def build_vacation_sql(now: dt.datetime, known_users: set[str], lang: str,
+                       seed: bool) -> list[str]:
+    """Vacation periods in the reserved ID range; a plain run only clears them."""
+    out = [f"DELETE FROM oc_att_vacations WHERE id BETWEEN {ID_BASE} AND {ID_MAX};"]
+    if not seed:
+        return out
+    today = now.date()
+    stamp = (now - dt.timedelta(days=3)).strftime("%Y-%m-%d %H:%M:%S")
+    cols = "id, user_id, start_date, end_date, note, created_at, updated_at"
+    for i, (user, first, last, note) in enumerate(VACATIONS, start=ID_BASE):
+        if user not in known_users:
+            continue
+        vals = ", ".join([
+            str(i), q(user),
+            q(str(today + dt.timedelta(days=first))),
+            q(str(today + dt.timedelta(days=last))),
+            q(note[lang] if note else None), q(stamp), q(stamp),
+        ])
+        out.append(f"INSERT INTO oc_att_vacations ({cols}) VALUES ({vals});")
+    return out
+
+
+def build_reserve_sql() -> list[str]:
+    # Without this the next row created in the UI gets the first free ID
+    # inside the reserved range, and the next seed run deletes it.
+    return [f"ALTER TABLE {table} AUTO_INCREMENT = {FREE_ID_BASE};"
+            for table in ("oc_att_appointments", "oc_att_categories",
+                          "oc_att_vacations")]
 
 
 # One believable activity history for the concert appointment: created →
@@ -749,17 +1101,18 @@ def apply_config(nc: str, known_users: set[str], lang: str) -> None:
         groups = json.loads(existing_groups)
     except json.JSONDecodeError:
         groups = {}
-    if conductor not in groups:
-        occ(nc, "group:add", conductor, check=False)
-        print(f"  + group {conductor}")
+    for group in [conductor] + VOICE_GROUPS:
+        if group not in groups:
+            occ(nc, "group:add", group, check=False)
+            print(f"  + group {group}")
 
     for uid, (name, group) in MEMBERS.items():
         if uid not in known_users:
             print(f"  ! user {uid} missing on this instance — skipped")
             continue
         occ(nc, "user:setting", uid, "settings", "display_name", name, check=False)
-        if group == CONDUCTOR_GROUP:
-            occ(nc, "group:adduser", conductor, uid, check=False)
+        occ(nc, "group:adduser", conductor if group == CONDUCTOR_GROUP else group,
+            uid, check=False)
     print(f"  + display names for {len(known_users & MEMBERS.keys())} users")
 
     # Without every group on the whitelist, members of the missing ones are
@@ -804,6 +1157,13 @@ def main() -> None:
                    help="also seed one appointment per designed card state "
                         "(open/maybe/no, closed + scheduled, closed + not "
                         "scheduled, cancelled, unanswered with deadline)")
+    p.add_argument("--test-cases", action="store_true",
+                   help="also seed the release test cases (IDs from 201): no "
+                        "\"Maybe\", attendance limit with and without "
+                        "waitlist, cancelled, organizer only, not involved, "
+                        "check-in without answer, a scheduling verdict to "
+                        "take back, a 67-part series for paging, a finished "
+                        "series and a few vacation periods")
     p.add_argument("--reopen-running", action="store_true",
                    help="re-open the seeded appointment that is running right "
                         "now (autoCloseExpired() closes it minutes after "
@@ -836,7 +1196,11 @@ def main() -> None:
     appts = build_appointments(now, args.lang)
     if args.design_states:
         appts += build_design_appointments(now, args.lang)
-    sql = build_sql(appts, users, args.lang) + build_audit_sql(appts, users)
+    if args.test_cases:
+        appts += build_test_appointments(now, args.lang)
+    sql = (build_sql(appts, users, args.lang, now) + build_audit_sql(appts, users)
+           + build_vacation_sql(now, users, args.lang, args.test_cases)
+           + build_reserve_sql())
 
     if args.dry_run:
         print(f"-- instance: {nc} / db: {db} / now (UTC): {now} / lang: {args.lang}")
@@ -851,13 +1215,21 @@ def main() -> None:
 
     print(f"seeded {len(CATEGORIES)} categories and {len(appts)} appointments "
           f"(IDs {ID_BASE}-{appts[-1]['id']}):")
+    series = {key: sum(a["key"] == key for a in appts) for key in ("t_coaching", "t_spring")}
     for a in appts:
+        if a["key"] in series:
+            continue
         state = "cancelled" if a.get("cancelled") else "closed" if a["closed"] else "open"
         running = "  <- running now" if a["start"] <= now <= a["end"] else ""
         cat = CATEGORY_FOR.get(a["key"], "-")
         loc = "  @ " + LOCATIONS[a["key"]][args.lang] if a["key"] in LOCATIONS else ""
         print(f"  {a['id']}  {a['start']:%a %d %b %H:%M} UTC  {a['name']:<20} "
               f"{state:<9} [{cat}]{running}{loc}")
+    for key, count in series.items():
+        if count:
+            print(f"  + {count} × {text(key, args.lang)[0]} (series)")
+    if args.test_cases:
+        print(f"seeded {len(VACATIONS)} vacation periods")
 
 
 if __name__ == "__main__":

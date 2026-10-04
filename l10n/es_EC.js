@@ -129,7 +129,6 @@ OC.L10N.register(
     "Open" : "Abrir",
     "Push notifications" : "Notificaciones push",
     "or" : "o",
-    "Relevance" : "Relevancia",
     "View all" : "Ver todo",
     "Location" : "Ubicación",
     "Category" : "Categoría",

@@ -6,13 +6,14 @@ namespace OCA\Attendance\Migration;
 
 use Closure;
 use OCP\DB\ISchemaWrapper;
+use OCP\DB\Types;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
 /**
- * All-day appointments (issue #269): `all_day` marks an appointment whose
- * start and end are whole days rather than times. Nullable and purely
- * additive, so older mobile clients keep working.
+ * Adds a nullable template column to att_categories: the description and
+ * access restriction new appointments of that category start with, as JSON.
+ * Additive, so older mobile clients keep working.
  */
 final class Version000025Date20261004120000 extends SimpleMigrationStep {
 	/**
@@ -25,19 +26,16 @@ final class Version000025Date20261004120000 extends SimpleMigrationStep {
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
-		if (!$schema->hasTable('att_appointments')) {
-			return null;
-		}
 
-		$table = $schema->getTable('att_appointments');
-		if ($table->hasColumn('all_day')) {
-			return null;
-		}
+		if ($schema->hasTable('att_categories')) {
+			$table = $schema->getTable('att_categories');
 
-		$table->addColumn('all_day', 'boolean', [
-			'notnull' => false,
-			'default' => false,
-		]);
+			if (!$table->hasColumn('template')) {
+				$table->addColumn('template', Types::TEXT, [
+					'notnull' => false,
+				]);
+			}
+		}
 
 		return $schema;
 	}

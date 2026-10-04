@@ -55,6 +55,7 @@ OC.L10N.register(
     "Save" : "บันทึก",
     "Import" : "นำเข้า",
     "Dismiss" : "ยกเลิก",
+    "Comments" : "ความคิดเห็น",
     "Welcome" : "ยินดีต้อนรับ",
     "Categories" : "หมวดหมู่",
     "Close" : "ปิด",

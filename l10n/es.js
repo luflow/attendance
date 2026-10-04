@@ -159,7 +159,6 @@ OC.L10N.register(
     "Open" : "Abrir",
     "Push notifications" : "Notificaciones de tipo push",
     "or" : "o",
-    "Relevance" : "Relevancia",
     "Upcoming" : "Próximo",
     "Past" : "Pasado",
     "View all" : "Ver todo",

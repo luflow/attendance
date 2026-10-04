@@ -2484,53 +2484,23 @@ class AppointmentService {
 	 * @return array The enriched appointment data
 	 */
 	public function enrichVisibilityData(array $appointmentData): array {
-		$enrichedUsers = [];
-		foreach ($appointmentData['visibleUsers'] ?? [] as $userId) {
-			$enrichedUsers[] = $this->enrichUserRef($userId)
-				+ ['isGuest' => $this->guestService->isGuestUser($userId)];
-		}
-		$appointmentData['visibleUsers'] = $enrichedUsers;
-
-		$enrichedGroups = [];
-		foreach ($appointmentData['visibleGroups'] ?? [] as $groupId) {
-			$group = $this->groupManager->get($groupId);
-			$enrichedGroups[] = [
-				'id' => $groupId,
-				'label' => $group ? $group->getDisplayName() : $groupId,
-				'type' => 'group',
-			];
-		}
-		$appointmentData['visibleGroups'] = $enrichedGroups;
-
-		$enrichedTeams = [];
-		foreach ($appointmentData['visibleTeams'] ?? [] as $teamId) {
-			$teamInfo = $this->visibilityService->getTeamInfo($teamId);
-			$enrichedTeams[] = $teamInfo ?? [
-				'id' => $teamId,
-				'label' => $teamId,
-				'type' => 'team',
-			];
-		}
-		$appointmentData['visibleTeams'] = $enrichedTeams;
+		/** @var list<string> $userIds */
+		$userIds = $appointmentData['visibleUsers'] ?? [];
+		/** @var list<string> $groupIds */
+		$groupIds = $appointmentData['visibleGroups'] ?? [];
+		/** @var list<string> $teamIds */
+		$teamIds = $appointmentData['visibleTeams'] ?? [];
+		$appointmentData = array_merge(
+			$appointmentData,
+			$this->visibilityService->enrichAudience($userIds, $groupIds, $teamIds),
+		);
 
 		$appointmentData['organizers'] = array_map(
-			fn (string $userId) => $this->enrichUserRef($userId),
+			fn (string $userId) => $this->visibilityService->userRef($userId),
 			$appointmentData['organizers'] ?? [],
 		);
 
 		return $appointmentData;
-	}
-
-	/**
-	 * @return array{id: string, label: string, type: string}
-	 */
-	private function enrichUserRef(string $userId): array {
-		$user = $this->userManager->get($userId);
-		return [
-			'id' => $userId,
-			'label' => $user ? $user->getDisplayName() : $userId,
-			'type' => 'user',
-		];
 	}
 
 	/**

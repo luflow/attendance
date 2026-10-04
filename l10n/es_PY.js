@@ -49,6 +49,7 @@ OC.L10N.register(
     "Save" : "Guardar",
     "Import" : "Importar",
     "Dismiss" : "Descartar",
+    "Comments" : "Comentarios",
     "Welcome" : "Bienvenido",
     "Categories" : "Categorías",
     "Close" : "Cerrar",

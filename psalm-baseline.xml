@@ -330,18 +330,6 @@
     <ClassMustBeFinal>
       <code><![CDATA[CategoryController]]></code>
     </ClassMustBeFinal>
-    <PossiblyUnusedParam>
-      <code><![CDATA[$icon]]></code>
-      <code><![CDATA[$icon]]></code>
-      <code><![CDATA[$id]]></code>
-      <code><![CDATA[$name]]></code>
-      <code><![CDATA[$name]]></code>
-    </PossiblyUnusedParam>
-    <UndefinedDocblockClass>
-      <code><![CDATA[DataResponse<Http::STATUS_CREATED, AttendanceCategoryData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceCategoryData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, list<AttendanceCategoryData>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>]]></code>
-    </UndefinedDocblockClass>
     <UnusedClass>
       <code><![CDATA[CategoryController]]></code>
     </UnusedClass>
@@ -753,6 +741,7 @@
     <PossiblyUnusedProperty>
       <code><![CDATA[$icon]]></code>
       <code><![CDATA[$name]]></code>
+      <code><![CDATA[$template]]></code>
     </PossiblyUnusedProperty>
     <PropertyNotSetInConstructor>
       <code><![CDATA[Category]]></code>
@@ -1324,9 +1313,9 @@
       <code><![CDATA[Version000023Date20260917000000]]></code>
     </UnusedClass>
   </file>
-  <file src="lib/Migration/Version000025Date20261004120000.php">
+  <file src="lib/Migration/Version000026Date20261004140000.php">
     <UnusedClass>
-      <code><![CDATA[Version000025Date20261004120000]]></code>
+      <code><![CDATA[Version000026Date20261004140000]]></code>
     </UnusedClass>
   </file>
   <file src="lib/Notification/Notifier.php">
@@ -1395,6 +1384,11 @@
       <code><![CDATA[Version000024Date20260903130000]]></code>
     </UnusedClass>
   </file>
+  <file src="lib/Migration/Version000025Date20261004120000.php">
+    <UnusedClass>
+      <code><![CDATA[Version000025Date20261004120000]]></code>
+    </UnusedClass>
+  </file>
   <file src="lib/Service/AppointmentSerializer.php">
     <ClassMustBeFinal>
       <code><![CDATA[AppointmentSerializer]]></code>
@@ -1421,11 +1415,8 @@
       <code><![CDATA[$appointmentData['organizers'] ?? []]]></code>
       <code><![CDATA[$exactMatches[$subCategory]]]></code>
       <code><![CDATA[$groupId]]></code>
-      <code><![CDATA[$groupId]]></code>
       <code><![CDATA[$shareType]]></code>
       <code><![CDATA[$teamId]]></code>
-      <code><![CDATA[$teamId]]></code>
-      <code><![CDATA[$userId]]></code>
     </MixedArgument>
     <MixedArrayAccess>
       <code><![CDATA[$item['label']]]></code>
@@ -1440,15 +1431,12 @@
     <MixedAssignment>
       <code><![CDATA[$exactMatches]]></code>
       <code><![CDATA[$groupId]]></code>
-      <code><![CDATA[$groupId]]></code>
       <code><![CDATA[$id]]></code>
       <code><![CDATA[$item]]></code>
       <code><![CDATA[$items]]></code>
       <code><![CDATA[$resultData]]></code>
       <code><![CDATA[$shareType]]></code>
       <code><![CDATA[$teamId]]></code>
-      <code><![CDATA[$teamId]]></code>
-      <code><![CDATA[$userId]]></code>
       <code><![CDATA[$userId]]></code>
     </MixedAssignment>
     <MixedMethodCall>
@@ -1656,9 +1644,6 @@
     </ClassMustBeFinal>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
-      <code><![CDATA[create]]></code>
-      <code><![CDATA[getAll]]></code>
-      <code><![CDATA[update]]></code>
     </PossiblyUnusedMethod>
   </file>
   <file src="lib/Service/CheckinService.php">
@@ -2126,7 +2111,6 @@
       <code><![CDATA[__construct]]></code>
     </PossiblyUnusedMethod>
     <RiskyTruthyFalsyComparison>
-      <code><![CDATA[$info]]></code>
       <code><![CDATA[$teamInfo]]></code>
       <code><![CDATA[$teamInfo]]></code>
     </RiskyTruthyFalsyComparison>
