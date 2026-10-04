@@ -95,31 +95,55 @@
 				<LoadingState v-if="categoriesLoading" :size="24" />
 				<template v-else>
 					<ul v-if="categories.length > 0" class="category-list">
-						<li v-for="category in categories" :key="category.id" class="category-list__item">
+						<li v-for="category in categories"
+							:key="category.id"
+							class="category-list__item"
+							:class="{ 'category-list__item--editing': editingCategoryId === category.id }">
 							<template v-if="editingCategoryId === category.id">
-								<CategoryIconPicker v-model="editingCategory.icon" data-test="input-edit-category-icon" />
-								<NcInputField
-									v-model="editingCategory.name"
-									:label="categoryNameLabel"
-									:labelOutside="true"
-									:aria-label="categoryNameLabel"
-									class="category-list__edit-field"
-									@keydown.enter="saveEditingCategory"
-									@keydown.escape="cancelEditingCategory" />
-								<NcButton variant="primary"
-									:disabled="!editingCategory.name.trim() || savingCategoryEdit"
-									@click="saveEditingCategory">
-									{{ t('attendance', 'Save') }}
-								</NcButton>
-								<NcButton variant="tertiary" @click="cancelEditingCategory">
-									{{ t('attendance', 'Cancel') }}
-								</NcButton>
+								<div class="category-edit__name">
+									<CategoryIconPicker v-model="editingCategory.icon" data-test="input-edit-category-icon" />
+									<NcInputField
+										v-model="editingCategory.name"
+										:label="categoryNameLabel"
+										:labelOutside="true"
+										:aria-label="categoryNameLabel"
+										class="category-list__edit-field"
+										@keydown.enter="saveEditingCategory"
+										@keydown.escape="cancelEditingCategory" />
+								</div>
+								<div class="category-edit__template">
+									<!-- TRANSLATORS: Heading inside the category editor of the admin settings. Below it sit the description and the access restriction that a new appointment of this category starts with. Sample German: "Vorlage". -->
+									<h4>{{ t('attendance', 'Template') }}</h4>
+									<p class="hint-text">
+										{{ t('attendance', 'New appointments of this category start with this description and access restriction. Both can still be changed for each appointment.') }}
+									</p>
+									<MarkdownEditor
+										v-model="editingCategory.description"
+										:label="t('attendance', 'Description')"
+										:placeholder="t('attendance', 'Write your description here\u00A0…')"
+										minHeight="100px"
+										data-test="input-category-template-description" />
+									<AudienceSelect
+										v-model="editingCategory.audience"
+										:inputLabel="t('attendance', 'Restrict access')"
+										data-test="select-category-template-access" />
+								</div>
+								<div class="category-edit__actions">
+									<NcButton variant="primary"
+										:disabled="!editingCategory.name.trim() || savingCategoryEdit"
+										@click="saveEditingCategory">
+										{{ t('attendance', 'Save') }}
+									</NcButton>
+									<NcButton variant="tertiary" @click="cancelEditingCategory">
+										{{ t('attendance', 'Cancel') }}
+									</NcButton>
+								</div>
 							</template>
 							<template v-else>
 								<component :is="categoryIconComponent(category.icon)" :size="18" class="category-list__icon" />
 								<span class="category-list__name">{{ category.name }}</span>
 								<NcButton variant="tertiary"
-									:aria-label="t('attendance', 'Rename category')"
+									:aria-label="t('attendance', 'Edit category')"
 									data-test="button-edit-category"
 									@click="startEditingCategory(category)">
 									<template #icon>
@@ -727,9 +751,11 @@ import TrashCan from 'vue-material-design-icons/TrashCan.vue'
 import CategoryIconPicker from '../components/admin/CategoryIconPicker.vue'
 import PermissionRow from '../components/admin/PermissionRow.vue'
 import SectionLink from '../components/admin/SectionLink.vue'
+import AudienceSelect from '../components/common/AudienceSelect.vue'
 import GroupSelect from '../components/common/GroupSelect.vue'
 import LoadingState from '../components/common/LoadingState.vue'
 import TeamSelect from '../components/common/TeamSelect.vue'
+import { toAudienceIds, toAudienceItems } from '../utils/audience.js'
 import { categoryIconComponent, DEFAULT_CATEGORY_ICON } from '../utils/categoryIcons.js'
 import { copyToClipboard } from '../utils/clipboard.js'
 import { formatDate, formatDateTimeMedium } from '../utils/datetime.js'
@@ -760,12 +786,15 @@ function sectionLink(sectionId) {
 	return { sectionId, label: navSections.find((section) => section.id === sectionId).label }
 }
 
+// Only shown while a category is edited — the editor is too heavy to ship with the page.
+const MarkdownEditor = defineAsyncComponent(() => import('../components/common/MarkdownEditor.vue'))
+
 const categories = ref([])
 const categoriesLoading = ref(true)
 const newCategory = reactive({ name: '', icon: DEFAULT_CATEGORY_ICON })
 const creatingCategory = ref(false)
 const editingCategoryId = ref(null)
-const editingCategory = reactive({ name: '', icon: DEFAULT_CATEGORY_ICON })
+const editingCategory = reactive({ name: '', icon: DEFAULT_CATEGORY_ICON, description: '', audience: [] })
 // TRANSLATORS: Label of the input field holding a category's name — "name" is what the field expects, not part of a compound noun.
 const categoryNameLabel = t('attendance', 'Category name')
 // TRANSLATORS: Label of the empty input field for creating a category — the name the new category is about to get, not the name of an existing one.
@@ -810,12 +839,16 @@ async function createCategory() {
 
 function startEditingCategory(category) {
 	editingCategoryId.value = category.id
-	Object.assign(editingCategory, { name: category.name, icon: category.icon })
+	Object.assign(editingCategory, {
+		name: category.name,
+		icon: category.icon,
+		description: category.template?.description ?? '',
+		audience: toAudienceItems(category.template),
+	})
 }
 
 function cancelEditingCategory() {
 	editingCategoryId.value = null
-	editingCategory.name = ''
 }
 
 async function saveEditingCategory() {
@@ -827,7 +860,11 @@ async function saveEditingCategory() {
 	try {
 		const response = await axios.put(
 			generateUrl(`/apps/attendance/api/admin/categories/${editingCategoryId.value}`),
-			{ name, icon: editingCategory.icon },
+			{
+				name,
+				icon: editingCategory.icon,
+				template: { description: editingCategory.description, ...toAudienceIds(editingCategory.audience) },
+			},
 		)
 		const index = categories.value.findIndex((category) => category.id === editingCategoryId.value)
 		if (index !== -1) {
@@ -836,7 +873,7 @@ async function saveEditingCategory() {
 		sortCategories()
 		cancelEditingCategory()
 	} catch (error) {
-		showError(error.response?.data?.error || t('attendance', 'Could not rename category'))
+		showError(error.response?.data?.error || t('attendance', 'Could not save category'))
 	} finally {
 		savingCategoryEdit.value = false
 	}
@@ -1360,6 +1397,33 @@ onMounted(async () => {
 .category-list__edit-field {
 	flex: 1;
 	min-width: 0;
+}
+
+.category-list__item--editing {
+	flex-direction: column;
+	align-items: stretch;
+	gap: 12px;
+	padding: 12px;
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius-large);
+}
+
+.category-edit__name,
+.category-edit__actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.category-edit__template {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.category-edit__template h4,
+.category-edit__template .hint-text {
+	margin: 0;
 }
 
 .category-add {

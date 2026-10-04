@@ -8,6 +8,7 @@ use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\Category;
 use OCA\Attendance\Db\CategoryMapper;
 use OCA\Attendance\Service\CategoryService;
+use OCA\Attendance\Service\VisibilityService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -19,12 +20,16 @@ class CategoryServiceTest extends TestCase {
 	/** @var AppointmentMapper|MockObject */
 	private $appointmentMapper;
 
+	/** @var VisibilityService|MockObject */
+	private $visibilityService;
+
 	private CategoryService $service;
 
 	protected function setUp(): void {
 		$this->categoryMapper = $this->createMock(CategoryMapper::class);
 		$this->appointmentMapper = $this->createMock(AppointmentMapper::class);
-		$this->service = new CategoryService($this->categoryMapper, $this->appointmentMapper);
+		$this->visibilityService = $this->createMock(VisibilityService::class);
+		$this->service = new CategoryService($this->categoryMapper, $this->appointmentMapper, $this->visibilityService);
 	}
 
 	private function category(int $id, string $name, string $icon = 'tag'): Category {
@@ -73,6 +78,81 @@ class CategoryServiceTest extends TestCase {
 
 		$this->expectException(\InvalidArgumentException::class);
 		$this->service->create('Rehearsal', 'not-a-real-icon');
+	}
+
+	public function testCreateStoresANormalizedTemplate(): void {
+		$this->categoryMapper->method('findByName')
+			->willThrowException(new DoesNotExistException('not found'));
+		$this->categoryMapper->method('insert')->willReturnCallback(fn (Category $c) => $c);
+
+		$created = $this->service->create('Concert', 'tag', [
+			'description' => "  Clothing:\n<b>Transport:</b>  ",
+			'visibleUsers' => ['alice', 'alice', '', 7],
+			'visibleGroups' => ['choir'],
+		]);
+
+		$this->assertSame([
+			'description' => "Clothing:\nTransport:",
+			'visibleUsers' => ['alice'],
+			'visibleGroups' => ['choir'],
+			'visibleTeams' => [],
+		], json_decode($created->getTemplate(), true));
+	}
+
+	public function testCreateStoresNoTemplateWhenItWouldPrefillNothing(): void {
+		$this->categoryMapper->method('findByName')
+			->willThrowException(new DoesNotExistException('not found'));
+		$this->categoryMapper->method('insert')->willReturnCallback(fn (Category $c) => $c);
+
+		$this->assertNull($this->service->create('Concert', 'tag')->getTemplate());
+		$this->assertNull($this->service->create('Concert', 'tag', ['description' => '  ', 'visibleUsers' => []])->getTemplate());
+	}
+
+	public function testUpdateKeepsTheTemplateWhenNoneIsSent(): void {
+		$existing = $this->category(1, 'Rehearsal');
+		$existing->setTemplate('{"description":"Clothing:"}');
+		$this->categoryMapper->method('find')->with(1)->willReturn($existing);
+		$this->categoryMapper->method('findByName')->willReturn($existing);
+		$this->categoryMapper->method('update')->willReturnCallback(fn (Category $c) => $c);
+
+		$this->assertSame('{"description":"Clothing:"}', $this->service->update(1, 'Rehearsal', 'tag')->getTemplate());
+	}
+
+	public function testUpdateRemovesTheTemplateWhenAnEmptyOneIsSent(): void {
+		$existing = $this->category(1, 'Rehearsal');
+		$existing->setTemplate('{"description":"Clothing:"}');
+		$this->categoryMapper->method('find')->with(1)->willReturn($existing);
+		$this->categoryMapper->method('findByName')->willReturn($existing);
+		$this->categoryMapper->method('update')->willReturnCallback(fn (Category $c) => $c);
+
+		$this->assertNull($this->service->update(1, 'Rehearsal', 'tag', [])->getTemplate());
+	}
+
+	public function testSerializeEnrichesTheTemplateAudience(): void {
+		$category = $this->category(1, 'Rehearsal', 'star');
+		$category->setTemplate('{"description":"Clothing:","visibleUsers":[],"visibleGroups":["choir"],"visibleTeams":[]}');
+		$audience = [
+			'visibleUsers' => [],
+			'visibleGroups' => [['id' => 'choir', 'label' => 'Choir', 'type' => 'group']],
+			'visibleTeams' => [],
+		];
+		$this->visibilityService->expects($this->once())->method('enrichAudience')
+			->with([], ['choir'], [])
+			->willReturn($audience);
+
+		$this->assertSame(
+			['id' => 1, 'name' => 'Rehearsal', 'icon' => 'star', 'template' => ['description' => 'Clothing:'] + $audience],
+			$this->service->serialize($category, true),
+		);
+	}
+
+	public function testSerializeWithholdsTheTemplate(): void {
+		$category = $this->category(1, 'Rehearsal');
+		$category->setTemplate('{"description":"Clothing:","visibleUsers":["alice"],"visibleGroups":[],"visibleTeams":[]}');
+		$this->visibilityService->expects($this->never())->method('enrichAudience');
+
+		$this->assertNull($this->service->serialize($category, false)['template']);
+		$this->assertNull($this->service->serialize($this->category(2, 'Concert'), true)['template']);
 	}
 
 	public function testUpdateRenamesWhenNameIsFree(): void {

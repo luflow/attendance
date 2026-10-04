@@ -165,10 +165,24 @@ namespace OCA\Attendance;
  *   maxAttendees?: int,
  *   waitlistEnabled?: bool,
  * }
+ * @psalm-type AttendanceAudienceRef = array{id: string, label: string, type: string, isGuest?: bool}
+ * @psalm-type AttendanceCategoryTemplate = array{
+ *   description: string,
+ *   visibleUsers: list<AttendanceAudienceRef>,
+ *   visibleGroups: list<AttendanceAudienceRef>,
+ *   visibleTeams: list<AttendanceAudienceRef>,
+ * }
+ * @psalm-type AttendanceCategoryTemplateInput = array{
+ *   description?: string,
+ *   visibleUsers?: list<string>,
+ *   visibleGroups?: list<string>,
+ *   visibleTeams?: list<string>,
+ * }
  * @psalm-type AttendanceCategoryData = array{
  *   id: int,
  *   name: string,
  *   icon: string,
+ *   template: ?AttendanceCategoryTemplate,
  * }
  * @psalm-type AttendanceVacationData = array{
  *   id: int,
@@ -230,6 +244,7 @@ namespace OCA\Attendance;
  *   responseCounts: bool,
  *   locationsAvailable: bool,
  *   categoriesAvailable: bool,
+ *   categoryTemplates: bool,
  *   statisticsAvailable: bool,
  *   talkRoomsAvailable: bool,
  *   talkRoomDeletion: bool,

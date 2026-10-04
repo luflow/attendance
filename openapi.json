@@ -403,6 +403,28 @@
                     }
                 }
             },
+            "AudienceRef": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "label",
+                    "type"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "isGuest": {
+                        "type": "boolean"
+                    }
+                }
+            },
             "AuditEvent": {
                 "type": "object",
                 "required": [
@@ -599,6 +621,7 @@
                     "responseCounts",
                     "locationsAvailable",
                     "categoriesAvailable",
+                    "categoryTemplates",
                     "statisticsAvailable",
                     "talkRoomsAvailable",
                     "talkRoomDeletion",
@@ -674,6 +697,9 @@
                     "categoriesAvailable": {
                         "type": "boolean"
                     },
+                    "categoryTemplates": {
+                        "type": "boolean"
+                    },
                     "statisticsAvailable": {
                         "type": "boolean"
                     },
@@ -702,7 +728,8 @@
                 "required": [
                     "id",
                     "name",
-                    "icon"
+                    "icon",
+                    "template"
                 ],
                 "properties": {
                     "id": {
@@ -714,6 +741,46 @@
                     },
                     "icon": {
                         "type": "string"
+                    },
+                    "template": {
+                        "nullable": true,
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/CategoryTemplate"
+                            }
+                        ]
+                    }
+                }
+            },
+            "CategoryTemplate": {
+                "type": "object",
+                "required": [
+                    "description",
+                    "visibleUsers",
+                    "visibleGroups",
+                    "visibleTeams"
+                ],
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "visibleUsers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AudienceRef"
+                        }
+                    },
+                    "visibleGroups": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AudienceRef"
+                        }
+                    },
+                    "visibleTeams": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AudienceRef"
+                        }
                     }
                 }
             },
@@ -5600,7 +5667,7 @@
             "get": {
                 "operationId": "category-index",
                 "summary": "List all categories, alphabetically",
-                "description": "Available to any logged-in user — appointments' category picker and the appointment list filter both need the full list, not just admins.",
+                "description": "Available to any logged-in user — appointments' category picker and the appointment list filter both need the full list, not just admins. The template is null for everyone who cannot create appointments.",
                 "tags": [
                     "category"
                 ],

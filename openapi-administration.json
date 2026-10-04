@@ -208,6 +208,28 @@
                     }
                 }
             },
+            "AudienceRef": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "label",
+                    "type"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "isGuest": {
+                        "type": "boolean"
+                    }
+                }
+            },
             "Capabilities": {
                 "type": "object",
                 "required": [
@@ -233,6 +255,7 @@
                     "responseCounts",
                     "locationsAvailable",
                     "categoriesAvailable",
+                    "categoryTemplates",
                     "statisticsAvailable",
                     "talkRoomsAvailable",
                     "talkRoomDeletion",
@@ -308,6 +331,9 @@
                     "categoriesAvailable": {
                         "type": "boolean"
                     },
+                    "categoryTemplates": {
+                        "type": "boolean"
+                    },
                     "statisticsAvailable": {
                         "type": "boolean"
                     },
@@ -336,7 +362,8 @@
                 "required": [
                     "id",
                     "name",
-                    "icon"
+                    "icon",
+                    "template"
                 ],
                 "properties": {
                     "id": {
@@ -348,6 +375,72 @@
                     },
                     "icon": {
                         "type": "string"
+                    },
+                    "template": {
+                        "nullable": true,
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/CategoryTemplate"
+                            }
+                        ]
+                    }
+                }
+            },
+            "CategoryTemplate": {
+                "type": "object",
+                "required": [
+                    "description",
+                    "visibleUsers",
+                    "visibleGroups",
+                    "visibleTeams"
+                ],
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "visibleUsers": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AudienceRef"
+                        }
+                    },
+                    "visibleGroups": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AudienceRef"
+                        }
+                    },
+                    "visibleTeams": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/AudienceRef"
+                        }
+                    }
+                }
+            },
+            "CategoryTemplateInput": {
+                "type": "object",
+                "properties": {
+                    "description": {
+                        "type": "string"
+                    },
+                    "visibleUsers": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "visibleGroups": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "visibleTeams": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
                     }
                 }
             },
@@ -1161,6 +1254,16 @@
                                     "icon": {
                                         "type": "string",
                                         "description": "Icon key, must be one of CategoryService::ICONS"
+                                    },
+                                    "template": {
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Description and access restriction a new appointment of this category starts with",
+                                        "allOf": [
+                                            {
+                                                "$ref": "#/components/schemas/CategoryTemplateInput"
+                                            }
+                                        ]
                                     }
                                 }
                             }
@@ -1268,7 +1371,7 @@
         "/index.php/apps/attendance/api/admin/categories/{id}": {
             "put": {
                 "operationId": "category-update",
-                "summary": "Rename a category or change its icon",
+                "summary": "Rename a category, change its icon or its template",
                 "description": "This endpoint requires admin access",
                 "tags": [
                     "category"
@@ -1299,6 +1402,16 @@
                                     "icon": {
                                         "type": "string",
                                         "description": "Icon key, must be one of CategoryService::ICONS"
+                                    },
+                                    "template": {
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Description and access restriction a new appointment of this category starts with. Omit to keep the stored template, send it empty to remove it",
+                                        "allOf": [
+                                            {
+                                                "$ref": "#/components/schemas/CategoryTemplateInput"
+                                            }
+                                        ]
                                     }
                                 }
                             }

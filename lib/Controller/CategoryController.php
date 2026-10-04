@@ -16,6 +16,10 @@ use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
 
+/**
+ * @psalm-import-type AttendanceCategoryData from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceCategoryTemplateInput from \OCA\Attendance\ResponseDefinitions
+ */
 class CategoryController extends Controller {
 	private IUserSession $userSession;
 	private PermissionService $permissionService;
@@ -39,6 +43,7 @@ class CategoryController extends Controller {
 	 *
 	 * Available to any logged-in user — appointments' category picker and
 	 * the appointment list filter both need the full list, not just admins.
+	 * The template is null for everyone who cannot create appointments.
 	 *
 	 * @return DataResponse<Http::STATUS_OK, list<AttendanceCategoryData>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
 	 */
@@ -46,11 +51,18 @@ class CategoryController extends Controller {
 	#[NoCSRFRequired]
 	#[OpenAPI]
 	public function index(): DataResponse {
-		if ($this->userSession->getUser() === null) {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
 			return new DataResponse(['error' => 'User not authenticated'], Http::STATUS_UNAUTHORIZED);
 		}
 
-		return new DataResponse($this->categoryService->getAll());
+		$withTemplate = $this->permissionService->canCreateAppointments($user->getUID())
+			|| $this->permissionService->isAdmin($user->getUID());
+
+		return new DataResponse(array_map(
+			fn ($category) => $this->categoryService->serialize($category, $withTemplate),
+			$this->categoryService->getAll(),
+		));
 	}
 
 	/**
@@ -58,11 +70,12 @@ class CategoryController extends Controller {
 	 *
 	 * @param string $name Category name, must be unique
 	 * @param string $icon Icon key, must be one of CategoryService::ICONS
+	 * @param ?AttendanceCategoryTemplateInput $template Description and access restriction a new appointment of this category starts with
 	 * @return DataResponse<Http::STATUS_CREATED, AttendanceCategoryData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	#[NoCSRFRequired]
 	#[OpenAPI(OpenAPI::SCOPE_ADMINISTRATION)]
-	public function create(string $name, string $icon): DataResponse {
+	public function create(string $name, string $icon, ?array $template = null): DataResponse {
 		$user = $this->userSession->getUser();
 		if ($user === null) {
 			return new DataResponse(['error' => 'User not authenticated'], Http::STATUS_UNAUTHORIZED);
@@ -72,23 +85,25 @@ class CategoryController extends Controller {
 		}
 
 		try {
-			return new DataResponse($this->categoryService->create($name, $icon), Http::STATUS_CREATED);
+			$category = $this->categoryService->create($name, $icon, $template);
+			return new DataResponse($this->categoryService->serialize($category, true), Http::STATUS_CREATED);
 		} catch (\InvalidArgumentException $e) {
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
 		}
 	}
 
 	/**
-	 * Rename a category or change its icon
+	 * Rename a category, change its icon or its template
 	 *
 	 * @param int $id Category ID
 	 * @param string $name New category name, must be unique
 	 * @param string $icon Icon key, must be one of CategoryService::ICONS
+	 * @param ?AttendanceCategoryTemplateInput $template Description and access restriction a new appointment of this category starts with. Omit to keep the stored template, send it empty to remove it
 	 * @return DataResponse<Http::STATUS_OK, AttendanceCategoryData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
 	#[NoCSRFRequired]
 	#[OpenAPI(OpenAPI::SCOPE_ADMINISTRATION)]
-	public function update(int $id, string $name, string $icon): DataResponse {
+	public function update(int $id, string $name, string $icon, ?array $template = null): DataResponse {
 		$user = $this->userSession->getUser();
 		if ($user === null) {
 			return new DataResponse(['error' => 'User not authenticated'], Http::STATUS_UNAUTHORIZED);
@@ -98,7 +113,8 @@ class CategoryController extends Controller {
 		}
 
 		try {
-			return new DataResponse($this->categoryService->update($id, $name, $icon));
+			$category = $this->categoryService->update($id, $name, $icon, $template);
+			return new DataResponse($this->categoryService->serialize($category, true));
 		} catch (DoesNotExistException $e) {
 			return new DataResponse(['error' => 'Category not found'], Http::STATUS_NOT_FOUND);
 		} catch (\InvalidArgumentException $e) {

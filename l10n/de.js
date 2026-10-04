@@ -523,7 +523,6 @@ OC.L10N.register(
     "New category name" : "Name der neuen Kategorie",
     "Could not load categories" : "Kategorien konnten nicht geladen werden",
     "Could not create category" : "Kategorie konnte nicht erstellt werden",
-    "Could not rename category" : "Kategorie konnte nicht umbenannt werden",
     "Could not delete category" : "Kategorie konnte nicht gelöscht werden",
     "Let managers mark yes-responders as scheduled for an appointment. When off, no scheduling controls are shown anywhere." : "Manager können Personen, die mit Ja geantwortet haben, für einen Termin einplanen. Wenn diese Option deaktiviert ist, werden nirgendwo Optionen zum Einplanen angezeigt.",
     "Response summary teams" : "Teams in Antwortübersicht",
@@ -546,7 +545,6 @@ OC.L10N.register(
     "Start setup wizard" : "Einrichtungsassistenten starten",
     "Search and select teams …" : "Teams suchen und auswählen …",
     "Define categories appointments can be classified under. Each one gets an icon, shown wherever the category appears." : "Lege Kategorien fest, denen Termine zugeordnet werden können. Jede erhält ein Icon, das überall angezeigt wird, wo die Kategorie erscheint.",
-    "Rename category" : "Kategorie umbenennen",
     "Delete category" : "Kategorie löschen",
     "No categories yet." : "Noch keine Kategorien.",
     "e.g. Rehearsal" : "z. B. Probe",
@@ -1058,6 +1056,11 @@ OC.L10N.register(
     "Unsaved changes" : "Ungespeicherte Änderungen",
     "Your changes have not been saved. Do you want to discard them?" : "Die Änderungen wurden noch nicht gespeichert. Sollen sie verworfen werden?",
     "Discard changes" : "Änderungen verwerfen",
-    "Keep editing" : "Weiter bearbeiten"
+    "Keep editing" : "Weiter bearbeiten",
+    "Apply template" : "Vorlage anwenden",
+    "Could not save category" : "Kategorie konnte nicht gespeichert werden",
+    "Edit category" : "Kategorie bearbeiten",
+    "New appointments of this category start with this description and access restriction. Both can still be changed for each appointment." : "Neue Termine dieser Kategorie starten mit dieser Beschreibung und Zugriffsbeschränkung. Beides lässt sich für jeden Termin noch ändern.",
+    "Template" : "Vorlage"
 },
 "nplurals=2; plural=(n != 1);");

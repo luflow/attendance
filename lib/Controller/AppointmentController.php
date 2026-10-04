@@ -1154,6 +1154,10 @@ class AppointmentController extends Controller {
 			// categoryId on appointments). Mobile clients hide the category
 			// picker/badge/filter when this is false.
 			'categoriesAvailable' => true,
+			// GET /categories carries a template per category (description and
+			// access restriction a new appointment starts with). Mobile clients
+			// prefill the form from it when this is true.
+			'categoryTemplates' => true,
 			// Server supports the cross-appointment evaluation (GET
 			// /statistics, see_statistics permission). Clients hide the
 			// statistics entry point when this is false.
