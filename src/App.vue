@@ -570,7 +570,7 @@ t('attendance', 'Using Attendance with a group? One license for the whole group 
 t('attendance', 'Using account {user} on {server}')
 // TRANSLATORS: Noun. In the mobile app: header of the personal-settings section where a user records their own absence periods. In the audit log: source label of an answer that was set automatically because the person is on vacation.
 t('attendance', 'Vacation')
-t('attendance', 'What would you be willing to pay?')
+t('attendance', 'What would you be willing to pay per year?')
 t('attendance', "What's still holding you back?")
 // TRANSLATORS: Asked after someone says the price is too high, to learn whether
 // they mean the personal license or the one covering their whole group.
