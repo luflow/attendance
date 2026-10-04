@@ -73,6 +73,11 @@ MEMBERS = {
 
 ORGANIZER = "admin"
 
+# Dev-instance logins for looking at the app as an ordinary member (--test-cases).
+# Local test data only; the accounts are the standard nextcloud-docker-dev ones.
+TEST_PASSWORD = "attendance-test-1"
+TEST_LOGINS = ["alice", "john"]
+
 SERIES_ID = "demo-rehearsal-series"
 COACHING_SERIES_ID = "demo-coaching-series"
 SPRING_SERIES_ID = "demo-spring-project"
@@ -87,6 +92,19 @@ CATEGORIES = [
     ("performance", "theater", {"en": "Performance", "de": "Auftritt"}),
     ("weekend", "cabin", {"en": "Choir weekend", "de": "Chorwochenende"}),
     ("party", "celebration", {"en": "Party", "de": "Fest"}),
+]
+
+# Category templates, written by --test-cases: what a new appointment of that
+# category starts with. "party" has none on purpose, to see the unfilled form.
+# (category key, description per language, groups the appointment is limited to)
+CATEGORY_TEMPLATES = [
+    ("rehearsal", {"en": "Weekly rehearsal. Please bring your sheet music.",
+                   "de": "Wöchentliche Probe. Bitte Noten mitbringen."}, VOICE_GROUPS),
+    ("performance", {"en": "Performance. Please be there 45 minutes early for the warm-up.",
+                     "de": "Auftritt. Bitte 45 Minuten vorher zum Einsingen da sein."},
+     ["Sopran", "Alt"]),
+    ("weekend", {"en": "Choir weekend with full board.",
+                 "de": "Chorwochenende mit Vollverpflegung."}, []),
 ]
 
 # appointment key -> category key. d_unanswered stays uncategorized on
@@ -920,6 +938,19 @@ def build_category_sql(lang: str) -> list[str]:
     return out
 
 
+def build_template_sql(lang: str) -> list[str]:
+    """Templates for the seeded categories; a plain run leaves the column empty."""
+    ids = category_ids()
+    out = []
+    for key, description, groups in CATEGORY_TEMPLATES:
+        template = json.dumps({"description": description[lang], "visibleUsers": [],
+                               "visibleGroups": groups, "visibleTeams": []},
+                              ensure_ascii=False)
+        out.append(f"UPDATE oc_att_categories SET template = {q(template)} "
+                   f"WHERE id = {ids[key]};")
+    return out
+
+
 def build_sql(appts: list[dict], known_users: set[str], lang: str,
               now: dt.datetime) -> list[str]:
     fmt = "%Y-%m-%d %H:%M:%S"
@@ -1093,7 +1124,8 @@ def build_audit_sql(appts: list[dict], known_users: set[str]) -> list[str]:
     return out
 
 
-def apply_config(nc: str, known_users: set[str], lang: str) -> None:
+def apply_config(nc: str, known_users: set[str], lang: str,
+                 args_test_cases: bool = False) -> None:
     print("configuring instance …")
     conductor = CONDUCTOR_GROUPS[lang]
     existing_groups = occ(nc, "group:list", "--output=json")
@@ -1138,6 +1170,14 @@ def apply_config(nc: str, known_users: set[str], lang: str) -> None:
     occ(nc, "config:app:set", "attendance", "permission_checkin",
         f"--value={json.dumps([conductor])}")
     print(f"  + permission_checkin = groups {conductor}")
+
+    if args_test_cases:
+        for uid in TEST_LOGINS:
+            if uid in known_users:
+                run(["docker", "exec", "-u", "www-data", "-e", f"OC_PASS={TEST_PASSWORD}",
+                     nc, "php", "occ", "user:resetpassword", "--password-from-env", uid],
+                    check=False)
+        print(f"  + login for {', '.join(TEST_LOGINS)}: password {TEST_PASSWORD}")
 
     # The category badge on the cards, and the "Scheduled" / "Not scheduled"
     # states, only render with their feature on.
@@ -1200,6 +1240,7 @@ def main() -> None:
         appts += build_test_appointments(now, args.lang)
     sql = (build_sql(appts, users, args.lang, now) + build_audit_sql(appts, users)
            + build_vacation_sql(now, users, args.lang, args.test_cases)
+           + (build_template_sql(args.lang) if args.test_cases else [])
            + build_reserve_sql())
 
     if args.dry_run:
@@ -1209,7 +1250,7 @@ def main() -> None:
 
     print(f"instance {nc}, db {db}, now (UTC) {now}, lang {args.lang}")
     if not args.no_config:
-        apply_config(nc, users, args.lang)
+        apply_config(nc, users, args.lang, args.test_cases)
 
     mysql(db, db_config(nc), sql)
 

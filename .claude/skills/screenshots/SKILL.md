@@ -138,6 +138,11 @@ Plus five vacation periods (`oc_att_vacations`, IDs 101-105): one running into
 the next weeks with the automatic "No" answers it caused, three later ones —
 one of them admin's own — and one in the past.
 
+Also: templates on the Rehearsal, Performance and Choir weekend categories
+(Party has none), and a known password for `alice` and `john` — see
+`TEST_PASSWORD` in the script — so the member's view can be checked in a
+second browser.
+
 Like the design states, a plain run removes all of it again.
 
 The script also fixes seven things that otherwise ruin the screenshots. Do not
