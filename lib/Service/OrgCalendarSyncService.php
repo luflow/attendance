@@ -9,9 +9,7 @@ use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Db\CategoryMapper;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\Config\IUserConfig;
 use OCP\IConfig;
-use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\L10N\IFactory as IL10NFactory;
@@ -83,8 +81,7 @@ class OrgCalendarSyncService {
 		private IConfig $config,
 		private LoggerInterface $logger,
 		private CategoryMapper $categoryMapper,
-		private IUserConfig $userConfig,
-		private IDateTimeZone $dateTimeZone,
+		private TimezoneService $timezoneService,
 	) {
 	}
 
@@ -346,7 +343,7 @@ class OrgCalendarSyncService {
 	public function buildIcs(Appointment $appointment, string $uid): string {
 		$utc = new \DateTimeZone('UTC');
 		$created = new \DateTime($appointment->getCreatedAt() ?: 'now', $utc);
-		$zone = $this->creatorTimezone($appointment);
+		$zone = $this->timezoneService->ofCreator($appointment);
 
 		$lines = [
 			'BEGIN:VCALENDAR',
@@ -387,7 +384,7 @@ class OrgCalendarSyncService {
 		// The zone the event already has wins, so one picked in the Calendar
 		// app survives an edit in the app (issue #261).
 		$existingStart = self::eventLine($lines, 'DTSTART');
-		$zone = self::tzidOf($existingStart) ?? $this->creatorTimezone($appointment);
+		$zone = self::tzidOf($existingStart) ?? $this->timezoneService->ofCreator($appointment);
 		$props = $this->managedProperties($appointment, $zone);
 		$timesMoved = $props['DTSTART'] !== $existingStart || $props['DTEND'] !== self::eventLine($lines, 'DTEND');
 		$lines = $this->ensureVtimezone($lines, $appointment, $zone, $timesMoved);
@@ -456,9 +453,11 @@ class OrgCalendarSyncService {
 	 */
 	private function managedProperties(Appointment $appointment, \DateTimeZone $zone): array {
 		$utc = new \DateTimeZone('UTC');
-		$start = new \DateTimeImmutable($appointment->getStartDatetime(), $utc);
-		$end = new \DateTimeImmutable($appointment->getEndDatetime(), $utc);
 		$lastModified = new \DateTime($appointment->getUpdatedAt() ?: 'now', $utc);
+		$dates = $appointment->isAllDay() ? IcalService::allDayLines($appointment, $zone) : [
+			'DTSTART' => self::dateTimeLine('DTSTART', new \DateTimeImmutable($appointment->getStartDatetime(), $utc), $zone),
+			'DTEND' => self::dateTimeLine('DTEND', new \DateTimeImmutable($appointment->getEndDatetime(), $utc), $zone),
+		];
 
 		$location = $appointment->getLocation();
 		$categoryName = $this->resolveCategoryName($appointment->getCategoryId());
@@ -466,8 +465,8 @@ class OrgCalendarSyncService {
 		return [
 			'DTSTAMP' => 'DTSTAMP:' . $lastModified->format('Ymd\THis\Z'),
 			'LAST-MODIFIED' => 'LAST-MODIFIED:' . $lastModified->format('Ymd\THis\Z'),
-			'DTSTART' => self::dateTimeLine('DTSTART', $start, $zone),
-			'DTEND' => self::dateTimeLine('DTEND', $end, $zone),
+			'DTSTART' => $dates['DTSTART'],
+			'DTEND' => $dates['DTEND'],
 			'SUMMARY' => 'SUMMARY:' . IcalService::escapeIcalText($appointment->getName()),
 			'DESCRIPTION' => 'DESCRIPTION:' . IcalService::escapeIcalText($this->buildDescription($appointment)),
 			'LOCATION' => $location !== null
@@ -490,40 +489,6 @@ class OrgCalendarSyncService {
 	}
 
 	/**
-	 * The zone a new event's times are written in: the creator's, so the
-	 * Calendar app shows and edits them as local time, not UTC (issue #261).
-	 */
-	private function creatorTimezone(Appointment $appointment): \DateTimeZone {
-		$creator = $appointment->getCreatedBy();
-		try {
-			$own = $creator !== '' ? $this->userConfig->getValueString($creator, 'core', 'timezone') : '';
-		} catch (\Exception) {
-			$own = '';
-		}
-
-		return self::locationZone($own)
-			?? self::locationZone($this->dateTimeZone->getDefaultTimeZone()->getName())
-			?? new \DateTimeZone('UTC');
-	}
-
-	/**
-	 * A zone PHP knows the clock changes of. Abbreviations and bare offsets are
-	 * turned down: PHP reads them as fixed, which would drop daylight saving.
-	 */
-	private static function locationZone(string $name): ?\DateTimeZone {
-		if ($name === '') {
-			return null;
-		}
-		try {
-			$zone = new \DateTimeZone($name);
-		} catch (\Exception) {
-			return null;
-		}
-
-		return $zone->getLocation() !== false ? $zone : null;
-	}
-
-	/**
 	 * The zone a date line names in its TZID parameter, if any.
 	 */
 	private static function tzidOf(?string $line): ?\DateTimeZone {
@@ -531,7 +496,7 @@ class OrgCalendarSyncService {
 			return null;
 		}
 
-		return self::locationZone($match[1]);
+		return TimezoneService::locationZone($match[1]);
 	}
 
 	/**
@@ -555,10 +520,10 @@ class OrgCalendarSyncService {
 	}
 
 	/**
-	 * @return list<string> The VTIMEZONE the event's times need; none for UTC
+	 * @return list<string> The VTIMEZONE the event's times need; none for UTC or whole days
 	 */
 	private function vtimezoneFor(Appointment $appointment, \DateTimeZone $zone): array {
-		if ($zone->getName() === 'UTC') {
+		if ($zone->getName() === 'UTC' || $appointment->isAllDay()) {
 			return [];
 		}
 		$utc = new \DateTimeZone('UTC');

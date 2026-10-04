@@ -103,10 +103,7 @@ class Notifier implements INotifier {
 			case 'appointment_reminder':
 				$parameters = $notification->getSubjectParameters();
 				$appointmentName = $parameters['name'] ?? 'Unknown';
-				$appointmentDate = $this->eventMessages->formatDateForUser(
-					$parameters['startDatetime'] ?? $parameters['date'] ?? '',
-					$notification->getUser()
-				);
+				$appointmentDate = $this->eventMessages->formatAppointmentDate($parameters, $notification->getUser());
 				$appointmentId = $parameters['appointmentId'] ?? 0;
 				$userId = $notification->getUser();
 
@@ -131,10 +128,7 @@ class Notifier implements INotifier {
 			case 'appointment_created':
 				$parameters = $notification->getSubjectParameters();
 				$appointmentName = $parameters['name'] ?? 'Unknown';
-				$appointmentDate = $this->eventMessages->formatDateForUser(
-					$parameters['startDatetime'] ?? $parameters['date'] ?? '',
-					$notification->getUser()
-				);
+				$appointmentDate = $this->eventMessages->formatAppointmentDate($parameters, $notification->getUser());
 				$appointmentId = $parameters['appointmentId'] ?? 0;
 				$userId = $notification->getUser();
 
@@ -177,10 +171,7 @@ class Notifier implements INotifier {
 			case 'appointment_updated':
 				$parameters = $notification->getSubjectParameters();
 				$appointmentName = (string)($parameters['name'] ?? 'Unknown');
-				$appointmentDate = $this->eventMessages->formatDateForUser(
-					(string)($parameters['startDatetime'] ?? ''),
-					$notification->getUser()
-				);
+				$appointmentDate = $this->eventMessages->formatAppointmentDate($parameters, $notification->getUser());
 				$appointmentId = (int)($parameters['appointmentId'] ?? 0);
 				$userId = $notification->getUser();
 
@@ -216,10 +207,7 @@ class Notifier implements INotifier {
 			case 'waitlist_not_promoted':
 				$parameters = $notification->getSubjectParameters();
 				$appointmentName = (string)($parameters['name'] ?? 'Unknown');
-				$appointmentDate = $this->eventMessages->formatDateForUser(
-					(string)($parameters['startDatetime'] ?? $parameters['date'] ?? ''),
-					$notification->getUser()
-				);
+				$appointmentDate = $this->eventMessages->formatAppointmentDate($parameters, $notification->getUser());
 				if ($notification->getSubject() === 'waitlist_promoted') {
 					$notification->setParsedSubject(
 						// TRANSLATORS Push notification subject: the appointment was full when the person answered, a spot has now come free and they have it. %1$s is the appointment name, %2$s the date.

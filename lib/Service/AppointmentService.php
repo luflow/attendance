@@ -87,6 +87,7 @@ class AppointmentService {
 		CapacityService $capacityService,
 		AppointmentSerializer $appointmentSerializer,
 		VacationService $vacationService,
+		private TimezoneService $timezoneService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -137,6 +138,7 @@ class AppointmentService {
 		?bool $allowMaybe = null,
 		?int $maxAttendees = null,
 		bool $waitlistEnabled = true,
+		bool $isAllDay = false,
 	): Appointment {
 		$this->validateDateRange($startDatetime, $endDatetime);
 
@@ -152,6 +154,7 @@ class AppointmentService {
 		$appointment->setDescription($this->stripHtmlFromMarkdown($description));
 		$appointment->setStartDatetime($startFormatted);
 		$appointment->setEndDatetime($endFormatted);
+		$appointment->setAllDay($isAllDay);
 		$appointment->setCreatedBy($createdBy);
 		$appointment->setCreatedAt(gmdate('Y-m-d H:i:s'));
 		$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
@@ -221,10 +224,8 @@ class AppointmentService {
 	private function applyVacationAutoResponses(Appointment $appointment): void {
 		// Nearly every appointment has nobody on vacation, so ask the small
 		// vacation table first and only resolve the audience when it matters.
-		$onVacation = $this->vacationService->findUsersOnVacation(
-			$appointment->getStartDatetime(),
-			$appointment->getEndDatetime(),
-		);
+		[$firstDay, $lastDay] = $this->vacationDays($appointment);
+		$onVacation = $this->vacationService->findUsersOnVacation($firstDay, $lastDay);
 		if (empty($onVacation)) {
 			return;
 		}
@@ -252,6 +253,22 @@ class AppointmentService {
 	}
 
 	/**
+	 * First and last day an appointment is matched against vacations by; only
+	 * the leading Y-m-d is read. Whole days are the creator's, so their UTC
+	 * dates can be one off.
+	 *
+	 * @return array{0: string, 1: string}
+	 */
+	private function vacationDays(Appointment $appointment): array {
+		if (!$appointment->isAllDay()) {
+			return [$appointment->getStartDatetime(), $appointment->getEndDatetime()];
+		}
+		[$first, $last] = $appointment->allDaySpan($this->timezoneService->ofCreator($appointment));
+
+		return [$first->format('Y-m-d'), $last->format('Y-m-d')];
+	}
+
+	/**
 	 * Answer "no" to every upcoming, still-open appointment inside a vacation
 	 * that reached this user and that they have not answered yet — what a user
 	 * opts into when they record a vacation after appointments already exist.
@@ -266,6 +283,12 @@ class AppointmentService {
 		foreach ($appointments as $appointment) {
 			if ($appointment->isClosed() || $appointment->isCancelled()) {
 				continue;
+			}
+			if ($appointment->isAllDay()) {
+				[$firstDay, $lastDay] = $this->vacationDays($appointment);
+				if ($lastDay < $startDate || $firstDay > $endDate) {
+					continue;
+				}
 			}
 			if (!$this->visibilityService->isUserTargetAttendee($appointment, $userId)) {
 				continue;
@@ -325,6 +348,7 @@ class AppointmentService {
 		?bool $allowMaybe = null,
 		?int $maxAttendees = null,
 		?bool $waitlistEnabled = null,
+		?bool $isAllDay = null,
 	): Appointment {
 		$appointment = $this->appointmentMapper->find($id);
 
@@ -339,6 +363,13 @@ class AppointmentService {
 		$appointment->setDescription($this->stripHtmlFromMarkdown($description));
 		$appointment->setStartDatetime($startFormatted);
 		$appointment->setEndDatetime($endFormatted);
+		$appointment->updateAllDay(
+			$isAllDay,
+			$startFormatted === $before->getStartDatetime() && $endFormatted === $before->getEndDatetime(),
+		);
+		if ($appointment->isAllDay()) {
+			$appointment->keepMidnightsOfSameDays($before, $this->timezoneService->ofCreator($appointment));
+		}
 		$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
 		$appointment->setVisibleUsers(empty($visibleUsers) ? null : json_encode($visibleUsers));
 		$appointment->setVisibleGroups(empty($visibleGroups) ? null : json_encode($visibleGroups));
@@ -577,7 +608,8 @@ class AppointmentService {
 			$fields[] = 'description';
 		}
 		if ($before->getStartDatetime() !== $after->getStartDatetime()
-			|| $before->getEndDatetime() !== $after->getEndDatetime()) {
+			|| $before->getEndDatetime() !== $after->getEndDatetime()
+			|| $before->isAllDay() !== $after->isAllDay()) {
 			$fields[] = 'time';
 		}
 		if ($before->getVisibleUsers() !== $after->getVisibleUsers()
@@ -768,6 +800,7 @@ class AppointmentService {
 	 * @param ?bool $allowMaybe Whether "Maybe" is offered, applied identically to every affected sibling; null leaves it alone
 	 * @param ?int $maxAttendees Attendance limit, applied identically to every affected sibling; null clears it
 	 * @param ?bool $waitlistEnabled Whether a full sibling offers a waitlist; null leaves it alone
+	 * @param ?bool $isAllDay Whether the siblings are whole days; null keeps it unless the times move
 	 * @return list<Appointment> Updated appointments
 	 */
 	public function updateSeriesAppointments(
@@ -789,6 +822,7 @@ class AppointmentService {
 		?bool $allowMaybe = null,
 		?int $maxAttendees = null,
 		?bool $waitlistEnabled = null,
+		?bool $isAllDay = null,
 	): array {
 		$deadlineUpdate ??= DeadlineUpdate::unchanged();
 		$reference = $this->appointmentMapper->find($referenceId);
@@ -802,7 +836,7 @@ class AppointmentService {
 				$referenceId, $name, $description, $startDatetime, $endDatetime,
 				$userId, $visibleUsers, $visibleGroups, $visibleTeams,
 				$deadlineUpdate, $organizers, $location, $categoryId, $createTalkRoom,
-				$allowMaybe, $maxAttendees, $waitlistEnabled,
+				$allowMaybe, $maxAttendees, $waitlistEnabled, $isAllDay,
 			);
 			return [$updated];
 		}
@@ -814,7 +848,7 @@ class AppointmentService {
 				$referenceId, $name, $description, $startDatetime, $endDatetime,
 				$userId, $visibleUsers, $visibleGroups, $visibleTeams,
 				$deadlineUpdate, $organizers, $location, $categoryId, $createTalkRoom,
-				$allowMaybe, $maxAttendees, $waitlistEnabled,
+				$allowMaybe, $maxAttendees, $waitlistEnabled, $isAllDay,
 			);
 			return [$updated];
 		}
@@ -892,6 +926,7 @@ class AppointmentService {
 			$siblingEnd->modify("{$endDelta} seconds");
 			$sibling->setStartDatetime($siblingStart->format('Y-m-d H:i:s'));
 			$sibling->setEndDatetime($siblingEnd->format('Y-m-d H:i:s'));
+			$sibling->updateAllDay($isAllDay, $startDelta === 0 && $endDelta === 0);
 
 			$sibling->setUpdatedAt(gmdate('Y-m-d H:i:s'));
 			$sibling->setVisibleUsers($visibleUsersJson);
@@ -1655,6 +1690,7 @@ class AppointmentService {
 				'id' => $appointment->getId(),
 				'name' => $appointment->getName(),
 				'startDatetime' => $this->formatDatetimeToUtc($appointment->getStartDatetime()),
+				'isAllDay' => $appointment->isAllDay(),
 				'userResponse' => ($userResponse && $userResponse->getResponse() !== null)
 					? ['response' => $userResponse->getResponse()]
 					: null,

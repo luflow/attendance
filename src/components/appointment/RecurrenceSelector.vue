@@ -183,6 +183,10 @@ const props = defineProps({
 		type: Number,
 		default: 0,
 	},
+	allDay: {
+		type: Boolean,
+		default: false,
+	},
 	disabled: {
 		type: Boolean,
 		default: false,
@@ -366,7 +370,7 @@ const visibleOccurrences = computed(() => {
 function formatOccurrence(date) {
 	if (props.duration > 0) {
 		const endDate = new Date(date.getTime() + props.duration)
-		return formatDateRange(date, endDate)
+		return formatDateRange(date, endDate, props.allDay)
 	}
 	return formatDateRange(date, null)
 }

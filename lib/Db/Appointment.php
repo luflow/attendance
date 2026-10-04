@@ -63,6 +63,7 @@ use OCP\AppFramework\Db\Entity;
  * @method void setMaxAttendees(?int $maxAttendees)
  * @method bool getWaitlistEnabled()
  * @method void setWaitlistEnabled(bool $waitlistEnabled)
+ * @method void setAllDay(bool $allDay)
  */
 class Appointment extends Entity implements JsonSerializable {
 	use DatetimeFormatTrait;
@@ -93,6 +94,7 @@ class Appointment extends Entity implements JsonSerializable {
 	protected $allowMaybe = null;
 	protected $maxAttendees = null;
 	protected $waitlistEnabled = true;
+	protected ?bool $allDay = false;
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -123,6 +125,7 @@ class Appointment extends Entity implements JsonSerializable {
 		$this->addType('allowMaybe', 'boolean');
 		$this->addType('maxAttendees', 'integer');
 		$this->addType('waitlistEnabled', 'boolean');
+		$this->addType('allDay', 'boolean');
 	}
 
 	public function jsonSerialize(): array {
@@ -158,6 +161,7 @@ class Appointment extends Entity implements JsonSerializable {
 			'allowMaybe' => $this->getAllowMaybe(),
 			'maxAttendees' => $this->getMaxAttendees(),
 			'waitlistEnabled' => $this->getWaitlistEnabled(),
+			'isAllDay' => $this->isAllDay(),
 		];
 	}
 
@@ -195,6 +199,75 @@ class Appointment extends Entity implements JsonSerializable {
 	 */
 	public function isPast(): bool {
 		return $this->getEndDatetime() < gmdate('Y-m-d H:i:s');
+	}
+
+	public function isAllDay(): bool {
+		return (bool)$this->allDay;
+	}
+
+	/**
+	 * First and last day of an all-day appointment, as midnights in $zone.
+	 * Start and end are midnights in the creator's zone; reading them half a
+	 * day inwards keeps the days right for a reader in another zone.
+	 *
+	 * @return array{0: \DateTimeImmutable, 1: \DateTimeImmutable}
+	 */
+	public function allDaySpan(\DateTimeZone $zone): array {
+		$first = self::allDayAnchor($this->getStartDatetime())->setTimezone($zone)->setTime(0, 0);
+		$last = (new \DateTimeImmutable($this->getEndDatetime(), new \DateTimeZone('UTC')))
+			->modify('-12 hours')->setTimezone($zone)->setTime(0, 0);
+
+		return [$first, $last < $first ? $first : $last];
+	}
+
+	/**
+	 * Midnights in $zone the whole days start and end at: the first day's and
+	 * the one after the last day, as iCal wants DTEND.
+	 *
+	 * @return array{0: \DateTimeImmutable, 1: \DateTimeImmutable}
+	 */
+	public function allDayBounds(\DateTimeZone $zone): array {
+		[$first, $last] = $this->allDaySpan($zone);
+
+		return [$first, $last->modify('+1 day')];
+	}
+
+	/**
+	 * Midday of the first day of an all-day start: the creator's midnight read
+	 * half a day inwards, which names the same day in every zone.
+	 */
+	public static function allDayAnchor(string $utcStart): \DateTimeImmutable {
+		return (new \DateTimeImmutable($utcStart, new \DateTimeZone('UTC')))->modify('+12 hours');
+	}
+
+	/**
+	 * Take the flag from an edit. A client that does not know it sends null and
+	 * keeps whole days only by leaving the times alone.
+	 */
+	public function updateAllDay(?bool $requested, bool $timesUnchanged): void {
+		$this->setAllDay($requested ?? ($this->isAllDay() && $timesUnchanged));
+	}
+
+	/**
+	 * The same days named from another zone are no change: keep the midnights
+	 * $before was entered with, so nobody is told the appointment moved.
+	 */
+	public function keepMidnightsOfSameDays(Appointment $before, \DateTimeZone $zone): void {
+		if ($this->isAllDay() && $before->isAllDay() && $this->allDaySpan($zone) == $before->allDaySpan($zone)) {
+			$this->setStartDatetime($before->getStartDatetime());
+			$this->setEndDatetime($before->getEndDatetime());
+		}
+	}
+
+	/**
+	 * Pin an all-day appointment to midnights in $zone, the end being the
+	 * midnight after its last day.
+	 */
+	public function alignAllDay(\DateTimeZone $zone): void {
+		[$start, $end] = $this->allDayBounds($zone);
+		$utc = new \DateTimeZone('UTC');
+		$this->setStartDatetime($start->setTimezone($utc)->format('Y-m-d H:i:s'));
+		$this->setEndDatetime($end->setTimezone($utc)->format('Y-m-d H:i:s'));
 	}
 
 	/**

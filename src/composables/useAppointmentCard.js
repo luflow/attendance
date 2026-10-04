@@ -55,7 +55,7 @@ export function useAppointmentCard(appointmentSource) {
 		: t('attendance', 'You are not an attendee of this appointment, so you cannot respond.')))
 
 	// Users can swap which of name and date leads the card.
-	const dateRange = computed(() => formatDateRange(appointment.value.startDatetime, appointment.value.endDatetime))
+	const dateRange = computed(() => formatDateRange(appointment.value.startDatetime, appointment.value.endDatetime, appointment.value.isAllDay))
 	const dateFirst = computed(() => config.displayOrder === 'date_first')
 	const titleText = computed(() => (dateFirst.value ? dateRange.value : appointment.value.name))
 	const subtitleText = computed(() => (dateFirst.value ? appointment.value.name : dateRange.value))

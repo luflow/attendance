@@ -55,7 +55,7 @@ import { NcButton } from '@nextcloud/vue'
 import { computed } from 'vue'
 import ListStatusIcon from 'vue-material-design-icons/ListStatus.vue'
 import ResponseEditor from '../appointment/ResponseEditor.vue'
-import { formatDateTime } from '../../utils/datetime.js'
+import { formatStart } from '../../utils/datetime.js'
 import { responseOptionsFor } from '../../utils/response.js'
 
 const props = defineProps({
@@ -79,7 +79,7 @@ const emit = defineEmits(['respond', 'openCheckin', 'openDetail'])
 // would reject.
 const responseOptions = computed(() => responseOptionsFor(props.item.allowMaybe))
 
-const formattedDate = computed(() => formatDateTime(props.item.subText))
+const formattedDate = computed(() => formatStart(props.item.subText, props.item.isAllDay))
 </script>
 
 <style scoped lang="scss">

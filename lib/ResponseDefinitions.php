@@ -34,6 +34,7 @@ namespace OCA\Attendance;
  *   allowMaybe: bool,
  *   maxAttendees: ?int,
  *   waitlistEnabled: bool,
+ *   isAllDay: bool,
  *   occupancy: int,
  *   isFull: bool,
  * }
@@ -120,6 +121,7 @@ namespace OCA\Attendance;
  *   responseDeadline: ?string,
  *   location: ?string,
  *   categoryId: ?int,
+ *   isAllDay: bool,
  *   userResponse: AttendanceResponseData|null,
  *   responseSummary?: array<string, mixed>,
  *   attachments: list<array<string, mixed>>,
@@ -136,6 +138,7 @@ namespace OCA\Attendance;
  *   id: int,
  *   name: string,
  *   startDatetime: string,
+ *   isAllDay: bool,
  *   seriesId: ?string,
  *   seriesPosition: ?int,
  *   userResponse: ?array{response: string},
@@ -164,6 +167,7 @@ namespace OCA\Attendance;
  *   allowMaybe?: bool,
  *   maxAttendees?: int,
  *   waitlistEnabled?: bool,
+ *   isAllDay?: bool,
  * }
  * @psalm-type AttendanceCategoryData = array{
  *   id: int,
@@ -237,6 +241,7 @@ namespace OCA\Attendance;
  *   vacationManagementEnabled: bool,
  *   roleFilter: bool,
  *   pagination: bool,
+ *   allDay: bool,
  * }
  * @psalm-type AttendanceAuditUserRef = array{
  *   userId: string,
@@ -312,7 +317,7 @@ namespace OCA\Attendance;
  *   guestsApp: AttendanceGuestsAppStatus,
  * }
  * @psalm-type AttendanceAdminStatus = array{
- *   nextAppointment: ?array{name: string, startDatetime: string},
+ *   nextAppointment: ?array{name: string, startDatetime: string, isAllDay: bool},
  *   nextReminderRun: ?string,
  *   pushDeviceCount: int,
  * }
@@ -347,6 +352,7 @@ namespace OCA\Attendance;
  *   id: int,
  *   name: string,
  *   startDatetime: string,
+ *   isAllDay: bool,
  *   checkinWindowStartsAt: string,
  * }
  * @psalm-type AttendanceSelfCheckinOverview = array{

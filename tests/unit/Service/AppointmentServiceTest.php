@@ -28,11 +28,14 @@ use OCA\Attendance\Service\ResponsePolicyService;
 use OCA\Attendance\Service\ResponseService;
 use OCA\Attendance\Service\ResponseSummaryService;
 use OCA\Attendance\Service\TalkRoomService;
+use OCA\Attendance\Service\TimezoneService;
 use OCA\Attendance\Service\VacationService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Collaboration\Collaborators\ISearch as ICollaboratorSearch;
+use OCP\Config\IUserConfig;
+use OCP\IDateTimeZone;
 use OCP\IGroupManager;
 use OCP\IUserManager;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -128,6 +131,10 @@ class AppointmentServiceTest extends TestCase {
 		$this->responsePolicyService = new ResponsePolicyService($this->configService, $this->capacityService, $this->visibilityService);
 		$this->vacationService = $this->createMock(VacationService::class);
 
+		$userConfig = $this->createMock(IUserConfig::class);
+		$userConfig->method('getValueString')->willReturn('Europe/Berlin');
+		$timezoneService = new TimezoneService($userConfig, $this->createMock(IDateTimeZone::class));
+
 		$this->service = new AppointmentService(
 			$this->appointmentMapper,
 			$this->responseMapper,
@@ -151,6 +158,7 @@ class AppointmentServiceTest extends TestCase {
 			$this->capacityService,
 			new AppointmentSerializer($this->responsePolicyService, $this->capacityService),
 			$this->vacationService,
+			$timezoneService,
 		);
 	}
 
@@ -220,6 +228,31 @@ class AppointmentServiceTest extends TestCase {
 			'admin',
 			['alice', 'bob'],
 		);
+	}
+
+	/** Berlin's 1 June starts on 31 May in UTC; the vacation check must not see that day. */
+	public function testCreateAllDayAppointmentMatchesVacationsByItsOwnDays(): void {
+		$this->appointmentMapper->method('insert')->willReturnCallback(function (Appointment $appointment) {
+			$appointment->setId(9);
+			return $appointment;
+		});
+
+		$this->vacationService->expects($this->once())
+			->method('findUsersOnVacation')
+			->with('2026-06-01', '2026-06-01')
+			->willReturn([]);
+
+		$created = $this->service->createAppointment(
+			'Trip',
+			'',
+			'2026-05-31T22:00:00Z',
+			'2026-06-01T22:00:00Z',
+			'admin',
+			isAllDay: true,
+		);
+
+		$this->assertTrue($created->isAllDay());
+		$this->assertSame('2026-05-31 22:00:00', $created->getStartDatetime());
 	}
 
 	public function testCreateAppointmentLeavesVacationersOutsideTheAudienceAlone(): void {
@@ -292,6 +325,20 @@ class AppointmentServiceTest extends TestCase {
 			->with(11, 'alice', null, '', 'no', '', Verb::SOURCE_VACATION, null);
 
 		$this->assertSame(1, $this->service->answerNoDuringVacation('alice', '2030-06-01', '2030-06-10'));
+	}
+
+	public function testAnswerNoDuringVacationLeavesAnAllDayAppointmentOnTheDayAfterAlone(): void {
+		// 11 June in Berlin, which reaches back into the vacation's last UTC day
+		$appointment = $this->upcomingAppointment(16);
+		$appointment->setStartDatetime('2030-06-10 22:00:00');
+		$appointment->setEndDatetime('2030-06-11 22:00:00');
+		$appointment->setAllDay(true);
+		$this->appointmentMapper->method('findUpcomingOverlapping')->willReturn([$appointment]);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+
+		$this->responseMapper->expects($this->never())->method('insert');
+
+		$this->assertSame(0, $this->service->answerNoDuringVacation('alice', '2030-06-01', '2030-06-10'));
 	}
 
 	public function testAnswerNoDuringVacationKeepsAnswersAlreadyGiven(): void {
@@ -393,6 +440,51 @@ class AppointmentServiceTest extends TestCase {
 			'2026-01-02T13:00:00Z',
 			'admin',
 		);
+	}
+
+	private function storedAllDayAppointment(): Appointment {
+		$appointment = new Appointment();
+		$appointment->setId(4);
+		$appointment->setName('Trip');
+		$appointment->setDescription('');
+		$appointment->setStartDatetime('2026-05-31 22:00:00');
+		$appointment->setEndDatetime('2026-06-01 22:00:00');
+		$appointment->setAllDay(true);
+		$this->appointmentMapper->method('find')->willReturn($appointment);
+		$this->appointmentMapper->method('update')->willReturnArgument(0);
+		return $appointment;
+	}
+
+	/** An older mobile build sends no isAllDay; renaming must not turn the day into times. */
+	public function testUpdateKeepsAllDayForAClientThatLeavesTheTimesAlone(): void {
+		$this->storedAllDayAppointment();
+		$this->auditEventService->expects($this->once())->method('recordAppointmentUpdate')->with(4, ['name']);
+
+		$updated = $this->service->updateAppointment(4, 'Day trip', '', '2026-05-31T22:00:00Z', '2026-06-01T22:00:00Z', 'admin');
+
+		$this->assertTrue($updated->isAllDay());
+	}
+
+	/** Such a client can only have meant times once it moves them. */
+	public function testUpdateDropsAllDayWhenAnUnawareClientMovesTheTimes(): void {
+		$this->storedAllDayAppointment();
+
+		$updated = $this->service->updateAppointment(4, 'Trip', '', '2026-06-01T08:00:00Z', '2026-06-01T16:00:00Z', 'admin');
+
+		$this->assertFalse($updated->isAllDay());
+	}
+
+	public function testUpdateRecordsSwitchingToAllDayAsATimeChange(): void {
+		$stored = $this->storedAllDayAppointment();
+		$stored->setAllDay(false);
+		$this->auditEventService->expects($this->once())->method('recordAppointmentUpdate')->with(4, ['time']);
+
+		$updated = $this->service->updateAppointment(
+			4, 'Trip', '', '2026-05-31T22:00:00Z', '2026-06-01T22:00:00Z', 'admin',
+			isAllDay: true,
+		);
+
+		$this->assertTrue($updated->isAllDay());
 	}
 
 	public function testCreateAppointmentStoresLocation(): void {

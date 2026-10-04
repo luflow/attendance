@@ -125,6 +125,7 @@ class QuickResponseController extends Controller {
 			'appointmentName' => $appointment->getName(),
 			'appointmentDatetime' => $appointmentData['startDatetime'],
 			'appointmentEndDatetime' => $appointmentData['endDatetime'],
+			'appointmentAllDay' => $appointment->isAllDay(),
 			'response' => $response,
 			'responseLabel' => $this->getResponseLabel($response),
 			'token' => $token,

@@ -526,7 +526,9 @@ class TalkRoomService {
 	 */
 	private function buildName(Appointment $appointment, IUser $owner): string {
 		try {
-			$start = new \DateTime($appointment->getStartDatetime(), new \DateTimeZone('UTC'));
+			$start = $appointment->isAllDay()
+				? \DateTime::createFromImmutable(Appointment::allDayAnchor($appointment->getStartDatetime()))
+				: new \DateTime($appointment->getStartDatetime(), new \DateTimeZone('UTC'));
 		} catch (\Exception) {
 			return mb_substr($appointment->getName(), 0, self::NAME_MAX_LENGTH);
 		}

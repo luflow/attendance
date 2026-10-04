@@ -319,7 +319,7 @@ import CheckinView from './views/Checkin.vue'
 import StatisticsOverview from './views/StatisticsOverview.vue'
 import { usePermissions } from './composables/usePermissions.js'
 import { confirmLeave, hasUnsavedChanges } from './composables/useUnsavedChanges.js'
-import { formatDateTime } from './utils/datetime.js'
+import { formatStart } from './utils/datetime.js'
 import { VIEWS } from './views/appointmentViews.js'
 
 t('attendance', 'Connect')
@@ -918,7 +918,7 @@ function formatAppointmentDisplay(appointment) {
 	if (!appointment.startDatetime) {
 		return appointment.name
 	}
-	const dateTimeStr = formatDateTime(appointment.startDatetime)
+	const dateTimeStr = formatStart(appointment.startDatetime, appointment.isAllDay)
 	if (config.displayOrder === 'date_first') {
 		return `${dateTimeStr}\n${appointment.name}`
 	}

@@ -211,6 +211,8 @@
       <code><![CDATA[$includeGroup]]></code>
       <code><![CDATA[$includeOrganizers]]></code>
       <code><![CDATA[$includeRsvp]]></code>
+      <code><![CDATA[$isAllDay]]></code>
+      <code><![CDATA[$isAllDay]]></code>
       <code><![CDATA[$limit]]></code>
       <code><![CDATA[$location]]></code>
       <code><![CDATA[$location]]></code>
@@ -1322,6 +1324,11 @@
       <code><![CDATA[Version000023Date20260917000000]]></code>
     </UnusedClass>
   </file>
+  <file src="lib/Migration/Version000025Date20261004120000.php">
+    <UnusedClass>
+      <code><![CDATA[Version000025Date20261004120000]]></code>
+    </UnusedClass>
+  </file>
   <file src="lib/Notification/Notifier.php">
     <ClassMustBeFinal>
       <code><![CDATA[Notifier]]></code>
@@ -1336,8 +1343,6 @@
       <code><![CDATA[$appointmentId]]></code>
       <code><![CDATA[$appointmentId]]></code>
       <code><![CDATA[$count]]></code>
-      <code><![CDATA[$parameters['startDatetime'] ?? $parameters['date'] ?? '']]></code>
-      <code><![CDATA[$parameters['startDatetime'] ?? $parameters['date'] ?? '']]></code>
     </MixedArgument>
     <MixedAssignment>
       <code><![CDATA[$appointmentId]]></code>
@@ -2134,17 +2139,6 @@
       <code><![CDATA[$appointmentData['checkinAt']]]></code>
       <code><![CDATA[$appointmentData['checkinState']]]></code>
     </MixedAssignment>
-    <MixedReturnTypeCoercion>
-      <code><![CDATA[[
-			'appointments' => $result,
-			// Only needed for the "nothing right now" screen — skip the extra
-			// query when there is something to check into.
-			'nextUpcoming' => $result === []
-				? $this->findNextUpcoming($userId, $windowMinutes)
-				: null,
-		]]]></code>
-      <code><![CDATA[array{appointments: list<array<string, mixed>>, nextUpcoming: ?array{id: int, name: string, startDatetime: string, checkinWindowStartsAt: string}}]]></code>
-    </MixedReturnTypeCoercion>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
       <code><![CDATA[getOverview]]></code>
@@ -2190,6 +2184,11 @@
     <PossiblyUnusedReturnValue>
       <code><![CDATA[?string]]></code>
     </PossiblyUnusedReturnValue>
+  </file>
+  <file src="lib/Service/TimezoneService.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
   </file>
   <file src="lib/Service/VacationService.php">
     <ClassMustBeFinal>

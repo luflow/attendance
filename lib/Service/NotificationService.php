@@ -51,13 +51,14 @@ class NotificationService {
 	/**
 	 * The subject parameters every appointment-scoped notification carries.
 	 *
-	 * @return array{appointmentId: int, name: string, startDatetime: string}
+	 * @return array{appointmentId: int, name: string, startDatetime: string, isAllDay: bool}
 	 */
 	private function appointmentSubjectParameters(Appointment $appointment): array {
 		return [
 			'appointmentId' => $appointment->getId(),
 			'name' => $appointment->getName(),
 			'startDatetime' => $appointment->getStartDatetime(),
+			'isAllDay' => $appointment->isAllDay(),
 		];
 	}
 
@@ -405,11 +406,7 @@ class NotificationService {
 				->setUser($userId)
 				->setDateTime(new \DateTime())
 				->setObject('appointment', (string)$appointment->getId())
-				->setSubject($subject, [
-					'appointmentId' => $appointment->getId(),
-					'name' => $appointment->getName(),
-					'startDatetime' => $appointment->getStartDatetime(),
-				])
+				->setSubject($subject, $this->appointmentSubjectParameters($appointment))
 				->setLink($appointmentUrl);
 
 			$this->notificationManager->notify($notification);

@@ -84,6 +84,72 @@ class AppointmentTest extends TestCase {
 		$this->assertStringContainsString('2024-01-15T11:00:00Z', $json['endDatetime']);
 	}
 
+	/** 10 and 11 October 2026 as someone in Berlin entered them. */
+	private function allDayInBerlin(): Appointment {
+		$appointment = new Appointment();
+		$appointment->setStartDatetime('2026-10-09 22:00:00');
+		$appointment->setEndDatetime('2026-10-11 22:00:00');
+		$appointment->setAllDay(true);
+		return $appointment;
+	}
+
+	/**
+	 * @dataProvider readerZones
+	 */
+	public function testAllDaySpanNamesTheSameDaysInEveryZone(string $zone): void {
+		[$first, $last] = $this->allDayInBerlin()->allDaySpan(new \DateTimeZone($zone));
+
+		$this->assertSame('2026-10-10 00:00', $first->format('Y-m-d H:i'));
+		$this->assertSame('2026-10-11 00:00', $last->format('Y-m-d H:i'));
+	}
+
+	public static function readerZones(): array {
+		return [['Europe/Berlin'], ['UTC'], ['America/New_York'], ['Asia/Tokyo']];
+	}
+
+	public function testAllDaySpanNeverEndsBeforeItStarts(): void {
+		$appointment = $this->allDayInBerlin();
+		$appointment->setEndDatetime('2026-10-09 23:00:00');
+
+		[$first, $last] = $appointment->allDaySpan(new \DateTimeZone('Europe/Berlin'));
+
+		$this->assertEquals($first, $last);
+	}
+
+	public function testAlignAllDayPinsToTheMidnightsOfTheZone(): void {
+		$appointment = $this->allDayInBerlin();
+
+		$appointment->alignAllDay(new \DateTimeZone('America/New_York'));
+
+		$this->assertSame('2026-10-10 04:00:00', $appointment->getStartDatetime());
+		$this->assertSame('2026-10-12 04:00:00', $appointment->getEndDatetime());
+	}
+
+	/** Saved again by an organizer in New York: other midnights, same two days. */
+	public function testSameDaysFromAnotherZoneKeepTheirMidnights(): void {
+		$edited = $this->allDayInBerlin();
+		$edited->alignAllDay(new \DateTimeZone('America/New_York'));
+
+		$edited->keepMidnightsOfSameDays($this->allDayInBerlin(), new \DateTimeZone('Europe/Berlin'));
+
+		$this->assertSame('2026-10-09 22:00:00', $edited->getStartDatetime());
+		$this->assertSame('2026-10-11 22:00:00', $edited->getEndDatetime());
+	}
+
+	public function testOtherDaysAreAChange(): void {
+		$edited = $this->allDayInBerlin();
+		$edited->setEndDatetime('2026-10-12 22:00:00');
+
+		$edited->keepMidnightsOfSameDays($this->allDayInBerlin(), new \DateTimeZone('Europe/Berlin'));
+
+		$this->assertSame('2026-10-12 22:00:00', $edited->getEndDatetime());
+	}
+
+	public function testJsonSerializeCarriesAllDay(): void {
+		$this->assertTrue($this->allDayInBerlin()->jsonSerialize()['isAllDay']);
+		$this->assertFalse($this->appointment->jsonSerialize()['isAllDay']);
+	}
+
 	public function testDefaultValues(): void {
 		$appointment = new Appointment();
 

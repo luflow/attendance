@@ -89,7 +89,7 @@
 									appointment.name
 								}}</span>
 								<span class="event-date">{{
-									formatDateTime(appointment.startDatetime)
+									formatStart(appointment.startDatetime, appointment.isAllDay)
 								}}</span>
 							</div>
 						</NcCheckboxRadioSwitch>
@@ -284,7 +284,7 @@ import ExportColumnOptions from './export/ExportColumnOptions.vue'
 import ExportSeriesList from './export/ExportSeriesList.vue'
 import { useExportColumns } from '../composables/useExportColumns.js'
 import { useExportRequest } from '../composables/useExportRequest.js'
-import { formatDate, formatDateTime } from '../utils/datetime.js'
+import { formatDate, formatStart } from '../utils/datetime.js'
 import { toggled } from '../utils/statisticsColumns.js'
 
 const props = defineProps({

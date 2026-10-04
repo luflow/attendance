@@ -139,7 +139,7 @@
 			@closing="showResetDialog = false">
 			<p v-if="appointment">
 				<strong>{{ appointment.name }}</strong><br>
-				{{ formatDateRange(appointment.startDatetime, appointment.endDatetime) }}
+				{{ formatDateRange(appointment.startDatetime, appointment.endDatetime, appointment.isAllDay) }}
 			</p>
 			<p>{{ t('attendance', 'Do you want to reset the check-in for this appointment? This will remove all check-in entries.') }}</p>
 			<template #actions>

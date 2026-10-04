@@ -250,6 +250,7 @@ class SelfCheckinServiceTest extends TestCase {
 		// naive strings get misread as local time by the mobile client.
 		$start = new \DateTime($next->getStartDatetime(), new \DateTimeZone('UTC'));
 		$this->assertSame($start->format('Y-m-d\TH:i:s\Z'), $overview['nextUpcoming']['startDatetime']);
+		$this->assertFalse($overview['nextUpcoming']['isAllDay']);
 		$this->assertSame(
 			$start->modify('-30 minutes')->format('Y-m-d\TH:i:s\Z'),
 			$overview['nextUpcoming']['checkinWindowStartsAt'],

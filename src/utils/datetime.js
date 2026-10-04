@@ -4,6 +4,7 @@
  */
 
 import { getCanonicalLocale } from '@nextcloud/l10n'
+import { startOfDay } from 'date-fns'
 import { fromZonedTime } from 'date-fns-tz'
 
 /**
@@ -252,17 +253,59 @@ export function formatDateWithWeekday(date) {
 	})
 }
 
+const HALF_DAY_MS = 12 * 60 * 60 * 1000
+
+/**
+ * First and last day of an all-day appointment, as local midnights.
+ * Start and end are midnights in the creator's zone; reading them half a day
+ * inwards keeps the days right in whatever zone this browser is in.
+ *
+ * @param {string|Date} startDatetime - Midnight the first day begins
+ * @param {string|Date} endDatetime - Midnight after the last day
+ * @return {Date[]} First and last day; empty when the start is not a date
+ */
+export function allDaySpan(startDatetime, endDatetime) {
+	const dayOf = (datetime, shift) => startOfDay(new Date(datetime).getTime() + shift)
+	const first = dayOf(startDatetime, HALF_DAY_MS)
+	if (isNaN(first.getTime())) return []
+	const last = endDatetime ? dayOf(endDatetime, -HALF_DAY_MS) : first
+	return [first, last > first ? last : first]
+}
+
+/**
+ * Format an appointment's start: date and time, or the date alone when it is all day.
+ *
+ * @param {string|Date} startDatetime - The start datetime
+ * @param {boolean} allDay - Whether the appointment is all day
+ * @param {string} dateStyle - Date style: 'short', 'medium', 'long' (default: 'short')
+ * @return {string} Formatted start
+ */
+export function formatStart(startDatetime, allDay = false, dateStyle = 'short') {
+	if (!allDay) return formatDateTime(startDatetime, { dateStyle })
+	const [first] = allDaySpan(startDatetime)
+	return first ? formatDate(first, dateStyle) : ''
+}
+
 /**
  * Format a date range compactly with weekday names.
  * If same day: "Fr., 14. Feb. 2026, 10:00 – 11:00"
  * If different days: "Fr., 14. Feb. 2026, 10:00 – Sa., 15. Feb. 2026, 10:00"
+ * All day: "Fr., 14. Feb. 2026" or "Fr., 14. Feb. 2026 – Sa., 15. Feb. 2026"
  *
  * @param {string|Date} startDatetime - The start datetime
  * @param {string|Date} endDatetime - The end datetime
+ * @param {boolean} allDay - Whether the range is whole days, see allDaySpan()
  * @return {string} Formatted date range string
  */
-export function formatDateRange(startDatetime, endDatetime) {
+export function formatDateRange(startDatetime, endDatetime, allDay = false) {
 	if (!startDatetime) return ''
+	if (allDay) {
+		const [first, last] = allDaySpan(startDatetime, endDatetime)
+		if (!first) return ''
+		return last > first
+			? `${formatDateWithWeekday(first)} – ${formatDateWithWeekday(last)}`
+			: formatDateWithWeekday(first)
+	}
 	if (!endDatetime) return formatDateTime(startDatetime)
 
 	try {

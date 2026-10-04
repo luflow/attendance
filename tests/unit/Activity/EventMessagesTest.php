@@ -91,6 +91,12 @@ class EventMessagesTest extends TestCase {
 		);
 	}
 
+	/** Berlin's midnight is still the day before in UTC, which is all this reader has. */
+	public function testFormatDateForUserNamesAnAllDayAppointmentByItsDay(): void {
+		$this->assertSame('10.10.2026', $this->eventMessages->formatDateForUser('2026-10-09 22:00:00', 'alice', true));
+		$this->assertSame('09.10.2026 22:00', $this->eventMessages->formatDateForUser('2026-10-09 22:00:00', 'alice'));
+	}
+
 	public function testFormatDateForUserFallsBackToUnknownForEmptyInput(): void {
 		$this->assertSame('Unknown', $this->eventMessages->formatDateForUser('', 'alice'));
 	}

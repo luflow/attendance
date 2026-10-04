@@ -54,6 +54,7 @@ class IcalService {
 		IConfig $config,
 		CategoryMapper $categoryMapper,
 		CapacityService $capacityService,
+		private TimezoneService $timezoneService,
 	) {
 		$this->icalTokenMapper = $icalTokenMapper;
 		$this->appointmentMapper = $appointmentMapper;
@@ -372,8 +373,13 @@ class IcalService {
 		$output .= 'CREATED:' . $createdDt->format('Ymd\THis\Z') . "\r\n";
 		$output .= 'LAST-MODIFIED:' . $lastModifiedDt->format('Ymd\THis\Z') . "\r\n";
 		$output .= 'SEQUENCE:' . $sequence . "\r\n";
-		$output .= 'DTSTART:' . $startDt->format('Ymd\THis\Z') . "\r\n";
-		$output .= 'DTEND:' . $endDt->format('Ymd\THis\Z') . "\r\n";
+		if ($appointment->isAllDay()) {
+			$lines = self::allDayLines($appointment, $this->timezoneService->ofCreator($appointment));
+			$output .= $lines['DTSTART'] . "\r\n" . $lines['DTEND'] . "\r\n";
+		} else {
+			$output .= 'DTSTART:' . $startDt->format('Ymd\THis\Z') . "\r\n";
+			$output .= 'DTEND:' . $endDt->format('Ymd\THis\Z') . "\r\n";
+		}
 		$output .= 'SUMMARY:' . self::escapeIcalText($summary) . "\r\n";
 		$output .= 'DESCRIPTION:' . self::escapeIcalText($description) . "\r\n";
 		$location = $appointment->getLocation();
@@ -486,6 +492,20 @@ class IcalService {
 		$normalized = preg_replace("/\n[ \t]/", '', $normalized) ?? $normalized;
 
 		return explode("\n", trim($normalized));
+	}
+
+	/**
+	 * Whole-day DTSTART/DTEND lines of an all-day appointment, its days read in $zone.
+	 *
+	 * @return array{DTSTART: string, DTEND: string}
+	 */
+	public static function allDayLines(Appointment $appointment, \DateTimeZone $zone): array {
+		[$start, $end] = $appointment->allDayBounds($zone);
+
+		return [
+			'DTSTART' => 'DTSTART;VALUE=DATE:' . $start->format('Ymd'),
+			'DTEND' => 'DTEND;VALUE=DATE:' . $end->format('Ymd'),
+		];
 	}
 
 	/**

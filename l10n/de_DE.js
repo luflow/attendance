@@ -1058,6 +1058,8 @@ OC.L10N.register(
     "Unsaved changes" : "Ungespeicherte Änderungen",
     "Your changes have not been saved. Do you want to discard them?" : "Die Änderungen wurden noch nicht gespeichert. Sollen sie verworfen werden?",
     "Discard changes" : "Änderungen verwerfen",
-    "Keep editing" : "Weiter bearbeiten"
+    "Keep editing" : "Weiter bearbeiten",
+    "All day" : "Ganztägig",
+    "You are scheduled in for this appointment." : "Für diesen Termin sind Sie eingeplant."
 },
 "nplurals=2; plural=(n != 1);");

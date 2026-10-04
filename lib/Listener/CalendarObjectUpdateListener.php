@@ -9,6 +9,7 @@ use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Service\AppointmentService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\OrgCalendarSyncService;
+use OCA\Attendance\Service\TimezoneService;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\IUserSession;
@@ -28,6 +29,7 @@ class CalendarObjectUpdateListener implements IEventListener {
 		private AppointmentService $appointmentService,
 		private IUserSession $userSession,
 		private LoggerInterface $logger,
+		private TimezoneService $timezoneService,
 	) {
 	}
 
@@ -92,13 +94,25 @@ class CalendarObjectUpdateListener implements IEventListener {
 			$appointment->setDescription(strip_tags(OrgCalendarSyncService::stripAppendedBlock($description)));
 		}
 
-		$dtstart = $vevent->DTSTART ? $vevent->DTSTART->getDateTime() : null;
-		$dtend = $vevent->DTEND ? $vevent->DTEND->getDateTime() : null;
+		// A date-only start means whole days; they carry no zone, so they are the creator's.
+		$dayZone = preg_match('/^\d{8}$/', (string)($vevent->DTSTART ?? '')) === 1
+			? $this->timezoneService->ofCreator($appointment)
+			: null;
+		$dtstart = $vevent->DTSTART ? $vevent->DTSTART->getDateTime($dayZone) : null;
+		$dtend = $vevent->DTEND ? $vevent->DTEND->getDateTime($dayZone) : null;
 		if ($dtstart) {
 			$appointment->setStartDatetime((clone $dtstart)->setTimezone($utcTimezone)->format('Y-m-d H:i:s'));
+			$appointment->setAllDay($dayZone !== null);
 		}
 		if ($dtend) {
 			$appointment->setEndDatetime((clone $dtend)->setTimezone($utcTimezone)->format('Y-m-d H:i:s'));
+		} elseif ($dayZone !== null) {
+			// RFC 5545: a date without an end is that one day
+			$appointment->setEndDatetime($appointment->getStartDatetime());
+			$appointment->alignAllDay($dayZone);
+		}
+		if ($dayZone !== null) {
+			$appointment->keepMidnightsOfSameDays($before, $dayZone);
 		}
 
 		$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));

@@ -162,23 +162,28 @@
 
 			<div class="form-section">
 				<h3>{{ t("attendance", "Date & Time") }}</h3>
+				<NcCheckboxRadioSwitch
+					:modelValue="formData.isAllDay"
+					data-test="checkbox-all-day"
+					@update:modelValue="onAllDayChange">
+					<!-- TRANSLATORS: Checkbox in the appointment form, same as in the Calendar app: the appointment takes whole days and has no time of day (German "Ganztägig"). -->
+					{{ t("attendance", "All day") }}
+				</NcCheckboxRadioSwitch>
 				<div class="datetime-fields">
 					<NcDateTimePickerNative
 						id="start-datetime"
 						:modelValue="startDateObject"
-						type="datetime-local"
-						step="900"
-						:label="t('attendance', 'Start date & time')"
+						v-bind="pickerAttrs"
+						:label="formData.isAllDay ? t('attendance', 'Start date') : t('attendance', 'Start date & time')"
 						data-test="input-start-datetime"
 						@update:modelValue="onStartDatetimeChange"
 						@blur="onStartDatetimeBlur" />
 
 					<NcDateTimePickerNative
 						id="end-datetime"
-						:modelValue="endDateObject"
-						type="datetime-local"
-						step="900"
-						:label="t('attendance', 'End date & time')"
+						:modelValue="endPickerValue"
+						v-bind="pickerAttrs"
+						:label="formData.isAllDay ? t('attendance', 'End date') : t('attendance', 'End date & time')"
 						data-test="input-end-datetime"
 						@update:modelValue="onEndDatetimeChange" />
 				</div>
@@ -187,6 +192,7 @@
 					v-if="mode === 'create'"
 					:startDate="startDateObject"
 					:duration="appointmentDuration"
+					:allDay="formData.isAllDay"
 					:disabled="saving"
 					data-test="recurrence-selector"
 					@update:occurrences="onRecurrenceUpdate"
@@ -577,6 +583,7 @@ import {
 	NcSelect,
 	NcTextField,
 } from '@nextcloud/vue'
+import { addDays, startOfDay } from 'date-fns'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import Account from 'vue-material-design-icons/Account.vue'
 import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
@@ -599,6 +606,7 @@ import { useCategories } from '../composables/useCategories.js'
 import { usePermissions } from '../composables/usePermissions.js'
 import { useUnsavedChanges } from '../composables/useUnsavedChanges.js'
 import { categoryIconComponent } from '../utils/categoryIcons.js'
+import { allDaySpan } from '../utils/datetime.js'
 import { formatGroupLabel } from '../utils/groups.js'
 
 const props = defineProps({
@@ -638,6 +646,8 @@ const formData = reactive({
 	categoryId: null,
 	startDatetime: '',
 	endDatetime: '',
+	// All day: start and end are local midnights, the end the one after the last day.
+	isAllDay: false,
 	visibleUsers: [],
 	visibleGroups: [],
 	visibleTeams: [],
@@ -891,6 +901,15 @@ const endDateObject = computed(() => {
 	return isNaN(date.getTime()) ? null : date
 })
 
+const pickerAttrs = computed(() => (formData.isAllDay
+	? { type: 'date' }
+	: { type: 'datetime-local', step: 900 }))
+
+// All day, the end field names the last day rather than the midnight after it.
+const endPickerValue = computed(() => (formData.isAllDay && endDateObject.value
+	? addDays(endDateObject.value, -1)
+	: endDateObject.value))
+
 const deadlineAbsoluteDateObject = computed(() => {
 	if (!deadlineAbsolute.value) return null
 	const date = new Date(deadlineAbsolute.value)
@@ -1079,10 +1098,16 @@ async function loadAppointment() {
 		formData.location = appointment.location || ''
 		formData.categoryId = appointment.categoryId ?? null
 
+		formData.isAllDay = Boolean(appointment.isAllDay)
+
 		// For copy mode, leave dates empty
 		if (props.mode === 'copy') {
 			formData.startDatetime = ''
 			formData.endDatetime = ''
+		} else if (formData.isAllDay) {
+			const [firstDay, lastDay] = allDaySpan(appointment.startDatetime, appointment.endDatetime)
+			formData.startDatetime = formatDateTimeForInput(firstDay)
+			formData.endDatetime = formatDateTimeForInput(addDays(lastDay, 1))
 		} else {
 			formData.startDatetime = formatDateTimeForInput(appointment.startDatetime)
 			formData.endDatetime = formatDateTimeForInput(appointment.endDatetime)
@@ -1224,11 +1249,28 @@ async function loadTrackingGroups() {
 	}
 }
 
+function onAllDayChange(allDay) {
+	formData.isAllDay = allDay
+	if (!allDay || !startDateObject.value) return
+
+	// Whole days from the first to the one the appointment ended on; an end at
+	// midnight sharp belongs to the day before.
+	const firstDay = startOfDay(startDateObject.value)
+	const end = endDateObject.value ?? firstDay
+	const lastDay = startOfDay(new Date(Math.max(end.getTime() - 1, firstDay.getTime())))
+	formData.startDatetime = formatDateTimeForInput(firstDay)
+	formData.endDatetime = formatDateTimeForInput(addDays(lastDay, 1))
+}
+
 function onStartDatetimeChange(newValue) {
 	// newValue is a Date object from NcDateTimePickerNative
 	formData.startDatetime = newValue
 		? formatDateTimeForInput(newValue.toISOString())
 		: ''
+	// A day has no time to guess an end from: it ends with itself until told otherwise.
+	if (formData.isAllDay && newValue && !(endDateObject.value > newValue)) {
+		formData.endDatetime = formatDateTimeForInput(addDays(newValue, 1))
+	}
 }
 
 function onStartDatetimeBlur() {
@@ -1245,7 +1287,7 @@ function onStartDatetimeBlur() {
 function onEndDatetimeChange(newValue) {
 	// newValue is a Date object from NcDateTimePickerNative
 	formData.endDatetime = newValue
-		? formatDateTimeForInput(newValue.toISOString())
+		? formatDateTimeForInput(formData.isAllDay ? addDays(newValue, 1) : newValue)
 		: ''
 }
 
@@ -1470,6 +1512,7 @@ function handleCalendarEventSelect(eventData) {
 	formData.categoryId = findCategoryIdByName(eventData.category)
 	formData.startDatetime = formatDateTimeForInput(eventData.startDatetime)
 	formData.endDatetime = formatDateTimeForInput(eventData.endDatetime)
+	formData.isAllDay = Boolean(eventData.isAllDay)
 	calendarReference.value = {
 		calendarUri: eventData.calendarUri,
 		calendarEventUid: eventData.calendarEventUid,
@@ -1490,6 +1533,7 @@ async function handleBulkImport(eventDataList) {
 				location: eventData.location || '',
 				startDatetime: toServerTimezone(eventData.startDatetime),
 				endDatetime: toServerTimezone(eventData.endDatetime),
+				isAllDay: Boolean(eventData.isAllDay),
 				calendarUri: eventData.calendarUri,
 				calendarEventUid: eventData.calendarEventUid,
 			}
@@ -1546,15 +1590,20 @@ async function handleRecurringCreate() {
 
 	try {
 		const duration = appointmentDuration.value
+		// Whole days are counted in days: across a clock change they are not 24 hours long.
+		const endOf = (start) => (formData.isAllDay
+			? addDays(start, Math.round(duration / UNIT_MS.days))
+			: new Date(start.getTime() + duration))
 		const appointments = recurrenceOccurrences.value.map((occurrenceDate) => {
 			const startDt = occurrenceDate.toISOString()
-			const endDt = new Date(occurrenceDate.getTime() + duration).toISOString()
+			const endDt = endOf(occurrenceDate).toISOString()
 			const item = {
 				name: formData.name,
 				description: formData.description,
 				location: formData.location || '',
 				startDatetime: startDt,
 				endDatetime: endDt,
+				isAllDay: formData.isAllDay,
 				visibleUsers: formData.visibleUsers || [],
 				visibleGroups: formData.visibleGroups || [],
 				visibleTeams: formData.visibleTeams || [],
@@ -1689,6 +1738,7 @@ async function saveAppointment(scope = 'single') {
 				categoryId: formData.categoryId || null,
 				startDatetime: startDatetimeWithTz,
 				endDatetime: endDatetimeWithTz,
+				isAllDay: formData.isAllDay,
 				visibleUsers: formData.visibleUsers || [],
 				visibleGroups: formData.visibleGroups || [],
 				visibleTeams: formData.visibleTeams || [],
@@ -1723,6 +1773,7 @@ async function saveAppointment(scope = 'single') {
 				categoryId: formData.categoryId || null,
 				startDatetime: startDatetimeWithTz,
 				endDatetime: endDatetimeWithTz,
+				isAllDay: formData.isAllDay,
 				visibleUsers: formData.visibleUsers || [],
 				visibleGroups: formData.visibleGroups || [],
 				visibleTeams: formData.visibleTeams || [],
