@@ -47,9 +47,10 @@ plus ~110 responses straight into `oc_att_appointments` / `oc_att_responses`.
 Writing SQL rather than clicking through the UI is deliberate: it produces
 "everyone has answered" states without logging in as eleven users.
 
-It is **non-destructive** — it only deletes and re-inserts IDs 101-199, a
-reserved range. Existing appointments survive. Re-running is safe and
-idempotent.
+It is **non-destructive** — it only deletes and re-inserts IDs 101-399, a
+reserved range. Existing appointments survive, and so does whatever is created
+through the UI afterwards: the seed moves the tables' next ID to 1000.
+Re-running is safe and idempotent.
 
 The Flutter repo's `scripts/capture_screenshots.sh` calls **this same file**
 by path (`$ATTENDANCE_SERVER_REPO/.claude/skills/screenshots/scripts/seed_demo_data.py`)
@@ -108,7 +109,38 @@ because the shipped list screenshot should show an ordinary choir list. Re-pass
 the flag whenever you want them back. `scheduling.jpg` is the exception: it is
 shot from IDs 153/154, so that shot needs this flag.
 
-The script also fixes six things that otherwise ruin the screenshots. Do not
+### Release test cases (`--test-cases`)
+
+```bash
+python3 .claude/skills/screenshots/scripts/seed_demo_data.py --lang de --design-states --test-cases
+```
+
+Not for screenshots — this is the data set for clicking through a release by
+hand, on the web and in the mobile app. It adds one appointment per case that
+is tedious to build in the UI (IDs from 201), each named after its case and
+with the thing to check in its description:
+
+| ID | Case |
+|---|---|
+| 201 | **not involved** — organized by Jonas for Tenor and Bass, admin only sees it through the manage permission |
+| 202 | **cancelled**, upcoming |
+| 203 | **organizer only** — admin organizes, is not invited |
+| 204 | **no "Maybe"** (`allow_maybe = 0`) |
+| 205 | **limit 4 with waitlist**, full, two people waiting, admin unanswered |
+| 206 | **limit 3 without waitlist**, full, admin unanswered |
+| 207 | **limit 8, spots left**, two organizers |
+| 208 | **closed with scheduling verdicts handed out** — reopen, unschedule, close again |
+| 209 | yesterday, **two people checked in who never answered** |
+| 210-276 | weekly series "Vocal coaching", about half past, half upcoming — more rows than one page of any list, most of them unanswered by admin |
+| 277-280 | a **finished series**, for the export's series filter |
+
+Plus five vacation periods (`oc_att_vacations`, IDs 101-105): one running into
+the next weeks with the automatic "No" answers it caused, three later ones —
+one of them admin's own — and one in the past.
+
+Like the design states, a plain run removes all of it again.
+
+The script also fixes seven things that otherwise ruin the screenshots. Do not
 skip them with `--no-config` unless you know they are already right:
 
 - **Display names.** The dev accounts have none, so the UI would show `user1`,
@@ -118,6 +150,9 @@ skip them with `--no-config` unless you know they are already right:
   summary, which reads like a data bug.
 - **A `Conductor` group** for `admin`. Without it the screenshot-taker is the
   one person in "Others".
+- **The voice groups** (`Sopran`, `Alt`, `Tenor`, `Bass`) and everybody's place
+  in them. A fresh dev instance has neither, and then nobody but the conductor
+  is invited to anything.
 - **`lang=en` *and* `locale=en_GB`** for admin. `lang` alone leaves dates
   German ("So., 26. Juli 2026") inside an English UI.
 - **`permission_checkin`** pointed at the conductor group. There is no admin
