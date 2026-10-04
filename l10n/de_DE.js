@@ -227,7 +227,7 @@ OC.L10N.register(
     "Up to {count} members" : "Bis zu {count} Mitgliedern",
     "Use the recipient's server locale" : "Server-Ländereinstellung des Empfängers verwenden",
     "Using account {user} on {server}" : "Konto {user} auf {server} verwenden",
-    "What would you be willing to pay?" : "Was wären Sie bereit zu zahlen?",
+    "What would you be willing to pay per year?" : "Was wären Sie pro Jahr bereit zu zahlen?",
     "What's still holding you back?" : "Was hält Sie noch zurück?",
     "Which license did you have in mind?" : "An welche Lizenz haben Sie gedacht?",
     "Which appointment?" : "Welcher Termin?",
