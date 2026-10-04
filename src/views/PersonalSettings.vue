@@ -109,6 +109,18 @@
 				{{ t('attendance', 'Receive notifications for response changes') }}
 			</NcCheckboxRadioSwitch>
 		</NcSettingsSection>
+
+		<NcSettingsSection v-if="capabilities.vacationManagementEnabled"
+			:name="t('attendance', 'My vacations')"
+			data-test="section-my-vacations">
+			<MyVacations @changed="teamVacationCalendar?.reload()" />
+		</NcSettingsSection>
+
+		<NcSettingsSection v-if="capabilities.vacationManagementEnabled"
+			:name="t('attendance', 'Team vacation calendar')"
+			data-test="section-team-vacations">
+			<TeamVacationCalendar ref="teamVacationCalendar" />
+		</NcSettingsSection>
 	</div>
 </template>
 
@@ -131,11 +143,17 @@ import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
 import GoogleIcon from 'vue-material-design-icons/Google.vue'
 import Refresh from 'vue-material-design-icons/Refresh.vue'
 import LoadingState from '../components/common/LoadingState.vue'
+import MyVacations from '../components/vacation/MyVacations.vue'
+import TeamVacationCalendar from '../components/vacation/TeamVacationCalendar.vue'
 import { useIcalFeed } from '../composables/useIcalFeed.js'
+import { usePermissions } from '../composables/usePermissions.js'
 import { formatDateTime } from '../utils/datetime.js'
 
 const { feedUrl, webcalUrl, googleCalendarUrl, lastUsedAt, loading: icalLoading, loadToken, regenerateToken, copyToClipboard } = useIcalFeed()
+const { capabilities, loadPermissions } = usePermissions()
 const showRegenerateConfirm = ref(false)
+// Own entries show up in the team calendar too, so it reloads when they change.
+const teamVacationCalendar = ref(null)
 
 const handleCopy = () => copyToClipboard()
 
@@ -206,6 +224,7 @@ async function save() {
 onMounted(() => {
 	loadToken()
 	loadSettings()
+	loadPermissions()
 })
 </script>
 
