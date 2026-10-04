@@ -377,12 +377,12 @@ export async function saveAdminSettings(request, settings = {}) {
 
 /**
  * Create a category via the admin REST API. Returns the created category
- * ({ id, name, icon }).
+ * ({ id, name, icon, template }).
  */
-export async function createCategoryViaAPI(request, name, { icon = 'tag', username = 'admin', password = 'admin' } = {}) {
+export async function createCategoryViaAPI(request, name, { icon = 'tag', template, username = 'admin', password = 'admin' } = {}) {
 	const resp = await resilientJson(() => request.post(`${API_BASE}/apps/attendance/api/admin/categories`, {
 		headers: authHeaders(username, password),
-		data: { name, icon },
+		data: { name, icon, template },
 	}))
 	return resp.json()
 }

@@ -518,7 +518,7 @@ class StatisticsService {
 		}
 		if ($filter->groupsByTeams()) {
 			$info = $this->visibilityService->getTeamInfo($sectionId);
-			return isset($info['label']) ? (string)$info['label'] : $sectionId;
+			return $info['label'] ?? $sectionId;
 		}
 		return $this->groupManager->get($sectionId)?->getDisplayName() ?? $sectionId;
 	}

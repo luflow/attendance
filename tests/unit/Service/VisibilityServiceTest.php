@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace OCA\Attendance\Tests\Unit\Service;
 
 use OCA\Attendance\Db\Appointment;
+use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\PermissionService;
 use OCA\Attendance\Service\VisibilityService;
+use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -24,6 +26,9 @@ class VisibilityServiceTest extends TestCase {
 	/** @var PermissionService|MockObject */
 	private $permissionService;
 
+	/** @var GuestService|MockObject */
+	private $guestService;
+
 	/** @var ContainerInterface|MockObject */
 	private $container;
 
@@ -31,6 +36,7 @@ class VisibilityServiceTest extends TestCase {
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->permissionService = $this->createMock(PermissionService::class);
+		$this->guestService = $this->createMock(GuestService::class);
 		// No Circles app in unit tests — the service must cope without it.
 		$this->container = $this->createMock(ContainerInterface::class);
 		$this->container->method('get')->willThrowException(new \Exception('Circles not available'));
@@ -46,6 +52,7 @@ class VisibilityServiceTest extends TestCase {
 				$this->groupManager,
 				$this->userManager,
 				$this->permissionService,
+				$this->guestService,
 				$this->container,
 			])
 			->onlyMethods($stubbedMethods)
@@ -158,5 +165,27 @@ class VisibilityServiceTest extends TestCase {
 		$this->assertTrue($service->isUserOwnAppointment($appointment, 'bob'));
 		$this->assertFalse($service->isUserTargetAttendee($appointment, 'bob'));
 		$this->assertFalse($service->isUserOwnAppointment($appointment, 'mallory'));
+	}
+
+	public function testEnrichAudienceLabelsWhatItKnowsAndFallsBackToTheId(): void {
+		$alice = $this->createMock(IUser::class);
+		$alice->method('getDisplayName')->willReturn('Alice');
+		$this->userManager->method('get')->willReturnMap([['alice', $alice], ['gone', null]]);
+		$this->guestService->method('isGuestUser')->willReturnCallback(static fn (string $userId): bool => $userId === 'gone');
+		$choir = $this->createMock(IGroup::class);
+		$choir->method('getDisplayName')->willReturn('Choir');
+		$this->groupManager->method('get')->with('choir')->willReturn($choir);
+
+		$service = $this->partialMock(['getTeamMembers']);
+
+		$this->assertSame([
+			'visibleUsers' => [
+				['id' => 'alice', 'label' => 'Alice', 'type' => 'user', 'isGuest' => false],
+				['id' => 'gone', 'label' => 'gone', 'type' => 'user', 'isGuest' => true],
+			],
+			'visibleGroups' => [['id' => 'choir', 'label' => 'Choir', 'type' => 'group']],
+			// No Circles app: the team keeps its id as the label.
+			'visibleTeams' => [['id' => 't1', 'label' => 't1', 'type' => 'team']],
+		], $service->enrichAudience(['alice', 'gone'], ['choir'], ['t1']));
 	}
 }

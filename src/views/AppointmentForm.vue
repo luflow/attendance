@@ -99,6 +99,51 @@
 			</div>
 
 			<div class="form-section">
+				<div v-if="categoriesAvailable" class="form-field">
+					<label for="appointment-category">{{ t('attendance', 'Category') }}</label>
+					<NcSelect
+						id="appointment-category"
+						:modelValue="formData.categoryId"
+						:options="categories"
+						:reduce="(category) => category.id"
+						label="name"
+						:multiple="false"
+						:clearable="true"
+						:placeholder="t('attendance', 'Select a category …')"
+						data-test="input-appointment-category"
+						@update:modelValue="onCategoryChange">
+						<template #no-options>
+							{{ categories.length === 0
+								? t('attendance', 'No categories yet — create some in the admin settings.')
+								: t('attendance', 'No matching categories') }}
+						</template>
+						<template #option="option">
+							<span class="category-option">
+								<component :is="categoryIconComponent(option.icon)" :size="16" />
+								<span>{{ option.name }}</span>
+							</span>
+						</template>
+						<template #selected-option="option">
+							<span class="category-option">
+								<component :is="categoryIconComponent(option.icon)" :size="16" />
+								<span>{{ option.name }}</span>
+							</span>
+						</template>
+					</NcSelect>
+					<NcButton
+						v-if="templateDiffers"
+						class="apply-template"
+						variant="tertiary"
+						data-test="button-apply-template"
+						@click="applyTemplate">
+						<template #icon>
+							<TextBoxCheckOutline :size="20" />
+						</template>
+						<!-- TRANSLATORS: Button under the category field of the appointment form. A category can carry a template — a description and an access restriction — and this button writes it into the form, replacing what is there. Sample German: "Vorlage anwenden". -->
+						{{ t('attendance', 'Apply template') }}
+					</NcButton>
+				</div>
+
 				<NcTextField
 					v-model="formData.name"
 					:label="t('attendance', 'Appointment name')"
@@ -125,38 +170,6 @@
 						:clearable="true"
 						:placeholder="t('attendance', 'Search or add a location\u00A0…')"
 						data-test="input-appointment-location" />
-				</div>
-
-				<div v-if="categoriesAvailable" class="form-field">
-					<label for="appointment-category">{{ t('attendance', 'Category') }}</label>
-					<NcSelect
-						id="appointment-category"
-						v-model="formData.categoryId"
-						:options="categories"
-						:reduce="(category) => category.id"
-						label="name"
-						:multiple="false"
-						:clearable="true"
-						:placeholder="t('attendance', 'Select a category …')"
-						data-test="input-appointment-category">
-						<template #no-options>
-							{{ categories.length === 0
-								? t('attendance', 'No categories yet — create some in the admin settings.')
-								: t('attendance', 'No matching categories') }}
-						</template>
-						<template #option="option">
-							<span class="category-option">
-								<component :is="categoryIconComponent(option.icon)" :size="16" />
-								<span>{{ option.name }}</span>
-							</span>
-						</template>
-						<template #selected-option="option">
-							<span class="category-option">
-								<component :is="categoryIconComponent(option.icon)" :size="16" />
-								<span>{{ option.name }}</span>
-							</span>
-						</template>
-					</NcSelect>
 				</div>
 			</div>
 
@@ -415,53 +428,10 @@
 						)
 					}}
 				</p>
-				<NcSelect
+				<AudienceSelect
 					v-model="visibilityItems"
-					:options="searchResults"
-					:loading="isSearching"
-					:multiple="true"
-					keepOpen
-					:filterable="false"
-					label="label"
-					:placeholder="
-						t('attendance', 'Search users, groups or teams\u00A0…')
-					"
-					data-test="select-visibility"
-					@search="onSearch">
-					<template #option="{ label, type, isGuest }">
-						<span
-							style="display: flex; align-items: center; gap: 8px"
-							:title="getTypeLabel(type, isGuest)">
-							<AccountStar v-if="type === 'team'" :size="20" />
-							<AccountGroup
-								v-else-if="type === 'group'"
-								:size="20" />
-							<AccountPlus
-								v-else-if="type === 'create-guest'"
-								:size="20" />
-							<AccountQuestion
-								v-else-if="isGuest"
-								:size="20" />
-							<Account v-else :size="20" />
-							<span>{{ label }}</span>
-						</span>
-					</template>
-					<template #selected-option="{ label, type, isGuest }">
-						<span
-							style="display: flex; align-items: center; gap: 8px"
-							:title="getTypeLabel(type, isGuest)">
-							<AccountStar v-if="type === 'team'" :size="16" />
-							<AccountGroup
-								v-else-if="type === 'group'"
-								:size="16" />
-							<AccountQuestion
-								v-else-if="isGuest"
-								:size="16" />
-							<Account v-else :size="16" />
-							<span>{{ label }}</span>
-						</span>
-					</template>
-				</NcSelect>
+					:guestInvitation="guestInvitationAvailable"
+					data-test="select-visibility" />
 				<p v-if="guestInvitationAvailable" class="guest-invite-hint">
 					<AccountPlus :size="14" />
 					{{ t('attendance', 'Enter an email address to invite a guest without a Nextcloud account.') }}
@@ -517,8 +487,10 @@
 					</template>
 				</NcSelect>
 			</div>
+		</form>
 
-			<div class="form-actions" data-test="form-actions">
+		<div v-if="!loading && !bulkImporting" class="form-actions" data-test="form-actions">
+			<div class="form-actions__content">
 				<span v-if="isDirty" class="form-actions__hint" data-test="unsaved-hint">
 					{{ t("attendance", "Unsaved changes") }}
 				</span>
@@ -539,7 +511,7 @@
 					{{ saveButtonLabel }}
 				</NcButton>
 			</div>
-		</form>
+		</div>
 
 		<!-- Calendar Event Picker Modal -->
 		<CalendarEventPicker
@@ -579,27 +551,26 @@ import {
 } from '@nextcloud/vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import Account from 'vue-material-design-icons/Account.vue'
-import AccountGroup from 'vue-material-design-icons/AccountGroup.vue'
 import AccountPlus from 'vue-material-design-icons/AccountPlus.vue'
-import AccountQuestion from 'vue-material-design-icons/AccountQuestion.vue'
-import AccountStar from 'vue-material-design-icons/AccountStar.vue'
 import CalendarImport from 'vue-material-design-icons/CalendarImport.vue'
 import CalendarSync from 'vue-material-design-icons/CalendarSync.vue'
 import LinkVariant from 'vue-material-design-icons/LinkVariant.vue'
 import Paperclip from 'vue-material-design-icons/Paperclip.vue'
 import Plus from 'vue-material-design-icons/Plus.vue'
 import RepeatIcon from 'vue-material-design-icons/Repeat.vue'
+import TextBoxCheckOutline from 'vue-material-design-icons/TextBoxCheckOutline.vue'
 import RecurrenceSelector from '../components/appointment/RecurrenceSelector.vue'
 import SeriesActionDialog from '../components/appointment/SeriesActionDialog.vue'
 import CalendarEventPicker from '../components/calendar/CalendarEventPicker.vue'
+import AudienceSelect from '../components/common/AudienceSelect.vue'
 import BackButton from '../components/common/BackButton.vue'
 import LoadingState from '../components/common/LoadingState.vue'
 import MarkdownEditor from '../components/common/MarkdownEditor.vue'
 import { useCategories } from '../composables/useCategories.js'
 import { usePermissions } from '../composables/usePermissions.js'
 import { useUnsavedChanges } from '../composables/useUnsavedChanges.js'
+import { searchDirectory, toAudienceIds, toAudienceItem, toAudienceItems } from '../utils/audience.js'
 import { categoryIconComponent } from '../utils/categoryIcons.js'
-import { formatGroupLabel } from '../utils/groups.js'
 
 const props = defineProps({
 	mode: {
@@ -681,8 +652,6 @@ const deadlineRelativeOffsetMs = computed(() => deadlineRelativeValue.value * UN
 const { permissions, capabilities, loadPermissions } = usePermissions()
 
 const visibilityItems = ref([])
-const searchResults = ref([])
-const isSearching = ref(false)
 const guestInvitationAvailable = computed(() => capabilities.guestInvitation === true)
 
 const organizerItems = ref([])
@@ -729,7 +698,52 @@ async function loadLocationSuggestions() {
 }
 
 const categoriesAvailable = computed(() => capabilities.categoriesAvailable === true)
-const { categories, loadCategories } = useCategories()
+const { categories, loadCategories, getCategory } = useCategories()
+
+// What the selected category's template puts into the form; empty where it
+// covers nothing.
+const categoryTemplate = computed(() => {
+	const template = getCategory(formData.categoryId)?.template
+	return { description: template?.description ?? '', audience: toAudienceItems(template) }
+})
+
+const sorted = (list) => [...list].sort()
+
+const audienceKey = (items) => JSON.stringify(sorted(items.map((item) => item.id)))
+const sameAudience = (a, b) => audienceKey(a) === audienceKey(b)
+
+// A new appointment follows the category: whatever is still empty, or still
+// the previous category's template, takes the new one.
+function onCategoryChange(categoryId) {
+	const previous = categoryTemplate.value
+	formData.categoryId = categoryId
+	if (props.mode === 'edit') {
+		return
+	}
+	const next = categoryTemplate.value
+	if (!formData.description.trim() || formData.description === previous.description) {
+		formData.description = next.description
+	}
+	if (visibilityItems.value.length === 0 || sameAudience(visibilityItems.value, previous.audience)) {
+		visibilityItems.value = next.audience
+	}
+}
+
+const templateDiffers = computed(() => {
+	const { description, audience } = categoryTemplate.value
+	return (description !== '' && formData.description !== description)
+		|| (audience.length > 0 && !sameAudience(visibilityItems.value, audience))
+})
+
+function applyTemplate() {
+	const { description, audience } = categoryTemplate.value
+	if (description) {
+		formData.description = description
+	}
+	if (audience.length > 0) {
+		visibilityItems.value = audience
+	}
+}
 
 // Calendar import only ever gives us a category by name (the source event's
 // CATEGORIES text) — categories are admin-managed, so we resolve it against
@@ -745,8 +759,6 @@ function findCategoryIdByName(name) {
 // unchanged so the server skips re-validating every organizer on plain edits.
 const initialOrganizerIds = ref(null)
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const isEmailAddress = (value) => typeof value === 'string' && EMAIL_REGEX.test(value.trim())
 const sendNotification = ref(false)
 const createTalkRoom = ref(false)
 // A new appointment starts on whatever the instance offers; editing an existing
@@ -865,19 +877,6 @@ const hasCalendarReference = computed(() => {
 	)
 })
 
-function getTypeLabel(type, isGuest = false) {
-	switch (type) {
-		case 'user':
-			return isGuest ? t('attendance', 'Guest account') : t('attendance', 'User')
-		case 'group':
-			return t('attendance', 'Group')
-		case 'team':
-			return t('attendance', 'Team')
-		default:
-			return ''
-	}
-}
-
 // Convert string datetime to Date object for NcDateTimePickerNative
 const startDateObject = computed(() => {
 	if (!formData.startDatetime) return null
@@ -957,22 +956,8 @@ function onDeadlineAbsoluteChange(value) {
 	deadlineAbsolute.value = formatDateTimeForInput(date.toISOString())
 }
 
-// Watch for changes to visibilityItems to update formData
-watch(visibilityItems, (selected) => {
-	const selectedArray = Array.isArray(selected)
-		? selected
-		: selected
-			? [selected]
-			: []
-	formData.visibleUsers = selectedArray
-		.filter((item) => item && item.type === 'user')
-		.map((item) => item.value)
-	formData.visibleGroups = selectedArray
-		.filter((item) => item && item.type === 'group')
-		.map((item) => item.value)
-	formData.visibleTeams = selectedArray
-		.filter((item) => item && item.type === 'team')
-		.map((item) => item.value)
+watch(visibilityItems, (items) => {
+	Object.assign(formData, toAudienceIds(items))
 })
 
 watch(organizerItems, (selected) => {
@@ -982,12 +967,7 @@ watch(organizerItems, (selected) => {
 function currentUserOrganizerItem() {
 	const currentUser = window.OC?.getCurrentUser?.()
 	if (!currentUser?.uid) return null
-	return {
-		id: `user:${currentUser.uid}`,
-		value: currentUser.uid,
-		label: currentUser.displayName || currentUser.uid,
-		type: 'user',
-	}
+	return toAudienceItem('user', { id: currentUser.uid, label: currentUser.displayName || currentUser.uid })
 }
 
 // Prefill the current user as organizer for new appointments — matches the
@@ -996,41 +976,6 @@ function prefillCurrentUserAsOrganizer() {
 	const item = currentUserOrganizerItem()
 	if (!item) return
 	organizerItems.value = [item]
-}
-
-/**
- * Query the directory endpoint and merge the results with the already
- * selected items (selected entries always stay available in the dropdown).
- *
- * @param {string} query Search term
- * @param {Array} selectedItems Currently selected select items
- * @param {object} options Options
- * @param {boolean} options.usersOnly Restrict results to non-guest users (organizer picker)
- * @return {Promise<Array>} Merged select items
- */
-async function searchDirectory(query, selectedItems, { usersOnly = false } = {}) {
-	const response = await axios.get(
-		generateUrl('/apps/attendance/api/search/users-groups-teams'),
-		{ params: { search: query } },
-	)
-
-	const newResults = response.data
-		.filter((item) => !usersOnly || (item.type === 'user' && !item.isGuest))
-		.map((item) => ({
-			id: `${item.type}:${item.id}`,
-			value: item.id,
-			label: item.type === 'group' ? formatGroupLabel(item.id, item.label) : item.label,
-			type: item.type,
-			isGuest: !!item.isGuest,
-		}))
-
-	const merged = [...selectedItems]
-	for (const result of newResults) {
-		if (!selectedItems.some((item) => item.id === result.id)) {
-			merged.push(result)
-		}
-	}
-	return merged
 }
 
 async function onOrganizerSearch(query) {
@@ -1103,53 +1048,11 @@ async function loadAppointment() {
 			deadlineAbsolute.value = ''
 		}
 
-		// Load visibility settings (enriched data with id, label, type)
-		const users = appointment.visibleUsers || []
-		const groups = appointment.visibleGroups || []
-		const teams = appointment.visibleTeams || []
-
-		// Store raw IDs for form submission
-		formData.visibleUsers = users.map((u) => u.id)
-		formData.visibleGroups = groups.map((g) => g.id)
-		formData.visibleTeams = teams.map((t) => t.id)
-
-		// Convert enriched data to visibility items for NcSelect
-		const items = []
-		for (const user of users) {
-			items.push({
-				id: `user:${user.id}`,
-				value: user.id,
-				label: user.label,
-				type: 'user',
-				isGuest: !!user.isGuest,
-			})
-		}
-		for (const group of groups) {
-			items.push({
-				id: `group:${group.id}`,
-				value: group.id,
-				label: formatGroupLabel(group.id, group.label),
-				type: 'group',
-			})
-		}
-		for (const team of teams) {
-			items.push({
-				id: `team:${team.id}`,
-				value: team.id,
-				label: team.label,
-				type: 'team',
-			})
-		}
-		searchResults.value = [...items]
-		visibilityItems.value = [...items]
+		// Enriched with labels by the server; the watcher copies the ids into formData.
+		visibilityItems.value = toAudienceItems(appointment)
 
 		// Load organizers (enriched data with id, label)
-		const organizerList = (appointment.organizers || []).map((o) => ({
-			id: `user:${o.id}`,
-			value: o.id,
-			label: o.label,
-			type: 'user',
-		}))
+		const organizerList = (appointment.organizers || []).map((o) => toAudienceItem('user', o))
 		// Without manage permission, organizer is the copier's only handle on
 		// the new appointment; the server enforces this too, show it up front.
 		const self = currentUserOrganizerItem()
@@ -1253,42 +1156,6 @@ function goBack() {
 	emit('cancelled')
 }
 
-async function onSearch(query) {
-	if (!query || query.length < 1) {
-		searchResults.value = [...visibilityItems.value]
-		return
-	}
-
-	isSearching.value = true
-	try {
-		const mergedResults = await searchDirectory(query, visibilityItems.value)
-
-		// Offer to provision a guest account when the query is an email and
-		// no existing user matches it. Gated on `guestInvitation` capability.
-		const trimmedQuery = query.trim()
-		if (guestInvitationAvailable.value && isEmailAddress(trimmedQuery)) {
-			const exactUserMatch = mergedResults.some((r) => r.type === 'user' && (r.value === trimmedQuery || r.label === trimmedQuery))
-			if (!exactUserMatch) {
-				mergedResults.push({
-					id: `create-guest:${trimmedQuery.toLowerCase()}`,
-					value: trimmedQuery,
-					label: t('attendance', 'Create guest account for {email}', { email: trimmedQuery }),
-					type: 'create-guest',
-					email: trimmedQuery,
-					isGuest: false,
-				})
-			}
-		}
-
-		searchResults.value = mergedResults
-	} catch (error) {
-		console.error('Failed to search:', error)
-		searchResults.value = [...visibilityItems.value]
-	} finally {
-		isSearching.value = false
-	}
-}
-
 function removePlaceholder(placeholder) {
 	visibilityItems.value = visibilityItems.value.filter((i) => i.id !== placeholder.id)
 }
@@ -1315,13 +1182,7 @@ function provisionGuestViaDialog(email) {
 		unsubscribeFromEvent('guests:user:created', handler)
 		guestCreatedHandlers.delete(handler)
 		const uid = username || email
-		addUserItem({
-			id: `user:${uid}`,
-			value: uid,
-			label: name || uid,
-			type: 'user',
-			isGuest: true,
-		})
+		addUserItem(toAudienceItem('user', { id: uid, label: name || uid, isGuest: true }))
 		showSuccess(t('attendance', 'Guest account created for {email}', { email }))
 	}
 	subscribeToEvent('guests:user:created', handler)
@@ -1351,13 +1212,11 @@ async function provisionGuestAccount(placeholder) {
 			generateUrl('/apps/attendance/api/guests'),
 			{ email },
 		)
-		addUserItem({
-			id: `user:${response.data.userId}`,
-			value: response.data.userId,
+		addUserItem(toAudienceItem('user', {
+			id: response.data.userId,
 			label: response.data.displayName || response.data.email,
-			type: 'user',
-			isGuest: !!response.data.isGuest,
-		})
+			isGuest: response.data.isGuest,
+		}))
 		showSuccess(response.data.alreadyExisted
 			? t('attendance', 'Added existing guest {email}', { email })
 			: t('attendance', 'Guest account created for {email}', { email }))
@@ -1415,8 +1274,6 @@ function removeAttachment(fileId) {
 }
 
 const attachmentFileIds = computed(() => attachments.value.map((a) => a.fileId))
-
-const sorted = (list) => [...list].sort()
 
 // Everything the user can change, as one comparable value. Selections are
 // sorted so that removing an entry and adding it back counts as unchanged.
@@ -1787,10 +1644,14 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
-.appointment-form-view {
-    padding: 0 20px 20px;
+/* The view spans the content area so the action bar can; header, form and the
+ * bar's content share the same 800px column inside it. */
+.form-header,
+.appointment-form,
+.form-actions__content {
     max-width: 800px;
-    margin: 0 auto;
+    margin-inline: auto;
+    padding-inline: 20px;
 }
 
 .form-header {
@@ -1815,6 +1676,8 @@ onBeforeUnmount(() => {
     display: flex;
     flex-direction: column;
     gap: 24px;
+    /* Keeps the selects' own z-indexes (their chevron has 999) below the bar. */
+    isolation: isolate;
 }
 
 .form-section {
@@ -1956,6 +1819,10 @@ onBeforeUnmount(() => {
     gap: 8px;
 }
 
+.apply-template {
+    align-self: flex-start;
+}
+
 .attachment-list {
     display: flex;
     flex-wrap: wrap;
@@ -1970,22 +1837,25 @@ onBeforeUnmount(() => {
     }
 }
 
-/* Floats over the form while it scrolls, so saving never depends on reaching
- * the end of the page. */
+/* Stays at the bottom edge while the form scrolls, so saving never depends on
+ * reaching the end of the page. */
 .form-actions {
     position: sticky;
-    bottom: 12px;
+    bottom: 0;
     z-index: 10;
+    margin-top: 24px;
+    background: var(--color-main-background);
+    border-top: 1px solid var(--color-border);
+    box-shadow: 0 -4px 12px -4px var(--color-box-shadow);
+}
+
+.form-actions__content {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: flex-end;
     gap: 10px;
-    padding: 12px 16px;
-    background: var(--color-main-background);
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius-large);
-    box-shadow: 0 2px 12px var(--color-box-shadow);
+    padding-block: 12px;
 }
 
 .form-actions__hint {

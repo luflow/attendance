@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\Attendance\Service;
 
 use OCA\Attendance\Db\Appointment;
+use OCA\Attendance\ResponseDefinitions;
 use OCA\Circles\CirclesManager;
 use OCA\Circles\Model\Member;
 use OCP\IGroupManager;
@@ -14,11 +15,14 @@ use Psr\Container\ContainerInterface;
 /**
  * Service for handling appointment visibility logic.
  * Determines which users can see which appointments based on visibility settings.
+ *
+ * @psalm-import-type AttendanceAudienceRef from ResponseDefinitions
  */
 class VisibilityService {
 	private IGroupManager $groupManager;
 	private IUserManager $userManager;
 	private PermissionService $permissionService;
+	private GuestService $guestService;
 	private ?CirclesManager $teamsManager = null;
 	/** @var array<string, list<string>> userId → group IDs. Request-scoped — the
 	 * service is request-scoped per Nextcloud DI conventions, so this matches
@@ -34,11 +38,13 @@ class VisibilityService {
 		IGroupManager $groupManager,
 		IUserManager $userManager,
 		PermissionService $permissionService,
+		GuestService $guestService,
 		ContainerInterface $container,
 	) {
 		$this->groupManager = $groupManager;
 		$this->userManager = $userManager;
 		$this->permissionService = $permissionService;
+		$this->guestService = $guestService;
 
 		// Try to get CirclesManager if the Circles app is available
 		try {
@@ -344,10 +350,48 @@ class VisibilityService {
 	}
 
 	/**
+	 * Turn the IDs an audience is stored as into references with display
+	 * names. Appointments and category templates both carry these lists.
+	 *
+	 * @param list<string> $userIds
+	 * @param list<string> $groupIds
+	 * @param list<string> $teamIds
+	 * @return array{visibleUsers: list<AttendanceAudienceRef>, visibleGroups: list<AttendanceAudienceRef>, visibleTeams: list<AttendanceAudienceRef>}
+	 */
+	public function enrichAudience(array $userIds, array $groupIds, array $teamIds): array {
+		return [
+			'visibleUsers' => array_map(
+				fn (string $userId) => $this->userRef($userId) + ['isGuest' => $this->guestService->isGuestUser($userId)],
+				$userIds,
+			),
+			'visibleGroups' => array_map(fn (string $groupId) => [
+				'id' => $groupId,
+				'label' => $this->groupManager->get($groupId)?->getDisplayName() ?? $groupId,
+				'type' => 'group',
+			], $groupIds),
+			'visibleTeams' => array_map(
+				fn (string $teamId) => $this->getTeamInfo($teamId) ?? ['id' => $teamId, 'label' => $teamId, 'type' => 'team'],
+				$teamIds,
+			),
+		];
+	}
+
+	/**
+	 * @return array{id: string, label: string, type: string}
+	 */
+	public function userRef(string $userId): array {
+		return [
+			'id' => $userId,
+			'label' => $this->userManager->get($userId)?->getDisplayName() ?? $userId,
+			'type' => 'user',
+		];
+	}
+
+	/**
 	 * Get team info by ID.
 	 *
 	 * @param string $teamId The team/circle ID
-	 * @return array|null Array with id, label, type or null if not found
+	 * @return array{id: string, label: string, type: string}|null Null if not found
 	 */
 	public function getTeamInfo(string $teamId): ?array {
 		if ($this->teamsManager === null) {
@@ -361,7 +405,7 @@ class VisibilityService {
 
 			return [
 				'id' => $teamId,
-				'label' => $circle->getDisplayName(),
+				'label' => (string)$circle->getDisplayName(),
 				'type' => 'team',
 			];
 		} catch (\Exception $e) {
