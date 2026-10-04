@@ -187,7 +187,8 @@
                         "nullable": true,
                         "required": [
                             "name",
-                            "startDatetime"
+                            "startDatetime",
+                            "isAllDay"
                         ],
                         "properties": {
                             "name": {
@@ -195,6 +196,9 @@
                             },
                             "startDatetime": {
                                 "type": "string"
+                            },
+                            "isAllDay": {
+                                "type": "boolean"
                             }
                         }
                     },
@@ -262,7 +266,8 @@
                     "seeAllAppointments",
                     "vacationManagementEnabled",
                     "roleFilter",
-                    "pagination"
+                    "pagination",
+                    "allDay"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -353,6 +358,9 @@
                         "type": "boolean"
                     },
                     "pagination": {
+                        "type": "boolean"
+                    },
+                    "allDay": {
                         "type": "boolean"
                     }
                 }

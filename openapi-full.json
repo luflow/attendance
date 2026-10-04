@@ -187,7 +187,8 @@
                         "nullable": true,
                         "required": [
                             "name",
-                            "startDatetime"
+                            "startDatetime",
+                            "isAllDay"
                         ],
                         "properties": {
                             "name": {
@@ -195,6 +196,9 @@
                             },
                             "startDatetime": {
                                 "type": "string"
+                            },
+                            "isAllDay": {
+                                "type": "boolean"
                             }
                         }
                     },
@@ -239,6 +243,7 @@
                     "allowMaybe",
                     "maxAttendees",
                     "waitlistEnabled",
+                    "isAllDay",
                     "occupancy",
                     "isFull"
                 ],
@@ -355,6 +360,9 @@
                     "waitlistEnabled": {
                         "type": "boolean"
                     },
+                    "isAllDay": {
+                        "type": "boolean"
+                    },
                     "occupancy": {
                         "type": "integer",
                         "format": "int64"
@@ -445,6 +453,7 @@
                     "responseDeadline",
                     "location",
                     "categoryId",
+                    "isAllDay",
                     "userResponse",
                     "attachments",
                     "myPermissions"
@@ -559,6 +568,9 @@
                         "type": "integer",
                         "format": "int64",
                         "nullable": true
+                    },
+                    "isAllDay": {
+                        "type": "boolean"
                     },
                     "userResponse": {
                         "nullable": true,
@@ -781,6 +793,9 @@
                     },
                     "waitlistEnabled": {
                         "type": "boolean"
+                    },
+                    "isAllDay": {
+                        "type": "boolean"
                     }
                 }
             },
@@ -816,7 +831,8 @@
                     "seeAllAppointments",
                     "vacationManagementEnabled",
                     "roleFilter",
-                    "pagination"
+                    "pagination",
+                    "allDay"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -907,6 +923,9 @@
                         "type": "boolean"
                     },
                     "pagination": {
+                        "type": "boolean"
+                    },
+                    "allDay": {
                         "type": "boolean"
                     }
                 }
@@ -1187,6 +1206,7 @@
                     "id",
                     "name",
                     "startDatetime",
+                    "isAllDay",
                     "seriesId",
                     "seriesPosition",
                     "userResponse",
@@ -1204,6 +1224,9 @@
                     },
                     "startDatetime": {
                         "type": "string"
+                    },
+                    "isAllDay": {
+                        "type": "boolean"
                     },
                     "seriesId": {
                         "type": "string",
@@ -1611,6 +1634,7 @@
                     "id",
                     "name",
                     "startDatetime",
+                    "isAllDay",
                     "checkinWindowStartsAt"
                 ],
                 "properties": {
@@ -1623,6 +1647,9 @@
                     },
                     "startDatetime": {
                         "type": "string"
+                    },
+                    "isAllDay": {
+                        "type": "boolean"
                     },
                     "checkinWindowStartsAt": {
                         "type": "string"
@@ -2815,6 +2842,11 @@
                                         "type": "boolean",
                                         "default": true,
                                         "description": "Whether a full appointment offers a place in line"
+                                    },
+                                    "isAllDay": {
+                                        "type": "boolean",
+                                        "default": false,
+                                        "description": "Whole days instead of times: start is the midnight the first day begins, end the midnight after the last day"
                                     }
                                 }
                             }
@@ -3546,6 +3578,12 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Whether a full appointment offers a place in line, or null to leave unchanged"
+                                    },
+                                    "isAllDay": {
+                                        "type": "boolean",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Whole days instead of times; null keeps it as long as start and end stay the same, and clears it once they move"
                                     }
                                 }
                             }

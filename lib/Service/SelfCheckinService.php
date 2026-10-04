@@ -57,7 +57,7 @@ class SelfCheckinService {
 	 * - the user is a target attendee (via visibility settings)
 	 *
 	 * @param string $userId The user ID
-	 * @return array{appointments: list<array<string, mixed>>, nextUpcoming: ?array{id: int, name: string, startDatetime: string, checkinWindowStartsAt: string}}
+	 * @return array{appointments: list<array<string, mixed>>, nextUpcoming: ?array{id: int, name: string, startDatetime: string, isAllDay: bool, checkinWindowStartsAt: string}}
 	 */
 	public function getOverview(string $userId): array {
 		$windowMinutes = $this->configService->getSelfCheckinWindowMinutes();
@@ -70,6 +70,7 @@ class SelfCheckinService {
 				continue;
 			}
 
+			/** @var array<string, mixed> $appointmentData */
 			$appointmentData = $appointment->jsonSerialize();
 
 			// Check if user is already checked in
@@ -102,7 +103,7 @@ class SelfCheckinService {
 	 * Find the next visible appointment whose check-in window has not opened
 	 * yet, so clients can show "check-in opens at …" when nothing matches now.
 	 *
-	 * @return ?array{id: int, name: string, startDatetime: string, checkinWindowStartsAt: string}
+	 * @return ?array{id: int, name: string, startDatetime: string, isAllDay: bool, checkinWindowStartsAt: string}
 	 */
 	private function findNextUpcoming(string $userId, int $windowMinutes): ?array {
 		foreach ($this->appointmentMapper->findUpcomingOutsideWindow($windowMinutes) as $appointment) {
@@ -115,6 +116,7 @@ class SelfCheckinService {
 				'id' => $appointment->getId(),
 				'name' => $appointment->getName(),
 				'startDatetime' => $this->formatDatetimeToUtc($appointment->getStartDatetime()) ?? '',
+				'isAllDay' => $appointment->isAllDay(),
 				'checkinWindowStartsAt' => $this->formatUtcDatetime($this->getWindowStart($appointment, $windowMinutes)),
 			];
 		}

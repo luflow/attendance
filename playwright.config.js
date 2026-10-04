@@ -105,6 +105,8 @@ export default defineConfig({
 				// Measures the list's scroll position, which appointments created
 				// by other files mid-test would shift.
 				'37-unsaved-changes.spec.js',
+				// Enables the org calendar push and wipes every appointment.
+				'38-all-day.spec.js',
 			],
 			fullyParallel: false,
 			workers: 1,

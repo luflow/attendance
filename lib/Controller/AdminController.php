@@ -6,6 +6,7 @@ namespace OCA\Attendance\Controller;
 
 use OCA\Attendance\BackgroundJob\ReminderJob;
 use OCA\Attendance\Db\AppointmentMapper;
+use OCA\Attendance\Db\DatetimeFormatTrait;
 use OCA\Attendance\Service\CalendarService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\GuestService;
@@ -25,6 +26,8 @@ use OCP\IRequest;
 use OCP\IUserSession;
 
 class AdminController extends Controller {
+	use DatetimeFormatTrait;
+
 	private PermissionService $permissionService;
 	private IUserSession $userSession;
 	private IConfig $config;
@@ -117,7 +120,9 @@ class AdminController extends Controller {
 			$next = $this->findFirstOpenUpcoming();
 			$nextAppointment = $next ? [
 				'name' => $next->getName(),
-				'startDatetime' => $next->getStartDatetime(),
+				// UTC-marked like every other datetime in the API: a naive string is read as local time.
+				'startDatetime' => $this->formatDatetimeToUtc($next->getStartDatetime()) ?? '',
+				'isAllDay' => $next->isAllDay(),
 			] : null;
 
 			// Compute status: next reminder run

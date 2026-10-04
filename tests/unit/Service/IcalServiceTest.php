@@ -19,9 +19,12 @@ use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\IcalService;
 use OCA\Attendance\Service\NotificationService;
 use OCA\Attendance\Service\TalkRoomService;
+use OCA\Attendance\Service\TimezoneService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\Config\IUserConfig;
 use OCP\IConfig;
+use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\L10N\IFactory as IL10NFactory;
@@ -49,6 +52,10 @@ class IcalServiceTest extends TestCase {
 		$urlGenerator->method('linkToRouteAbsolute')->willReturnCallback(
 			fn (string $route, array $params = []) => 'https://example.test/' . $route . '/' . implode('/', $params),
 		);
+
+		$userConfig = $this->createMock(IUserConfig::class);
+		$userConfig->method('getValueString')->willReturn('Europe/Berlin');
+		$timezoneService = new TimezoneService($userConfig, $this->createMock(IDateTimeZone::class));
 
 		$this->service = new IcalService(
 			$this->createMock(IcalTokenMapper::class),
@@ -78,6 +85,7 @@ class IcalServiceTest extends TestCase {
 				$this->createMock(NotificationService::class),
 				$this->createMock(AuditEventService::class),
 			),
+			$timezoneService,
 		);
 	}
 
@@ -116,6 +124,19 @@ class IcalServiceTest extends TestCase {
 		$r->setBookingNotifiedStatus($notified);
 		$r->setRespondedAt('2026-07-02 09:00:00');
 		return $r;
+	}
+
+	/** Issue #269: stored as Berlin midnights, fed as the days they stand for. */
+	public function testAllDayAppointmentIsFedAsWholeDays(): void {
+		$appointment = $this->appointment();
+		$appointment->setStartDatetime('2026-07-19 22:00:00');
+		$appointment->setEndDatetime('2026-07-20 22:00:00');
+		$appointment->setAllDay(true);
+
+		$out = $this->generate($appointment, null);
+
+		$this->assertStringContainsString("DTSTART;VALUE=DATE:20260720\r\n", $out);
+		$this->assertStringContainsString("DTEND;VALUE=DATE:20260721\r\n", $out);
 	}
 
 	public function testPlannedInIsBusyWithTitleMarker(): void {

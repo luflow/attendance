@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Activity;
 
+use OCA\Attendance\Db\Appointment;
 use OCP\IConfig;
 use OCP\IL10N;
 
@@ -26,10 +27,7 @@ final class EventMessages {
 	 */
 	public function forCancelled(IL10N $l, array $params, string $userId): array {
 		$appointmentName = (string)($params['name'] ?? 'Unknown');
-		$appointmentDate = $this->formatDateForUser(
-			(string)($params['startDatetime'] ?? $params['date'] ?? ''),
-			$userId
-		);
+		$appointmentDate = $this->formatAppointmentDate($params, $userId);
 
 		return [
 			// TRANSLATORS: Notification subject: the appointment was called off and will not happen (German "abgesagt", not "abgebrochen"). %1$s is the appointment name, %2$s the date it would have taken place. Sample German: "Termin abgesagt: „Probe" am 12.09.2026 18:00".
@@ -45,10 +43,7 @@ final class EventMessages {
 	 */
 	public function forReactivated(IL10N $l, array $params, string $userId): array {
 		$appointmentName = (string)($params['name'] ?? 'Unknown');
-		$appointmentDate = $this->formatDateForUser(
-			(string)($params['startDatetime'] ?? ''),
-			$userId
-		);
+		$appointmentDate = $this->formatAppointmentDate($params, $userId);
 
 		return [
 			// TRANSLATORS Notification subject: a cancelled appointment is back on. %1$s is the appointment name, %2$s the date.
@@ -80,10 +75,7 @@ final class EventMessages {
 	 */
 	private function forBooking(IL10N $l, array $params, string $userId, bool $confirmed): array {
 		$appointmentName = (string)($params['name'] ?? 'Unknown');
-		$appointmentDate = $this->formatDateForUser(
-			(string)($params['startDatetime'] ?? $params['date'] ?? ''),
-			$userId
-		);
+		$appointmentDate = $this->formatAppointmentDate($params, $userId);
 
 		if ($confirmed) {
 			return [
@@ -144,9 +136,23 @@ final class EventMessages {
 	}
 
 	/**
-	 * Format a UTC datetime string for display in the user's timezone.
+	 * The date of the appointment a notification's subject parameters name.
+	 *
+	 * @param array<array-key, mixed> $params
 	 */
-	public function formatDateForUser(string $utcDatetime, string $userId): string {
+	public function formatAppointmentDate(array $params, string $userId): string {
+		return $this->formatDateForUser(
+			(string)($params['startDatetime'] ?? $params['date'] ?? ''),
+			$userId,
+			(bool)($params['isAllDay'] ?? false),
+		);
+	}
+
+	/**
+	 * Format a UTC datetime string for display in the user's timezone; an
+	 * all-day appointment is named by its first day alone.
+	 */
+	public function formatDateForUser(string $utcDatetime, string $userId, bool $allDay = false): string {
 		if ($utcDatetime === '') {
 			return 'Unknown';
 		}
@@ -156,9 +162,9 @@ final class EventMessages {
 			if ($userTimezone === '') {
 				$userTimezone = date_default_timezone_get();
 			}
-			$date = new \DateTime($utcDatetime, new \DateTimeZone('UTC'));
-			$date->setTimezone(new \DateTimeZone($userTimezone));
-			return $date->format('d.m.Y H:i');
+			$date = ($allDay ? Appointment::allDayAnchor($utcDatetime) : new \DateTimeImmutable($utcDatetime, new \DateTimeZone('UTC')))
+				->setTimezone(new \DateTimeZone($userTimezone));
+			return $date->format($allDay ? 'd.m.Y' : 'd.m.Y H:i');
 		} catch (\Exception $e) {
 			return $utcDatetime;
 		}

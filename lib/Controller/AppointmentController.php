@@ -244,6 +244,7 @@ class AppointmentController extends Controller {
 	 * @param ?bool $allowMaybe Offer "Maybe" as an answer; null follows the instance-wide default
 	 * @param ?int $maxAttendees Attendance limit; null or zero means no limit
 	 * @param bool $waitlistEnabled Whether a full appointment offers a place in line
+	 * @param bool $isAllDay Whole days instead of times: start is the midnight the first day begins, end the midnight after the last day
 	 * @return DataResponse<Http::STATUS_CREATED, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
@@ -269,6 +270,7 @@ class AppointmentController extends Controller {
 		?bool $allowMaybe = null,
 		?int $maxAttendees = null,
 		bool $waitlistEnabled = true,
+		bool $isAllDay = false,
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -304,6 +306,7 @@ class AppointmentController extends Controller {
 				$allowMaybe,
 				$maxAttendees,
 				$waitlistEnabled,
+				$isAllDay,
 			);
 
 			$this->addAttachmentsToAppointment($appointment->getId(), $attachments, $user->getUID());
@@ -367,6 +370,7 @@ class AppointmentController extends Controller {
 					$data['allowMaybe'] ?? null,
 					$data['maxAttendees'] ?? null,
 					$data['waitlistEnabled'] ?? true,
+					$data['isAllDay'] ?? false,
 				);
 				$createdIds[] = $appointment->getId();
 				if ($firstAppointment === null) {
@@ -427,6 +431,7 @@ class AppointmentController extends Controller {
 	 * @param ?bool $allowMaybe Offer "Maybe" as an answer, or null to leave unchanged; applied identically to every affected sibling when scope is future/all
 	 * @param ?int $maxAttendees Attendance limit; null or zero clears it, applied identically to every affected sibling when scope is future/all
 	 * @param ?bool $waitlistEnabled Whether a full appointment offers a place in line, or null to leave unchanged
+	 * @param ?bool $isAllDay Whole days instead of times; null keeps it as long as start and end stay the same, and clears it once they move
 	 * @return DataResponse<Http::STATUS_OK, AttendanceAppointmentData|list<AttendanceAppointmentData>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
@@ -451,6 +456,7 @@ class AppointmentController extends Controller {
 		?bool $allowMaybe = null,
 		?int $maxAttendees = null,
 		?bool $waitlistEnabled = null,
+		?bool $isAllDay = null,
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -470,7 +476,7 @@ class AppointmentController extends Controller {
 					$id, $scope, $name, $description, $startDatetime, $endDatetime,
 					$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
 					$deadlineUpdate, $organizers, $location, $categoryId, $createTalkRoom,
-					$allowMaybe, $maxAttendees, $waitlistEnabled,
+					$allowMaybe, $maxAttendees, $waitlistEnabled, $isAllDay,
 				);
 
 				// Sync attachments across all affected appointments
@@ -490,7 +496,7 @@ class AppointmentController extends Controller {
 					$id, 'single', $name, $description, $startDatetime, $endDatetime,
 					$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
 					$deadlineUpdate, $organizers, $location, $categoryId, $createTalkRoom,
-					$allowMaybe, $maxAttendees, $waitlistEnabled,
+					$allowMaybe, $maxAttendees, $waitlistEnabled, $isAllDay,
 				);
 				$this->syncAttachments($id, $attachments, $user->getUID());
 				return new DataResponse($this->appointmentService->serializeAppointment($updatedAppointments[0]));
@@ -500,7 +506,7 @@ class AppointmentController extends Controller {
 				$id, $name, $description, $startDatetime, $endDatetime,
 				$user->getUID(), $visibleUsers, $visibleGroups, $visibleTeams,
 				$deadlineUpdate, $organizers, $location, $categoryId, $createTalkRoom,
-				$allowMaybe, $maxAttendees, $waitlistEnabled,
+				$allowMaybe, $maxAttendees, $waitlistEnabled, $isAllDay,
 			);
 
 			$this->syncAttachments($id, $attachments, $user->getUID());
@@ -1190,6 +1196,10 @@ class AppointmentController extends Controller {
 			// that and answer with the full list, so clients without this flag
 			// must keep loading everything and filtering it themselves.
 			'pagination' => true,
+			// Server understands isAllDay on an appointment and writes whole days
+			// into the calendars. Clients hide the all-day switch when this is
+			// false, since an older server would store midnights as plain times.
+			'allDay' => true,
 		]);
 	}
 

@@ -138,6 +138,7 @@ const appointmentId = initialState.appointmentId || 0
 const appointmentName = initialState.appointmentName || ''
 const appointmentDatetime = initialState.appointmentDatetime || ''
 const appointmentEndDatetime = initialState.appointmentEndDatetime || ''
+const appointmentAllDay = initialState.appointmentAllDay || false
 const closedAt = initialState.closedAt || null
 const responseDeadline = initialState.responseDeadline || null
 const response = initialState.response || ''
@@ -146,7 +147,7 @@ const token = initialState.token || ''
 const userId = initialState.userId || ''
 const userName = initialState.userName || ''
 
-const formattedDateRange = computed(() => formatDateRange(appointmentDatetime, appointmentEndDatetime))
+const formattedDateRange = computed(() => formatDateRange(appointmentDatetime, appointmentEndDatetime, appointmentAllDay))
 const closedLabel = formatClosedLabel(closedAt, responseDeadline)
 const appUrl = computed(() => generateUrl('/apps/attendance/'))
 const appointmentUrl = computed(() => generateUrl('/apps/attendance/appointment/{id}', { id: appointmentId }))

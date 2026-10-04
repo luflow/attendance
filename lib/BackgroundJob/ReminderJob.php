@@ -222,6 +222,7 @@ class ReminderJob extends TimedJob {
 							'appointmentId' => $appointment->getId(),
 							'name' => $appointment->getName(),
 							'startDatetime' => $appointment->getStartDatetime(),
+							'isAllDay' => $appointment->isAllDay(),
 						])
 						->setLink($appointmentUrl);
 

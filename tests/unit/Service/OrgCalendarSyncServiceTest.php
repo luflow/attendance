@@ -13,6 +13,7 @@ use OCA\Attendance\Service\CalendarService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\IcalService;
 use OCA\Attendance\Service\OrgCalendarSyncService;
+use OCA\Attendance\Service\TimezoneService;
 use OCP\Calendar\ICalendar;
 use OCP\Calendar\ICalendarIsWritable;
 use OCP\Calendar\ICreateFromString;
@@ -198,8 +199,7 @@ class OrgCalendarSyncServiceTest extends TestCase {
 			$config,
 			$this->createMock(LoggerInterface::class),
 			$this->categoryMapper,
-			$userConfig,
-			$dateTimeZone,
+			new TimezoneService($userConfig, $dateTimeZone),
 		);
 		$this->service->fakeBackend = $this->backend;
 	}
@@ -426,6 +426,40 @@ class OrgCalendarSyncServiceTest extends TestCase {
 
 		$this->assertStringContainsString("DTSTART:20260901T180000Z\r\n", $ics);
 		$this->assertStringNotContainsString('VTIMEZONE', $ics);
+	}
+
+	/** Issue #269: 10 and 11 October, entered in Berlin. */
+	private function allDayAppointment(): Appointment {
+		$appointment = $this->appointmentBy('Europe/Berlin');
+		$appointment->setStartDatetime('2026-10-09 22:00:00');
+		$appointment->setEndDatetime('2026-10-11 22:00:00');
+		$appointment->setAllDay(true);
+		return $appointment;
+	}
+
+	public function testAllDayAppointmentIsWrittenAsWholeDays(): void {
+		$ics = $this->service->buildIcs($this->allDayAppointment(), 'attendance-org-5@cloud.example.com');
+
+		$this->assertStringContainsString("DTSTART;VALUE=DATE:20261010\r\n", $ics);
+		// RFC 5545: the end is the day after the last one
+		$this->assertStringContainsString("DTEND;VALUE=DATE:20261012\r\n", $ics);
+		$this->assertStringNotContainsString('VTIMEZONE', $ics);
+	}
+
+	public function testPatchTurnsATimedEventIntoWholeDays(): void {
+		$existing = "BEGIN:VCALENDAR\r\n"
+			. "BEGIN:VEVENT\r\n"
+			. "DTSTART;TZID=Europe/Berlin:20261010T000000\r\n"
+			. "DTEND;TZID=Europe/Berlin:20261012T000000\r\n"
+			. "END:VEVENT\r\n"
+			. "END:VCALENDAR\r\n";
+
+		$ics = $this->service->patchIcs($existing, $this->allDayAppointment());
+
+		$this->assertStringContainsString("DTSTART;VALUE=DATE:20261010\r\n", $ics);
+		$this->assertStringContainsString("DTEND;VALUE=DATE:20261012\r\n", $ics);
+		$this->assertStringNotContainsString('TZID', $ics);
+		$this->assertTrue($this->service->matchesIgnoringTimestamps($ics, $this->service->patchIcs($ics, $this->allDayAppointment())));
 	}
 
 	/** Issue #261: an edit in the app reset the zone picked in the Calendar app. */

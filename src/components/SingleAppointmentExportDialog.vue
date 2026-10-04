@@ -8,7 +8,7 @@
 
 			<div class="appointment-info">
 				<h3>{{ appointment?.name }}</h3>
-				<p>{{ formatDateTime(appointment?.startDatetime) }}</p>
+				<p>{{ formatStart(appointment?.startDatetime, appointment?.isAllDay) }}</p>
 			</div>
 
 			<div class="export-options">
@@ -45,7 +45,7 @@ import DownloadIcon from 'vue-material-design-icons/Download.vue'
 import ExportColumnOptions from './export/ExportColumnOptions.vue'
 import { useExportColumns } from '../composables/useExportColumns.js'
 import { useExportRequest } from '../composables/useExportRequest.js'
-import { formatDateTime } from '../utils/datetime.js'
+import { formatStart } from '../utils/datetime.js'
 
 const props = defineProps({
 	show: {

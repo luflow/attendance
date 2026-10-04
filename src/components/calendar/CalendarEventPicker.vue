@@ -96,7 +96,7 @@
 								class="event-checkbox">
 								<div class="event-info">
 									<span class="event-name">{{ event.summary || t('attendance', 'Untitled event') }}</span>
-									<span class="event-date">{{ formatDateRange(event.dtstart, event.dtend) }}</span>
+									<span class="event-date">{{ formatDateRange(event.dtstart, event.dtend, event.isAllDay) }}</span>
 								</div>
 							</NcCheckboxRadioSwitch>
 							<span v-if="importedIds.has(event.id)" class="imported-badge">
@@ -310,6 +310,7 @@ function importSelected() {
 		category: event.category || '',
 		startDatetime: event.dtstart,
 		endDatetime: event.dtend,
+		isAllDay: event.isAllDay,
 		calendarUri: selectedCalendar.value.uri,
 		calendarEventUid: event.uid,
 	}))

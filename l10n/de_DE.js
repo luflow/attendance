@@ -1064,6 +1064,8 @@ OC.L10N.register(
     "Could not save category" : "Kategorie konnte nicht gespeichert werden",
     "Edit category" : "Kategorie bearbeiten",
     "New appointments of this category start with this description and access restriction. Both can still be changed for each appointment." : "Neue Termine dieser Kategorie starten mit dieser Beschreibung und Zugriffsbeschränkung. Beides lässt sich für jeden Termin noch ändern.",
-    "Template" : "Vorlage"
+    "Template" : "Vorlage",
+    "All day" : "Ganztägig",
+    "You are scheduled in for this appointment." : "Für diesen Termin sind Sie eingeplant."
 },
 "nplurals=2; plural=(n != 1);");

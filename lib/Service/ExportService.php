@@ -390,7 +390,9 @@ class ExportService {
 			. str_repeat($this->plainCell(OdsWriter::STYLE_HEADER, ''), $leading);
 
 		foreach ($appointments as $appointment) {
-			$startDate = date('Y-m-d', strtotime($appointment->getStartDatetime()));
+			$startDate = $appointment->isAllDay()
+				? Appointment::allDayAnchor($appointment->getStartDatetime())->format('Y-m-d')
+				: date('Y-m-d', strtotime($appointment->getStartDatetime()));
 			$location = $appointment->getLocation();
 			$dateLabel = $location !== null ? $startDate . ' · ' . $this->odsWriter->escape($location) : $startDate;
 

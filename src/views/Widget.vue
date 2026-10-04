@@ -79,6 +79,7 @@ const items = computed(() => {
 		id: appointment.id,
 		mainText: appointment.name,
 		subText: appointment.startDatetime,
+		isAllDay: appointment.isAllDay,
 		description: appointment.description,
 		userResponse: appointment.userResponse,
 	}))

@@ -250,6 +250,10 @@ const closedLabel = computed(() => formatClosedLabel(props.appointment.closedAt,
 // below the read-only answer, the header chip alone is easy to misread.
 const scheduleNote = computed(() => {
 	const status = finalScheduleStatus(props.appointment, capabilities.bookingEnabled)
+	if (status === 'booked' && props.appointment.isAllDay) {
+		// TRANSLATORS: Note under the user's own answer on a closed inquiry — they got a place in the appointment (German "eingeplant"). Used for an all-day appointment, which has no time of day to be there at.
+		return t('attendance', 'You are scheduled in for this appointment.')
+	}
 	if (status === 'booked') {
 		// TRANSLATORS: Note under the user's own answer on a closed inquiry — they got a place in the appointment (German "eingeplant"). {when} is a time of day only, e.g. "10:00" or "10:00 AM", never a date; the date is shown in the appointment header above.
 		return t('attendance', 'You are scheduled in for this appointment. Please be there at {when}.', {
