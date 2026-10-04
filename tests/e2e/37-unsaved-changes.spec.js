@@ -88,6 +88,30 @@ test.describe('Unsaved changes and the way back (#232, #233)', () => {
 		await expect(page.locator('[data-test="appointment-title"]')).toContainText(names[0])
 	})
 
+	// An entry from before an update, still in the tab's history after a reload,
+	// says nothing about where it sits. Going back to it has to ask all the same.
+	test('browser back asks even when the entry behind the form carries no position', async ({ page, loginAsUser, attendanceApp }) => {
+		await loginAsUser('admin', 'admin')
+		await attendanceApp()
+		await page.evaluate(() => window.history.replaceState({ view: 'all' }, ''))
+
+		await page.locator('[data-test="button-create-appointment"]').click()
+		await page.waitForURL(/\/create$/)
+		await page.getByRole('textbox', { name: 'Appointment Name' }).fill('Never saved')
+		await expect(page.locator('[data-test="unsaved-hint"]')).toBeVisible()
+
+		const dialog = page.getByRole('dialog', { name: 'Unsaved changes' })
+		await page.goBack()
+		await dialog.getByRole('button', { name: 'Keep editing' }).click()
+		await expect(page).toHaveURL(/\/create$/)
+		await expect(page.getByRole('textbox', { name: 'Appointment Name' })).toHaveValue('Never saved')
+
+		await page.goBack()
+		await dialog.getByRole('button', { name: 'Discard changes' }).click()
+		await expect(page).not.toHaveURL(/\/create$/)
+		await expect(page.locator('[data-test="page-heading"]')).toHaveText('All appointments')
+	})
+
 	test('saving from the detail view returns to it, and Back leads on to the list', async ({ page, loginAsUser, attendanceApp }) => {
 		await loginAsUser('admin', 'admin')
 		await attendanceApp()
