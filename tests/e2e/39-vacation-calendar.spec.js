@@ -5,6 +5,7 @@ import {
 	ensureCalendarExists,
 	expect,
 	getCalendarEventIcs,
+	login,
 	saveAdminSettings,
 	test,
 } from './fixtures/nextcloud.js'
@@ -94,5 +95,16 @@ test.describe('Vacation calendar', () => {
 		vacationId = null
 
 		expect(await fetchIcs(request, id)).toBeNull()
+	})
+
+	test('the admin settings warn about privacy and show the chosen calendar', async ({ page, baseURL }) => {
+		await login(page, 'admin', 'admin', baseURL)
+		await page.goto('/settings/admin/attendance')
+		await page.waitForLoadState('networkidle')
+
+		const section = page.locator('#vacation-calendar')
+		await expect(section.locator('[data-test="vacation-calendar-privacy"]')).toContainText('Privacy')
+		await expect(section.locator('[data-test="switch-vacation-calendar-enabled"]')).toBeChecked()
+		await expect(section.locator('[data-test="select-vacation-calendar"]')).toContainText('E2E Vacation')
 	})
 })

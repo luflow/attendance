@@ -148,6 +148,7 @@ export async function createAppointmentViaAPI(request, {
 	categoryId,
 	maxAttendees,
 	waitlistEnabled,
+	allowMaybe,
 	username = 'admin',
 	password = 'admin',
 } = {}) {
@@ -169,6 +170,7 @@ export async function createAppointmentViaAPI(request, {
 		...(categoryId !== undefined ? { categoryId } : {}),
 		...(maxAttendees !== undefined ? { maxAttendees } : {}),
 		...(waitlistEnabled !== undefined ? { waitlistEnabled } : {}),
+		...(allowMaybe !== undefined ? { allowMaybe } : {}),
 	}
 	const resp = await resilientJson(() => request.post(`${API_BASE}/apps/attendance/api/appointments`, {
 		headers: authHeaders(username, password),

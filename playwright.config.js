@@ -109,6 +109,8 @@ export default defineConfig({
 				'38-all-day.spec.js',
 				// Points the vacation calendar at a calendar of its own.
 				'39-vacation-calendar.spec.js',
+				// Wipes every appointment and answers as two users.
+				'40-capacity-ui.spec.js',
 			],
 			fullyParallel: false,
 			workers: 1,
