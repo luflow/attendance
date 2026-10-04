@@ -141,12 +141,12 @@ const emit = defineEmits(['submitResponse'])
 // the buttons carry the same filled circles the sidebar uses.
 const ICONS = { CheckCircle, HelpCircle, CloseCircle }
 // Somebody who has not got a spot is offered the queue instead of a yes, so
-// the button says what the click will actually do. "No" is never taken away:
-// declining a full appointment is information the organizer wants.
+// the button says what the click will actually do.
 const joiningWaitlist = computed(() => props.isFull && props.waitlistEnabled && props.userResponse !== 'yes')
+// Full without a queue: nothing to answer, so no buttons — the notice says why.
+const noSpotsLeft = computed(() => props.isFull && !props.waitlistEnabled && props.userResponse !== 'yes')
 
-const options = computed(() => props.responseOptions
-	.filter((value) => value !== 'yes' || !props.isFull || props.waitlistEnabled || props.userResponse === 'yes')
+const options = computed(() => (noSpotsLeft.value ? [] : props.responseOptions)
 	.map((value) => ({
 		value,
 		label: value === 'yes' && joiningWaitlist.value
@@ -162,10 +162,11 @@ const capacityNotice = computed(() => {
 			? t('attendance', 'You are number {position} on the waitlist', { position: props.waitlistPosition })
 			: t('attendance', 'You are on the waitlist')
 	}
+	if (noSpotsLeft.value) {
+		return t('attendance', 'No spots available at the moment')
+	}
 	if (props.isFull && props.userResponse !== 'yes') {
-		return props.waitlistEnabled
-			? t('attendance', 'This appointment is full. Join the waitlist to take the next free spot.')
-			: t('attendance', 'This appointment is full.')
+		return t('attendance', 'This appointment is full. Join the waitlist to take the next free spot.')
 	}
 	return ''
 })

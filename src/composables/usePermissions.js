@@ -35,6 +35,9 @@ const DEFAULTS = {
 		statisticsAvailable: false,
 		talkRoomsAvailable: false,
 		vacationManagementEnabled: false,
+		responseOptions: false,
+		allowMaybeDefault: true,
+		attendanceLimit: false,
 	},
 	config: {
 		displayOrder: 'name_first',
@@ -110,6 +113,9 @@ export function usePermissions() {
 			state.capabilities.statisticsAvailable = capabilitiesRes.data.statisticsAvailable === true
 			state.capabilities.talkRoomsAvailable = capabilitiesRes.data.talkRoomsAvailable === true
 			state.capabilities.vacationManagementEnabled = capabilitiesRes.data.vacationManagementEnabled === true
+			state.capabilities.responseOptions = capabilitiesRes.data.responseOptions === true
+			state.capabilities.allowMaybeDefault = capabilitiesRes.data.allowMaybeDefault !== false
+			state.capabilities.attendanceLimit = capabilitiesRes.data.attendanceLimit === true
 
 			state.config.displayOrder = configRes.data.displayOrder || 'name_first'
 			state.config.mobileAppBannerEnabled = configRes.data.mobileAppBannerEnabled !== false

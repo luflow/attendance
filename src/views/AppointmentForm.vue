@@ -213,6 +213,44 @@
 			</div>
 
 			<div class="form-section">
+				<h3>{{ t("attendance", "Attachments") }}</h3>
+				<p class="hint-text">
+					{{
+						t(
+							"attendance",
+							"Files that are important for this appointment can be selected here.",
+						)
+					}}
+				</p>
+				<div
+					v-if="attachments.length > 0"
+					class="attachment-list"
+					data-test="attachment-list">
+					<NcChip
+						v-for="attachment in attachments"
+						:key="attachment.fileId"
+						:text="attachment.fileName"
+						:data-test="`attachment-chip-${attachment.fileId}`"
+						@close="removeAttachment(attachment.fileId)">
+						<template #icon>
+							<Paperclip :size="16" />
+						</template>
+					</NcChip>
+				</div>
+				<NcButton
+					variant="secondary"
+					type="button"
+					data-test="button-add-attachment"
+					@click.stop.prevent="openFilePicker">
+					<template #icon>
+						<Plus :size="20" />
+					</template>
+					<!-- TRANSLATORS: Button opening the Nextcloud file picker to attach files. "Files" is the name of the Nextcloud Files app (German "Dateien"), not files in general. -->
+					{{ t("attendance", "Add from Files") }}
+				</NcButton>
+			</div>
+
+			<div class="form-section">
 				<h3>{{ t("attendance", "Response deadline") }}</h3>
 				<p class="hint-text">
 					{{
@@ -309,7 +347,7 @@
 			</div>
 
 			<div v-if="attendanceLimitAvailable" class="form-section">
-				<h3>{{ t("attendance", "Attendance limit") }}</h3>
+				<h3>{{ t("attendance", "Attendance limit & waitlist") }}</h3>
 				<!-- TRANSLATORS: Hint under the attendance-limit field in the appointment form. It explains what setting a number does — once that many people have said yes, the rest can only queue — and that leaving it empty keeps the appointment open to everyone. Sample German: "Sobald so viele zugesagt haben, ist der Termin voll. Leer lassen für unbegrenzt." -->
 				<p class="hint-text">
 					{{
@@ -325,6 +363,7 @@
 						type="number"
 						min="0"
 						:label="t('attendance', 'Maximum attendees')"
+						:placeholder="t('attendance', 'Unlimited')"
 						data-test="input-max-attendees"
 						@update:modelValue="(value) => (maxAttendeesInput = value)" />
 				</div>
@@ -384,44 +423,6 @@
 					data-test="checkbox-create-talk-room">
 					{{ talkRoomToggleLabel }}
 				</NcCheckboxRadioSwitch>
-			</div>
-
-			<div class="form-section">
-				<h3>{{ t("attendance", "Attachments") }}</h3>
-				<p class="hint-text">
-					{{
-						t(
-							"attendance",
-							"Files that are important for this appointment can be selected here.",
-						)
-					}}
-				</p>
-				<div
-					v-if="attachments.length > 0"
-					class="attachment-list"
-					data-test="attachment-list">
-					<NcChip
-						v-for="attachment in attachments"
-						:key="attachment.fileId"
-						:text="attachment.fileName"
-						:data-test="`attachment-chip-${attachment.fileId}`"
-						@close="removeAttachment(attachment.fileId)">
-						<template #icon>
-							<Paperclip :size="16" />
-						</template>
-					</NcChip>
-				</div>
-				<NcButton
-					variant="secondary"
-					type="button"
-					data-test="button-add-attachment"
-					@click.stop.prevent="openFilePicker">
-					<template #icon>
-						<Plus :size="20" />
-					</template>
-					<!-- TRANSLATORS: Button opening the Nextcloud file picker to attach files. "Files" is the name of the Nextcloud Files app (German "Dateien"), not files in general. -->
-					{{ t("attendance", "Add from Files") }}
-				</NcButton>
 			</div>
 
 			<div class="form-section">

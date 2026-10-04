@@ -209,6 +209,7 @@
 							|| currentView === 'edit'
 							|| currentView === 'copy'
 					"
+					:key="formKey"
 					:mode="currentView"
 					:appointmentId="formAppointmentId"
 					:notificationsAppEnabled="capabilities.notificationsAppEnabled"
@@ -620,6 +621,8 @@ const hasNavigation = computed(() => currentView.value !== 'checkin')
 const checkinAppointmentId = ref(null)
 const appointmentDetailId = ref(null)
 const formAppointmentId = ref(null) // For edit/copy modes
+// One form instance per visit: edit -> create would otherwise keep the old data.
+const formKey = ref(0)
 const currentAppointments = ref([])
 // Past entries only ever grow, so the sidebar holds a page of them and
 // fetches the next one on request.
@@ -735,6 +738,7 @@ function showRoute(route) {
 	checkinAppointmentId.value = view === 'checkin' ? appointmentId : null
 	appointmentDetailId.value = view === 'appointment' ? appointmentId : null
 	formAppointmentId.value = view === 'edit' || view === 'copy' ? appointmentId : null
+	if (view === 'create' || view === 'edit' || view === 'copy') formKey.value += 1
 	currentView.value = view
 }
 

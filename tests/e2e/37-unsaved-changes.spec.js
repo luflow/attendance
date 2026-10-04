@@ -112,6 +112,22 @@ test.describe('Unsaved changes and the way back (#232, #233)', () => {
 		await expect(page.locator('[data-test="page-heading"]')).toHaveText('All appointments')
 	})
 
+	// The form is one component for create, edit and copy; coming from an edit
+	// it kept showing the old appointment's data in what was meant to be a new one.
+	test('a new appointment starts empty after editing another one', async ({ page, loginAsUser, attendanceApp }) => {
+		await loginAsUser('admin', 'admin')
+		await attendanceApp()
+		await openEditFromDetail(page, names[1])
+
+		const nameInput = page.getByRole('textbox', { name: 'Appointment Name' })
+		await expect(nameInput).toHaveValue(names[1])
+
+		await page.locator('[data-test="button-create-appointment"]').click()
+		await page.waitForURL(/\/create$/)
+		await expect(nameInput).toHaveValue('')
+		await expect(page.locator('[data-test="unsaved-hint"]')).toBeHidden()
+	})
+
 	test('saving from the detail view returns to it, and Back leads on to the list', async ({ page, loginAsUser, attendanceApp }) => {
 		await loginAsUser('admin', 'admin')
 		await attendanceApp()
