@@ -27,7 +27,7 @@
 			</div>
 			<NcTextArea v-model="note"
 				:label="t('attendance', 'Note (optional)')"
-				:helperText="t('attendance', 'Visible to everyone with access to the vacation calendar.')"
+				:helperText="t('attendance', 'Your name is shown as a hint when appointments are created, so organizers see who is on vacation. Your note is not shown there.')"
 				:maxlength="NOTE_MAX_LENGTH"
 				rows="2"
 				data-test="input-vacation-note" />

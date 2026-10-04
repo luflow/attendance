@@ -1064,7 +1064,7 @@ OC.L10N.register(
     "Failed to sync vacations to the calendar" : "Urlaub konnte nicht mit dem Kalender synchronisiert werden",
     "%1$s – Vacation" : "%1$s – Urlaub",
     "_%n vacation synced to the calendar_::_%n vacations synced to the calendar_" : ["%n Urlaub mit dem Kalender synchronisiert","%n Urlaube mit dem Kalender synchronisiert"],
-    "Visible to everyone with access to the vacation calendar." : "Sichtbar für alle mit Zugriff auf den Urlaubskalender.",
+    "Your name is shown as a hint when appointments are created, so organizers see who is on vacation. Your note is not shown there." : "Dein Name erscheint als Hinweis beim Anlegen von Terminen, damit man sieht, wer im Urlaub ist. Die Notiz wird dort nicht angezeigt.",
     "{count} appointments set to \"No\"" : "{count} Termine auf „Nein“ gesetzt",
     "{occupancy} of {max} spots taken" : "{occupancy} von {max} Plätzen belegt",
     "{count} people are on vacation at this time — their answer defaults to \"No\"" : "{count} Personen sind zu dieser Zeit im Urlaub — ihre Antwort steht standardmäßig auf „Nein“",
