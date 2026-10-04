@@ -146,12 +146,17 @@ const joiningWaitlist = computed(() => props.isFull && props.waitlistEnabled && 
 // Full without a queue: nothing to answer, so no buttons — the notice says why.
 const noSpotsLeft = computed(() => props.isFull && !props.waitlistEnabled && props.userResponse !== 'yes')
 
+// A queued yes must not read as "Yes": that sounds like a confirmed place.
+function buttonLabel(value) {
+	if (value !== 'yes') return getResponseText(value)
+	if (props.waitlisted) return t('attendance', 'On the waitlist')
+	return joiningWaitlist.value ? t('attendance', 'Join waitlist') : getResponseText(value)
+}
+
 const options = computed(() => (noSpotsLeft.value ? [] : props.responseOptions)
 	.map((value) => ({
 		value,
-		label: value === 'yes' && joiningWaitlist.value
-			? t('attendance', 'Join waitlist')
-			: getResponseText(value),
+		label: buttonLabel(value),
 		variant: getResponseVariant(value),
 		icon: ICONS[getResponseIcon(value)],
 	})))

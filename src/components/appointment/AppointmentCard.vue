@@ -132,7 +132,7 @@
 				<h4>{{ t("attendance", "Your response") }}</h4>
 				<span v-if="userResponse" class="response-row__value">
 					<ResponseDot :response="userResponse" />
-					<strong>{{ getResponseText(userResponse) }}</strong>
+					<strong>{{ appointment.userResponse?.waitlisted ? t('attendance', 'On the waitlist') : getResponseText(userResponse) }}</strong>
 				</span>
 				<span v-else class="response-row__value">{{ t("attendance", "No response") }}</span>
 			</div>

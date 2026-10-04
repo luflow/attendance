@@ -186,6 +186,7 @@ OC.L10N.register(
     "Not buying for a whole group? Get a license just for you." : "Du kaufst nicht für eine ganze Gruppe? Hol dir eine Lizenz nur für dich.",
     "Not ready to decide? Add 14 days, free" : "Noch nicht bereit, eine Entscheidung zu treffen? Verlängere die Frist um 14 Tage – kostenlos",
     "Not signed in on this server" : "Auf diesem Server nicht angemeldet",
+    "On the waitlist" : "Auf der Warteliste",
     "One license covers everyone on your server." : "Eine Lizenz deckt alle auf deinem Server ab.",
     "Personal license" : "Persönliche Lizenz",
     "Pick how the check-in button scans, or ask each time." : "Auswählen, wie der Check-in-Button scannt, oder jedes Mal nachfragen.",
