@@ -47,6 +47,7 @@ OC.L10N.register(
     "Import" : "Import",
     "Quote" : "Cotéierung",
     "Dismiss" : "Ofbriechen",
+    "Comments" : "Kommentarer",
     "Categories" : "Kategorien",
     "Close" : "Zoumaachen",
     "Continue" : "Weider",

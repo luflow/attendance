@@ -139,7 +139,6 @@ OC.L10N.register(
     "Open" : "Obert",
     "Push notifications" : "Notificacions forçades",
     "or" : "o",
-    "Relevance" : "Rellevància",
     "Upcoming" : "Pròxims",
     "Reset filter" : "Reinicia el filtre",
     "Location" : "Ubicació",

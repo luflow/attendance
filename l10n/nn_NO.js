@@ -50,6 +50,7 @@ OC.L10N.register(
     "Import" : "Importer",
     "Back" : "Tilbake",
     "Dismiss" : "Forkast",
+    "Comments" : "Kommentarar",
     "Categories" : "Kategoriar",
     "Close" : "Lukk",
     "Continue" : "Gå vidare",

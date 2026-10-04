@@ -40,6 +40,7 @@ OC.L10N.register(
     "Save" : "Save",
     "Back" : "ආපසු",
     "Dismiss" : "Dismiss",
+    "Comments" : "අදහස්",
     "Welcome" : "සාදරයෙන් පිළිගනිමු",
     "Close" : "වසන්න",
     "Link copied" : "සබැඳිය පිටපත් කළා",

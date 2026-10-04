@@ -33,6 +33,7 @@
     "Send" : "Yuborish",
     "Sign in" : "tizimga kirish",
     "Skip" : "O'tkazib yuborish",
+    "Vacation" : "Dam olish",
     "Create appointment" : "Uchrashuv yaratish",
     "Export" : "Eksport",
     "Loading …" : "Yuklanmoqda...",
@@ -71,6 +72,7 @@
     "Untitled event" : "Nomsiz tadbir",
     "Add comment" : "Fikr qo'shing",
     "Dismiss" : "Rad etish",
+    "Comments" : "Izohlar",
     "Categories" : "Kategoriyalar",
     "Close" : "Yopish",
     "Continue" : "Davom etish",
@@ -99,6 +101,7 @@
     "Description" : "Tavsif",
     "Notification" : "Bildirishnomalar",
     "Add from Files" : "Fayllardan qo'shish",
+    "Unsaved changes" : "Saqlanmagan o'zgarishlar",
     "Confirm" : "Tasdiqlash",
     "Thank you for your response!" : "Javobingiz uchun rahmat!",
     "Search people" : "Shaxsni qidirish",
@@ -108,6 +111,7 @@
     "Custom" : "Maxsus",
     "Teams" : "Jamoalar",
     "Filter" : "Filtr",
+    "Discard changes" : "O'zgarishlarni bekor qilish",
     "App" : "Ilova",
     "Automatic" : "Automatik"
 },"pluralForm" :"nplurals=1; plural=0;"
