@@ -110,7 +110,6 @@ OC.L10N.register(
     "Open" : "Abrir",
     "Push notifications" : "Avisos push",
     "or" : "o",
-    "Relevance" : "Relevancia",
     "Reset filter" : "Reafitar la peñera",
     "Location" : "Llocalización",
     "Category" : "Categoría",

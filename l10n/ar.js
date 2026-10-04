@@ -139,7 +139,6 @@ OC.L10N.register(
     "Open" : "فتح",
     "Push notifications" : "دفع الإخطارات",
     "or" : "او",
-    "Relevance" : "الصلة بالموضوع",
     "View all" : "عرض الكل",
     "Reset filter" : "إعادة تعيين الفِلتر",
     "Location" : "الموقع",

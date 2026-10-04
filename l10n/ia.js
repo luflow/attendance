@@ -35,6 +35,7 @@ OC.L10N.register(
     "Ends" : "Fini",
     "Save" : "Salveguardar",
     "Dismiss" : "Dimitter",
+    "Comments" : "Commentarios",
     "Close" : "Clauder",
     "Never" : "Nunquam",
     "Settings saved" : "Configurationes salveguardate",
