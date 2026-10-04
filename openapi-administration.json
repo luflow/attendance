@@ -900,6 +900,20 @@
                                             }
                                         }
                                     },
+                                    "vacationCalendar": {
+                                        "type": "object",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Vacation calendar settings (target calendar the members' vacation periods are written to)",
+                                        "properties": {
+                                            "enabled": {
+                                                "type": "boolean"
+                                            },
+                                            "calendarUri": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
                                     "audit": {
                                         "type": "object",
                                         "nullable": true,
@@ -1182,6 +1196,129 @@
                 "operationId": "admin-sync-org-calendar",
                 "summary": "Push all upcoming appointments into the organization calendar",
                 "description": "Explicit backfill trigger for the admin settings — the same sync that runs automatically when the feature is enabled or re-pointed.\nThis endpoint requires admin access",
+                "tags": [
+                    "admin"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "synced"
+                                    ],
+                                    "properties": {
+                                        "synced": {
+                                            "type": "integer",
+                                            "format": "int64"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Logged in account must be an admin",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/attendance/api/admin/vacation-calendar/sync": {
+            "post": {
+                "operationId": "admin-sync-vacation-calendar",
+                "summary": "Write all vacation periods into the vacation calendar",
+                "description": "Explicit backfill trigger — writes every current and upcoming vacation and drops events of vacations that are gone.\nThis endpoint requires admin access",
                 "tags": [
                     "admin"
                 ],

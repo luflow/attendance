@@ -240,6 +240,7 @@ namespace OCA\Attendance;
  *   canSeeStatistics: bool,
  *   canSeeIndividualResponses: bool,
  *   canSeeAllAppointments: bool,
+ *   canSeeTeamVacations: bool,
  * }
  * @psalm-type AttendanceCapabilities = array{
  *   calendarAvailable: bool,

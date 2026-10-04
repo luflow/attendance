@@ -13,6 +13,7 @@ use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\NotificationService;
 use OCA\Attendance\Service\OrgCalendarSyncService;
 use OCA\Attendance\Service\PermissionService;
+use OCA\Attendance\Service\VacationCalendarSyncService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Controller;
@@ -40,6 +41,7 @@ class AdminController extends Controller {
 	private GuestService $guestService;
 	private CalendarService $calendarService;
 	private OrgCalendarSyncService $orgCalendarSyncService;
+	private VacationCalendarSyncService $vacationCalendarSyncService;
 
 	public function __construct(
 		string $appName,
@@ -56,6 +58,7 @@ class AdminController extends Controller {
 		GuestService $guestService,
 		CalendarService $calendarService,
 		OrgCalendarSyncService $orgCalendarSyncService,
+		VacationCalendarSyncService $vacationCalendarSyncService,
 	) {
 		parent::__construct($appName, $request);
 		$this->userSession = $userSession;
@@ -70,6 +73,7 @@ class AdminController extends Controller {
 		$this->guestService = $guestService;
 		$this->calendarService = $calendarService;
 		$this->orgCalendarSyncService = $orgCalendarSyncService;
+		$this->vacationCalendarSyncService = $vacationCalendarSyncService;
 	}
 
 	/**
@@ -159,6 +163,11 @@ class AdminController extends Controller {
 						'userId' => $this->configService->getOrgCalendarUserId() ?: null,
 						'summary' => $this->configService->isOrgCalendarSummaryEnabled(),
 					],
+					'vacationCalendar' => [
+						'enabled' => $this->configService->isVacationCalendarEnabled(),
+						'calendarUri' => $this->configService->getVacationCalendarUri() ?: null,
+						'userId' => $this->configService->getVacationCalendarUserId() ?: null,
+					],
 					'audit' => [
 						'enabled' => $this->configService->isAuditLogEnabled(),
 						'visibility' => $this->configService->getAuditLogVisibility(),
@@ -202,6 +211,7 @@ class AdminController extends Controller {
 	 * @param ?array{enabled?: bool, reminderDays?: int, reminderFrequency?: int, reminderTarget?: string} $reminders Reminder settings
 	 * @param ?array{enabled?: bool} $calendarSync Calendar sync settings
 	 * @param ?array{enabled?: bool, calendarUri?: string, summary?: bool} $orgCalendar Organization calendar settings (target calendar for automatic event creation)
+	 * @param ?array{enabled?: bool, calendarUri?: string} $vacationCalendar Vacation calendar settings (target calendar the members' vacation periods are written to)
 	 * @param ?array{enabled?: bool, visibility?: string} $audit Audit log settings (master switch + read visibility)
 	 * @param ?string $displayOrder Display order for appointments: chronological, name, or group
 	 * @param ?bool $pushEnabled Whether push notifications are enabled
@@ -223,6 +233,7 @@ class AdminController extends Controller {
 		?array $reminders = null,
 		?array $calendarSync = null,
 		?array $orgCalendar = null,
+		?array $vacationCalendar = null,
 		?array $audit = null,
 		?string $displayOrder = null,
 		?bool $pushEnabled = null,
@@ -286,6 +297,10 @@ class AdminController extends Controller {
 			// Save organization calendar settings (backfills on enable/re-point)
 			if ($orgCalendar !== null) {
 				$this->orgCalendarSyncService->applySettings($orgCalendar, $user->getUID());
+			}
+
+			if ($vacationCalendar !== null) {
+				$this->vacationCalendarSyncService->applySettings($vacationCalendar, $user->getUID());
 			}
 
 			// Save audit log settings
@@ -364,6 +379,33 @@ class AdminController extends Controller {
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 500);
 		}
+	}
+
+	/**
+	 * Write all vacation periods into the vacation calendar
+	 *
+	 * Explicit backfill trigger — writes every current and upcoming vacation and
+	 * drops events of vacations that are gone.
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{synced: int}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
+	 */
+	#[NoCSRFRequired]
+	#[OpenAPI(OpenAPI::SCOPE_ADMINISTRATION)]
+	public function syncVacationCalendar(): DataResponse {
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], 401);
+		}
+
+		if (!$this->permissionService->isAdmin($user->getUID())) {
+			return new DataResponse(['error' => 'Insufficient permissions'], 403);
+		}
+
+		if (!$this->vacationCalendarSyncService->isEnabled()) {
+			return new DataResponse(['error' => 'Vacation calendar is not configured'], 400);
+		}
+
+		return new DataResponse(['synced' => $this->vacationCalendarSyncService->syncAll()]);
 	}
 
 	/**

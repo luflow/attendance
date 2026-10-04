@@ -116,7 +116,7 @@
 			<MyVacations @changed="teamVacationCalendar?.reload()" />
 		</NcSettingsSection>
 
-		<NcSettingsSection v-if="capabilities.vacationManagementEnabled"
+		<NcSettingsSection v-if="capabilities.vacationManagementEnabled && permissions.canSeeTeamVacations"
 			:name="t('attendance', 'Team vacation calendar')"
 			data-test="section-team-vacations">
 			<TeamVacationCalendar ref="teamVacationCalendar" />
@@ -150,7 +150,7 @@ import { usePermissions } from '../composables/usePermissions.js'
 import { formatDateTime } from '../utils/datetime.js'
 
 const { feedUrl, webcalUrl, googleCalendarUrl, lastUsedAt, loading: icalLoading, loadToken, regenerateToken, copyToClipboard } = useIcalFeed()
-const { capabilities, loadPermissions } = usePermissions()
+const { capabilities, permissions, loadPermissions } = usePermissions()
 const showRegenerateConfirm = ref(false)
 // Own entries show up in the team calendar too, so it reloads when they change.
 const teamVacationCalendar = ref(null)

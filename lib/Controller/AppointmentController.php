@@ -1083,6 +1083,7 @@ class AppointmentController extends Controller {
 			'canSeeStatistics' => $this->permissionService->canSeeStatistics($user->getUID()),
 			'canSeeIndividualResponses' => $this->permissionService->canSeeIndividualResponses($user->getUID()),
 			'canSeeAllAppointments' => $this->permissionService->canSeeAllAppointments($user->getUID()),
+			'canSeeTeamVacations' => $this->permissionService->canSeeTeamVacations($user->getUID()),
 		]);
 	}
 

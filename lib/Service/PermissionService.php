@@ -49,6 +49,7 @@ class PermissionService {
 	public const PERMISSION_RESPOND_FOR_OTHERS = 'respond_for_others';
 	public const PERMISSION_SEE_STATISTICS = 'see_statistics';
 	public const PERMISSION_SEE_ALL_APPOINTMENTS = 'see_all_appointments';
+	public const PERMISSION_SEE_TEAM_VACATIONS = 'see_team_vacations';
 
 	public const MODE_ALL = 'all';
 	public const MODE_GROUPS = 'groups';
@@ -67,6 +68,7 @@ class PermissionService {
 		self::PERMISSION_RESPOND_FOR_OTHERS,
 		self::PERMISSION_SEE_STATISTICS,
 		self::PERMISSION_SEE_ALL_APPOINTMENTS,
+		self::PERMISSION_SEE_TEAM_VACATIONS,
 	];
 
 	private const GUEST_BLOCKED_PERMISSIONS = [
@@ -76,6 +78,7 @@ class PermissionService {
 		self::PERMISSION_RESPOND_FOR_OTHERS,
 		self::PERMISSION_SEE_STATISTICS,
 		self::PERMISSION_SEE_ALL_APPOINTMENTS,
+		self::PERMISSION_SEE_TEAM_VACATIONS,
 	];
 
 	/**
@@ -90,6 +93,7 @@ class PermissionService {
 		self::PERMISSION_RESPOND_FOR_OTHERS,
 		self::PERMISSION_SEE_STATISTICS,
 		self::PERMISSION_SEE_ALL_APPOINTMENTS,
+		self::PERMISSION_SEE_TEAM_VACATIONS,
 	];
 
 	public function __construct(
@@ -430,6 +434,15 @@ class PermissionService {
 	public function canSeeAllAppointments(string $userId): bool {
 		return $this->hasPermission($userId, self::PERMISSION_SEE_ALL_APPOINTMENTS)
 			|| $this->canManageAppointments($userId);
+	}
+
+	/**
+	 * Check if user may see everybody's vacation periods. Nobody holds it
+	 * implicitly: a vacation says where somebody is not, and the note often says
+	 * why, so it is never opened up by another right.
+	 */
+	public function canSeeTeamVacations(string $userId): bool {
+		return $this->hasPermission($userId, self::PERMISSION_SEE_TEAM_VACATIONS);
 	}
 
 	/**

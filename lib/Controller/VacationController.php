@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\Attendance\Controller;
 
 use OCA\Attendance\Service\AppointmentService;
+use OCA\Attendance\Service\PermissionService;
 use OCA\Attendance\Service\VacationService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Db\DoesNotExistException;
@@ -20,6 +21,7 @@ class VacationController extends Controller {
 	private IUserSession $userSession;
 	private VacationService $vacationService;
 	private AppointmentService $appointmentService;
+	private PermissionService $permissionService;
 
 	public function __construct(
 		string $appName,
@@ -27,11 +29,13 @@ class VacationController extends Controller {
 		IUserSession $userSession,
 		VacationService $vacationService,
 		AppointmentService $appointmentService,
+		PermissionService $permissionService,
 	) {
 		parent::__construct($appName, $request);
 		$this->userSession = $userSession;
 		$this->vacationService = $vacationService;
 		$this->appointmentService = $appointmentService;
+		$this->permissionService = $permissionService;
 	}
 
 	/**
@@ -186,11 +190,12 @@ class VacationController extends Controller {
 
 	/**
 	 * The team-wide vacation calendar: every whitelisted member's vacation
-	 * periods overlapping the given window, ordered by start date.
+	 * periods overlapping the given window, ordered by start date. Only for
+	 * users holding the see_team_vacations permission.
 	 *
 	 * @param ?string $from Y-m-d, defaults to today
 	 * @param ?string $to Y-m-d, defaults to 180 days after $from
-	 * @return DataResponse<Http::STATUS_OK, list<AttendanceVacationEntry>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, list<AttendanceVacationEntry>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -199,6 +204,10 @@ class VacationController extends Controller {
 		$user = $this->userSession->getUser();
 		if ($user === null) {
 			return new DataResponse(['error' => 'User not authenticated'], Http::STATUS_UNAUTHORIZED);
+		}
+
+		if (!$this->permissionService->canSeeTeamVacations($user->getUID())) {
+			return new DataResponse(['error' => 'Insufficient permissions'], Http::STATUS_FORBIDDEN);
 		}
 
 		$fromDate = $from ?? gmdate('Y-m-d');

@@ -5,6 +5,8 @@ import {
 	deleteAppointmentViaAPI,
 	expect,
 	listAppointmentsViaAPI,
+	PERMISSIVE_PERMISSIONS,
+	saveAdminSettings,
 	test,
 } from './fixtures/nextcloud.js'
 
@@ -47,6 +49,15 @@ async function ownResponse(request, appointmentId) {
 	const appointments = await listAppointmentsViaAPI(request, { showPast: false, ...AUTH })
 	return appointments.find((appointment) => appointment.id === appointmentId).userResponse?.response ?? null
 }
+
+// Nobody sees the team's vacations unless the permission says so.
+test.beforeAll(async ({ request }) => {
+	await saveAdminSettings(request, { permissions: { ...PERMISSIVE_PERMISSIONS, see_team_vacations: { mode: 'all', groups: [] } } })
+})
+
+test.afterAll(async ({ request }) => {
+	await saveAdminSettings(request, { permissions: { ...PERMISSIVE_PERMISSIONS } })
+})
 
 test.describe('Vacations in personal settings', () => {
 	test.describe.configure({ mode: 'serial' })
@@ -206,5 +217,30 @@ test.describe('Vacation dates behind UTC', () => {
 		const form = page.locator('[data-test="vacation-form-dialog"]')
 		await expect(form.locator('[data-test="input-vacation-start"]')).toHaveValue(start)
 		await expect(form.locator('[data-test="input-vacation-end"]')).toHaveValue(end)
+	})
+})
+
+test.describe('Team vacations need the permission', () => {
+	test.beforeAll(async ({ request }) => {
+		await deleteVacations(request)
+		await saveAdminSettings(request, { permissions: { ...PERMISSIVE_PERMISSIONS } })
+	})
+
+	test.afterAll(async ({ request }) => {
+		await saveAdminSettings(request, { permissions: { ...PERMISSIVE_PERMISSIONS } })
+	})
+
+	test('without it the list is closed, with it open', async ({ request, page, loginAsUser }) => {
+		const closed = await request.get(`${API}/vacations/team`, { headers: authHeaders(USER, USER) })
+		expect(closed.status()).toBe(403)
+
+		await loginAsUser(USER, USER)
+		await page.goto(SETTINGS_URL)
+		await expect(page.locator('[data-test="section-my-vacations"]')).toBeVisible()
+		await expect(page.locator('[data-test="section-team-vacations"]')).toHaveCount(0)
+
+		await saveAdminSettings(request, { permissions: { ...PERMISSIVE_PERMISSIONS, see_team_vacations: { mode: 'all', groups: [] } } })
+		const open = await request.get(`${API}/vacations/team`, { headers: authHeaders(USER, USER) })
+		expect(open.status()).toBe(200)
 	})
 })

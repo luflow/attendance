@@ -13,6 +13,7 @@ use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\NotificationService;
 use OCA\Attendance\Service\OrgCalendarSyncService;
 use OCA\Attendance\Service\PermissionService;
+use OCA\Attendance\Service\VacationCalendarSyncService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Http;
@@ -55,6 +56,7 @@ class AdminControllerTest extends TestCase {
 			$this->createMock(GuestService::class),
 			$this->createMock(CalendarService::class),
 			$this->createMock(OrgCalendarSyncService::class),
+			$this->createMock(VacationCalendarSyncService::class),
 		);
 	}
 

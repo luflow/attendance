@@ -22,10 +22,12 @@ class VacationService {
 
 	private VacationMapper $vacationMapper;
 	private IUserManager $userManager;
+	private VacationCalendarSyncService $calendarSync;
 
-	public function __construct(VacationMapper $vacationMapper, IUserManager $userManager) {
+	public function __construct(VacationMapper $vacationMapper, IUserManager $userManager, VacationCalendarSyncService $calendarSync) {
 		$this->vacationMapper = $vacationMapper;
 		$this->userManager = $userManager;
+		$this->calendarSync = $calendarSync;
 	}
 
 	/**
@@ -50,7 +52,10 @@ class VacationService {
 		$vacation->setCreatedAt($now);
 		$vacation->setUpdatedAt($now);
 
-		return $this->vacationMapper->insert($vacation);
+		$saved = $this->vacationMapper->insert($vacation);
+		$this->calendarSync->syncVacation($saved);
+
+		return $saved;
 	}
 
 	/**
@@ -66,7 +71,10 @@ class VacationService {
 		$vacation->setNote($this->normalizeNote($note));
 		$vacation->setUpdatedAt(gmdate('Y-m-d H:i:s'));
 
-		return $this->vacationMapper->update($vacation);
+		$saved = $this->vacationMapper->update($vacation);
+		$this->calendarSync->syncVacation($saved);
+
+		return $saved;
 	}
 
 	/**
@@ -75,6 +83,7 @@ class VacationService {
 	public function delete(int $id, string $userId): void {
 		$vacation = $this->findOwnedBy($id, $userId);
 		$this->vacationMapper->delete($vacation);
+		$this->calendarSync->removeVacation($id);
 	}
 
 	/**

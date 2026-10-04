@@ -1263,6 +1263,13 @@ def apply_config(nc: str, known_users: set[str], lang: str,
         f"--value={json.dumps([conductor])}")
     print(f"  + permission_manage_appointments = groups {conductor}")
 
+    # Nobody sees the team's vacations by default; the conductor group does here.
+    occ(nc, "config:app:set", "attendance", "permission_see_team_vacations_mode",
+        "--value=groups")
+    occ(nc, "config:app:set", "attendance", "permission_see_team_vacations",
+        f"--value={json.dumps([conductor])}")
+    print(f"  + permission_see_team_vacations = groups {conductor}")
+
     # The category badge on the cards, and the "Scheduled" / "Not scheduled"
     # states, only render with their feature on.
     occ(nc, "config:app:set", "attendance", "booking_enabled", "--value=yes")

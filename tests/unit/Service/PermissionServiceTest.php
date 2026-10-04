@@ -705,4 +705,29 @@ class PermissionServiceTest extends TestCase {
 
 		$this->assertFalse($this->service->canSeeAllAppointments('guestuser'));
 	}
+
+	public function testTeamVacationsDefaultToNobodyAndManagersDoNotGetThemAlong(): void {
+		$this->guestService->method('isGuestUser')->willReturn(false);
+		$this->configValues(['permission_manage_appointments_mode' => 'all']);
+
+		$this->assertFalse($this->service->canSeeTeamVacations('alice'));
+	}
+
+	public function testTeamVacationsGrantedToAGroup(): void {
+		$this->guestService->method('isGuestUser')->willReturn(false);
+		$this->configValues([
+			'permission_see_team_vacations_mode' => 'groups',
+			'permission_see_team_vacations' => '["board"]',
+		]);
+		$this->userInGroups('alice', ['board']);
+
+		$this->assertTrue($this->service->canSeeTeamVacations('alice'));
+	}
+
+	public function testGuestsNeverSeeTeamVacations(): void {
+		$this->guestService->method('isGuestUser')->with('guestuser')->willReturn(true);
+		$this->configValues(['permission_see_team_vacations_mode' => 'all']);
+
+		$this->assertFalse($this->service->canSeeTeamVacations('guestuser'));
+	}
 }

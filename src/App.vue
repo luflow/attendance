@@ -608,8 +608,8 @@ t('attendance', '{actor} checked themselves in: {state}')
 t('attendance', '{actor} updated their own check-in: {state}')
 // TRANSLATORS: Confirmation in the mobile app after the question asked on saving a vacation; {count} is how many appointments were answered. The quoted "No" is the app's own no-response label — translate it to match that label's wording in this language.
 t('attendance', '{count} appointments set to "No"')
-// TRANSLATORS: Hint on the mobile app's create-appointment screen once a lookup finds people on vacation for the chosen time; {count} is how many. The quoted "No" is the app's own no-response label — translate it to match that label's wording in this language, not literally.
-t('attendance', '{count} people can\'t attend at this time — their answer defaults to "No"')
+// TRANSLATORS: Hint on the mobile app's create-appointment screen once a lookup finds people on vacation for the chosen time; {count} is how many (always two or more here — the singular is not used). The quoted "No" is the app's own no-response label — translate it to match that label's wording in this language, not literally.
+t('attendance', '{count} people are on vacation at this time — their answer defaults to "No"')
 // TRANSLATORS: Mobile app, appointment with an attendance limit: how many of the spots are taken, e.g. "3 of 8 spots taken"
 t('attendance', '{occupancy} of {max} spots taken')
 

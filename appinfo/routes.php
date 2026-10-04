@@ -60,6 +60,7 @@ return [
 		['name' => 'admin#saveSettings', 'url' => '/api/admin/settings', 'verb' => 'POST'],
 		['name' => 'admin#sendTestReminder', 'url' => '/api/admin/test-reminder', 'verb' => 'POST'],
 		['name' => 'admin#syncOrgCalendar', 'url' => '/api/admin/org-calendar/sync', 'verb' => 'POST'],
+		['name' => 'admin#syncVacationCalendar', 'url' => '/api/admin/vacation-calendar/sync', 'verb' => 'POST'],
 
 		// Categories (admin-managed list; GET is available to any user for the
 		// appointment-form picker and the list filter)

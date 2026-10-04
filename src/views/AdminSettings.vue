@@ -442,6 +442,66 @@
 				</template>
 			</NcSettingsSection>
 
+			<NcSettingsSection id="vacation-calendar"
+				:name="t('attendance', 'Vacation calendar')"
+				:description="t('attendance', 'Write the vacation periods of all members into a shared calendar, so everybody it is shared with sees who is away in the Calendar app.')">
+				<NcNoteCard v-if="!calendarAvailable" type="warning">
+					<p>{{ t('attendance', 'The Calendar app is not enabled. Enable it to use the vacation calendar.') }}</p>
+				</NcNoteCard>
+
+				<template v-else>
+					<!-- TRANSLATORS: Privacy warning above the vacation calendar switch. A vacation says where somebody is not, and the note often says why (for example a doctor's appointment). -->
+					<NcNoteCard type="warning" data-test="vacation-calendar-privacy">
+						<p>{{ t('attendance', 'Privacy: a vacation period shows when somebody is away, and its note often says why. Everyone you share this calendar with sees both, for every member. Share it only with people who should know, and tell your members before you enable it.') }}</p>
+					</NcNoteCard>
+
+					<NcCheckboxRadioSwitch
+						v-model="vacationCalendarEnabled"
+						type="switch"
+						data-test="switch-vacation-calendar-enabled">
+						{{ t('attendance', 'Write vacations into a calendar') }}
+					</NcCheckboxRadioSwitch>
+
+					<div v-if="vacationCalendarEnabled" class="subsection">
+						<h4>{{ t('attendance', 'Target calendar') }}</h4>
+						<NcNoteCard v-if="!vacationCalendarOptions.length" type="warning">
+							<p>{{ t('attendance', 'No writable calendar found. Create one in the Calendar app first.') }}</p>
+						</NcNoteCard>
+						<NcSelect v-else
+							v-model="selectedVacationCalendar"
+							:options="vacationCalendarOptions"
+							label="displayName"
+							:placeholder="t('attendance', 'Select a calendar …')"
+							data-test="select-vacation-calendar" />
+						<p class="hint-text">
+							{{ t('attendance', 'Use a calendar of its own and share it read-only in the Calendar app. The app writes the events, changes made in the Calendar app are overwritten.') }}
+						</p>
+						<p class="hint-text">
+							{{ t('attendance', 'Every event is a whole-day entry named after the member, with the note as description. Vacations that have already ended are not transferred.') }}
+						</p>
+						<p v-if="vacationCalendarUserId" class="hint-text">
+							{{ t('attendance', 'Events are written using the account of {user}.', { user: vacationCalendarUserId }) }}
+						</p>
+						<p class="hint-text">
+							{{ t('attendance', 'Who sees the vacation list inside the app is set separately, under the permission "May see everyone\'s vacation".') }}
+						</p>
+						<NcButton
+							v-if="selectedVacationCalendar"
+							class="org-calendar-sync-button"
+							variant="secondary"
+							:disabled="syncingVacationCalendar"
+							data-test="button-sync-vacation-calendar"
+							@click="syncVacationCalendar">
+							<template #icon>
+								<NcLoadingIcon v-if="syncingVacationCalendar" :size="20" />
+								<CalendarSyncIcon v-else :size="20" />
+							</template>
+							{{ t('attendance', 'Sync vacations now') }}
+						</NcButton>
+					</div>
+				</template>
+			</NcSettingsSection>
+
 			<NcSettingsSection id="audit-log"
 				:name="t('attendance', 'Audit log')"
 				:description="t('attendance', 'Records who responded what and when, and surfaces a timeline on every appointment. Also drives the response-change push notifications that managers can opt into in their personal settings.')">
@@ -735,6 +795,7 @@ const navSections = [
 	{ id: 'reminders', label: t('attendance', 'Appointment reminders') },
 	{ id: 'calendar-sync', label: t('attendance', 'Calendar sync') },
 	{ id: 'org-calendar', label: t('attendance', 'Organization calendar') },
+	{ id: 'vacation-calendar', label: t('attendance', 'Vacation calendar') },
 	{ id: 'audit-log', label: t('attendance', 'Audit log') },
 	{ id: 'scheduling', label: t('attendance', 'Scheduling') },
 	{ id: 'answer-options', label: t('attendance', 'Answer options') },
@@ -889,6 +950,10 @@ const pushDeviceCount = ref(0)
 const loadingData = ref(true)
 const sendingTestReminder = ref(false)
 const syncingOrgCalendar = ref(false)
+const vacationCalendarEnabled = ref(false)
+const selectedVacationCalendar = ref(null)
+const vacationCalendarUserId = ref(null)
+const syncingVacationCalendar = ref(false)
 const guestsApp = ref({ enabled: false, whitelistEnabled: false, attendanceInWhitelist: false })
 const showOnboardingWizard = ref(false)
 // Only reachable from the button below — no reason to ship it with the page.
@@ -913,6 +978,16 @@ const guestsHintVariant = computed(() => {
 const orgCalendarOptions = computed(() => {
 	const options = [...writableCalendars.value]
 	const selected = selectedOrgCalendar.value
+	if (selected?.uri && !options.some((c) => c.uri === selected.uri)) {
+		options.unshift(selected)
+	}
+	return options
+})
+
+// Same as above: keep a calendar another admin picked selectable.
+const vacationCalendarOptions = computed(() => {
+	const options = [...writableCalendars.value]
+	const selected = selectedVacationCalendar.value
 	if (selected?.uri && !options.some((c) => c.uri === selected.uri)) {
 		options.unshift(selected)
 	}
@@ -1080,6 +1155,12 @@ autoSave([orgCalendarEnabled, selectedOrgCalendar, orgCalendarSummary], 'orgCale
 		...(selectedOrgCalendar.value?.uri ? { calendarUri: selectedOrgCalendar.value.uri } : {}),
 	},
 }), SELECT_DEBOUNCE)
+autoSave([vacationCalendarEnabled, selectedVacationCalendar], 'vacationCalendar', () => ({
+	vacationCalendar: {
+		enabled: vacationCalendarEnabled.value,
+		...(selectedVacationCalendar.value?.uri ? { calendarUri: selectedVacationCalendar.value.uri } : {}),
+	},
+}), SELECT_DEBOUNCE)
 autoSave(
 	[auditLogEnabled, auditLogVisibility],
 	'audit',
@@ -1169,6 +1250,16 @@ async function loadSettings() {
 			}
 		}
 
+		if (config.vacationCalendar) {
+			vacationCalendarEnabled.value = config.vacationCalendar.enabled || false
+			vacationCalendarUserId.value = config.vacationCalendar.userId || null
+			const storedVacationUri = config.vacationCalendar.calendarUri
+			if (storedVacationUri) {
+				selectedVacationCalendar.value = writableCalendars.value.find((c) => c.uri === storedVacationUri)
+					|| { uri: storedVacationUri, displayName: storedVacationUri }
+			}
+		}
+
 		// Load audit log settings
 		if (config.audit) {
 			auditLogEnabled.value = config.audit.enabled !== false
@@ -1250,6 +1341,20 @@ async function syncOrgCalendar() {
 		showError(window.t('attendance', 'Failed to sync appointments to the calendar'))
 	} finally {
 		syncingOrgCalendar.value = false
+	}
+}
+
+async function syncVacationCalendar() {
+	syncingVacationCalendar.value = true
+	try {
+		const response = await axios.post(generateUrl('/apps/attendance/api/admin/vacation-calendar/sync'))
+		const count = response.data.synced ?? 0
+		showSuccess(window.n('attendance', '%n vacation synced to the calendar', '%n vacations synced to the calendar', count))
+	} catch (error) {
+		console.error('Error syncing vacation calendar:', error)
+		showError(window.t('attendance', 'Failed to sync vacations to the calendar'))
+	} finally {
+		syncingVacationCalendar.value = false
 	}
 }
 

@@ -7,6 +7,7 @@ namespace OCA\Attendance\Tests\Unit\Controller;
 use OCA\Attendance\Controller\VacationController;
 use OCA\Attendance\Db\Vacation;
 use OCA\Attendance\Service\AppointmentService;
+use OCA\Attendance\Service\PermissionService;
 use OCA\Attendance\Service\VacationService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Http;
@@ -23,6 +24,9 @@ class VacationControllerTest extends TestCase {
 	/** @var AppointmentService|MockObject */
 	private $appointmentService;
 
+	/** @var PermissionService|MockObject */
+	private $permissionService;
+
 	/** @var IUserSession|MockObject */
 	private $userSession;
 
@@ -31,6 +35,7 @@ class VacationControllerTest extends TestCase {
 	protected function setUp(): void {
 		$this->vacationService = $this->createMock(VacationService::class);
 		$this->appointmentService = $this->createMock(AppointmentService::class);
+		$this->permissionService = $this->createMock(PermissionService::class);
 		$this->userSession = $this->createMock(IUserSession::class);
 
 		$this->controller = new VacationController(
@@ -39,6 +44,7 @@ class VacationControllerTest extends TestCase {
 			$this->userSession,
 			$this->vacationService,
 			$this->appointmentService,
+			$this->permissionService,
 		);
 	}
 
@@ -179,6 +185,7 @@ class VacationControllerTest extends TestCase {
 
 	public function testOverviewDefaultsToTodayAndWhitelistedUsers(): void {
 		$this->signIn('admin');
+		$this->permissionService->method('canSeeTeamVacations')->willReturn(true);
 		$this->appointmentService->method('getAllWhitelistedUsers')->willReturn(['alice']);
 		$this->vacationService->expects($this->once())->method('getOverview')
 			->with($this->isType('string'), $this->isType('string'), ['alice'])
@@ -187,6 +194,16 @@ class VacationControllerTest extends TestCase {
 		$response = $this->controller->overview();
 
 		$this->assertEquals(Http::STATUS_OK, $response->getStatus());
+	}
+
+	public function testOverviewIsForbiddenWithoutThePermission(): void {
+		$this->signIn('alice');
+		$this->permissionService->method('canSeeTeamVacations')->willReturn(false);
+		$this->vacationService->expects($this->never())->method('getOverview');
+
+		$response = $this->controller->overview();
+
+		$this->assertEquals(Http::STATUS_FORBIDDEN, $response->getStatus());
 	}
 
 	public function testOverviewRejectsAnonymousRequest(): void {

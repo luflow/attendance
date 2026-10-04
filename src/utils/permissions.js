@@ -26,6 +26,12 @@ export const PERMISSION_ROWS = {
 		implication: t('attendance', 'Users who can manage appointments always see all appointments.'),
 		warningWhenAll: t('attendance', 'Every user can see every appointment.'),
 	},
+	see_team_vacations: {
+		group: 'vacation',
+		title: t('attendance', 'May see everyone\'s vacation'),
+		hint: t('attendance', 'See the vacation periods of all members, including their notes, in the team vacation calendar.'),
+		warningWhenAll: t('attendance', 'Every user can see when everybody is away and why.'),
+	},
 	see_response_overview: {
 		group: 'responses',
 		title: t('attendance', 'May see detailed response & check-in summary'),
@@ -85,6 +91,7 @@ const PERMISSION_GROUPS = [
 	{ key: 'appointments', label: t('attendance', 'Appointments') },
 	{ key: 'responses', label: t('attendance', 'Responses') },
 	{ key: 'checkin', label: t('attendance', 'Check-in') },
+	{ key: 'vacation', label: t('attendance', 'Vacation') },
 ]
 
 /**

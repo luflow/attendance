@@ -107,6 +107,8 @@ export default defineConfig({
 				'37-unsaved-changes.spec.js',
 				// Enables the org calendar push and wipes every appointment.
 				'38-all-day.spec.js',
+				// Points the vacation calendar at a calendar of its own.
+				'39-vacation-calendar.spec.js',
 			],
 			fullyParallel: false,
 			workers: 1,

@@ -2067,7 +2067,8 @@
                     "canRespondForOthers",
                     "canSeeStatistics",
                     "canSeeIndividualResponses",
-                    "canSeeAllAppointments"
+                    "canSeeAllAppointments",
+                    "canSeeTeamVacations"
                 ],
                 "properties": {
                     "canManageAppointments": {
@@ -2101,6 +2102,9 @@
                         "type": "boolean"
                     },
                     "canSeeAllAppointments": {
+                        "type": "boolean"
+                    },
+                    "canSeeTeamVacations": {
                         "type": "boolean"
                     }
                 }
@@ -5983,7 +5987,7 @@
         "/index.php/apps/attendance/api/vacations/team": {
             "get": {
                 "operationId": "vacation-overview",
-                "summary": "The team-wide vacation calendar: every whitelisted member's vacation periods overlapping the given window, ordered by start date.",
+                "summary": "The team-wide vacation calendar: every whitelisted member's vacation periods overlapping the given window, ordered by start date. Only for users holding the see_team_vacations permission.",
                 "tags": [
                     "vacation"
                 ],
@@ -6060,6 +6064,24 @@
                                             }
                                         }
                                     ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
                                 }
                             }
                         }

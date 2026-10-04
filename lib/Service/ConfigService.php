@@ -372,6 +372,41 @@ class ConfigService {
 	}
 
 	/**
+	 * Whether vacation periods are written into a shared calendar, so everybody
+	 * the calendar is shared with sees who is away.
+	 */
+	public function isVacationCalendarEnabled(): bool {
+		return $this->appConfig->getValueBool(self::APP_ID, 'vacation_calendar_enabled', false);
+	}
+
+	public function setVacationCalendarEnabled(bool $enabled): void {
+		$this->appConfig->setValueBool(self::APP_ID, 'vacation_calendar_enabled', $enabled);
+	}
+
+	/**
+	 * URI of the vacation calendar, as visible to getVacationCalendarUserId().
+	 */
+	public function getVacationCalendarUri(): string {
+		return $this->appConfig->getValueString(self::APP_ID, 'vacation_calendar_uri', '');
+	}
+
+	public function setVacationCalendarUri(string $uri): void {
+		$this->appConfig->setValueString(self::APP_ID, 'vacation_calendar_uri', $uri);
+	}
+
+	/**
+	 * The account whose principal resolves and writes the vacation calendar
+	 * (the admin who selected it).
+	 */
+	public function getVacationCalendarUserId(): string {
+		return $this->appConfig->getValueString(self::APP_ID, 'vacation_calendar_user_id', '');
+	}
+
+	public function setVacationCalendarUserId(string $userId): void {
+		$this->appConfig->setValueString(self::APP_ID, 'vacation_calendar_user_id', $userId);
+	}
+
+	/**
 	 * Check if push notifications are enabled.
 	 *
 	 * @return bool True if push notifications are enabled

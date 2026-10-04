@@ -6,6 +6,7 @@ namespace OCA\Attendance\Tests\Unit\Service;
 
 use OCA\Attendance\Db\Vacation;
 use OCA\Attendance\Db\VacationMapper;
+use OCA\Attendance\Service\VacationCalendarSyncService;
 use OCA\Attendance\Service\VacationService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IUser;
@@ -25,7 +26,7 @@ class VacationServiceTest extends TestCase {
 	protected function setUp(): void {
 		$this->vacationMapper = $this->createMock(VacationMapper::class);
 		$this->userManager = $this->createMock(IUserManager::class);
-		$this->service = new VacationService($this->vacationMapper, $this->userManager);
+		$this->service = new VacationService($this->vacationMapper, $this->userManager, $this->createMock(VacationCalendarSyncService::class));
 	}
 
 	private function vacation(int $id, string $userId, string $start, string $end, ?string $note = null): Vacation {
