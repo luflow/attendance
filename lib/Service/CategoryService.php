@@ -7,6 +7,7 @@ namespace OCA\Attendance\Service;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\Category;
 use OCA\Attendance\Db\CategoryMapper;
+use OCA\Attendance\ResponseDefinitions;
 use OCP\AppFramework\Db\DoesNotExistException;
 
 /**
@@ -16,6 +17,12 @@ use OCP\AppFramework\Db\DoesNotExistException;
  * small and explicitly mapped to a matching icon on both platforms (web:
  * vue-material-design-icons, Flutter: Icons.*), so a chosen icon is
  * guaranteed to exist everywhere without shipping a new icon-font dependency.
+ *
+ * A category can also carry a template: the description and access
+ * restriction a new appointment of that category starts with.
+ *
+ * @psalm-import-type AttendanceCategoryData from ResponseDefinitions
+ * @psalm-import-type AttendanceCategoryTemplate from ResponseDefinitions
  */
 class CategoryService {
 	/**
@@ -52,10 +59,16 @@ class CategoryService {
 
 	private CategoryMapper $categoryMapper;
 	private AppointmentMapper $appointmentMapper;
+	private VisibilityService $visibilityService;
 
-	public function __construct(CategoryMapper $categoryMapper, AppointmentMapper $appointmentMapper) {
+	public function __construct(
+		CategoryMapper $categoryMapper,
+		AppointmentMapper $appointmentMapper,
+		VisibilityService $visibilityService,
+	) {
 		$this->categoryMapper = $categoryMapper;
 		$this->appointmentMapper = $appointmentMapper;
+		$this->visibilityService = $visibilityService;
 	}
 
 	/**
@@ -66,26 +79,42 @@ class CategoryService {
 	}
 
 	/**
+	 * @param bool $withTemplate False drops the template: it names users, groups and teams, which only people who fill in the appointment form need to see
+	 * @return AttendanceCategoryData
+	 */
+	public function serialize(Category $category, bool $withTemplate): array {
+		return $category->jsonSerialize() + [
+			'template' => $withTemplate ? $this->decodeTemplate($category->getTemplate()) : null,
+		];
+	}
+
+	/**
+	 * @param array<array-key, mixed>|null $template Keys description, visibleUsers, visibleGroups, visibleTeams — all optional
 	 * @throws \InvalidArgumentException When the name is empty, already taken, or the icon is not in CategoryService::ICONS
 	 */
-	public function create(string $name, string $icon): Category {
+	public function create(string $name, string $icon, ?array $template = null): Category {
 		$name = $this->validateName($name);
 		$icon = $this->validateIcon($icon);
 
 		$category = new Category();
 		$category->setName($name);
 		$category->setIcon($icon);
+		$category->setTemplate($this->encodeTemplate($template ?? []));
 		return $this->categoryMapper->insert($category);
 	}
 
 	/**
+	 * @param array<array-key, mixed>|null $template Null keeps the stored template, an empty one removes it
 	 * @throws DoesNotExistException When the category does not exist
 	 * @throws \InvalidArgumentException When the name is empty, already taken, or the icon is not in CategoryService::ICONS
 	 */
-	public function update(int $id, string $name, string $icon): Category {
+	public function update(int $id, string $name, string $icon, ?array $template = null): Category {
 		$category = $this->categoryMapper->find($id);
 		$category->setName($this->validateName($name, $id));
 		$category->setIcon($this->validateIcon($icon));
+		if ($template !== null) {
+			$category->setTemplate($this->encodeTemplate($template));
+		}
 		return $this->categoryMapper->update($category);
 	}
 
@@ -100,6 +129,63 @@ class CategoryService {
 		$category = $this->categoryMapper->find($id);
 		$this->appointmentMapper->clearCategory($id);
 		$this->categoryMapper->delete($category);
+	}
+
+	/**
+	 * @param array<array-key, mixed> $template
+	 * @return array{description: string, visibleUsers: list<string>, visibleGroups: list<string>, visibleTeams: list<string>}
+	 */
+	private function normalizeTemplate(array $template): array {
+		return [
+			'description' => $this->plainText($template['description'] ?? null),
+			'visibleUsers' => $this->idList($template['visibleUsers'] ?? null),
+			'visibleGroups' => $this->idList($template['visibleGroups'] ?? null),
+			'visibleTeams' => $this->idList($template['visibleTeams'] ?? null),
+		];
+	}
+
+	private function plainText(mixed $text): string {
+		// Same rule as an appointment's own description: no raw HTML.
+		return is_string($text) ? trim(strip_tags($text)) : '';
+	}
+
+	/**
+	 * @return list<string>
+	 */
+	private function idList(mixed $ids): array {
+		if (!is_array($ids)) {
+			return [];
+		}
+
+		return array_values(array_unique(array_filter($ids, fn (mixed $id): bool => is_string($id) && $id !== '')));
+	}
+
+	/**
+	 * @param array<array-key, mixed> $template
+	 * @return ?string The template as stored, null when it would not prefill anything
+	 */
+	private function encodeTemplate(array $template): ?string {
+		$normalized = $this->normalizeTemplate($template);
+
+		return array_filter($normalized) === [] ? null : json_encode($normalized, JSON_THROW_ON_ERROR);
+	}
+
+	/**
+	 * @return ?AttendanceCategoryTemplate
+	 */
+	private function decodeTemplate(?string $stored): ?array {
+		$template = $stored === null ? null : json_decode($stored, true);
+		if (!is_array($template)) {
+			return null;
+		}
+
+		$template = $this->normalizeTemplate($template);
+
+		return ['description' => $template['description']] + $this->visibilityService->enrichAudience(
+			$template['visibleUsers'],
+			$template['visibleGroups'],
+			$template['visibleTeams'],
+		);
 	}
 
 	/**

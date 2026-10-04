@@ -1,10 +1,15 @@
-import { createAppointmentViaAPI, createCategoryViaAPI, deleteCategoryViaAPI, expect, forceWipeAllAppointments, listAppointmentsViaAPI, test } from './fixtures/nextcloud.js'
+import { createAppointmentViaAPI, createCategoryViaAPI, deleteCategoryViaAPI, expect, forceWipeAllAppointments, listAppointmentsViaAPI, listCategoriesViaAPI, test } from './fixtures/nextcloud.js'
 
 // Mirrors the storage key in src/views/AllAppointments.vue.
 const CATEGORY_FILTER_STORAGE_KEY = 'attendance:list-filters:categories'
 
 function uniqueName(prefix) {
 	return `${prefix} ${Math.random().toString(36).slice(2, 8)}`
+}
+
+async function pickCategory(page, category) {
+	await page.locator('[data-test="input-appointment-category"]').getByRole('combobox').click()
+	await page.getByRole('option', { name: category.name, exact: true }).click()
 }
 
 test.describe('Attendance App - Categories', () => {
@@ -26,7 +31,7 @@ test.describe('Attendance App - Categories', () => {
 		await page.waitForLoadState('networkidle')
 	})
 
-	test('admin can add, rename and delete a category', async ({ page }) => {
+	test('admin can add, rename and delete a category', async ({ page, request }) => {
 		await page.goto('/settings/admin/attendance')
 		await page.waitForLoadState('networkidle')
 
@@ -61,10 +66,14 @@ test.describe('Attendance App - Categories', () => {
 		// match too.
 		const editField = section.getByRole('textbox', { name: 'Category name', exact: true })
 		await editField.fill(renamedName)
+		await section.locator('[data-test="input-category-template-description"] .CodeMirror').click()
+		await page.keyboard.type('Clothing:')
 		await section.getByRole('button', { name: 'Save', exact: true }).click()
 
 		const renamedItem = section.locator('.category-list__item').filter({ hasText: renamedName })
 		await expect(renamedItem).toBeVisible()
+		const saved = (await listCategoriesViaAPI(request)).find((category) => category.name === renamedName)
+		expect(saved.template.description).toBe('Clothing:')
 		await expect(section.locator('.category-list__item').filter({ hasText: createName })).toHaveCount(0)
 
 		await renamedItem.locator('[data-test="button-delete-category"]').click()
@@ -98,8 +107,7 @@ test.describe('Attendance App - Categories', () => {
 		await page.getByRole('textbox', { name: 'End Date & Time' }).fill(endDate.toISOString().slice(0, 16))
 
 		const categoryField = page.locator('[data-test="input-appointment-category"]')
-		await categoryField.getByRole('combobox').click()
-		await page.getByRole('option', { name: categoryA.name, exact: true }).click()
+		await pickCategory(page, categoryA)
 		await expect(categoryField.locator('.vs__selected').filter({ hasText: categoryA.name })).toBeVisible()
 
 		await page.getByRole('button', { name: 'Save' }).click()
@@ -121,8 +129,7 @@ test.describe('Attendance App - Categories', () => {
 
 		const editCategoryField = page.locator('[data-test="input-appointment-category"]')
 		await expect(editCategoryField.locator('.vs__selected').filter({ hasText: categoryA.name })).toBeVisible()
-		await editCategoryField.getByRole('combobox').click()
-		await page.getByRole('option', { name: categoryB.name, exact: true }).click()
+		await pickCategory(page, categoryB)
 		await expect(editCategoryField.locator('.vs__selected').filter({ hasText: categoryB.name })).toBeVisible()
 
 		await page.getByRole('button', { name: 'Save' }).click()
@@ -150,6 +157,44 @@ test.describe('Attendance App - Categories', () => {
 
 		const clearedCard = page.locator('[data-test="appointment-card"]').filter({ hasText: 'Appointment With Category' }).first()
 		await expect(clearedCard.locator('[data-test="appointment-category"]')).toHaveCount(0)
+	})
+
+	test('picking a category prefills a new appointment from its template', async ({ page, request }) => {
+		const withTemplate = await createCategoryViaAPI(request, uniqueName('Concert'), {
+			template: { description: 'Clothing:', visibleGroups: ['admin'] },
+		})
+		const plain = await createCategoryViaAPI(request, uniqueName('Rehearsal'))
+		createdCategoryIds.push(withTemplate.id, plain.id)
+
+		await page.reload()
+		await page.waitForLoadState('networkidle')
+		await page.getByRole('button', { name: 'Create Appointment' }).click()
+		await page.waitForURL(/.*\/create$/)
+		await page.waitForLoadState('networkidle')
+
+		const description = page.locator('[data-test="input-appointment-description"] .CodeMirror')
+		const access = page.locator('[data-test="select-visibility"] .vs__selected')
+		const applyTemplate = page.locator('[data-test="button-apply-template"]')
+
+		await pickCategory(page, withTemplate)
+		await expect(description).toContainText('Clothing:')
+		await expect(access).toContainText('admin')
+		await expect(applyTemplate).toHaveCount(0)
+
+		// Untouched template content follows the category …
+		await pickCategory(page, plain)
+		await expect(description).not.toContainText('Clothing:')
+		await expect(access).toHaveCount(0)
+
+		// … own content stays, with the template one click away.
+		await description.click()
+		await page.keyboard.type('Bring snacks')
+		await pickCategory(page, withTemplate)
+		await expect(description).toContainText('Bring snacks')
+		await applyTemplate.click()
+		await expect(description).toContainText('Clothing:')
+		await expect(description).not.toContainText('Bring snacks')
+		await expect(applyTemplate).toHaveCount(0)
 	})
 
 	test('deleting a category clears it from appointments that used it', async ({ page, request }) => {
