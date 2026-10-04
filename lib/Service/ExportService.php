@@ -76,6 +76,7 @@ class ExportService {
 				'startDatetime' => (string)$this->formatDatetimeToUtc($entry['startDatetime']),
 				'endDatetime' => (string)$this->formatDatetimeToUtc($entry['endDatetime']),
 				'appointmentCount' => $entry['appointmentCount'],
+				'isAllDay' => $entry['isAllDay'],
 				'ongoing' => $entry['endDatetime'] >= $now,
 			],
 			$this->appointmentMapper->findSeriesOverview(),

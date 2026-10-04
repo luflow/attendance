@@ -19,7 +19,7 @@
 <script setup>
 import { translatePlural as n } from '@nextcloud/l10n'
 import { NcCheckboxRadioSwitch } from '@nextcloud/vue'
-import { formatDate } from '../../utils/datetime.js'
+import { allDaySpan, formatDate } from '../../utils/datetime.js'
 
 defineProps({
 	entries: {
@@ -39,7 +39,11 @@ defineEmits(['toggle'])
  * @return {string} Appointment count and the span the series covers.
  */
 function summary(entry) {
-	const range = `${formatDate(entry.startDatetime, 'short')} – ${formatDate(entry.endDatetime, 'short')}`
+	// An all-day series ends at the midnight after its last day.
+	const [first, last] = entry.isAllDay
+		? allDaySpan(entry.startDatetime, entry.endDatetime)
+		: [entry.startDatetime, entry.endDatetime]
+	const range = `${formatDate(first, 'short')} – ${formatDate(last, 'short')}`
 
 	return n(
 		'attendance',

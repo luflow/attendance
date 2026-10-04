@@ -862,6 +862,7 @@
                     "startDatetime",
                     "endDatetime",
                     "appointmentCount",
+                    "isAllDay",
                     "ongoing"
                 ],
                 "properties": {
@@ -880,6 +881,9 @@
                     "appointmentCount": {
                         "type": "integer",
                         "format": "int64"
+                    },
+                    "isAllDay": {
+                        "type": "boolean"
                     },
                     "ongoing": {
                         "type": "boolean"
