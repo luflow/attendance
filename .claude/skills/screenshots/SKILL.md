@@ -133,6 +133,9 @@ with the thing to check in its description:
 | 209 | yesterday, **two people checked in who never answered** |
 | 210-276 | weekly series "Vocal coaching", about half past, half upcoming — more rows than one page of any list, most of them unanswered by admin |
 | 277-280 | a **finished series**, for the export's series filter |
+| 281 | **all-day**, a single day |
+| 282 | **all-day**, three days (Sat-Mon 24-26 Oct 2026) across the end of summer time |
+| 283-286 | **all-day series**, weekly, across the clock change |
 
 Plus five vacation periods (`oc_att_vacations`, IDs 101-105): one running into
 the next weeks with the automatic "No" answers it caused, three later ones —
