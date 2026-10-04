@@ -1047,6 +1047,7 @@ OC.L10N.register(
     "Vacation" : "Urlaub",
     "Visible to the whole team on the vacation calendar." : "Im Urlaubskalender für das gesamte Team sichtbar.",
     "{count} appointments set to \"No\"" : "{count} Termine auf „Nein“ gesetzt",
+    "{occupancy} of {max} spots taken" : "{occupancy} von {max} Plätzen belegt",
     "{count} people can't attend at this time — their answer defaults to \"No\"" : "{count} Personen können zu dieser Zeit nicht teilnehmen — ihre Antwort steht standardmäßig auf „Nein“",
     "Add a group column next to the names" : "Gruppenspalte neben den Namen ergänzen",
     "You organize this appointment but are not an attendee, so you cannot respond." : "Sie sind nur Organisator dieses Termins und kein Teilnehmer, daher können Sie keine Antwort abgeben.",
@@ -1058,6 +1059,8 @@ OC.L10N.register(
     "Unsaved changes" : "Ungespeicherte Änderungen",
     "Your changes have not been saved. Do you want to discard them?" : "Die Änderungen wurden noch nicht gespeichert. Sollen sie verworfen werden?",
     "Discard changes" : "Änderungen verwerfen",
-    "Keep editing" : "Weiter bearbeiten"
+    "Keep editing" : "Weiter bearbeiten",
+    "No vacations recorded yet." : "Noch kein Urlaub eingetragen.",
+    "_%n appointment set to \"No\"_::_%n appointments set to \"No\"_" : ["%n Termin auf „Nein“ gesetzt","%n Termine auf „Nein“ gesetzt"]
 },
 "nplurals=2; plural=(n != 1);");
