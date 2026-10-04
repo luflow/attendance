@@ -139,6 +139,18 @@ class ExportServiceTest extends TestCase {
 		$this->assertSame(12, $overview[0]['appointmentCount']);
 	}
 
+	/** The client needs it to read the end as the midnight after the last day. */
+	public function testGetSeriesOverviewTellsAllDaySeries(): void {
+		$this->appointmentMapper->method('findSeriesOverview')->willReturn([
+			$this->seriesRow('days', 'Camp', '2036-07-05 22:00:00', '2036-07-26 22:00:00', 4, true),
+			$this->seriesRow('times', 'Rehearsal', '2036-01-05 18:00:00', '2036-03-30 20:00:00', 12),
+		]);
+
+		$overview = $this->service->getSeriesOverview();
+
+		$this->assertSame([false, true], array_column($overview, 'isAllDay'));
+	}
+
 	public function testSeriesCountAsOngoingUntilTheirLastAppointmentHasPassed(): void {
 		$this->appointmentMapper->method('findSeriesOverview')->willReturn([
 			$this->seriesRow('past', 'Last year', '2020-01-01 10:00:00', '2020-12-31 12:00:00', 40),
@@ -395,13 +407,14 @@ class ExportServiceTest extends TestCase {
 	 * One grouped row as the mapper hands it over — without the ongoing flag,
 	 * which the service derives.
 	 */
-	private function seriesRow(string $seriesId, string $name, string $start, string $end, int $count): array {
+	private function seriesRow(string $seriesId, string $name, string $start, string $end, int $count, bool $allDay = false): array {
 		return [
 			'seriesId' => $seriesId,
 			'name' => $name,
 			'startDatetime' => $start,
 			'endDatetime' => $end,
 			'appointmentCount' => $count,
+			'isAllDay' => $allDay,
 		];
 	}
 

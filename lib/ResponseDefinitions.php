@@ -397,6 +397,7 @@ namespace OCA\Attendance;
  *   startDatetime: string,
  *   endDatetime: string,
  *   appointmentCount: int,
+ *   isAllDay: bool,
  *   ongoing: bool,
  * }
  * @psalm-type AttendanceReminderResult = array{
