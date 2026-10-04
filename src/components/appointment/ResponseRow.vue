@@ -4,6 +4,12 @@
 			<div class="response-row__user">
 				<ResponseDot :response="response.response" />
 				<strong>{{ response.userName }}</strong>
+				<span
+					v-if="response.waitlisted"
+					class="response-row__waitlist"
+					:data-test="`waitlisted-${response.userId}`">
+					{{ t('attendance', 'Waitlist') }}
+				</span>
 				<!-- Icon-only on purpose: the row already carries up to two labelled
 					buttons, so the on-behalf editor stays as light as possible. It
 					leads the action group because it edits the answer the dot shows. -->
@@ -193,6 +199,15 @@ const bookingToggleTitle = computed(() => {
         strong {
             font-size: 14px;
         }
+    }
+
+    &__waitlist {
+        padding: 1px 8px;
+        border-radius: var(--border-radius-pill);
+        background: var(--color-warning);
+        color: var(--color-warning-text);
+        font-size: 12px;
+        font-weight: 600;
     }
 
     // NcButton hugs the icon to the left edge (padding-inline: 4px 12px), which
