@@ -7,7 +7,8 @@
 		keepOpen
 		:filterable="false"
 		label="label"
-		:placeholder="t('attendance', 'Visible to all. Search to restrict\u00A0…')"
+		:class="{ 'audience-select--empty': showHint }"
+		:style="{ '--audience-hint': JSON.stringify(t('attendance', 'Visible to all. Search to restrict\u00A0…')) }"
 		@open="loadDefaults"
 		@search="onSearch">
 		<template #option="{ label, type, isGuest }">
@@ -57,8 +58,22 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const searchResults = ref(null)
 const defaultResults = ref(null)
 const isSearching = ref(false)
-const options = computed(() => searchResults.value
-	?? [...model.value, ...(defaultResults.value ?? []).filter((d) => !model.value.some((m) => m.id === d.id))])
+const searchText = ref('')
+const options = computed(() => byType(searchResults.value
+	?? [...model.value, ...(defaultResults.value ?? []).filter((d) => !model.value.some((m) => m.id === d.id))]))
+
+// NcSelect drops the placeholder of a multiple select, so the hint is drawn in CSS.
+const showHint = computed(() => model.value.length === 0 && !searchText.value)
+
+const TYPE_ORDER = ['group', 'team', 'user', 'create-guest']
+
+/**
+ * @param {Array<object>} items Picker items.
+ * @return {Array<object>} Groups first, then teams, then users; stable within each type.
+ */
+function byType(items) {
+	return [...items].sort((a, b) => TYPE_ORDER.indexOf(a.type) - TYPE_ORDER.indexOf(b.type))
+}
 
 function typeLabel(type, isGuest) {
 	switch (type) {
@@ -102,6 +117,7 @@ async function loadDefaults() {
 }
 
 async function onSearch(query) {
+	searchText.value = query
 	if (!query) {
 		searchResults.value = null
 		return
@@ -136,6 +152,23 @@ async function onSearch(query) {
 </script>
 
 <style scoped>
+.audience-select--empty :deep(.vs__selected-options) {
+	position: relative;
+}
+
+.audience-select--empty :deep(.vs__selected-options::before) {
+	content: var(--audience-hint);
+	position: absolute;
+	inset-inline: 12px 0;
+	top: 50%;
+	transform: translateY(-50%);
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	color: var(--color-text-maxcontrast);
+	pointer-events: none;
+}
+
 .audience-option {
 	display: flex;
 	align-items: center;
