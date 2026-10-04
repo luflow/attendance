@@ -1821,6 +1821,8 @@ onBeforeUnmount(() => {
     display: flex;
     flex-direction: column;
     gap: 24px;
+    /* Keeps the selects' own z-indexes (their chevron has 999) below the bar. */
+    isolation: isolate;
 }
 
 .form-section {
@@ -1985,6 +1987,7 @@ onBeforeUnmount(() => {
     margin-top: 24px;
     background: var(--color-main-background);
     border-top: 1px solid var(--color-border);
+    box-shadow: 0 -4px 12px -4px var(--color-box-shadow);
 }
 
 .form-actions__content {
