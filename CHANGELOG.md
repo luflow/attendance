@@ -1,5 +1,36 @@
 # Changelog
 
+## 1.54.0 – 2026-10-05
+
+### Added
+
+- **Attendance limit with a waitlist**: extra yes-answers queue up and move in when a spot frees
+- **"Maybe" is optional** per appointment, with an instance default
+- **All-day appointments**, also as a series
+- **Vacation management**: personal vacation periods, a warning when creating an appointment, optional automatic "No", a team overview and an optional vacation calendar
+- **Permissions "See all appointments" and "See the team's vacation"**
+- **Category templates**: a category prefills name, description, location, deadline, limit, answers, notification and access; the admin section is now "Categories & templates"
+- **Filter by role**: only appointments you organise or only those you answer
+- **Paged appointment list**, filtered on the server
+- **Save bar and unsaved-changes warning** in the appointment form
+- **Export options**: filter by series, switch columns, list organizers
+
+### Fixed
+
+- **Cancelled appointments stay in the list**
+- **Calendar links and local times** in the organization calendar
+- **Only the audience of an appointment can answer it**
+- **Check-in of somebody who never answered** shows in the summary
+- **A closing takes back a verdict it already handed out**
+- **Export group column** and all-day series end date
+- **Admins can search Teams** for the response summary setting
+- **A new form after editing starts empty**
+
+### Maintenance
+
+- Updated dependencies and translations
+- More e2e coverage
+
 ## 1.53.0 – 2026-09-16
 
 ### Added

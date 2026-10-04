@@ -12,7 +12,9 @@ Free, open source, and every reply, attendance list and comment stays on your ow
 
 ## Collecting replies
 
-- **One click:** Yes, No or Maybe, with an optional comment
+- **One click:** Yes, No or Maybe, with an optional comment – drop "Maybe" for appointments that need a clear answer
+- **Attendance limit with a waitlist:** cap an appointment at a number of spots, extra yes-repliers queue up and move in when a spot frees
+- **Vacation:** members enter their absences, new appointments warn about people on vacation, and existing ones can be answered with "No" automatically – optionally written to a calendar
 - **Changed plans:** update or withdraw a reply any time before the appointment
 - **Quick-reply links:** answer straight from the notification email, no login needed
 - **Dashboard widget:** reply from the Nextcloud dashboard without opening the app
@@ -21,6 +23,8 @@ Free, open source, and every reply, attendance list and comment stays on your ow
 
 ## Organising appointments
 
+- **All-day appointments:** for outings, camps and festivals, also as a series
+- **Category templates:** every category can prefill name, description, location, deadline, limit and access for new appointments
 - **Recurring appointments:** create daily, weekly or monthly series in one go, then edit or delete this one, this and following, or all of them
 - **Import from your calendar:** pull events out of Nextcloud Calendar, with optional automatic sync (Nextcloud 32+)
 - **Closing and deadlines:** close an inquiry by hand, on a deadline, or automatically once it starts
@@ -36,20 +40,21 @@ Free, open source, and every reply, attendance list and comment stays on your ow
 - **Check-in:** tick off who actually turned up, in bulk if you like, with a note per person
 - **Unanswered:** a section that shows only what still waits for your reply
 - **Activity history:** every reply, change, withdrawal and check-in with who, when and from where
-- **Export:** all data as an ODS spreadsheet
+- **Export:** all data as an ODS spreadsheet, filtered by series, with switchable columns
+- **Filters:** show only the appointments you organise or only those you answer
 - **Calendar subscription:** a personal iCal feed for Google Calendar, Apple Calendar, Outlook or Thunderbird
-- **Permissions:** six group-based permissions decide who may manage appointments, check people in, see summaries and read comments
+- **Permissions:** group-based permissions decide who may manage appointments, see all appointments, check people in, see summaries, read comments and see the team's vacation
 
 ## Optional: a mobile app for iOS and Android
 
 Everything above works entirely in the browser. If you want more, there is a companion app that talks to your own Nextcloud and adds the two things a browser cannot do:
 
 - **Self-check-in by QR code or NFC:** people scan a printed QR code or tap an NFC tag as they arrive, and the attendance list fills itself
-- **Push notifications:** new appointments and reminders reach the phone straight away
+- **Push notifications:** new appointments and reminders reach the phone straight away – through Google or Apple, or without either via UnifiedPush
 
 It also puts your appointments, replies and comments in your pocket and holds several Nextcloud accounts in one app. The mobile app is free for 30 days per Nextcloud instance, then one yearly subscription covers the whole instance – this Nextcloud app stays free and open source, with or without it.
 
-[App Store](https://apps.apple.com/app/id6759988681) · [Google Play](https://play.google.com/store/apps/details?id=de.krautnerds.attendance) · [What the app does](https://anwesenheit.app/mobile)
+[App Store](https://apps.apple.com/app/id6759988681) · [Google Play](https://play.google.com/store/apps/details?id=de.krautnerds.attendance) · [F-Droid](https://fdroid.anwesenheit.app/repo?fingerprint=4E1BFBC669A19270E83E6FF960B1F9C9E2AF6C824DE79D975888B36C85F33D0E) · [What the app does](https://anwesenheit.app/mobile)
 
 Documentation, use cases and roadmap: [anwesenheit.app](https://anwesenheit.app)]]></description>
 	<description lang="de"><![CDATA[Wissen, wer kommt – zu jeder Probe, jedem Training, jeder Sitzung. Anwesenheit sammelt vorab Zu- und Absagen ein, hält beim Check-in fest, wer wirklich da war, und schlüsselt jede Antwort nach deinen Nextcloud-Gruppen auf. Gemacht für Chöre, Orchester, Sportvereine, Feuerwehren, Gemeinden und jede andere Gruppe, die nicht nur wissen muss, wie viele kommen, sondern wer.
@@ -58,7 +63,9 @@ Kostenlos, Open Source – und jede Antwort, Anwesenheitsliste und jeder Komment
 
 ## Antworten einsammeln
 
-- **Ein Klick:** Ja, Nein oder Vielleicht, auf Wunsch mit Kommentar
+- **Ein Klick:** Ja, Nein oder Vielleicht, auf Wunsch mit Kommentar – „Vielleicht“ lässt sich für Termine abschalten, die eine klare Antwort brauchen
+- **Teilnahmelimit mit Warteliste:** einen Termin auf eine Zahl von Plätzen begrenzen, weitere Zusagen rücken nach, sobald ein Platz frei wird
+- **Urlaub:** Mitglieder tragen ihre Abwesenheiten ein, neue Termine warnen vor Leuten im Urlaub, bestehende lassen sich automatisch mit „Nein“ beantworten – auf Wunsch in einen Kalender geschrieben
 - **Pläne geändert:** Antworten lassen sich bis zum Termin ändern oder zurückziehen
 - **Schnellantwort-Links:** direkt aus der Benachrichtigungs-E-Mail antworten, ganz ohne Anmeldung
 - **Dashboard-Widget:** vom Nextcloud-Dashboard aus antworten, ohne die App zu öffnen
@@ -67,6 +74,8 @@ Kostenlos, Open Source – und jede Antwort, Anwesenheitsliste und jeder Komment
 
 ## Termine organisieren
 
+- **Ganztägige Termine:** für Ausflüge, Freizeiten und Feste, auch als Serie
+- **Kategorie-Vorlagen:** jede Kategorie kann Name, Beschreibung, Ort, Frist, Limit und Zugriff für neue Termine vorbelegen
 - **Serientermine:** tägliche, wöchentliche oder monatliche Serien in einem Rutsch anlegen und später nur diesen, diesen und folgende oder alle Termine ändern
 - **Kalender-Import:** Termine aus dem Nextcloud-Kalender übernehmen, auf Wunsch automatisch synchron halten (ab Nextcloud 32)
 - **Schließen und Antwortfristen:** eine Umfrage von Hand schließen, per Frist oder automatisch mit dem Terminbeginn
@@ -82,23 +91,24 @@ Kostenlos, Open Source – und jede Antwort, Anwesenheitsliste und jeder Komment
 - **Check-in:** abhaken, wer tatsächlich da ist, auf Wunsch ganze Gruppen auf einmal, mit Notiz pro Person
 - **Unbeantwortet:** ein Bereich, der nur zeigt, was noch auf deine Antwort wartet
 - **Aktivitätsverlauf:** jede Antwort, Änderung, Rücknahme und jeder Check-in mit wer, wann und woher
-- **Export:** alle Daten als ODS-Tabelle
+- **Export:** alle Daten als ODS-Tabelle, nach Serie filterbar und mit schaltbaren Spalten
+- **Filter:** nur die Termine zeigen, die du organisierst, oder nur die, auf die du antwortest
 - **Kalender-Abo:** ein persönlicher iCal-Feed für Google Kalender, Apple Kalender, Outlook oder Thunderbird
-- **Berechtigungen:** sechs gruppenbasierte Rechte steuern, wer Termine verwaltet, eincheckt, Auswertungen sieht und Kommentare liest
+- **Berechtigungen:** gruppenbasierte Rechte steuern, wer Termine verwaltet, alle Termine sieht, eincheckt, Auswertungen sieht, Kommentare liest und den Urlaub des Teams sieht
 
 ## Optional: die mobile App für iOS und Android
 
 Alles oben funktioniert komplett im Browser. Wer mehr möchte: Die Begleit-App spricht mit deiner eigenen Nextcloud und bringt die beiden Dinge mit, die im Browser nicht gehen:
 
 - **Self-Check-in per QR-Code oder NFC:** beim Ankommen einen ausgedruckten QR-Code scannen oder einen NFC-Tag antippen – die Anwesenheitsliste füllt sich von selbst
-- **Push-Benachrichtigungen:** neue Termine und Erinnerungen kommen sofort aufs Handy
+- **Push-Benachrichtigungen:** neue Termine und Erinnerungen kommen sofort aufs Handy – über Google oder Apple, oder ohne beide per UnifiedPush
 
 Dazu hast du Termine, Antworten und Kommentare unterwegs dabei und kannst mehrere Nextcloud-Konten in einer App verbinden. Die mobile App ist 30 Tage pro Nextcloud-Instanz gratis, danach deckt ein Jahresabo die ganze Instanz ab – diese Nextcloud-App bleibt kostenlos und Open Source, mit oder ohne mobile App.
 
-[App Store](https://apps.apple.com/app/id6759988681) · [Google Play](https://play.google.com/store/apps/details?id=de.krautnerds.attendance) · [Was kann die App?](https://anwesenheit.app/de/mobile)
+[App Store](https://apps.apple.com/app/id6759988681) · [Google Play](https://play.google.com/store/apps/details?id=de.krautnerds.attendance) · [F-Droid](https://fdroid.anwesenheit.app/repo?fingerprint=4E1BFBC669A19270E83E6FF960B1F9C9E2AF6C824DE79D975888B36C85F33D0E) · [Was kann die App?](https://anwesenheit.app/de/mobile)
 
 Dokumentation, Einsatzbeispiele und Roadmap: [anwesenheit.app](https://anwesenheit.app/de)]]></description>
-	<version>1.53.0</version>
+	<version>1.54.0</version>
 	<licence>AGPL-3.0-or-later</licence>
 	<author mail="florian@krautnerds.de" homepage="https://krautnerds.de">Florian Ludwig</author>
 	<namespace>Attendance</namespace>
