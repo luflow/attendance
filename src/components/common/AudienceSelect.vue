@@ -7,7 +7,8 @@
 		keepOpen
 		:filterable="false"
 		label="label"
-		:placeholder="t('attendance', 'Search users, groups or teams …')"
+		:placeholder="t('attendance', 'Visible to all users. Search to restrict\u00A0…')"
+		@open="loadDefaults"
 		@search="onSearch">
 		<template #option="{ label, type, isGuest }">
 			<span class="audience-option" :title="typeLabel(type, isGuest)">
@@ -51,10 +52,13 @@ const props = defineProps({
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-// Null while nothing is typed: the dropdown then lists the selection itself.
+// Null while nothing is typed: the dropdown then lists the selection plus all
+// groups and teams, so nobody has to guess a first letter.
 const searchResults = ref(null)
+const defaultResults = ref(null)
 const isSearching = ref(false)
-const options = computed(() => searchResults.value ?? model.value)
+const options = computed(() => searchResults.value
+	?? [...model.value, ...(defaultResults.value ?? []).filter((d) => !model.value.some((m) => m.id === d.id))])
 
 function typeLabel(type, isGuest) {
 	switch (type) {
@@ -79,6 +83,21 @@ function typeIcon(type, isGuest) {
 			return AccountPlus
 		default:
 			return isGuest ? AccountQuestion : Account
+	}
+}
+
+async function loadDefaults() {
+	if (defaultResults.value) {
+		return
+	}
+	isSearching.value = true
+	try {
+		const results = await searchDirectory('', [])
+		defaultResults.value = results.filter((item) => item.type !== 'user')
+	} catch (error) {
+		console.error('Failed to load groups and teams:', error)
+	} finally {
+		isSearching.value = false
 	}
 }
 

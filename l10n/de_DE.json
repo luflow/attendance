@@ -1084,6 +1084,7 @@
     "New appointments of this category start with these values. Empty fields and switches left at their usual setting are not prefilled, and every value can still be changed for each appointment." : "Neue Termine dieser Kategorie starten mit diesen Werten. Leere Felder und Schalter in ihrer üblichen Einstellung werden nicht vorbelegt, und jeder Wert lässt sich für jeden Termin noch ändern.",
     "Template" : "Vorlage",
     "All day" : "Ganztägig",
-    "You are scheduled in for this appointment." : "Für diesen Termin sind Sie eingeplant."
+    "You are scheduled in for this appointment." : "Für diesen Termin sind Sie eingeplant.",
+    "Visible to all users. Search to restrict …" : "Für alle Benutzer sichtbar. Zum Einschränken suchen …"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
