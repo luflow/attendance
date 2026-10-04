@@ -1014,6 +1014,12 @@ onMounted(async () => {
     margin-block: 0 12px;
 }
 
+/* The confirmation dialog clips its content at its own edge, which cut the
+   focus ring off the buttons that sit flush with it. */
+.nc-generic-dialog {
+    padding-inline: 4px;
+}
+
 /* Keep textarea placeholder visible in comment sections */
 .comment-section .textarea__input::placeholder {
     opacity: 1 !important;
