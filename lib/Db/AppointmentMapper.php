@@ -18,6 +18,7 @@ use OCP\IDBConnection;
  *     startDatetime: string,
  *     endDatetime: string,
  *     appointmentCount: int,
+ *     isAllDay: bool,
  * }
  */
 class AppointmentMapper extends QBMapper {
@@ -577,7 +578,7 @@ class AppointmentMapper extends QBMapper {
 	public function findSeriesOverview(): array {
 		$qb = $this->db->getQueryBuilder();
 
-		$qb->select('series_id', 'name', 'start_datetime', 'end_datetime')
+		$qb->select('series_id', 'name', 'start_datetime', 'end_datetime', 'all_day')
 			->from($this->getTableName())
 			->where(
 				$qb->expr()->andX(
@@ -609,10 +610,13 @@ class AppointmentMapper extends QBMapper {
 					'startDatetime' => $start,
 					'endDatetime' => $end,
 					'appointmentCount' => 0,
+					'isAllDay' => true,
 				];
 			}
 
 			$series[$seriesId]['appointmentCount']++;
+			// Whole days only when every occurrence is: one timed end would be read as a day.
+			$series[$seriesId]['isAllDay'] = $series[$seriesId]['isAllDay'] && (bool)$row['all_day'];
 			$series[$seriesId]['startDatetime'] = min($series[$seriesId]['startDatetime'], $start);
 			$series[$seriesId]['endDatetime'] = max($series[$seriesId]['endDatetime'], $end);
 		}
