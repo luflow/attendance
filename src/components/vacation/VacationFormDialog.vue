@@ -27,7 +27,7 @@
 			</div>
 			<NcTextArea v-model="note"
 				:label="t('attendance', 'Note (optional)')"
-				:helperText="t('attendance', 'Visible to the whole team on the vacation calendar.')"
+				:helperText="t('attendance', 'Visible to everyone with access to the vacation calendar.')"
 				:maxlength="NOTE_MAX_LENGTH"
 				rows="2"
 				data-test="input-vacation-note" />
