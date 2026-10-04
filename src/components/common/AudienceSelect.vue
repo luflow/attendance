@@ -7,7 +7,7 @@
 		keepOpen
 		:filterable="false"
 		label="label"
-		:placeholder="t('attendance', 'Visible to all users. Search to restrict\u00A0…')"
+		:placeholder="t('attendance', 'Visible to all. Search to restrict\u00A0…')"
 		@open="loadDefaults"
 		@search="onSearch">
 		<template #option="{ label, type, isGuest }">

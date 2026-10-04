@@ -1085,6 +1085,6 @@
     "Template" : "Vorlage",
     "All day" : "Ganztägig",
     "You are scheduled in for this appointment." : "Für diesen Termin bist du eingeplant.",
-    "Visible to all users. Search to restrict …" : "Für alle Benutzer sichtbar. Zum Einschränken suchen …"
+    "Visible to all. Search to restrict …" : "Für alle sichtbar. Zum Einschränken suchen …"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
