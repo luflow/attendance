@@ -21,7 +21,7 @@
 			<section class="category-dialog__section" data-test="category-template-section">
 				<h3>{{ t('attendance', 'Template for this category') }}</h3>
 				<p class="hint-text">
-					{{ t('attendance', 'New appointments of this category start with these values. Fields you leave empty are not prefilled, and every value can still be changed for each appointment.') }}
+					{{ t('attendance', 'New appointments of this category start with these values. Empty fields and switches left at their usual setting are not prefilled, and every value can still be changed for each appointment.') }}
 				</p>
 
 				<NcTextField
@@ -75,30 +75,16 @@
 					{{ t('attendance', 'Offer a waitlist when full') }}
 				</NcCheckboxRadioSwitch>
 
-				<div class="category-dialog__field">
-					<label class="category-dialog__label" for="category-template-maybe">{{ t('attendance', 'Offer “Maybe” as an answer') }}</label>
-					<select
-						id="category-template-maybe"
-						v-model="draft.allowMaybe"
-						class="category-dialog__select"
-						data-test="select-category-template-maybe">
-						<option v-for="choice in choices" :key="choice.value" :value="choice.value">
-							{{ choice.label }}
-						</option>
-					</select>
-				</div>
-				<div class="category-dialog__field">
-					<label class="category-dialog__label" for="category-template-notify">{{ t('attendance', 'Send notification') }}</label>
-					<select
-						id="category-template-notify"
-						v-model="draft.sendNotification"
-						class="category-dialog__select"
-						data-test="select-category-template-notify">
-						<option v-for="choice in choices" :key="choice.value" :value="choice.value">
-							{{ choice.label }}
-						</option>
-					</select>
-				</div>
+				<NcCheckboxRadioSwitch
+					v-model="draft.allowMaybe"
+					data-test="checkbox-category-template-maybe">
+					{{ t('attendance', 'Offer “Maybe” as an answer') }}
+				</NcCheckboxRadioSwitch>
+				<NcCheckboxRadioSwitch
+					v-model="draft.sendNotification"
+					data-test="checkbox-category-template-notify">
+					{{ t('attendance', 'Send notification') }}
+				</NcCheckboxRadioSwitch>
 
 				<AudienceSelect
 					v-model="draft.audience"
@@ -139,21 +125,17 @@ const props = defineProps({
 		type: Boolean,
 		default: false,
 	},
+	// The instance-wide "Maybe" setting, which is what a new appointment starts with.
+	instanceAllowsMaybe: {
+		type: Boolean,
+		required: true,
+	},
 })
 
 const emit = defineEmits(['close', 'save'])
 
 // Only loaded while the dialog is open — the editor is too heavy to ship with the page.
 const MarkdownEditor = defineAsyncComponent(() => import('../common/MarkdownEditor.vue'))
-
-// Tri-state switches are plain selects: "not preset" is a choice of its own,
-// which a checkbox cannot express.
-const UNSET = ''
-const choices = computed(() => [
-	{ value: UNSET, label: t('attendance', 'Not preset') },
-	{ value: 'yes', label: t('attendance', 'Yes') },
-	{ value: 'no', label: t('attendance', 'No') },
-])
 
 const deadlineUnits = computed(() => [
 	{ value: 'minutes', label: t('attendance', 'minutes') },
@@ -162,13 +144,14 @@ const deadlineUnits = computed(() => [
 	{ value: 'weeks', label: t('attendance', 'weeks') },
 ])
 
-function fromBool(value) {
-	if (value === true) return 'yes'
-	return value === false ? 'no' : UNSET
+// A switch starts like it does on a new appointment, and only a deviation is
+// stored — a checkbox cannot say "not preset", the usual setting says it.
+const DEFAULTS = { allowMaybe: props.instanceAllowsMaybe, sendNotification: false, waitlistEnabled: true }
+function fromStored(value, usual) {
+	return typeof value === 'boolean' ? value : usual
 }
-function toBool(value) {
-	if (value === 'yes') return true
-	return value === 'no' ? false : null
+function toStored(value, usual) {
+	return value === usual ? null : value
 }
 function toInt(value) {
 	const parsed = Number.parseInt(value, 10)
@@ -185,9 +168,9 @@ const draft = reactive({
 	deadlineValue: template?.responseDeadlineValue ? String(template.responseDeadlineValue) : '',
 	deadlineUnit: template?.responseDeadlineUnit ?? 'days',
 	maxAttendees: template?.maxAttendees ? String(template.maxAttendees) : '',
-	waitlistEnabled: template?.waitlistEnabled !== false,
-	allowMaybe: fromBool(template?.allowMaybe),
-	sendNotification: fromBool(template?.sendNotification),
+	waitlistEnabled: fromStored(template?.waitlistEnabled, DEFAULTS.waitlistEnabled),
+	allowMaybe: fromStored(template?.allowMaybe, DEFAULTS.allowMaybe),
+	sendNotification: fromStored(template?.sendNotification, DEFAULTS.sendNotification),
 	audience: toAudienceItems(template),
 })
 
@@ -210,9 +193,9 @@ function submit() {
 			responseDeadlineValue: deadlineValue,
 			responseDeadlineUnit: deadlineValue === null ? null : draft.deadlineUnit,
 			maxAttendees,
-			waitlistEnabled: maxAttendees === null ? null : draft.waitlistEnabled,
-			allowMaybe: toBool(draft.allowMaybe),
-			sendNotification: toBool(draft.sendNotification),
+			waitlistEnabled: maxAttendees === null ? null : toStored(draft.waitlistEnabled, DEFAULTS.waitlistEnabled),
+			allowMaybe: toStored(draft.allowMaybe, DEFAULTS.allowMaybe),
+			sendNotification: toStored(draft.sendNotification, DEFAULTS.sendNotification),
 			...toAudienceIds(draft.audience),
 		},
 	})

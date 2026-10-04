@@ -525,7 +525,6 @@ OC.L10N.register(
     "Categories & templates" : "Kategorien & Vorlagen",
     "Category & icon" : "Kategorie & Icon",
     "Template for this category" : "Vorlage für diese Kategorie",
-    "Not preset" : "Nicht vorbelegt",
     "New category name" : "Name der neuen Kategorie",
     "Could not load categories" : "Kategorien konnten nicht geladen werden",
     "Could not create category" : "Kategorie konnte nicht erstellt werden",
@@ -1084,7 +1083,7 @@ OC.L10N.register(
     "Apply template" : "Vorlage anwenden",
     "Could not save category" : "Kategorie konnte nicht gespeichert werden",
     "Edit category" : "Kategorie bearbeiten",
-    "New appointments of this category start with these values. Fields you leave empty are not prefilled, and every value can still be changed for each appointment." : "Neue Termine dieser Kategorie starten mit diesen Werten. Leere Felder werden nicht vorbelegt, und jeder Wert lässt sich für jeden Termin noch ändern.",
+    "New appointments of this category start with these values. Empty fields and switches left at their usual setting are not prefilled, and every value can still be changed for each appointment." : "Neue Termine dieser Kategorie starten mit diesen Werten. Leere Felder und Schalter in ihrer üblichen Einstellung werden nicht vorbelegt, und jeder Wert lässt sich für jeden Termin noch ändern.",
     "Template" : "Vorlage",
     "All day" : "Ganztägig",
     "You are scheduled in for this appointment." : "Für diesen Termin sind Sie eingeplant."

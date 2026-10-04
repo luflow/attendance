@@ -71,7 +71,7 @@ test.describe('Attendance App - Categories', () => {
 		await editor.locator('[data-test="select-category-template-deadline-unit"]').selectOption('days')
 		await editor.locator('[data-test="input-category-template-limit"]').fill('12')
 		await editor.getByText('Offer a waitlist when full').click()
-		await editor.locator('[data-test="select-category-template-maybe"]').selectOption('no')
+		await editor.getByText(/Offer .Maybe. as an answer/).click()
 		await editor.getByRole('button', { name: 'Save', exact: true }).click()
 		await expect(editor).toHaveCount(0)
 
@@ -173,6 +173,80 @@ test.describe('Attendance App - Categories', () => {
 
 		const clearedCard = page.locator('[data-test="appointment-card"]').filter({ hasText: 'Appointment With Category' }).first()
 		await expect(clearedCard.locator('[data-test="appointment-category"]')).toHaveCount(0)
+	})
+
+	// The editor starts like a new appointment does, so a switch left alone says
+	// "not preset" without a third state: only a deviation is stored.
+	test('the template editor starts with the defaults of a new appointment', async ({ page, request }) => {
+		const category = await createCategoryViaAPI(request, uniqueName('Defaults'))
+		createdCategoryIds.push(category.id)
+
+		await page.goto('/settings/admin/attendance')
+		await page.waitForLoadState('networkidle')
+		const section = page.locator('[data-test="section-categories"]')
+		await section.locator('.category-list__item').filter({ hasText: category.name })
+			.locator('[data-test="button-edit-category"]').click()
+		const editor = page.locator('[data-test="category-edit-dialog"]')
+
+		await expect(editor.getByRole('checkbox', { name: /Offer .Maybe. as an answer/ })).toBeChecked()
+		await expect(editor.getByRole('checkbox', { name: 'Send notification' })).not.toBeChecked()
+		await expect(editor.locator('[data-test="input-category-template-limit"]')).toHaveValue('')
+
+		// Saving untouched stores no template at all — and shows no badge.
+		await editor.getByRole('button', { name: 'Save', exact: true }).click()
+		await expect(editor).toHaveCount(0)
+		const saved = (await listCategoriesViaAPI(request)).find((c) => c.id === category.id)
+		expect(saved.template).toBeNull()
+		await expect(section.locator('.category-list__item').filter({ hasText: category.name })
+			.locator('[data-test="category-has-template"]')).toHaveCount(0)
+	})
+
+	test('cancelling the template editor discards what was typed', async ({ page, request }) => {
+		const category = await createCategoryViaAPI(request, uniqueName('Cancel'), { template: { name: 'Kept name' } })
+		createdCategoryIds.push(category.id)
+
+		await page.goto('/settings/admin/attendance')
+		await page.waitForLoadState('networkidle')
+		const section = page.locator('[data-test="section-categories"]')
+		const row = section.locator('.category-list__item').filter({ hasText: category.name })
+		await row.locator('[data-test="button-edit-category"]').click()
+		const editor = page.locator('[data-test="category-edit-dialog"]')
+		const templateName = editor.locator('[data-test="input-category-template-name"]')
+
+		await expect(templateName).toHaveValue('Kept name')
+		await templateName.fill('Thrown away')
+		await editor.getByRole('button', { name: 'Cancel', exact: true }).click()
+		await expect(editor).toHaveCount(0)
+
+		await row.locator('[data-test="button-edit-category"]').click()
+		await expect(page.locator('[data-test="input-category-template-name"]')).toHaveValue('Kept name')
+		expect((await listCategoriesViaAPI(request)).find((c) => c.id === category.id).template.name).toBe('Kept name')
+	})
+
+	test('emptying every template field removes the template again', async ({ page, request }) => {
+		const category = await createCategoryViaAPI(request, uniqueName('Emptied'), {
+			template: { name: 'Gone soon', location: 'Hall', maxAttendees: 5, allowMaybe: false },
+		})
+		createdCategoryIds.push(category.id)
+
+		await page.goto('/settings/admin/attendance')
+		await page.waitForLoadState('networkidle')
+		const section = page.locator('[data-test="section-categories"]')
+		const row = section.locator('.category-list__item').filter({ hasText: category.name })
+		await expect(row.locator('[data-test="category-has-template"]')).toBeVisible()
+		await row.locator('[data-test="button-edit-category"]').click()
+		const editor = page.locator('[data-test="category-edit-dialog"]')
+
+		await expect(editor.getByRole('checkbox', { name: /Offer .Maybe. as an answer/ })).not.toBeChecked()
+		await editor.locator('[data-test="input-category-template-name"]').fill('')
+		await editor.locator('[data-test="input-category-template-location"]').fill('')
+		await editor.locator('[data-test="input-category-template-limit"]').fill('')
+		await editor.getByText(/Offer .Maybe. as an answer/).click()
+		await editor.getByRole('button', { name: 'Save', exact: true }).click()
+		await expect(editor).toHaveCount(0)
+
+		expect((await listCategoriesViaAPI(request)).find((c) => c.id === category.id).template).toBeNull()
+		await expect(row.locator('[data-test="category-has-template"]')).toHaveCount(0)
 	})
 
 	test('picking a category prefills a new appointment from its template', async ({ page, request }) => {

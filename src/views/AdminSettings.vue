@@ -147,6 +147,7 @@
 			<CategoryEditDialog v-if="editingCategory"
 				:category="editingCategory"
 				:saving="savingCategoryEdit"
+				:instanceAllowsMaybe="allowMaybe"
 				@close="cancelEditingCategory"
 				@save="saveEditingCategory" />
 

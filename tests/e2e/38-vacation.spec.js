@@ -244,3 +244,38 @@ test.describe('Team vacations need the permission', () => {
 		expect(open.status()).toBe(200)
 	})
 })
+
+// The create form of the mobile app asks this endpoint who cannot attend.
+test.describe('Vacation conflicts for a new appointment', () => {
+	const start = dateOnly(OFFSET + 30)
+	const end = dateOnly(OFFSET + 32)
+	let vacationId
+
+	test.beforeAll(async ({ request }) => {
+		await deleteVacations(request)
+		const created = await request.post(`${API}/vacations`, {
+			headers: authHeaders(USER, USER),
+			data: { startDate: start, endDate: end, note: 'Private reason' },
+		})
+		vacationId = (await created.json()).id
+	})
+
+	test.afterAll(async ({ request }) => {
+		await deleteVacations(request)
+	})
+
+	test('names who is away in the window and nobody outside it', async ({ request }) => {
+		const ask = async (from, to) => (await request.get(
+			`${API}/vacations/conflicts?startDatetime=${from}T10:00:00Z&endDatetime=${to}T12:00:00Z&visibleUsers[]=${USER}`,
+			{ headers: authHeaders() },
+		)).json()
+
+		const inside = await ask(start, start)
+		expect(inside.count).toBe(1)
+		expect(inside.users[0].userId).toBe(USER)
+
+		const outside = await ask(dateOnly(OFFSET + 40), dateOnly(OFFSET + 40))
+		expect(outside.count).toBe(0)
+		expect(vacationId).toBeTruthy()
+	})
+})
