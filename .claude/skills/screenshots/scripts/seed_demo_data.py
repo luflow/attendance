@@ -1239,6 +1239,14 @@ def apply_config(nc: str, known_users: set[str], lang: str,
                     check=False)
         print(f"  + login for {', '.join(TEST_LOGINS)}: password {TEST_PASSWORD}")
 
+    # Unset, "manage appointments" means everybody, so every dev account would
+    # be a manager and the plain member's view could not be looked at.
+    occ(nc, "config:app:set", "attendance", "permission_manage_appointments_mode",
+        "--value=groups")
+    occ(nc, "config:app:set", "attendance", "permission_manage_appointments",
+        f"--value={json.dumps([conductor])}")
+    print(f"  + permission_manage_appointments = groups {conductor}")
+
     # The category badge on the cards, and the "Scheduled" / "Not scheduled"
     # states, only render with their feature on.
     occ(nc, "config:app:set", "attendance", "booking_enabled", "--value=yes")
