@@ -517,8 +517,10 @@
 					</template>
 				</NcSelect>
 			</div>
+		</form>
 
-			<div class="form-actions" data-test="form-actions">
+		<div v-if="!loading && !bulkImporting" class="form-actions" data-test="form-actions">
+			<div class="form-actions__content">
 				<span v-if="isDirty" class="form-actions__hint" data-test="unsaved-hint">
 					{{ t("attendance", "Unsaved changes") }}
 				</span>
@@ -539,7 +541,7 @@
 					{{ saveButtonLabel }}
 				</NcButton>
 			</div>
-		</form>
+		</div>
 
 		<!-- Calendar Event Picker Modal -->
 		<CalendarEventPicker
@@ -1787,10 +1789,14 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
-.appointment-form-view {
-    padding: 0 20px 20px;
+/* The view spans the content area so the action bar can; header, form and the
+ * bar's content share the same 800px column inside it. */
+.form-header,
+.appointment-form,
+.form-actions__content {
     max-width: 800px;
-    margin: 0 auto;
+    margin-inline: auto;
+    padding-inline: 20px;
 }
 
 .form-header {
@@ -1970,22 +1976,24 @@ onBeforeUnmount(() => {
     }
 }
 
-/* Floats over the form while it scrolls, so saving never depends on reaching
- * the end of the page. */
+/* Stays at the bottom edge while the form scrolls, so saving never depends on
+ * reaching the end of the page. */
 .form-actions {
     position: sticky;
-    bottom: 12px;
+    bottom: 0;
     z-index: 10;
+    margin-top: 24px;
+    background: var(--color-main-background);
+    border-top: 1px solid var(--color-border);
+}
+
+.form-actions__content {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: flex-end;
     gap: 10px;
-    padding: 12px 16px;
-    background: var(--color-main-background);
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius-large);
-    box-shadow: 0 2px 12px var(--color-box-shadow);
+    padding-block: 12px;
 }
 
 .form-actions__hint {
