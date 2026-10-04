@@ -96,16 +96,28 @@ CATEGORIES = [
 ]
 
 # Category templates, written by --test-cases: what a new appointment of that
-# category starts with. "party" has none on purpose, to see the unfilled form.
-# (category key, description per language, groups the appointment is limited to)
+# category starts with. Every field is optional; "party" has no template at
+# all, to see the unfilled form. Per category: description, groups the
+# appointment is limited to, and the other fields (name/location per language).
 CATEGORY_TEMPLATES = [
     ("rehearsal", {"en": "Weekly rehearsal. Please bring your sheet music.",
-                   "de": "Wöchentliche Probe. Bitte Noten mitbringen."}, VOICE_GROUPS),
+                   "de": "Wöchentliche Probe. Bitte Noten mitbringen."}, VOICE_GROUPS,
+     {"name": {"en": "Rehearsal", "de": "Probe"},
+      "location": {"en": "Parish hall St. Martin", "de": "Gemeindesaal St. Martin"},
+      "responseDeadlineValue": 2, "responseDeadlineUnit": "days",
+      "allowMaybe": True}),
     ("performance", {"en": "Performance. Please be there 45 minutes early for the warm-up.",
                      "de": "Auftritt. Bitte 45 Minuten vorher zum Einsingen da sein."},
-     ["Sopran", "Alt"]),
+     ["Sopran", "Alt"],
+     {"name": {"en": "Performance", "de": "Auftritt"},
+      "responseDeadlineValue": 1, "responseDeadlineUnit": "weeks",
+      "maxAttendees": 40, "waitlistEnabled": True,
+      "sendNotification": True}),
     ("weekend", {"en": "Choir weekend with full board.",
-                 "de": "Chorwochenende mit Vollverpflegung."}, []),
+                 "de": "Chorwochenende mit Vollverpflegung."}, [],
+     {"location": {"en": "Kloster Banz", "de": "Kloster Banz"},
+      "maxAttendees": 30, "waitlistEnabled": False,
+      "allowMaybe": False}),
 ]
 
 # appointment key -> category key. d_unanswered stays uncategorized on
@@ -1001,12 +1013,16 @@ def build_template_sql(lang: str) -> list[str]:
     """Templates for the seeded categories; a plain run leaves the column empty."""
     ids = category_ids()
     out = []
-    for key, description, groups in CATEGORY_TEMPLATES:
-        template = json.dumps({"description": description[lang], "visibleUsers": [],
-                               "visibleGroups": groups, "visibleTeams": []},
-                              ensure_ascii=False)
-        out.append(f"UPDATE oc_att_categories SET template = {q(template)} "
-                   f"WHERE id = {ids[key]};")
+    for key, description, groups, extra in CATEGORY_TEMPLATES:
+        template = {"name": "", "description": description[lang], "location": "",
+                    "responseDeadlineValue": None, "responseDeadlineUnit": None,
+                    "maxAttendees": None, "waitlistEnabled": None,
+                    "allowMaybe": None, "sendNotification": None,
+                    "visibleUsers": [], "visibleGroups": groups, "visibleTeams": []}
+        for field, value in extra.items():
+            template[field] = value[lang] if isinstance(value, dict) else value
+        out.append(f"UPDATE oc_att_categories SET template = "
+                   f"{q(json.dumps(template, ensure_ascii=False))} WHERE id = {ids[key]};")
     return out
 
 

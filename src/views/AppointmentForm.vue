@@ -711,51 +711,6 @@ async function loadLocationSuggestions() {
 const categoriesAvailable = computed(() => capabilities.categoriesAvailable === true)
 const { categories, loadCategories, getCategory } = useCategories()
 
-// What the selected category's template puts into the form; empty where it
-// covers nothing.
-const categoryTemplate = computed(() => {
-	const template = getCategory(formData.categoryId)?.template
-	return { description: template?.description ?? '', audience: toAudienceItems(template) }
-})
-
-const sorted = (list) => [...list].sort()
-
-const audienceKey = (items) => JSON.stringify(sorted(items.map((item) => item.id)))
-const sameAudience = (a, b) => audienceKey(a) === audienceKey(b)
-
-// A new appointment follows the category: whatever is still empty, or still
-// the previous category's template, takes the new one.
-function onCategoryChange(categoryId) {
-	const previous = categoryTemplate.value
-	formData.categoryId = categoryId
-	if (props.mode === 'edit') {
-		return
-	}
-	const next = categoryTemplate.value
-	if (!formData.description.trim() || formData.description === previous.description) {
-		formData.description = next.description
-	}
-	if (visibilityItems.value.length === 0 || sameAudience(visibilityItems.value, previous.audience)) {
-		visibilityItems.value = next.audience
-	}
-}
-
-const templateDiffers = computed(() => {
-	const { description, audience } = categoryTemplate.value
-	return (description !== '' && formData.description !== description)
-		|| (audience.length > 0 && !sameAudience(visibilityItems.value, audience))
-})
-
-function applyTemplate() {
-	const { description, audience } = categoryTemplate.value
-	if (description) {
-		formData.description = description
-	}
-	if (audience.length > 0) {
-		visibilityItems.value = audience
-	}
-}
-
 // Calendar import only ever gives us a category by name (the source event's
 // CATEGORIES text) — categories are admin-managed, so we resolve it against
 // the known list rather than creating one on the fly. No match → unset.
@@ -787,6 +742,133 @@ const attendanceLimit = computed(() => {
 // somebody who would commit — so the answer-options section steps aside, the
 // same rule the server applies.
 const hasAttendanceLimit = computed(() => attendanceLimit.value !== null)
+
+// What the selected category's template puts into the form; empty where it
+// covers nothing.
+const categoryTemplate = computed(() => {
+	const template = getCategory(formData.categoryId)?.template
+	const hasDeadline = Boolean(template?.responseDeadlineValue && template?.responseDeadlineUnit)
+	return {
+		name: template?.name ?? '',
+		description: template?.description ?? '',
+		location: template?.location ?? '',
+		deadline: hasDeadline ? { value: template.responseDeadlineValue, unit: template.responseDeadlineUnit } : null,
+		maxAttendees: template?.maxAttendees ?? null,
+		waitlistEnabled: template?.waitlistEnabled ?? null,
+		allowMaybe: template?.allowMaybe ?? null,
+		sendNotification: template?.sendNotification ?? null,
+		audience: toAudienceItems(template),
+	}
+})
+
+const sorted = (list) => [...list].sort()
+
+const audienceKey = (items) => JSON.stringify(sorted(items.map((item) => item.id)))
+const sameAudience = (a, b) => audienceKey(a) === audienceKey(b)
+
+const instanceAllowsMaybe = () => capabilities.allowMaybeDefault !== false
+// Notification only exists on new appointments, and only with the app on.
+const notificationOffered = computed(() => props.notificationsAppEnabled && (props.mode === 'create' || props.mode === 'copy'))
+
+function currentDeadline() {
+	return deadlineMode.value === 'relative'
+		? { value: Number.parseInt(deadlineRelativeValueStr.value, 10), unit: deadlineRelativeUnit.value }
+		: null
+}
+const sameDeadline = (a, b) => (a === null && b === null) || (a !== null && b !== null && a.value === b.value && a.unit === b.unit)
+
+function setDeadline(deadline) {
+	if (deadline === null) {
+		deadlineMode.value = 'none'
+		return
+	}
+	deadlineMode.value = 'relative'
+	deadlineRelativeValueStr.value = String(deadline.value)
+	deadlineRelativeUnit.value = deadline.unit
+}
+
+// A new appointment follows the category: a field that is still empty, or still
+// the previous category's template value, takes the new one. Own input stays.
+function onCategoryChange(categoryId) {
+	const previous = categoryTemplate.value
+	formData.categoryId = categoryId
+	if (props.mode === 'edit') {
+		return
+	}
+	const next = categoryTemplate.value
+	const follows = (current, before, empty) => empty || current === before
+
+	if (follows(formData.name, previous.name, !formData.name.trim())) {
+		formData.name = next.name
+	}
+	if (!formData.description.trim() || formData.description === previous.description) {
+		formData.description = next.description
+	}
+	if (locationsAvailable.value && follows(formData.location, previous.location, !formData.location.trim())) {
+		formData.location = next.location
+	}
+	if (visibilityItems.value.length === 0 || sameAudience(visibilityItems.value, previous.audience)) {
+		visibilityItems.value = next.audience
+	}
+	if (deadlineMode.value === 'none' || (deadlineMode.value === 'relative' && sameDeadline(currentDeadline(), previous.deadline))) {
+		setDeadline(next.deadline)
+	}
+	if (attendanceLimitAvailable.value
+		&& follows(maxAttendeesInput.value, previous.maxAttendees === null ? '' : String(previous.maxAttendees), maxAttendeesInput.value === '')) {
+		maxAttendeesInput.value = next.maxAttendees === null ? '' : String(next.maxAttendees)
+		waitlistEnabled.value = next.waitlistEnabled ?? true
+	}
+	if (responseOptionsAvailable.value && !hasAttendanceLimit.value
+		&& follows(allowMaybe.value, previous.allowMaybe ?? instanceAllowsMaybe(), allowMaybe.value === instanceAllowsMaybe())) {
+		allowMaybe.value = next.allowMaybe ?? instanceAllowsMaybe()
+	}
+	if (notificationOffered.value && follows(sendNotification.value, previous.sendNotification === true, !sendNotification.value)) {
+		sendNotification.value = next.sendNotification === true
+	}
+}
+
+// What "Apply template" would change: only fields the template sets and the form offers.
+const templateDiffers = computed(() => {
+	const t_ = categoryTemplate.value
+	return (t_.name !== '' && formData.name !== t_.name)
+		|| (t_.description !== '' && formData.description !== t_.description)
+		|| (locationsAvailable.value && t_.location !== '' && formData.location !== t_.location)
+		|| (t_.audience.length > 0 && !sameAudience(visibilityItems.value, t_.audience))
+		|| (t_.deadline !== null && !sameDeadline(currentDeadline(), t_.deadline))
+		|| (attendanceLimitAvailable.value && t_.maxAttendees !== null
+			&& (attendanceLimit.value !== t_.maxAttendees || (t_.waitlistEnabled !== null && waitlistEnabled.value !== t_.waitlistEnabled)))
+		|| (responseOptionsAvailable.value && !hasAttendanceLimit.value && t_.allowMaybe !== null && allowMaybe.value !== t_.allowMaybe)
+		|| (notificationOffered.value && t_.sendNotification !== null && sendNotification.value !== t_.sendNotification)
+})
+
+function applyTemplate() {
+	const t_ = categoryTemplate.value
+	if (t_.name) {
+		formData.name = t_.name
+	}
+	if (t_.description) {
+		formData.description = t_.description
+	}
+	if (locationsAvailable.value && t_.location) {
+		formData.location = t_.location
+	}
+	if (t_.audience.length > 0) {
+		visibilityItems.value = t_.audience
+	}
+	if (t_.deadline !== null) {
+		setDeadline(t_.deadline)
+	}
+	if (attendanceLimitAvailable.value && t_.maxAttendees !== null) {
+		maxAttendeesInput.value = String(t_.maxAttendees)
+		waitlistEnabled.value = t_.waitlistEnabled ?? true
+	}
+	if (responseOptionsAvailable.value && !hasAttendanceLimit.value && t_.allowMaybe !== null) {
+		allowMaybe.value = t_.allowMaybe
+	}
+	if (notificationOffered.value && t_.sendNotification !== null) {
+		sendNotification.value = t_.sendNotification
+	}
+}
 const trackingGroups = ref([])
 const trackingTeams = ref([])
 const attachments = ref([])

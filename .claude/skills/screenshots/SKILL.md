@@ -142,7 +142,9 @@ the next weeks with the automatic "No" answers it caused, three later ones —
 one of them admin's own — and one in the past.
 
 Also: templates on the Rehearsal, Performance and Choir weekend categories
-(Party has none), and a known password for `alice` and `john` — see
+(Party has none) covering name, location, response deadline, limit and
+waitlist, "Maybe", notification and groups — each category sets a different
+mix —, and a known password for `alice` and `john` — see
 `TEST_PASSWORD` in the script — so the member's view can be checked in a
 second browser.
 

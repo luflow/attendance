@@ -52,28 +52,44 @@ test.describe('Attendance App - Categories', () => {
 
 		const renamedName = uniqueName('Concert')
 		await item.locator('[data-test="button-edit-category"]').click()
-		// From here on, target `section` rather than `item`: editing swaps the
-		// name into an <input>'s value, which isn't text content, so `item`
-		// (still filtered by the old hasText name) stops matching anything.
-		// Only one row can be in edit mode at a time, so these stay unambiguous.
-		await section.locator('[data-test="input-edit-category-icon"]').click()
+		// Editing happens in a dialog with two sections: the category and its template.
+		const editor = page.locator('[data-test="category-edit-dialog"]')
+		await expect(editor.getByRole('heading', { name: 'Category & icon' })).toBeVisible()
+		await expect(editor.getByRole('heading', { name: 'Template for this category' })).toBeVisible()
+		await editor.locator('[data-test="input-edit-category-icon"]').click()
 		const starOption = page.locator('[data-test="category-icon-option-star"]')
 		await starOption.click()
 		await expect(starOption).toHaveAttribute('aria-pressed', 'true')
-		await page.keyboard.press('Escape')
-		// exact: true — "New category name" (the add-category field, still on
-		// screen) contains "Category name" as a substring and would otherwise
-		// match too.
-		const editField = section.getByRole('textbox', { name: 'Category name', exact: true })
-		await editField.fill(renamedName)
-		await section.locator('[data-test="input-category-template-description"] .CodeMirror').click()
+		// Escape would close the whole dialog, so leave the icon popover by clicking away.
+		await editor.getByRole('heading', { name: 'Category & icon' }).click()
+		await editor.getByRole('textbox', { name: 'Category name', exact: true }).fill(renamedName)
+		await editor.locator('[data-test="input-category-template-description"] .CodeMirror').click()
 		await page.keyboard.type('Clothing:')
-		await section.getByRole('button', { name: 'Save', exact: true }).click()
+		await editor.locator('[data-test="input-category-template-name"]').fill('Rehearsal tonight')
+		await editor.locator('[data-test="input-category-template-location"]').fill('Parish hall')
+		await editor.locator('[data-test="input-category-template-deadline-value"]').fill('2')
+		await editor.locator('[data-test="select-category-template-deadline-unit"]').selectOption('days')
+		await editor.locator('[data-test="input-category-template-limit"]').fill('12')
+		await editor.getByText('Offer a waitlist when full').click()
+		await editor.locator('[data-test="select-category-template-maybe"]').selectOption('no')
+		await editor.getByRole('button', { name: 'Save', exact: true }).click()
+		await expect(editor).toHaveCount(0)
 
 		const renamedItem = section.locator('.category-list__item').filter({ hasText: renamedName })
 		await expect(renamedItem).toBeVisible()
 		const saved = (await listCategoriesViaAPI(request)).find((category) => category.name === renamedName)
-		expect(saved.template.description).toBe('Clothing:')
+		expect(saved.template).toMatchObject({
+			description: 'Clothing:',
+			name: 'Rehearsal tonight',
+			location: 'Parish hall',
+			responseDeadlineValue: 2,
+			responseDeadlineUnit: 'days',
+			maxAttendees: 12,
+			waitlistEnabled: false,
+			allowMaybe: false,
+			sendNotification: null,
+		})
+		await expect(section.locator('.category-list__item').filter({ hasText: renamedName }).locator('[data-test="category-has-template"]')).toBeVisible()
 		await expect(section.locator('.category-list__item').filter({ hasText: createName })).toHaveCount(0)
 
 		await renamedItem.locator('[data-test="button-delete-category"]').click()
@@ -161,7 +177,15 @@ test.describe('Attendance App - Categories', () => {
 
 	test('picking a category prefills a new appointment from its template', async ({ page, request }) => {
 		const withTemplate = await createCategoryViaAPI(request, uniqueName('Concert'), {
-			template: { description: 'Clothing:', visibleGroups: ['admin'] },
+			template: {
+				name: 'Concert tonight',
+				description: 'Clothing:',
+				visibleGroups: ['admin'],
+				responseDeadlineValue: 3,
+				responseDeadlineUnit: 'days',
+				maxAttendees: 20,
+				waitlistEnabled: false,
+			},
 		})
 		const plain = await createCategoryViaAPI(request, uniqueName('Rehearsal'))
 		createdCategoryIds.push(withTemplate.id, plain.id)
@@ -176,15 +200,23 @@ test.describe('Attendance App - Categories', () => {
 		const access = page.locator('[data-test="select-visibility"] .vs__selected')
 		const applyTemplate = page.locator('[data-test="button-apply-template"]')
 
+		const nameInput = page.getByRole('textbox', { name: 'Appointment Name' })
+
 		await pickCategory(page, withTemplate)
 		await expect(description).toContainText('Clothing:')
 		await expect(access).toContainText('admin')
+		await expect(nameInput).toHaveValue('Concert tonight')
+		await expect(page.locator('[data-test="input-deadline-relative-value"]')).toHaveValue('3')
+		await expect(page.locator('[data-test="input-max-attendees"]')).toHaveValue('20')
+		await expect(page.getByRole('checkbox', { name: 'Offer a waitlist when full' })).not.toBeChecked()
 		await expect(applyTemplate).toHaveCount(0)
 
 		// Untouched template content follows the category …
 		await pickCategory(page, plain)
 		await expect(description).not.toContainText('Clothing:')
 		await expect(access).toHaveCount(0)
+		await expect(nameInput).toHaveValue('')
+		await expect(page.locator('[data-test="input-max-attendees"]')).toHaveValue('')
 
 		// … own content stays, with the template one click away.
 		await description.click()

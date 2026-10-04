@@ -92,11 +92,69 @@ class CategoryServiceTest extends TestCase {
 		]);
 
 		$this->assertSame([
+			'name' => '',
 			'description' => "Clothing:\nTransport:",
+			'location' => '',
+			'responseDeadlineValue' => null,
+			'responseDeadlineUnit' => null,
+			'maxAttendees' => null,
+			'waitlistEnabled' => null,
+			'allowMaybe' => null,
+			'sendNotification' => null,
 			'visibleUsers' => ['alice'],
 			'visibleGroups' => ['choir'],
 			'visibleTeams' => [],
 		], json_decode($created->getTemplate(), true));
+	}
+
+	public function testCreateStoresTheOtherTemplateFields(): void {
+		$this->categoryMapper->method('findByName')
+			->willThrowException(new DoesNotExistException('not found'));
+		$this->categoryMapper->method('insert')->willReturnCallback(fn (Category $c) => $c);
+
+		$stored = json_decode($this->service->create('Concert', 'tag', [
+			'name' => ' Open air <i>concert</i> ',
+			'location' => 'Stadtpark',
+			'responseDeadlineValue' => 3,
+			'responseDeadlineUnit' => 'days',
+			'maxAttendees' => 40,
+			'waitlistEnabled' => false,
+			'allowMaybe' => false,
+			'sendNotification' => true,
+		])->getTemplate(), true);
+
+		$this->assertSame('Open air concert', $stored['name']);
+		$this->assertSame('Stadtpark', $stored['location']);
+		$this->assertSame(3, $stored['responseDeadlineValue']);
+		$this->assertSame('days', $stored['responseDeadlineUnit']);
+		$this->assertSame(40, $stored['maxAttendees']);
+		$this->assertFalse($stored['waitlistEnabled']);
+		$this->assertFalse($stored['allowMaybe']);
+		$this->assertTrue($stored['sendNotification']);
+	}
+
+	public function testATemplateWithOnlyAFalseSwitchIsStillATemplate(): void {
+		$this->categoryMapper->method('findByName')
+			->willThrowException(new DoesNotExistException('not found'));
+		$this->categoryMapper->method('insert')->willReturnCallback(fn (Category $c) => $c);
+
+		$this->assertNotNull($this->service->create('Concert', 'tag', ['allowMaybe' => false])->getTemplate());
+	}
+
+	public function testHalfAResponseDeadlineAndAWaitlistWithoutALimitAreDropped(): void {
+		$this->categoryMapper->method('findByName')
+			->willThrowException(new DoesNotExistException('not found'));
+		$this->categoryMapper->method('insert')->willReturnCallback(fn (Category $c) => $c);
+
+		$this->assertNull($this->service->create('Concert', 'tag', [
+			'responseDeadlineValue' => 3,
+			'maxAttendees' => 0,
+			'waitlistEnabled' => true,
+		])->getTemplate());
+		$this->assertNull($this->service->create('Concert', 'tag', [
+			'responseDeadlineValue' => 3,
+			'responseDeadlineUnit' => 'years',
+		])->getTemplate());
 	}
 
 	public function testCreateStoresNoTemplateWhenItWouldPrefillNothing(): void {
@@ -141,7 +199,17 @@ class CategoryServiceTest extends TestCase {
 			->willReturn($audience);
 
 		$this->assertSame(
-			['id' => 1, 'name' => 'Rehearsal', 'icon' => 'star', 'template' => ['description' => 'Clothing:'] + $audience],
+			['id' => 1, 'name' => 'Rehearsal', 'icon' => 'star', 'template' => [
+				'name' => '',
+				'description' => 'Clothing:',
+				'location' => '',
+				'responseDeadlineValue' => null,
+				'responseDeadlineUnit' => null,
+				'maxAttendees' => null,
+				'waitlistEnabled' => null,
+				'allowMaybe' => null,
+				'sendNotification' => null,
+			] + $audience],
 			$this->service->serialize($category, true),
 		);
 	}

@@ -18,8 +18,8 @@ use OCP\AppFramework\Db\DoesNotExistException;
  * vue-material-design-icons, Flutter: Icons.*), so a chosen icon is
  * guaranteed to exist everywhere without shipping a new icon-font dependency.
  *
- * A category can also carry a template: the description and access
- * restriction a new appointment of that category starts with.
+ * A category can also carry a template: what a new appointment of that
+ * category starts with. Every field is optional; empty means "do not prefill".
  *
  * @psalm-import-type AttendanceCategoryData from ResponseDefinitions
  * @psalm-import-type AttendanceCategoryTemplate from ResponseDefinitions
@@ -131,17 +131,50 @@ class CategoryService {
 		$this->categoryMapper->delete($category);
 	}
 
+	/** Units a template's relative response deadline may use. */
+	private const DEADLINE_UNITS = ['minutes', 'hours', 'days', 'weeks'];
+
+	/** The appointment name and location columns are 255 characters wide. */
+	private const SHORT_TEXT_MAX_LENGTH = 255;
+
 	/**
 	 * @param array<array-key, mixed> $template
-	 * @return array{description: string, visibleUsers: list<string>, visibleGroups: list<string>, visibleTeams: list<string>}
+	 * @return array{name: string, description: string, location: string, responseDeadlineValue: ?int, responseDeadlineUnit: ?string, maxAttendees: ?int, waitlistEnabled: ?bool, allowMaybe: ?bool, sendNotification: ?bool, visibleUsers: list<string>, visibleGroups: list<string>, visibleTeams: list<string>}
 	 */
 	private function normalizeTemplate(array $template): array {
+		$deadlineValue = $this->positiveInt($template['responseDeadlineValue'] ?? null);
+		$deadlineUnit = $this->deadlineUnit($template['responseDeadlineUnit'] ?? null);
+		// A number without a unit, or the other way round, prefills nothing.
+		$hasDeadline = $deadlineValue !== null && $deadlineUnit !== null;
+		$maxAttendees = $this->positiveInt($template['maxAttendees'] ?? null);
+
 		return [
+			'name' => mb_substr($this->plainText($template['name'] ?? null), 0, self::SHORT_TEXT_MAX_LENGTH),
 			'description' => $this->plainText($template['description'] ?? null),
+			'location' => mb_substr($this->plainText($template['location'] ?? null), 0, self::SHORT_TEXT_MAX_LENGTH),
+			'responseDeadlineValue' => $hasDeadline ? $deadlineValue : null,
+			'responseDeadlineUnit' => $hasDeadline ? $deadlineUnit : null,
+			'maxAttendees' => $maxAttendees,
+			// Whether to queue only means something next to a limit.
+			'waitlistEnabled' => $maxAttendees !== null ? $this->nullableBool($template['waitlistEnabled'] ?? null) : null,
+			'allowMaybe' => $this->nullableBool($template['allowMaybe'] ?? null),
+			'sendNotification' => $this->nullableBool($template['sendNotification'] ?? null),
 			'visibleUsers' => $this->idList($template['visibleUsers'] ?? null),
 			'visibleGroups' => $this->idList($template['visibleGroups'] ?? null),
 			'visibleTeams' => $this->idList($template['visibleTeams'] ?? null),
 		];
+	}
+
+	private function deadlineUnit(mixed $unit): ?string {
+		return is_string($unit) && in_array($unit, self::DEADLINE_UNITS, true) ? $unit : null;
+	}
+
+	private function positiveInt(mixed $value): ?int {
+		return is_int($value) && $value >= 1 ? $value : null;
+	}
+
+	private function nullableBool(mixed $value): ?bool {
+		return is_bool($value) ? $value : null;
 	}
 
 	private function plainText(mixed $text): string {
@@ -166,8 +199,10 @@ class CategoryService {
 	 */
 	private function encodeTemplate(array $template): ?string {
 		$normalized = $this->normalizeTemplate($template);
+		// A false switch is a choice, so only null, '' and [] count as empty.
+		$filled = array_filter($normalized, fn (mixed $value): bool => $value !== null && $value !== '' && $value !== []);
 
-		return array_filter($normalized) === [] ? null : json_encode($normalized, JSON_THROW_ON_ERROR);
+		return $filled === [] ? null : json_encode($normalized, JSON_THROW_ON_ERROR);
 	}
 
 	/**
@@ -181,7 +216,10 @@ class CategoryService {
 
 		$template = $this->normalizeTemplate($template);
 
-		return ['description' => $template['description']] + $this->visibilityService->enrichAudience(
+		$fields = $template;
+		unset($fields['visibleUsers'], $fields['visibleGroups'], $fields['visibleTeams']);
+
+		return $fields + $this->visibilityService->enrichAudience(
 			$template['visibleUsers'],
 			$template['visibleGroups'],
 			$template['visibleTeams'],

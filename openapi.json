@@ -770,14 +770,54 @@
             "CategoryTemplate": {
                 "type": "object",
                 "required": [
+                    "name",
                     "description",
+                    "location",
+                    "responseDeadlineValue",
+                    "responseDeadlineUnit",
+                    "maxAttendees",
+                    "waitlistEnabled",
+                    "allowMaybe",
+                    "sendNotification",
                     "visibleUsers",
                     "visibleGroups",
                     "visibleTeams"
                 ],
                 "properties": {
+                    "name": {
+                        "type": "string"
+                    },
                     "description": {
                         "type": "string"
+                    },
+                    "location": {
+                        "type": "string"
+                    },
+                    "responseDeadlineValue": {
+                        "type": "integer",
+                        "format": "int64",
+                        "nullable": true
+                    },
+                    "responseDeadlineUnit": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "maxAttendees": {
+                        "type": "integer",
+                        "format": "int64",
+                        "nullable": true
+                    },
+                    "waitlistEnabled": {
+                        "type": "boolean",
+                        "nullable": true
+                    },
+                    "allowMaybe": {
+                        "type": "boolean",
+                        "nullable": true
+                    },
+                    "sendNotification": {
+                        "type": "boolean",
+                        "nullable": true
                     },
                     "visibleUsers": {
                         "type": "array",

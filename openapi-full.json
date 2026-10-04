@@ -962,14 +962,54 @@
             "CategoryTemplate": {
                 "type": "object",
                 "required": [
+                    "name",
                     "description",
+                    "location",
+                    "responseDeadlineValue",
+                    "responseDeadlineUnit",
+                    "maxAttendees",
+                    "waitlistEnabled",
+                    "allowMaybe",
+                    "sendNotification",
                     "visibleUsers",
                     "visibleGroups",
                     "visibleTeams"
                 ],
                 "properties": {
+                    "name": {
+                        "type": "string"
+                    },
                     "description": {
                         "type": "string"
+                    },
+                    "location": {
+                        "type": "string"
+                    },
+                    "responseDeadlineValue": {
+                        "type": "integer",
+                        "format": "int64",
+                        "nullable": true
+                    },
+                    "responseDeadlineUnit": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "maxAttendees": {
+                        "type": "integer",
+                        "format": "int64",
+                        "nullable": true
+                    },
+                    "waitlistEnabled": {
+                        "type": "boolean",
+                        "nullable": true
+                    },
+                    "allowMaybe": {
+                        "type": "boolean",
+                        "nullable": true
+                    },
+                    "sendNotification": {
+                        "type": "boolean",
+                        "nullable": true
                     },
                     "visibleUsers": {
                         "type": "array",
@@ -994,8 +1034,40 @@
             "CategoryTemplateInput": {
                 "type": "object",
                 "properties": {
+                    "name": {
+                        "type": "string"
+                    },
                     "description": {
                         "type": "string"
+                    },
+                    "location": {
+                        "type": "string"
+                    },
+                    "responseDeadlineValue": {
+                        "type": "integer",
+                        "format": "int64",
+                        "nullable": true
+                    },
+                    "responseDeadlineUnit": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "maxAttendees": {
+                        "type": "integer",
+                        "format": "int64",
+                        "nullable": true
+                    },
+                    "waitlistEnabled": {
+                        "type": "boolean",
+                        "nullable": true
+                    },
+                    "allowMaybe": {
+                        "type": "boolean",
+                        "nullable": true
+                    },
+                    "sendNotification": {
+                        "type": "boolean",
+                        "nullable": true
                     },
                     "visibleUsers": {
                         "type": "array",
@@ -9648,7 +9720,7 @@
                                     "template": {
                                         "nullable": true,
                                         "default": null,
-                                        "description": "Description and access restriction a new appointment of this category starts with",
+                                        "description": "What a new appointment of this category starts with: name, description, location, relative response deadline, attendance limit and waitlist, \"Maybe\", notification and access restriction — each optional",
                                         "allOf": [
                                             {
                                                 "$ref": "#/components/schemas/CategoryTemplateInput"
@@ -9796,7 +9868,7 @@
                                     "template": {
                                         "nullable": true,
                                         "default": null,
-                                        "description": "Description and access restriction a new appointment of this category starts with. Omit to keep the stored template, send it empty to remove it",
+                                        "description": "What a new appointment of this category starts with: name, description, location, relative response deadline, attendance limit and waitlist, \"Maybe\", notification and access restriction — each optional. Omit to keep the stored template, send it empty to remove it",
                                         "allOf": [
                                             {
                                                 "$ref": "#/components/schemas/CategoryTemplateInput"

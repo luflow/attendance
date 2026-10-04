@@ -70,7 +70,7 @@ class CategoryController extends Controller {
 	 *
 	 * @param string $name Category name, must be unique
 	 * @param string $icon Icon key, must be one of CategoryService::ICONS
-	 * @param ?AttendanceCategoryTemplateInput $template Description and access restriction a new appointment of this category starts with
+	 * @param ?AttendanceCategoryTemplateInput $template What a new appointment of this category starts with: name, description, location, relative response deadline, attendance limit and waitlist, "Maybe", notification and access restriction — each optional
 	 * @return DataResponse<Http::STATUS_CREATED, AttendanceCategoryData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	#[NoCSRFRequired]
@@ -98,7 +98,7 @@ class CategoryController extends Controller {
 	 * @param int $id Category ID
 	 * @param string $name New category name, must be unique
 	 * @param string $icon Icon key, must be one of CategoryService::ICONS
-	 * @param ?AttendanceCategoryTemplateInput $template Description and access restriction a new appointment of this category starts with. Omit to keep the stored template, send it empty to remove it
+	 * @param ?AttendanceCategoryTemplateInput $template What a new appointment of this category starts with: name, description, location, relative response deadline, attendance limit and waitlist, "Maybe", notification and access restriction — each optional. Omit to keep the stored template, send it empty to remove it
 	 * @return DataResponse<Http::STATUS_OK, AttendanceCategoryData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
 	#[NoCSRFRequired]

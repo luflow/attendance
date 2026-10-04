@@ -171,13 +171,29 @@ namespace OCA\Attendance;
  * }
  * @psalm-type AttendanceAudienceRef = array{id: string, label: string, type: string, isGuest?: bool}
  * @psalm-type AttendanceCategoryTemplate = array{
+ *   name: string,
  *   description: string,
+ *   location: string,
+ *   responseDeadlineValue: ?int,
+ *   responseDeadlineUnit: ?string,
+ *   maxAttendees: ?int,
+ *   waitlistEnabled: ?bool,
+ *   allowMaybe: ?bool,
+ *   sendNotification: ?bool,
  *   visibleUsers: list<AttendanceAudienceRef>,
  *   visibleGroups: list<AttendanceAudienceRef>,
  *   visibleTeams: list<AttendanceAudienceRef>,
  * }
  * @psalm-type AttendanceCategoryTemplateInput = array{
+ *   name?: string,
  *   description?: string,
+ *   location?: string,
+ *   responseDeadlineValue?: ?int,
+ *   responseDeadlineUnit?: ?string,
+ *   maxAttendees?: ?int,
+ *   waitlistEnabled?: ?bool,
+ *   allowMaybe?: ?bool,
+ *   sendNotification?: ?bool,
  *   visibleUsers?: list<string>,
  *   visibleGroups?: list<string>,
  *   visibleTeams?: list<string>,
