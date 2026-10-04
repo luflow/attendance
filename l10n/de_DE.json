@@ -1062,7 +1062,7 @@
     "Failed to sync vacations to the calendar" : "Urlaub konnte nicht mit dem Kalender synchronisiert werden",
     "%1$s – Vacation" : "%1$s – Urlaub",
     "_%n vacation synced to the calendar_::_%n vacations synced to the calendar_" : ["%n Urlaub mit dem Kalender synchronisiert","%n Urlaube mit dem Kalender synchronisiert"],
-    "Your name is shown as a hint when appointments are created, so organizers see who is on vacation. Your note is not shown there." : "Ihr Name erscheint als Hinweis beim Anlegen von Terminen, damit man sieht, wer im Urlaub ist. Die Notiz wird dort nicht angezeigt.",
+    "Your name is shown as a hint when appointments are created, so organizers see who is on vacation — without your note. Period and note are only visible to members with access to the vacation calendar." : "Ihr Name erscheint als Hinweis beim Anlegen von Terminen, damit man sieht, wer im Urlaub ist – ohne Notiz. Zeitraum und Notiz sehen nur Mitglieder mit Zugriff auf den Urlaubskalender.",
     "{count} appointments set to \"No\"" : "{count} Termine auf „Nein“ gesetzt",
     "{occupancy} of {max} spots taken" : "{occupancy} von {max} Plätzen belegt",
     "{count} people are on vacation at this time — their answer defaults to \"No\"" : "{count} Personen sind zu dieser Zeit im Urlaub — ihre Antwort steht standardmäßig auf „Nein“",
