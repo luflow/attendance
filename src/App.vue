@@ -742,15 +742,20 @@ function currentRoute() {
 	return state?.view ? state : routeFromUrl()
 }
 
-function showRoute({ view, appointmentId = null }) {
+// Copy of the shown entry's state: after popstate the entry itself is out of reach.
+let shownRoute = null
+
+function showRoute(route) {
+	const { view, appointmentId = null } = route
+	shownRoute = route
 	checkinAppointmentId.value = view === 'checkin' ? appointmentId : null
 	appointmentDetailId.value = view === 'appointment' ? appointmentId : null
 	formAppointmentId.value = view === 'edit' || view === 'copy' ? appointmentId : null
 	currentView.value = view
 }
 
-// Position in this app's history, stamped into every state it writes: gives a
-// traversal's direction and whether "Back" has an in-app entry to return to.
+// Position in this app's history, stamped into every state it writes: keys the
+// scroll offsets and tells whether "Back" has an in-app entry to return to.
 let historyIdx = 0
 // Scroll offset each history entry was left at, by position.
 const scrollPositions = new Map()
@@ -793,12 +798,18 @@ function traverse(delta) {
 	})
 }
 
-// Follow a traversal the browser has already made: show what the entry holds
-// and scroll to where it was left.
+// Show the entry the browser is on. One without a position — opened by a link,
+// or written before positions existed — counts as the first.
+function showHistoryEntry() {
+	showRoute(currentRoute())
+	historyIdx = window.history.state?.idx ?? 0
+}
+
+// Follow a traversal the browser has already made, back to where the entry
+// was left.
 function enterHistoryEntry() {
 	rememberScroll()
-	historyIdx = window.history.state?.idx ?? historyIdx
-	showRoute(currentRoute())
+	showHistoryEntry()
 	scrollContentTo(scrollPositions.get(historyIdx) ?? 0)
 }
 
@@ -809,12 +820,13 @@ async function onPopState() {
 		done()
 		return
 	}
-	const delta = (window.history.state?.idx ?? historyIdx) - historyIdx
-	if (delta !== 0 && hasUnsavedChanges()) {
-		// The browser has already left the form: step back onto it, then ask.
-		await traverse(-delta)
+	if (hasUnsavedChanges()) {
+		// The browser has left the form's entry already and that cannot be called
+		// off, so put the form back on top of wherever it went, then ask.
+		historyIdx = (window.history.state?.idx ?? 0) + 1
+		window.history.pushState({ ...shownRoute, idx: historyIdx }, '', routeUrl(shownRoute))
 		if (!(await confirmLeave())) return
-		await traverse(delta)
+		await traverse(-1)
 	}
 	enterHistoryEntry()
 }
@@ -953,9 +965,7 @@ onMounted(async () => {
 	const appointmentsPromise = isCheckinView ? null : loadAppointments()
 
 	await permissionsPromise
-	historyIdx = window.history.state?.idx ?? 0
-	showRoute(currentRoute())
-	window.history.replaceState({ ...window.history.state, idx: historyIdx }, '')
+	showHistoryEntry()
 
 	if (appointmentsPromise) {
 		await appointmentsPromise
