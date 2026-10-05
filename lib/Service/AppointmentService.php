@@ -1314,14 +1314,9 @@ class AppointmentService {
 	 * @return list<string>
 	 */
 	public function getLocationSuggestions(string $userId, int $limit = 20): array {
-		// Holders of see_all_appointments see every appointment anyway
-		// (canUserSeeAppointment's own bypass), so skip the per-appointment
-		// check entirely for them.
-		$canSeeAll = $this->permissionService->canSeeAllAppointments($userId);
-
 		$suggestions = [];
 		foreach ($this->appointmentMapper->findWithLocation() as $appointment) {
-			if (!$canSeeAll && !$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
+			if (!$this->visibilityService->canUserSeeAppointment($appointment, $userId)) {
 				continue;
 			}
 			$location = $appointment->getLocation();
@@ -1876,10 +1871,6 @@ class AppointmentService {
 	 * @return list<ListRow>
 	 */
 	private function scopedListRows(string $userId, AppointmentListQuery $query): array {
-		// Hoisted: the list runs over every appointment on the instance, so the
-		// group lookups behind this must not repeat per row.
-		$canSeeAll = $this->permissionService->canSeeAllAppointments($userId);
-
 		$timeframes = [];
 		if ($query->coversUpcoming()) {
 			$timeframes[] = [$this->getUpcomingAppointments(), false];
@@ -1898,7 +1889,7 @@ class AppointmentService {
 				$isAttendee = $this->visibilityService->isUserTargetAttendee($appointment, $userId);
 				$isOrganizer = $this->permissionService->isOrganizer($appointment, $userId);
 				$isOwn = $isAttendee || $isOrganizer;
-				if (!$canSeeAll && !$isOwn) {
+				if (!$isOwn && !$this->permissionService->canSeeAppointmentViaSeeAll($appointment, $userId)) {
 					continue;
 				}
 				if ($query->onlyForMe && !$isOwn) {

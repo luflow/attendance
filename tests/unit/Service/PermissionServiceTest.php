@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Tests\Unit\Service;
 
+use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\PermissionService;
 use OCP\IAppConfig;
@@ -697,6 +698,128 @@ class PermissionServiceTest extends TestCase {
 
 		$this->assertTrue($this->service->canSeeAllAppointments('alice'));
 		$this->assertFalse($this->service->canManageAppointments('alice'));
+	}
+
+	private function appointmentInCategory(?int $categoryId): Appointment {
+		$appointment = new Appointment();
+		$appointment->setCategoryId($categoryId);
+		return $appointment;
+	}
+
+	public function testSeeAllWithoutCategoriesCoversEveryAppointment(): void {
+		$this->guestService->method('isGuestUser')->willReturn(false);
+		$this->configValues([
+			'permission_see_all_appointments_mode' => 'all',
+			'permission_manage_appointments_mode' => 'nobody',
+		]);
+
+		$this->assertTrue($this->service->canSeeAppointmentViaSeeAll($this->appointmentInCategory(3), 'alice'));
+		$this->assertTrue($this->service->canSeeAppointmentViaSeeAll($this->appointmentInCategory(null), 'alice'));
+	}
+
+	public function testSeeAllLimitedToCategoriesSkipsOtherAndUncategorizedAppointments(): void {
+		$this->guestService->method('isGuestUser')->willReturn(false);
+		$this->configValues([
+			'permission_see_all_appointments_mode' => 'all',
+			'permission_manage_appointments_mode' => 'nobody',
+			'permission_see_all_appointments_categories' => '[3,5]',
+		]);
+
+		$this->assertTrue($this->service->canSeeAppointmentViaSeeAll($this->appointmentInCategory(5), 'alice'));
+		$this->assertFalse($this->service->canSeeAppointmentViaSeeAll($this->appointmentInCategory(4), 'alice'));
+		$this->assertFalse($this->service->canSeeAppointmentViaSeeAll($this->appointmentInCategory(null), 'alice'));
+	}
+
+	public function testCategoryLimitDoesNotNarrowWhatManagersSee(): void {
+		$this->guestService->method('isGuestUser')->willReturn(false);
+		$this->configValues([
+			'permission_manage_appointments_mode' => 'all',
+			'permission_see_all_appointments_categories' => '[3]',
+		]);
+
+		$this->assertTrue($this->service->canSeeAppointmentViaSeeAll($this->appointmentInCategory(4), 'alice'));
+	}
+
+	public function testWithoutSeeAllNoAppointmentIsRevealed(): void {
+		$this->guestService->method('isGuestUser')->willReturn(false);
+		$this->configValues(['permission_manage_appointments_mode' => 'nobody']);
+
+		$this->assertFalse($this->service->canSeeAppointmentViaSeeAll($this->appointmentInCategory(null), 'alice'));
+	}
+
+	public function testSeeAllSettingsCarryTheCategoryList(): void {
+		$this->configValues(['permission_see_all_appointments_categories' => '[3,5]']);
+
+		$settings = $this->service->getAllPermissionSettings();
+
+		$this->assertSame([3, 5], $settings[PermissionService::PERMISSION_SEE_ALL_APPOINTMENTS]['categories']);
+		$this->assertArrayNotHasKey('categories', $settings[PermissionService::PERMISSION_CHECKIN]);
+	}
+
+	public function testCategoriesAreOnlyWrittenWhenSent(): void {
+		$written = [];
+		$this->appConfig->method('setValueString')
+			->willReturnCallback(function (string $app, string $key, string $value) use (&$written): bool {
+				$written[$key] = $value;
+				return true;
+			});
+
+		$this->service->setAllPermissionSettings([
+			'see_all_appointments' => ['mode' => 'groups', 'groups' => ['office'], 'categories' => [3, 3, 5]],
+		]);
+		$this->assertSame('[3,5]', $written['permission_see_all_appointments_categories']);
+
+		$written = [];
+		$this->service->setAllPermissionSettings([
+			'see_all_appointments' => ['mode' => 'groups', 'groups' => ['office']],
+		]);
+		$this->assertArrayNotHasKey('permission_see_all_appointments_categories', $written);
+	}
+
+	public function testForgettingACategoryKeepsTheOthers(): void {
+		$this->configValues(['permission_see_all_appointments_categories' => '[3,5]']);
+		$written = [];
+		$this->appConfig->method('setValueString')
+			->willReturnCallback(function (string $app, string $key, string $value) use (&$written): bool {
+				$written[$key] = $value;
+				return true;
+			});
+
+		$this->service->forgetSeeAllCategory(3);
+
+		$this->assertSame('[5]', $written['permission_see_all_appointments_categories']);
+		$this->assertArrayNotHasKey('permission_see_all_appointments_mode', $written);
+	}
+
+	public function testForgettingTheLastCategoryRevokesInsteadOfWidening(): void {
+		$this->configValues([
+			'permission_see_all_appointments_mode' => 'groups',
+			'permission_see_all_appointments' => '["office"]',
+			'permission_see_all_appointments_categories' => '[3]',
+		]);
+		$written = [];
+		$this->appConfig->method('setValueString')
+			->willReturnCallback(function (string $app, string $key, string $value) use (&$written): bool {
+				$written[$key] = $value;
+				return true;
+			});
+		$this->config->method('setAppValue')
+			->willReturnCallback(function (string $app, string $key, string $value) use (&$written): void {
+				$written[$key] = $value;
+			});
+
+		$this->service->forgetSeeAllCategory(3);
+
+		$this->assertSame('nobody', $written['permission_see_all_appointments_mode']);
+		$this->assertSame('["office"]', $written['permission_see_all_appointments']);
+		$this->assertSame('[]', $written['permission_see_all_appointments_categories']);
+	}
+
+	public function testForgettingAnUnlistedCategoryWritesNothing(): void {
+		$this->configValues(['permission_see_all_appointments_categories' => '[3]']);
+		$this->appConfig->expects($this->never())->method('setValueString');
+
+		$this->service->forgetSeeAllCategory(9);
 	}
 
 	public function testGuestsNeverSeeAllAppointments(): void {

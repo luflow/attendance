@@ -33,6 +33,7 @@
 				{{ noSelectionHint }}
 			</p>
 		</template>
+		<slot name="extra" />
 		<p v-if="warningWhenAll && modelValue.mode === warningWhenMode" class="permission-row__note permission-row__note--warning">
 			<AlertIcon :size="16" />
 			{{ warningWhenAll }}

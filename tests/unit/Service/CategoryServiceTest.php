@@ -8,6 +8,7 @@ use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\Category;
 use OCA\Attendance\Db\CategoryMapper;
 use OCA\Attendance\Service\CategoryService;
+use OCA\Attendance\Service\PermissionService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -23,13 +24,17 @@ class CategoryServiceTest extends TestCase {
 	/** @var VisibilityService|MockObject */
 	private $visibilityService;
 
+	/** @var PermissionService|MockObject */
+	private $permissionService;
+
 	private CategoryService $service;
 
 	protected function setUp(): void {
 		$this->categoryMapper = $this->createMock(CategoryMapper::class);
 		$this->appointmentMapper = $this->createMock(AppointmentMapper::class);
 		$this->visibilityService = $this->createMock(VisibilityService::class);
-		$this->service = new CategoryService($this->categoryMapper, $this->appointmentMapper, $this->visibilityService);
+		$this->permissionService = $this->createMock(PermissionService::class);
+		$this->service = new CategoryService($this->categoryMapper, $this->appointmentMapper, $this->visibilityService, $this->permissionService);
 	}
 
 	private function category(int $id, string $name, string $icon = 'tag'): Category {
@@ -281,6 +286,7 @@ class CategoryServiceTest extends TestCase {
 		$existing = $this->category(1, 'Rehearsal');
 		$this->categoryMapper->method('find')->with(1)->willReturn($existing);
 		$this->appointmentMapper->expects($this->once())->method('clearCategory')->with(1);
+		$this->permissionService->expects($this->once())->method('forgetSeeAllCategory')->with(1);
 		$this->categoryMapper->expects($this->once())->method('delete')->with($existing);
 
 		$this->service->delete(1);
