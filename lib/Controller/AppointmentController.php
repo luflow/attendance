@@ -1381,6 +1381,7 @@ class AppointmentController extends Controller {
 	 * @param bool $includeCheckin Whether to include the check-in column per appointment
 	 * @param bool $includeOrganizers Whether to append a row listing each appointment's organizers
 	 * @param bool $includeGroup Whether to include the group column next to the names
+	 * @param bool $includeLocation Whether to show each appointment's location next to its date
 	 * @return DataResponse<Http::STATUS_OK, AttendanceExportResult, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
@@ -1396,6 +1397,7 @@ class AppointmentController extends Controller {
 		bool $includeCheckin = true,
 		bool $includeOrganizers = false,
 		bool $includeGroup = true,
+		bool $includeLocation = true,
 	): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
@@ -1430,6 +1432,7 @@ class AppointmentController extends Controller {
 			$includeComments,
 			$includeOrganizers,
 			$includeGroup,
+			$includeLocation,
 		);
 
 		if (!$options->hasAnyColumn()) {

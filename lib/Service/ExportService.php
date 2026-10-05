@@ -394,8 +394,8 @@ class ExportService {
 			$startDate = $appointment->isAllDay()
 				? Appointment::allDayAnchor($appointment->getStartDatetime())->format('Y-m-d')
 				: date('Y-m-d', strtotime($appointment->getStartDatetime()));
-			$location = $appointment->getLocation();
-			$dateLabel = $location !== null ? $startDate . ' · ' . $this->odsWriter->escape($location) : $startDate;
+			$location = $options->includeLocation ? $appointment->getLocation() : null;
+			$dateLabel = $location !== null && $location !== '' ? $startDate . ' · ' . $this->odsWriter->escape($location) : $startDate;
 
 			$xml .= $this->mergedCell(OdsWriter::STYLE_HEADER, $dateLabel, $span);
 		}

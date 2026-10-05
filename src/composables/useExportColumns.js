@@ -35,5 +35,6 @@ function defaultColumns() {
 		includeComments: false,
 		includeOrganizers: false,
 		includeGroup: true,
+		includeLocation: true,
 	}
 }

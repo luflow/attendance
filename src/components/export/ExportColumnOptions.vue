@@ -25,6 +25,10 @@
 			{{ t('attendance', 'Add a group column next to the names') }}
 		</NcCheckboxRadioSwitch>
 
+		<NcCheckboxRadioSwitch v-model="columns.includeLocation" type="checkbox" class="organizer-option">
+			{{ t('attendance', 'Show the location next to the date') }}
+		</NcCheckboxRadioSwitch>
+
 		<NcCheckboxRadioSwitch v-model="columns.includeOrganizers" type="checkbox" class="organizer-option">
 			{{ t('attendance', 'Add a row with the organizers of each appointment') }}
 		</NcCheckboxRadioSwitch>

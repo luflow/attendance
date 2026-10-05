@@ -209,6 +209,7 @@
       <code><![CDATA[$includeCheckin]]></code>
       <code><![CDATA[$includeComments]]></code>
       <code><![CDATA[$includeGroup]]></code>
+      <code><![CDATA[$includeLocation]]></code>
       <code><![CDATA[$includeOrganizers]]></code>
       <code><![CDATA[$includeRsvp]]></code>
       <code><![CDATA[$isAllDay]]></code>
