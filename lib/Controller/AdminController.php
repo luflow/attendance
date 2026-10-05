@@ -207,7 +207,7 @@ class AdminController extends Controller {
 	 * @param ?list<string> $whitelistedTeams Team IDs allowed to use the app
 	 * @param ?string $responseSummaryGroupsMode How the response summary groups by Nextcloud group: none|specific|all
 	 * @param ?string $responseSummaryTeamsMode How the response summary groups by Nextcloud team: none|specific
-	 * @param ?array<string, array{mode: string, groups: list<string>}> $permissions Permission name to access mode (all|groups|nobody) and group IDs
+	 * @param ?array<string, array{mode: string, groups: list<string>, categories?: list<int>}> $permissions Permission name to access mode (all|groups|nobody), group IDs and, for see_all_appointments, the category IDs it is limited to
 	 * @param ?array{enabled?: bool, reminderDays?: int, reminderFrequency?: int, reminderTarget?: string} $reminders Reminder settings
 	 * @param ?array{enabled?: bool} $calendarSync Calendar sync settings
 	 * @param ?array{enabled?: bool, calendarUri?: string, summary?: bool} $orgCalendar Organization calendar settings (target calendar for automatic event creation)

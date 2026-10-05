@@ -134,7 +134,7 @@ class VisibilityServiceTest extends TestCase {
 	}
 
 	public function testSeeAllAppointmentsLiftsTheAudienceRestriction(): void {
-		$this->permissionService->method('canSeeAllAppointments')->willReturn(true);
+		$this->permissionService->method('canSeeAppointmentViaSeeAll')->willReturn(true);
 		$this->permissionService->method('isOrganizer')->willReturn(false);
 
 		$service = $this->partialMock(['getTeamMembers']);
@@ -143,7 +143,7 @@ class VisibilityServiceTest extends TestCase {
 	}
 
 	public function testWithoutSeeAllAppointmentsOnlyOwnAppointmentsAreVisible(): void {
-		$this->permissionService->method('canSeeAllAppointments')->willReturn(false);
+		$this->permissionService->method('canSeeAppointmentViaSeeAll')->willReturn(false);
 		$this->permissionService->method('isOrganizer')->willReturn(false);
 
 		$service = $this->partialMock(['getTeamMembers']);
@@ -154,7 +154,7 @@ class VisibilityServiceTest extends TestCase {
 	}
 
 	public function testOwnAppointmentCoversOrganizersOutsideTheAudience(): void {
-		$this->permissionService->method('canSeeAllAppointments')->willReturn(false);
+		$this->permissionService->method('canSeeAppointmentViaSeeAll')->willReturn(false);
 		$this->permissionService->method('isOrganizer')
 			->willReturnCallback(static fn (Appointment $a, string $userId): bool => $userId === 'bob');
 

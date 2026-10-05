@@ -38,6 +38,8 @@ class PermissionService {
 	 * @var array<string, bool>
 	 */
 	private array $permissionCache = [];
+	/** @var ?list<int> */
+	private ?array $seeAllCategoriesCache = null;
 
 	public const PERMISSION_MANAGE_APPOINTMENTS = 'manage_appointments';
 	public const PERMISSION_CHECKIN = 'checkin';
@@ -56,6 +58,8 @@ class PermissionService {
 	public const MODE_NOBODY = 'nobody';
 
 	public const MODES = [self::MODE_ALL, self::MODE_GROUPS, self::MODE_NOBODY];
+
+	private const SEE_ALL_CATEGORIES_KEY = 'permission_see_all_appointments_categories';
 
 	public const ALL_PERMISSIONS = [
 		self::PERMISSION_MANAGE_APPOINTMENTS,
@@ -265,7 +269,7 @@ class PermissionService {
 	/**
 	 * Get all permission settings as explicit mode + groups pairs
 	 *
-	 * @return array<string, array{mode: string, groups: list<string>}>
+	 * @return array<string, array{mode: string, groups: list<string>, categories?: list<int>}>
 	 */
 	public function getAllPermissionSettings(): array {
 		$settings = [];
@@ -275,6 +279,7 @@ class PermissionService {
 				'groups' => $this->getRolesForPermission($permission),
 			];
 		}
+		$settings[self::PERMISSION_SEE_ALL_APPOINTMENTS]['categories'] = $this->getSeeAllCategories();
 		return $settings;
 	}
 
@@ -284,7 +289,10 @@ class PermissionService {
 	 * older clients — a bare group list, interpreted with the legacy
 	 * empty-list semantics.
 	 *
-	 * @param array<string, array{mode: string, groups?: list<string>}|list<string>> $permissions
+	 * `categories` is only read for see_all_appointments; leaving it out keeps
+	 * the stored list.
+	 *
+	 * @param array<string, array{mode: string, groups?: list<string>, categories?: list<int>}|list<string>> $permissions
 	 */
 	public function setAllPermissionSettings(array $permissions): void {
 		foreach ($permissions as $permission => $value) {
@@ -299,6 +307,9 @@ class PermissionService {
 
 			if (isset($value['mode'])) {
 				$this->setPermission($permissionValue, $value['mode'], $value['groups'] ?? []);
+				if ($permissionValue === self::PERMISSION_SEE_ALL_APPOINTMENTS && isset($value['categories'])) {
+					$this->setSeeAllCategories($value['categories']);
+				}
 			} else {
 				$groups = array_values(array_filter($value, 'is_string'));
 				$this->setPermission(
@@ -427,13 +438,73 @@ class PermissionService {
 	}
 
 	/**
-	 * Check if user may see every appointment on the instance, not just the
-	 * ones addressed to them or organized by them. Managers hold it implicitly
-	 * — they can edit any appointment, so hiding it from them is pointless.
+	 * Check if user may see appointments beyond the ones addressed to them or
+	 * organized by them. Managers hold it implicitly — they can edit any
+	 * appointment, so hiding it from them is pointless. Whether a particular
+	 * appointment is covered is canSeeAppointmentViaSeeAll()'s question.
 	 */
 	public function canSeeAllAppointments(string $userId): bool {
 		return $this->hasPermission($userId, self::PERMISSION_SEE_ALL_APPOINTMENTS)
 			|| $this->canManageAppointments($userId);
+	}
+
+	/**
+	 * Whether see_all_appointments (or managing) reveals this appointment,
+	 * whatever its audience. The category list narrows the permission only,
+	 * never what managers see.
+	 */
+	public function canSeeAppointmentViaSeeAll(Appointment $appointment, string $userId): bool {
+		if (!$this->canSeeAllAppointments($userId)) {
+			return false;
+		}
+		if ($this->canManageAppointments($userId)) {
+			return true;
+		}
+		$categories = $this->getSeeAllCategories();
+		return $categories === [] || in_array($appointment->getCategoryId(), $categories, true);
+	}
+
+	/**
+	 * Categories see_all_appointments is limited to. Empty means every
+	 * appointment, with or without a category.
+	 *
+	 * @return list<int>
+	 */
+	public function getSeeAllCategories(): array {
+		if ($this->seeAllCategoriesCache !== null) {
+			return $this->seeAllCategoriesCache;
+		}
+		$decoded = (array)json_decode($this->appConfig->getValueString('attendance', self::SEE_ALL_CATEGORIES_KEY, '[]'), true);
+		return $this->seeAllCategoriesCache = array_values(array_filter($decoded, 'is_int'));
+	}
+
+	/**
+	 * @param list<int> $categoryIds
+	 */
+	public function setSeeAllCategories(array $categoryIds): void {
+		$categoryIds = array_values(array_unique($categoryIds));
+		$this->appConfig->setValueString('attendance', self::SEE_ALL_CATEGORIES_KEY, json_encode($categoryIds, JSON_THROW_ON_ERROR));
+		$this->seeAllCategoriesCache = $categoryIds;
+	}
+
+	/**
+	 * Drop a deleted category from the see-all list.
+	 */
+	public function forgetSeeAllCategory(int $categoryId): void {
+		$categories = $this->getSeeAllCategories();
+		if (!in_array($categoryId, $categories, true)) {
+			return;
+		}
+		$remaining = array_values(array_diff($categories, [$categoryId]));
+		if ($remaining === []) {
+			// An empty list means every category: losing the last one must not widen the grant.
+			$this->setPermission(
+				self::PERMISSION_SEE_ALL_APPOINTMENTS,
+				self::MODE_NOBODY,
+				$this->getRolesForPermission(self::PERMISSION_SEE_ALL_APPOINTMENTS),
+			);
+		}
+		$this->setSeeAllCategories($remaining);
 	}
 
 	/**

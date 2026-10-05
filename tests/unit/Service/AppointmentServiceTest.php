@@ -1976,7 +1976,7 @@ class AppointmentServiceTest extends TestCase {
 		$foreign = $this->createAppointment(1, 'Bob only');
 
 		$this->appointmentMapper->method('findUpcoming')->willReturn([$foreign]);
-		$this->permissionService->method('canSeeAllAppointments')->willReturn(true);
+		$this->permissionService->method('canSeeAppointmentViaSeeAll')->willReturn(true);
 		$this->permissionService->method('isOrganizer')->willReturn(false);
 		$this->visibilityService->method('isUserTargetAttendee')->willReturn(false);
 		$this->attachmentService->method('getAttachments')->willReturn([]);
@@ -1995,7 +1995,7 @@ class AppointmentServiceTest extends TestCase {
 		$this->appointmentMapper->method('findUpcoming')->willReturn([$organized]);
 		// Not invited, but organizing it — "My appointments" is not just the
 		// audience, and it needs no see-all permission either.
-		$this->permissionService->method('canSeeAllAppointments')->willReturn(false);
+		$this->permissionService->method('canSeeAppointmentViaSeeAll')->willReturn(false);
 		$this->permissionService->method('isOrganizer')->willReturn(true);
 		$this->visibilityService->method('isUserTargetAttendee')->willReturn(false);
 		$this->attachmentService->method('getAttachments')->willReturn([]);
@@ -2011,7 +2011,7 @@ class AppointmentServiceTest extends TestCase {
 		$organized = $this->createAppointment(1, 'Bob organizes this');
 
 		$this->appointmentMapper->method('findUpcoming')->willReturn([$organized]);
-		$this->permissionService->method('canSeeAllAppointments')->willReturn(false);
+		$this->permissionService->method('canSeeAppointmentViaSeeAll')->willReturn(false);
 		$this->permissionService->method('isOrganizer')->willReturn(true);
 		$this->visibilityService->method('isUserTargetAttendee')->willReturn(false);
 		$this->attachmentService->method('getAttachments')->willReturn([]);
@@ -2305,7 +2305,7 @@ class AppointmentServiceTest extends TestCase {
 			$this->createAppointment(2, 'Organizing'),
 			$this->createAppointment(3, 'Somebody else'),
 		]);
-		$this->permissionService->method('canSeeAllAppointments')->willReturn(true);
+		$this->permissionService->method('canSeeAppointmentViaSeeAll')->willReturn(true);
 		$this->visibilityService->method('isUserTargetAttendee')
 			->willReturnCallback(static fn (Appointment $appointment): bool => $appointment->getId() === 1);
 		$this->permissionService->method('isOrganizer')

@@ -1368,6 +1368,13 @@
                         "items": {
                             "type": "string"
                         }
+                    },
+                    "categories": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "format": "int64"
+                        }
                     }
                 }
             },
@@ -9234,7 +9241,7 @@
                                         "type": "object",
                                         "nullable": true,
                                         "default": null,
-                                        "description": "Permission name to access mode (all|groups|nobody) and group IDs",
+                                        "description": "Permission name to access mode (all|groups|nobody), group IDs and, for see_all_appointments, the category IDs it is limited to",
                                         "additionalProperties": {
                                             "type": "object",
                                             "required": [
@@ -9249,6 +9256,13 @@
                                                     "type": "array",
                                                     "items": {
                                                         "type": "string"
+                                                    }
+                                                },
+                                                "categories": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "integer",
+                                                        "format": "int64"
                                                     }
                                                 }
                                             }

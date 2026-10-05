@@ -185,7 +185,26 @@
 						:options="availableGroups"
 						:dataTest="`permission-${name}`"
 						@navigate="scrollToSection"
-						@update:modelValue="onPermissionChange(name, $event)" />
+						@update:modelValue="onPermissionChange(name, $event)">
+						<template v-if="name === 'see_all_appointments' && permissions[name].mode !== 'nobody' && categories.length > 0" #extra>
+							<div class="permission-categories">
+								<label for="see-all-categories">{{ t('attendance', 'Limit to categories') }}</label>
+								<NcSelect inputId="see-all-categories"
+									:modelValue="seeAllCategories"
+									:options="categories"
+									:reduce="(category) => category.id"
+									label="name"
+									:multiple="true"
+									:placeholder="t('attendance', 'All categories')"
+									data-test="permission-see_all_appointments-categories"
+									@update:modelValue="onSeeAllCategoriesChange" />
+								<p v-if="seeAllCategories.length > 0" class="permission-categories__note">
+									<!-- TRANSLATORS: Note under the category selection of the "May see all appointments" permission. "their own appointments" are the ones a user is invited to or organizes. -->
+									{{ t('attendance', 'Only appointments in these categories are added. Users still see their own appointments.') }}
+								</p>
+							</div>
+						</template>
+					</PermissionRow>
 				</div>
 			</NcSettingsSection>
 
@@ -820,6 +839,7 @@ const editingCategory = ref(null)
 const newCategoryNameLabel = t('attendance', 'New category name')
 const savingCategoryEdit = ref(false)
 const categoryToDelete = ref(null)
+const seeAllCategories = ref([])
 
 function sortCategories() {
 	categories.value.sort((a, b) => a.name.localeCompare(b.name))
@@ -899,6 +919,7 @@ async function deleteCategory() {
 	try {
 		await axios.delete(generateUrl(`/apps/attendance/api/admin/categories/${category.id}`))
 		categories.value = categories.value.filter((c) => c.id !== category.id)
+		forgetSeeAllCategory(category.id)
 	} catch {
 		showError(t('attendance', 'Could not delete category'))
 	} finally {
@@ -1125,9 +1146,24 @@ function onPermissionChange(name, value) {
 			[name]: {
 				mode: permissions.value[name].mode,
 				groups: permissions.value[name].groups.map((g) => g.id),
+				...(name === 'see_all_appointments' ? { categories: seeAllCategories.value } : {}),
 			},
 		},
 	}), SELECT_DEBOUNCE)
+}
+function onSeeAllCategoriesChange(ids) {
+	seeAllCategories.value = ids
+	onPermissionChange('see_all_appointments', permissions.value.see_all_appointments)
+}
+// Mirrors PermissionService::forgetSeeAllCategory, which already ran server-side.
+function forgetSeeAllCategory(id) {
+	if (!seeAllCategories.value.includes(id)) {
+		return
+	}
+	seeAllCategories.value = seeAllCategories.value.filter((categoryId) => categoryId !== id)
+	if (seeAllCategories.value.length === 0) {
+		permissions.value.see_all_appointments = { ...permissions.value.see_all_appointments, mode: 'nobody' }
+	}
 }
 autoSave(selfCheckinWindowMinutes, 'selfCheckinWindowMinutes', () => {
 	if (!Number.isFinite(selfCheckinWindowMinutes.value)) return null
@@ -1221,6 +1257,7 @@ async function loadSettings() {
 					groups: toGroupObjects(setting.groups, groups),
 				}
 			}
+			seeAllCategories.value = config.permissions.see_all_appointments?.categories ?? []
 		}
 
 		selfCheckinWindowMinutes.value = config.selfCheckinWindowMinutes ?? 30
@@ -1473,6 +1510,19 @@ onMounted(async () => {
 
 .permission-group {
 	margin-bottom: 32px;
+}
+
+.permission-categories {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin-top: 12px;
+}
+
+.permission-categories__note {
+	margin: 4px 0 0 0;
+	color: var(--color-text-maxcontrast);
+	font-size: 13px;
 }
 
 .permission-group:last-child {

@@ -60,15 +60,18 @@ class CategoryService {
 	private CategoryMapper $categoryMapper;
 	private AppointmentMapper $appointmentMapper;
 	private VisibilityService $visibilityService;
+	private PermissionService $permissionService;
 
 	public function __construct(
 		CategoryMapper $categoryMapper,
 		AppointmentMapper $appointmentMapper,
 		VisibilityService $visibilityService,
+		PermissionService $permissionService,
 	) {
 		$this->categoryMapper = $categoryMapper;
 		$this->appointmentMapper = $appointmentMapper;
 		$this->visibilityService = $visibilityService;
+		$this->permissionService = $permissionService;
 	}
 
 	/**
@@ -128,6 +131,7 @@ class CategoryService {
 	public function delete(int $id): void {
 		$category = $this->categoryMapper->find($id);
 		$this->appointmentMapper->clearCategory($id);
+		$this->permissionService->forgetSeeAllCategory($id);
 		$this->categoryMapper->delete($category);
 	}
 

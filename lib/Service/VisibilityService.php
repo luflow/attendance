@@ -63,9 +63,9 @@ class VisibilityService {
 	 * @return bool True if the user can see the appointment
 	 */
 	public function canUserSeeAppointment(Appointment $appointment, string $userId): bool {
-		// see_all_appointments lifts the audience restriction; managers hold it
-		// implicitly.
-		if ($this->permissionService->canSeeAllAppointments($userId)) {
+		// see_all_appointments lifts the audience restriction, within its
+		// categories; managers hold it implicitly.
+		if ($this->permissionService->canSeeAppointmentViaSeeAll($appointment, $userId)) {
 			return true;
 		}
 
