@@ -119,6 +119,7 @@ class ExportServiceTest extends TestCase {
 		$this->assertTrue($options->includeCheckin);
 		$this->assertFalse($options->includeComments);
 		$this->assertFalse($options->includeOrganizers);
+		$this->assertTrue($options->includeLocation);
 		$this->assertSame(2, $options->columnsPerAppointment());
 	}
 
@@ -392,6 +393,33 @@ class ExportServiceTest extends TestCase {
 		$this->assertStringNotContainsString('<text:p>alto</text:p>', $this->capturedXml);
 		// One identity column left, so the header block starts one cell earlier.
 		$this->assertStringContainsString('table:style-name="co1" table:number-columns-repeated="1"', $this->capturedXml);
+	}
+
+	public function testLocationIsShownNextToTheDateByDefault(): void {
+		$this->prepareSingleAppointmentExport();
+		$appointment = $this->appointment();
+		$appointment->setLocation('Hall A');
+		$this->appointmentMapper->method('findForExport')->willReturn([$appointment]);
+
+		$this->service->exportToOds('admin', ExportOptions::fromWire());
+
+		$this->assertStringContainsString('<text:p>2026-01-05 · Hall A</text:p>', $this->capturedXml);
+	}
+
+	public function testLocationCanBeSwitchedOff(): void {
+		$this->prepareSingleAppointmentExport();
+		$appointment = $this->appointment();
+		$appointment->setLocation('Hall A');
+		$this->appointmentMapper->method('findForExport')->willReturn([$appointment]);
+
+		$this->service->exportToOds('admin', ExportOptions::fromWire(
+			null, null, null, null,
+			true, true, false, false, true,
+			false,
+		));
+
+		$this->assertStringContainsString('<text:p>2026-01-05</text:p>', $this->capturedXml);
+		$this->assertStringNotContainsString('Hall A', $this->capturedXml);
 	}
 
 	public function testEmptyResultIsRejected(): void {

@@ -28,6 +28,7 @@ final class ExportOptions {
 		public readonly bool $includeComments,
 		public readonly bool $includeOrganizers,
 		public readonly bool $includeGroup,
+		public readonly bool $includeLocation,
 	) {
 	}
 
@@ -37,7 +38,7 @@ final class ExportOptions {
 	 * down — the mapper treats both the same, the caller should not have to
 	 * know that.
 	 *
-	 * RSVP, check-in and the group column default to on and comments to off,
+	 * RSVP, check-in, the group column and the location default to on and comments to off,
 	 * which is what the export produced before the columns became switchable —
 	 * an older client that sends neither still gets the same file.
 	 *
@@ -54,6 +55,7 @@ final class ExportOptions {
 		bool $includeComments = false,
 		bool $includeOrganizers = false,
 		bool $includeGroup = true,
+		bool $includeLocation = true,
 	): self {
 		return new self(
 			$appointmentIds === [] ? null : $appointmentIds,
@@ -65,6 +67,7 @@ final class ExportOptions {
 			$includeComments,
 			$includeOrganizers,
 			$includeGroup,
+			$includeLocation,
 		);
 	}
 

@@ -7273,6 +7273,11 @@
                                         "type": "boolean",
                                         "default": true,
                                         "description": "Whether to include the group column next to the names"
+                                    },
+                                    "includeLocation": {
+                                        "type": "boolean",
+                                        "default": true,
+                                        "description": "Whether to show each appointment's location next to its date"
                                     }
                                 }
                             }

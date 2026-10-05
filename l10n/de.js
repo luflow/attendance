@@ -1068,6 +1068,7 @@ OC.L10N.register(
     "{occupancy} of {max} spots taken" : "{occupancy} von {max} Plätzen belegt",
     "{count} people are on vacation at this time — their answer defaults to \"No\"" : "{count} Personen sind zu dieser Zeit im Urlaub — ihre Antwort steht standardmäßig auf „Nein“",
     "Add a group column next to the names" : "Gruppenspalte neben den Namen ergänzen",
+    "Show the location next to the date" : "Ort neben dem Datum anzeigen",
     "You organize this appointment but are not an attendee, so you cannot respond." : "Du bist nur Organisator dieses Termins und kein Teilnehmer, daher kannst du keine Antwort abgeben.",
     "You are not an attendee of this appointment, so you cannot respond." : "Du bist kein Teilnehmer dieses Termins, daher kannst du keine Antwort abgeben.",
     "My role" : "Meine Rolle",
