@@ -36,6 +36,7 @@ OC.L10N.register(
     "days" : "devezh",
     "Description" : "Deskrivadur",
     "Location" : "Lec'hiadur",
+    "Unlimited" : "Didermenet",
     "Save" : "Enrollañ",
     "Delete" : "Dilemel",
     "Share link" : "Lodañ al liamm",

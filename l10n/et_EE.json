@@ -485,6 +485,7 @@
     "e.g. Rehearsal" : "nt. Uus läbivaatus",
     "Add category" : "Lisa kategooria",
     "Do you want to delete the category \"{name}\"? Appointments using it keep their other data but lose the category." : "Kas soovid „{name}“ kategooria kustutada? Kui see on määratud mõnele kohtumisele, siis muud andmed jäävad alles, aga kategooria väärtus jääb tühjaks.",
+    "All categories" : "Kõik kategooriad",
     "QR code" : "QR-kood",
     "Print this QR code and put it up at the entrance." : "Prindi see QR-kood välja ja pane ta üles kuhugile sissepääsu lähedale.",
     "Download QR code" : "Laadi QR-kood alla",

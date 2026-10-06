@@ -92,6 +92,7 @@ OC.L10N.register(
     "Push notifications" : "Tujaj sciigoj",
     "or" : "aŭ",
     "Category" : "Kategorio",
+    "All day" : "Tuttage",
     "Notification" : "Atentigo",
     "Unsaved changes" : "Nekonservitaj ŝanĝoj",
     "Confirm" : "Konfirmi",

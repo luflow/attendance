@@ -151,6 +151,7 @@ OC.L10N.register(
     "Failed to load settings" : "Ezarpenak kargatzeak huts egin du",
     "Link copied" : "Esteka kopiatu da",
     "Template" : "Txantiloia",
+    "All categories" : "Kategoria guztiak",
     "Preview" : "Aurrebista",
     "Open" : "Ireki",
     "Push notifications" : "Push jakinarazpenak",

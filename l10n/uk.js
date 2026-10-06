@@ -158,6 +158,7 @@ OC.L10N.register(
     "Link copied" : "Посилання скопійовано",
     "Group by" : "Згрупувати за",
     "Template" : "Шаблон",
+    "All categories" : "Всі категорії",
     "Preview" : "Попередній перегляд",
     "Open" : "Відкрити",
     "Push notifications" : "Сповіщення push",

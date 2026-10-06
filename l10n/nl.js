@@ -299,6 +299,7 @@ OC.L10N.register(
     "Failed to copy link" : "Link kopiëren mislukt",
     "Group by" : "Groeperen op",
     "Template" : "Sjabloon",
+    "All categories" : "Alle categorieën",
     "Preview" : "Voorbeeld",
     "Open" : "Openen",
     "Push notifications" : "Push meldingen",

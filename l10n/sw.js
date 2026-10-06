@@ -289,6 +289,7 @@ OC.L10N.register(
     "Search and select teams …" : "Tafuta na uchague timu  …",
     "Template" : "Kiolezo",
     "Delete category" : "Delete category",
+    "All categories" : "Vipengele vyote",
     "Preview" : "Mwonekano wa awali",
     "Enable automatic calendar sync" : "Washa usawazishaji wa kalenda kiotomatiki",
     "Choose how appointments are displayed across the app." : "Chagua jinsi miadi inavyoonyeshwa kwenye programu yote.",

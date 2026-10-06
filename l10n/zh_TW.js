@@ -346,6 +346,7 @@ OC.L10N.register(
     "Search and select teams …" : "搜尋並選取團隊……",
     "Template" : "範本",
     "Delete category" : "刪除分類",
+    "All categories" : "所有類別",
     "Next reminder run" : "下次提醒執行",
     "As soon as the background job has run for the first time, the next approximate run time will be displayed here." : "背景工作首次執行後，此處將顯示下一次的預估執行時間。",
     "Preview" : "預覽",

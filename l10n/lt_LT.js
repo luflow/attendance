@@ -621,6 +621,7 @@ OC.L10N.register(
     "Add category" : "Pridėti kategoriją",
     "Do you want to delete the category \"{name}\"? Appointments using it keep their other data but lose the category." : "Ar norite ištrinti kategoriją „{name}“? Susitikimai, kuriuose ji naudojama, išlaikys kitus duomenis, tačiau praras šią kategoriją.",
     "Control who can do what. Every permission is either open to all users, limited to specific groups, or granted to nobody." : "Kontroliuokite, kas ką gali daryti. Kiekvienas leidimas yra arba prieinamas visiems vartotojams, arba apribotas konkrečioms grupėms, arba nesuteiktas niekam.",
+    "All categories" : "Visos kategorijos",
     "Attendees check themselves in via QR code or NFC tag. One code works for all appointments — the app matches by time." : "Dalyviai registruojasi naudodami QR kodą arba NFC žymą. Tas pats kodas tinka visiems susitikimams – programėlė juos susieja pagal laiką.",
     "Go to the mobile apps section." : "Eikite į mobiliųjų programėlių skiltį.",
     "QR code" : "QR kodas",

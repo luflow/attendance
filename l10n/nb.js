@@ -151,6 +151,7 @@ OC.L10N.register(
     "Link copied" : "Lenke kopiert",
     "Group by" : "Grupper etter",
     "Template" : "Mal",
+    "All categories" : "Alle kategorier",
     "Preview" : "Forhåndsvis",
     "Open" : "Åpne",
     "Push notifications" : "Push-merknader",

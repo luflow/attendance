@@ -637,6 +637,7 @@
     "Add category" : "Tambahkan kategori",
     "Do you want to delete the category \"{name}\"? Appointments using it keep their other data but lose the category." : "Apakah Anda ingin menghapus kategori \"{name}\"? Janji temu yang menggunakannya tetap menyimpan data lainnya, tetapi kehilangan kategorinya.",
     "Control who can do what. Every permission is either open to all users, limited to specific groups, or granted to nobody." : "Atur siapa yang dapat melakukan apa. Setiap izin dapat dibuka untuk semua pengguna, dibatasi untuk grup tertentu, atau tidak diberikan kepada siapa pun.",
+    "All categories" : "Semua kategori",
     "Attendees check themselves in via QR code or NFC tag. One code works for all appointments — the app matches by time." : "Peserta melakukan check-in sendiri melalui kode QR atau tag NFC. Satu kode berlaku untuk semua janji temu — aplikasi mencocokkannya berdasarkan waktu.",
     "Go to the mobile apps section." : "Buka bagian aplikasi seluler.",
     "QR code" : "Kode QR",

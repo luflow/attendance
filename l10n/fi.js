@@ -210,6 +210,7 @@ OC.L10N.register(
     "Link copied" : "Linkki kopioitu",
     "Search and select teams …" : "Etsi ja valitse tiimit …",
     "Template" : "Malli",
+    "All categories" : "Kaikki luokat",
     "Preview" : "Esikatselu",
     "Enable automatic calendar sync" : "Käytä automaattista kalenterisynkronointia",
     "Name first" : "Nimi ensin",

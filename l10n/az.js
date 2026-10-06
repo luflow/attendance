@@ -29,6 +29,7 @@ OC.L10N.register(
     "weeks" : "həftələr",
     "Description" : "Açıqlanma",
     "Location" : "Yerləşdiyiniz ünvan",
+    "Unlimited" : "Limitsiz",
     "Save" : "Saxla",
     "Delete" : "Sil",
     "Edit" : "Dəyişiklik et",

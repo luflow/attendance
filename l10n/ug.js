@@ -158,6 +158,7 @@ OC.L10N.register(
     "Group by" : "بىلەن گۇرۇپپىلاش",
     "Template" : "قېلىپ",
     "Delete category" : "كاتېگورىيەنى ئۆچۈرۈش",
+    "All categories" : "بارلىق تۈرلەر",
     "Preview" : "ئالدىن كۆرۈش",
     "Open" : "ئېچىڭ",
     "Push notifications" : "ئىتتىرىش ئۇقتۇرۇشى",

@@ -155,6 +155,7 @@ OC.L10N.register(
     "Failed to load settings" : "A beállítások betöltése sikertelen",
     "Link copied" : "Hivatkozás másolva",
     "Template" : "Sablon",
+    "All categories" : "Összes kategória",
     "Preview" : "Előnézet",
     "Open" : "Megnyitás",
     "Push notifications" : "Leküldéses értesítések",

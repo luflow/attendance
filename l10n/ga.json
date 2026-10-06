@@ -653,6 +653,7 @@
     "Add category" : "Cuir catagóir leis",
     "Do you want to delete the category \"{name}\"? Appointments using it keep their other data but lose the category." : "Ar mhaith leat an chatagóir \"{name}\" a scriosadh? Coinníonn ceapacháin a úsáideann í a gcuid sonraí eile ach caillfidh siad an chatagóir.",
     "Control who can do what. Every permission is either open to all users, limited to specific groups, or granted to nobody." : "Rialú cé atá in ann cad a dhéanamh. Bíonn gach cead oscailte do gach úsáideoir, teoranta do ghrúpaí sonracha, nó deonaithe d'aon duine.",
+    "All categories" : "Gach catagóir",
     "Attendees check themselves in via QR code or NFC tag. One code works for all appointments — the app matches by time." : "Déanann freastalaithe iad féin a chlárú isteach trí chód QR nó clib NFC. Oibríonn cód amháin do gach coinne — déanann an aip meaitseáil de réir ama.",
     "Go to the mobile apps section." : "Téigh go dtí an rannán aipeanna soghluaiste.",
     "QR code" : "Cód QR",

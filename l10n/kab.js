@@ -154,6 +154,7 @@ OC.L10N.register(
     "Link copied" : "Aseɣwen yettwanɣel",
     "Group by" : "Segrew s",
     "Template" : "Taneɣruft n temsisɣelt",
+    "All categories" : "Akk taggayin",
     "Preview" : "Taskant",
     "Open" : "Ldi",
     "Push notifications" : "Ilɣa yettwaznen",

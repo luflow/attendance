@@ -169,6 +169,8 @@ OC.L10N.register(
     "Link copied" : "Enlace copiado",
     "Failed to copy link" : "Error al copiar el enlace",
     "Group by" : "Agrupar por",
+    "Template" : "Plantilla",
+    "All categories" : "Todas las categorías",
     "Preview" : "Vista previa",
     "Open" : "Abrir",
     "Push notifications" : "Notificaciones de tipo push",

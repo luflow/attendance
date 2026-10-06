@@ -275,6 +275,7 @@ OC.L10N.register(
     "Search and select teams …" : "Buscar e seleccionar equipos…",
     "Template" : "Modelo",
     "Delete category" : "Eliminar categoría",
+    "All categories" : "Todas as categorías",
     "Preview" : "Vista previa",
     "Enable automatic calendar sync" : "Activar a sincronización automática do calendario",
     "Choose how appointments are displayed across the app." : "Escolla como amosar as citas na aplicación.",

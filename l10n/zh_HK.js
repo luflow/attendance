@@ -699,6 +699,7 @@ OC.L10N.register(
     "Add category" : "加入分類",
     "Do you want to delete the category \"{name}\"? Appointments using it keep their other data but lose the category." : "確定要刪除類別「{name}」嗎？使用此類別的活動會保留其他資料，但將失去此類別。",
     "Control who can do what. Every permission is either open to all users, limited to specific groups, or granted to nobody." : "控制不同用戶可執行的操作。每項權限可開放予所有用戶、限於指定群組，或不授予任何人。",
+    "All categories" : "所有分類",
     "Attendees check themselves in via QR code or NFC tag. One code works for all appointments — the app matches by time." : "出席者可透過二維碼或 NFC 標籤自行簽到。一個代碼適用於所有活動 — 應用程式會按時間配對。",
     "Go to the mobile apps section." : "前往流動應用程式部分。",
     "QR code" : "QR 碼",

@@ -637,6 +637,7 @@
     "Add category" : "Lägg till kategori",
     "Do you want to delete the category \"{name}\"? Appointments using it keep their other data but lose the category." : "Vill du ta bort kategorin \"{name}\"? Tillfällen som använder den behåller sina övriga data men förlorar kategorin.",
     "Control who can do what. Every permission is either open to all users, limited to specific groups, or granted to nobody." : "Styr vem som får göra vad. Varje behörighet är antingen öppen för alla användare, begränsad till specifika grupper eller inte beviljad någon.",
+    "All categories" : "Alla kategorier",
     "Attendees check themselves in via QR code or NFC tag. One code works for all appointments — the app matches by time." : "Deltagarna checkar in själva via QR-kod eller NFC-tagg. En kod fungerar för alla tillfällen – appen matchar efter tid.",
     "Go to the mobile apps section." : "Gå till avsnittet för mobilappar.",
     "QR code" : "QR-kod",

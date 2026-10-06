@@ -368,6 +368,7 @@ OC.L10N.register(
     "Search and select teams …" : "Pesquisar e selecionar equipes …",
     "Template" : "Modelo",
     "Delete category" : "Excluir categoria",
+    "All categories" : "Todas as categorias",
     "Next reminder run" : "Próxima execução de lembretes",
     "As soon as the background job has run for the first time, the next approximate run time will be displayed here." : "Assim que a tarefa em segundo plano for executada pela primeira vez, o tempo aproximado da próxima execução será exibido aqui.",
     "Preview" : "Pré-visualizar",

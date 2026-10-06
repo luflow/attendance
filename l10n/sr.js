@@ -157,6 +157,7 @@ OC.L10N.register(
     "Link copied" : "Веза ископирана",
     "Group by" : "Групиши по",
     "Template" : "Шаблон",
+    "All categories" : "Све категорије",
     "Preview" : "Преглед",
     "Open" : "Отвори",
     "Push notifications" : "Брза обавештења",

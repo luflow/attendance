@@ -69,6 +69,7 @@ OC.L10N.register(
     "Category" : "Categori",
     "Appointment not found" : "Apwyntiad heb ei ganfod",
     "Edit appointment" : "Golygu apwyntiad",
+    "All day" : "Drwy'r dydd",
     "Notification" : "Hysbysiad",
     "Confirm" : "Cadarnhau",
     "15 minutes before" : "15 munud cynt",
