@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\Attendance\Tests\Unit\Notification;
 
 use OCA\Attendance\Activity\EventMessages;
+use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
@@ -108,12 +109,12 @@ class NotifierTest extends TestCase {
 		return $notification;
 	}
 
-	private function mockAppointmentNotification(string $subject, array $subjectParameters): INotification|MockObject {
+	private function mockAppointmentNotification(string $subject, array $subjectParameters, string $user = 'alice'): INotification|MockObject {
 		$notification = $this->createMock(INotification::class);
 		$notification->method('getApp')->willReturn('attendance');
 		$notification->method('getSubject')->willReturn($subject);
 		$notification->method('getSubjectParameters')->willReturn($subjectParameters);
-		$notification->method('getUser')->willReturn('alice');
+		$notification->method('getUser')->willReturn($user);
 		$notification->method('setParsedSubject')->willReturnSelf();
 		$notification->method('setParsedMessage')->willReturnSelf();
 		$notification->method('setIcon')->willReturnSelf();
@@ -243,6 +244,34 @@ class NotifierTest extends TestCase {
 
 		$result = $this->notifier->prepare($notification, 'de');
 		$this->assertSame($notification, $result);
+	}
+
+	/**
+	 * A wave prepares one notification per recipient, all about the same
+	 * appointment — the push path then has to read it once, not once per
+	 * person, and the icon is the same for everyone anyway.
+	 */
+	public function testWaveReadsTheAppointmentAndIconOnce(): void {
+		$this->appointmentMapper->expects($this->once())
+			->method('find')
+			->with(42)
+			->willReturn(new Appointment());
+		$this->urlGenerator->expects($this->once())
+			->method('imagePath')
+			->with('attendance', 'app-dark.svg')
+			->willReturn('/apps/attendance/img/app-dark.svg');
+
+		foreach (['alice', 'bob', 'carol'] as $recipient) {
+			$notification = $this->mockAppointmentNotification('appointment_updated', [
+				'appointmentId' => 42,
+				'name' => 'Rehearsal',
+				'startDatetime' => '2030-08-01 18:00:00',
+				'changed' => ['time'],
+			], $recipient);
+			$notification->expects($this->exactly(3))->method('addParsedAction');
+
+			$this->notifier->prepare($notification, 'de');
+		}
 	}
 
 	public function testSeriesUpdateNotificationCountsAndDescribes(): void {

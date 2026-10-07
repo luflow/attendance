@@ -29,6 +29,10 @@ class Notifier implements INotifier {
 	private IUserManager $userManager;
 	private EventMessages $eventMessages;
 
+	/** @var array<int, bool> */
+	private array $maybeOffered = [];
+	private ?string $iconUrl = null;
+
 	public function __construct(
 		IFactory $l10nFactory,
 		IURLGenerator $urlGenerator,
@@ -115,9 +119,7 @@ class Notifier implements INotifier {
 					// TRANSLATORS Push notification body for a reminder, shown under a "Response missing" subject that already names the appointment and its date. The app speaks as "we", the people organizing — not about them in the third person. People who cannot come tend to stay silent rather than answer, which leaves the planning guessing, hence the second sentence. Sample German: "Wir warten noch auf dich. Ein Nein hilft uns genauso wie ein Ja.".
 					$l->t('We are still waiting. A no helps just as much as a yes.')
 				);
-				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
-					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
-				));
+				$notification->setIcon($this->iconUrl());
 
 				// Add quick response action buttons
 				if ($appointmentId > 0) {
@@ -140,9 +142,7 @@ class Notifier implements INotifier {
 					// TRANSLATORS Push notification body for a newly created appointment, shown under a "New appointment" subject that already names it and its date. The app speaks as "we", the people organizing — not about them in the third person. "Make it" means being able to attend. Organizers only switch this notification on when they need answers fast, so keep the urgency of the first sentence: it is the whole reason the message was sent. Sample German: "Wir brauchen schnell deine Rückmeldung. Bist du dabei?".
 					$l->t('We need your answer quickly. Let us know whether you can make it.')
 				);
-				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
-					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
-				));
+				$notification->setIcon($this->iconUrl());
 
 				// Add quick response action buttons
 				if ($appointmentId > 0) {
@@ -154,18 +154,14 @@ class Notifier implements INotifier {
 				$rendered = $this->eventMessages->forCancelled($l, $notification->getSubjectParameters(), $notification->getUser());
 				$notification->setParsedSubject($rendered['subject']);
 				$notification->setParsedMessage($rendered['message']);
-				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
-					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
-				));
+				$notification->setIcon($this->iconUrl());
 
 				return $notification;
 			case 'appointment_reactivated':
 				$rendered = $this->eventMessages->forReactivated($l, $notification->getSubjectParameters(), $notification->getUser());
 				$notification->setParsedSubject($rendered['subject']);
 				$notification->setParsedMessage($rendered['message']);
-				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
-					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
-				));
+				$notification->setIcon($this->iconUrl());
 
 				return $notification;
 			case 'appointment_updated':
@@ -182,9 +178,7 @@ class Notifier implements INotifier {
 				$notification->setParsedMessage(
 					$this->eventMessages->describeUpdate((array)($parameters['changed'] ?? []), $l)
 				);
-				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
-					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
-				));
+				$notification->setIcon($this->iconUrl());
 
 				// A moved appointment is exactly when someone needs to revise their answer.
 				if ($appointmentId > 0) {
@@ -199,9 +193,7 @@ class Notifier implements INotifier {
 					: $this->eventMessages->forBookingDeclined($l, $notification->getSubjectParameters(), $notification->getUser());
 				$notification->setParsedSubject($rendered['subject']);
 				$notification->setParsedMessage($rendered['message']);
-				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
-					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
-				));
+				$notification->setIcon($this->iconUrl());
 				return $notification;
 			case 'waitlist_promoted':
 			case 'waitlist_not_promoted':
@@ -227,9 +219,7 @@ class Notifier implements INotifier {
 						$l->t('The appointment stayed full, so you no longer need to keep the date free. Thanks for answering.')
 					);
 				}
-				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
-					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
-				));
+				$notification->setIcon($this->iconUrl());
 				return $notification;
 			case 'response_submitted':
 			case 'response_changed':
@@ -249,18 +239,14 @@ class Notifier implements INotifier {
 					// TRANSLATORS Push notification body for several appointments added at once, shown under a subject that already gives the number and one example name. The app speaks as "we", the people organizing — not about them in the third person. The recipient answers each appointment separately, which is why this says "which ones" rather than asking for a single answer. Sample German: "Sag uns bitte, bei welchen Terminen du dabei bist.".
 					$l->t('Let us know which ones you can make.')
 				);
-				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
-					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
-				));
+				$notification->setIcon($this->iconUrl());
 
 				return $notification;
 			case 'appointments_series_updated':
 				$rendered = $this->eventMessages->forSeriesUpdated($l, $notification->getSubjectParameters());
 				$notification->setParsedSubject($rendered['subject']);
 				$notification->setParsedMessage($rendered['message']);
-				$notification->setIcon($this->urlGenerator->getAbsoluteURL(
-					$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
-				));
+				$notification->setIcon($this->iconUrl());
 
 				return $notification;
 			default:
@@ -345,9 +331,7 @@ class Notifier implements INotifier {
 		}
 
 		$notification->setParsedSubject($subject);
-		$notification->setIcon($this->urlGenerator->getAbsoluteURL(
-			$this->urlGenerator->imagePath('attendance', 'app-dark.svg')
-		));
+		$notification->setIcon($this->iconUrl());
 		return $notification;
 	}
 
@@ -368,6 +352,16 @@ class Notifier implements INotifier {
 		if ($appointmentId > 0) {
 			$notification->setObject('appointment', (string)$appointmentId);
 		}
+	}
+
+	/**
+	 * The same for every notification of the app, while imagePath() walks the
+	 * theme folders (or asks the memcache) on every call.
+	 */
+	private function iconUrl(): string {
+		return $this->iconUrl ??= $this->urlGenerator->getAbsoluteURL(
+			$this->urlGenerator->imagePath('attendance', 'app-dark.svg'),
+		);
 	}
 
 	/**
@@ -403,8 +397,15 @@ class Notifier implements INotifier {
 	 * Whether this appointment still offers "Maybe". A notification can outlive
 	 * the appointment it points at, and an unknown one keeps all three buttons
 	 * rather than silently dropping one.
+	 *
+	 * Remembered per appointment: a wave prepares one notification per
+	 * recipient, and all of them ask about the same appointment.
 	 */
 	private function isMaybeOffered(int $appointmentId): bool {
+		return $this->maybeOffered[$appointmentId] ??= $this->lookupMaybeOffered($appointmentId);
+	}
+
+	private function lookupMaybeOffered(int $appointmentId): bool {
 		try {
 			return $this->responsePolicyService->isMaybeAllowed(
 				$this->appointmentMapper->find($appointmentId),
