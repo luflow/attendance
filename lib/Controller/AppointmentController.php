@@ -190,15 +190,6 @@ class AppointmentController extends Controller {
 			$canSeeResponseCounts,
 		);
 
-		// Add checkin summary to each appointment the user may see at least
-		// the aggregate numbers for — it only ever carries counts, no names.
-		foreach ($page['appointments'] as &$appointment) {
-			if ($appointment['myPermissions']['canSeeResponseCounts']) {
-				$appointment['checkinSummary'] = $this->checkinService->getCheckinSummary($appointment['id']);
-			}
-		}
-		unset($appointment);
-
 		return new DataResponse($query->isPaged() ? $page : $page['appointments']);
 	}
 
@@ -797,12 +788,6 @@ class AppointmentController extends Controller {
 			);
 			if ($appointment === null) {
 				return new DataResponse(['error' => 'Appointment not found or not visible'], 404);
-			}
-
-			// Add checkin summary if user may see at least the aggregate
-			// numbers for this appointment — it only ever carries counts.
-			if ($appointment['myPermissions']['canSeeResponseCounts']) {
-				$appointment['checkinSummary'] = $this->checkinService->getCheckinSummary($id);
 			}
 
 			return new DataResponse($appointment);

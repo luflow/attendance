@@ -28,12 +28,11 @@ class AppointmentSerializer {
 		/** @var array<string, mixed> $data */
 		$data = $appointment->jsonSerialize();
 		$data['allowMaybe'] = $this->responsePolicyService->isMaybeAllowed($appointment);
-		// Only an appointment with a limit pays for the queue query, which is
-		// why every reader asks limitOf() first. Without one there is nothing to
-		// count and nothing that can be full.
-		$hasLimit = $this->capacityService->limitOf($appointment) !== null;
-		$data['occupancy'] = $hasLimit ? $this->capacityService->occupancy($appointment) : 0;
-		$data['isFull'] = $hasLimit && $this->capacityService->isFull($appointment);
+		// Handed on to isFull() so the queue is counted once; without a limit
+		// occupancy() answers 0 without a query.
+		$occupancy = $this->capacityService->occupancy($appointment);
+		$data['occupancy'] = $occupancy;
+		$data['isFull'] = $this->capacityService->isFull($appointment, $occupancy);
 		return $data;
 	}
 }

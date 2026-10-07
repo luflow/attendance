@@ -136,7 +136,7 @@ class BookingServiceTest extends TestCase {
 
 	public function testNotifyOnCloseSkippedWhenFeatureDisabled(): void {
 		$this->configService->method('isBookingEnabled')->willReturn(false);
-		$this->responseMapper->expects($this->never())->method('findByAppointment');
+		$this->responseMapper->expects($this->never())->method('findBookedUserIds');
 		$this->notificationService->expects($this->never())->method('sendBookingNotification');
 
 		$sent = $this->service->notifyOnClose($this->appointment());
@@ -259,7 +259,7 @@ class BookingServiceTest extends TestCase {
 
 	public function testIsScheduledOutIsFalseWhenPlanningIsDisabled(): void {
 		$this->configService->method('isBookingEnabled')->willReturn(false);
-		$this->responseMapper->expects($this->never())->method('findByAppointment');
+		$this->responseMapper->expects($this->never())->method('findBookedUserIds');
 
 		$this->assertFalse($this->service->isScheduledOut($this->closedAppointment(), 'alice'));
 	}
@@ -268,7 +268,7 @@ class BookingServiceTest extends TestCase {
 		// Nothing has been decided yet — hiding here would take away the very
 		// appointment the user still needs to answer.
 		$this->configService->method('isBookingEnabled')->willReturn(true);
-		$this->responseMapper->expects($this->never())->method('findByAppointment');
+		$this->responseMapper->expects($this->never())->method('findBookedUserIds');
 
 		$this->assertFalse($this->service->isScheduledOut($this->appointment(), 'alice'));
 	}
@@ -276,51 +276,65 @@ class BookingServiceTest extends TestCase {
 	public function testIsScheduledOutIsFalseWhenNobodyWasScheduled(): void {
 		// The manager closed without using the feature — everyone keeps seeing it.
 		$this->configService->method('isBookingEnabled')->willReturn(true);
-		$this->responseMapper->method('findByAppointment')->willReturn([
-			$this->response('alice', 'yes'),
-			$this->response('bob', 'yes'),
-		]);
+		$this->responseMapper->method('findBookedUserIds')->with([5])->willReturn([]);
 
 		$this->assertFalse($this->service->isScheduledOut($this->closedAppointment(), 'alice'));
 	}
 
 	public function testIsScheduledOutIsFalseForTheScheduledUser(): void {
 		$this->configService->method('isBookingEnabled')->willReturn(true);
-		$this->responseMapper->method('findByAppointment')->willReturn([
-			$this->response('bob', 'yes', BookingService::STATUS_BOOKED),
-			$this->response('alice', 'yes', BookingService::STATUS_BOOKED),
-		]);
+		$this->responseMapper->method('findBookedUserIds')->with([5])->willReturn([5 => ['bob', 'alice']]);
 
 		$this->assertFalse($this->service->isScheduledOut($this->closedAppointment(), 'alice'));
 	}
 
 	public function testIsScheduledOutIsTrueWhenSomebodyElseGotThePlace(): void {
 		$this->configService->method('isBookingEnabled')->willReturn(true);
-		$this->responseMapper->method('findByAppointment')->willReturn([
-			$this->response('bob', 'yes', BookingService::STATUS_BOOKED),
-			$this->response('alice', 'yes', BookingService::STATUS_DECLINED),
-		]);
+		$this->responseMapper->method('findBookedUserIds')->with([5])->willReturn([5 => ['bob']]);
 
 		$this->assertTrue($this->service->isScheduledOut($this->closedAppointment(), 'alice'));
+	}
+
+	public function testScheduledFiltersUsePreloadedBookingsWithoutAQuery(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+		$this->responseMapper->expects($this->never())->method('findBookedUserIds');
+
+		$this->assertTrue($this->service->isScheduledOut($this->closedAppointment(), 'alice', ['bob']));
+		$this->assertFalse($this->service->isScheduledOut($this->closedAppointment(), 'alice', ['bob', 'alice']));
+		$this->assertFalse($this->service->isScheduledOut($this->closedAppointment(), 'alice', []));
+		$this->assertTrue($this->service->isScheduledIn($this->closedAppointment(), 'alice', ['alice']));
+		$this->assertFalse($this->service->isScheduledIn($this->closedAppointment(), 'alice', ['bob']));
+	}
+
+	public function testBookedUserIdsForSkipsTheQueryWhilePlanningIsOff(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(false);
+		$this->responseMapper->expects($this->never())->method('findBookedUserIds');
+
+		$this->assertSame([], $this->service->bookedUserIdsFor([1, 2]));
+	}
+
+	public function testBookedUserIdsForReadsAllAppointmentsAtOnce(): void {
+		$this->configService->method('isBookingEnabled')->willReturn(true);
+		$this->responseMapper->expects($this->once())
+			->method('findBookedUserIds')
+			->with([1, 2])
+			->willReturn([1 => ['alice']]);
+
+		$this->assertSame([1 => ['alice']], $this->service->bookedUserIdsFor([1, 2]));
 	}
 
 	// --- isScheduledIn: the "only my scheduled" filter ---
 
 	public function testIsScheduledInIsFalseWhenPlanningIsOff(): void {
 		$this->configService->method('isBookingEnabled')->willReturn(false);
-		$this->responseMapper->method('findByAppointment')->willReturn([
-			$this->response('alice', 'yes', BookingService::STATUS_BOOKED),
-		]);
+		$this->responseMapper->method('findBookedUserIds')->with([5])->willReturn([5 => ['alice']]);
 
 		$this->assertFalse($this->service->isScheduledIn($this->closedAppointment(), 'alice'));
 	}
 
 	public function testIsScheduledInIsTrueForTheBookedUser(): void {
 		$this->configService->method('isBookingEnabled')->willReturn(true);
-		$this->responseMapper->method('findByAppointment')->willReturn([
-			$this->response('bob', 'yes'),
-			$this->response('alice', 'yes', BookingService::STATUS_BOOKED),
-		]);
+		$this->responseMapper->method('findBookedUserIds')->with([5])->willReturn([5 => ['alice']]);
 
 		$this->assertTrue($this->service->isScheduledIn($this->closedAppointment(), 'alice'));
 	}
@@ -330,28 +344,21 @@ class BookingServiceTest extends TestCase {
 		// before closing — unlike not being booked. The date is one the user
 		// has to turn up for either way.
 		$this->configService->method('isBookingEnabled')->willReturn(true);
-		$this->responseMapper->method('findByAppointment')->willReturn([
-			$this->response('alice', 'yes', BookingService::STATUS_BOOKED),
-		]);
+		$this->responseMapper->method('findBookedUserIds')->with([5])->willReturn([5 => ['alice']]);
 
 		$this->assertTrue($this->service->isScheduledIn($this->appointment(), 'alice'));
 	}
 
 	public function testIsScheduledInIsFalseForSomebodyElsesPlace(): void {
 		$this->configService->method('isBookingEnabled')->willReturn(true);
-		$this->responseMapper->method('findByAppointment')->willReturn([
-			$this->response('bob', 'yes', BookingService::STATUS_BOOKED),
-			$this->response('alice', 'yes', BookingService::STATUS_DECLINED),
-		]);
+		$this->responseMapper->method('findBookedUserIds')->with([5])->willReturn([5 => ['bob']]);
 
 		$this->assertFalse($this->service->isScheduledIn($this->closedAppointment(), 'alice'));
 	}
 
 	public function testIsScheduledInIsFalseWithoutAnyResponse(): void {
 		$this->configService->method('isBookingEnabled')->willReturn(true);
-		$this->responseMapper->method('findByAppointment')->willReturn([
-			$this->response('bob', 'yes', BookingService::STATUS_BOOKED),
-		]);
+		$this->responseMapper->method('findBookedUserIds')->with([5])->willReturn([5 => ['bob']]);
 
 		$this->assertFalse($this->service->isScheduledIn($this->closedAppointment(), 'alice'));
 	}
@@ -389,7 +396,7 @@ class BookingServiceTest extends TestCase {
 	public function testEffectiveBookingStatusCostsNoQuery(): void {
 		// It reads two columns of a row the caller already holds; a list
 		// endpoint calls this once per appointment.
-		$this->responseMapper->expects($this->never())->method('findByAppointment');
+		$this->responseMapper->expects($this->never())->method('findBookedUserIds');
 		$this->configService->expects($this->never())->method('isBookingEnabled');
 
 		$this->service->effectiveBookingStatus($this->response('alice', 'no'));

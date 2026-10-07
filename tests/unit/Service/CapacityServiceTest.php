@@ -61,6 +61,14 @@ class CapacityServiceTest extends TestCase {
 		$this->responseMapper->method('findClaimedSpots')->willReturn($rows);
 	}
 
+	public function testIsFullTakesAPreCountedOccupancyWithoutAQuery(): void {
+		$this->responseMapper->expects($this->never())->method('findClaimedSpots');
+
+		$this->assertTrue($this->service->isFull($this->appointment(2), 2));
+		$this->assertFalse($this->service->isFull($this->appointment(2), 1));
+		$this->assertFalse($this->service->isFull($this->appointment(null), 5));
+	}
+
 	public function testNoLimitMeansNoQueryAndNobodyWaiting(): void {
 		$this->responseMapper->expects($this->never())->method('findClaimedSpots');
 		$appointment = $this->appointment(null);

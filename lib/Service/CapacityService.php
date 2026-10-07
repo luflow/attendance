@@ -78,10 +78,12 @@ class CapacityService {
 
 	/**
 	 * Whether a further self-service yes would have to wait.
+	 *
+	 * @param ?int $occupancy pre-counted by occupancy(), to save a query
 	 */
-	public function isFull(Appointment $appointment): bool {
+	public function isFull(Appointment $appointment, ?int $occupancy = null): bool {
 		$limit = $this->limitOf($appointment);
-		return $limit !== null && $this->occupancy($appointment) >= $limit;
+		return $limit !== null && ($occupancy ?? $this->occupancy($appointment)) >= $limit;
 	}
 
 	/**

@@ -18,6 +18,7 @@ use OCA\Attendance\Service\AttachmentService;
 use OCA\Attendance\Service\AuditEventService;
 use OCA\Attendance\Service\BookingService;
 use OCA\Attendance\Service\CapacityService;
+use OCA\Attendance\Service\CheckinService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\DeadlineUpdate;
 use OCA\Attendance\Service\GuestService;
@@ -98,6 +99,8 @@ class AppointmentServiceTest extends TestCase {
 	private CapacityService $capacityService;
 	/** @var VacationService|MockObject */
 	private $vacationService;
+	/** @var CheckinService|MockObject */
+	private $checkinService;
 
 	private AppointmentService $service;
 
@@ -130,6 +133,7 @@ class AppointmentServiceTest extends TestCase {
 		);
 		$this->responsePolicyService = new ResponsePolicyService($this->configService, $this->capacityService, $this->visibilityService);
 		$this->vacationService = $this->createMock(VacationService::class);
+		$this->checkinService = $this->createMock(CheckinService::class);
 
 		$userConfig = $this->createMock(IUserConfig::class);
 		$userConfig->method('getValueString')->willReturn('Europe/Berlin');
@@ -159,6 +163,7 @@ class AppointmentServiceTest extends TestCase {
 			new AppointmentSerializer($this->responsePolicyService, $this->capacityService),
 			$this->vacationService,
 			$timezoneService,
+			$this->checkinService,
 		);
 	}
 
@@ -1958,7 +1963,6 @@ class AppointmentServiceTest extends TestCase {
 		$this->appointmentMapper->method('findUpcoming')->willReturn([$scheduledOut]);
 		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
 		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
-		$this->attachmentService->method('getAttachments')->willReturn([]);
 		$this->bookingService->method('isScheduledOut')->willReturn(true);
 
 		// Without the filter the appointment is still listed — being scheduled
@@ -1979,7 +1983,6 @@ class AppointmentServiceTest extends TestCase {
 		$this->permissionService->method('canSeeAppointmentViaSeeAll')->willReturn(true);
 		$this->permissionService->method('isOrganizer')->willReturn(false);
 		$this->visibilityService->method('isUserTargetAttendee')->willReturn(false);
-		$this->attachmentService->method('getAttachments')->willReturn([]);
 
 		$this->assertSame([], $this->service->getAppointmentsWithUserResponses(
 			'alice',
@@ -1998,7 +2001,6 @@ class AppointmentServiceTest extends TestCase {
 		$this->permissionService->method('canSeeAppointmentViaSeeAll')->willReturn(false);
 		$this->permissionService->method('isOrganizer')->willReturn(true);
 		$this->visibilityService->method('isUserTargetAttendee')->willReturn(false);
-		$this->attachmentService->method('getAttachments')->willReturn([]);
 
 		$appointments = $this->service->getAppointmentsWithUserResponses('bob', onlyForMe: true);
 
@@ -2014,7 +2016,6 @@ class AppointmentServiceTest extends TestCase {
 		$this->permissionService->method('canSeeAppointmentViaSeeAll')->willReturn(false);
 		$this->permissionService->method('isOrganizer')->willReturn(true);
 		$this->visibilityService->method('isUserTargetAttendee')->willReturn(false);
-		$this->attachmentService->method('getAttachments')->willReturn([]);
 
 		// Organizing an appointment is not being asked to answer it.
 		$this->assertSame([], $this->service->getAppointmentsWithUserResponses('bob', unansweredOnly: true));
@@ -2163,7 +2164,10 @@ class AppointmentServiceTest extends TestCase {
 		$this->listAsAttendee(array_map(fn (int $id) => $this->createAppointment($id, "Meeting $id"), [1, 2, 3, 4, 5]));
 
 		// The costly per-appointment work must stay with the page itself.
-		$this->attachmentService->expects($this->exactly(2))->method('getAttachments')->willReturn([]);
+		$this->attachmentService->expects($this->once())
+			->method('getAttachmentsForAppointments')
+			->with([3, 4])
+			->willReturn([]);
 
 		$page = $this->service->getAppointmentPage('alice', AppointmentListQuery::fromWire(limit: 2, offset: 2));
 
@@ -2171,9 +2175,119 @@ class AppointmentServiceTest extends TestCase {
 		$this->assertSame(5, $page['total']);
 	}
 
+	/**
+	 * The single appointment reads everybody's responses once and hands them
+	 * to the summary and the check-in counts alike; the series size comes from
+	 * the count query rather than from hydrating every sibling.
+	 */
+	public function testSingleAppointmentReadsResponsesOnceForSummaryAndCheckin(): void {
+		$appointment = $this->createAppointment(7, 'Rehearsal');
+		$appointment->setSeriesId('series-a');
+		$this->appointmentMapper->method('find')->with(7)->willReturn($appointment);
+		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+		$this->responseMapper->method('findByAppointmentAndUser')->willReturn($this->answer(7, 'yes'));
+
+		$answers = [$this->answer(7, 'yes')];
+		$this->responseMapper->expects($this->once())->method('findByAppointment')->with(7)->willReturn($answers);
+		$this->appointmentMapper->expects($this->once())->method('countBySeriesIds')->with(['series-a'])->willReturn(['series-a' => 3]);
+		$this->appointmentMapper->expects($this->never())->method('findBySeriesId');
+		$this->responseSummaryService->expects($this->once())
+			->method('getResponseCounts')
+			->with($appointment, $answers)
+			->willReturn(['yes' => 1]);
+		$this->checkinService->expects($this->once())
+			->method('getCheckinSummary')
+			->with($appointment, $answers)
+			->willReturn(['attended' => 0, 'absent' => 0, 'notCheckedIn' => 1, 'hasCheckins' => false]);
+
+		$data = $this->service->getAppointmentWithUserResponse(7, 'alice', includeResponseCounts: true);
+
+		$this->assertSame(3, $data['seriesCount']);
+		$this->assertSame(['yes' => 1], $data['responseSummary']);
+		$this->assertSame(1, $data['checkinSummary']['notCheckedIn']);
+	}
+
+	/**
+	 * What the rows of a page need — everybody's responses, attachments,
+	 * series sizes — is read in bulk, and the summary gets the row's entity
+	 * instead of re-reading it by id.
+	 */
+	public function testPageReadsPerRowDataInBulk(): void {
+		$first = $this->createAppointment(1, 'First');
+		$first->setSeriesId('series-a');
+		$second = $this->createAppointment(2, 'Second');
+		$second->setSeriesId('series-a');
+		$this->listAsAttendee([$first, $second]);
+
+		$this->responseMapper->expects($this->once())
+			->method('findByAppointments')
+			->with([1, 2])
+			->willReturn([2 => [$this->answer(2, 'yes')]]);
+		$this->attachmentService->expects($this->once())
+			->method('getAttachmentsForAppointments')
+			->with([1, 2])
+			->willReturn([1 => [['fileId' => 7]]]);
+		$this->appointmentMapper->expects($this->once())
+			->method('countBySeriesIds')
+			->with(['series-a'])
+			->willReturn(['series-a' => 2]);
+		$this->appointmentMapper->expects($this->never())->method('find');
+		$this->appointmentMapper->expects($this->never())->method('findBySeriesId');
+		$this->responseSummaryService->expects($this->exactly(2))
+			->method('getResponseSummary')
+			->willReturnCallback(static fn (Appointment $appointment, array $responses): array => ['yes' => count($responses)]);
+		$this->checkinService->expects($this->exactly(2))
+			->method('getCheckinSummary')
+			->willReturn(['attended' => 0, 'absent' => 0, 'notCheckedIn' => 0, 'hasCheckins' => false]);
+
+		$page = $this->service->getAppointmentPage('alice', AppointmentListQuery::fromWire(limit: 20), includeResponseSummary: true);
+
+		[$firstData, $secondData] = $page['appointments'];
+		$this->assertSame(['yes' => 0], $firstData['responseSummary']);
+		$this->assertSame(['yes' => 1], $secondData['responseSummary']);
+		$this->assertSame([['fileId' => 7]], $firstData['attachments']);
+		$this->assertSame([], $secondData['attachments']);
+		$this->assertSame(2, $firstData['seriesCount']);
+		$this->assertFalse($firstData['checkinSummary']['hasCheckins']);
+	}
+
+	/**
+	 * Without a summary tier nobody's responses are read at all, and the
+	 * check-in counts stay off the payload.
+	 */
+	public function testPageSkipsEverybodysResponsesWhenTheViewerGetsNoSummary(): void {
+		$this->listAsAttendee([$this->createAppointment(1, 'Only one')]);
+
+		$this->responseMapper->expects($this->never())->method('findByAppointments');
+		$this->checkinService->expects($this->never())->method('getCheckinSummary');
+
+		$page = $this->service->getAppointmentPage('alice', AppointmentListQuery::fromWire(limit: 20));
+
+		$this->assertArrayNotHasKey('responseSummary', $page['appointments'][0]);
+		$this->assertArrayNotHasKey('checkinSummary', $page['appointments'][0]);
+	}
+
+	/**
+	 * The scheduling filters ask once who holds a place where, instead of
+	 * reading every row's responses one by one.
+	 */
+	public function testSchedulingFiltersReadTheBookingsOnce(): void {
+		$this->listAsAttendee([$this->createAppointment(1, 'Booked'), $this->createAppointment(2, 'Not booked')]);
+		$this->bookingService->expects($this->once())
+			->method('bookedUserIdsFor')
+			->with([1, 2])
+			->willReturn([1 => ['alice']]);
+		$this->bookingService->method('isScheduledIn')
+			->willReturnCallback(static fn (Appointment $appointment, string $userId, ?array $booked): bool => in_array($userId, $booked ?? [], true));
+
+		$page = $this->service->getAppointmentPage('alice', AppointmentListQuery::fromWire(onlyScheduled: true, limit: 20));
+
+		$this->assertSame([1], $this->pageIds($page));
+	}
+
 	public function testPageBeyondTheEndIsEmptyButKeepsTheTotal(): void {
 		$this->listAsAttendee([$this->createAppointment(1, 'Only one')]);
-		$this->attachmentService->method('getAttachments')->willReturn([]);
 
 		$page = $this->service->getAppointmentPage('alice', AppointmentListQuery::fromWire(limit: 20, offset: 20));
 
@@ -2183,7 +2297,6 @@ class AppointmentServiceTest extends TestCase {
 
 	public function testUnpagedQueryReturnsEverything(): void {
 		$this->listAsAttendee(array_map(fn (int $id) => $this->createAppointment($id, "Meeting $id"), [1, 2, 3]));
-		$this->attachmentService->method('getAttachments')->willReturn([]);
 
 		$page = $this->service->getAppointmentPage('alice', AppointmentListQuery::fromWire());
 
@@ -2196,7 +2309,6 @@ class AppointmentServiceTest extends TestCase {
 			[$this->createAppointment(1, 'Next week'), $this->createAppointment(2, 'Next month')],
 			[$this->createAppointment(3, 'Yesterday'), $this->createAppointment(4, 'Last year')],
 		);
-		$this->attachmentService->method('getAttachments')->willReturn([]);
 
 		$page = $this->service->getAppointmentPage('alice', AppointmentListQuery::fromWire(
 			AppointmentListQuery::TIMEFRAME_ALL,
@@ -2217,7 +2329,6 @@ class AppointmentServiceTest extends TestCase {
 			[$cancelled, $this->createAppointment(2, 'Upcoming')],
 			[$this->createAppointment(3, 'Past')],
 		);
-		$this->attachmentService->method('getAttachments')->willReturn([]);
 
 		$page = $this->service->getAppointmentPage('alice', AppointmentListQuery::fromWire(
 			AppointmentListQuery::TIMEFRAME_ALL,
@@ -2237,7 +2348,6 @@ class AppointmentServiceTest extends TestCase {
 		$cancelled->setClosedAt('2026-01-01 10:00:00');
 		$cancelled->setCancelledAt('2026-01-01 10:00:00');
 		$this->listAsAttendee([$open, $closed, $cancelled]);
-		$this->attachmentService->method('getAttachments')->willReturn([]);
 
 		foreach (['open' => [1], 'closed' => [2], 'cancelled' => [3]] as $status => $expected) {
 			$page = $this->service->getAppointmentPage('alice', AppointmentListQuery::fromWire(status: $status, limit: 20));
@@ -2247,7 +2357,6 @@ class AppointmentServiceTest extends TestCase {
 
 	public function testResponseFilterMatchesTheUsersOwnAnswer(): void {
 		$this->listAsAttendee(array_map(fn (int $id) => $this->createAppointment($id, "Meeting $id"), [1, 2, 3, 4]));
-		$this->attachmentService->method('getAttachments')->willReturn([]);
 		$this->responseMapper->method('findByUserForAppointments')->willReturn([
 			1 => $this->answer(1, 'yes'),
 			2 => $this->answer(2, 'no'),
@@ -2267,7 +2376,6 @@ class AppointmentServiceTest extends TestCase {
 		$byDescription = $this->createAppointment(2, 'Probe');
 		$byDescription->setDescription('Generalprobe für das KONZERT');
 		$this->listAsAttendee([$byName, $byDescription, $this->createAppointment(3, 'Vorstandssitzung')]);
-		$this->attachmentService->method('getAttachments')->willReturn([]);
 
 		$page = $this->service->getAppointmentPage('alice', AppointmentListQuery::fromWire(search: ' konzert ', limit: 20));
 
@@ -2283,7 +2391,6 @@ class AppointmentServiceTest extends TestCase {
 		$church->setLocation('Church');
 		$church->setCategoryId(4);
 		$this->listAsAttendee([$hall, $church, $this->createAppointment(3, 'Nowhere in particular')]);
-		$this->attachmentService->method('getAttachments')->willReturn([]);
 
 		$byLocation = $this->service->getAppointmentPage('alice', AppointmentListQuery::fromWire(locations: ['Hall'], limit: 20));
 		$byCategory = $this->service->getAppointmentPage('alice', AppointmentListQuery::fromWire(categoryIds: [4], limit: 20));
@@ -2310,7 +2417,6 @@ class AppointmentServiceTest extends TestCase {
 			->willReturnCallback(static fn (Appointment $appointment): bool => $appointment->getId() === 1);
 		$this->permissionService->method('isOrganizer')
 			->willReturnCallback(static fn (Appointment $appointment): bool => $appointment->getId() === 2);
-		$this->attachmentService->method('getAttachments')->willReturn([]);
 	}
 
 	public function testRoleFilterKeepsTheAppointmentsOfThatRole(): void {
@@ -2326,7 +2432,6 @@ class AppointmentServiceTest extends TestCase {
 	public function testRoleThatDoesNotSplitTheListIsNeitherOfferedNorApplied(): void {
 		// Invited everywhere and organizing nothing: no role tells anything apart.
 		$this->listAsAttendee([$this->createAppointment(1, 'First'), $this->createAppointment(2, 'Second')]);
-		$this->attachmentService->method('getAttachments')->willReturn([]);
 
 		$page = $this->service->getAppointmentPage('alice', AppointmentListQuery::fromWire(role: 'organizer', limit: 20));
 
@@ -2346,7 +2451,6 @@ class AppointmentServiceTest extends TestCase {
 			$closed,
 			$cancelled,
 		]);
-		$this->attachmentService->method('getAttachments')->willReturn([]);
 		$this->responseMapper->method('findByUserForAppointments')->willReturn([2 => $this->answer(2, 'yes')]);
 
 		$page = $this->service->getAppointmentPage('alice', AppointmentListQuery::fromWire(search: 'nothing matches this', limit: 20));
@@ -2357,7 +2461,6 @@ class AppointmentServiceTest extends TestCase {
 
 	public function testUnansweredCountIsLeftOutWhenOnlyPastAppointmentsAreListed(): void {
 		$this->listAsAttendee([$this->createAppointment(1, 'Upcoming')], [$this->createAppointment(2, 'Past')]);
-		$this->attachmentService->method('getAttachments')->willReturn([]);
 
 		$page = $this->service->getAppointmentPage('alice', AppointmentListQuery::fromWire(
 			AppointmentListQuery::TIMEFRAME_PAST,
@@ -2369,7 +2472,6 @@ class AppointmentServiceTest extends TestCase {
 
 	public function testUnansweredOnlyPageDropsWhatTheUserAnswered(): void {
 		$this->listAsAttendee(array_map(fn (int $id) => $this->createAppointment($id, "Meeting $id"), [1, 2, 3]));
-		$this->attachmentService->method('getAttachments')->willReturn([]);
 		$this->responseMapper->method('findByUserForAppointments')->willReturn([2 => $this->answer(2, 'maybe')]);
 
 		$page = $this->service->getAppointmentPage('alice', AppointmentListQuery::fromWire(unansweredOnly: true, limit: 20));
@@ -2380,7 +2482,6 @@ class AppointmentServiceTest extends TestCase {
 
 	public function testListReadsTheUsersResponsesInOneQuery(): void {
 		$this->listAsAttendee(array_map(fn (int $id) => $this->createAppointment($id, "Meeting $id"), [1, 2, 3]));
-		$this->attachmentService->method('getAttachments')->willReturn([]);
 
 		$this->responseMapper->expects($this->once())
 			->method('findByUserForAppointments')

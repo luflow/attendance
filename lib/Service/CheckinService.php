@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Service;
 
+use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
@@ -171,8 +172,7 @@ class CheckinService {
 	 */
 	private function buildGroupList(array $whitelistedGroups): array {
 		if (empty($whitelistedGroups)) {
-			$allGroups = $this->groupManager->search('');
-			$groups = array_map(fn ($group) => $group->getGID(), $allGroups);
+			$groups = $this->visibilityService->getAllGroupIds();
 			// Hide the Guests app system group; guests fall under "Others"
 			// unless an admin opted them in explicitly via the whitelist.
 			$groups = array_values(array_filter(
@@ -188,15 +188,13 @@ class CheckinService {
 	}
 
 	/**
-	 * Get checkin summary counts for an appointment.
+	 * Check-in counts for an appointment. Takes the responses rather than
+	 * reading them: the list attaches one per row and reads them in bulk.
 	 *
-	 * @param int $appointmentId The appointment ID
+	 * @param list<AttendanceResponse> $responses All responses of the appointment
 	 * @return array Checkin summary with attended, absent, notCheckedIn counts and hasCheckins flag
 	 */
-	public function getCheckinSummary(int $appointmentId): array {
-		$appointment = $this->appointmentMapper->find($appointmentId);
-		$responses = $this->responseMapper->findByAppointment($appointmentId);
-
+	public function getCheckinSummary(Appointment $appointment, array $responses): array {
 		// Get whitelisted groups for filtering
 		$whitelistedGroups = $this->configService->getWhitelistedGroups();
 

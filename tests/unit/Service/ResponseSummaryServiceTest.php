@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace OCA\Attendance\Tests\Unit\Service;
 
 use OCA\Attendance\Db\Appointment;
-use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Service\AuditEventService;
@@ -24,8 +23,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class ResponseSummaryServiceTest extends TestCase {
-	/** @var AppointmentMapper|MockObject */
-	private $appointmentMapper;
 
 	/** @var AttendanceResponseMapper|MockObject */
 	private $responseMapper;
@@ -51,7 +48,6 @@ class ResponseSummaryServiceTest extends TestCase {
 	private ResponseSummaryService $service;
 
 	protected function setUp(): void {
-		$this->appointmentMapper = $this->createMock(AppointmentMapper::class);
 		$this->responseMapper = $this->createMock(AttendanceResponseMapper::class);
 		$this->configService = $this->createMock(ConfigService::class);
 		$this->visibilityService = $this->createMock(VisibilityService::class);
@@ -61,8 +57,6 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->guestService = $this->createMock(GuestService::class);
 
 		$this->service = new ResponseSummaryService(
-			$this->appointmentMapper,
-			$this->responseMapper,
 			$this->configService,
 			$this->visibilityService,
 			$this->permissionService,
@@ -91,9 +85,6 @@ class ResponseSummaryServiceTest extends TestCase {
 		$appointment->setVisibleGroups('[]');
 		$appointment->setVisibleTeams('[]');
 
-		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
-		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([]);
-
 		// "All groups" mode, which triggers array_keys() on a group-keyed
 		// cache where PHP has coerced "123" into int 123.
 		$this->configService->method('getWhitelistedGroups')->willReturn([]);
@@ -106,13 +97,9 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
 		$this->visibilityService->method('getTargetAttendees')->willReturn([]);
 
-		$numericGroup = $this->createMock(IGroup::class);
-		$numericGroup->method('getGID')->willReturn('123');
-		$numericGroup->method('getUsers')->willReturn([]);
+		$this->visibilityService->method('getAllGroupIds')->willReturn(['123']);
 
-		$this->groupManager->method('search')->with('')->willReturn([$numericGroup]);
-
-		$summary = $this->service->getResponseSummary($appointmentId);
+		$summary = $this->service->getResponseSummary($appointment, []);
 
 		$this->assertIsArray($summary);
 		$this->assertArrayHasKey('by_group', $summary);
@@ -132,9 +119,6 @@ class ResponseSummaryServiceTest extends TestCase {
 		$appointment->setVisibleGroups('[]');
 		$appointment->setVisibleTeams('[]');
 
-		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
-		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([]);
-
 		$this->configService->method('getWhitelistedGroups')->willReturn(['staff']);
 		$this->configService->method('getResponseSummaryGroupsMode')->willReturn(ConfigService::RESPONSE_SUMMARY_MODE_SPECIFIC);
 		$this->configService->method('getWhitelistedTeams')->willReturn([]);
@@ -149,9 +133,8 @@ class ResponseSummaryServiceTest extends TestCase {
 
 		$staffGroup = $this->createMock(IGroup::class);
 		$staffGroup->method('getGID')->willReturn('staff');
-		$staffGroup->method('getUsers')->willReturn([$numericUser]);
 
-		$this->groupManager->method('get')->with('staff')->willReturn($staffGroup);
+		$this->visibilityService->method('getGroupMembers')->with('staff')->willReturn([$numericUser]);
 		$this->groupManager->method('getUserGroups')->willReturn([$staffGroup]);
 
 		// Keyed by the numeric-string UID; PHP coerces the key to int 456.
@@ -159,7 +142,7 @@ class ResponseSummaryServiceTest extends TestCase {
 			->willReturn(['456' => $numericUser]);
 		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
 
-		$summary = $this->service->getResponseSummary($appointmentId);
+		$summary = $this->service->getResponseSummary($appointment, []);
 
 		$this->assertIsArray($summary);
 		$this->assertSame(1, $summary['no_response']);
@@ -178,9 +161,6 @@ class ResponseSummaryServiceTest extends TestCase {
 		$appointment->setVisibleGroups('[]');
 		$appointment->setVisibleTeams('[]');
 
-		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
-		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([]);
-
 		$this->configService->method('getWhitelistedGroups')->willReturn(['staff']);
 		$this->configService->method('getResponseSummaryGroupsMode')->willReturn(ConfigService::RESPONSE_SUMMARY_MODE_SPECIFIC);
 		$this->configService->method('getWhitelistedTeams')->willReturn([]);
@@ -196,17 +176,12 @@ class ResponseSummaryServiceTest extends TestCase {
 		$newHire->method('getUID')->willReturn('new_hire');
 		$newHire->method('getDisplayName')->willReturn('New Hire');
 
-		$staffGroup = $this->createMock(IGroup::class);
-		$staffGroup->method('getGID')->willReturn('staff');
-		$staffGroup->method('getUsers')->willReturn([]);
-
-		$this->groupManager->method('get')->with('staff')->willReturn($staffGroup);
 		$this->groupManager->method('getUserGroups')->willReturn([]);
 
 		$this->visibilityService->method('getTargetAttendees')
 			->willReturn(['new_hire' => $newHire]);
 
-		$summary = $this->service->getResponseSummary($appointmentId);
+		$summary = $this->service->getResponseSummary($appointment, []);
 
 		// The user must appear in the global non-responder count and in the
 		// Others bucket (no visible section to render under).
@@ -214,6 +189,56 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->assertSame(1, $summary['others']['no_response']);
 		$othersIds = array_map(static fn (array $u): string => $u['userId'], $summary['others']['non_responding_users']);
 		$this->assertContains('new_hire', $othersIds);
+	}
+
+	/**
+	 * Section members come from the visibility service, which keeps them
+	 * across a whole page of summaries, and the summary asks once per group.
+	 */
+	public function testGetResponseSummaryTakesGroupMembersFromTheVisibilityService(): void {
+		$appointment = new Appointment();
+		$appointment->setId(4);
+		$appointment->setVisibleUsers('[]');
+		$appointment->setVisibleGroups('[]');
+		$appointment->setVisibleTeams('[]');
+
+		$response = new AttendanceResponse();
+		$response->setId(1);
+		$response->setAppointmentId(4);
+		$response->setUserId('alice');
+		$response->setResponse('yes');
+
+		$this->configService->method('getWhitelistedGroups')->willReturn(['staff']);
+		$this->configService->method('getResponseSummaryGroupsMode')->willReturn(ConfigService::RESPONSE_SUMMARY_MODE_SPECIFIC);
+		$this->configService->method('getWhitelistedTeams')->willReturn([]);
+
+		$this->visibilityService->method('getVisibilitySettings')
+			->willReturn(['users' => [], 'groups' => [], 'teams' => []]);
+		$this->visibilityService->method('hasRestrictedVisibility')->willReturn(false);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+
+		$alice = $this->createMock(IUser::class);
+		$alice->method('getUID')->willReturn('alice');
+		$alice->method('getDisplayName')->willReturn('Alice');
+		$bob = $this->createMock(IUser::class);
+		$bob->method('getUID')->willReturn('bob');
+		$bob->method('getDisplayName')->willReturn('Bob');
+		$staffGroup = $this->createMock(IGroup::class);
+		$staffGroup->method('getGID')->willReturn('staff');
+
+		$this->visibilityService->expects($this->once())
+			->method('getGroupMembers')
+			->with('staff')
+			->willReturn([$alice, $bob]);
+		$this->visibilityService->method('getTargetAttendees')->willReturn(['alice' => $alice, 'bob' => $bob]);
+		$this->userManager->method('get')->willReturnMap([['alice', $alice]]);
+		$this->groupManager->method('getUserGroups')->willReturn([$staffGroup]);
+
+		$summary = $this->service->getResponseSummary($appointment, [$response]);
+
+		$this->assertSame(1, $summary['yes']);
+		$this->assertSame(1, $summary['by_group']['staff']['yes']);
+		$this->assertSame(['bob'], array_column($summary['by_group']['staff']['non_responding_users'], 'userId'));
 	}
 
 	/**
@@ -235,9 +260,6 @@ class ResponseSummaryServiceTest extends TestCase {
 		$checkinOnly->setResponse(null);
 		$checkinOnly->setCheckinState('yes');
 
-		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
-		$this->responseMapper->method('findByAppointment')->willReturn([$checkinOnly]);
-
 		$this->configService->method('getWhitelistedGroups')->willReturn([]);
 		$this->configService->method('getResponseSummaryGroupsMode')->willReturn(ConfigService::RESPONSE_SUMMARY_MODE_NONE);
 		$this->configService->method('getWhitelistedTeams')->willReturn([]);
@@ -258,7 +280,7 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->visibilityService->method('getTargetAttendees')
 			->willReturn(['wilfried' => $wilfried, 'no_show' => $noShow]);
 
-		$summary = $this->service->getResponseSummary($appointmentId);
+		$summary = $this->service->getResponseSummary($appointment, [$checkinOnly]);
 
 		// Both never answered; only one of them turned up.
 		$this->assertSame(2, $summary['no_response']);
@@ -288,9 +310,6 @@ class ResponseSummaryServiceTest extends TestCase {
 		$response->setUserId('alice');
 		$response->setResponse('yes');
 
-		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
-		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
-
 		// The whitelist names a different group than the appointment targets.
 		$this->configService->method('getWhitelistedGroups')->willReturn(['staff']);
 		$this->configService->method('getResponseSummaryGroupsMode')->willReturn(ConfigService::RESPONSE_SUMMARY_MODE_SPECIFIC);
@@ -310,18 +329,14 @@ class ResponseSummaryServiceTest extends TestCase {
 
 		$boardGroup = $this->createMock(IGroup::class);
 		$boardGroup->method('getGID')->willReturn('board');
-		$staffGroup = $this->createMock(IGroup::class);
-		$staffGroup->method('getGID')->willReturn('staff');
-		$staffGroup->method('getUsers')->willReturn([]);
 
-		$this->groupManager->method('get')->with('staff')->willReturn($staffGroup);
 		$this->userManager->method('get')->with('alice')->willReturn($alice);
 		$this->groupManager->method('getUserGroups')->willReturn([$boardGroup]);
 
 		$this->visibilityService->method('getTargetAttendees')
 			->willReturn(['alice' => $alice, 'bob' => $bob]);
 
-		$summary = $this->service->getResponseSummary($appointmentId);
+		$summary = $this->service->getResponseSummary($appointment, [$response]);
 
 		// 'board' is not whitelisted, so no group section renders for it …
 		$this->assertSame([], $summary['by_group']);
@@ -348,9 +363,6 @@ class ResponseSummaryServiceTest extends TestCase {
 		$appointment->setVisibleGroups('[]');
 		$appointment->setVisibleTeams(json_encode(['team-1']));
 
-		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
-		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([]);
-
 		$this->configService->method('getWhitelistedGroups')->willReturn(['staff']);
 		$this->configService->method('getResponseSummaryGroupsMode')->willReturn(ConfigService::RESPONSE_SUMMARY_MODE_SPECIFIC);
 		$this->configService->method('getWhitelistedTeams')->willReturn([]);
@@ -364,18 +376,13 @@ class ResponseSummaryServiceTest extends TestCase {
 		$carol->method('getUID')->willReturn('carol');
 		$carol->method('getDisplayName')->willReturn('Carol');
 
-		$staffGroup = $this->createMock(IGroup::class);
-		$staffGroup->method('getGID')->willReturn('staff');
-		$staffGroup->method('getUsers')->willReturn([]);
-
-		$this->groupManager->method('get')->with('staff')->willReturn($staffGroup);
 		$this->groupManager->method('getUserGroups')->willReturn([]);
 
 		// getTargetAttendees now folds team members into the audience.
 		$this->visibilityService->method('getTargetAttendees')
 			->willReturn(['carol' => $carol]);
 
-		$summary = $this->service->getResponseSummary($appointmentId);
+		$summary = $this->service->getResponseSummary($appointment, []);
 
 		$this->assertSame([], $summary['by_group']);
 		$this->assertSame([], $summary['by_team']);
@@ -407,9 +414,6 @@ class ResponseSummaryServiceTest extends TestCase {
 		$response->setComment('Secret personal reason');
 		$response->setCheckinComment('Secret checkin note');
 
-		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
-		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
-
 		// No grouping → alice lands in the "others" bucket.
 		$this->configService->method('getWhitelistedGroups')->willReturn([]);
 		$this->configService->method('getResponseSummaryGroupsMode')->willReturn(ConfigService::RESPONSE_SUMMARY_MODE_NONE);
@@ -427,10 +431,9 @@ class ResponseSummaryServiceTest extends TestCase {
 
 		$this->userManager->method('get')->with('alice')->willReturn($alice);
 		$this->groupManager->method('getUserGroups')->willReturn([]);
-		$this->groupManager->method('search')->with('')->willReturn([]);
 
 		// Without permission: comment fields stripped.
-		$stripped = $this->service->getResponseSummary($appointmentId, false);
+		$stripped = $this->service->getResponseSummary($appointment, [$response], false);
 		$this->assertCount(1, $stripped['others']['responses']);
 		$strippedResponse = $stripped['others']['responses'][0];
 		$this->assertArrayNotHasKey('comment', $strippedResponse);
@@ -439,7 +442,7 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->assertSame('Alice', $strippedResponse['userName']);
 
 		// With permission: comment fields retained.
-		$full = $this->service->getResponseSummary($appointmentId, true);
+		$full = $this->service->getResponseSummary($appointment, [$response], true);
 		$fullResponse = $full['others']['responses'][0];
 		$this->assertSame('Secret personal reason', $fullResponse['comment']);
 		$this->assertSame('Secret checkin note', $fullResponse['checkinComment']);
@@ -465,9 +468,6 @@ class ResponseSummaryServiceTest extends TestCase {
 		$response->setResponse('yes');
 		$response->setComment('Secret personal reason');
 
-		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
-		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
-
 		$this->configService->method('getWhitelistedGroups')->willReturn([]);
 		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
 
@@ -482,7 +482,7 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->visibilityService->method('getTargetAttendees')
 			->willReturn(['alice' => $alice, 'bob' => $bob]);
 
-		$counts = $this->service->getResponseCounts($appointmentId);
+		$counts = $this->service->getResponseCounts($appointment, [$response]);
 
 		$this->assertSame(1, $counts['yes']);
 		$this->assertSame(0, $counts['no']);
@@ -521,9 +521,6 @@ class ResponseSummaryServiceTest extends TestCase {
 		$response->setUserId('alice');
 		$response->setResponse('yes');
 
-		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
-		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
-
 		// Grouping is configured by instrument, access is restricted by status.
 		$this->configService->method('getWhitelistedGroups')->willReturn(['sopranos', 'altos']);
 		$this->configService->method('getResponseSummaryGroupsMode')->willReturn(ConfigService::RESPONSE_SUMMARY_MODE_SPECIFIC);
@@ -545,14 +542,12 @@ class ResponseSummaryServiceTest extends TestCase {
 		$activeGroup->method('getGID')->willReturn('active');
 		$sopranosGroup = $this->createMock(IGroup::class);
 		$sopranosGroup->method('getGID')->willReturn('sopranos');
-		$sopranosGroup->method('getUsers')->willReturn([$alice]);
 		$altosGroup = $this->createMock(IGroup::class);
 		$altosGroup->method('getGID')->willReturn('altos');
-		$altosGroup->method('getUsers')->willReturn([$bob]);
 
-		$this->groupManager->method('get')->willReturnMap([
-			['sopranos', $sopranosGroup],
-			['altos', $altosGroup],
+		$this->visibilityService->method('getGroupMembers')->willReturnMap([
+			['sopranos', [$alice]],
+			['altos', [$bob]],
 		]);
 		$this->groupManager->method('getUserGroups')->willReturnCallback(
 			fn (IUser $user) => $user->getUID() === 'alice'
@@ -564,7 +559,7 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->visibilityService->method('getTargetAttendees')
 			->willReturn(['alice' => $alice, 'bob' => $bob]);
 
-		$summary = $this->service->getResponseSummary($appointmentId);
+		$summary = $this->service->getResponseSummary($appointment, [$response]);
 
 		// Both instrument sections render; the restriction group gets none.
 		$this->assertSame(['sopranos', 'altos'], array_keys($summary['by_group']));
@@ -598,9 +593,6 @@ class ResponseSummaryServiceTest extends TestCase {
 		$response->setUserId('carol');
 		$response->setResponse('yes');
 
-		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
-		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
-
 		$this->configService->method('getWhitelistedGroups')->willReturn([]);
 		$this->configService->method('getResponseSummaryGroupsMode')->willReturn(ConfigService::RESPONSE_SUMMARY_MODE_NONE);
 		$this->configService->method('getWhitelistedTeams')->willReturn(['team-b']);
@@ -620,12 +612,11 @@ class ResponseSummaryServiceTest extends TestCase {
 
 		$this->userManager->method('get')->willReturnMap([['carol', $carol]]);
 		$this->groupManager->method('getUserGroups')->willReturn([]);
-		$this->groupManager->method('search')->with('')->willReturn([]);
 
 		$this->visibilityService->method('getTargetAttendees')
 			->willReturn(['carol' => $carol]);
 
-		$summary = $this->service->getResponseSummary($appointmentId);
+		$summary = $this->service->getResponseSummary($appointment, [$response]);
 
 		$this->assertSame(['team-b'], array_keys($summary['by_team']));
 		$this->assertSame('Team B', $summary['by_team']['team-b']['displayName']);
@@ -656,9 +647,6 @@ class ResponseSummaryServiceTest extends TestCase {
 		$response->setUserId('dave');
 		$response->setResponse('yes');
 
-		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
-		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
-
 		$this->configService->method('getWhitelistedGroups')->willReturn([]);
 		$this->configService->method('getResponseSummaryGroupsMode')->willReturn(ConfigService::RESPONSE_SUMMARY_MODE_NONE);
 		$this->configService->method('getWhitelistedTeams')->willReturn([]);
@@ -674,19 +662,20 @@ class ResponseSummaryServiceTest extends TestCase {
 
 		$boardGroup = $this->createMock(IGroup::class);
 		$boardGroup->method('getGID')->willReturn('board');
-		$boardGroup->method('getUsers')->willReturn([$dave]);
 		$staffGroup = $this->createMock(IGroup::class);
 		$staffGroup->method('getGID')->willReturn('staff');
-		$staffGroup->method('getUsers')->willReturn([$dave]);
 
-		$this->groupManager->method('search')->with('')->willReturn([$boardGroup, $staffGroup]);
+		$this->visibilityService->method('getGroupMembers')->willReturnMap([
+			['board', [$dave]],
+			['staff', [$dave]],
+		]);
 		$this->groupManager->method('getUserGroups')->willReturn([$boardGroup, $staffGroup]);
 		$this->userManager->method('get')->willReturnMap([['dave', $dave]]);
 
 		$this->visibilityService->method('getTargetAttendees')
 			->willReturn(['dave' => $dave]);
 
-		$summary = $this->service->getResponseSummary($appointmentId);
+		$summary = $this->service->getResponseSummary($appointment, [$response]);
 
 		$this->assertSame(['board'], array_keys($summary['by_group']));
 		$this->assertSame(1, $summary['by_group']['board']['yes']);
@@ -714,9 +703,6 @@ class ResponseSummaryServiceTest extends TestCase {
 		$response->setUserId('member11');
 		$response->setResponse('yes');
 
-		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
-		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
-
 		$this->configService->method('getWhitelistedGroups')->willReturn([]);
 		$this->configService->method('getWhitelistedTeams')->willReturn([]);
 
@@ -735,16 +721,10 @@ class ResponseSummaryServiceTest extends TestCase {
 
 		$this->userManager->method('get')->willReturnMap([['member11', $member11]]);
 		$this->groupManager->method('getUserGroups')->willReturn([]);
-		$this->groupManager->method('search')->with('')->willReturn([]);
-
-		$team1Group = $this->createMock(IGroup::class);
-		$team1Group->method('getGID')->willReturn('team1');
-		$team1Group->method('getUsers')->willReturn([]);
-		$this->groupManager->method('get')->with('team1')->willReturn($team1Group);
 
 		$this->visibilityService->method('getTargetAttendees')->willReturn([]);
 
-		$summary = $this->service->getResponseSummary($appointmentId);
+		$summary = $this->service->getResponseSummary($appointment, [$response]);
 
 		$this->assertSame(1, $summary['yes']);
 		$this->assertSame(1, $summary['others']['yes']);
@@ -771,9 +751,6 @@ class ResponseSummaryServiceTest extends TestCase {
 		$response->setUserId('admin1');
 		$response->setResponse('yes');
 
-		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
-		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
-
 		$this->configService->method('getWhitelistedGroups')->willReturn([]);
 		$this->configService->method('getWhitelistedTeams')->willReturn([]);
 
@@ -785,10 +762,9 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->permissionService->method('canManageAppointments')->willReturn(true);
 
 		$this->groupManager->method('getUserGroups')->willReturn([]);
-		$this->groupManager->method('search')->with('')->willReturn([]);
 		$this->visibilityService->method('getTargetAttendees')->willReturn([]);
 
-		$summary = $this->service->getResponseSummary($appointmentId);
+		$summary = $this->service->getResponseSummary($appointment, [$response]);
 
 		$this->assertSame(0, $summary['yes']);
 		$this->assertSame(0, $summary['others']['yes']);
@@ -815,9 +791,6 @@ class ResponseSummaryServiceTest extends TestCase {
 		$response->setUserId('eve');
 		$response->setResponse('yes');
 
-		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
-		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
-
 		$this->configService->method('getWhitelistedGroups')->willReturn([]);
 		$this->configService->method('getResponseSummaryGroupsMode')->willReturn(ConfigService::RESPONSE_SUMMARY_MODE_NONE);
 		$this->configService->method('getWhitelistedTeams')->willReturn([]);
@@ -839,11 +812,10 @@ class ResponseSummaryServiceTest extends TestCase {
 
 		$this->userManager->method('get')->willReturnMap([['eve', $eve]]);
 		$this->groupManager->method('getUserGroups')->willReturn([$choirGroup, $adminsGroup]);
-		$this->groupManager->method('search')->with('')->willReturn([$choirGroup, $adminsGroup]);
 
 		$this->visibilityService->method('getTargetAttendees')->willReturn(['eve' => $eve]);
 
-		$summary = $this->service->getResponseSummary($appointmentId);
+		$summary = $this->service->getResponseSummary($appointment, [$response]);
 
 		$this->assertSame([], $summary['by_group']);
 		$this->assertSame(1, $summary['others']['yes']);
@@ -870,9 +842,6 @@ class ResponseSummaryServiceTest extends TestCase {
 		$response->setUserId('eve');
 		$response->setResponse('yes');
 
-		$this->appointmentMapper->method('find')->with($appointmentId)->willReturn($appointment);
-		$this->responseMapper->method('findByAppointment')->with($appointmentId)->willReturn([$response]);
-
 		$this->configService->method('getWhitelistedGroups')->willReturn([]);
 		$this->configService->method('getResponseSummaryGroupsMode')->willReturn(ConfigService::RESPONSE_SUMMARY_MODE_ALL);
 		$this->configService->method('getWhitelistedTeams')->willReturn([]);
@@ -893,11 +862,11 @@ class ResponseSummaryServiceTest extends TestCase {
 
 		$this->userManager->method('get')->willReturnMap([['eve', $eve]]);
 		$this->groupManager->method('getUserGroups')->willReturn([$choirGroup, $adminsGroup]);
-		$this->groupManager->method('search')->with('')->willReturn([$choirGroup, $adminsGroup]);
+		$this->visibilityService->method('getAllGroupIds')->willReturn(['choir', 'admins']);
 
 		$this->visibilityService->method('getTargetAttendees')->willReturn(['eve' => $eve]);
 
-		$summary = $this->service->getResponseSummary($appointmentId);
+		$summary = $this->service->getResponseSummary($appointment, [$response]);
 
 		$this->assertSame(['admins', 'choir'], array_keys($summary['by_group']));
 		$this->assertSame(1, $summary['by_group']['choir']['yes']);

@@ -167,6 +167,54 @@ class VisibilityServiceTest extends TestCase {
 		$this->assertFalse($service->isUserOwnAppointment($appointment, 'mallory'));
 	}
 
+	/**
+	 * A list resolves every appointment's audience from the same groups: the
+	 * group manager is asked once per group, however many appointments.
+	 */
+	public function testGroupMembersAreReadOncePerRequest(): void {
+		$alice = $this->createMock(IUser::class);
+		$alice->method('getUID')->willReturn('alice');
+		$choir = $this->createMock(IGroup::class);
+		$choir->method('getUsers')->willReturn(['alice' => $alice]);
+		$this->groupManager->expects($this->once())->method('get')->with('choir')->willReturn($choir);
+
+		$service = $this->partialMock(['getTeamMembers']);
+
+		$first = new Appointment();
+		$first->setVisibleUsers('[]');
+		$first->setVisibleGroups(json_encode(['choir']));
+		$first->setVisibleTeams('[]');
+		$second = clone $first;
+
+		$this->assertSame(['alice' => $alice], $service->getRelevantUsersForAppointment($first));
+		$this->assertSame(['alice' => $alice], $service->getRelevantUsersForAppointment($second));
+		$this->assertSame([$alice], $service->getGroupMembers('choir'));
+	}
+
+	/**
+	 * "Everyone" and "every group" are the same for every appointment of a
+	 * request, so the instance-wide lookups run once.
+	 */
+	public function testInstanceWideLookupsRunOncePerRequest(): void {
+		$alice = $this->createMock(IUser::class);
+		$alice->method('getUID')->willReturn('alice');
+		$this->userManager->expects($this->once())->method('search')->with('')->willReturn([$alice]);
+		$choir = $this->createMock(IGroup::class);
+		$choir->method('getGID')->willReturn('choir');
+		$this->groupManager->expects($this->once())->method('search')->with('')->willReturn([$choir]);
+
+		$service = $this->partialMock(['getTeamMembers']);
+		$open = new Appointment();
+		$open->setVisibleUsers('[]');
+		$open->setVisibleGroups('[]');
+		$open->setVisibleTeams('[]');
+
+		$this->assertSame(['alice' => $alice], $service->getRelevantUsersForAppointment($open));
+		$this->assertSame(['alice' => $alice], $service->getRelevantUsersForAppointment(clone $open));
+		$this->assertSame(['choir'], $service->getAllGroupIds());
+		$this->assertSame(['choir'], $service->getAllGroupIds());
+	}
+
 	public function testEnrichAudienceLabelsWhatItKnowsAndFallsBackToTheId(): void {
 		$alice = $this->createMock(IUser::class);
 		$alice->method('getDisplayName')->willReturn('Alice');

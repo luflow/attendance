@@ -86,13 +86,32 @@ class AttachmentService {
 	 * @return array
 	 */
 	public function getAttachments(int $appointmentId): array {
-		$attachments = $this->attachmentMapper->findByAppointment($appointmentId);
+		return array_map(
+			fn (AppointmentAttachment $attachment): array => $this->serializeAttachment($attachment),
+			$this->attachmentMapper->findByAppointment($appointmentId),
+		);
+	}
 
-		return array_map(function (AppointmentAttachment $attachment) {
-			$data = $attachment->jsonSerialize();
-			$data['downloadUrl'] = $this->getAttachmentDownloadUrl($attachment->getFileId());
-			return $data;
-		}, $attachments);
+	/**
+	 * getAttachments() for a whole page of appointments in one query.
+	 *
+	 * @param list<int> $appointmentIds
+	 * @return array<int, list<array>> appointment id → attachments; absent when it has none
+	 */
+	public function getAttachmentsForAppointments(array $appointmentIds): array {
+		return array_map(
+			fn (array $attachments): array => array_map(
+				fn (AppointmentAttachment $attachment): array => $this->serializeAttachment($attachment),
+				$attachments,
+			),
+			$this->attachmentMapper->findByAppointments($appointmentIds),
+		);
+	}
+
+	private function serializeAttachment(AppointmentAttachment $attachment): array {
+		$data = $attachment->jsonSerialize();
+		$data['downloadUrl'] = $this->getAttachmentDownloadUrl($attachment->getFileId());
+		return $data;
 	}
 
 	/**

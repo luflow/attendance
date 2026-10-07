@@ -118,25 +118,17 @@ class BookingService {
 	 * Everything softer stays visible: an open inquiry has decided nothing yet,
 	 * and an appointment nobody was scheduled for is one where the manager
 	 * simply doesn't use the feature — it stays visible to everyone.
+	 *
+	 * @param ?list<string> $bookedUserIds Who holds a place, pre-loaded by bookedUserIdsFor() to save a query
 	 */
-	public function isScheduledOut(Appointment $appointment, string $userId): bool {
+	public function isScheduledOut(Appointment $appointment, string $userId, ?array $bookedUserIds = null): bool {
 		if (!$this->isEnabled() || !$appointment->isClosed()) {
 			return false;
 		}
 
-		$anyoneBooked = false;
-		foreach ($this->responseMapper->findByAppointment($appointment->getId()) as $response) {
-			if ($response->getBookingStatus() !== self::STATUS_BOOKED) {
-				continue;
-			}
-			// Own booking wins outright — no need to look at the rest.
-			if ($response->getUserId() === $userId) {
-				return false;
-			}
-			$anyoneBooked = true;
-		}
+		$bookedUserIds ??= $this->bookedUserIdsOf($appointment);
 
-		return $anyoneBooked;
+		return $bookedUserIds !== [] && !in_array($userId, $bookedUserIds, true);
 	}
 
 	/**
@@ -149,19 +141,42 @@ class BookingService {
 	 * anything once closing has made the verdict final. So a caller filtering
 	 * for "appointments I have a place in" sees the open ones too — those are
 	 * exactly the upcoming dates the user has to turn up for.
+	 *
+	 * @param ?list<string> $bookedUserIds Who holds a place, pre-loaded by bookedUserIdsFor() to save a query
 	 */
-	public function isScheduledIn(Appointment $appointment, string $userId): bool {
+	public function isScheduledIn(Appointment $appointment, string $userId, ?array $bookedUserIds = null): bool {
 		if (!$this->isEnabled()) {
 			return false;
 		}
 
-		foreach ($this->responseMapper->findByAppointment($appointment->getId()) as $response) {
-			if ($response->getUserId() === $userId) {
-				return $response->getBookingStatus() === self::STATUS_BOOKED;
-			}
+		$bookedUserIds ??= $this->bookedUserIdsOf($appointment);
+
+		return in_array($userId, $bookedUserIds, true);
+	}
+
+	/**
+	 * Who holds a place in each of these appointments, in one query — what the
+	 * list's scheduling filters would otherwise ask per row. Empty while
+	 * planning is off: nobody can hold a place then.
+	 *
+	 * @param list<int> $appointmentIds
+	 * @return array<int, list<string>> appointment id → booked user ids; absent when nobody is booked
+	 */
+	public function bookedUserIdsFor(array $appointmentIds): array {
+		if (!$this->isEnabled()) {
+			return [];
 		}
 
-		return false;
+		return $this->responseMapper->findBookedUserIds($appointmentIds);
+	}
+
+	/**
+	 * @return list<string>
+	 */
+	private function bookedUserIdsOf(Appointment $appointment): array {
+		$id = $appointment->getId();
+
+		return $this->responseMapper->findBookedUserIds([$id])[$id] ?? [];
 	}
 
 	/**

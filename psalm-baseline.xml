@@ -1523,9 +1523,6 @@
     </MissingDependency>
     <MixedArgument>
       <code><![CDATA[$file->getName()]]></code>
-      <code><![CDATA[$sourceAttachment->getFileId()]]></code>
-      <code><![CDATA[$sourceAttachment->getFileName()]]></code>
-      <code><![CDATA[$sourceAttachment->getFilePath()]]></code>
       <code><![CDATA[$userFolder->getRelativePath($file->getPath()) ?? $file->getPath()]]></code>
     </MixedArgument>
     <MixedArrayAccess>
@@ -1534,14 +1531,10 @@
     <MixedAssignment>
       <code><![CDATA[$file]]></code>
       <code><![CDATA[$nodes]]></code>
-      <code><![CDATA[$sourceAttachment]]></code>
       <code><![CDATA[$userFolder]]></code>
     </MixedAssignment>
     <MixedMethodCall>
       <code><![CDATA[getById]]></code>
-      <code><![CDATA[getFileId]]></code>
-      <code><![CDATA[getFileName]]></code>
-      <code><![CDATA[getFilePath]]></code>
       <code><![CDATA[getName]]></code>
       <code><![CDATA[getPath]]></code>
       <code><![CDATA[getPath]]></code>
@@ -1677,7 +1670,6 @@
       <code><![CDATA[__construct]]></code>
       <code><![CDATA[checkinResponse]]></code>
       <code><![CDATA[getCheckinData]]></code>
-      <code><![CDATA[getCheckinSummary]]></code>
     </PossiblyUnusedMethod>
     <RedundantCastGivenDocblockType>
       <code><![CDATA[(string)$saved->getCheckinComment()]]></code>
@@ -1852,30 +1844,17 @@
     <MixedArgument>
       <code><![CDATA[$appointment]]></code>
     </MixedArgument>
-    <MixedArgumentTypeCoercion>
-      <code><![CDATA[$attachmentLines]]></code>
-    </MixedArgumentTypeCoercion>
     <MixedArrayOffset>
-      <code><![CDATA[$attachmentUrls[$attachment->getFileId()]]]></code>
-      <code><![CDATA[$attachmentUrls[$attachment->getFileId()]]]></code>
       <code><![CDATA[$userResponses[$appointment->getId()]]]></code>
     </MixedArrayOffset>
     <MixedAssignment>
       <code><![CDATA[$appointment]]></code>
-      <code><![CDATA[$attachment]]></code>
-      <code><![CDATA[$attachment]]></code>
-      <code><![CDATA[$attachmentLines[]]]></code>
       <code><![CDATA[$instanceName]]></code>
     </MixedAssignment>
     <MixedMethodCall>
-      <code><![CDATA[getFileId]]></code>
-      <code><![CDATA[getFileId]]></code>
-      <code><![CDATA[getFileId]]></code>
-      <code><![CDATA[getFileName]]></code>
       <code><![CDATA[getId]]></code>
     </MixedMethodCall>
     <MixedOperand>
-      <code><![CDATA[$attachment->getFileId()]]></code>
       <code><![CDATA[$instanceName]]></code>
     </MixedOperand>
     <PossiblyFalseArgument>
