@@ -10,6 +10,7 @@ use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Db\CategoryMapper;
 use OCA\Attendance\Db\DatetimeFormatTrait;
+use OCA\Attendance\ResponseDefinitions;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Collaboration\Collaborators\ISearch as ICollaboratorSearch;
@@ -22,6 +23,7 @@ use OCP\Share\IShare;
  * Delegates to specialized services for summary, visibility, and check-in operations.
  *
  * @psalm-type ListRow = array{appointment: Appointment, isAttendee: bool, isOrganizer: bool, isPast: bool}
+ * @psalm-import-type AttendanceDirectoryEntry from ResponseDefinitions
  */
 class AppointmentService {
 	use DatetimeFormatTrait;
@@ -2123,8 +2125,10 @@ class AppointmentService {
 	/**
 	 * Search for users, groups, and teams (circles).
 	 * Uses the ICollaboratorSearch interface to include all registered share types.
+	 *
+	 * @return list<AttendanceDirectoryEntry>
 	 */
-	public function searchUsersGroupsTeams(string $search = ''): array {
+	public function searchUsersGroupsTeams(string $search, string $currentUserId): array {
 		$shareTypes = [
 			IShare::TYPE_USER,
 			IShare::TYPE_GROUP,
@@ -2146,11 +2150,57 @@ class AppointmentService {
 			0
 		);
 
-		return $this->formatCollaboratorResults($searchResult);
+		return $this->withCurrentUser($this->formatCollaboratorResults($searchResult), $search, $currentUserId);
+	}
+
+	/**
+	 * Nobody shares with themselves, so the sharee search drops the searching
+	 * user — but an organizer may well attend their own appointment.
+	 *
+	 * @param list<AttendanceDirectoryEntry> $results
+	 * @return list<AttendanceDirectoryEntry>
+	 */
+	private function withCurrentUser(array $results, string $search, string $currentUserId): array {
+		$user = $this->userManager->get($currentUserId);
+		if ($user === null) {
+			return $results;
+		}
+		$needle = mb_strtolower(trim($search));
+		$hits = array_filter(
+			array_map(mb_strtolower(...), [$user->getUID(), $user->getDisplayName(), $user->getEMailAddress() ?? '']),
+			static fn (string $name): bool => $name !== '' && str_contains($name, $needle),
+		);
+		if ($hits === []) {
+			return $results;
+		}
+		foreach ($results as $result) {
+			if ($result['type'] === 'user' && $result['id'] === $user->getUID()) {
+				return $results;
+			}
+		}
+
+		$self = $this->directoryEntry('user', $user->getUID(), $user->getDisplayName());
+		// An exact hit leads, like the sharee search's own exact matches do.
+		return in_array($needle, $hits, true) ? [$self, ...$results] : [...$results, $self];
+	}
+
+	/**
+	 * @return AttendanceDirectoryEntry
+	 */
+	private function directoryEntry(string $type, string $id, string $label): array {
+		return [
+			'id' => $id,
+			'label' => $label,
+			'type' => $type,
+			'icon' => $this->getIconForType($type),
+			'isGuest' => $type === 'user' && $id !== '' && $this->guestService->isGuestUser($id),
+		];
 	}
 
 	/**
 	 * Format collaborator search results into a consistent format.
+	 *
+	 * @return list<AttendanceDirectoryEntry>
 	 */
 	private function formatCollaboratorResults($searchResult): array {
 		$results = [];
@@ -2181,16 +2231,8 @@ class AppointmentService {
 					continue;
 				}
 
-				$id = $item['value']['shareWith'] ?? $item['shareWith'] ?? '';
-				$results[] = [
-					'id' => $id,
-					'label' => $item['label'] ?? '',
-					'type' => $type,
-					'icon' => $this->getIconForType($type),
-					'isGuest' => $type === 'user' && $id !== ''
-						? $this->guestService->isGuestUser((string)$id)
-						: false,
-				];
+				$id = (string)($item['value']['shareWith'] ?? $item['shareWith'] ?? '');
+				$results[] = $this->directoryEntry($type, $id, (string)($item['label'] ?? ''));
 			}
 		}
 

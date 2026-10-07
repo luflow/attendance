@@ -33,6 +33,7 @@ use OCP\Security\ISecureRandom;
 
 /**
  * @psalm-import-type AttendanceAppointmentPage from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceDirectoryEntry from \OCA\Attendance\ResponseDefinitions
  * @psalm-import-type AttendanceExportSeries from \OCA\Attendance\ResponseDefinitions
  */
 class AppointmentController extends Controller {
@@ -1460,7 +1461,7 @@ class AppointmentController extends Controller {
 	 * Search for users, groups, and teams
 	 *
 	 * @param string $search Search query
-	 * @return DataResponse<Http::STATUS_OK, list<array{id: string, label: string, type: string, icon: string, isGuest: bool}>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, list<AttendanceDirectoryEntry>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -1481,7 +1482,7 @@ class AppointmentController extends Controller {
 		}
 
 		try {
-			$results = $this->appointmentService->searchUsersGroupsTeams($search);
+			$results = $this->appointmentService->searchUsersGroupsTeams($search, $user->getUID());
 			return new DataResponse($results);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 400);

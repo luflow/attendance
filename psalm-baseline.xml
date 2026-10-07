@@ -1432,7 +1432,6 @@
     <MixedAssignment>
       <code><![CDATA[$exactMatches]]></code>
       <code><![CDATA[$groupId]]></code>
-      <code><![CDATA[$id]]></code>
       <code><![CDATA[$item]]></code>
       <code><![CDATA[$items]]></code>
       <code><![CDATA[$resultData]]></code>
@@ -1443,9 +1442,6 @@
     <MixedMethodCall>
       <code><![CDATA[asArray]]></code>
     </MixedMethodCall>
-    <MixedOperand>
-      <code><![CDATA[$result['id']]]></code>
-    </MixedOperand>
     <PossiblyFalseArgument>
       <code><![CDATA[$normalized === [] ? null : json_encode($normalized)]]></code>
       <code><![CDATA[$visibleGroupsJson]]></code>

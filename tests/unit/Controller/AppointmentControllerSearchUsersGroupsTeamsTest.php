@@ -78,7 +78,7 @@ class AppointmentControllerSearchUsersGroupsTeamsTest extends TestCase {
 		$this->permissionService->method('isAdmin')->with('admin')->willReturn(true);
 		$this->permissionService->method('canCreateAppointments')->willReturn(false);
 		$this->appointmentService->method('isOrganizerAnywhere')->willReturn(false);
-		$this->appointmentService->method('searchUsersGroupsTeams')->with('acme')->willReturn([]);
+		$this->appointmentService->method('searchUsersGroupsTeams')->with('acme', 'admin')->willReturn([]);
 
 		$response = $this->controller->searchUsersGroupsTeams('acme');
 
