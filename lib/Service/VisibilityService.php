@@ -33,6 +33,14 @@ class VisibilityService {
 	/** @var array<string, array{users: array<string>, groups: array<string>, teams: array<string>}>
 	 * Keyed by the raw JSON columns, so an in-request edit misses naturally. */
 	private array $visibilitySettingsCache = [];
+	/** @var array<string, list<\OCP\IUser>> groupId → members. */
+	private array $groupMembersCache = [];
+	/** @var ?list<string> every group of the instance. */
+	private ?array $allGroupIds = null;
+	/** @var ?array<string, \OCP\IUser> every account, keyed by UID. */
+	private ?array $allUsers = null;
+	/** @var array<string, ?array{id: string, label: string, type: string}> teamId → info, null when unknown. */
+	private array $teamInfoCache = [];
 
 	public function __construct(
 		IGroupManager $groupManager,
@@ -185,11 +193,8 @@ class VisibilityService {
 
 			// Add users from visible groups
 			foreach ($settings['groups'] as $groupId) {
-				$group = $this->groupManager->get($groupId);
-				if ($group) {
-					foreach ($group->getUsers() as $user) {
-						$relevantUsers[$user->getUID()] = $user;
-					}
+				foreach ($this->getGroupMembers($groupId) as $user) {
+					$relevantUsers[$user->getUID()] = $user;
 				}
 			}
 
@@ -213,24 +218,23 @@ class VisibilityService {
 		// If whitelisted groups are configured, only load users from those groups
 		if (!empty($whitelistedGroups)) {
 			foreach ($whitelistedGroups as $groupId) {
-				$group = $this->groupManager->get($groupId);
-				if ($group) {
-					foreach ($group->getUsers() as $user) {
-						$relevantUsers[$user->getUID()] = $user;
-					}
+				foreach ($this->getGroupMembers($groupId) as $user) {
+					$relevantUsers[$user->getUID()] = $user;
 				}
 			}
 			return $relevantUsers;
 		}
 
-		// Case 3: No restrictions at all - must load all users
-		// This is unavoidable but should be rare in production (admins usually configure whitelisted groups)
-		$allUsers = $this->userManager->search('');
-		foreach ($allUsers as $user) {
-			$relevantUsers[$user->getUID()] = $user;
+		// Case 3: No restrictions at all - must load all users. Once per request:
+		// it is the same everyone for every open appointment of a list.
+		if ($this->allUsers === null) {
+			$this->allUsers = [];
+			foreach ($this->userManager->search('') as $user) {
+				$this->allUsers[$user->getUID()] = $user;
+			}
 		}
 
-		return $relevantUsers;
+		return $this->allUsers;
 	}
 
 	/**
@@ -288,6 +292,36 @@ class VisibilityService {
 	public function hasRestrictedVisibility(Appointment $appointment): bool {
 		$settings = $this->getVisibilitySettings($appointment);
 		return !empty($settings['users']) || !empty($settings['groups']) || !empty($settings['teams']);
+	}
+
+	/**
+	 * Cached per request: the group manager forgets a group's members whenever
+	 * getUserGroups() hands out a fresh group object — once per responder in a list.
+	 *
+	 * @return list<\OCP\IUser>
+	 */
+	public function getGroupMembers(string $groupId): array {
+		if (!isset($this->groupMembersCache[$groupId])) {
+			$group = $this->groupManager->get($groupId);
+			$this->groupMembersCache[$groupId] = $group !== null ? array_values($group->getUsers()) : [];
+		}
+		return $this->groupMembersCache[$groupId];
+	}
+
+	/**
+	 * Every group of the instance, read once per request — the "all" summary
+	 * mode and the check-in filter section a whole list by them.
+	 *
+	 * @return list<string>
+	 */
+	public function getAllGroupIds(): array {
+		if ($this->allGroupIds === null) {
+			$this->allGroupIds = [];
+			foreach ($this->groupManager->search('') as $group) {
+				$this->allGroupIds[] = $group->getGID();
+			}
+		}
+		return $this->allGroupIds;
 	}
 
 	/**
@@ -397,19 +431,26 @@ class VisibilityService {
 		if ($this->teamsManager === null) {
 			return null;
 		}
+		// Same per-request lifetime as the member cache: the list names a
+		// team on every appointment addressed to it.
+		if (array_key_exists($teamId, $this->teamInfoCache)) {
+			return $this->teamInfoCache[$teamId];
+		}
 
 		try {
 			$this->teamsManager->startSuperSession();
 			$circle = $this->teamsManager->getCircle($teamId);
 			$this->teamsManager->stopSession();
 
-			return [
+			$info = [
 				'id' => $teamId,
 				'label' => (string)$circle->getDisplayName(),
 				'type' => 'team',
 			];
 		} catch (\Exception $e) {
-			return null;
+			$info = null;
 		}
+
+		return $this->teamInfoCache[$teamId] = $info;
 	}
 }

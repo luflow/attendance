@@ -83,20 +83,65 @@ class AttendanceResponseMapper extends QBMapper {
 	}
 
 	/**
-	 * @param int $appointmentId
+	 * Every response of these appointments, bucketed by appointment, the
+	 * latest answer first within each bucket.
+	 *
+	 * @param list<int> $appointmentIds
+	 * @return array<int, list<AttendanceResponse>>
+	 */
+	public function findByAppointments(array $appointmentIds): array {
+		$byAppointment = [];
+
+		foreach (array_chunk($appointmentIds, 1000) as $chunk) {
+			$qb = $this->db->getQueryBuilder();
+			$qb->select('*')
+				->from($this->getTableName())
+				->where($qb->expr()->in('appointment_id', $qb->createNamedParameter($chunk, IQueryBuilder::PARAM_INT_ARRAY)))
+				->orderBy('responded_at', 'DESC')
+				->addOrderBy('id', 'ASC');
+
+			foreach ($this->findEntities($qb) as $response) {
+				$byAppointment[$response->getAppointmentId()][] = $response;
+			}
+		}
+
+		return $byAppointment;
+	}
+
+	/**
+	 * Who a manager booked, per appointment — the one column the scheduling
+	 * filters of the list read, for every appointment of the list at once.
+	 *
+	 * @param list<int> $appointmentIds
+	 * @return array<int, list<string>> appointment id → booked user ids
+	 */
+	public function findBookedUserIds(array $appointmentIds): array {
+		$byAppointment = [];
+
+		foreach (array_chunk($appointmentIds, 1000) as $chunk) {
+			$qb = $this->db->getQueryBuilder();
+			$qb->select('appointment_id', 'user_id')
+				->from($this->getTableName())
+				->where($qb->expr()->eq('booking_status', $qb->createNamedParameter(BookingService::STATUS_BOOKED)))
+				->andWhere($qb->expr()->in('appointment_id', $qb->createNamedParameter($chunk, IQueryBuilder::PARAM_INT_ARRAY)));
+
+			$result = $qb->executeQuery();
+			/** @var list<array<string, mixed>> $raw IResult::fetchAll() is declared mixed */
+			$raw = $result->fetchAll();
+			$result->closeCursor();
+			foreach ($raw as $row) {
+				$byAppointment[(int)$row['appointment_id']][] = (string)$row['user_id'];
+			}
+		}
+
+		return $byAppointment;
+	}
+
+	/**
 	 * @return list<AttendanceResponse>
 	 */
 	public function findByAppointment(int $appointmentId): array {
-		$qb = $this->db->getQueryBuilder();
-
-		$qb->select('*')
-			->from($this->getTableName())
-			->where(
-				$qb->expr()->eq('appointment_id', $qb->createNamedParameter($appointmentId))
-			)
-			->orderBy('responded_at', 'DESC');
-
-		return $this->findEntities($qb);
+		return $this->findByAppointments([$appointmentId])[$appointmentId] ?? [];
 	}
 
 	/**

@@ -88,6 +88,7 @@ class AppointmentService {
 		AppointmentSerializer $appointmentSerializer,
 		VacationService $vacationService,
 		private TimezoneService $timezoneService,
+		private CheckinService $checkinService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -1151,19 +1152,24 @@ class AppointmentService {
 
 		$appointmentData = $this->serializeAppointment($appointment);
 		$appointmentData = $this->enrichVisibilityData($appointmentData);
-		$appointmentData = $this->enrichSeriesCount($appointmentData, $appointment);
+		$appointmentData = $this->enrichSeriesCount($appointmentData, $appointment, $this->seriesCountsFor([$appointment]));
 		// Only expose userResponse when the user actually answered yes/no/maybe.
 		// A row with response=NULL exists when an admin checked the user in
 		// before they ever responded; treat that as "no response" (matches list endpoint).
 		$userResponse = $this->getUserResponse($appointment->getId(), $userId);
 		$appointmentData['userResponse'] = $this->serializeUserResponse($userResponse, $appointment);
-		$responseSummary = $this->buildResponseSummaryFor($myPermissions, $appointment->getId());
+		// Everybody's responses feed the summary tier and the check-in counts alike.
+		$responses = $myPermissions['canSeeResponseCounts'] ? $this->responseMapper->findByAppointment($appointment->getId()) : [];
+		$responseSummary = $this->buildResponseSummaryFor($myPermissions, $appointment, $responses);
 		if ($responseSummary !== null) {
 			$appointmentData['responseSummary'] = $responseSummary;
 		}
 		$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
 		$appointmentData['myPermissions'] = $myPermissions;
 		$appointmentData = $this->hideTalkRoomFromOutsiders($appointmentData, $myPermissions['canEdit'], $userResponse);
+		if ($myPermissions['canSeeResponseCounts']) {
+			$appointmentData['checkinSummary'] = $this->checkinService->getCheckinSummary($appointment, $responses);
+		}
 
 		return $appointmentData;
 	}
@@ -1190,15 +1196,15 @@ class AppointmentService {
 	 * the aggregate counts, or nothing.
 	 *
 	 * @param array{isOrganizer: bool, isAttendee: bool, canEdit: bool, canSeeResponses: bool, canSeeResponseCounts: bool, canSeeComments: bool, canSeeAuditLog: bool} $myPermissions
+	 * @param list<AttendanceResponse> $responses All responses of the appointment
 	 */
-	private function buildResponseSummaryFor(array $myPermissions, int $appointmentId): ?array {
-		if ($myPermissions['canSeeResponses']) {
-			return $this->responseSummaryService->getResponseSummary($appointmentId, $myPermissions['canSeeComments']);
+	private function buildResponseSummaryFor(array $myPermissions, Appointment $appointment, array $responses): ?array {
+		if (!$myPermissions['canSeeResponseCounts']) {
+			return null;
 		}
-		if ($myPermissions['canSeeResponseCounts']) {
-			return $this->responseSummaryService->getResponseCounts($appointmentId);
-		}
-		return null;
+		return $myPermissions['canSeeResponses']
+			? $this->responseSummaryService->getResponseSummary($appointment, $responses, $myPermissions['canSeeComments'])
+			: $this->responseSummaryService->getResponseCounts($appointment, $responses);
 	}
 
 	/**
@@ -1672,10 +1678,7 @@ class AppointmentService {
 	 * @return list<array<string, mixed>>
 	 */
 	private function buildNavigationData(array $own, string $userId): array {
-		$responses = $this->responseMapper->findByUserForAppointments(
-			$userId,
-			array_map(static fn (array $entry): int => $entry['appointment']->getId(), $own),
-		);
+		$responses = $this->responseMapper->findByUserForAppointments($userId, self::rowIds($own));
 
 		$result = [];
 		foreach ($own as ['appointment' => $appointment, 'inAudience' => $inAudience]) {
@@ -1785,16 +1788,28 @@ class AppointmentService {
 				static fn (array $row): bool => !self::hasAnswered($responses[$row['appointment']->getId()] ?? null),
 			));
 		}
+		// Who holds a place where, once for all rows rather than once per row.
+		$booked = $query->notScheduledOut || $query->onlyScheduled
+			? $this->bookingService->bookedUserIdsFor(self::rowIds($rows))
+			: [];
 		if ($query->notScheduledOut) {
 			$rows = array_values(array_filter(
 				$rows,
-				fn (array $row): bool => !$this->bookingService->isScheduledOut($row['appointment'], $userId),
+				fn (array $row): bool => !$this->bookingService->isScheduledOut(
+					$row['appointment'],
+					$userId,
+					$booked[$row['appointment']->getId()] ?? [],
+				),
 			));
 		}
 		if ($query->onlyScheduled) {
 			$rows = array_values(array_filter(
 				$rows,
-				fn (array $row): bool => $this->bookingService->isScheduledIn($row['appointment'], $userId),
+				fn (array $row): bool => $this->bookingService->isScheduledIn(
+					$row['appointment'],
+					$userId,
+					$booked[$row['appointment']->getId()] ?? [],
+				),
 			));
 		}
 
@@ -1828,11 +1843,9 @@ class AppointmentService {
 		$this->loadUserResponses($responses, $userId, $rows);
 
 		$globalManage = $this->permissionService->canManageAppointments($userId);
-		$appointments = [];
-		foreach ($rows as ['appointment' => $appointment, 'isAttendee' => $isAttendee, 'isPast' => $isPast]) {
-			$userResponse = $responses[$appointment->getId()] ?? null;
-
-			$myPermissions = $this->buildMyPermissions(
+		$permissions = [];
+		foreach ($rows as ['appointment' => $appointment, 'isAttendee' => $isAttendee]) {
+			$permissions[$appointment->getId()] = $this->buildMyPermissions(
 				$appointment,
 				$userId,
 				$globalManage,
@@ -1841,19 +1854,39 @@ class AppointmentService {
 				$includeResponseCounts,
 				$isAttendee,
 			);
+		}
+
+		// Page-wide reads; everybody's responses only for the rows that get a
+		// summary or check-in counts out of them.
+		$summarized = array_keys(array_filter($permissions, static fn (array $p): bool => $p['canSeeResponseCounts']));
+		$allResponses = $summarized === [] ? [] : $this->responseMapper->findByAppointments($summarized);
+		$attachments = $this->attachmentService->getAttachmentsForAppointments(self::rowIds($rows));
+		$seriesCounts = $this->seriesCountsFor(array_column($rows, 'appointment'));
+
+		$appointments = [];
+		foreach ($rows as ['appointment' => $appointment, 'isPast' => $isPast]) {
+			$id = $appointment->getId();
+			$userResponse = $responses[$id] ?? null;
+			$rowResponses = $allResponses[$id] ?? [];
+			$myPermissions = $permissions[$id];
 
 			$appointmentData = $this->serializeAppointment($appointment);
 			$appointmentData = $this->enrichVisibilityData($appointmentData);
-			$appointmentData = $this->enrichSeriesCount($appointmentData, $appointment);
+			$appointmentData = $this->enrichSeriesCount($appointmentData, $appointment, $seriesCounts);
 			$appointmentData['userResponse'] = $this->serializeUserResponse($userResponse, $appointment);
-			$responseSummary = $this->buildResponseSummaryFor($myPermissions, $appointment->getId());
+			$responseSummary = $this->buildResponseSummaryFor($myPermissions, $appointment, $rowResponses);
 			if ($responseSummary !== null) {
 				$appointmentData['responseSummary'] = $responseSummary;
 			}
-			$appointmentData['attachments'] = $this->attachmentService->getAttachments($appointment->getId());
+			$appointmentData['attachments'] = $attachments[$id] ?? [];
 			$appointmentData['myPermissions'] = $myPermissions;
 			$appointmentData['isPast'] = $isPast;
-			$appointments[] = $this->hideTalkRoomFromOutsiders($appointmentData, $myPermissions['canEdit'], $userResponse);
+			$appointmentData = $this->hideTalkRoomFromOutsiders($appointmentData, $myPermissions['canEdit'], $userResponse);
+			// Only ever counts, no names — safe for the same people who see the response counts.
+			if ($myPermissions['canSeeResponseCounts']) {
+				$appointmentData['checkinSummary'] = $this->checkinService->getCheckinSummary($appointment, $rowResponses);
+			}
+			$appointments[] = $appointmentData;
 		}
 
 		return [
@@ -2396,16 +2429,39 @@ class AppointmentService {
 
 	/**
 	 * Enrich appointment data with series count.
+	 *
+	 * @param array<string, int> $seriesCounts As counted by seriesCountsFor()
 	 */
-	private function enrichSeriesCount(array $appointmentData, Appointment $appointment): array {
+	private function enrichSeriesCount(array $appointmentData, Appointment $appointment, array $seriesCounts): array {
 		$seriesId = $appointment->getSeriesId();
-		if ($seriesId !== null) {
-			$siblings = $this->appointmentMapper->findBySeriesId($seriesId);
-			$appointmentData['seriesCount'] = count($siblings);
-		} else {
-			$appointmentData['seriesCount'] = 0;
-		}
+		$appointmentData['seriesCount'] = $seriesId === null ? 0 : ($seriesCounts[$seriesId] ?? 0);
 		return $appointmentData;
+	}
+
+	/**
+	 * The size of every series these appointments belong to, in one query.
+	 *
+	 * @param list<Appointment> $appointments
+	 * @return array<string, int> series id → count
+	 */
+	private function seriesCountsFor(array $appointments): array {
+		$seriesIds = [];
+		foreach ($appointments as $appointment) {
+			$seriesId = $appointment->getSeriesId();
+			if ($seriesId !== null) {
+				$seriesIds[] = $seriesId;
+			}
+		}
+
+		return $this->appointmentMapper->countBySeriesIds(array_values(array_unique($seriesIds)));
+	}
+
+	/**
+	 * @param list<array{appointment: Appointment, ...}> $rows
+	 * @return list<int>
+	 */
+	private static function rowIds(array $rows): array {
+		return array_map(static fn (array $row): int => $row['appointment']->getId(), $rows);
 	}
 
 	/**

@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace OCA\Attendance\Service;
 
 use OCA\Attendance\Db\Appointment;
-use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponse;
-use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -18,8 +16,6 @@ use OCP\IUserManager;
  * Optimized to avoid N+1 query patterns through caching and batch operations.
  */
 class ResponseSummaryService {
-	private AppointmentMapper $appointmentMapper;
-	private AttendanceResponseMapper $responseMapper;
 	private ConfigService $configService;
 	private VisibilityService $visibilityService;
 	private PermissionService $permissionService;
@@ -29,8 +25,6 @@ class ResponseSummaryService {
 	private CapacityService $capacityService;
 
 	public function __construct(
-		AppointmentMapper $appointmentMapper,
-		AttendanceResponseMapper $responseMapper,
 		ConfigService $configService,
 		VisibilityService $visibilityService,
 		PermissionService $permissionService,
@@ -39,8 +33,6 @@ class ResponseSummaryService {
 		GuestService $guestService,
 		CapacityService $capacityService,
 	) {
-		$this->appointmentMapper = $appointmentMapper;
-		$this->responseMapper = $responseMapper;
 		$this->configService = $configService;
 		$this->visibilityService = $visibilityService;
 		$this->permissionService = $permissionService;
@@ -51,9 +43,10 @@ class ResponseSummaryService {
 	}
 
 	/**
-	 * Get response summary for an appointment.
+	 * Get response summary for an appointment. Takes the responses rather than
+	 * reading them: the list builds one summary per row and reads them in bulk.
 	 *
-	 * @param int $appointmentId The appointment ID
+	 * @param list<AttendanceResponse> $responses All responses of the appointment
 	 * @param bool $includeComments Whether to include the free-text comment /
 	 *                              checkinComment fields in the serialized
 	 *                              responses. Gated by the caller's
@@ -61,10 +54,7 @@ class ResponseSummaryService {
 	 *                              to users who may not read comments.
 	 * @return array The response summary
 	 */
-	public function getResponseSummary(int $appointmentId, bool $includeComments = false): array {
-		$appointment = $this->appointmentMapper->find($appointmentId);
-		$responses = $this->responseMapper->findByAppointment($appointmentId);
-
+	public function getResponseSummary(Appointment $appointment, array $responses, bool $includeComments = false): array {
 		// Pre-fetch and cache data to avoid N+1 queries
 		$cache = $this->buildCache($appointment, $responses);
 
@@ -108,11 +98,10 @@ class ResponseSummaryService {
 	 * default, so it tallies straight over the responses and the relevant
 	 * users — the same shape (and non-responder semantics) as the check-in
 	 * summary.
+	 *
+	 * @param list<AttendanceResponse> $responses All responses of the appointment
 	 */
-	public function getResponseCounts(int $appointmentId): array {
-		$appointment = $this->appointmentMapper->find($appointmentId);
-		$responses = $this->responseMapper->findByAppointment($appointmentId);
-
+	public function getResponseCounts(Appointment $appointment, array $responses): array {
 		/** @var array{yes: int, no: int, maybe: int, no_response: int} $counts */
 		$counts = $this->initializeSummary();
 		/** @var array<string, true> $respondedUserIds */
@@ -199,24 +188,16 @@ class ResponseSummaryService {
 		/** @var array<array-key, list<\OCP\IUser>> $groupUsers */
 		$groupUsers = [];
 		if ($groupsMode === ConfigService::RESPONSE_SUMMARY_MODE_SPECIFIC) {
-			foreach ($sectionGroups as $groupId) {
-				$group = $this->groupManager->get($groupId);
-				if ($group) {
-					$groupUsers[$groupId] = $group->getUsers();
-				}
-			}
+			$sectionGroupIds = $sectionGroups;
 		} elseif (!empty($appointmentVisibleGroupsLower)) {
-			foreach ($visibilitySettings['groups'] as $groupId) {
-				$group = $this->groupManager->get($groupId);
-				if ($group) {
-					$groupUsers[$groupId] = $group->getUsers();
-				}
-			}
+			$sectionGroupIds = $visibilitySettings['groups'];
 		} elseif ($groupsMode === ConfigService::RESPONSE_SUMMARY_MODE_ALL) {
-			$allGroups = $this->groupManager->search('');
-			foreach ($allGroups as $group) {
-				$groupUsers[$group->getGID()] = $group->getUsers();
-			}
+			$sectionGroupIds = $this->visibilityService->getAllGroupIds();
+		} else {
+			$sectionGroupIds = [];
+		}
+		foreach ($sectionGroupIds as $groupId) {
+			$groupUsers[$groupId] = $this->visibilityService->getGroupMembers($groupId);
 		}
 
 		// Pre-fetch whitelisted team members and info

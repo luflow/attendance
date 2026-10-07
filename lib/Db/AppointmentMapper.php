@@ -328,6 +328,37 @@ class AppointmentMapper extends QBMapper {
 	}
 
 	/**
+	 * How many active appointments each series has, for the series a page of
+	 * the list touches — the count is all the list shows.
+	 *
+	 * @param list<string> $seriesIds
+	 * @return array<string, int> series id → count
+	 */
+	public function countBySeriesIds(array $seriesIds): array {
+		$counts = [];
+
+		foreach (array_chunk($seriesIds, 1000) as $chunk) {
+			$qb = $this->db->getQueryBuilder();
+			$qb->select('series_id')
+				->selectAlias($qb->createFunction('COUNT(*)'), 'count')
+				->from($this->getTableName())
+				->where($qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
+				->andWhere($qb->expr()->in('series_id', $qb->createNamedParameter($chunk, IQueryBuilder::PARAM_STR_ARRAY)))
+				->groupBy('series_id');
+
+			$result = $qb->executeQuery();
+			/** @var list<array<string, mixed>> $raw IResult::fetchAll() is declared mixed */
+			$raw = $result->fetchAll();
+			$result->closeCursor();
+			foreach ($raw as $row) {
+				$counts[(string)$row['series_id']] = (int)$row['count'];
+			}
+		}
+
+		return $counts;
+	}
+
+	/**
 	 * Find active appointments in a series from a given position onward.
 	 *
 	 * @param string $seriesId The series UUID

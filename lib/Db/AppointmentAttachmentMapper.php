@@ -6,6 +6,7 @@ namespace OCA\Attendance\Db;
 
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\QBMapper;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
 
 /**
@@ -34,20 +35,35 @@ class AppointmentAttachmentMapper extends QBMapper {
 	}
 
 	/**
-	 * @param int $appointmentId
-	 * @return array
+	 * @return list<AppointmentAttachment>
 	 */
 	public function findByAppointment(int $appointmentId): array {
-		$qb = $this->db->getQueryBuilder();
+		return $this->findByAppointments([$appointmentId])[$appointmentId] ?? [];
+	}
 
-		$qb->select('*')
-			->from($this->getTableName())
-			->where(
-				$qb->expr()->eq('appointment_id', $qb->createNamedParameter($appointmentId))
-			)
-			->orderBy('added_at', 'ASC');
+	/**
+	 * The attachments of these appointments, bucketed by appointment, oldest first.
+	 *
+	 * @param list<int> $appointmentIds
+	 * @return array<int, list<AppointmentAttachment>>
+	 */
+	public function findByAppointments(array $appointmentIds): array {
+		$byAppointment = [];
 
-		return $this->findEntities($qb);
+		foreach (array_chunk($appointmentIds, 1000) as $chunk) {
+			$qb = $this->db->getQueryBuilder();
+			$qb->select('*')
+				->from($this->getTableName())
+				->where($qb->expr()->in('appointment_id', $qb->createNamedParameter($chunk, IQueryBuilder::PARAM_INT_ARRAY)))
+				->orderBy('added_at', 'ASC')
+				->addOrderBy('id', 'ASC');
+
+			foreach ($this->findEntities($qb) as $attachment) {
+				$byAppointment[$attachment->getAppointmentId()][] = $attachment;
+			}
+		}
+
+		return $byAppointment;
 	}
 
 	/**
