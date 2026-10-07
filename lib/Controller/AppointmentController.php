@@ -12,6 +12,7 @@ use OCA\Attendance\Service\CalendarService;
 use OCA\Attendance\Service\CheckinService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\DeadlineUpdate;
+use OCA\Attendance\Service\DirectorySearchService;
 use OCA\Attendance\Service\ExportOptions;
 use OCA\Attendance\Service\ExportService;
 use OCA\Attendance\Service\GuestService;
@@ -52,6 +53,7 @@ class AppointmentController extends Controller {
 	private GuestService $guestService;
 	private BookingService $bookingService;
 	private TalkRoomService $talkRoomService;
+	private DirectorySearchService $directorySearchService;
 
 	public function __construct(
 		string $appName,
@@ -71,6 +73,7 @@ class AppointmentController extends Controller {
 		GuestService $guestService,
 		BookingService $bookingService,
 		TalkRoomService $talkRoomService,
+		DirectorySearchService $directorySearchService,
 	) {
 		parent::__construct($appName, $request);
 		$this->appointmentService = $appointmentService;
@@ -88,6 +91,7 @@ class AppointmentController extends Controller {
 		$this->guestService = $guestService;
 		$this->bookingService = $bookingService;
 		$this->talkRoomService = $talkRoomService;
+		$this->directorySearchService = $directorySearchService;
 	}
 
 	/**
@@ -1482,7 +1486,7 @@ class AppointmentController extends Controller {
 		}
 
 		try {
-			$results = $this->appointmentService->searchUsersGroupsTeams($search, $user->getUID());
+			$results = $this->directorySearchService->search($search, $user->getUID());
 			return new DataResponse($results);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 400);

@@ -10,20 +10,15 @@ use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Db\CategoryMapper;
 use OCA\Attendance\Db\DatetimeFormatTrait;
-use OCA\Attendance\ResponseDefinitions;
-use OCP\App\IAppManager;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\Collaboration\Collaborators\ISearch as ICollaboratorSearch;
 use OCP\IGroupManager;
 use OCP\IUserManager;
-use OCP\Share\IShare;
 
 /**
  * Core service for managing appointments and responses.
  * Delegates to specialized services for summary, visibility, and check-in operations.
  *
  * @psalm-type ListRow = array{appointment: Appointment, isAttendee: bool, isOrganizer: bool, isPast: bool}
- * @psalm-import-type AttendanceDirectoryEntry from ResponseDefinitions
  */
 class AppointmentService {
 	use DatetimeFormatTrait;
@@ -50,8 +45,6 @@ class AppointmentService {
 	private ResponseSummaryService $responseSummaryService;
 	private NotificationService $notificationService;
 	private AttachmentService $attachmentService;
-	private ICollaboratorSearch $collaboratorSearch;
-	private IAppManager $appManager;
 	private GuestService $guestService;
 	private AuditEventService $auditEventService;
 	private BookingService $bookingService;
@@ -76,8 +69,6 @@ class AppointmentService {
 		ResponseSummaryService $responseSummaryService,
 		NotificationService $notificationService,
 		AttachmentService $attachmentService,
-		ICollaboratorSearch $collaboratorSearch,
-		IAppManager $appManager,
 		GuestService $guestService,
 		AuditEventService $auditEventService,
 		BookingService $bookingService,
@@ -101,8 +92,6 @@ class AppointmentService {
 		$this->responseSummaryService = $responseSummaryService;
 		$this->notificationService = $notificationService;
 		$this->attachmentService = $attachmentService;
-		$this->collaboratorSearch = $collaboratorSearch;
-		$this->appManager = $appManager;
 		$this->guestService = $guestService;
 		$this->auditEventService = $auditEventService;
 		$this->bookingService = $bookingService;
@@ -2120,158 +2109,6 @@ class AppointmentService {
 		}
 
 		return $result;
-	}
-
-	/**
-	 * Search for users, groups, and teams (circles).
-	 * Uses the ICollaboratorSearch interface to include all registered share types.
-	 *
-	 * @return list<AttendanceDirectoryEntry>
-	 */
-	public function searchUsersGroupsTeams(string $search, string $currentUserId): array {
-		$shareTypes = [
-			IShare::TYPE_USER,
-			IShare::TYPE_GROUP,
-		];
-
-		// Add circles/teams if the app is enabled
-		if ($this->appManager->isEnabledForUser('circles')) {
-			$shareTypes[] = IShare::TYPE_CIRCLE;
-		}
-
-		[$searchResult, $hasMore] = $this->collaboratorSearch->search(
-			$search,
-			$shareTypes,
-			false, // lookup
-			// Bound the page so an empty/very-short query on a large directory
-			// can't fan out to every user/group/team. 200 leaves plenty of
-			// headroom for a typical org while keeping the response bounded.
-			200,
-			0
-		);
-
-		return $this->withCurrentUser($this->formatCollaboratorResults($searchResult), $search, $currentUserId);
-	}
-
-	/**
-	 * Nobody shares with themselves, so the sharee search drops the searching
-	 * user — but an organizer may well attend their own appointment.
-	 *
-	 * @param list<AttendanceDirectoryEntry> $results
-	 * @return list<AttendanceDirectoryEntry>
-	 */
-	private function withCurrentUser(array $results, string $search, string $currentUserId): array {
-		$user = $this->userManager->get($currentUserId);
-		if ($user === null) {
-			return $results;
-		}
-		$needle = mb_strtolower(trim($search));
-		$hits = array_filter(
-			array_map(mb_strtolower(...), [$user->getUID(), $user->getDisplayName(), $user->getEMailAddress() ?? '']),
-			static fn (string $name): bool => $name !== '' && str_contains($name, $needle),
-		);
-		if ($hits === []) {
-			return $results;
-		}
-		foreach ($results as $result) {
-			if ($result['type'] === 'user' && $result['id'] === $user->getUID()) {
-				return $results;
-			}
-		}
-
-		$self = $this->directoryEntry('user', $user->getUID(), $user->getDisplayName());
-		// An exact hit leads, like the sharee search's own exact matches do.
-		return in_array($needle, $hits, true) ? [$self, ...$results] : [...$results, $self];
-	}
-
-	/**
-	 * @return AttendanceDirectoryEntry
-	 */
-	private function directoryEntry(string $type, string $id, string $label): array {
-		return [
-			'id' => $id,
-			'label' => $label,
-			'type' => $type,
-			'icon' => $this->getIconForType($type),
-			'isGuest' => $type === 'user' && $id !== '' && $this->guestService->isGuestUser($id),
-		];
-	}
-
-	/**
-	 * Format collaborator search results into a consistent format.
-	 *
-	 * @return list<AttendanceDirectoryEntry>
-	 */
-	private function formatCollaboratorResults($searchResult): array {
-		$results = [];
-		// Handle both ISearchResult object and array returns
-		$resultData = is_array($searchResult) ? $searchResult : $searchResult->asArray();
-
-		// Process exact matches and regular matches
-		foreach (['exact', 'users', 'groups', 'circles'] as $category) {
-			$items = [];
-
-			if ($category === 'exact') {
-				// Exact matches are nested by type
-				$exactMatches = $resultData['exact'] ?? [];
-				foreach (['users', 'groups', 'circles'] as $subCategory) {
-					if (isset($exactMatches[$subCategory])) {
-						$items = array_merge($items, $exactMatches[$subCategory]);
-					}
-				}
-			} else {
-				$items = $resultData[$category] ?? [];
-			}
-
-			foreach ($items as $item) {
-				$shareType = $item['value']['shareType'] ?? null;
-				$type = $this->mapShareTypeToString($shareType);
-
-				if ($type === null) {
-					continue;
-				}
-
-				$id = (string)($item['value']['shareWith'] ?? $item['shareWith'] ?? '');
-				$results[] = $this->directoryEntry($type, $id, (string)($item['label'] ?? ''));
-			}
-		}
-
-		// Remove duplicates based on id + type
-		$seen = [];
-		$uniqueResults = [];
-		foreach ($results as $result) {
-			$key = $result['type'] . ':' . $result['id'];
-			if (!isset($seen[$key])) {
-				$seen[$key] = true;
-				$uniqueResults[] = $result;
-			}
-		}
-
-		return $uniqueResults;
-	}
-
-	/**
-	 * Map share type integer to string type.
-	 */
-	private function mapShareTypeToString(?int $shareType): ?string {
-		return match ($shareType) {
-			IShare::TYPE_USER => 'user',
-			IShare::TYPE_GROUP => 'group',
-			IShare::TYPE_CIRCLE => 'team',
-			default => null,
-		};
-	}
-
-	/**
-	 * Get icon class for a given type.
-	 */
-	private function getIconForType(string $type): string {
-		return match ($type) {
-			'user' => 'icon-user',
-			'group' => 'icon-group',
-			'team' => 'icon-team',
-			default => 'icon-user',
-		};
 	}
 
 	/**

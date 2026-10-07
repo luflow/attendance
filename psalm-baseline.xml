@@ -1409,39 +1409,16 @@
     <DeprecatedMethod>
       <code><![CDATA[search]]></code>
     </DeprecatedMethod>
-    <MissingParamType>
-      <code><![CDATA[$searchResult]]></code>
-    </MissingParamType>
     <MixedArgument>
       <code><![CDATA[$appointmentData['organizers'] ?? []]]></code>
-      <code><![CDATA[$exactMatches[$subCategory]]]></code>
       <code><![CDATA[$groupId]]></code>
-      <code><![CDATA[$shareType]]></code>
       <code><![CDATA[$teamId]]></code>
     </MixedArgument>
-    <MixedArrayAccess>
-      <code><![CDATA[$item['label']]]></code>
-      <code><![CDATA[$item['shareWith']]]></code>
-      <code><![CDATA[$item['value']]]></code>
-      <code><![CDATA[$item['value']]]></code>
-      <code><![CDATA[$item['value']['shareType']]]></code>
-      <code><![CDATA[$item['value']['shareWith']]]></code>
-      <code><![CDATA[$resultData[$category]]]></code>
-      <code><![CDATA[$resultData['exact']]]></code>
-    </MixedArrayAccess>
     <MixedAssignment>
-      <code><![CDATA[$exactMatches]]></code>
       <code><![CDATA[$groupId]]></code>
-      <code><![CDATA[$item]]></code>
-      <code><![CDATA[$items]]></code>
-      <code><![CDATA[$resultData]]></code>
-      <code><![CDATA[$shareType]]></code>
       <code><![CDATA[$teamId]]></code>
       <code><![CDATA[$userId]]></code>
     </MixedAssignment>
-    <MixedMethodCall>
-      <code><![CDATA[asArray]]></code>
-    </MixedMethodCall>
     <PossiblyFalseArgument>
       <code><![CDATA[$normalized === [] ? null : json_encode($normalized)]]></code>
       <code><![CDATA[$visibleGroupsJson]]></code>
@@ -1504,9 +1481,6 @@
       <code><![CDATA[$user]]></code>
       <code><![CDATA[$user]]></code>
     </UnusedForeachValue>
-    <UnusedVariable>
-      <code><![CDATA[$hasMore]]></code>
-    </UnusedVariable>
   </file>
   <file src="lib/Service/AttachmentService.php">
     <ClassMustBeFinal>
@@ -1743,6 +1717,32 @@
     <PossiblyUnusedMethod>
       <code><![CDATA[fromWire]]></code>
       <code><![CDATA[isUnchanged]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Service/DirectorySearchService.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[DirectorySearchService]]></code>
+    </ClassMustBeFinal>
+    <MixedArgument>
+      <code><![CDATA[$exactMatches[$subCategory]]]></code>
+      <code><![CDATA[$shareType]]></code>
+    </MixedArgument>
+    <MixedArrayAccess>
+      <code><![CDATA[$item['label']]]></code>
+      <code><![CDATA[$item['shareWith']]]></code>
+      <code><![CDATA[$item['value']]]></code>
+      <code><![CDATA[$item['value']]]></code>
+      <code><![CDATA[$item['value']['shareType']]]></code>
+      <code><![CDATA[$item['value']['shareWith']]]></code>
+    </MixedArrayAccess>
+    <MixedAssignment>
+      <code><![CDATA[$exactMatches]]></code>
+      <code><![CDATA[$item]]></code>
+      <code><![CDATA[$items]]></code>
+      <code><![CDATA[$shareType]]></code>
+    </MixedAssignment>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
     </PossiblyUnusedMethod>
   </file>
   <file src="lib/Service/ExportOptions.php">

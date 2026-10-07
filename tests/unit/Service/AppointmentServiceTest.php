@@ -32,14 +32,11 @@ use OCA\Attendance\Service\TalkRoomService;
 use OCA\Attendance\Service\TimezoneService;
 use OCA\Attendance\Service\VacationService;
 use OCA\Attendance\Service\VisibilityService;
-use OCP\App\IAppManager;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\Collaboration\Collaborators\ISearch as ICollaboratorSearch;
 use OCP\Config\IUserConfig;
 use OCP\IDateTimeZone;
 use OCP\IGroupManager;
 use OCP\IUserManager;
-use OCP\Share\IShare;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -70,12 +67,6 @@ class AppointmentServiceTest extends TestCase {
 
 	/** @var AttachmentService|MockObject */
 	private $attachmentService;
-
-	/** @var ICollaboratorSearch|MockObject */
-	private $collaboratorSearch;
-
-	/** @var IAppManager|MockObject */
-	private $appManager;
 
 	/** @var GuestService|MockObject */
 	private $guestService;
@@ -115,8 +106,6 @@ class AppointmentServiceTest extends TestCase {
 		$this->responseSummaryService = $this->createMock(ResponseSummaryService::class);
 		$this->notificationService = $this->createMock(NotificationService::class);
 		$this->attachmentService = $this->createMock(AttachmentService::class);
-		$this->collaboratorSearch = $this->createMock(ICollaboratorSearch::class);
-		$this->appManager = $this->createMock(IAppManager::class);
 		$this->guestService = $this->createMock(GuestService::class);
 		$this->auditEventService = $this->createMock(AuditEventService::class);
 		$this->bookingService = $this->createMock(BookingService::class);
@@ -150,8 +139,6 @@ class AppointmentServiceTest extends TestCase {
 			$this->responseSummaryService,
 			$this->notificationService,
 			$this->attachmentService,
-			$this->collaboratorSearch,
-			$this->appManager,
 			$this->guestService,
 			$this->auditEventService,
 			$this->bookingService,
@@ -2556,78 +2543,5 @@ class AppointmentServiceTest extends TestCase {
 
 		$this->assertSame([201, 202], array_column($navigation['past'], 'id'));
 		$this->assertFalse($navigation['pastHasMore']);
-	}
-
-	private function searchesAs(string $uid, string $displayName, ?string $email = null): void {
-		$user = $this->createMock(\OCP\IUser::class);
-		$user->method('getUID')->willReturn($uid);
-		$user->method('getDisplayName')->willReturn($displayName);
-		$user->method('getEMailAddress')->willReturn($email);
-		$this->userManager->method('get')->with($uid)->willReturn($user);
-	}
-
-	/** @param list<string> $uids */
-	private function shareeSearchFinds(array $uids): void {
-		$users = array_map(static fn (string $uid): array => [
-			'label' => $uid,
-			'value' => ['shareType' => IShare::TYPE_USER, 'shareWith' => $uid],
-		], $uids);
-		$this->collaboratorSearch->method('search')->willReturn([['users' => $users], false]);
-	}
-
-	public function testSearchAddsTheSearchingUserWhenTheQueryFitsThem(): void {
-		$this->searchesAs('lars', 'Lars Müller');
-		$this->shareeSearchFinds(['larissa']);
-
-		$results = $this->service->searchUsersGroupsTeams('lar', 'lars');
-
-		$this->assertSame(['larissa', 'lars'], array_column($results, 'id'));
-		$this->assertSame('Lars Müller', $results[1]['label']);
-		$this->assertSame('user', $results[1]['type']);
-		$this->assertFalse($results[1]['isGuest']);
-	}
-
-	public function testSearchPutsAnExactHitOnTheSearchingUserFirst(): void {
-		$this->searchesAs('lars', 'Lars Müller');
-		$this->shareeSearchFinds(['larissa']);
-
-		$results = $this->service->searchUsersGroupsTeams('Lars Müller', 'lars');
-
-		$this->assertSame(['lars', 'larissa'], array_column($results, 'id'));
-	}
-
-	public function testSearchMatchesTheSearchingUserByEmail(): void {
-		$this->searchesAs('lars', 'Lars Müller', 'lars@example.org');
-		$this->shareeSearchFinds([]);
-
-		$results = $this->service->searchUsersGroupsTeams('example.org', 'lars');
-
-		$this->assertSame(['lars'], array_column($results, 'id'));
-	}
-
-	public function testSearchLeavesTheSearchingUserOutWhenTheQueryDoesNotFit(): void {
-		$this->searchesAs('lars', 'Lars Müller', 'lars@example.org');
-		$this->shareeSearchFinds(['christel']);
-
-		$results = $this->service->searchUsersGroupsTeams('chris', 'lars');
-
-		$this->assertSame(['christel'], array_column($results, 'id'));
-	}
-
-	public function testSearchDoesNotDuplicateASearchingUserTheShareeSearchAlreadyLists(): void {
-		$this->searchesAs('lars', 'Lars Müller');
-		$this->shareeSearchFinds(['lars']);
-
-		$results = $this->service->searchUsersGroupsTeams('lars', 'lars');
-
-		$this->assertSame(['lars'], array_column($results, 'id'));
-	}
-
-	public function testSearchIgnoresASearcherTheUserManagerDoesNotKnow(): void {
-		$this->shareeSearchFinds(['christel']);
-
-		$results = $this->service->searchUsersGroupsTeams('chris', 'ghost');
-
-		$this->assertSame(['christel'], array_column($results, 'id'));
 	}
 }
