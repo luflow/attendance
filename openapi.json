@@ -879,6 +879,33 @@
                     }
                 }
             },
+            "DirectoryEntry": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "label",
+                    "type",
+                    "icon",
+                    "isGuest"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "label": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "icon": {
+                        "type": "string"
+                    },
+                    "isGuest": {
+                        "type": "boolean"
+                    }
+                }
+            },
             "ExportResult": {
                 "type": "object",
                 "required": [
@@ -6955,31 +6982,7 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "type": "object",
-                                        "required": [
-                                            "id",
-                                            "label",
-                                            "type",
-                                            "icon",
-                                            "isGuest"
-                                        ],
-                                        "properties": {
-                                            "id": {
-                                                "type": "string"
-                                            },
-                                            "label": {
-                                                "type": "string"
-                                            },
-                                            "type": {
-                                                "type": "string"
-                                            },
-                                            "icon": {
-                                                "type": "string"
-                                            },
-                                            "isGuest": {
-                                                "type": "boolean"
-                                            }
-                                        }
+                                        "$ref": "#/components/schemas/DirectoryEntry"
                                     }
                                 }
                             }

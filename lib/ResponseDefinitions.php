@@ -170,6 +170,7 @@ namespace OCA\Attendance;
  *   isAllDay?: bool,
  * }
  * @psalm-type AttendanceAudienceRef = array{id: string, label: string, type: string, isGuest?: bool}
+ * @psalm-type AttendanceDirectoryEntry = array{id: string, label: string, type: string, icon: string, isGuest: bool}
  * @psalm-type AttendanceCategoryTemplate = array{
  *   name: string,
  *   description: string,

@@ -32,9 +32,7 @@ use OCA\Attendance\Service\TalkRoomService;
 use OCA\Attendance\Service\TimezoneService;
 use OCA\Attendance\Service\VacationService;
 use OCA\Attendance\Service\VisibilityService;
-use OCP\App\IAppManager;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\Collaboration\Collaborators\ISearch as ICollaboratorSearch;
 use OCP\Config\IUserConfig;
 use OCP\IDateTimeZone;
 use OCP\IGroupManager;
@@ -69,12 +67,6 @@ class AppointmentServiceTest extends TestCase {
 
 	/** @var AttachmentService|MockObject */
 	private $attachmentService;
-
-	/** @var ICollaboratorSearch|MockObject */
-	private $collaboratorSearch;
-
-	/** @var IAppManager|MockObject */
-	private $appManager;
 
 	/** @var GuestService|MockObject */
 	private $guestService;
@@ -114,8 +106,6 @@ class AppointmentServiceTest extends TestCase {
 		$this->responseSummaryService = $this->createMock(ResponseSummaryService::class);
 		$this->notificationService = $this->createMock(NotificationService::class);
 		$this->attachmentService = $this->createMock(AttachmentService::class);
-		$this->collaboratorSearch = $this->createMock(ICollaboratorSearch::class);
-		$this->appManager = $this->createMock(IAppManager::class);
 		$this->guestService = $this->createMock(GuestService::class);
 		$this->auditEventService = $this->createMock(AuditEventService::class);
 		$this->bookingService = $this->createMock(BookingService::class);
@@ -149,8 +139,6 @@ class AppointmentServiceTest extends TestCase {
 			$this->responseSummaryService,
 			$this->notificationService,
 			$this->attachmentService,
-			$this->collaboratorSearch,
-			$this->appManager,
 			$this->guestService,
 			$this->auditEventService,
 			$this->bookingService,

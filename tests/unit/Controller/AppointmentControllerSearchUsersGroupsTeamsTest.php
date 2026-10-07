@@ -11,6 +11,7 @@ use OCA\Attendance\Service\BookingService;
 use OCA\Attendance\Service\CalendarService;
 use OCA\Attendance\Service\CheckinService;
 use OCA\Attendance\Service\ConfigService;
+use OCA\Attendance\Service\DirectorySearchService;
 use OCA\Attendance\Service\ExportService;
 use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\NotificationService;
@@ -38,6 +39,8 @@ class AppointmentControllerSearchUsersGroupsTeamsTest extends TestCase {
 	private $permissionService;
 	/** @var IUserSession|MockObject */
 	private $userSession;
+	/** @var DirectorySearchService|MockObject */
+	private $directorySearchService;
 
 	private AppointmentController $controller;
 
@@ -45,6 +48,7 @@ class AppointmentControllerSearchUsersGroupsTeamsTest extends TestCase {
 		$this->appointmentService = $this->createMock(AppointmentService::class);
 		$this->permissionService = $this->createMock(PermissionService::class);
 		$this->userSession = $this->createMock(IUserSession::class);
+		$this->directorySearchService = $this->createMock(DirectorySearchService::class);
 
 		$this->controller = new AppointmentController(
 			'attendance',
@@ -64,6 +68,7 @@ class AppointmentControllerSearchUsersGroupsTeamsTest extends TestCase {
 			$this->createMock(GuestService::class),
 			$this->createMock(BookingService::class),
 			$this->createMock(TalkRoomService::class),
+			$this->directorySearchService,
 		);
 	}
 
@@ -78,7 +83,7 @@ class AppointmentControllerSearchUsersGroupsTeamsTest extends TestCase {
 		$this->permissionService->method('isAdmin')->with('admin')->willReturn(true);
 		$this->permissionService->method('canCreateAppointments')->willReturn(false);
 		$this->appointmentService->method('isOrganizerAnywhere')->willReturn(false);
-		$this->appointmentService->method('searchUsersGroupsTeams')->with('acme')->willReturn([]);
+		$this->directorySearchService->method('search')->with('acme', 'admin')->willReturn([]);
 
 		$response = $this->controller->searchUsersGroupsTeams('acme');
 
@@ -90,7 +95,7 @@ class AppointmentControllerSearchUsersGroupsTeamsTest extends TestCase {
 		$this->permissionService->method('isAdmin')->willReturn(false);
 		$this->permissionService->method('canCreateAppointments')->willReturn(false);
 		$this->appointmentService->method('isOrganizerAnywhere')->willReturn(false);
-		$this->appointmentService->expects($this->never())->method('searchUsersGroupsTeams');
+		$this->directorySearchService->expects($this->never())->method('search');
 
 		$response = $this->controller->searchUsersGroupsTeams('acme');
 

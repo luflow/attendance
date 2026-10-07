@@ -11,6 +11,7 @@ use OCA\Attendance\Service\BookingService;
 use OCA\Attendance\Service\CalendarService;
 use OCA\Attendance\Service\CheckinService;
 use OCA\Attendance\Service\ConfigService;
+use OCA\Attendance\Service\DirectorySearchService;
 use OCA\Attendance\Service\ExportService;
 use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\NotificationService;
@@ -65,6 +66,7 @@ class AppointmentControllerUserConfigTest extends TestCase {
 			$this->createMock(GuestService::class),
 			$this->createMock(BookingService::class),
 			$this->createMock(TalkRoomService::class),
+			$this->createMock(DirectorySearchService::class),
 		);
 
 		$this->configService->method('getDisplayOrder')->willReturn('name_first');
