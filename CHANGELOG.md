@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.55.0 – 2026-10-08
+
+### Added
+
+- **"See all appointments" can be limited to categories**: with categories picked, the permission only reveals appointments in those categories; none picked keeps today's behaviour
+- **Export option for the location**: the location next to the date can be switched off like the group column
+
+### Fixed
+
+- **Organizers can pick themselves as attendee again**: the audience and organizer search no longer drops the searching user
+- **Appointment list loads faster**: the page reads responses, attachments, series sizes and bookings in bulk instead of once per row
+- **Notifications go out faster**: the appointment is read once per wave instead of once per recipient
+
+### Maintenance
+
+- Directory search moved into its own service
+- App store screenshots load again
+- Updated translations from Transifex
+
 ## 1.54.0 – 2026-10-05
 
 ### Added
