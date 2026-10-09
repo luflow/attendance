@@ -290,6 +290,7 @@ test.describe('Attendance App - Admin Settings', () => {
 
 		test.beforeEach(async ({ request }) => {
 			await saveAdminSettings(request, {
+				responseSummaryGroupsMode: 'specific',
 				whitelistedGroups: [firstGroup, secondGroup],
 				whitelistedTeams: [],
 				permissions: { ...PERMISSIVE_PERMISSIONS },
@@ -336,7 +337,7 @@ test.describe('Attendance App - Admin Settings', () => {
 		})
 
 		test('should not offer the order list for fewer than two groups', async ({ page, loginAsUser, request }) => {
-			await saveAdminSettings(request, { whitelistedGroups: [firstGroup] })
+			await saveAdminSettings(request, { responseSummaryGroupsMode: 'specific', whitelistedGroups: [firstGroup] })
 
 			await loginAsUser('admin', 'admin')
 			await page.goto('/settings/admin/attendance')
@@ -425,7 +426,10 @@ test.describe('Attendance App - Admin Settings', () => {
 			await page.goto('/settings/admin/attendance')
 			await page.waitForLoadState('networkidle')
 
-			// Find the whitelisted groups selector
+			// The picker only appears once "Specific groups" mode is selected
+			const groupingRow = page.locator('[data-test="response-summary-groups"]')
+			await groupingRow.getByText('Specific groups', { exact: true }).click()
+
 			const groupsSelect = page.locator('[data-test="select-whitelisted-groups"]')
 			await expect(groupsSelect).toBeVisible()
 
@@ -467,6 +471,9 @@ test.describe('Attendance App - Admin Settings', () => {
 				const row = page.locator(`[data-test="permission-${permission}"]`)
 				await row.getByText('Specific groups', { exact: true }).click()
 			}
+
+			const groupingRow = page.locator('[data-test="response-summary-groups"]')
+			await groupingRow.getByText('Specific groups', { exact: true }).click()
 
 			const selectFields = [
 				'select-whitelisted-groups',
