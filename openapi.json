@@ -1026,8 +1026,6 @@
                     "name",
                     "startDatetime",
                     "isAllDay",
-                    "seriesId",
-                    "seriesPosition",
                     "userResponse",
                     "closedAt",
                     "cancelledAt",
@@ -1046,15 +1044,6 @@
                     },
                     "isAllDay": {
                         "type": "boolean"
-                    },
-                    "seriesId": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "seriesPosition": {
-                        "type": "integer",
-                        "format": "int64",
-                        "nullable": true
                     },
                     "userResponse": {
                         "type": "object",
@@ -1221,9 +1210,7 @@
                     "checkinSource",
                     "bookingStatus",
                     "userName",
-                    "userGroups",
-                    "isGuest",
-                    "waitlisted"
+                    "userGroups"
                 ],
                 "properties": {
                     "id": {
@@ -3980,6 +3967,24 @@
                                 }
                             }
                         }
+                    },
+                    "400": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -4274,6 +4279,24 @@
                         }
                     },
                     "403": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
                         "description": "",
                         "content": {
                             "application/json": {
@@ -4779,6 +4802,24 @@
                         }
                     },
                     "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
                         "description": "",
                         "content": {
                             "application/json": {

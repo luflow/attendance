@@ -45,19 +45,28 @@ class AuditEvent extends Entity implements JsonSerializable {
 		$this->addType('createdAt', 'string');
 	}
 
+	/**
+	 * @return array<string, mixed>
+	 */
 	public function getMetaArray(): array {
 		$raw = $this->getMeta();
 		if ($raw === null || $raw === '') {
 			return [];
 		}
 		$decoded = json_decode($raw, true);
-		return is_array($decoded) ? $decoded : [];
+		if (!is_array($decoded)) {
+			return [];
+		}
+		return array_combine(array_map('strval', array_keys($decoded)), $decoded);
 	}
 
 	public function setMetaArray(array $meta): void {
 		$this->setMeta($meta === [] ? null : json_encode($meta, JSON_UNESCAPED_UNICODE));
 	}
 
+	/**
+	 * @return array{id: int, appointmentId: int, verb: string, actorId: ?string, subjectId: ?string, meta: array<string, mixed>, source: ?string, createdAt: ?string}
+	 */
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->getId(),

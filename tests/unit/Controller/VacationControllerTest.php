@@ -71,7 +71,7 @@ class VacationControllerTest extends TestCase {
 		$response = $this->controller->index();
 
 		$this->assertEquals(Http::STATUS_OK, $response->getStatus());
-		$this->assertSame($vacations, $response->getData());
+		$this->assertSame([$vacations[0]->jsonSerialize()], $response->getData());
 	}
 
 	public function testIndexRejectsAnonymousRequest(): void {
@@ -92,7 +92,7 @@ class VacationControllerTest extends TestCase {
 		$response = $this->controller->create('2026-07-01', '2026-07-10', 'Beach');
 
 		$this->assertEquals(Http::STATUS_CREATED, $response->getStatus());
-		$this->assertSame($created, $response->getData());
+		$this->assertSame($created->jsonSerialize(), $response->getData());
 	}
 
 	public function testCreateReturns400OnInvalidRange(): void {

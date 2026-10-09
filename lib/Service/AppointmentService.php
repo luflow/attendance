@@ -18,6 +18,10 @@ use OCP\IUserManager;
  * Core service for managing appointments and responses.
  * Delegates to specialized services for summary, visibility, and check-in operations.
  *
+ * @psalm-import-type AttendanceAppointmentData from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceNavigationAppointment from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceResponseData from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceResponseWithUser from \OCA\Attendance\ResponseDefinitions
  * @psalm-type ListRow = array{appointment: Appointment, isAttendee: bool, isOrganizer: bool, isPast: bool}
  */
 class AppointmentService {
@@ -1260,16 +1264,17 @@ class AppointmentService {
 	 * whether this yes holds a spot or a place in line. The standing is derived,
 	 * so it moves on its own as other people change their answers.
 	 *
-	 * @return array<string, mixed>
+	 * @return AttendanceResponseData
 	 */
 	public function serializeResponse(AttendanceResponse $response, ?Appointment $appointment = null): array {
-		/** @var array<string, mixed> $data */
 		$data = $response->jsonSerialize();
 		$data['bookingStatus'] = $this->bookingService->effectiveBookingStatus($response);
 		$standing = $appointment === null
 			? ['waitlisted' => false, 'waitlistPosition' => null]
 			: $this->capacityService->standingOf($appointment, $response->getUserId());
-		return $data + $standing;
+		/** @var AttendanceResponseData $merged */
+		$merged = $data + $standing;
+		return $merged;
 	}
 
 	/**
@@ -1566,6 +1571,8 @@ class AppointmentService {
 
 	/**
 	 * Get all responses for an appointment with user details.
+	 *
+	 * @return list<AttendanceResponseWithUser>
 	 */
 	public function getAppointmentResponsesWithUsers(int $appointmentId, string $requestingUserId): array {
 		$appointment = $this->appointmentMapper->find($appointmentId);
@@ -1598,6 +1605,7 @@ class AppointmentService {
 			$result[] = $responseData;
 		}
 
+		/** @var list<AttendanceResponseWithUser> $result */
 		return $result;
 	}
 
@@ -1609,7 +1617,7 @@ class AppointmentService {
 	 *
 	 * @param ?int $pastLimit Page size for the past entries, which grow without
 	 *                        bound; null returns all of them
-	 * @return array{current: list<array<string, mixed>>, past: list<array<string, mixed>>, pastHasMore: bool}
+	 * @return array{current: list<AttendanceNavigationAppointment>, past: list<AttendanceNavigationAppointment>, pastHasMore: bool}
 	 */
 	public function getAppointmentsForNavigation(string $userId, ?int $pastLimit = null, int $pastOffset = 0): array {
 		$current = $this->buildNavigationData($this->ownAppointments($this->getUpcomingAppointments(), $userId), $userId);
@@ -1666,23 +1674,21 @@ class AppointmentService {
 
 	/**
 	 * @param list<array{appointment: Appointment, inAudience: bool}> $own
-	 * @return list<array<string, mixed>>
+	 * @return list<AttendanceNavigationAppointment>
 	 */
 	private function buildNavigationData(array $own, string $userId): array {
 		$responses = $this->responseMapper->findByUserForAppointments($userId, self::rowIds($own));
 
 		$result = [];
 		foreach ($own as ['appointment' => $appointment, 'inAudience' => $inAudience]) {
-			$userResponse = $responses[$appointment->getId()] ?? null;
+			$answer = ($responses[$appointment->getId()] ?? null)?->getResponse();
 
 			$result[] = [
 				'id' => $appointment->getId(),
 				'name' => $appointment->getName(),
-				'startDatetime' => $this->formatDatetimeToUtc($appointment->getStartDatetime()),
+				'startDatetime' => $this->formatDatetimeToUtc($appointment->getStartDatetime()) ?? '',
 				'isAllDay' => $appointment->isAllDay(),
-				'userResponse' => ($userResponse && $userResponse->getResponse() !== null)
-					? ['response' => $userResponse->getResponse()]
-					: null,
+				'userResponse' => $answer !== null ? ['response' => $answer] : null,
 				'closedAt' => $this->formatDatetimeToUtc($appointment->getClosedAt()),
 				'cancelledAt' => $this->formatDatetimeToUtc($appointment->getCancelledAt()),
 				'inAudience' => $inAudience,
@@ -2292,7 +2298,7 @@ class AppointmentService {
 	 * on its own — the tri-state column has to be read against the instance
 	 * default — so payloads go through here instead of jsonSerialize().
 	 *
-	 * @return array<string, mixed>
+	 * @return AttendanceAppointmentData
 	 */
 	public function serializeAppointment(Appointment $appointment): array {
 		return $this->appointmentSerializer->serialize($appointment);

@@ -283,6 +283,40 @@
 				</NcNoteCard>
 
 				<template v-else>
+					<template v-if="!notificationsApp.emailForwardingEnabled">
+						<div v-if="!notificationsApp.emailHintDismissed" data-test="notification-email-warning">
+							<NcNoteCard type="warning">
+								<p>{{ t('attendance', 'Nextcloud does not forward notifications by email: in the Notifications settings, "Send email reminders about unhandled notifications" is set to "Never". Reminders and appointment notifications from Attendance only show up in the notification bell and the mobile app.') }}</p>
+								<p class="hint-text">
+									{{ t('attendance', 'Choose an interval there to deliver them by email as well. It applies to everyone who has not picked their own interval in their personal settings and can take a day to take effect.') }}
+								</p>
+							</NcNoteCard>
+							<p class="warning-actions">
+								<NcButton variant="primary"
+									:href="notificationsAdminUrl"
+									data-test="button-open-notifications-settings">
+									<template #icon>
+										<OpenInNew :size="20" />
+									</template>
+									{{ t('attendance', 'Open Notifications settings') }}
+								</NcButton>
+								<NcButton variant="tertiary"
+									data-test="button-hide-notification-email-hint"
+									@click="setNotificationEmailHintDismissed(true)">
+									{{ t('attendance', 'Hide hint') }}
+								</NcButton>
+							</p>
+						</div>
+						<div v-else class="collapsed-hint" data-test="notification-email-hint-collapsed">
+							<span>{{ t('attendance', 'Nextcloud does not forward notifications by email.') }}</span>
+							<NcButton variant="tertiary"
+								data-test="button-show-notification-email-hint"
+								@click="setNotificationEmailHintDismissed(false)">
+								{{ t('attendance', 'Show hint') }}
+							</NcButton>
+						</div>
+					</template>
+
 					<NcCheckboxRadioSwitch
 						v-model="remindersEnabled"
 						type="switch"
@@ -696,7 +730,7 @@
 					<NcNoteCard type="info" data-test="guests-install-hint">
 						{{ t('attendance', 'Want to invite guests? Install the Nextcloud Guests app — once enabled, organizers can create guest accounts directly from the appointment editor.') }}
 					</NcNoteCard>
-					<p class="guests-warning-actions">
+					<p class="warning-actions">
 						<NcButton variant="primary"
 							:href="guestsAppStoreUrl"
 							target="_blank"
@@ -728,7 +762,7 @@
 					<p class="guests-warning-or">
 						{{ t('attendance', 'or') }}
 					</p>
-					<p class="guests-warning-actions">
+					<p class="warning-actions">
 						<NcButton variant="primary"
 							:href="guestsAdminUrl"
 							data-test="button-open-guests-settings">
@@ -977,6 +1011,7 @@ const selectedVacationCalendar = ref(null)
 const vacationCalendarUserId = ref(null)
 const syncingVacationCalendar = ref(false)
 const guestsApp = ref({ enabled: false, whitelistEnabled: false, attendanceInWhitelist: false })
+const notificationsApp = ref({ emailForwardingEnabled: true, emailHintDismissed: false })
 const showOnboardingWizard = ref(false)
 // Only reachable from the button below — no reason to ship it with the page.
 const OnboardingWizard = defineAsyncComponent(() => import('../components/onboarding/OnboardingWizard.vue'))
@@ -1017,6 +1052,12 @@ const vacationCalendarOptions = computed(() => {
 })
 
 const guestsAdminUrl = computed(() => generateUrl('/settings/admin/guests'))
+const notificationsAdminUrl = computed(() => generateUrl('/settings/admin/notifications'))
+
+function setNotificationEmailHintDismissed(dismissed) {
+	notificationsApp.value = { ...notificationsApp.value, emailHintDismissed: dismissed }
+	queueSave('notificationEmailHintDismissed', () => ({ notificationEmailHintDismissed: dismissed }))
+}
 const guestsAppStoreUrl = 'https://apps.nextcloud.com/apps/guests'
 const guestsWhitelistOccCommand = 'occ config:app:set guests whitelist --value=$(occ config:app:get guests whitelist),attendance'
 
@@ -1268,6 +1309,10 @@ async function loadSettings() {
 		reminderFrequency.value = config.reminders.reminderFrequency || 0
 		reminderTarget.value = config.reminders.reminderTarget || 'non_responders'
 		notificationsAppEnabled.value = caps.notificationsAppEnabled !== false
+		notificationsApp.value = {
+			emailForwardingEnabled: config.notificationsApp?.emailForwardingEnabled !== false,
+			emailHintDismissed: config.notificationsApp?.emailHintDismissed === true,
+		}
 		nextAppointment.value = status.nextAppointment || null
 		nextReminderRun.value = status.nextReminderRun || null
 
@@ -1537,11 +1582,21 @@ onMounted(async () => {
 	font-weight: 700;
 }
 
-.guests-warning-actions {
+.warning-actions {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
 	margin-top: 12px;
+}
+
+.collapsed-hint {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 12px;
+	color: var(--color-text-maxcontrast);
+	font-size: 13px;
 }
 
 .guests-occ-row {

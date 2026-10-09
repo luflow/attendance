@@ -82,13 +82,17 @@ namespace OCA\Attendance;
  *   bookingStatus: ?string,
  *   userName: string,
  *   userGroups: list<string>,
- *   isGuest: bool,
- *   waitlisted: bool,
+ *   isGuest?: bool,
+ *   waitlisted?: bool,
  * }
  * @psalm-type AttendanceGuestsAppStatus = array{
  *   enabled: bool,
  *   whitelistEnabled: bool,
  *   attendanceInWhitelist: bool,
+ * }
+ * @psalm-type AttendanceNotificationsAppStatus = array{
+ *   emailForwardingEnabled: bool,
+ *   emailHintDismissed: bool,
  * }
  * @psalm-type AttendanceGuestCreationResult = array{
  *   userId: string,
@@ -139,8 +143,6 @@ namespace OCA\Attendance;
  *   name: string,
  *   startDatetime: string,
  *   isAllDay: bool,
- *   seriesId: ?string,
- *   seriesPosition: ?int,
  *   userResponse: ?array{response: string},
  *   closedAt: ?string,
  *   cancelledAt: ?string,
@@ -226,7 +228,7 @@ namespace OCA\Attendance;
  *   users: list<AttendanceVacationEntry>,
  * }
  * @psalm-type AttendanceGroupOption = array{id: string, displayName: string}
- * @psalm-type AttendanceTeamOption = array{id: string, displayName: string}
+ * @psalm-type AttendanceTeamOption = array{id: string, label: string, type: string}
  * @psalm-type AttendancePermissionSetting = array{mode: string, groups: list<string>, categories?: list<int>}
  * @psalm-type AttendancePermissionSettings = array<string, AttendancePermissionSetting>
  * @psalm-type AttendanceUserPermissions = array{
@@ -322,6 +324,11 @@ namespace OCA\Attendance;
  *   userId: ?string,
  *   summary: bool,
  * }
+ * @psalm-type AttendanceAdminVacationCalendarConfig = array{
+ *   enabled: bool,
+ *   calendarUri: ?string,
+ *   userId: ?string,
+ * }
  * @psalm-type AttendanceWritableCalendar = array{
  *   uri: string,
  *   displayName: string,
@@ -340,6 +347,7 @@ namespace OCA\Attendance;
  *   reminders: AttendanceAdminReminderConfig,
  *   calendarSync: AttendanceAdminCalendarSyncConfig,
  *   orgCalendar: AttendanceAdminOrgCalendarConfig,
+ *   vacationCalendar: AttendanceAdminVacationCalendarConfig,
  *   audit: AttendanceAdminAuditConfig,
  *   displayOrder: string,
  *   pushEnabled: bool,
@@ -348,6 +356,7 @@ namespace OCA\Attendance;
  *   allowMaybe: bool,
  *   selfCheckinWindowMinutes: int,
  *   guestsApp: AttendanceGuestsAppStatus,
+ *   notificationsApp: AttendanceNotificationsAppStatus,
  * }
  * @psalm-type AttendanceAdminStatus = array{
  *   nextAppointment: ?array{name: string, startDatetime: string, isAllDay: bool},
