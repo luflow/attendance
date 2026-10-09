@@ -1,6 +1,8 @@
 OC.L10N.register(
     "attendance",
     {
+    "Appointment cancelled: %1$s on %2$s" : "Appuntamento annullato: %1$s su %2$s",
+    "It will not take place, so the time is yours again." : "Non avrà luogo, quindi sei di nuovo libero.",
     "Yes" : "Sì",
     "No" : "No",
     "Maybe" : "Forse",
