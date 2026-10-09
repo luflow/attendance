@@ -1,19 +1,6 @@
-import { test, expect, createAppointmentViaAPI, deleteAllAppointments, checkinUserViaAPI, getResponseSummaryViaAPI } from './fixtures/nextcloud.js'
+import { test, expect, createAppointmentViaAPI, deleteAllAppointments, checkinUserViaAPI, getResponseSummaryViaAPI, goToCheckin } from './fixtures/nextcloud.js'
 
 let checkinAppointmentId
-
-// Helper to navigate to checkin view and dismiss "future appointment" warning if shown
-async function goToCheckin(page, appointmentId) {
-	await page.goto(`/apps/attendance/checkin/${appointmentId}`)
-	await page.waitForLoadState('networkidle')
-
-	// Dismiss "appointment is way in the future" warning if present
-	const continueButton = page.getByRole('button', { name: 'Continue anyway' })
-	if (await continueButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-		await continueButton.click()
-		await page.waitForLoadState('networkidle')
-	}
-}
 
 test.describe('Attendance App - Check-in Workflow', () => {
 	test.beforeAll(async ({ request }) => {
@@ -57,7 +44,8 @@ test.describe('Attendance App - Check-in Workflow', () => {
 
 		await expect(page.locator('[data-test="checkin-view"]')).toBeVisible()
 		await expect(page.locator('[data-test="input-search"]')).toBeVisible()
-		await expect(page.locator('[data-test="select-group-filter"]')).toBeVisible()
+		// "No grouping" is the default: nothing to filter by (issue #212).
+		await expect(page.locator('[data-test="select-group-filter"]')).toBeHidden()
 	})
 
 	test('should mark user as present', async ({ page }) => {

@@ -178,24 +178,13 @@ class ResponseSummaryService {
 			}
 		}
 
-		// Pre-fetch group objects and their users for whichever groups can
-		// render as sections, mirroring isGroupAllowedCached()'s precedence:
-		// the whitelist in "specific" mode; a restricted appointment's own
-		// restriction groups regardless of mode (issue #199 — only those can
-		// ever pass, so fetching every instance group would be wasted work);
-		// every Nextcloud group otherwise, but only in "all" mode ("none"
-		// suppresses grouping entirely on a fully open appointment).
+		// Pre-fetch members only of the groups that can render as sections —
+		// scanning every instance group for a restricted appointment would be
+		// wasted work (issue #199).
 		/** @var array<array-key, list<\OCP\IUser>> $groupUsers */
 		$groupUsers = [];
-		if ($groupsMode === ConfigService::RESPONSE_SUMMARY_MODE_SPECIFIC) {
-			$sectionGroupIds = $sectionGroups;
-		} elseif (!empty($appointmentVisibleGroupsLower)) {
-			$sectionGroupIds = $visibilitySettings['groups'];
-		} elseif ($groupsMode === ConfigService::RESPONSE_SUMMARY_MODE_ALL) {
-			$sectionGroupIds = $this->visibilityService->getAllGroupIds();
-		} else {
-			$sectionGroupIds = [];
-		}
+		$sectionGroupIds = ConfigService::sectionGroups($groupsMode, $whitelistedGroups, $visibilitySettings['groups'])
+			?? $this->visibilityService->getAllGroupIds();
 		foreach ($sectionGroupIds as $groupId) {
 			$groupUsers[$groupId] = $this->visibilityService->getGroupMembers($groupId);
 		}

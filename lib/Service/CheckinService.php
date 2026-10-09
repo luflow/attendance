@@ -130,11 +130,15 @@ class CheckinService {
 		$appointment = $this->appointmentMapper->find($appointmentId);
 		$responses = $this->responseMapper->findByAppointment($appointmentId);
 
-		// Get whitelisted groups for filtering
+		// The whitelist narrows the audience; the admin's grouping mode
+		// decides which groups section the list.
 		$whitelistedGroups = $this->configService->getWhitelistedGroups();
-
-		// Get the target attendees efficiently - filters by whitelisted groups when configured
 		$targetAttendees = $this->visibilityService->getTargetAttendees($appointment, $whitelistedGroups);
+		$sectionGroups = ConfigService::sectionGroups(
+			$this->configService->getResponseSummaryGroupsMode(),
+			$whitelistedGroups,
+			$this->visibilityService->getVisibilitySettings($appointment)['groups'],
+		);
 
 		// Create a map of user responses
 		$userResponseMap = [];
@@ -143,7 +147,7 @@ class CheckinService {
 		}
 
 		// Build group list for filtering UI
-		$userGroups = $this->buildGroupList($whitelistedGroups);
+		$userGroups = $sectionGroups ?? $this->allGroupsWithOthers();
 
 		// A place in line is not a place at the appointment. The list still
 		// carries everyone — an organizer has to be able to check in whoever
@@ -156,33 +160,30 @@ class CheckinService {
 		}
 
 		$users = array_map(
-			fn ($user) => $this->buildUserData($user, $userResponseMap, $whitelistedGroups, $confirmedIds),
+			fn ($user) => $this->buildUserData($user, $userResponseMap, $sectionGroups, $confirmedIds),
 			array_values($targetAttendees),
 		);
 
 		return [
 			'appointment' => $this->appointmentSerializer->serialize($appointment),
 			'users' => $users,
-			'userGroups' => array_values($userGroups),
+			'userGroups' => $userGroups,
 		];
 	}
 
 	/**
-	 * Build the list of groups for filtering.
+	 * Every group of the instance plus "Others", for the "all" mode filter.
+	 *
+	 * @return list<string>
 	 */
-	private function buildGroupList(array $whitelistedGroups): array {
-		if (empty($whitelistedGroups)) {
-			$groups = $this->visibilityService->getAllGroupIds();
-			// Hide the Guests app system group; guests fall under "Others"
-			// unless an admin opted them in explicitly via the whitelist.
-			$groups = array_values(array_filter(
-				$groups,
-				fn (string $g) => !GuestService::isGuestsSystemGroup($g),
-			));
-			$groups[] = 'Others';
-		} else {
-			$groups = $whitelistedGroups;
-		}
+	private function allGroupsWithOthers(): array {
+		// Hide the Guests app system group; guests fall under "Others"
+		// unless an admin opted them in explicitly via the whitelist.
+		$groups = array_values(array_filter(
+			$this->visibilityService->getAllGroupIds(),
+			fn (string $g) => !GuestService::isGuestsSystemGroup($g),
+		));
+		$groups[] = 'Others';
 
 		return $groups;
 	}
@@ -239,38 +240,29 @@ class CheckinService {
 
 	/**
 	 * Build data structure for a single user.
+	 *
+	 * @param ?list<string> $sectionGroups null means every group
 	 */
-	private function buildUserData($user, array $userResponseMap, array $whitelistedGroups, array $confirmedIds = []): array {
+	private function buildUserData($user, array $userResponseMap, ?array $sectionGroups, array $confirmedIds = []): array {
 		$userId = $user->getUID();
 		$userGroupIds = $this->groupManager->getUserGroupIds($user);
 
-		// Hide the Guests app system group from the per-user group list
-		// unless the admin explicitly whitelisted it.
-		$guestAppWhitelisted = in_array(
-			GuestService::GUESTS_SYSTEM_GROUP,
-			array_map('strtolower', $whitelistedGroups),
-			true,
-		);
-		if (!$guestAppWhitelisted) {
-			$userGroupIds = array_values(array_filter(
+		// The sections this user belongs to, spelled as the section list
+		// spells them. Guests only get a section of their own when an admin
+		// opted the Guests app system group in.
+		if ($sectionGroups === null) {
+			$groups = array_values(array_filter(
 				$userGroupIds,
 				fn (string $g) => !GuestService::isGuestsSystemGroup($g),
 			));
+		} else {
+			$userGroupsLower = array_map('strtolower', $userGroupIds);
+			$groups = array_values(array_filter(
+				$sectionGroups,
+				fn (string $g) => in_array(strtolower($g), $userGroupsLower, true),
+			));
 		}
-
-		// Check if user belongs to any whitelisted group
-		$userInWhitelistedGroup = empty($whitelistedGroups);
-		if (!empty($whitelistedGroups)) {
-			foreach ($userGroupIds as $groupId) {
-				if (in_array($groupId, $whitelistedGroups)) {
-					$userInWhitelistedGroup = true;
-					break;
-				}
-			}
-		}
-
-		// Determine effective groups
-		$effectiveGroups = $userInWhitelistedGroup && !empty($userGroupIds) ? $userGroupIds : ['Others'];
+		$effectiveGroups = $groups !== [] ? $groups : ['Others'];
 
 		// Base user data
 		$userData = [

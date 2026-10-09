@@ -111,6 +111,8 @@ export default defineConfig({
 				'39-vacation-calendar.spec.js',
 				// Wipes every appointment and answers as two users.
 				'40-capacity-ui.spec.js',
+				// Switches the response summary grouping mode and the group list.
+				'41-checkin-group-filter.spec.js',
 			],
 			fullyParallel: false,
 			workers: 1,

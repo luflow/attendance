@@ -9,7 +9,7 @@
 				<MagnifyIcon :size="16" />
 			</NcTextField>
 		</div>
-		<div class="group-filter">
+		<div v-if="groupOptions.length" class="group-filter">
 			<NcSelect
 				:modelValue="selectedGroup"
 				:options="groupOptions"

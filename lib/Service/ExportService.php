@@ -104,42 +104,24 @@ class ExportService {
 
 	/**
 	 * Which groups the column may name, lowercased, or null when it may name
-	 * any of them.
-	 *
-	 * Mirrors the rule the response summary sections by
-	 * (ResponseSummaryService::isGroupAllowedCached), so the sheet says what
-	 * the overview shows. In order: the admin's group list decides when the
-	 * mode is "specific"; otherwise the groups a restricted appointment names
-	 * decide, because those are what let people in (issue #252); otherwise
-	 * every group counts in "all" mode and none in "none".
-	 *
-	 * A run covering several appointments takes the union of their
-	 * restrictions — one column cannot answer per appointment.
+	 * any of them — the groups the response summary sections by, so the sheet
+	 * says what the overview shows (issue #252). A run covering several
+	 * appointments takes the union of their restrictions — one column cannot
+	 * answer per appointment.
 	 *
 	 * @param list<Appointment> $appointments
 	 * @param array<array-key, string> $whitelistedGroups
 	 * @return ?list<string> null means "any group"
 	 */
 	private function nameableGroups(array $appointments, array $whitelistedGroups): ?array {
-		if ($this->configService->getResponseSummaryGroupsMode() === ConfigService::RESPONSE_SUMMARY_MODE_SPECIFIC) {
-			return array_values(array_map('strtolower', $whitelistedGroups));
-		}
-
 		$restrictionGroups = [];
 		foreach ($appointments as $appointment) {
-			// A numerically-named group decodes to an int out of the JSON column.
-			$groups = array_map('strval', $this->visibilityService->getVisibilitySettings($appointment)['groups']);
-			foreach ($groups as $groupId) {
-				$restrictionGroups[strtolower($groupId)] = true;
-			}
-		}
-		if ($restrictionGroups !== []) {
-			return array_keys($restrictionGroups);
+			$restrictionGroups = array_merge($restrictionGroups, $this->visibilityService->getVisibilitySettings($appointment)['groups']);
 		}
 
-		return $this->configService->getResponseSummaryGroupsMode() === ConfigService::RESPONSE_SUMMARY_MODE_ALL
-			? null
-			: [];
+		$groups = ConfigService::sectionGroups($this->configService->getResponseSummaryGroupsMode(), $whitelistedGroups, $restrictionGroups);
+
+		return $groups === null ? null : array_values(array_unique(array_map('strtolower', $groups)));
 	}
 
 	/**
