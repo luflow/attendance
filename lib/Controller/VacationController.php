@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Controller;
 
+use OCA\Attendance\Db\Vacation;
 use OCA\Attendance\Service\AppointmentService;
 use OCA\Attendance\Service\PermissionService;
 use OCA\Attendance\Service\VacationService;
@@ -17,6 +18,11 @@ use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
 
+/**
+ * @psalm-import-type AttendanceVacationConflicts from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceVacationData from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceVacationEntry from \OCA\Attendance\ResponseDefinitions
+ */
 class VacationController extends Controller {
 	private IUserSession $userSession;
 	private VacationService $vacationService;
@@ -52,7 +58,10 @@ class VacationController extends Controller {
 			return new DataResponse(['error' => 'User not authenticated'], Http::STATUS_UNAUTHORIZED);
 		}
 
-		return new DataResponse($this->vacationService->getForUser($user->getUID()));
+		return new DataResponse(array_map(
+			static fn (Vacation $vacation): array => $vacation->jsonSerialize(),
+			$this->vacationService->getForUser($user->getUID()),
+		));
 	}
 
 	/**
@@ -73,7 +82,7 @@ class VacationController extends Controller {
 		}
 
 		try {
-			return new DataResponse($this->vacationService->create($user->getUID(), $startDate, $endDate, $note), Http::STATUS_CREATED);
+			return new DataResponse($this->vacationService->create($user->getUID(), $startDate, $endDate, $note)->jsonSerialize(), Http::STATUS_CREATED);
 		} catch (\InvalidArgumentException $e) {
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
 		}
@@ -98,7 +107,7 @@ class VacationController extends Controller {
 		}
 
 		try {
-			return new DataResponse($this->vacationService->update($id, $user->getUID(), $startDate, $endDate, $note));
+			return new DataResponse($this->vacationService->update($id, $user->getUID(), $startDate, $endDate, $note)->jsonSerialize());
 		} catch (DoesNotExistException $e) {
 			return new DataResponse(['error' => 'Vacation not found'], Http::STATUS_NOT_FOUND);
 		} catch (\InvalidArgumentException $e) {
@@ -211,7 +220,8 @@ class VacationController extends Controller {
 		}
 
 		$fromDate = $from ?? gmdate('Y-m-d');
-		$toDate = $to ?? gmdate('Y-m-d', strtotime($fromDate . ' +180 days'));
+		$toTimestamp = strtotime($fromDate . ' +180 days');
+		$toDate = $to ?? gmdate('Y-m-d', $toTimestamp === false ? null : $toTimestamp);
 		$candidates = $this->appointmentService->getAllWhitelistedUsers();
 
 		return new DataResponse($this->vacationService->getOverview($fromDate, $toDate, $candidates));

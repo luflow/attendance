@@ -74,7 +74,7 @@ trait RequiresAuthTrait {
 	 *
 	 * @param string $permission The permission to require
 	 * @param string $errorMessage Custom error message
-	 * @return DataResponse|null Error response or null if permission granted
+	 * @return DataResponse<403, array{error: string}, array{}>|null Error response or null if permission granted
 	 */
 	protected function requirePermission(string $permission, string $errorMessage = ''): ?DataResponse {
 		if (!$this->currentUserHasPermission($permission)) {

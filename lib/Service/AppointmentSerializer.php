@@ -13,6 +13,8 @@ use OCA\Attendance\Db\Appointment;
  * instance default and on whether the appointment has a limit, and occupancy is
  * derived from the queue. Both the appointment endpoints and the check-in view
  * hand out this shape, so it lives here rather than in either of them.
+ *
+ * @psalm-import-type AttendanceAppointmentData from \OCA\Attendance\ResponseDefinitions
  */
 class AppointmentSerializer {
 	public function __construct(
@@ -22,10 +24,9 @@ class AppointmentSerializer {
 	}
 
 	/**
-	 * @return array<string, mixed>
+	 * @return AttendanceAppointmentData
 	 */
 	public function serialize(Appointment $appointment): array {
-		/** @var array<string, mixed> $data */
 		$data = $appointment->jsonSerialize();
 		$data['allowMaybe'] = $this->responsePolicyService->isMaybeAllowed($appointment);
 		// Handed on to isFull() so the queue is counted once; without a limit
@@ -33,6 +34,7 @@ class AppointmentSerializer {
 		$occupancy = $this->capacityService->occupancy($appointment);
 		$data['occupancy'] = $occupancy;
 		$data['isFull'] = $this->capacityService->isFull($appointment, $occupancy);
+		/** @var AttendanceAppointmentData $data */
 		return $data;
 	}
 }

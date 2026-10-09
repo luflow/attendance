@@ -251,6 +251,8 @@ class PermissionService {
 
 	/**
 	 * Get all available groups for permission configuration
+	 *
+	 * @return list<array{id: string, displayName: string}>
 	 */
 	public function getAvailableGroups(): array {
 		$allGroups = $this->groupManager->search('');

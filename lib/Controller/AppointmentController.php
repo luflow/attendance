@@ -33,9 +33,24 @@ use OCP\IUserSession;
 use OCP\Security\ISecureRandom;
 
 /**
+ * @psalm-import-type AttendanceAppointmentData from \OCA\Attendance\ResponseDefinitions
  * @psalm-import-type AttendanceAppointmentPage from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceAppointmentWithResponse from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceBulkAppointmentItem from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceCapabilities from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceCheckinData from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceDeleteResult from \OCA\Attendance\ResponseDefinitions
  * @psalm-import-type AttendanceDirectoryEntry from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceExportResult from \OCA\Attendance\ResponseDefinitions
  * @psalm-import-type AttendanceExportSeries from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceGuestCreationResult from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceNavigationAppointment from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendancePushConfig from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceReminderResult from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceResponseData from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceResponseWithUser from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceUserConfig from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceUserPermissions from \OCA\Attendance\ResponseDefinitions
  */
 class AppointmentController extends Controller {
 	private AppointmentService $appointmentService;
@@ -99,6 +114,8 @@ class AppointmentController extends Controller {
 	 * (global manager or organizer of this appointment). Returns the error
 	 * DataResponse to send when loading or authorization fails, the
 	 * Appointment otherwise.
+	 *
+	 * @return \OCA\Attendance\Db\Appointment|DataResponse<Http::STATUS_NOT_FOUND|Http::STATUS_FORBIDDEN, array{error: string}, array{}>
 	 */
 	private function findManageableAppointment(int $id, string $userId, string $permissionError): \OCA\Attendance\Db\Appointment|DataResponse {
 		try {
@@ -609,7 +626,7 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'The conversation could not be created'], 400);
 		}
 
-		return new DataResponse($this->appointmentService->getAppointment($id));
+		return new DataResponse($this->appointmentService->serializeAppointment($this->appointmentService->getAppointment($id)));
 	}
 
 	/**
@@ -643,7 +660,7 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'The conversation could not be deleted'], 400);
 		}
 
-		return new DataResponse($this->appointmentService->getAppointment($id));
+		return new DataResponse($this->appointmentService->serializeAppointment($this->appointmentService->getAppointment($id)));
 	}
 
 	/**
@@ -733,6 +750,8 @@ class AppointmentController extends Controller {
 	/**
 	 * Shared book/unbook implementation: permission + feature gating, then
 	 * delegate to BookingService.
+	 *
+	 * @return DataResponse<Http::STATUS_OK, AttendanceResponseData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED|Http::STATUS_FORBIDDEN|Http::STATUS_BAD_REQUEST|Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
 	private function setBooking(int $id, string $userId, bool $book): DataResponse {
 		$user = $this->userSession->getUser();
@@ -759,7 +778,7 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => $e->getMessage()], 400);
 		}
 
-		return new DataResponse($updated);
+		return new DataResponse($this->appointmentService->serializeResponse($updated, $appointment));
 	}
 
 	/**
@@ -845,7 +864,7 @@ class AppointmentController extends Controller {
 	 * Get detailed responses for an appointment (requires manage appointments permission or being an organizer of it)
 	 *
 	 * @param int $id Appointment ID
-	 * @return DataResponse<Http::STATUS_OK, list<AttendanceResponseWithUser>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, list<AttendanceResponseWithUser>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -975,7 +994,7 @@ class AppointmentController extends Controller {
 	 * @param string $targetUserId User ID to check in
 	 * @param ?string $response Check-in response: yes, no, or null to keep current state
 	 * @param string $comment Optional check-in comment
-	 * @return DataResponse<Http::STATUS_OK, AttendanceResponseData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, AttendanceResponseData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
@@ -993,7 +1012,7 @@ class AppointmentController extends Controller {
 
 		// Verify appointment exists
 		try {
-			$this->appointmentService->getAppointment($appointmentId);
+			$appointment = $this->appointmentService->getAppointment($appointmentId);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => 'Appointment not found'], 404);
 		}
@@ -1007,7 +1026,7 @@ class AppointmentController extends Controller {
 				$user->getUID()
 			);
 
-			return new DataResponse($result);
+			return new DataResponse($this->appointmentService->serializeResponse($result, $appointment));
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 400);
 		}
@@ -1587,7 +1606,7 @@ class AppointmentController extends Controller {
 	 *
 	 * @param int $id Appointment ID
 	 * @param string $userId Target user ID
-	 * @return DataResponse<Http::STATUS_OK, AttendanceReminderResult, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, AttendanceReminderResult, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]

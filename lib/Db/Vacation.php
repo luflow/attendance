@@ -22,6 +22,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setCreatedAt(string $createdAt)
  * @method string getUpdatedAt()
  * @method void setUpdatedAt(string $updatedAt)
+ *
+ * @psalm-import-type AttendanceVacationData from \OCA\Attendance\ResponseDefinitions
  */
 class Vacation extends Entity implements JsonSerializable {
 	protected $userId = '';
@@ -43,6 +45,9 @@ class Vacation extends Entity implements JsonSerializable {
 		$this->addType('updatedAt', 'string');
 	}
 
+	/**
+	 * @return AttendanceVacationData
+	 */
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->getId(),

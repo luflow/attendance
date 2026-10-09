@@ -26,6 +26,13 @@ use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IUserSession;
 
+/**
+ * @psalm-import-type AttendanceAdminConfig from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceAdminStatus from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceGroupOption from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceTestReminderResult from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceWritableCalendar from \OCA\Attendance\ResponseDefinitions
+ */
 class AdminController extends Controller {
 	use DatetimeFormatTrait;
 
@@ -104,7 +111,7 @@ class AdminController extends Controller {
 			$groupOptions = $this->permissionService->getAvailableGroups();
 
 			// Get currently configured whitelisted groups
-			$whitelistedGroups = $this->configService->getWhitelistedGroups();
+			$whitelistedGroups = array_values($this->configService->getWhitelistedGroups());
 
 			// Get currently configured whitelisted teams with display names
 			$whitelistedTeamIds = $this->configService->getWhitelistedTeams();
@@ -131,15 +138,19 @@ class AdminController extends Controller {
 
 			// Compute status: next reminder run
 			$nextReminderRun = null;
-			$reminderJobs = $this->jobList->getJobs(ReminderJob::class, 1, 0);
-			if (!empty($reminderJobs)) {
-				$lastRun = $reminderJobs[0]->getLastRun();
+			foreach ($this->jobList->getJobsIterator(ReminderJob::class, 1, 0) as $reminderJob) {
+				$lastRun = $reminderJob->getLastRun();
 				if ($lastRun > 0) {
 					$nextReminderRun = gmdate('Y-m-d H:i:s', $lastRun + 86400);
 				}
 			}
 
 			$pushDeviceCount = $this->notificationService->countPushDevices($user->getUID());
+
+			$notificationsApp = [
+				'emailForwardingEnabled' => $this->notificationService->isEmailForwardingEnabledByDefault(),
+				'emailHintDismissed' => $this->configService->isNotificationEmailHintDismissed(),
+			];
 
 			return new DataResponse([
 				'config' => [
@@ -149,9 +160,9 @@ class AdminController extends Controller {
 					'responseSummaryTeamsMode' => $this->configService->getResponseSummaryTeamsMode(),
 					'permissions' => $permissionSettings,
 					'reminders' => [
-						'enabled' => $this->config->getAppValue('attendance', 'reminders_enabled', 'no') === 'yes',
-						'reminderDays' => (int)$this->config->getAppValue('attendance', 'reminder_days', '7'),
-						'reminderFrequency' => (int)$this->config->getAppValue('attendance', 'reminder_frequency', '0'),
+						'enabled' => $this->configService->areRemindersEnabled(),
+						'reminderDays' => $this->configService->getReminderDays(),
+						'reminderFrequency' => $this->configService->getReminderFrequency(),
 						'reminderTarget' => $this->configService->getReminderTarget(),
 					],
 					'calendarSync' => [
@@ -183,6 +194,7 @@ class AdminController extends Controller {
 						'whitelistEnabled' => $this->guestService->isGuestsWhitelistEnabled(),
 						'attendanceInWhitelist' => $this->guestService->isAttendanceInGuestsWhitelist(),
 					],
+					'notificationsApp' => $notificationsApp,
 				],
 				'status' => [
 					'nextAppointment' => $nextAppointment,
@@ -220,6 +232,7 @@ class AdminController extends Controller {
 	 * @param ?bool $allowMaybe Whether appointments offer "Maybe" where they have no override of their own
 	 * @param ?int $selfCheckinWindowMinutes Minutes before appointment start that self-check-in opens
 	 * @param ?bool $onboardingCompleted Whether the setup wizard has been walked to its end
+	 * @param ?bool $notificationEmailHintDismissed Whether the admin collapsed the hint that notifications do not reach email
 	 * @return DataResponse<Http::STATUS_OK, array<string, mixed>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
 	 */
 	#[NoCSRFRequired]
@@ -242,6 +255,7 @@ class AdminController extends Controller {
 		?bool $allowMaybe = null,
 		?int $selfCheckinWindowMinutes = null,
 		?bool $onboardingCompleted = null,
+		?bool $notificationEmailHintDismissed = null,
 	): DataResponse {
 		// Get current user
 		$user = $this->userSession->getUser();
@@ -340,6 +354,10 @@ class AdminController extends Controller {
 				$this->configService->setOnboardingCompleted($onboardingCompleted);
 			}
 
+			if ($notificationEmailHintDismissed !== null) {
+				$this->configService->setNotificationEmailHintDismissed($notificationEmailHintDismissed);
+			}
+
 			return new DataResponse([]);
 		} catch (\Exception $e) {
 			return new DataResponse(['error' => $e->getMessage()], 500);
@@ -351,7 +369,7 @@ class AdminController extends Controller {
 	 *
 	 * Uses the next upcoming appointment to send a preview reminder notification.
 	 *
-	 * @return DataResponse<Http::STATUS_OK, AttendanceTestReminderResult, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, AttendanceTestReminderResult, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
 	 */
 	#[NoCSRFRequired]
 	#[OpenAPI(OpenAPI::SCOPE_ADMINISTRATION)]

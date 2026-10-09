@@ -10,6 +10,7 @@ use OCP\Activity\ActivitySettings;
 use OCP\Activity\IEvent;
 use OCP\Activity\IManager as IActivityManager;
 use OCP\App\IAppManager;
+use OCP\IAppConfig;
 use OCP\IDBConnection;
 use OCP\IURLGenerator;
 use OCP\Notification\IManager as INotificationManager;
@@ -25,6 +26,8 @@ class NotificationServiceTest extends TestCase {
 	private $activityManager;
 	/** @var IAppManager|MockObject */
 	private $appManager;
+	/** @var IAppConfig|MockObject */
+	private $appConfig;
 	/** @var IURLGenerator|MockObject */
 	private $urlGenerator;
 	/** @var IDBConnection|MockObject */
@@ -38,6 +41,7 @@ class NotificationServiceTest extends TestCase {
 		$this->notificationManager = $this->createMock(INotificationManager::class);
 		$this->activityManager = $this->createMock(IActivityManager::class);
 		$this->appManager = $this->createMock(IAppManager::class);
+		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->db = $this->createMock(IDBConnection::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
@@ -48,10 +52,28 @@ class NotificationServiceTest extends TestCase {
 			$this->notificationManager,
 			$this->activityManager,
 			$this->appManager,
+			$this->appConfig,
 			$this->urlGenerator,
 			$this->db,
 			$this->logger,
 		);
+	}
+
+	/** A fresh instance keeps the Notifications app's email setting at "Never" (0). */
+	public function testEmailForwardingIsOffOnTheInstanceDefault(): void {
+		$this->appConfig->method('getValueInt')
+			->with('notifications', 'setting_batchtime', 0)
+			->willReturn(0);
+
+		$this->assertFalse($this->service->isEmailForwardingEnabledByDefault());
+	}
+
+	public function testEmailForwardingIsOnForAnyInterval(): void {
+		$this->appConfig->method('getValueInt')
+			->with('notifications', 'setting_batchtime', 0)
+			->willReturn(2);
+
+		$this->assertTrue($this->service->isEmailForwardingEnabledByDefault());
 	}
 
 	private function setAppsEnabled(bool $notifications, bool $activity): void {

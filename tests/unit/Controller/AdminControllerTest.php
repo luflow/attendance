@@ -29,10 +29,18 @@ class AdminControllerTest extends TestCase {
 	/** @var AppointmentMapper|MockObject */
 	private $appointmentMapper;
 
+	/** @var NotificationService|MockObject */
+	private $notificationService;
+
+	/** @var ConfigService|MockObject */
+	private $configService;
+
 	private AdminController $controller;
 
 	protected function setUp(): void {
 		$this->appointmentMapper = $this->createMock(AppointmentMapper::class);
+		$this->notificationService = $this->createMock(NotificationService::class);
+		$this->configService = $this->createMock(ConfigService::class);
 
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('admin');
@@ -48,9 +56,9 @@ class AdminControllerTest extends TestCase {
 			$permissionService,
 			$this->createMock(IConfig::class),
 			$this->createMock(IAppManager::class),
-			$this->createMock(ConfigService::class),
+			$this->configService,
 			$this->createMock(VisibilityService::class),
-			$this->createMock(NotificationService::class),
+			$this->notificationService,
 			$this->appointmentMapper,
 			$this->createMock(IJobList::class),
 			$this->createMock(GuestService::class),
@@ -66,6 +74,27 @@ class AdminControllerTest extends TestCase {
 		$appointment->setStartDatetime('2030-06-03 18:00:00');
 		$appointment->setEndDatetime('2030-06-03 20:00:00');
 		return $appointment;
+	}
+
+	/** The admin page warns when Nextcloud keeps notifications out of people's inboxes. */
+	public function testSettingsTellWhetherNotificationsReachEmail(): void {
+		$this->notificationService->method('isEmailForwardingEnabledByDefault')->willReturn(true);
+		$this->configService->method('isNotificationEmailHintDismissed')->willReturn(true);
+
+		$config = $this->controller->getSettings()->getData()['config'];
+
+		$this->assertTrue($config['notificationsApp']['emailForwardingEnabled']);
+		$this->assertTrue($config['notificationsApp']['emailHintDismissed']);
+	}
+
+	public function testCollapsingTheEmailHintIsStored(): void {
+		$this->configService->expects($this->once())
+			->method('setNotificationEmailHintDismissed')
+			->with(true);
+
+		$response = $this->controller->saveSettings(notificationEmailHintDismissed: true);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
 	/** The preview parsed a naive string as local time and showed the UTC hour. */

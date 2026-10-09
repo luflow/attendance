@@ -20,6 +20,9 @@ use OCP\IRequest;
 use OCP\IUserManager;
 use OCP\IUserSession;
 
+/**
+ * @psalm-import-type AttendanceAuditPage from \OCA\Attendance\ResponseDefinitions
+ */
 class AuditController extends Controller {
 	private IUserSession $userSession;
 	private IUserManager $userManager;
@@ -96,10 +99,10 @@ class AuditController extends Controller {
 		$displayNames = $this->resolveDisplayNames($events);
 		$items = [];
 		foreach ($events as $event) {
-			$serialized = $event->jsonSerialize();
-			$serialized['actor'] = $this->refFor($event->getActorId(), $displayNames);
-			$serialized['subject'] = $this->refFor($event->getSubjectId(), $displayNames);
-			$items[] = $serialized;
+			$items[] = $event->jsonSerialize() + [
+				'actor' => $this->refFor($event->getActorId(), $displayNames),
+				'subject' => $this->refFor($event->getSubjectId(), $displayNames),
+			];
 		}
 
 		return new DataResponse([

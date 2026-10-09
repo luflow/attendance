@@ -515,6 +515,19 @@ class ConfigService {
 	}
 
 	/**
+	 * Whether an admin collapsed the reminder-settings hint that Nextcloud
+	 * keeps notifications out of people's inboxes — a deliberate choice on
+	 * some instances, so the hint must not nag.
+	 */
+	public function isNotificationEmailHintDismissed(): bool {
+		return $this->appConfig->getValueBool(self::APP_ID, 'notification_email_hint_dismissed', false);
+	}
+
+	public function setNotificationEmailHintDismissed(bool $dismissed): void {
+		$this->appConfig->setValueBool(self::APP_ID, 'notification_email_hint_dismissed', $dismissed);
+	}
+
+	/**
 	 * Whether an admin has walked the setup wizard to its end. Only decides
 	 * which empty-instance hint admins get — the wizard stays reachable from
 	 * the admin settings either way.

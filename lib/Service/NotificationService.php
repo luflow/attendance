@@ -7,6 +7,7 @@ namespace OCA\Attendance\Service;
 use OCA\Attendance\Db\Appointment;
 use OCP\Activity\IManager as IActivityManager;
 use OCP\App\IAppManager;
+use OCP\IAppConfig;
 use OCP\IDBConnection;
 use OCP\IURLGenerator;
 use OCP\Notification\IManager as INotificationManager;
@@ -16,6 +17,7 @@ class NotificationService {
 	private INotificationManager $notificationManager;
 	private IActivityManager $activityManager;
 	private IAppManager $appManager;
+	private IAppConfig $appConfig;
 	private IURLGenerator $urlGenerator;
 	private IDBConnection $db;
 	private LoggerInterface $logger;
@@ -25,6 +27,7 @@ class NotificationService {
 		INotificationManager $notificationManager,
 		IActivityManager $activityManager,
 		IAppManager $appManager,
+		IAppConfig $appConfig,
 		IURLGenerator $urlGenerator,
 		IDBConnection $db,
 		LoggerInterface $logger,
@@ -32,6 +35,7 @@ class NotificationService {
 		$this->notificationManager = $notificationManager;
 		$this->activityManager = $activityManager;
 		$this->appManager = $appManager;
+		$this->appConfig = $appConfig;
 		$this->urlGenerator = $urlGenerator;
 		$this->db = $db;
 		$this->logger = $logger;
@@ -74,6 +78,15 @@ class NotificationService {
 	 */
 	public function isNotificationsAppEnabled(): bool {
 		return $this->appManager->isEnabledForUser('notifications');
+	}
+
+	/**
+	 * Whether the Notifications app forwards unhandled notifications by email
+	 * for users on the instance default. 0 is its "Never", the value a fresh
+	 * instance ships with; users may still opt in individually.
+	 */
+	public function isEmailForwardingEnabledByDefault(): bool {
+		return $this->appConfig->getValueInt('notifications', 'setting_batchtime', 0) !== 0;
 	}
 
 	/**

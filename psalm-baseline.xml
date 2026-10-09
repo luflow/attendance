@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="6.16.1@f1f5de594dc76faf8784e02d3dc4716c91c6f6ac">
+<files psalm-version="6.19.1@e2ca44251c1f1aa2e35452d426895746b47de64e">
   <file src="lib/Activity/EventMessages.php">
     <DeprecatedMethod>
       <code><![CDATA[getUserValue]]></code>
@@ -134,13 +134,6 @@
       <code><![CDATA[is_string($audit['visibility'])]]></code>
       <code><![CDATA[isset($audit['visibility']) && is_string($audit['visibility'])]]></code>
     </RedundantConditionGivenDocblockType>
-    <UndefinedDocblockClass>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceTestReminderResult, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, array{config: AttendanceAdminConfig, status: AttendanceAdminStatus, groups: list<AttendanceGroupOption>, writableCalendars: list<AttendanceWritableCalendar>}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, array{config: AttendanceAdminConfig, status: AttendanceAdminStatus, groups: list<AttendanceGroupOption>, writableCalendars: list<AttendanceWritableCalendar>}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, array{config: AttendanceAdminConfig, status: AttendanceAdminStatus, groups: list<AttendanceGroupOption>, writableCalendars: list<AttendanceWritableCalendar>}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, array{config: AttendanceAdminConfig, status: AttendanceAdminStatus, groups: list<AttendanceGroupOption>, writableCalendars: list<AttendanceWritableCalendar>}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>]]></code>
-    </UndefinedDocblockClass>
     <UnusedClass>
       <code><![CDATA[AdminController]]></code>
     </UnusedClass>
@@ -162,140 +155,8 @@
       <code><![CDATA[$existingFileId]]></code>
       <code><![CDATA[$fileId]]></code>
     </MixedAssignment>
-    <PossiblyUnusedParam>
-      <code><![CDATA[$acceptWaitlist]]></code>
-      <code><![CDATA[$allowMaybe]]></code>
-      <code><![CDATA[$allowMaybe]]></code>
-      <code><![CDATA[$appointmentId]]></code>
-      <code><![CDATA[$appointmentId]]></code>
-      <code><![CDATA[$appointmentIds]]></code>
-      <code><![CDATA[$appointments]]></code>
-      <code><![CDATA[$attachments]]></code>
-      <code><![CDATA[$attachments]]></code>
-      <code><![CDATA[$attachments]]></code>
-      <code><![CDATA[$calendarEventUid]]></code>
-      <code><![CDATA[$calendarUri]]></code>
-      <code><![CDATA[$cancelledLast]]></code>
-      <code><![CDATA[$categoryId]]></code>
-      <code><![CDATA[$categoryId]]></code>
-      <code><![CDATA[$categoryIds]]></code>
-      <code><![CDATA[$comment]]></code>
-      <code><![CDATA[$comment]]></code>
-      <code><![CDATA[$createTalkRoom]]></code>
-      <code><![CDATA[$createTalkRoom]]></code>
-      <code><![CDATA[$description]]></code>
-      <code><![CDATA[$description]]></code>
-      <code><![CDATA[$displayName]]></code>
-      <code><![CDATA[$email]]></code>
-      <code><![CDATA[$endDate]]></code>
-      <code><![CDATA[$endDatetime]]></code>
-      <code><![CDATA[$endDatetime]]></code>
-      <code><![CDATA[$id]]></code>
-      <code><![CDATA[$id]]></code>
-      <code><![CDATA[$id]]></code>
-      <code><![CDATA[$id]]></code>
-      <code><![CDATA[$id]]></code>
-      <code><![CDATA[$id]]></code>
-      <code><![CDATA[$id]]></code>
-      <code><![CDATA[$id]]></code>
-      <code><![CDATA[$id]]></code>
-      <code><![CDATA[$id]]></code>
-      <code><![CDATA[$id]]></code>
-      <code><![CDATA[$id]]></code>
-      <code><![CDATA[$id]]></code>
-      <code><![CDATA[$id]]></code>
-      <code><![CDATA[$id]]></code>
-      <code><![CDATA[$id]]></code>
-      <code><![CDATA[$includeCheckin]]></code>
-      <code><![CDATA[$includeComments]]></code>
-      <code><![CDATA[$includeGroup]]></code>
-      <code><![CDATA[$includeLocation]]></code>
-      <code><![CDATA[$includeOrganizers]]></code>
-      <code><![CDATA[$includeRsvp]]></code>
-      <code><![CDATA[$isAllDay]]></code>
-      <code><![CDATA[$isAllDay]]></code>
-      <code><![CDATA[$limit]]></code>
-      <code><![CDATA[$location]]></code>
-      <code><![CDATA[$location]]></code>
-      <code><![CDATA[$locations]]></code>
-      <code><![CDATA[$maxAttendees]]></code>
-      <code><![CDATA[$maxAttendees]]></code>
-      <code><![CDATA[$name]]></code>
-      <code><![CDATA[$name]]></code>
-      <code><![CDATA[$notScheduledOut]]></code>
-      <code><![CDATA[$offset]]></code>
-      <code><![CDATA[$onlyForMe]]></code>
-      <code><![CDATA[$onlyScheduled]]></code>
-      <code><![CDATA[$organizers]]></code>
-      <code><![CDATA[$organizers]]></code>
-      <code><![CDATA[$organizers]]></code>
-      <code><![CDATA[$pastLimit]]></code>
-      <code><![CDATA[$pastOffset]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$response]]></code>
-      <code><![CDATA[$responseDeadline]]></code>
-      <code><![CDATA[$responseDeadline]]></code>
-      <code><![CDATA[$role]]></code>
-      <code><![CDATA[$scope]]></code>
-      <code><![CDATA[$scope]]></code>
-      <code><![CDATA[$search]]></code>
-      <code><![CDATA[$sendNotification]]></code>
-      <code><![CDATA[$sendNotification]]></code>
-      <code><![CDATA[$seriesIds]]></code>
-      <code><![CDATA[$showPastAppointments]]></code>
-      <code><![CDATA[$startDate]]></code>
-      <code><![CDATA[$startDatetime]]></code>
-      <code><![CDATA[$startDatetime]]></code>
-      <code><![CDATA[$status]]></code>
-      <code><![CDATA[$target]]></code>
-      <code><![CDATA[$targetUserId]]></code>
-      <code><![CDATA[$targetUserId]]></code>
-      <code><![CDATA[$timeframe]]></code>
-      <code><![CDATA[$unansweredOnly]]></code>
-      <code><![CDATA[$userId]]></code>
-      <code><![CDATA[$userId]]></code>
-      <code><![CDATA[$userId]]></code>
-      <code><![CDATA[$visibleGroups]]></code>
-      <code><![CDATA[$visibleGroups]]></code>
-      <code><![CDATA[$visibleTeams]]></code>
-      <code><![CDATA[$visibleTeams]]></code>
-      <code><![CDATA[$visibleUsers]]></code>
-      <code><![CDATA[$visibleUsers]]></code>
-      <code><![CDATA[$waitlistEnabled]]></code>
-      <code><![CDATA[$waitlistEnabled]]></code>
-    </PossiblyUnusedParam>
     <UndefinedDocblockClass>
-      <code><![CDATA[DataResponse<Http::STATUS_CREATED, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceAppointmentData|list<AttendanceAppointmentData>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceAppointmentWithResponse, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceCapabilities, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceCheckinData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceDeleteResult, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceExportResult, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceGuestCreationResult, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendancePushConfig, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceReminderResult, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceReminderResult, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceResponseData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceResponseData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceResponseData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceResponseData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceResponseData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
       <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceUserConfig, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceUserPermissions, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, array{current: list<AttendanceNavigationAppointment>, past: list<AttendanceNavigationAppointment>, pastHasMore: bool}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, list<AttendanceAppointmentWithResponse>, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, list<AttendanceAppointmentWithResponse>|AttendanceAppointmentPage, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, list<AttendanceResponseWithUser>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
-      <code><![CDATA[list<AttendanceBulkAppointmentItem>]]></code>
     </UndefinedDocblockClass>
     <UnusedClass>
       <code><![CDATA[AppointmentController]]></code>
@@ -305,16 +166,6 @@
     <ClassMustBeFinal>
       <code><![CDATA[AuditController]]></code>
     </ClassMustBeFinal>
-    <PossiblyUnusedParam>
-      <code><![CDATA[$id]]></code>
-      <code><![CDATA[$limit]]></code>
-      <code><![CDATA[$offset]]></code>
-      <code><![CDATA[$subject]]></code>
-      <code><![CDATA[$verb]]></code>
-    </PossiblyUnusedParam>
-    <UndefinedDocblockClass>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceAuditPage, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>|DataResponse<Http::STATUS_PRECONDITION_FAILED, array{error: string}, array{}>]]></code>
-    </UndefinedDocblockClass>
     <UnusedClass>
       <code><![CDATA[AuditController]]></code>
     </UnusedClass>
@@ -381,14 +232,6 @@
     <ClassMustBeFinal>
       <code><![CDATA[SelfCheckinController]]></code>
     </ClassMustBeFinal>
-    <PossiblyUnusedParam>
-      <code><![CDATA[$appointmentId]]></code>
-      <code><![CDATA[$method]]></code>
-    </PossiblyUnusedParam>
-    <UndefinedDocblockClass>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceSelfCheckinOverview, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceSelfCheckinResult, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>]]></code>
-    </UndefinedDocblockClass>
     <UnusedClass>
       <code><![CDATA[SelfCheckinController]]></code>
     </UnusedClass>
@@ -410,29 +253,6 @@
     <ClassMustBeFinal>
       <code><![CDATA[VacationController]]></code>
     </ClassMustBeFinal>
-    <PossiblyUnusedParam>
-      <code><![CDATA[$endDate]]></code>
-      <code><![CDATA[$endDate]]></code>
-      <code><![CDATA[$endDatetime]]></code>
-      <code><![CDATA[$from]]></code>
-      <code><![CDATA[$id]]></code>
-      <code><![CDATA[$note]]></code>
-      <code><![CDATA[$note]]></code>
-      <code><![CDATA[$startDate]]></code>
-      <code><![CDATA[$startDate]]></code>
-      <code><![CDATA[$startDatetime]]></code>
-      <code><![CDATA[$to]]></code>
-      <code><![CDATA[$visibleGroups]]></code>
-      <code><![CDATA[$visibleTeams]]></code>
-      <code><![CDATA[$visibleUsers]]></code>
-    </PossiblyUnusedParam>
-    <UndefinedDocblockClass>
-      <code><![CDATA[DataResponse<Http::STATUS_CREATED, AttendanceVacationData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceVacationConflicts, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceVacationData, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, list<AttendanceVacationData>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>]]></code>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, list<AttendanceVacationEntry>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>]]></code>
-    </UndefinedDocblockClass>
     <UnusedClass>
       <code><![CDATA[VacationController]]></code>
     </UnusedClass>
@@ -682,9 +502,6 @@
       <code><![CDATA[$subjectId]]></code>
       <code><![CDATA[$verb]]></code>
     </MissingPropertyType>
-    <MixedAssignment>
-      <code><![CDATA[$decoded]]></code>
-    </MixedAssignment>
     <PossiblyFalseArgument>
       <code><![CDATA[$meta === [] ? null : json_encode($meta, JSON_UNESCAPED_UNICODE)]]></code>
     </PossiblyFalseArgument>
@@ -721,8 +538,6 @@
     </MixedAssignment>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
-      <code><![CDATA[countByAppointment]]></code>
-      <code><![CDATA[findByAppointment]]></code>
     </PossiblyUnusedMethod>
     <RedundantFunctionCall>
       <code><![CDATA[array_values]]></code>
@@ -1370,11 +1185,6 @@
       <code><![CDATA[ResponseDefinitions]]></code>
     </UnusedClass>
   </file>
-  <file src="lib/Migration/Version000022Date20260816120000.php">
-    <UnusedClass>
-      <code><![CDATA[Version000022Date20260816120000]]></code>
-    </UnusedClass>
-  </file>
   <file src="lib/Migration/Version000023Date20260903120000.php">
     <UnusedClass>
       <code><![CDATA[Version000023Date20260903120000]]></code>
@@ -1448,31 +1258,15 @@
     </PossiblyNullArgument>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
-      <code><![CDATA[cancelAppointment]]></code>
-      <code><![CDATA[createAppointment]]></code>
-      <code><![CDATA[deleteSeriesAppointments]]></code>
       <code><![CDATA[getAllAppointments]]></code>
       <code><![CDATA[getAppointmentResponses]]></code>
-      <code><![CDATA[getAppointmentResponsesWithUsers]]></code>
-      <code><![CDATA[getAppointmentWithUserResponse]]></code>
       <code><![CDATA[getAppointmentsByCreator]]></code>
-      <code><![CDATA[getAppointmentsForNavigation]]></code>
       <code><![CDATA[getAppointmentsWithUserResponses]]></code>
-      <code><![CDATA[getReminderTargetUserIds]]></code>
-      <code><![CDATA[previewAudience]]></code>
-      <code><![CDATA[reopenAppointment]]></code>
-      <code><![CDATA[submitResponse]]></code>
-      <code><![CDATA[submitResponseForUser]]></code>
-      <code><![CDATA[uncancelAppointment]]></code>
-      <code><![CDATA[updateSeriesAppointments]]></code>
     </PossiblyUnusedMethod>
     <PossiblyUnusedParam>
       <code><![CDATA[$requestingUserId]]></code>
       <code><![CDATA[$userId]]></code>
     </PossiblyUnusedParam>
-    <PossiblyUnusedReturnValue>
-      <code><![CDATA[Appointment]]></code>
-    </PossiblyUnusedReturnValue>
     <RedundantCastGivenDocblockType>
       <code><![CDATA[(string)$existingResponse->getComment()]]></code>
     </RedundantCastGivenDocblockType>
@@ -1638,8 +1432,6 @@
     </MixedMethodCall>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
-      <code><![CDATA[checkinResponse]]></code>
-      <code><![CDATA[getCheckinData]]></code>
     </PossiblyUnusedMethod>
     <RedundantCastGivenDocblockType>
       <code><![CDATA[(string)$saved->getCheckinComment()]]></code>
@@ -1704,18 +1496,14 @@
     </PossiblyFalseArgument>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
-      <code><![CDATA[getPushProxyServer]]></code>
       <code><![CDATA[getReminderSettings]]></code>
       <code><![CDATA[isGroupAllowed]]></code>
-      <code><![CDATA[isMobileAppBannerEnabled]]></code>
-      <code><![CDATA[isPushEnabled]]></code>
       <code><![CDATA[setPushProxyServer]]></code>
       <code><![CDATA[setReminderSettings]]></code>
     </PossiblyUnusedMethod>
   </file>
   <file src="lib/Service/DeadlineUpdate.php">
     <PossiblyUnusedMethod>
-      <code><![CDATA[fromWire]]></code>
       <code><![CDATA[isUnchanged]]></code>
     </PossiblyUnusedMethod>
   </file>
@@ -1743,12 +1531,6 @@
     </MixedAssignment>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
-    </PossiblyUnusedMethod>
-  </file>
-  <file src="lib/Service/ExportOptions.php">
-    <PossiblyUnusedMethod>
-      <code><![CDATA[fromWire]]></code>
-      <code><![CDATA[hasAnyColumn]]></code>
     </PossiblyUnusedMethod>
   </file>
   <file src="lib/Service/ExportService.php">
@@ -1792,7 +1574,6 @@
     </PossiblyFalseArgument>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
-      <code><![CDATA[exportToOds]]></code>
     </PossiblyUnusedMethod>
     <PossiblyUnusedParam>
       <code><![CDATA[$appointmentMapper]]></code>
@@ -1825,8 +1606,6 @@
     </MixedMethodCall>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
-      <code><![CDATA[createGuest]]></code>
-      <code><![CDATA[isAttendanceInGuestsWhitelist]]></code>
       <code><![CDATA[resetCache]]></code>
     </PossiblyUnusedMethod>
   </file>
@@ -1869,10 +1648,7 @@
     </ClassMustBeFinal>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
-      <code><![CDATA[countPushDevices]]></code>
       <code><![CDATA[hasPushDevice]]></code>
-      <code><![CDATA[sendReminderToUser]]></code>
-      <code><![CDATA[sendReminderToUsers]]></code>
     </PossiblyUnusedMethod>
   </file>
   <file src="lib/Service/OdsWriter.php">
@@ -1925,14 +1701,8 @@
     </DeprecatedMethod>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
-      <code><![CDATA[canRespondForOthers]]></code>
-      <code><![CDATA[canSeeResponseCounts]]></code>
-      <code><![CDATA[canSeeResponseOverviewFor]]></code>
-      <code><![CDATA[canSeeTeamVacations]]></code>
       <code><![CDATA[currentUserCanCheckin]]></code>
       <code><![CDATA[currentUserCanManageAppointments]]></code>
-      <code><![CDATA[getAllPermissionSettings]]></code>
-      <code><![CDATA[getAvailableGroups]]></code>
     </PossiblyUnusedMethod>
   </file>
   <file src="lib/Service/QuickResponseTokenService.php">
@@ -2102,8 +1872,6 @@
     </MixedAssignment>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
-      <code><![CDATA[getOverview]]></code>
-      <code><![CDATA[selfCheckin]]></code>
     </PossiblyUnusedMethod>
   </file>
   <file src="lib/Service/StatisticsExportService.php">
@@ -2140,11 +1908,7 @@
     </MixedAssignment>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
-      <code><![CDATA[deleteForAppointment]]></code>
     </PossiblyUnusedMethod>
-    <PossiblyUnusedReturnValue>
-      <code><![CDATA[?string]]></code>
-    </PossiblyUnusedReturnValue>
   </file>
   <file src="lib/Service/TimezoneService.php">
     <PossiblyUnusedMethod>
@@ -2165,10 +1929,6 @@
     </ClassMustBeFinal>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
-      <code><![CDATA[create]]></code>
-      <code><![CDATA[findConflicts]]></code>
-      <code><![CDATA[getForUser]]></code>
-      <code><![CDATA[update]]></code>
     </PossiblyUnusedMethod>
   </file>
   <file src="lib/Service/VisibilityService.php">
@@ -2205,7 +1965,6 @@
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
       <code><![CDATA[filterVisibleAppointments]]></code>
-      <code><![CDATA[isTeamsAvailable]]></code>
     </PossiblyUnusedMethod>
     <RedundantFunctionCall>
       <code><![CDATA[array_values]]></code>

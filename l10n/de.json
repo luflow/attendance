@@ -1089,6 +1089,12 @@
     "Template" : "Vorlage",
     "All day" : "Ganztägig",
     "You are scheduled in for this appointment." : "Für diesen Termin bist du eingeplant.",
-    "Visible to all. Search to restrict …" : "Für alle sichtbar. Zum Einschränken suchen …"
+    "Visible to all. Search to restrict …" : "Für alle sichtbar. Zum Einschränken suchen …",
+    "Nextcloud does not forward notifications by email: in the Notifications settings, \"Send email reminders about unhandled notifications\" is set to \"Never\". Reminders and appointment notifications from Attendance only show up in the notification bell and the mobile app." : "Nextcloud leitet Benachrichtigungen nicht per E-Mail weiter: In den Einstellungen der Benachrichtigungs-App steht „E-Mail-Erinnerungen für unbearbeitete Benachrichtigungen senden nach“ auf „Niemals“. Erinnerungen und Termin-Benachrichtigungen von Attendance erscheinen nur in der Glocke und in der mobilen App.",
+    "Choose an interval there to deliver them by email as well. It applies to everyone who has not picked their own interval in their personal settings and can take a day to take effect." : "Wähle dort ein Intervall, damit sie zusätzlich per E-Mail zugestellt werden. Es gilt für alle, die in ihren persönlichen Einstellungen kein eigenes Intervall gewählt haben, und kann bis zu einem Tag dauern, bis es wirkt.",
+    "Open Notifications settings" : "Einstellungen der Benachrichtigungs-App öffnen",
+    "Hide hint" : "Hinweis ausblenden",
+    "Show hint" : "Hinweis anzeigen",
+    "Nextcloud does not forward notifications by email." : "Nextcloud leitet Benachrichtigungen nicht per E-Mail weiter."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

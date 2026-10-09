@@ -57,6 +57,7 @@
                     "reminders",
                     "calendarSync",
                     "orgCalendar",
+                    "vacationCalendar",
                     "audit",
                     "displayOrder",
                     "pushEnabled",
@@ -64,7 +65,8 @@
                     "bookingEnabled",
                     "allowMaybe",
                     "selfCheckinWindowMinutes",
-                    "guestsApp"
+                    "guestsApp",
+                    "notificationsApp"
                 ],
                 "properties": {
                     "whitelistedGroups": {
@@ -97,6 +99,9 @@
                     "orgCalendar": {
                         "$ref": "#/components/schemas/AdminOrgCalendarConfig"
                     },
+                    "vacationCalendar": {
+                        "$ref": "#/components/schemas/AdminVacationCalendarConfig"
+                    },
                     "audit": {
                         "$ref": "#/components/schemas/AdminAuditConfig"
                     },
@@ -121,6 +126,9 @@
                     },
                     "guestsApp": {
                         "$ref": "#/components/schemas/GuestsAppStatus"
+                    },
+                    "notificationsApp": {
+                        "$ref": "#/components/schemas/NotificationsAppStatus"
                     }
                 }
             },
@@ -209,6 +217,27 @@
                     "pushDeviceCount": {
                         "type": "integer",
                         "format": "int64"
+                    }
+                }
+            },
+            "AdminVacationCalendarConfig": {
+                "type": "object",
+                "required": [
+                    "enabled",
+                    "calendarUri",
+                    "userId"
+                ],
+                "properties": {
+                    "enabled": {
+                        "type": "boolean"
+                    },
+                    "calendarUri": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "userId": {
+                        "type": "string",
+                        "nullable": true
                     }
                 }
             },
@@ -558,6 +587,21 @@
                     }
                 }
             },
+            "NotificationsAppStatus": {
+                "type": "object",
+                "required": [
+                    "emailForwardingEnabled",
+                    "emailHintDismissed"
+                ],
+                "properties": {
+                    "emailForwardingEnabled": {
+                        "type": "boolean"
+                    },
+                    "emailHintDismissed": {
+                        "type": "boolean"
+                    }
+                }
+            },
             "PermissionSetting": {
                 "type": "object",
                 "required": [
@@ -593,13 +637,17 @@
                 "type": "object",
                 "required": [
                     "id",
-                    "displayName"
+                    "label",
+                    "type"
                 ],
                 "properties": {
                     "id": {
                         "type": "string"
                     },
-                    "displayName": {
+                    "label": {
+                        "type": "string"
+                    },
+                    "type": {
                         "type": "string"
                     }
                 }
@@ -984,6 +1032,12 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Whether the setup wizard has been walked to its end"
+                                    },
+                                    "notificationEmailHintDismissed": {
+                                        "type": "boolean",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Whether the admin collapsed the hint that notifications do not reach email"
                                     }
                                 }
                             }
@@ -1185,6 +1239,24 @@
                         }
                     },
                     "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
                         "description": "",
                         "content": {
                             "application/json": {

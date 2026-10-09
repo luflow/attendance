@@ -25,6 +25,9 @@ use Psr\Log\LoggerInterface;
 /**
  * Controller for self-check-in via NFC / deep link.
  * All endpoints require Nextcloud authentication (logged-in user).
+ *
+ * @psalm-import-type AttendanceSelfCheckinOverview from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceSelfCheckinResult from \OCA\Attendance\ResponseDefinitions
  */
 class SelfCheckinController extends Controller {
 	use RequiresAuthTrait;
@@ -67,9 +70,9 @@ class SelfCheckinController extends Controller {
 	#[NoCSRFRequired]
 	#[OpenAPI(OpenAPI::SCOPE_DEFAULT)]
 	public function getActiveAppointments(): DataResponse {
-		$user = $this->requireUser();
-		if ($user instanceof DataResponse) {
-			return $user;
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], Http::STATUS_UNAUTHORIZED);
 		}
 
 		$permissionError = $this->requirePermission('self_checkin', 'Self-check-in is not enabled for your account.');
@@ -100,9 +103,9 @@ class SelfCheckinController extends Controller {
 	#[NoCSRFRequired]
 	#[OpenAPI(OpenAPI::SCOPE_DEFAULT)]
 	public function checkin(int $appointmentId, string $method = 'qr'): DataResponse {
-		$user = $this->requireUser();
-		if ($user instanceof DataResponse) {
-			return $user;
+		$user = $this->userSession->getUser();
+		if (!$user) {
+			return new DataResponse(['error' => 'User not authenticated'], Http::STATUS_UNAUTHORIZED);
 		}
 
 		$permissionError = $this->requirePermission('self_checkin', 'Self-check-in is not enabled for your account.');
