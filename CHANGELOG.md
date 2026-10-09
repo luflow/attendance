@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.56.0 – 2026-10-09
+
+### Added
+
+- **Hint when Nextcloud does not forward notifications by email**: the reminder settings say so, link to the Notifications settings and can be collapsed
+
+### Fixed
+
+- **Check-in list follows the grouping mode**: with "No grouping" the mobile app no longer sections by arbitrary account groups; the web hides the group filter when there is nothing to filter
+
+### Maintenance
+
+- Updated translations from Transifex
+
 ## 1.55.0 – 2026-10-08
 
 ### Added
