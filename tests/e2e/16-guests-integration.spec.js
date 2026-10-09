@@ -219,6 +219,7 @@ test.describe('Attendance App - Guests integration', () => {
 
 		// Opt the system group in: now it should render like any other tracked group.
 		await saveAdminSettings(request, {
+			responseSummaryGroupsMode: 'specific',
 			whitelistedGroups: ['guest_app'],
 			whitelistedTeams: [],
 			permissions: {
@@ -263,6 +264,7 @@ test.describe('Attendance App - Guests integration', () => {
 		// Whitelist guest_app so the select shows it as a selected pill, then
 		// verify the friendly label replaces the raw id.
 		await saveAdminSettings(request, {
+			responseSummaryGroupsMode: 'specific',
 			whitelistedGroups: ['guest_app'],
 			whitelistedTeams: [],
 			permissions: {
@@ -295,6 +297,7 @@ test.describe('Attendance App - Guests integration', () => {
 			data: { email: GUEST_EMAIL_B, displayName: 'E2E Guest B' },
 		})
 		await saveAdminSettings(request, {
+			responseSummaryGroupsMode: 'specific',
 			whitelistedGroups: ['guest_app'],
 			whitelistedTeams: [],
 			permissions: {

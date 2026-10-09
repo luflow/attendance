@@ -71,6 +71,30 @@ class ConfigService {
 	}
 
 	/**
+	 * Which groups a list sections by under $mode, or null when every group
+	 * does: the admin's list in "specific" mode, otherwise the groups a
+	 * restricted appointment names (issue #199), otherwise all or none.
+	 * Static so the services sharing it stay testable with a mocked instance.
+	 *
+	 * @param array<array-key, string> $whitelistedGroups
+	 * @param array<array-key, string|int> $restrictionGroups The appointment's own visibility groups
+	 * @return ?list<string>
+	 */
+	public static function sectionGroups(string $mode, array $whitelistedGroups, array $restrictionGroups): ?array {
+		if ($mode === self::RESPONSE_SUMMARY_MODE_SPECIFIC) {
+			return array_values($whitelistedGroups);
+		}
+
+		// A numerically-named group decodes to an int out of the JSON column.
+		$restrictionGroups = array_values(array_map('strval', $restrictionGroups));
+		if ($restrictionGroups !== []) {
+			return $restrictionGroups;
+		}
+
+		return $mode === self::RESPONSE_SUMMARY_MODE_ALL ? null : [];
+	}
+
+	/**
 	 * Check if a group is allowed based on whitelist configuration.
 	 * If no whitelist is configured, all groups are allowed.
 	 *

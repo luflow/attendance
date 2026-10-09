@@ -23,20 +23,24 @@ use PHPUnit\Framework\TestCase;
 class CheckinServiceTest extends TestCase {
 	private AppointmentMapper|MockObject $appointmentMapper;
 	private AttendanceResponseMapper|MockObject $responseMapper;
+	private ConfigService|MockObject $configService;
 	private VisibilityService|MockObject $visibilityService;
+	private IGroupManager|MockObject $groupManager;
 	private CheckinService $service;
 
 	protected function setUp(): void {
 		$this->appointmentMapper = $this->createMock(AppointmentMapper::class);
 		$this->responseMapper = $this->createMock(AttendanceResponseMapper::class);
+		$this->configService = $this->createMock(ConfigService::class);
 		$this->visibilityService = $this->createMock(VisibilityService::class);
+		$this->groupManager = $this->createMock(IGroupManager::class);
 
 		$this->service = new CheckinService(
 			$this->appointmentMapper,
 			$this->responseMapper,
-			$this->createMock(ConfigService::class),
+			$this->configService,
 			$this->visibilityService,
-			$this->createMock(IGroupManager::class),
+			$this->groupManager,
 			$this->createMock(GuestService::class),
 			$this->createMock(AuditEventService::class),
 			$this->createMock(CapacityService::class),
@@ -55,6 +59,93 @@ class CheckinServiceTest extends TestCase {
 		$response->setUserId($userId);
 		$response->setCheckinState($state);
 		return $response;
+	}
+
+	/**
+	 * @param array<string, list<string>> $groupsByUser The audience and each member's groups
+	 */
+	private function givenAudience(array $groupsByUser): void {
+		$this->appointmentMapper->method('find')->willReturn(new Appointment());
+
+		$attendees = [];
+		foreach (array_keys($groupsByUser) as $uid) {
+			$attendees[$uid] = $this->user($uid);
+		}
+		$this->visibilityService->method('getTargetAttendees')->willReturn($attendees);
+		$this->groupManager->method('getUserGroupIds')
+			->willReturnCallback(fn (IUser $user) => $groupsByUser[$user->getUID()]);
+	}
+
+	/**
+	 * @param list<string> $whitelist
+	 * @param list<string|int> $restrictionGroups The appointment's own visibility groups
+	 */
+	private function givenGrouping(string $mode, array $whitelist = [], array $restrictionGroups = []): void {
+		$this->configService->method('getResponseSummaryGroupsMode')->willReturn($mode);
+		$this->configService->method('getWhitelistedGroups')->willReturn($whitelist);
+		$this->visibilityService->method('getVisibilitySettings')
+			->willReturn(['users' => [], 'groups' => $restrictionGroups, 'teams' => []]);
+	}
+
+	/**
+	 * @return array<string, list<string>> The groups shipped per user
+	 */
+	private function shippedGroups(array $checkinData): array {
+		return array_column($checkinData['users'], 'groups', 'userId');
+	}
+
+	/**
+	 * "No grouping" ships no sections at all (issue #212): the clients render
+	 * a flat list without a group filter.
+	 */
+	public function testNoGroupingShipsAFlatList(): void {
+		$this->givenGrouping(ConfigService::RESPONSE_SUMMARY_MODE_NONE);
+		$this->givenAudience(['alice' => ['choir', 'board'], 'bob' => []]);
+		$this->visibilityService->expects($this->never())->method('getAllGroupIds');
+
+		$data = $this->service->getCheckinData(7);
+
+		$this->assertSame([], $data['userGroups']);
+		$this->assertSame(['alice' => ['Others'], 'bob' => ['Others']], $this->shippedGroups($data));
+	}
+
+	public function testAllGroupsSectionsByEveryGroup(): void {
+		$this->givenGrouping(ConfigService::RESPONSE_SUMMARY_MODE_ALL);
+		$this->givenAudience(['alice' => ['choir', 'board'], 'bob' => []]);
+		$this->visibilityService->method('getAllGroupIds')->willReturn(['board', 'choir', 'guest_app']);
+
+		$data = $this->service->getCheckinData(7);
+
+		$this->assertSame(['board', 'choir', 'Others'], $data['userGroups']);
+		$this->assertSame(['alice' => ['choir', 'board'], 'bob' => ['Others']], $this->shippedGroups($data));
+	}
+
+	/**
+	 * A user carries only the sections they belong to, spelled as the admin's
+	 * list spells them, so clients match them without normalising.
+	 */
+	public function testSpecificGroupsSectionsByTheWhitelist(): void {
+		$this->givenGrouping(ConfigService::RESPONSE_SUMMARY_MODE_SPECIFIC, ['Choir']);
+		$this->givenAudience(['alice' => ['choir', 'board'], 'bob' => ['board']]);
+
+		$data = $this->service->getCheckinData(7);
+
+		$this->assertSame(['Choir'], $data['userGroups']);
+		$this->assertSame(['alice' => ['Choir'], 'bob' => ['Others']], $this->shippedGroups($data));
+	}
+
+	/**
+	 * A restricted appointment keeps sectioning by the groups that let people
+	 * in, as the summary does (issue #199), even with grouping switched off.
+	 */
+	public function testRestrictedAppointmentSectionsByItsOwnGroups(): void {
+		$this->givenGrouping(ConfigService::RESPONSE_SUMMARY_MODE_NONE, [], ['soprano', 42]);
+		$this->givenAudience(['alice' => ['soprano'], 'bob' => ['board']]);
+
+		$data = $this->service->getCheckinData(7);
+
+		$this->assertSame(['soprano', '42'], $data['userGroups']);
+		$this->assertSame(['alice' => ['soprano'], 'bob' => ['Others']], $this->shippedGroups($data));
 	}
 
 	/**

@@ -446,9 +446,25 @@ export async function resetAdminSettings(request) {
 	return saveAdminSettings(request, {
 		whitelistedGroups: [],
 		whitelistedTeams: [],
+		responseSummaryGroupsMode: 'none',
+		responseSummaryTeamsMode: 'none',
 		permissions: { ...PERMISSIVE_PERMISSIONS },
 		reminders: { enabled: false, days_before: 1, frequency_days: 1 },
 	})
+}
+
+/**
+ * Open the check-in view, past the "way in the future" gate if it shows.
+ */
+export async function goToCheckin(page, appointmentId) {
+	await page.goto(`/apps/attendance/checkin/${appointmentId}`)
+	await page.waitForLoadState('networkidle')
+
+	const continueButton = page.getByRole('button', { name: 'Continue anyway' })
+	if (await continueButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+		await continueButton.click()
+		await page.waitForLoadState('networkidle')
+	}
 }
 
 /**

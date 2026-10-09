@@ -1620,7 +1620,6 @@
     <MixedArgument>
       <code><![CDATA[$user]]></code>
       <code><![CDATA[$userId]]></code>
-      <code><![CDATA[$whitelistedGroups]]></code>
     </MixedArgument>
     <MixedAssignment>
       <code><![CDATA[$userData['checkinAt']]]></code>
