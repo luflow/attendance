@@ -179,6 +179,10 @@
 				}}
 			</p>
 
+			<NcNoteCard v-if="teamsNotConfigured" type="info" data-test="statistics-teams-hint">
+				{{ t("attendance", "Nobody here is in a team selected for grouping, so everyone appears under Others. Administrators select the teams in the admin settings under Response summary teams.") }}
+			</NcNoteCard>
+
 			<div v-if="!reduced" class="statistics__highlights-head">
 				<!-- TRANSLATORS: Heading over the small summary cards above the charts. -->
 				<h3>{{ t("attendance", "Highlights") }}</h3>
@@ -315,7 +319,7 @@ import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translatePlural as n, translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
-import { NcButton, NcChip, NcEmptyContent, NcFormGroup, NcPopover, NcRadioGroup, NcRadioGroupButton, NcTextField } from '@nextcloud/vue'
+import { NcButton, NcChip, NcEmptyContent, NcFormGroup, NcNoteCard, NcPopover, NcRadioGroup, NcRadioGroupButton, NcTextField } from '@nextcloud/vue'
 import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import ChartLineIcon from 'vue-material-design-icons/ChartLine.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
@@ -395,6 +399,18 @@ watch(detail, () => {
 watch([grouping, detail, visibleColumns, visibleCards], writeUrlState)
 
 const reduced = computed(() => !permissions.canSeeStatistics)
+
+// Matches StatisticsService::SECTION_OTHERS.
+const OTHERS_SECTION = '__others__'
+
+// Teams section only by the ones an admin selected: without any (the default) the
+// team axis is a lone Others bucket, which reads like a grouping that did nothing.
+const teamsNotConfigured = computed(() => {
+	const sections = statistics.value?.sections ?? []
+	return statistics.value?.groupBy === 'teams'
+		&& sections.length > 0
+		&& sections.every((section) => section.id === OTHERS_SECTION)
+})
 
 // The drill-down lists what one person answered per appointment, which is the
 // response overview's disclosure — an aggregate row does not carry it.

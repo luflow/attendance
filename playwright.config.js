@@ -115,6 +115,8 @@ export default defineConfig({
 				'41-checkin-group-filter.spec.js',
 				// Restricts the export permission to a dedicated group.
 				'42-export-permission.spec.js',
+				// Selects teams for grouping and grants see_statistics instance-wide.
+				'43-statistics-teams.spec.js',
 			],
 			fullyParallel: false,
 			workers: 1,

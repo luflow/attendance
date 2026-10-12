@@ -65,7 +65,6 @@ class StatisticsServiceTest extends TestCase {
 		$l10n->method('t')->willReturnArgument(0);
 
 		$this->categoryMapper->method('findAll')->willReturn([]);
-		$this->configService->method('getWhitelistedTeams')->willReturn([]);
 
 		$this->service = new StatisticsService(
 			$this->appointmentMapper,
@@ -200,6 +199,57 @@ class StatisticsServiceTest extends TestCase {
 		$result = $this->service->getStatistics($this->filter());
 
 		$this->assertSame(['sopranos', StatisticsService::SECTION_OTHERS], array_column($result['sections'], 'id'));
+	}
+
+	public function testTeamAxisSectionsFollowTheWhitelistedTeamsInsteadOfGroups(): void {
+		$this->givenUsers(['alice' => 'Alice', 'bob' => 'Bob', 'carol' => 'Carol']);
+		$this->givenUnrestrictedVisibility();
+		$this->configService->method('getWhitelistedTeams')->willReturn(['choir', 'board']);
+		$this->visibilityService->method('getTeamMembers')->willReturnMap([
+			['choir', ['alice', 'bob']],
+			['board', ['alice']],
+		]);
+		$this->visibilityService->method('getTeamInfo')->willReturnCallback(
+			static fn (string $teamId): array => ['id' => $teamId, 'label' => ucfirst($teamId), 'type' => 'team'],
+		);
+		// The group axis would section by these; the team axis must not.
+		$this->groupManager->expects($this->never())->method('getUserGroupIds');
+
+		$this->appointmentMapper->method('findForStatistics')->willReturn([
+			$this->appointment(1, '2026-05-01 18:00:00', '2026-05-01 20:00:00'),
+		]);
+		$this->givenResponses([
+			$this->response(1, 'alice', 'yes', 'yes'),
+		]);
+
+		$result = $this->service->getStatistics(StatisticsFilter::fromWire(null, null, [], false, StatisticsFilter::GROUP_BY_TEAMS));
+
+		$this->assertSame('teams', $result['groupBy']);
+		$this->assertSame(['choir', 'board', StatisticsService::SECTION_OTHERS], array_column($result['sections'], 'id'));
+		$this->assertSame(['Choir', 'Board', 'Others'], array_column($result['sections'], 'displayName'));
+		$this->assertSame([2, 1, 1], array_column($result['sections'], 'personCount'));
+		$this->assertSame(['choir', 'board'], $this->person($result, 'alice')['sections']);
+		$this->assertSame([StatisticsService::SECTION_OTHERS], $this->person($result, 'carol')['sections'], 'in no selected team');
+	}
+
+	/**
+	 * The default of an install: the Teams app is there, but no team was picked
+	 * for grouping, so the team axis has nothing to section by.
+	 */
+	public function testTeamAxisWithoutSelectedTeamsPutsEveryoneUnderOthers(): void {
+		$this->givenUsers(['alice' => 'Alice', 'bob' => 'Bob']);
+		$this->givenUnrestrictedVisibility();
+		$this->configService->method('getWhitelistedTeams')->willReturn([]);
+
+		$this->appointmentMapper->method('findForStatistics')->willReturn([
+			$this->appointment(1, '2026-05-01 18:00:00', '2026-05-01 20:00:00'),
+		]);
+		$this->givenResponses([]);
+
+		$result = $this->service->getStatistics(StatisticsFilter::fromWire(null, null, [], false, StatisticsFilter::GROUP_BY_TEAMS));
+
+		$this->assertSame([StatisticsService::SECTION_OTHERS], array_column($result['sections'], 'id'));
+		$this->assertSame([2], array_column($result['sections'], 'personCount'));
 	}
 
 	public function testResponsesOfDeletedUsersAreIgnored(): void {
