@@ -564,6 +564,8 @@
     "Columns per appointment" : "Colonnes par rendez-vous",
     "Comments" : "Commentaires",
     "Select at least one column" : "Sélectionnez au moins une colonne",
+    "Add a group column next to the names" : "Ajouter une colonne de groupe à côté des noms",
+    "Show the location next to the date" : "Afficher le lieu à côté de la date",
     "Add a row with the organizers of each appointment" : "Ajouter une ligne avec l'organisateur pour chaque rendez-vous",
     "_{count} appointment · {range}_::_{count} appointments · {range}_" : ["{count} rendez-vous · {range}","{count} rendez-vous · {range}","{count} rendez-vous · {range}"],
     "Welcome" : "Bienvenue",
