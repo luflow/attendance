@@ -1097,6 +1097,10 @@ OC.L10N.register(
     "Open Notifications settings" : "Einstellungen der Benachrichtigungs-App öffnen",
     "Hide hint" : "Hinweis ausblenden",
     "Show hint" : "Hinweis anzeigen",
-    "Nextcloud does not forward notifications by email." : "Nextcloud leitet Benachrichtigungen nicht per E-Mail weiter."
+    "Nextcloud does not forward notifications by email." : "Nextcloud leitet Benachrichtigungen nicht per E-Mail weiter.",
+    "May export appointments" : "Darf Termine exportieren",
+    "Download the responses and check-ins of appointments as a spreadsheet." : "Die Antworten und Check-ins von Terminen als Tabelle herunterladen.",
+    "Every user can export who answered what and who checked in." : "Jeder Benutzer kann exportieren, wer was geantwortet hat und wer eingecheckt ist.",
+    "Nobody here is in a team selected for grouping, so everyone appears under Others. Administrators select the teams in the admin settings under Response summary teams." : "Niemand hier gehört zu einem für die Gruppierung ausgewählten Team, deshalb erscheinen alle unter „Andere“. Die Teams wählt die Administration in den Administrationseinstellungen unter „Teams in Antwortübersicht“ aus."
 },
 "nplurals=2; plural=(n != 1);");

@@ -52,6 +52,7 @@ class PermissionService {
 	public const PERMISSION_SEE_STATISTICS = 'see_statistics';
 	public const PERMISSION_SEE_ALL_APPOINTMENTS = 'see_all_appointments';
 	public const PERMISSION_SEE_TEAM_VACATIONS = 'see_team_vacations';
+	public const PERMISSION_EXPORT = 'export';
 
 	public const MODE_ALL = 'all';
 	public const MODE_GROUPS = 'groups';
@@ -73,6 +74,7 @@ class PermissionService {
 		self::PERMISSION_SEE_STATISTICS,
 		self::PERMISSION_SEE_ALL_APPOINTMENTS,
 		self::PERMISSION_SEE_TEAM_VACATIONS,
+		self::PERMISSION_EXPORT,
 	];
 
 	private const GUEST_BLOCKED_PERMISSIONS = [
@@ -83,6 +85,7 @@ class PermissionService {
 		self::PERMISSION_SEE_STATISTICS,
 		self::PERMISSION_SEE_ALL_APPOINTMENTS,
 		self::PERMISSION_SEE_TEAM_VACATIONS,
+		self::PERMISSION_EXPORT,
 	];
 
 	/**
@@ -437,6 +440,15 @@ class PermissionService {
 	 */
 	public function canSeeStatistics(string $userId): bool {
 		return $this->hasPermission($userId, self::PERMISSION_SEE_STATISTICS);
+	}
+
+	/**
+	 * Check if user may export appointments (the response and check-in lists).
+	 * Deliberately separate from managing: managers do not get it implicitly,
+	 * and holders need no manage rights.
+	 */
+	public function canExport(string $userId): bool {
+		return $this->hasPermission($userId, self::PERMISSION_EXPORT);
 	}
 
 	/**

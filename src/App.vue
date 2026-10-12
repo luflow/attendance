@@ -170,7 +170,7 @@
 					</template>
 				</NcAppNavigationItem>
 				<NcAppNavigationItem
-					v-if="permissions.canManageAppointments"
+					v-if="permissions.canExport"
 					:name="t('attendance', 'Export')"
 					data-test="button-export"
 					@click.prevent="showExportDialog = true">

@@ -437,6 +437,7 @@ export const PERMISSIVE_PERMISSIONS = Object.freeze({
 	see_statistics: { mode: 'nobody', groups: [] },
 	see_all_appointments: { mode: 'nobody', groups: [] },
 	see_team_vacations: { mode: 'nobody', groups: [] },
+	export: { mode: 'all', groups: [] },
 })
 
 /**
@@ -507,6 +508,49 @@ export async function addUserToGroupViaOCS(request, username, groupName) {
 			'Content-Type': 'application/x-www-form-urlencoded',
 		},
 		form: { groupid: groupName },
+	})
+}
+
+/**
+ * Whether the Teams (Circles) app is enabled on the test server.
+ */
+export async function teamsAvailable(request) {
+	const resp = await resilientJson(() => request.get(`${API_BASE}/apps/attendance/api/capabilities`, {
+		headers: authHeaders('admin', 'admin'),
+	}))
+	return (await resp.json()).teamsAvailable === true
+}
+
+/**
+ * Create a Nextcloud Team via the Circles OCS API, owned by admin. Returns
+ * the team's id (what the app stores as the team reference).
+ */
+export async function createTeamViaOCS(request, name) {
+	const ocsBase = await getOcsBase(request)
+	const resp = await request.post(`${ocsBase}/apps/circles/circles?format=json`, {
+		headers: { ...authHeaders('admin', 'admin'), 'Content-Type': 'application/x-www-form-urlencoded' },
+		form: { name, personal: 'false', local: 'true' },
+	})
+	expect(resp.ok(), `creating team "${name}" failed: ${resp.status()} ${await resp.text()}`).toBeTruthy()
+	return (await resp.json()).ocs.data.id
+}
+
+/**
+ * Add a local user to a team as a plain member.
+ */
+export async function addUserToTeamViaOCS(request, teamId, username) {
+	const ocsBase = await getOcsBase(request)
+	const resp = await request.post(`${ocsBase}/apps/circles/circles/${teamId}/members?format=json`, {
+		headers: { ...authHeaders('admin', 'admin'), 'Content-Type': 'application/x-www-form-urlencoded' },
+		form: { userId: username, type: '1' },
+	})
+	expect(resp.ok(), `adding ${username} to the team failed: ${resp.status()} ${await resp.text()}`).toBeTruthy()
+}
+
+export async function deleteTeamViaOCS(request, teamId) {
+	const ocsBase = await getOcsBase(request)
+	await request.delete(`${ocsBase}/apps/circles/circles/${teamId}?format=json`, {
+		headers: authHeaders('admin', 'admin'),
 	})
 }
 

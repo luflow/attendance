@@ -305,7 +305,7 @@ const STEPS = [
 		id: 'responses',
 		label: t('attendance', 'Responses'),
 		lead: t('attendance', 'Who gets to see the replies of everyone else? The detailed summary shows names, the counts show only how many said yes, no or maybe, and the statistics evaluate both across all appointments.'),
-		permissions: ['see_response_overview', 'see_response_counts', 'see_comments', 'see_statistics'],
+		permissions: ['see_response_overview', 'see_response_counts', 'see_comments', 'see_statistics', 'export'],
 	},
 	{
 		id: 'audit',
