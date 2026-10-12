@@ -2476,7 +2476,8 @@
                     "canSeeStatistics",
                     "canSeeIndividualResponses",
                     "canSeeAllAppointments",
-                    "canSeeTeamVacations"
+                    "canSeeTeamVacations",
+                    "canExport"
                 ],
                 "properties": {
                     "canManageAppointments": {
@@ -2513,6 +2514,9 @@
                         "type": "boolean"
                     },
                     "canSeeTeamVacations": {
+                        "type": "boolean"
+                    },
+                    "canExport": {
                         "type": "boolean"
                     }
                 }

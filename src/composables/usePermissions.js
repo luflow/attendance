@@ -18,6 +18,7 @@ const DEFAULTS = {
 		canSeeIndividualResponses: false,
 		canSeeAllAppointments: false,
 		canSeeTeamVacations: false,
+		canExport: false,
 	},
 	capabilities: {
 		calendarAvailable: false,
@@ -98,6 +99,7 @@ export function usePermissions() {
 			state.permissions.canSeeIndividualResponses = permissionsRes.data.canSeeIndividualResponses === true
 			state.permissions.canSeeAllAppointments = permissionsRes.data.canSeeAllAppointments === true
 			state.permissions.canSeeTeamVacations = permissionsRes.data.canSeeTeamVacations === true
+			state.permissions.canExport = permissionsRes.data.canExport === true
 
 			state.capabilities.calendarAvailable = capabilitiesRes.data.calendarAvailable || false
 			state.capabilities.calendarSyncEnabled = capabilitiesRes.data.calendarSyncEnabled || false

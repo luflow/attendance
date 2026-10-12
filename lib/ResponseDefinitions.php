@@ -244,6 +244,7 @@ namespace OCA\Attendance;
  *   canSeeIndividualResponses: bool,
  *   canSeeAllAppointments: bool,
  *   canSeeTeamVacations: bool,
+ *   canExport: bool,
  * }
  * @psalm-type AttendanceCapabilities = array{
  *   calendarAvailable: bool,

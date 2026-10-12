@@ -1093,6 +1093,7 @@ class AppointmentController extends Controller {
 			'canSeeIndividualResponses' => $this->permissionService->canSeeIndividualResponses($user->getUID()),
 			'canSeeAllAppointments' => $this->permissionService->canSeeAllAppointments($user->getUID()),
 			'canSeeTeamVacations' => $this->permissionService->canSeeTeamVacations($user->getUID()),
+			'canExport' => $this->permissionService->canExport($user->getUID()),
 		]);
 	}
 
@@ -1413,8 +1414,7 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
-		// Check if user can manage appointments
-		if (!$this->permissionService->canManageAppointments($user->getUID())) {
+		if (!$this->permissionService->canExport($user->getUID())) {
 			return new DataResponse(['error' => 'Insufficient permissions to export appointments'], 403);
 		}
 
@@ -1473,7 +1473,7 @@ class AppointmentController extends Controller {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
 		}
 
-		if (!$this->permissionService->canManageAppointments($user->getUID())) {
+		if (!$this->permissionService->canExport($user->getUID())) {
 			return new DataResponse(['error' => 'Insufficient permissions to export appointments'], 403);
 		}
 

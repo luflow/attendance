@@ -1097,6 +1097,9 @@ OC.L10N.register(
     "Open Notifications settings" : "Einstellungen der Benachrichtigungs-App öffnen",
     "Hide hint" : "Hinweis ausblenden",
     "Show hint" : "Hinweis anzeigen",
-    "Nextcloud does not forward notifications by email." : "Nextcloud leitet Benachrichtigungen nicht per E-Mail weiter."
+    "Nextcloud does not forward notifications by email." : "Nextcloud leitet Benachrichtigungen nicht per E-Mail weiter.",
+    "May export appointments" : "Darf Termine exportieren",
+    "Download the responses and check-ins of appointments as a spreadsheet." : "Die Antworten und Check-ins von Terminen als Tabelle herunterladen.",
+    "Every user can export who answered what and who checked in." : "Jeder Benutzer kann exportieren, wer was geantwortet hat und wer eingecheckt ist."
 },
 "nplurals=2; plural=(n != 1);");

@@ -113,6 +113,8 @@ export default defineConfig({
 				'40-capacity-ui.spec.js',
 				// Switches the response summary grouping mode and the group list.
 				'41-checkin-group-filter.spec.js',
+				// Restricts the export permission to a dedicated group.
+				'42-export-permission.spec.js',
 			],
 			fullyParallel: false,
 			workers: 1,

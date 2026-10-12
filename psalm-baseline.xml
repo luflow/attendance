@@ -1134,6 +1134,14 @@
       <code><![CDATA[Version000026Date20261004140000]]></code>
     </UnusedClass>
   </file>
+  <file src="lib/Migration/Version000027Date20261012120000.php">
+    <DeprecatedMethod>
+      <code><![CDATA[setAppValue]]></code>
+    </DeprecatedMethod>
+    <UnusedClass>
+      <code><![CDATA[Version000027Date20261012120000]]></code>
+    </UnusedClass>
+  </file>
   <file src="lib/Notification/Notifier.php">
     <ClassMustBeFinal>
       <code><![CDATA[Notifier]]></code>

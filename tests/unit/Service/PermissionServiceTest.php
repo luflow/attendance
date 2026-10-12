@@ -853,4 +853,44 @@ class PermissionServiceTest extends TestCase {
 
 		$this->assertFalse($this->service->canSeeTeamVacations('guestuser'));
 	}
+
+	public function testExportGrantedWithoutManageRights(): void {
+		$this->guestService->method('isGuestUser')->willReturn(false);
+		$this->configValues([
+			'permission_manage_appointments_mode' => 'groups',
+			'permission_manage_appointments' => '["board"]',
+			'permission_export_mode' => 'groups',
+			'permission_export' => '["sports"]',
+		]);
+		$this->userInGroups('alice', ['sports']);
+
+		$this->assertTrue($this->service->canExport('alice'));
+		$this->assertFalse($this->service->canManageAppointments('alice'));
+	}
+
+	public function testExportIsNotImpliedByManageRights(): void {
+		$this->guestService->method('isGuestUser')->willReturn(false);
+		$this->configValues([
+			'permission_manage_appointments_mode' => 'all',
+			'permission_export_mode' => 'nobody',
+		]);
+
+		$this->assertTrue($this->service->canManageAppointments('alice'));
+		$this->assertFalse($this->service->canExport('alice'));
+	}
+
+	public function testExportKeepsTodaysBehaviourWhileUnconfigured(): void {
+		$this->guestService->method('isGuestUser')->willReturn(false);
+		$this->configValues([]);
+
+		$this->assertSame(PermissionService::MODE_ALL, $this->service->getModeForPermission(PermissionService::PERMISSION_EXPORT));
+		$this->assertTrue($this->service->canExport('alice'));
+	}
+
+	public function testGuestsNeverExport(): void {
+		$this->guestService->method('isGuestUser')->with('guestuser')->willReturn(true);
+		$this->configValues(['permission_export_mode' => 'all']);
+
+		$this->assertFalse($this->service->canExport('guestuser'));
+	}
 }

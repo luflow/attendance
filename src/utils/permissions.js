@@ -58,6 +58,13 @@ export const PERMISSION_ROWS = {
 		implication: t('attendance', 'Without this, users only see their own numbers.'),
 		warningWhenAll: t('attendance', 'Every user can see how often each person responded and attended.'),
 	},
+	export: {
+		group: 'responses',
+		title: t('attendance', 'May export appointments'),
+		hint: t('attendance', 'Download the responses and check-ins of appointments as a spreadsheet.'),
+		implication: t('attendance', 'Not granted automatically to users who can manage appointments.'),
+		warningWhenAll: t('attendance', 'Every user can export who answered what and who checked in.'),
+	},
 	respond_for_others: {
 		group: 'responses',
 		// TRANSLATORS: Permission title. "set" means recording or changing an existing answer on someone's behalf — nothing new is created.

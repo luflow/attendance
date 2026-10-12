@@ -108,7 +108,7 @@
 				{{ t("attendance", "Copy") }}
 			</NcActionButton>
 			<NcActionButton
-				v-if="permissions.canManageAppointments"
+				v-if="permissions.canExport"
 				:closeAfterClick="true"
 				data-test="action-export"
 				@click="emit('export', appointment.id)">
