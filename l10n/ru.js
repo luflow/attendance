@@ -155,6 +155,7 @@ OC.L10N.register(
     "Link copied" : "Ссылка скопирована",
     "Group by" : "Группировать по",
     "Template" : "Шаблон",
+    "All categories" : "Все категории",
     "Preview" : "Предварительный просмотр",
     "Open" : "Открытые",
     "Push notifications" : "Push-уведомления",
