@@ -457,14 +457,37 @@ const filterDefs = computed(() => [
 	},
 ])
 
-const filterValues = ref(loadStoredFilterValues())
+// Filters carried on the URL, so a filtered list can be linked to (issue #305).
+const URL_LOCATION_KEY = 'location'
+const URL_CATEGORY_KEY = 'category'
+
+/**
+ * @return {?{values: object, locations: Array<string>, categoryIds: Array<number>}} The filters a link carries, or null when it carries none.
+ */
+function readUrlFilters() {
+	const query = new URLSearchParams(window.location.search)
+	const ids = Object.values(F)
+	if (![...ids, URL_LOCATION_KEY, URL_CATEGORY_KEY].some((key) => query.has(key))) {
+		return null
+	}
+	return {
+		values: Object.fromEntries(ids.filter((id) => query.has(id)).map((id) => [id, query.get(id)])),
+		locations: query.getAll(URL_LOCATION_KEY),
+		categoryIds: query.getAll(URL_CATEGORY_KEY).map(Number).filter((id) => Number.isInteger(id) && id > 0),
+	}
+}
+
+// A link's filters win over the stored ones.
+const linked = viewDef.value.filtersApply ? readUrlFilters() : null
+
+const filterValues = ref(linked?.values ?? loadStoredFilterValues())
 
 // Location is a separate, multi-select axis (several previously-used
 // locations at once) — the shared filterDefs/filterValues above are
 // single-select-per-group, so this stays independent rather than forcing a
 // checkbox mode into that radio-style popover.
 const LOCATION_FILTER_STORAGE_KEY = 'attendance:list-filters:locations'
-const selectedLocations = ref(loadStoredLocationFilter())
+const selectedLocations = ref(linked?.locations ?? loadStoredLocationFilter())
 
 function loadStoredLocationFilter() {
 	try {
@@ -484,7 +507,7 @@ function toggleLocationFilter(location) {
 // Same independent multi-select axis as location, but keyed by categoryId
 // (categories are admin-managed, so the value is a stable id, not text).
 const CATEGORY_FILTER_STORAGE_KEY = 'attendance:list-filters:categories'
-const selectedCategoryIds = ref(loadStoredCategoryFilter())
+const selectedCategoryIds = ref(linked?.categoryIds ?? loadStoredCategoryFilter())
 
 function loadStoredCategoryFilter() {
 	try {
@@ -570,14 +593,33 @@ function debouncedLocalStorageWriter(key, initialValue) {
 	return write
 }
 
-const persistFilterValues = debouncedLocalStorageWriter(FILTER_STORAGE_KEY, filterValues.value)
-watch(filterValues, persistFilterValues, { deep: true })
+// A link's filters are stored straight away (no known initial value), so they
+// stay on when the list is next opened without one.
+const persistFilterValues = debouncedLocalStorageWriter(FILTER_STORAGE_KEY, linked ? undefined : filterValues.value)
+watch(filterValues, persistFilterValues, { deep: true, immediate: true })
 
-const persistSelectedLocations = debouncedLocalStorageWriter(LOCATION_FILTER_STORAGE_KEY, selectedLocations.value)
-watch(selectedLocations, persistSelectedLocations, { deep: true })
+const persistSelectedLocations = debouncedLocalStorageWriter(LOCATION_FILTER_STORAGE_KEY, linked ? undefined : selectedLocations.value)
+watch(selectedLocations, persistSelectedLocations, { deep: true, immediate: true })
 
-const persistSelectedCategoryIds = debouncedLocalStorageWriter(CATEGORY_FILTER_STORAGE_KEY, selectedCategoryIds.value)
-watch(selectedCategoryIds, persistSelectedCategoryIds, { deep: true })
+const persistSelectedCategoryIds = debouncedLocalStorageWriter(CATEGORY_FILTER_STORAGE_KEY, linked ? undefined : selectedCategoryIds.value)
+watch(selectedCategoryIds, persistSelectedCategoryIds, { deep: true, immediate: true })
+
+const filterQuery = computed(() => {
+	if (!viewDef.value.filtersApply) {
+		return ''
+	}
+	const params = new URLSearchParams(filterValues.value)
+	selectedLocations.value.forEach((location) => params.append(URL_LOCATION_KEY, location))
+	selectedCategoryIds.value.forEach((id) => params.append(URL_CATEGORY_KEY, id))
+	return params.toString()
+})
+
+// Replaces rather than pushes — every filter click would otherwise land in the history.
+watch(filterQuery, (query) => {
+	if (query !== window.location.search.slice(1)) {
+		window.history.replaceState(window.history.state, '', window.location.pathname + (query ? `?${query}` : ''))
+	}
+}, { immediate: true })
 
 const hasActiveFilters = computed(() => Boolean(props.searchQuery.trim()
 	|| (viewDef.value.filtersApply && (activeFilters.value.length || selectedLocations.value.length || selectedCategoryIds.value.length))))

@@ -434,4 +434,26 @@ test.describe('Attendance App - Categories', () => {
 		await expect(page.locator('[data-test="appointment-filters"]')).toHaveCount(0)
 		await expect(cards.filter({ hasText: targetName }).first()).toBeVisible()
 	})
+
+	// Issue #305: the filters are part of the URL, so a filtered list can be shared.
+	test('a link carries the category filter both ways', async ({ page, request }) => {
+		const categoryA = await createCategoryViaAPI(request, uniqueName('Choir'))
+		const categoryB = await createCategoryViaAPI(request, uniqueName('Band'))
+		createdCategoryIds.push(categoryA.id, categoryB.id)
+
+		await createAppointmentViaAPI(request, { name: 'Linked Choir Meeting', daysFromNow: 7, categoryId: categoryA.id })
+		await createAppointmentViaAPI(request, { name: 'Linked Band Meeting', daysFromNow: 7, categoryId: categoryB.id })
+
+		await page.goto(`/apps/attendance/all?category=${categoryA.id}`)
+		await page.waitForLoadState('networkidle')
+
+		const cards = page.locator('[data-test="appointment-card"]')
+		await expect(cards.filter({ hasText: 'Linked Choir Meeting' }).first()).toBeVisible()
+		await expect(cards.filter({ hasText: 'Linked Band Meeting' })).toHaveCount(0)
+
+		await page.locator('[data-test="filter-category"]').click()
+		await page.getByRole('menuitemcheckbox', { name: categoryB.name }).click()
+		await expect(page).toHaveURL(new RegExp(`category=${categoryA.id}&category=${categoryB.id}$`))
+		await expect(cards.filter({ hasText: 'Linked Band Meeting' }).first()).toBeVisible()
+	})
 })
