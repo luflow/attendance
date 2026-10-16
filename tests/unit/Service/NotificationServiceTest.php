@@ -78,11 +78,10 @@ class NotificationServiceTest extends TestCase {
 
 	private function setAppsEnabled(bool $notifications, bool $activity): void {
 		$this->appManager->method('isEnabledForUser')->willReturnCallback(
-			static fn (string $appId): bool => match ($appId) {
-				'notifications' => $notifications,
-				'activity' => $activity,
-				default => false,
-			}
+			static fn (string $appId): bool => $appId === 'notifications' && $notifications,
+		);
+		$this->appManager->method('isEnabledForAnyone')->willReturnCallback(
+			static fn (string $appId): bool => $appId === 'activity' && $activity,
 		);
 	}
 
