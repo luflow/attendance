@@ -1049,7 +1049,7 @@ OC.L10N.register(
     "Users who can manage appointments can always create appointments." : "Os usuários com permissão para gerenciar compromissos sempre podem criar compromissos.",
     "May see all appointments" : "Pode ver todos os compromissos",
     "See every appointment on the server, not just the own ones." : "Veja todos os compromissos no servidor, não apenas os seus.",
-    "Users who can manage appointments always see all appointments." : "Os usuários que podem gerenciar agendamentos sempre visualizam todos os agendamentos.",
+    "Users who can manage appointments always see all appointments." : "Os usuários que podem gerenciar compromissos sempre visualizam todos os compromissos.",
     "Every user can see every appointment." : "Todos os usuários podem ver todos os compromissos.",
     "May see everyone's vacation" : "Pode ver as férias de todas as pessoas",
     "See the vacation periods of all members, including their notes, in the team vacation calendar." : "Veja os períodos de férias de todos os membros, incluindo suas anotações, no calendário de férias da equipe.",

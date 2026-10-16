@@ -148,6 +148,7 @@ OC.L10N.register(
     "2 hours before" : "2 часа пред",
     "No reminders" : "Нема потсетници",
     "Thank you for your response!" : "Благодариме на вашиот одговор.",
+    "App Store" : "Продавница",
     "Search people" : "Барај луѓе",
     "Year" : "Година",
     "Custom" : "Прилагодено",
