@@ -9,7 +9,9 @@ use OCA\Attendance\BackgroundJob\AutoCloseJob;
 use OCA\Attendance\BackgroundJob\ReminderJob;
 use OCA\Attendance\BackgroundJob\TalkRoomSyncJob;
 use OCA\Attendance\Dashboard\Widget;
+use OCA\Attendance\Db\AuditEvent;
 use OCA\Attendance\Listener\CalendarObjectUpdateListener;
+use OCA\Attendance\Listener\ResponseActivityListener;
 use OCA\Attendance\Listener\ResponseChangeNotificationListener;
 use OCA\Attendance\Listener\TalkRoomDeletedListener;
 use OCA\Attendance\Listener\UserDeletedListener;
@@ -43,9 +45,16 @@ class Application extends App implements IBootstrap {
 
 		// Wire the audit-event dispatcher to its listeners. Done at boot so
 		// container-resolved services are available.
+		/** @var AuditEventDispatcher $dispatcher */
 		$dispatcher = $container->get(AuditEventDispatcher::class);
 		$listener = $container->get(ResponseChangeNotificationListener::class);
 		$dispatcher->register([$listener, 'handle']);
+		// Resolved on first use, so requests without a response skip its services.
+		$dispatcher->register(static function (AuditEvent $event) use ($container): void {
+			/** @var ResponseActivityListener $activityListener */
+			$activityListener = $container->get(ResponseActivityListener::class);
+			$activityListener->handle($event);
+		});
 
 		// Register background job for reminders
 		/** @var \OCP\BackgroundJob\IJobList $jobList */

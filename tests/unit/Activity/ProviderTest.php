@@ -6,11 +6,13 @@ namespace OCA\Attendance\Tests\Unit\Activity;
 
 use OCA\Attendance\Activity\EventMessages;
 use OCA\Attendance\Activity\Provider;
+use OCA\Attendance\Service\PermissionService;
 use OCP\Activity\Exceptions\UnknownActivityException;
 use OCP\Activity\IEvent;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
+use OCP\IUserManager;
 use OCP\L10N\IFactory;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -20,6 +22,8 @@ class ProviderTest extends TestCase {
 	private $l10nFactory;
 	/** @var IURLGenerator|MockObject */
 	private $urlGenerator;
+	/** @var PermissionService|MockObject */
+	private $permissionService;
 	private Provider $provider;
 
 	protected function setUp(): void {
@@ -41,13 +45,21 @@ class ProviderTest extends TestCase {
 		$config = $this->createMock(IConfig::class);
 		$config->method('getUserValue')->willReturn('');
 
-		$this->provider = new Provider($this->l10nFactory, $this->urlGenerator, new EventMessages($config));
+		$this->permissionService = $this->createMock(PermissionService::class);
+
+		$this->provider = new Provider(
+			$this->l10nFactory,
+			$this->urlGenerator,
+			new EventMessages($config, $this->createMock(IUserManager::class)),
+			$this->permissionService,
+		);
 	}
 
-	private function mockEvent(string $app, string $type, array $params, string $affectedUser = 'alice'): IEvent|MockObject {
+	private function mockEvent(string $app, string $type, array $params, string $affectedUser = 'alice', string $subject = ''): IEvent|MockObject {
 		$event = $this->createMock(IEvent::class);
 		$event->method('getApp')->willReturn($app);
 		$event->method('getType')->willReturn($type);
+		$event->method('getSubject')->willReturn($subject);
 		$event->method('getSubjectParameters')->willReturn($params);
 		$event->method('getAffectedUser')->willReturn($affectedUser);
 		$event->method('setParsedSubject')->willReturnSelf();
@@ -79,6 +91,36 @@ class ProviderTest extends TestCase {
 			->method('setParsedSubject')
 			->with('3 appointments changed in "Rehearsal"')
 			->willReturnSelf();
+
+		$this->provider->parse('de', $event);
+	}
+
+	public function testRendersAResponseWithItsComment(): void {
+		$event = $this->mockEvent('attendance', 'responses', [
+			'appointmentName' => 'Rehearsal',
+			'actor' => 'bob',
+			'subject' => 'bob',
+			'from' => '',
+			'to' => 'no',
+			'comment' => 'On holiday',
+		], 'alice', 'response_submitted');
+		$this->permissionService->method('canSeeComments')->with('alice')->willReturn(true);
+		$event->expects($this->once())->method('setParsedSubject')->with('bob answered No on "Rehearsal"')->willReturnSelf();
+		$event->expects($this->once())->method('setParsedMessage')->with('On holiday')->willReturnSelf();
+
+		$this->provider->parse('de', $event);
+	}
+
+	public function testHidesTheCommentFromReadersWhoMayNotSeeComments(): void {
+		$event = $this->mockEvent('attendance', 'responses', [
+			'appointmentName' => 'Rehearsal',
+			'actor' => 'bob',
+			'subject' => 'bob',
+			'to' => 'no',
+			'comment' => 'On holiday',
+		], 'alice', 'response_submitted');
+		$this->permissionService->method('canSeeComments')->with('alice')->willReturn(false);
+		$event->expects($this->once())->method('setParsedMessage')->with('')->willReturnSelf();
 
 		$this->provider->parse('de', $event);
 	}

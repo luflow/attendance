@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Listener;
 
+use OCA\Attendance\Activity\EventMessages;
 use OCA\Attendance\Audit\Verb;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AuditEvent;
@@ -76,7 +77,7 @@ class ResponseChangeNotificationListener {
 			'attendance.page.appointment',
 			['id' => $appointment->getId()]
 		);
-		$subjectParams = $this->subjectParametersFor($event, $appointment->getName());
+		$subjectParams = EventMessages::responseParameters($event, $appointment->getName());
 
 		$shouldFlush = $this->notificationManager->defer();
 		try {
@@ -130,19 +131,5 @@ class ResponseChangeNotificationListener {
 			}
 		}
 		return $recipients;
-	}
-
-	private function subjectParametersFor(AuditEvent $event, string $appointmentName): array {
-		$meta = $event->getMetaArray();
-		return [
-			'appointmentId' => $event->getAppointmentId(),
-			'appointmentName' => $appointmentName,
-			'actor' => $event->getActorId() ?? '',
-			// Shipped verbatim like the audit API does — the Notifier collapses
-			// subject == actor into the self wording, same as the audit renderers.
-			'subject' => $event->getSubjectId() ?? '',
-			'from' => (string)($meta['from'] ?? ''),
-			'to' => (string)($meta['to'] ?? ($meta['response'] ?? '')),
-		];
 	}
 }

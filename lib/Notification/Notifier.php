@@ -11,7 +11,6 @@ use OCA\Attendance\Service\QuickResponseTokenService;
 use OCA\Attendance\Service\ResponsePolicyService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IURLGenerator;
-use OCP\IUserManager;
 use OCP\L10N\IFactory;
 use OCP\Notification\AlreadyProcessedException;
 use OCP\Notification\IAction;
@@ -26,7 +25,6 @@ class Notifier implements INotifier {
 	private AttendanceResponseMapper $responseMapper;
 	private AppointmentMapper $appointmentMapper;
 	private ResponsePolicyService $responsePolicyService;
-	private IUserManager $userManager;
 	private EventMessages $eventMessages;
 
 	/** @var array<int, bool> */
@@ -38,7 +36,6 @@ class Notifier implements INotifier {
 		IURLGenerator $urlGenerator,
 		QuickResponseTokenService $tokenService,
 		AttendanceResponseMapper $responseMapper,
-		IUserManager $userManager,
 		AppointmentMapper $appointmentMapper,
 		ResponsePolicyService $responsePolicyService,
 		EventMessages $eventMessages,
@@ -49,7 +46,6 @@ class Notifier implements INotifier {
 		$this->responseMapper = $responseMapper;
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responsePolicyService = $responsePolicyService;
-		$this->userManager = $userManager;
 		$this->eventMessages = $eventMessages;
 	}
 
@@ -255,82 +251,8 @@ class Notifier implements INotifier {
 	}
 
 	private function prepareResponseChangeNotification(INotification $notification, \OCP\IL10N $l): INotification {
-		$params = $notification->getSubjectParameters();
-		$actor = (string)($params['actor'] ?? '');
-		$subject = (string)($params['subject'] ?? '');
-		$appointmentName = (string)($params['appointmentName'] ?? '');
-		$from = (string)($params['from'] ?? '');
-		$to = (string)($params['to'] ?? '');
-
-		// Same collapse rule as the audit renderers: a subject only shows up
-		// in the wording when someone answered on behalf of another person.
-		$onBehalfOf = ($subject !== '' && $subject !== $actor) ? $subject : '';
-
-		// TRANSLATORS: Stands in for a person's name in the response notifications below when the acting account cannot be identified. It is the grammatical subject of sentences like "Someone answered Yes on ...". Sample German: "Jemand".
-		$actorLabel = $actor !== '' ? $this->resolveDisplayName($actor) : $l->t('Someone');
-		$onBehalfOfLabel = $onBehalfOf !== '' ? $this->resolveDisplayName($onBehalfOf) : '';
-		$fromLabel = $this->translateResponseValue($from, $l);
-		$toLabel = $this->translateResponseValue($to, $l);
-
-		switch ($notification->getSubject()) {
-			case 'response_changed':
-				$subject = $onBehalfOf !== ''
-					// TRANSLATORS: Notification to an organizer. Someone edited another person's answer for them. %1$s is the display name of whoever made the edit, %2$s the display name of the person whose answer it is, %3$s and %4$s are the old and the new answer (each already translated as Yes, No or Maybe), %5$s the appointment name.
-					// Sample German: "Anna Weber hat die Antwort von Bernd Klein auf „Probe" von Ja zu Nein geaendert".
-					? $l->t('%1$s changed the response of %2$s from %3$s to %4$s on "%5$s"', [
-						$actorLabel,
-						$onBehalfOfLabel,
-						$fromLabel,
-						$toLabel,
-						$appointmentName,
-					])
-					// TRANSLATORS: Notification to an organizer. Someone edited their own answer. %1$s is their display name, %2$s and %3$s are the old and the new answer (each already translated as Yes, No or Maybe), %4$s the appointment name. "Their" is a single person of unknown gender, not a group.
-					// Sample German: "Anna Weber hat ihre Antwort auf „Probe" von Ja zu Nein geaendert".
-					: $l->t('%1$s changed their response from %2$s to %3$s on "%4$s"', [
-						$actorLabel,
-						$fromLabel,
-						$toLabel,
-						$appointmentName,
-					]);
-				break;
-			case 'response_rescinded':
-				$subject = $onBehalfOf !== ''
-					// TRANSLATORS: Notification to an organizer. Someone deleted another person's answer, leaving them unanswered again — this is not a No. %1$s is the display name of whoever deleted it, %2$s the display name of the person whose answer it was, %3$s the appointment name.
-					// Sample German: "Anna Weber hat die Antwort von Bernd Klein auf „Probe" geloescht".
-					? $l->t('%1$s removed the response of %2$s on "%3$s"', [
-						$actorLabel,
-						$onBehalfOfLabel,
-						$appointmentName,
-					])
-					// TRANSLATORS: Notification to an organizer. Someone withdrew their own answer and now counts as unanswered again — this is not a No. %1$s is their display name, %2$s the appointment name. "Their" is a single person of unknown gender, not a group.
-					// Sample German: "Anna Weber hat ihre Antwort auf „Probe" zurueckgezogen".
-					: $l->t('%1$s took back their response on "%2$s"', [
-						$actorLabel,
-						$appointmentName,
-					]);
-				break;
-			case 'response_submitted':
-			default:
-				$subject = $onBehalfOf !== ''
-					// TRANSLATORS: Notification to an organizer. Someone answered on another person's behalf, e.g. a manager entering an answer a member gave by phone. %1$s is the display name of whoever entered it, %2$s the answer itself (already translated as Yes, No or Maybe), %3$s the display name of the person it is for, %4$s the appointment name.
-					// Sample German: "Anna Weber hat fuer Bernd Klein mit Ja auf „Probe" geantwortet".
-					? $l->t('%1$s answered %2$s for %3$s on "%4$s"', [
-						$actorLabel,
-						$toLabel,
-						$onBehalfOfLabel,
-						$appointmentName,
-					])
-					// TRANSLATORS: Notification to an organizer that someone answered for themselves. %1$s is their display name, %2$s the answer itself (already translated as Yes, No or Maybe), %3$s the appointment name.
-					// Sample German: "Anna Weber hat mit Ja auf „Probe" geantwortet".
-					: $l->t('%1$s answered %2$s on "%3$s"', [
-						$actorLabel,
-						$toLabel,
-						$appointmentName,
-					]);
-				break;
-		}
-
-		$notification->setParsedSubject($subject);
+		$rendered = $this->eventMessages->forResponseChange($l, $notification->getSubject(), $notification->getSubjectParameters());
+		$notification->setParsedSubject($rendered['subject']);
 		$notification->setIcon($this->iconUrl());
 		return $notification;
 	}
@@ -362,35 +284,6 @@ class Notifier implements INotifier {
 		return $this->iconUrl ??= $this->urlGenerator->getAbsoluteURL(
 			$this->urlGenerator->imagePath('attendance', 'app-dark.svg'),
 		);
-	}
-
-	/**
-	 * Notifications carry raw user IDs; resolving them here rather than at send
-	 * time keeps renamed accounts correct. Unknown accounts keep the ID.
-	 */
-	private function resolveDisplayName(string $userId): string {
-		$user = $this->userManager->get($userId);
-		return $user !== null ? $user->getDisplayName() : $userId;
-	}
-
-	/**
-	 * The three answers, rendered for insertion into the response notification
-	 * subjects above.
-	 */
-	private function translateResponseValue(string $value, \OCP\IL10N $l): string {
-		switch ($value) {
-			case 'yes':
-				// TRANSLATORS: An attendee's answer, meaning "I will be there". Serves two purposes with one translation: it is the label of the Yes button on the notification, and it is substituted into sentences like "... answered Yes on ...". So it must work both as a standalone button and mid-sentence. Sample German: "Ja".
-				return $l->t('Yes');
-			case 'no':
-				// TRANSLATORS: An attendee's answer, meaning "I will not be there". Serves two purposes with one translation: it is the label of the No button on the notification, and it is substituted into sentences like "... answered No on ...". So it must work both as a standalone button and mid-sentence. Sample German: "Nein".
-				return $l->t('No');
-			case 'maybe':
-				// TRANSLATORS: An attendee's answer, meaning "I do not know yet". Serves two purposes with one translation: it is the label of the Maybe button on the notification, and it is substituted into sentences like "... answered Maybe on ...". So it must work both as a standalone button and mid-sentence. Sample German: "Vielleicht".
-				return $l->t('Maybe');
-			default:
-				return $value;
-		}
 	}
 
 	/**
