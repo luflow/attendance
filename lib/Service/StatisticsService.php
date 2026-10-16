@@ -45,8 +45,6 @@ class StatisticsService {
 
 	public const SECTION_OTHERS = '__others__';
 
-	/** @var array<string, array<string, IUser>> groupId → members */
-	private array $groupMembersCache = [];
 	/** @var ?array<string, IUser> the audience of an unrestricted appointment */
 	private ?array $openAudienceCache = null;
 	/** @var ?array<array-key, true> the same audience as a lookup set */
@@ -345,24 +343,7 @@ class StatisticsService {
 			return $this->openAudienceIdsCache ??= array_fill_keys(array_keys($this->openAudience($appointment)), true);
 		}
 
-		$userIds = [];
-		foreach ($settings['users'] as $userId) {
-			if ($this->userManager->get($userId) !== null) {
-				$userIds[$userId] = true;
-			}
-		}
-		foreach ($settings['groups'] as $groupId) {
-			foreach (array_keys($this->groupMembers($groupId)) as $memberId) {
-				$userIds[$memberId] = true;
-			}
-		}
-		foreach ($settings['teams'] as $teamId) {
-			foreach ($this->visibilityService->getTeamMembers($teamId) as $memberId) {
-				$userIds[$memberId] = true;
-			}
-		}
-
-		return $userIds;
+		return array_fill_keys(array_keys($this->visibilityService->getRelevantUsersForAppointment($appointment)), true);
 	}
 
 	/**
@@ -385,25 +366,6 @@ class StatisticsService {
 			$appointment,
 			$this->configService->getWhitelistedGroups(),
 		);
-	}
-
-	/**
-	 * @return array<string, IUser>
-	 */
-	private function groupMembers(string $groupId): array {
-		if (isset($this->groupMembersCache[$groupId])) {
-			return $this->groupMembersCache[$groupId];
-		}
-
-		$members = [];
-		$group = $this->groupManager->get($groupId);
-		if ($group !== null) {
-			foreach ($group->getUsers() as $user) {
-				$members[$user->getUID()] = $user;
-			}
-		}
-
-		return $this->groupMembersCache[$groupId] = $members;
 	}
 
 	/**
@@ -456,7 +418,10 @@ class StatisticsService {
 		if ($whitelisted !== []) {
 			$members = [];
 			foreach ($whitelisted as $groupId) {
-				$members[$groupId] = array_keys($this->groupMembers($groupId));
+				$members[$groupId] = array_map(
+					static fn (IUser $user): string => $user->getUID(),
+					$this->visibilityService->getGroupMembers($groupId),
+				);
 			}
 			return $members;
 		}

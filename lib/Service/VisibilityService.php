@@ -37,8 +37,10 @@ class VisibilityService {
 	private array $groupMembersCache = [];
 	/** @var ?list<string> every group of the instance. */
 	private ?array $allGroupIds = null;
-	/** @var ?array<string, \OCP\IUser> every account, keyed by UID. */
+	/** @var ?array<string, \OCP\IUser> every enabled account, keyed by UID. */
 	private ?array $allUsers = null;
+	/** @var ?array<string, true> UIDs of disabled accounts. */
+	private ?array $disabledUserIds = null;
 	/** @var array<string, ?array{id: string, label: string, type: string}> teamId → info, null when unknown. */
 	private array $teamInfoCache = [];
 
@@ -185,7 +187,7 @@ class VisibilityService {
 		if ($this->hasRestrictedVisibility($appointment)) {
 			// Add explicitly visible users
 			foreach ($settings['users'] as $userId) {
-				$user = $this->userManager->get($userId);
+				$user = $this->getEnabledUser($userId);
 				if ($user) {
 					$relevantUsers[$userId] = $user;
 				}
@@ -225,16 +227,46 @@ class VisibilityService {
 			return $relevantUsers;
 		}
 
-		// Case 3: No restrictions at all - must load all users. Once per request:
-		// it is the same everyone for every open appointment of a list.
+		// Case 3: No restrictions at all - must load all users.
+		return $this->getAllEnabledUsers();
+	}
+
+	/**
+	 * Every enabled account, read once per request: it is the same everyone for
+	 * every open appointment of a list.
+	 *
+	 * @return array<string, \OCP\IUser>
+	 */
+	public function getAllEnabledUsers(): array {
 		if ($this->allUsers === null) {
 			$this->allUsers = [];
 			foreach ($this->userManager->search('') as $user) {
-				$this->allUsers[$user->getUID()] = $user;
+				if (!$this->isDisabled($user->getUID())) {
+					$this->allUsers[$user->getUID()] = $user;
+				}
 			}
 		}
-
 		return $this->allUsers;
+	}
+
+	/**
+	 * The account behind an ID, or null when it is gone or disabled (issue #306).
+	 */
+	public function getEnabledUser(string $userId): ?\OCP\IUser {
+		return $this->isDisabled($userId) ? null : $this->userManager->get($userId);
+	}
+
+	/**
+	 * One query for the whole request instead of a preference read per user.
+	 */
+	private function isDisabled(string $userId): bool {
+		if ($this->disabledUserIds === null) {
+			$this->disabledUserIds = [];
+			foreach ($this->userManager->getDisabledUsers() as $user) {
+				$this->disabledUserIds[$user->getUID()] = true;
+			}
+		}
+		return isset($this->disabledUserIds[$userId]);
 	}
 
 	/**
@@ -297,13 +329,14 @@ class VisibilityService {
 	/**
 	 * Cached per request: the group manager forgets a group's members whenever
 	 * getUserGroups() hands out a fresh group object — once per responder in a list.
+	 * Disabled accounts are left out (issue #306).
 	 *
 	 * @return list<\OCP\IUser>
 	 */
 	public function getGroupMembers(string $groupId): array {
 		if (!isset($this->groupMembersCache[$groupId])) {
-			$group = $this->groupManager->get($groupId);
-			$this->groupMembersCache[$groupId] = $group !== null ? array_values($group->getUsers()) : [];
+			$members = $this->groupManager->get($groupId)?->getUsers() ?? [];
+			$this->groupMembersCache[$groupId] = array_values(array_filter($members, fn (\OCP\IUser $user): bool => !$this->isDisabled($user->getUID())));
 		}
 		return $this->groupMembersCache[$groupId];
 	}
@@ -338,7 +371,8 @@ class VisibilityService {
 	/**
 	 * Get all members of a team (circle). Cached per request — looking up a
 	 * circle's members is a Circles-app API call that fans out to the DB and
-	 * adds up quickly across the per-appointment audience checks.
+	 * adds up quickly across the per-appointment audience checks. Disabled
+	 * accounts are left out, like getGroupMembers() does.
 	 *
 	 * @param string $teamId The team/circle ID
 	 * @return array<string> Array of user IDs who are members of the team
@@ -360,8 +394,12 @@ class VisibilityService {
 			$userIds = [];
 			foreach ($members as $member) {
 				// Only include local users (not federated or other types)
-				if ($member->getUserType() === Member::TYPE_USER) {
-					$userIds[] = $member->getUserId();
+				if ($member->getUserType() !== Member::TYPE_USER) {
+					continue;
+				}
+				$userId = (string)$member->getUserId();
+				if ($this->getEnabledUser($userId) !== null) {
+					$userIds[] = $userId;
 				}
 			}
 

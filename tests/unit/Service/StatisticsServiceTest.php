@@ -192,6 +192,7 @@ class StatisticsServiceTest extends TestCase {
 			'groups' => ['sopranos'],
 			'teams' => [],
 		]);
+		$this->visibilityService->method('getRelevantUsersForAppointment')->willReturn($this->users);
 
 		$this->appointmentMapper->method('findForStatistics')->willReturn([$appointment]);
 		$this->givenResponses([]);
@@ -515,10 +516,11 @@ class StatisticsServiceTest extends TestCase {
 	}
 
 	/**
-	 * The target set is resolved per appointment rather than per candidate, so
-	 * it has to keep agreeing with the shared audience rule.
+	 * A restricted appointment's audience is the shared one from
+	 * VisibilityService, so statistics count the same people (disabled
+	 * accounts excluded, issue #306) as the response summary.
 	 */
-	public function testRestrictedVisibilityMatchesTheVisibilityServiceRule(): void {
+	public function testRestrictedVisibilityUsesTheVisibilityServiceAudience(): void {
 		$this->givenUsers(['alice' => 'Alice', 'bob' => 'Bob', 'carol' => 'Carol']);
 
 		$appointment = $this->appointment(1, '2026-05-01 18:00:00', '2026-05-01 20:00:00');
@@ -527,8 +529,11 @@ class StatisticsServiceTest extends TestCase {
 			'groups' => ['sopranos'],
 			'teams' => ['team-1'],
 		]);
-		$this->visibilityService->method('getTeamMembers')->with('team-1')->willReturn(['bob']);
-		$this->givenGroups(['sopranos' => ['alice']]);
+		$this->visibilityService->method('getRelevantUsersForAppointment')->with($appointment)->willReturn([
+			'alice' => $this->users['alice'],
+			'bob' => $this->users['bob'],
+			'carol' => $this->users['carol'],
+		]);
 
 		$this->appointmentMapper->method('findForStatistics')->willReturn([$appointment]);
 		$this->givenResponses([]);
@@ -587,6 +592,7 @@ class StatisticsServiceTest extends TestCase {
 	 */
 	private function givenGroups(array $groups): void {
 		$mocks = [];
+		$membersByGroup = [];
 		foreach ($groups as $groupId => $memberIds) {
 			$members = [];
 			foreach ($memberIds as $memberId) {
@@ -596,6 +602,7 @@ class StatisticsServiceTest extends TestCase {
 				$members[] = $user;
 			}
 
+			$membersByGroup[(string)$groupId] = $members;
 			$group = $this->createMock(IGroup::class);
 			$group->method('getUsers')->willReturn($members);
 			$group->method('getDisplayName')->willReturn((string)$groupId);
@@ -604,6 +611,9 @@ class StatisticsServiceTest extends TestCase {
 
 		$this->groupManager->method('get')->willReturnCallback(
 			static fn (string $groupId): ?IGroup => $mocks[$groupId] ?? null,
+		);
+		$this->visibilityService->method('getGroupMembers')->willReturnCallback(
+			static fn (string $groupId): array => $membersByGroup[$groupId] ?? [],
 		);
 	}
 

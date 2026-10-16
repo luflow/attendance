@@ -36,6 +36,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Config\IUserConfig;
 use OCP\IDateTimeZone;
 use OCP\IGroupManager;
+use OCP\IUser;
 use OCP\IUserManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -103,6 +104,8 @@ class AppointmentServiceTest extends TestCase {
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->configService = $this->createMock(ConfigService::class);
 		$this->visibilityService = $this->createMock(VisibilityService::class);
+		// Every addressed account exists and is enabled unless a test says otherwise.
+		$this->visibilityService->method('getEnabledUser')->willReturnCallback(fn (): IUser => $this->createMock(IUser::class));
 		$this->responseSummaryService = $this->createMock(ResponseSummaryService::class);
 		$this->notificationService = $this->createMock(NotificationService::class);
 		$this->attachmentService = $this->createMock(AttachmentService::class);
