@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.57.0 – 2026-10-17
+
+### Added
+
+- **Responses in the Activity app**: answers, changes, comments and waitlist moves appear in the activity stream under a new "Attendance" filter, quiet by default
+- **Shareable list filters**: the appointment list's filters are part of the URL, so a filtered list can be linked to
+- **Export as its own permission**: exporting response and check-in lists no longer needs manage rights; seeded from "Manage appointments" on update
+
+### Fixed
+
+- **Disabled accounts stay out of audiences**: they no longer show up in summaries, check-in, statistics, reminders or the vacation overview
+- **Grouping statistics by teams explains itself**: the page says why everyone lands in "Others" when no summary teams are selected
+
+### Maintenance
+
+- Updated translations from Transifex
+
 ## 1.56.0 – 2026-10-09
 
 ### Added
