@@ -9,6 +9,7 @@ use OCA\Attendance\Activity\Setting\AppointmentReactivatedSetting;
 use OCA\Attendance\Activity\Setting\AppointmentsSeriesUpdatedSetting;
 use OCA\Attendance\Activity\Setting\BookingConfirmedSetting;
 use OCA\Attendance\Activity\Setting\BookingDeclinedSetting;
+use OCA\Attendance\Activity\Setting\ResponsesSetting;
 use OCP\Activity\ActivitySettings;
 use OCP\IL10N;
 use PHPUnit\Framework\TestCase;
@@ -67,5 +68,18 @@ class ActivitySettingsTest extends TestCase {
 	public function testAllShareTheSameGroup(string $class): void {
 		$setting = new $class($this->l);
 		$this->assertSame('attendance', $setting->getGroupIdentifier());
+	}
+
+	/**
+	 * Responses in the stream are a record to look things up in (#307): push
+	 * would duplicate the opt-in response notification, so it starts off.
+	 */
+	public function testResponsesStayInTheStreamWithoutPushByDefault(): void {
+		$setting = new ResponsesSetting($this->l);
+		$this->assertSame('responses', $setting->getIdentifier());
+		$this->assertSame('attendance', $setting->getGroupIdentifier());
+		$this->assertTrue($setting->isDefaultEnabledStream());
+		$this->assertFalse($setting->isDefaultEnabledNotification());
+		$this->assertFalse($setting->isDefaultEnabledMail());
 	}
 }

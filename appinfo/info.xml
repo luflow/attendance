@@ -149,7 +149,11 @@ Dokumentation, Einsatzbeispiele und Roadmap: [anwesenheit.app](https://anwesenhe
 			<setting>OCA\Attendance\Activity\Setting\BookingConfirmedSetting</setting>
 			<setting>OCA\Attendance\Activity\Setting\BookingDeclinedSetting</setting>
 			<setting>OCA\Attendance\Activity\Setting\AppointmentsSeriesUpdatedSetting</setting>
+			<setting>OCA\Attendance\Activity\Setting\ResponsesSetting</setting>
 		</settings>
+		<filters>
+			<filter>OCA\Attendance\Activity\Filter</filter>
+		</filters>
 		<providers>
 			<provider>OCA\Attendance\Activity\Provider</provider>
 		</providers>

@@ -46,10 +46,11 @@ class NotificationService {
 	 * consumer of OCP\Activity\IManager::bulkPublish(), so without it a
 	 * published event is delivered to nobody. It is a default-enabled but
 	 * disableable app (unlike e.g. "files"), so this must be checked, not
-	 * assumed. Memoized: it cannot change within one request/job run.
+	 * assumed. Memoized: it cannot change within one request/job run. For
+	 * anyone, not the session user: cron jobs and token links have none.
 	 */
 	private function isActivityAppEnabled(): bool {
-		return $this->activityAppEnabled ??= $this->appManager->isEnabledForUser('activity');
+		return $this->activityAppEnabled ??= $this->appManager->isEnabledForAnyone('activity');
 	}
 
 	/**
@@ -317,33 +318,56 @@ class NotificationService {
 			return;
 		}
 
-		if (!$this->isActivityAppEnabled()) {
+		if (!$this->publishActivity($subject, $subject, $subjectParameters, $userIds, $objectType, $objectId, $link)) {
 			$sendDirect();
-			return;
+		}
+	}
+
+	/**
+	 * Publish one activity event to $userIds. False when the "activity" app is
+	 * disabled or publishing failed, so the caller can fall back.
+	 *
+	 * @param array<string, mixed> $subjectParameters
+	 * @param list<string> $userIds
+	 */
+	public function publishActivity(
+		string $type,
+		string $subject,
+		array $subjectParameters,
+		array $userIds,
+		string $objectType,
+		string|int $objectId,
+		string $link,
+		string $author = '',
+		string $objectName = '',
+	): bool {
+		if (!$this->isActivityAppEnabled()) {
+			return false;
 		}
 
 		try {
 			$event = $this->activityManager->generateEvent();
 			$event->setApp('attendance')
-				->setType($subject)
+				->setType($type)
+				->setAuthor($author)
 				->setSubject($subject, $subjectParameters)
-				->setObject($objectType, $objectId)
+				->setObject($objectType, $objectId, $objectName)
 				->setLink($link)
 				->setTimestamp(time());
 
-			$setting = $this->activityManager->getSettingById($subject);
-			$this->activityManager->bulkPublish($event, $userIds, $setting);
+			$this->activityManager->bulkPublish($event, $userIds, $this->activityManager->getSettingById($type));
 
 			$this->logger->info('Finished publishing appointment activity', [
 				'subject' => $subject,
 				'totalUsers' => count($userIds),
 			]);
+			return true;
 		} catch (\Exception $e) {
-			$this->logger->error('Failed to publish activity event, falling back to direct notification', [
+			$this->logger->error('Failed to publish activity event', [
 				'subject' => $subject,
 				'error' => $e->getMessage(),
 			]);
-			$sendDirect();
+			return false;
 		}
 	}
 

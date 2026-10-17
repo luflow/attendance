@@ -8,6 +8,11 @@
       <code><![CDATA[__construct]]></code>
     </PossiblyUnusedMethod>
   </file>
+  <file src="lib/Activity/Filter.php">
+    <UnusedClass>
+      <code><![CDATA[Filter]]></code>
+    </UnusedClass>
+  </file>
   <file src="lib/Activity/Provider.php">
     <UnusedClass>
       <code><![CDATA[Provider]]></code>
@@ -55,12 +60,8 @@
       <code><![CDATA[public function register(IRegistrationContext $context): void {]]></code>
     </MissingOverrideAttribute>
     <MixedAssignment>
-      <code><![CDATA[$dispatcher]]></code>
       <code><![CDATA[$listener]]></code>
     </MixedAssignment>
-    <MixedMethodCall>
-      <code><![CDATA[register]]></code>
-    </MixedMethodCall>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
     </PossiblyUnusedMethod>
@@ -72,9 +73,6 @@
     <MixedPropertyTypeCoercion>
       <code><![CDATA[$this->listeners]]></code>
     </MixedPropertyTypeCoercion>
-    <PossiblyUnusedMethod>
-      <code><![CDATA[register]]></code>
-    </PossiblyUnusedMethod>
   </file>
   <file src="lib/BackgroundJob/AutoCloseJob.php">
     <ClassMustBeFinal>
@@ -796,6 +794,11 @@
       <code><![CDATA[findClosestOccurrence]]></code>
       <code><![CDATA[syncAppointmentFromVevent]]></code>
     </UnusedMethod>
+  </file>
+  <file src="lib/Listener/ResponseActivityListener.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
   </file>
   <file src="lib/Listener/ResponseChangeNotificationListener.php">
     <ClassMustBeFinal>

@@ -8,10 +8,10 @@ use OCP\Activity\ActivitySettings;
 use OCP\IL10N;
 
 /**
- * Shared shape for the 5 Attendance notification types that route through
- * OCP\Activity\IManager (see NotificationService::sendViaActivityOrDirect) —
- * one concrete class per type is a framework requirement of
- * IManager::registerSetting(), but the group and defaults are identical.
+ * Shared shape for the Attendance activity types (see
+ * NotificationService::sendViaActivityOrDirect) — one concrete class per type
+ * is a framework requirement of IManager::registerSetting(), but the group and
+ * defaults are identical.
  */
 abstract class AttendanceActivitySetting extends ActivitySettings {
 	public function __construct(

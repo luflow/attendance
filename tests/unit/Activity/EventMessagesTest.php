@@ -7,6 +7,8 @@ namespace OCA\Attendance\Tests\Unit\Activity;
 use OCA\Attendance\Activity\EventMessages;
 use OCP\IConfig;
 use OCP\IL10N;
+use OCP\IUser;
+use OCP\IUserManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -30,7 +32,12 @@ class EventMessagesTest extends TestCase {
 		);
 		$this->l = $l;
 
-		$this->eventMessages = new EventMessages($this->config);
+		$alice = $this->createMock(IUser::class);
+		$alice->method('getDisplayName')->willReturn('Alice Anderson');
+		$userManager = $this->createMock(IUserManager::class);
+		$userManager->method('get')->willReturnCallback(static fn (string $uid): ?IUser => $uid === 'alice' ? $alice : null);
+
+		$this->eventMessages = new EventMessages($this->config, $userManager);
 	}
 
 	public function testForCancelled(): void {
@@ -53,6 +60,33 @@ class EventMessagesTest extends TestCase {
 			'We have withdrawn the cancellation. If you have made other plans since, please update your response.',
 			$rendered['message']
 		);
+	}
+
+	public function testForResponseChangeShowsAnEditedCommentAsTheMessage(): void {
+		$params = [
+			'appointmentName' => 'Rehearsal',
+			'actor' => 'alice',
+			'subject' => 'alice',
+			'to' => 'yes',
+			'comment' => 'Running late',
+		];
+
+		$own = $this->eventMessages->forResponseChange($this->l, 'response_comment_updated', $params);
+		$this->assertSame('Alice Anderson changed their comment on "Rehearsal"', $own['subject']);
+		$this->assertSame('Running late', $own['message']);
+
+		$forBob = $this->eventMessages->forResponseChange($this->l, 'response_comment_updated', ['subject' => 'bob'] + $params);
+		$this->assertSame('Alice Anderson changed the comment of bob on "Rehearsal"', $forBob['subject']);
+	}
+
+	public function testForResponseChangeNamesWhoMovedOffTheWaitlist(): void {
+		$rendered = $this->eventMessages->forResponseChange($this->l, 'waitlist_promoted', [
+			'appointmentName' => 'Rehearsal',
+			'actor' => '',
+			'subject' => 'alice',
+		]);
+
+		$this->assertSame('Alice Anderson moved off the waitlist into a free spot on "Rehearsal"', $rendered['subject']);
 	}
 
 	public function testForBookingConfirmedAndDeclinedDiffer(): void {

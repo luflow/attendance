@@ -76,10 +76,9 @@ class NotifierTest extends TestCase {
 			$this->urlGenerator,
 			$this->tokenService,
 			$this->responseMapper,
-			$this->userManager,
 			$this->appointmentMapper,
 			$this->responsePolicyService,
-			new EventMessages($this->config),
+			new EventMessages($this->config, $this->userManager),
 		);
 	}
 
