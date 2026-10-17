@@ -2243,13 +2243,13 @@ class AppointmentService {
 			return $this->getAllWhitelistedUsers();
 		}
 
-		$userIds = $visibleUsersList;
+		$userIds = array_values(array_filter(
+			$visibleUsersList,
+			fn ($userId): bool => $this->visibilityService->getEnabledUser((string)$userId) !== null,
+		));
 		foreach ($visibleGroupsList as $groupId) {
-			$group = $this->groupManager->get($groupId);
-			if ($group) {
-				foreach ($group->getUsers() as $user) {
-					$userIds[] = $user->getUID();
-				}
+			foreach ($this->visibilityService->getGroupMembers($groupId) as $user) {
+				$userIds[] = $user->getUID();
 			}
 		}
 
@@ -2275,17 +2275,13 @@ class AppointmentService {
 		$userIds = [];
 
 		if (empty($whitelistedGroups)) {
-			$allUsers = $this->userManager->search('');
-			foreach ($allUsers as $user) {
+			foreach ($this->visibilityService->getAllEnabledUsers() as $user) {
 				$userIds[] = $user->getUID();
 			}
 		} else {
 			foreach ($whitelistedGroups as $groupId) {
-				$group = $this->groupManager->get($groupId);
-				if ($group) {
-					foreach ($group->getUsers() as $user) {
-						$userIds[] = $user->getUID();
-					}
+				foreach ($this->visibilityService->getGroupMembers($groupId) as $user) {
+					$userIds[] = $user->getUID();
 				}
 			}
 		}

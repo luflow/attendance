@@ -1224,9 +1224,6 @@
     <ClassMustBeFinal>
       <code><![CDATA[AppointmentService]]></code>
     </ClassMustBeFinal>
-    <DeprecatedMethod>
-      <code><![CDATA[search]]></code>
-    </DeprecatedMethod>
     <MixedArgument>
       <code><![CDATA[$appointmentData['organizers'] ?? []]]></code>
       <code><![CDATA[$groupId]]></code>
@@ -1954,7 +1951,6 @@
       <code><![CDATA[$member]]></code>
       <code><![CDATA[$members]]></code>
       <code><![CDATA[$this->teamsManager]]></code>
-      <code><![CDATA[$userIds[]]]></code>
     </MixedAssignment>
     <MixedMethodCall>
       <code><![CDATA[getDisplayName]]></code>
@@ -1962,13 +1958,6 @@
       <code><![CDATA[getUserId]]></code>
       <code><![CDATA[getUserType]]></code>
     </MixedMethodCall>
-    <MixedPropertyTypeCoercion>
-      <code><![CDATA[$this->teamMembersCache]]></code>
-    </MixedPropertyTypeCoercion>
-    <MixedReturnTypeCoercion>
-      <code><![CDATA[$userIds]]></code>
-      <code><![CDATA[array<string>]]></code>
-    </MixedReturnTypeCoercion>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
       <code><![CDATA[filterVisibleAppointments]]></code>

@@ -192,6 +192,40 @@ class VisibilityServiceTest extends TestCase {
 	}
 
 	/**
+	 * Regression for #306: disabled accounts stayed in every audience, so
+	 * people who left showed up as missing responses and check-ins.
+	 */
+	public function testDisabledUsersAreLeftOutOfEveryAudience(): void {
+		$alice = $this->createMock(IUser::class);
+		$alice->method('getUID')->willReturn('alice');
+		$bob = $this->createMock(IUser::class);
+		$bob->method('getUID')->willReturn('bob');
+
+		$choir = $this->createMock(IGroup::class);
+		$choir->method('getUsers')->willReturn(['alice' => $alice, 'bob' => $bob]);
+		$this->groupManager->method('get')->willReturn($choir);
+		$this->userManager->method('get')->willReturnMap([['alice', $alice], ['bob', $bob]]);
+		$this->userManager->method('search')->willReturn([$alice, $bob]);
+		$this->userManager->method('getDisabledUsers')->willReturn([$bob]);
+
+		$service = $this->partialMock(['getTeamMembers']);
+
+		$restricted = new Appointment();
+		$restricted->setVisibleUsers(json_encode(['bob']));
+		$restricted->setVisibleGroups(json_encode(['choir']));
+		$restricted->setVisibleTeams('[]');
+		$open = new Appointment();
+		$open->setVisibleUsers('[]');
+		$open->setVisibleGroups('[]');
+		$open->setVisibleTeams('[]');
+
+		$this->assertSame([$alice], $service->getGroupMembers('choir'));
+		$this->assertSame(['alice'], array_keys($service->getRelevantUsersForAppointment($restricted)));
+		$this->assertSame(['alice'], array_keys($service->getRelevantUsersForAppointment($open)));
+		$this->assertSame(['alice'], array_keys($service->getRelevantUsersForAppointment($open, ['choir'])));
+	}
+
+	/**
 	 * "Everyone" and "every group" are the same for every appointment of a
 	 * request, so the instance-wide lookups run once.
 	 */
