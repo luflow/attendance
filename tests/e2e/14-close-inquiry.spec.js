@@ -7,6 +7,7 @@ import {
 	listAppointmentsViaAPI,
 	respondToAppointmentViaAPI,
 	deleteAllAppointments,
+	loadWholeAppointmentList,
 } from './fixtures/nextcloud.js'
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -187,6 +188,8 @@ test.describe('Attendance App - Close inquiry (UI)', () => {
 		await page.evaluate((key) => window.localStorage.removeItem(key), FILTER_STORAGE_KEY)
 		await page.reload()
 		await page.waitForLoadState('networkidle')
+		// Parallel specs share the server and can push our cards off the first page.
+		await loadWholeAppointmentList(page)
 	})
 
 	test('manager can close and reopen via the action menu', async ({ page }) => {
@@ -234,6 +237,7 @@ test.describe('Attendance App - Close inquiry (UI)', () => {
 		await closeAppointmentViaAPI(request, closed.id)
 		await page.reload()
 		await page.waitForLoadState('networkidle')
+		await loadWholeAppointmentList(page)
 
 		const cards = page.locator('[data-test="appointment-card"]')
 		await expect(cards.filter({ hasText: closedName }).first()).toBeVisible()
