@@ -769,12 +769,14 @@ async function navigate(route, { replace = false } = {}) {
 	if (VIEWS[route.view]?.resetsSearch && route.view !== currentView.value) {
 		searchQuery.value = ''
 	}
+	// A list re-entered without remounting keeps its filter query (issue #305).
+	const url = routeUrl(route) + (route.view === currentView.value && route.view in VIEWS ? window.location.search : '')
 	if (replace) {
-		window.history.replaceState({ ...route, idx: historyIdx }, '', routeUrl(route))
+		window.history.replaceState({ ...route, idx: historyIdx }, '', url)
 	} else {
 		rememberScroll()
 		historyIdx += 1
-		window.history.pushState({ ...route, idx: historyIdx }, '', routeUrl(route))
+		window.history.pushState({ ...route, idx: historyIdx }, '', url)
 	}
 	showRoute(route)
 	scrollContentTo(0)
