@@ -31,6 +31,19 @@ export default (env) => {
       // plugin loudly warns about vendored code it cannot change
       // (duplicate-object-key in fast-xml-parser via webdav) on every build.
       minify: false,
+      // Images referenced from the bundle (e.g. `url('../img/app-dark.svg')`
+      // in src/dashboard.css) are emitted next to the CSS under css/img/.
+      // The default would be img/[name][extname] — the very file the CSS
+      // imports, so every build rewrote one of its own inputs and
+      // `npm run watch` retriggered itself forever. css/ is build output
+      // (gitignored, shipped in the tarball), so nothing tracked is touched.
+      assetFileNames: (assetInfo) => {
+        const [name] = assetInfo.names;
+        if (/\.(png|jpe?g|svg|gif|tiff|bmp|ico)$/i.test(name)) {
+          return "css/img/[name][extname]";
+        }
+        return undefined;
+      },
       config: {
         define: {
           appName: JSON.stringify(appId),
