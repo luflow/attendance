@@ -107,7 +107,7 @@
 
 			<div class="reset-section">
 				<NcButton variant="tertiary" @click="showResetDialog = true">
-					{{ t('attendance', 'Reset check-in') }}
+					{{ resetCheckinLabel }}
 				</NcButton>
 			</div>
 		</div>
@@ -135,7 +135,7 @@
 		<!-- Reset Check-in Dialog -->
 		<NcDialog
 			:open="showResetDialog"
-			:name="t('attendance', 'Reset check-in')"
+			:name="resetCheckinLabel"
 			@closing="showResetDialog = false">
 			<p v-if="appointment">
 				<strong>{{ appointment.name }}</strong><br>
@@ -147,7 +147,7 @@
 					{{ t('attendance', 'Cancel') }}
 				</NcButton>
 				<NcButton variant="error" @click="executeResetCheckin">
-					{{ t('attendance', 'Reset check-in') }}
+					{{ resetCheckinLabel }}
 				</NcButton>
 			</template>
 		</NcDialog>
@@ -197,6 +197,8 @@ const pendingBulkAction = ref(null)
 const confirmMessage = ref('')
 const timeWarningAccepted = ref(false)
 const showResetDialog = ref(false)
+// TRANSLATORS: Organizer action on the live check-in page: button, dialog title and confirm button. It clears the check-in of every attendee of this appointment at once, not the status of one person.
+const resetCheckinLabel = t('attendance', 'Reset check-in')
 
 const { permissions, config, loadPermissions } = usePermissions()
 
