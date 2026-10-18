@@ -1,11 +1,11 @@
 OC.L10N.register(
     "attendance",
     {
+    "Someone" : "بىرەيلەن",
     "Yes" : "ماقۇل",
     "No" : "ياق",
     "Maybe" : "مۇمكىن",
     "Response missing: %1$s on %2$s" : "جاۋاب كەم: %2$s دا %1$s",
-    "Someone" : "بىرەيلەن",
     "Others" : "باشقىلار",
     "Group" : "گۇرۇپپا",
     "Scheduled" : "پىلانلانغان",

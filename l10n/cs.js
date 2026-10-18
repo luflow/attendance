@@ -1,6 +1,10 @@
 OC.L10N.register(
     "attendance",
     {
+    "Someone" : "Někdo",
+    "Yes" : "Ano",
+    "No" : "Ne",
+    "Maybe" : "Možná",
     "Attendance" : "Přítomnost",
     "This appointment no longer exists." : "Tato schůzka už neexistuje.",
     "Response recorded" : "Odpověď zaznamenána",
@@ -9,12 +13,8 @@ OC.L10N.register(
     "This link is invalid. Please use the link from your notification." : "Tento odkaz není platný. Použijte odkaz z obdržené notifikace.",
     "This link has expired. The appointment has already ended." : "Platnost tohoto odkazu skončila. Schůzka už skončila.",
     "This link is no longer valid." : "Odkaz už není platný.",
-    "Yes" : "Ano",
-    "No" : "Ne",
-    "Maybe" : "Možná",
     "Response missing: %1$s on %2$s" : "Chybí odpověď: %1$s na %2$s",
     "New appointment: %1$s on %2$s" : "Nová schůzka: %1$s na %2$s",
-    "Someone" : "Někdo",
     "Others" : "Ostatní",
     "Group" : "Skupina",
     "Organizers" : "Organizátoři",

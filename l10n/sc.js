@@ -1,9 +1,9 @@
 OC.L10N.register(
     "attendance",
     {
+    "Someone" : "Calecuna persone",
     "Yes" : "Si",
     "No" : "No",
-    "Someone" : "Calecuna persone",
     "Others" : "Àtere",
     "Group" : "Grupu",
     "Cancelled" : "Annulladu",

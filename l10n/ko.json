@@ -1,4 +1,7 @@
 { "translations": {
+    "Yes" : "예",
+    "No" : "아니오",
+    "Maybe" : "아마도",
     "Attendance" : "출석",
     "This appointment no longer exists." : "이 예약은 더 이상 유효하지 않습니다.",
     "Response recorded" : "응답이 기록되었습니다",
@@ -7,9 +10,6 @@
     "This link is invalid. Please use the link from your notification." : "이 링크는 유효하지 않습니다. 알림에 있는 링크를 사용하세요.",
     "This link has expired. The appointment has already ended." : "이 링크는 만료되었습니다. 예약 시간이 이미 종료되었습니다.",
     "This link is no longer valid." : "이 링크는 더 이상 유효하지 않습니다.",
-    "Yes" : "예",
-    "No" : "아니오",
-    "Maybe" : "아마도",
     "Response missing: %1$s on %2$s" : "응답이 누락되었습니다: %2$s의 %1$s",
     "New appointment: %1$s on %2$s" : "새로운 약속: %2$s의 %1$s",
     "Others" : "기타",

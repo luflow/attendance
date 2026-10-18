@@ -1,6 +1,10 @@
 OC.L10N.register(
     "attendance",
     {
+    "Someone" : "Mtu fulani",
+    "Yes" : "Ndiyo",
+    "No" : "Hapana",
+    "Maybe" : "Labda",
     "Attendance" : "Mahudhurio",
     "This appointment no longer exists." : "Uteuzi huu haupo tena.",
     "Response recorded" : "Jibu limerekodiwa",
@@ -9,12 +13,8 @@ OC.L10N.register(
     "This link is invalid. Please use the link from your notification." : "Kiungo hiki ni batili. Tafadhali tumia kiungo kutoka kwa arifa yako.",
     "This link has expired. The appointment has already ended." : "Kiungo hiki kimeisha muda wake. Uteuzi tayari umekwisha.",
     "This link is no longer valid." : "Kiungo hiki si sahihi tena.",
-    "Yes" : "Ndiyo",
-    "No" : "Hapana",
-    "Maybe" : "Labda",
     "Response missing: %1$s on %2$s" : "Jibu halipo: %1$s kwenye %2$s",
     "New appointment: %1$s on %2$s" : "Miadi mpya: %1$s kwenye %2$s",
-    "Someone" : "Mtu fulani",
     "Others" : "Wengine",
     "Group" : "Kundi",
     "Me" : "Mimi",

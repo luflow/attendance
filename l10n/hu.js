@@ -1,10 +1,10 @@
 OC.L10N.register(
     "attendance",
     {
+    "Someone" : "Valaki",
     "Yes" : "Igen",
     "No" : "Nem",
     "Maybe" : "Talán",
-    "Someone" : "Valaki",
     "Others" : "Egyebek",
     "Group" : "Csoport",
     "Scheduled" : "Ütemezve",

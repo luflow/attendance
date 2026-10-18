@@ -1,10 +1,10 @@
 OC.L10N.register(
     "attendance",
     {
+    "Someone" : "某人",
     "Yes" : "是",
     "No" : "否",
     "Maybe" : "可能",
-    "Someone" : "某人",
     "Others" : "其它",
     "Group" : "群组",
     "Scheduled" : "已排期",

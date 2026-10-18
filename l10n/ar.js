@@ -1,10 +1,10 @@
 OC.L10N.register(
     "attendance",
     {
+    "Someone" : "شخصٌ ما",
     "Yes" : "نعم",
     "No" : "لا",
     "Maybe" : "ربما",
-    "Someone" : "شخصٌ ما",
     "Others" : "آخرون",
     "Group" : "المجموعة",
     "Scheduled" : "مُجدول",

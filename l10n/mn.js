@@ -1,10 +1,10 @@
 OC.L10N.register(
     "attendance",
     {
+    "Someone" : "Хэн нэгэн",
     "Yes" : "Тийм",
     "No" : "Үгүй",
     "Maybe" : "Магадгүй",
-    "Someone" : "Хэн нэгэн",
     "Group" : "Бүлэг",
     "Scheduled" : "Товлогдсон",
     "Cancelled" : "Цуцлагдсан",

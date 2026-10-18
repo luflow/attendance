@@ -1,12 +1,12 @@
 OC.L10N.register(
     "attendance",
     {
-    "Response recorded" : "Respuesta guardada",
-    "An error occurred while recording your response. Please try again." : "Ha ocurrido un error guardando su respuesta. Por favor, vuelve a intentarlo.",
+    "Someone" : "Alguien",
     "Yes" : "Sí",
     "No" : "No",
     "Maybe" : "Quizás",
-    "Someone" : "Alguien",
+    "Response recorded" : "Respuesta guardada",
+    "An error occurred while recording your response. Please try again." : "Ha ocurrido un error guardando su respuesta. Por favor, vuelve a intentarlo.",
     "Others" : "Otros",
     "Group" : "Grupo",
     "Scheduled" : "Programado",

@@ -1,10 +1,10 @@
 OC.L10N.register(
     "attendance",
     {
+    "Someone" : "Noen",
     "Yes" : "Ja",
     "No" : "Nei",
     "Maybe" : "Kanskje",
-    "Someone" : "Noen",
     "Others" : "Andre",
     "Group" : "Gruppe",
     "Scheduled" : "Planlagt",
