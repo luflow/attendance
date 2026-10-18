@@ -1105,6 +1105,15 @@ OC.L10N.register(
     "%1$s changed the comment of %2$s on \"%3$s\"" : "%1$s hat den Kommentar von %2$s zu „%3$s“ geändert",
     "%1$s changed their comment on \"%2$s\"" : "%1$s hat den eigenen Kommentar zu „%2$s“ geändert",
     "Someone answered an appointment or changed their response" : "Jemand hat auf einen Termin geantwortet oder die eigene Antwort geändert",
-    "%1$s moved off the waitlist into a free spot on \"%2$s\"" : "%1$s ist bei „%2$s“ von der Warteliste auf einen frei gewordenen Platz nachgerückt"
+    "%1$s moved off the waitlist into a free spot on \"%2$s\"" : "%1$s ist bei „%2$s“ von der Warteliste auf einen frei gewordenen Platz nachgerückt",
+    "Attendance shows what it can do once your group is in" : "Anwesenheit zeigt, was es kann, sobald Ihre Gruppe dabei ist",
+    "Invite" : "Einladen",
+    "Invite your group" : "Laden Sie Ihre Gruppe ein",
+    "Invite your group instead" : "Laden Sie stattdessen Ihre Gruppe ein",
+    "Our group now uses Attendance for appointments and check-in. Get the app and sign in with our server address: {server} — App: {link}" : "Unsere Gruppe nutzt jetzt Anwesenheit für Termine und Check-in. Holen Sie sich die App und melden Sie sich mit unserer Server-Adresse an: {server} – App: {link}",
+    "Push notifications and self-check-in only make sense with the others on board. As soon as three people use the app on your server, the trial restarts with 60 days." : "Push-Benachrichtigungen und Self-Check-in ergeben erst mit den anderen Sinn. Sobald drei Personen die App auf Ihrem Server nutzen, startet die Testphase mit 60 Tagen neu.",
+    "Scan to get the app, then sign in with this server address:" : "Scannen Sie den Code für die App und melden Sie sich dann mit dieser Server-Adresse an:",
+    "Share invitation" : "Einladung teilen",
+    "Testing alone? Invite your group — as soon as three people use the app, the trial restarts with 60 days." : "Sie testen allein? Laden Sie Ihre Gruppe ein – sobald drei Personen die App nutzen, startet die Testphase mit 60 Tagen neu."
 },
 "nplurals=2; plural=(n != 1);");
