@@ -35,6 +35,7 @@
     "Something went wrong" : "Ямар нэг зүйл буруу болсон",
     "About" : "Тухай",
     "All languages" : "Бүх хэлүүд",
+    "Basic" : "Үндсэн",
     "Common" : "Нийтлэг",
     "Create" : "“Æ“Ø—Å–≥—ç—Ö",
     "Default" : "Өгөгдмөл",
@@ -98,6 +99,7 @@
     "_week_::_weeks_" : ["долоо хоног","долоо хоног"],
     "_month_::_months_" : ["сар","сар"],
     "Ends" : "Төгсгөл",
+    "After" : "Дараа",
     "On date" : "Тухайн өдөр",
     "Show all" : "Бүгдийг харуулах",
     "Import" : "–ò–º–ø–æ—Ä—Ç",
@@ -127,6 +129,7 @@
     "Permissions" : "Зөвшөөрлүүд",
     "Settings saved" : "Тохиргоо хадгалагдлаа",
     "Failed to save settings" : "Тохиргоог хадгалж чадсангүй",
+    "Failed to load settings" : "Тохиргоог ачаалж чадсангүй",
     "Link copied" : "Холбоос хуулагдсан",
     "Template" : "Загвар",
     "Preview" : "—à–∞–ª–≥–∞—Ö",
@@ -139,6 +142,7 @@
     "Add from Files" : "Файлуудаас нэмэх",
     "Notification" : "Мэдэгдэл",
     "Unsaved changes" : "Хадгалаагүй өөрчлөлтүүд",
+    "No users found" : "Хэрэглэгч олдсонгүй",
     "Confirm" : "Батлах",
     "15 minutes before" : "15 минутын өмнө",
     "30 minutes before" : "30 минутын өмнө",
@@ -159,6 +163,7 @@
     "Manager" : "Менежер",
     "Automatic" : "Автомат",
     "name" : "нэр",
+    "description" : "тодорхойлолт",
     "time" : "удаа"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

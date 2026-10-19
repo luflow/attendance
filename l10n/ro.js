@@ -49,6 +49,7 @@ OC.L10N.register(
     "Load more" : "Încarcă mai mult",
     "Export" : "Exportă",
     "Loading …" : "Se încarcă …",
+    "Date range" : "Interval de date",
     "Select all" : "Selectează tot",
     "Deselect all" : "Deselectează tot",
     "Custom range" : "Interval particularizat",
