@@ -667,7 +667,7 @@ OC.L10N.register(
     "Configure in administration settings" : "Seadista haldusseadistustes",
     "Organizers can edit this appointment and see all responses. Organizers can add other organizers but only remove themselves." : "Korraldajad saavad seda kohtumist muuta ja vaadata kõiki vastuseid. Korraldajad saavad lisada teisi korraldajaid, kuid eemaldada saavad nad ainult iseenda.",
     "Unsaved changes" : "Salvestamata muutused",
-    "Reset check-in" : "Lähtesta kohalolekust teatamise andmed",
+    "Reset check-in" : "Lähtesta kõik kohalolekust teatamise andmed",
     "This appointment is way in the future" : "See kohtumine on väga kaugel tulevikus",
     "This appointment is way in the past" : "See kohtumine on väga kaugel minevikus",
     "Only pending ({count})" : "Ainult ootel ({count})",

@@ -357,7 +357,7 @@ OC.L10N.register(
     "Google Calendar" : "Google Takvim",
     "Apple Calendar" : "Apple Takvim",
     "Last accessed" : "Son erişilme",
-    "Keep this URL private! Anyone with this link can see your appointments." : "Bu adresi gizli tutun! Bu bağlantıya bilen herkes randevularınızı görebilir.",
+    "Keep this URL private! Anyone with this link can see your appointments." : "Bu adresi gizli tutun! Bu bağlantıyı bilen herkes randevularınızı görebilir.",
     "Regenerate URL" : "Adresi yeniden oluştur",
     "Regenerate Subscription URL?" : "Abonelik adresi yeniden oluşturulsun mu?",
     "This will invalidate your current calendar subscription URL. Any calendar apps using the old URL will need to be updated with the new URL." : "Bu işlem, geçerli takvim aboneliği adresinizi değiştirecek. Eski adresi kullanan tüm takvim uygulamalarının yeni adres ile güncellenmesi gerekecek.",
