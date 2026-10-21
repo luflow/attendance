@@ -35,6 +35,7 @@ OC.L10N.register(
     "Something went wrong" : "Нешто не е во ред",
     "About" : "За",
     "All languages" : "Сите јазици",
+    "Basic" : "Основно",
     "Create" : "Креирај",
     "Default" : "Предефиниран",
     "Display name" : "Име и презиме",
