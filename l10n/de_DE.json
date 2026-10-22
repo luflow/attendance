@@ -1112,6 +1112,19 @@
     "Push notifications and self-check-in only make sense with the others on board. As soon as three people use the app on your server, the trial restarts with 60 days." : "Push-Benachrichtigungen und Self-Check-in ergeben erst mit den anderen Sinn. Sobald drei Personen die App auf Ihrem Server nutzen, startet die Testphase mit 60 Tagen neu.",
     "Scan to get the app, then sign in with this server address:" : "Scannen Sie den Code für die App und melden Sie sich dann mit dieser Server-Adresse an:",
     "Share invitation" : "Einladung teilen",
-    "Testing alone? Invite your group — as soon as three people use the app, the trial restarts with 60 days." : "Sie testen allein? Laden Sie Ihre Gruppe ein – sobald drei Personen die App nutzen, startet die Testphase mit 60 Tagen neu."
+    "Testing alone? Invite your group — as soon as three people use the app, the trial restarts with 60 days." : "Sie testen allein? Laden Sie Ihre Gruppe ein – sobald drei Personen die App nutzen, startet die Testphase mit 60 Tagen neu.",
+    "Add a few words about yourself" : "Schreiben Sie ein paar Worte über sich",
+    "Bio" : "Steckbrief",
+    "Change picture" : "Bild ändern",
+    "Choose photo" : "Foto auswählen",
+    "Could not save profile" : "Profil konnte nicht gespeichert werden",
+    "Could not upload picture" : "Bild konnte nicht hochgeladen werden",
+    "Crop picture" : "Bild zuschneiden",
+    "Edit profile" : "Profil bearbeiten",
+    "Name must not be empty" : "Der Name darf nicht leer sein",
+    "Name, picture and bio are part of your Nextcloud profile. Who can see your bio is set in your Nextcloud profile settings." : "Name, Bild und Steckbrief gehören zu Ihrem Nextcloud-Profil. Wer Ihren Steckbrief sehen kann, legen Sie in Ihren Nextcloud-Profileinstellungen fest.",
+    "Take photo" : "Foto aufnehmen",
+    "Write a few words about yourself …" : "Schreiben Sie ein paar Worte über sich …",
+    "Your name cannot be changed here." : "Ihr Name kann hier nicht geändert werden."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
