@@ -1475,6 +1475,24 @@
                     "$ref": "#/components/schemas/PermissionSetting"
                 }
             },
+            "ProfileDirectory": {
+                "type": "object",
+                "required": [
+                    "profiles",
+                    "complete"
+                ],
+                "properties": {
+                    "profiles": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/UserProfile"
+                        }
+                    },
+                    "complete": {
+                        "type": "boolean"
+                    }
+                }
+            },
             "PushConfig": {
                 "type": "object",
                 "required": [
@@ -7879,7 +7897,7 @@
         "/index.php/apps/attendance/api/profiles": {
             "get": {
                 "operationId": "profile-index",
-                "summary": "List the users the current user can see, with the biography each of them shows to the current user.",
+                "summary": "List the users the current user can see, with the biography each of them shows to the current user. `complete` is false when the directory holds more people than one page; only then is searching worth a request.",
                 "tags": [
                     "profile"
                 ],
@@ -7908,10 +7926,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/UserProfile"
-                                    }
+                                    "$ref": "#/components/schemas/ProfileDirectory"
                                 }
                             }
                         }

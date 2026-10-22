@@ -175,22 +175,22 @@ class ProfileServiceTest extends TestCase {
 		$dana = $this->user('dana', 'Dana');
 		$this->biographies = ['bob' => "Tenor\n", 'carla' => 'Secret'];
 		$this->userManager->method('get')->willReturnMap([['bob', $bob], ['carla', $carla], ['dana', $dana]]);
-		$this->directorySearch->method('search')->with('', 'alice', true)->willReturn([
+		$this->directorySearch->method('searchUsers')->with('', 'alice')->willReturn(['complete' => false, 'entries' => [
 			['id' => 'carla', 'label' => 'Carla', 'type' => 'user', 'icon' => 'icon-user', 'isGuest' => false],
 			['id' => 'guest', 'label' => 'Guest', 'type' => 'user', 'icon' => 'icon-user', 'isGuest' => true],
 			['id' => 'bob', 'label' => 'Bob', 'type' => 'user', 'icon' => 'icon-user', 'isGuest' => false],
 			['id' => 'dana', 'label' => 'Dana', 'type' => 'user', 'icon' => 'icon-user', 'isGuest' => false],
-		]);
+		]]);
 		// Dana has no bio, so her visibility is never asked for.
 		$this->profileManager->expects($this->exactly(2))->method('isProfileFieldVisible')
 			->willReturnCallback(static fn (string $field, IUser $target): bool => $target->getUID() === 'bob');
 
 		$profiles = $this->service->listProfiles($visitor, '');
 
-		$this->assertSame([
+		$this->assertSame(['profiles' => [
 			['userId' => 'carla', 'displayName' => 'Carla', 'biography' => null],
 			['userId' => 'bob', 'displayName' => 'Bob', 'biography' => 'Tenor'],
 			['userId' => 'dana', 'displayName' => 'Dana', 'biography' => null],
-		], $profiles);
+		], 'complete' => false], $profiles);
 	}
 }

@@ -185,6 +185,10 @@ namespace OCA\Attendance;
  *   displayName: string,
  *   biography: ?string,
  * }
+ * @psalm-type AttendanceProfileDirectory = array{
+ *   profiles: list<AttendanceUserProfile>,
+ *   complete: bool,
+ * }
  * @psalm-type AttendanceCategoryTemplate = array{
  *   name: string,
  *   description: string,

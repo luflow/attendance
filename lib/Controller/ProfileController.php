@@ -17,7 +17,7 @@ use OCP\IUserSession;
 
 /**
  * @psalm-import-type AttendanceOwnProfile from \OCA\Attendance\ResponseDefinitions
- * @psalm-import-type AttendanceUserProfile from \OCA\Attendance\ResponseDefinitions
+ * @psalm-import-type AttendanceProfileDirectory from \OCA\Attendance\ResponseDefinitions
  */
 final class ProfileController extends Controller {
 	/** Matches core's own avatar upload limit. */
@@ -111,10 +111,11 @@ final class ProfileController extends Controller {
 
 	/**
 	 * List the users the current user can see, with the biography each of
-	 * them shows to the current user.
+	 * them shows to the current user. `complete` is false when the directory
+	 * holds more people than one page; only then is searching worth a request.
 	 *
 	 * @param string $search Search query
-	 * @return DataResponse<Http::STATUS_OK, list<AttendanceUserProfile>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
+	 * @return DataResponse<Http::STATUS_OK, AttendanceProfileDirectory, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]

@@ -17,7 +17,7 @@ use OCP\Profile\IProfileManager;
  * so the web profile and the app always show the same thing.
  *
  * @psalm-import-type AttendanceOwnProfile from ResponseDefinitions
- * @psalm-import-type AttendanceUserProfile from ResponseDefinitions
+ * @psalm-import-type AttendanceProfileDirectory from ResponseDefinitions
  */
 final class ProfileService {
 	/** Core rejects longer display names. */
@@ -126,12 +126,14 @@ final class ProfileService {
 	/**
 	 * Built on the directory search, so Nextcloud's enumeration rules decide
 	 * who shows up, and each person's profile visibility decides their bio.
+	 * A complete list lets the caller filter it locally instead of searching.
 	 *
-	 * @return list<AttendanceUserProfile>
+	 * @return AttendanceProfileDirectory
 	 */
 	public function listProfiles(IUser $visitor, string $search): array {
+		$page = $this->directorySearchService->searchUsers($search, $visitor->getUID());
 		$profiles = [];
-		foreach ($this->directorySearchService->search($search, $visitor->getUID(), true) as $entry) {
+		foreach ($page['entries'] as $entry) {
 			if ($entry['isGuest']) {
 				continue;
 			}
@@ -149,7 +151,7 @@ final class ProfileService {
 				'biography' => $visible ? $biography : null,
 			];
 		}
-		return $profiles;
+		return ['profiles' => $profiles, 'complete' => $page['complete']];
 	}
 
 	private function getBiography(IUser $user): string {
