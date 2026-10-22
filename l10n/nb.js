@@ -67,6 +67,7 @@ OC.L10N.register(
     "Export" : "Eksporter",
     "Select all" : "Velg alle",
     "Deselect all" : "Fjern all markering",
+    "Custom range" : "Egendefinert område",
     "Start date" : "Startdato",
     "Copy" : "Kopi",
     "Last accessed" : "Sist brukt",
