@@ -129,7 +129,7 @@ Dokumentation, Einsatzbeispiele und Roadmap: [anwesenheit.app](https://anwesenhe
 	<donation type="stripe">https://donate.stripe.com/fZu4gzd1k9AqgHgdWv7ss00</donation>
 	<dependencies>
 		<php min-version="8.1"/>
-		<nextcloud min-version="32" max-version="34"/>
+		<nextcloud min-version="32" max-version="35"/>
 	</dependencies>
 	<repair-steps>
 		<post-migration>
