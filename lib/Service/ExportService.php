@@ -284,9 +284,10 @@ class ExportService {
 	 * leave the two out of step, and a further column is one entry rather than
 	 * a branch in each loop.
 	 *
-	 * The bool handed to render says the person is only waiting for a spot.
+	 * The bools handed to render say the person is only waiting for a spot and
+	 * the appointment was cancelled.
 	 *
-	 * @return list<array{label: string, render: callable(?AttendanceResponse, bool): array{0: string, 1: string}}>
+	 * @return list<array{label: string, render: callable(?AttendanceResponse, bool, bool): array{0: string, 1: string}}>
 	 */
 	private function columnsFor(ExportOptions $options): array {
 		$columns = [];
@@ -310,8 +311,12 @@ class ExportService {
 		if ($options->includeCheckin) {
 			$columns[] = [
 				'label' => 'CheckIn',
-				'render' => function (?AttendanceResponse $response): array {
+				'render' => function (?AttendanceResponse $response, bool $waitlisted, bool $cancelled): array {
 					$value = $response?->getCheckinState();
+					// Nobody checks in to a cancelled appointment; "-" would read as absent (issue #321).
+					if ($cancelled && ($value === null || $value === '')) {
+						return [OdsWriter::STYLE_CELL, $this->l10n->t('Cancelled')];
+					}
 					return [$this->getResponseCellStyle($value), $this->formatResponse($value)];
 				},
 			];
@@ -378,6 +383,9 @@ class ExportService {
 				: date('Y-m-d', strtotime($appointment->getStartDatetime()));
 			$location = $options->includeLocation ? $appointment->getLocation() : null;
 			$dateLabel = $location !== null && $location !== '' ? $startDate . ' · ' . $this->odsWriter->escape($location) : $startDate;
+			if ($appointment->isCancelled()) {
+				$dateLabel .= ' · ' . $this->odsWriter->escape($this->l10n->t('Cancelled'));
+			}
 
 			$xml .= $this->mergedCell(OdsWriter::STYLE_HEADER, $dateLabel, $span);
 		}
@@ -419,7 +427,7 @@ class ExportService {
 					&& !isset($confirmedIds[$appointment->getId()][$user['userId']]);
 
 				foreach ($columns as $column) {
-					[$style, $content] = $column['render']($response, $waitlisted);
+					[$style, $content] = $column['render']($response, $waitlisted, $appointment->isCancelled());
 					$xml .= '
 					<table:table-cell table:style-name="' . $style . '" office:value-type="string">
 						<text:p>' . $content . '</text:p>

@@ -422,6 +422,40 @@ class ExportServiceTest extends TestCase {
 		$this->assertStringNotContainsString('Hall A', $this->capturedXml);
 	}
 
+	public function testCancelledAppointmentIsMarkedInsteadOfShowingNobodyCheckedIn(): void {
+		$this->prepareSingleAppointmentExport(checkinState: null);
+		$appointment = $this->appointment();
+		$appointment->setCancelledAt('2026-01-04 10:00:00');
+		$this->appointmentMapper->method('findForExport')->willReturn([$appointment]);
+
+		$this->service->exportToOds('admin', ExportOptions::fromWire());
+
+		$this->assertStringContainsString('<text:p>2026-01-05 · Cancelled</text:p>', $this->capturedXml);
+		$this->assertMatchesRegularExpression('#<text:p>Yes</text:p>\s*</table:table-cell>\s*<table:table-cell[^>]*>\s*<text:p>Cancelled</text:p>#', $this->capturedXml);
+		$this->assertStringNotContainsString('<text:p>-</text:p>', $this->capturedXml);
+	}
+
+	public function testCancelledAppointmentKeepsACheckinThatWasRecorded(): void {
+		$this->prepareSingleAppointmentExport();
+		$appointment = $this->appointment();
+		$appointment->setCancelledAt('2026-01-05 19:00:00');
+		$this->appointmentMapper->method('findForExport')->willReturn([$appointment]);
+
+		$this->service->exportToOds('admin', ExportOptions::fromWire());
+
+		$this->assertStringContainsString('<text:p>present</text:p>', $this->capturedXml);
+	}
+
+	public function testAppointmentThatTakesPlaceIsNotMarkedCancelled(): void {
+		$this->prepareSingleAppointmentExport(checkinState: null);
+		$this->appointmentMapper->method('findForExport')->willReturn([$this->appointment()]);
+
+		$this->service->exportToOds('admin', ExportOptions::fromWire());
+
+		$this->assertStringNotContainsString('Cancelled', $this->capturedXml);
+		$this->assertStringContainsString('<text:p>-</text:p>', $this->capturedXml);
+	}
+
 	public function testEmptyResultIsRejected(): void {
 		$this->appointmentMapper->method('findForExport')->willReturn([]);
 
@@ -463,17 +497,19 @@ class ExportServiceTest extends TestCase {
 	 * @param list<string> $userGroups The groups every resolved user belongs to
 	 * @param list<string> $whitelistedGroups The admin's response-summary whitelist
 	 * @param ?string $groupsMode Grouping mode; null derives the stored default from the whitelist
+	 * @param ?string $checkinState carol's check-in; null means she was never checked in
 	 */
 	private function prepareSingleAppointmentExport(
 		array $extraUsers = [],
 		array $userGroups = ['choir'],
 		array $whitelistedGroups = [],
 		?string $groupsMode = null,
+		?string $checkinState = 'present',
 	): void {
 		$response = new AttendanceResponse();
 		$response->setUserId('carol');
 		$response->setResponse('yes');
-		$response->setCheckinState('present');
+		$response->setCheckinState($checkinState);
 		$response->setComment('On my way');
 		$this->responseMapper->method('findByAppointment')->willReturn([$response]);
 
