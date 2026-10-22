@@ -173,6 +173,18 @@ namespace OCA\Attendance;
  * }
  * @psalm-type AttendanceAudienceRef = array{id: string, label: string, type: string, isGuest?: bool}
  * @psalm-type AttendanceDirectoryEntry = array{id: string, label: string, type: string, icon: string, isGuest: bool}
+ * @psalm-type AttendanceOwnProfile = array{
+ *   userId: string,
+ *   displayName: string,
+ *   biography: string,
+ *   canChangeDisplayName: bool,
+ *   canChangeAvatar: bool,
+ * }
+ * @psalm-type AttendanceUserProfile = array{
+ *   userId: string,
+ *   displayName: string,
+ *   biography: ?string,
+ * }
  * @psalm-type AttendanceCategoryTemplate = array{
  *   name: string,
  *   description: string,
@@ -278,6 +290,7 @@ namespace OCA\Attendance;
  *   roleFilter: bool,
  *   pagination: bool,
  *   allDay: bool,
+ *   userProfiles: bool,
  * }
  * @psalm-type AttendanceAuditUserRef = array{
  *   userId: string,

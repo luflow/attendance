@@ -94,6 +94,12 @@ return [
 		// Search
 		['name' => 'appointment#searchUsersGroupsTeams', 'url' => '/api/search/users-groups-teams', 'verb' => 'GET'],
 
+		// Profiles (Nextcloud's own name, avatar and biography)
+		['name' => 'profile#show', 'url' => '/api/profile', 'verb' => 'GET'],
+		['name' => 'profile#update', 'url' => '/api/profile', 'verb' => 'PUT'],
+		['name' => 'profile#updateAvatar', 'url' => '/api/profile/avatar', 'verb' => 'POST'],
+		['name' => 'profile#index', 'url' => '/api/profiles', 'verb' => 'GET'],
+
 		// Guest accounts (via the Nextcloud Guests app)
 		['name' => 'appointment#createGuest', 'url' => '/api/guests', 'verb' => 'POST'],
 

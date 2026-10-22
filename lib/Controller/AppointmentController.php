@@ -1211,6 +1211,9 @@ class AppointmentController extends Controller {
 			// into the calendars. Clients hide the all-day switch when this is
 			// false, since an older server would store midnights as plain times.
 			'allDay' => true,
+			// Server supports GET/PUT /profile, POST /profile/avatar and
+			// GET /profiles. Clients hide the profile tile and bios when false.
+			'userProfiles' => true,
 		]);
 	}
 

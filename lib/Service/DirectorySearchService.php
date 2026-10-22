@@ -26,16 +26,16 @@ class DirectorySearchService {
 	}
 
 	/**
+	 * @param bool $usersOnly Leave groups and teams out, so they don't eat into the page
 	 * @return list<AttendanceDirectoryEntry>
 	 */
-	public function search(string $query, string $currentUserId): array {
-		$shareTypes = [
-			IShare::TYPE_USER,
-			IShare::TYPE_GROUP,
-		];
-
-		if ($this->appManager->isEnabledForUser('circles')) {
-			$shareTypes[] = IShare::TYPE_CIRCLE;
+	public function search(string $query, string $currentUserId, bool $usersOnly = false): array {
+		$shareTypes = [IShare::TYPE_USER];
+		if (!$usersOnly) {
+			$shareTypes[] = IShare::TYPE_GROUP;
+			if ($this->appManager->isEnabledForUser('circles')) {
+				$shareTypes[] = IShare::TYPE_CIRCLE;
+			}
 		}
 
 		[$searchResult] = $this->collaboratorSearch->search(
