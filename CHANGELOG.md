@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.58.0 – 2026-10-23
+
+### Added
+
+- **Nextcloud 35 support**
+- **Profile API for the mobile app**: name, picture and bio can be read and edited, backed by Nextcloud's own account data; gated by the new `userProfiles` capability
+
+### Fixed
+
+- **Cancelled appointments in the data export**: marked as "Cancelled" instead of showing every attendee as absent
+
+### Maintenance
+
+- Updated dependencies
+
 ## 1.57.0 – 2026-10-17
 
 ### Added
