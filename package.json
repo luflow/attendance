@@ -30,20 +30,20 @@
     "@nextcloud/dialogs": "^7.5.0",
     "@nextcloud/initial-state": "^3.0.0",
     "@nextcloud/l10n": "^3.4.1",
-    "@nextcloud/router": "^3.1.0",
-    "@nextcloud/vue": "^9.13.1",
+    "@nextcloud/router": "^3.2.0",
+    "@nextcloud/vue": "^9.14.0",
     "canvas-confetti": "^1.9.4",
-    "chart.js": "^4.5.1",
+    "chart.js": "^4.6.1",
     "date-fns": "^4.4.0",
     "date-fns-tz": "^3.2.0",
-    "dompurify": "^3.4.16",
+    "dompurify": "^3.4.17",
     "easymde": "^2.21.0",
-    "marked": "^18.0.14",
+    "marked": "^18.1.1",
     "qrcode": "^1.5.4",
     "rrule": "^2.8.1",
-    "vue": "^3.5.43",
+    "vue": "^3.5.44",
     "vue-chartjs": "^5.3.4",
-    "vue-material-design-icons": "^5.3.1"
+    "vue-material-design-icons": "^5.4.0"
   },
   "devDependencies": {
     "@nextcloud/browserslist-config": "^3.1.2",
@@ -51,12 +51,12 @@
     "@nextcloud/eslint-config": "^9.0.1",
     "@nextcloud/stylelint-config": "^3.2.2",
     "@nextcloud/vite-config": "^2.5.4",
-    "@playwright/test": "^1.63.0",
+    "@playwright/test": "^1.64.1",
     "@vue/tsconfig": "^0.9.1",
-    "eslint": "^10.11.0",
-    "sass-embedded": "^1.105.1",
+    "eslint": "^10.13.0",
+    "sass-embedded": "^1.106.1",
     "typescript": "^6.0.3",
-    "vite": "^7.3.6"
+    "vite": "^7.3.7"
   },
   "overrides": {
     "stylelint-config-html": "^1.1.0"

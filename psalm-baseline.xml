@@ -153,9 +153,6 @@
       <code><![CDATA[$existingFileId]]></code>
       <code><![CDATA[$fileId]]></code>
     </MixedAssignment>
-    <UndefinedDocblockClass>
-      <code><![CDATA[DataResponse<Http::STATUS_OK, AttendanceUserConfig, array{}>]]></code>
-    </UndefinedDocblockClass>
     <UnusedClass>
       <code><![CDATA[AppointmentController]]></code>
     </UnusedClass>
@@ -1655,7 +1652,6 @@
     </ClassMustBeFinal>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
-      <code><![CDATA[hasPushDevice]]></code>
     </PossiblyUnusedMethod>
   </file>
   <file src="lib/Service/OdsWriter.php">
