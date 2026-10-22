@@ -203,6 +203,11 @@
       <code><![CDATA[$id]]></code>
     </PossiblyUnusedParam>
   </file>
+  <file src="lib/Controller/ProfileController.php">
+    <UnusedClass>
+      <code><![CDATA[ProfileController]]></code>
+    </UnusedClass>
+  </file>
   <file src="lib/Controller/QuickResponseController.php">
     <ClassMustBeFinal>
       <code><![CDATA[QuickResponseController]]></code>
@@ -1710,6 +1715,11 @@
       <code><![CDATA[__construct]]></code>
       <code><![CDATA[currentUserCanCheckin]]></code>
       <code><![CDATA[currentUserCanManageAppointments]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Service/ProfileService.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
     </PossiblyUnusedMethod>
   </file>
   <file src="lib/Service/QuickResponseTokenService.php">
