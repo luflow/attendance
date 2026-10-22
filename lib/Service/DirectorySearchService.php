@@ -29,16 +29,28 @@ class DirectorySearchService {
 	 * @return list<AttendanceDirectoryEntry>
 	 */
 	public function search(string $query, string $currentUserId): array {
-		$shareTypes = [
-			IShare::TYPE_USER,
-			IShare::TYPE_GROUP,
-		];
-
+		$shareTypes = [IShare::TYPE_USER, IShare::TYPE_GROUP];
 		if ($this->appManager->isEnabledForUser('circles')) {
 			$shareTypes[] = IShare::TYPE_CIRCLE;
 		}
+		return $this->page($query, $currentUserId, $shareTypes)['entries'];
+	}
 
-		[$searchResult] = $this->collaboratorSearch->search(
+	/**
+	 * Users only, so groups and teams don't eat into the page.
+	 *
+	 * @return array{entries: list<AttendanceDirectoryEntry>, complete: bool}
+	 */
+	public function searchUsers(string $query, string $currentUserId): array {
+		return $this->page($query, $currentUserId, [IShare::TYPE_USER]);
+	}
+
+	/**
+	 * @param list<int> $shareTypes
+	 * @return array{entries: list<AttendanceDirectoryEntry>, complete: bool}
+	 */
+	private function page(string $query, string $currentUserId, array $shareTypes): array {
+		[$searchResult, $hasMore] = $this->collaboratorSearch->search(
 			$query,
 			$shareTypes,
 			false, // lookup
@@ -51,7 +63,10 @@ class DirectorySearchService {
 
 		// ISearch::search() is untyped; its first element is the result page as an array.
 		$page = is_array($searchResult) ? $searchResult : [];
-		return $this->withCurrentUser($this->formatCollaboratorResults($page), $query, $currentUserId);
+		return [
+			'entries' => $this->withCurrentUser($this->formatCollaboratorResults($page), $query, $currentUserId),
+			'complete' => $hasMore !== true,
+		];
 	}
 
 	/**

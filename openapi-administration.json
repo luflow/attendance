@@ -296,7 +296,8 @@
                     "vacationManagementEnabled",
                     "roleFilter",
                     "pagination",
-                    "allDay"
+                    "allDay",
+                    "userProfiles"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -390,6 +391,9 @@
                         "type": "boolean"
                     },
                     "allDay": {
+                        "type": "boolean"
+                    },
+                    "userProfiles": {
                         "type": "boolean"
                     }
                 }

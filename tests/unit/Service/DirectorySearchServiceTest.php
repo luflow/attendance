@@ -104,4 +104,16 @@ class DirectorySearchServiceTest extends TestCase {
 
 		$this->assertSame(['christel'], array_column($results, 'id'));
 	}
+
+	public function testSearchUsersAsksForUsersOnlyAndReportsCompleteness(): void {
+		$this->searchesAs('lars', 'Lars Müller');
+		$this->collaboratorSearch->method('search')
+			->with('lar', [IShare::TYPE_USER], false, 200, 0)
+			->willReturn([['users' => []], true]);
+
+		$page = $this->service->searchUsers('lar', 'lars');
+
+		$this->assertFalse($page['complete']);
+		$this->assertSame(['lars'], array_column($page['entries'], 'id'));
+	}
 }

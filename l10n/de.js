@@ -1114,6 +1114,19 @@ OC.L10N.register(
     "Push notifications and self-check-in only make sense with the others on board. As soon as three people use the app on your server, the trial restarts with 60 days." : "Push-Benachrichtigungen und Self-Check-in ergeben erst mit den anderen Sinn. Sobald drei Personen die App auf deinem Server nutzen, startet die Testphase mit 60 Tagen neu.",
     "Scan to get the app, then sign in with this server address:" : "Scanne den Code für die App und melde dich dann mit dieser Server-Adresse an:",
     "Share invitation" : "Einladung teilen",
-    "Testing alone? Invite your group — as soon as three people use the app, the trial restarts with 60 days." : "Du testest allein? Lade deine Gruppe ein – sobald drei Personen die App nutzen, startet die Testphase mit 60 Tagen neu."
+    "Testing alone? Invite your group — as soon as three people use the app, the trial restarts with 60 days." : "Du testest allein? Lade deine Gruppe ein – sobald drei Personen die App nutzen, startet die Testphase mit 60 Tagen neu.",
+    "Add a few words about yourself" : "Schreib ein paar Worte über dich",
+    "Bio" : "Steckbrief",
+    "Change picture" : "Bild ändern",
+    "Choose photo" : "Foto auswählen",
+    "Could not save profile" : "Profil konnte nicht gespeichert werden",
+    "Could not upload picture" : "Bild konnte nicht hochgeladen werden",
+    "Crop picture" : "Bild zuschneiden",
+    "Edit profile" : "Profil bearbeiten",
+    "Name must not be empty" : "Der Name darf nicht leer sein",
+    "Name, picture and bio are part of your Nextcloud profile. Who can see your bio is set in your Nextcloud profile settings." : "Name, Bild und Steckbrief gehören zu deinem Nextcloud-Profil. Wer deinen Steckbrief sehen kann, legst du in deinen Nextcloud-Profileinstellungen fest.",
+    "Take photo" : "Foto aufnehmen",
+    "Write a few words about yourself …" : "Schreib ein paar Worte über dich …",
+    "Your name cannot be changed here." : "Dein Name kann hier nicht geändert werden."
 },
 "nplurals=2; plural=(n != 1);");
