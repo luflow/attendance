@@ -3,8 +3,8 @@ OC.L10N.register(
     {
     "Someone" : "מישהו",
     "Others" : "חרים",
-    "Group" : "קבוצה",
     "Cancelled" : "בוטל",
+    "Group" : "קבוצה",
     "Attachments" : "קבצים מצורפים",
     "Groups" : "קבוצות",
     "Name" : "שם",
@@ -39,6 +39,7 @@ OC.L10N.register(
     "Default" : "ברירת מחדל",
     "Done" : "הסתיים",
     "Email" : "דוא״ל",
+    "Invite" : "הזמנה",
     "Invite guest" : "הזמנת אורח",
     "Language" : "שפה",
     "Send" : "שליחה",

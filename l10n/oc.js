@@ -3,8 +3,8 @@ OC.L10N.register(
     {
     "Yes" : "Òc",
     "No" : "Non",
-    "Group" : "Grop",
     "Cancelled" : "Anullat",
+    "Group" : "Grop",
     "People" : "Gent",
     "Name" : "Nom",
     "Appointments" : "Rendetz-vos",
@@ -30,6 +30,7 @@ OC.L10N.register(
     "Send" : "Enviar",
     "Sign in" : "S'identificar",
     "Skip" : "Sautar",
+    "Take photo" : "Prendre una fòto",
     "Vacation" : "Vacanças",
     "year" : "annada",
     "Export" : "Exportar",

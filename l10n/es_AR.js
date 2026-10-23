@@ -3,10 +3,10 @@ OC.L10N.register(
     {
     "Yes" : "Sí",
     "Others" : "Otros",
+    "Cancelled" : "Cancelado",
     "Group" : "Grupo",
     "Scheduled" : "Programado",
     "Not scheduled" : "No programado",
-    "Cancelled" : "Cancelado",
     "Attachments" : "Adjuntos",
     "Groups" : "Grupos",
     "Name" : "Nombre",

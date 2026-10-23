@@ -3,9 +3,9 @@ OC.L10N.register(
     {
     "Yes" : "Jo",
     "No" : "Nee",
+    "Cancelled" : "Ofgesot",
     "Group" : "Grupp",
     "Scheduled" : "Geplangt",
-    "Cancelled" : "Ofgesot",
     "Groups" : "Gruppen",
     "Name" : "Numm",
     "Present" : "Geschenk",
@@ -22,6 +22,7 @@ OC.L10N.register(
     "Default" : "Standard",
     "Done" : "Fäerdeg",
     "Email" : "E-Mail",
+    "Invite" : "Invitéieren",
     "Invoice/association" : "Rechnung/Associatioun",
     "Language" : "Sprooch",
     "Send" : "Schécken",

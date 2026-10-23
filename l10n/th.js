@@ -3,8 +3,8 @@ OC.L10N.register(
     {
     "Yes" : "ใช่",
     "No" : "ไม่ตกลง",
-    "Group" : "กลุ่ม",
     "Cancelled" : "ยกเลิกแล้ว",
+    "Group" : "กลุ่ม",
     "Attachments" : "ไฟล์แนบ",
     "People" : "ผู้คน",
     "Groups" : "กลุ่ม",

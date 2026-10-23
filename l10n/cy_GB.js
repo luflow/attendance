@@ -3,8 +3,8 @@ OC.L10N.register(
     {
     "Yes" : "Ie",
     "No" : "Na",
-    "Group" : "Grŵp",
     "Cancelled" : "Diddymwyd",
+    "Group" : "Grŵp",
     "Groups" : "Grwpiau",
     "Name" : "Enw",
     "Appointments" : "Apwyntiadau",

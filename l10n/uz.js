@@ -31,6 +31,7 @@ OC.L10N.register(
     "Default" : "Standart",
     "Done" : "Bajarildi",
     "Email" : "E-pochta",
+    "Invite" : "Taklif qiling",
     "Language" : "Language",
     "Send" : "Yuborish",
     "Sign in" : "tizimga kirish",

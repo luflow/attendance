@@ -2,8 +2,8 @@ OC.L10N.register(
     "attendance",
     {
     "No" : "Ket",
-    "Scheduled" : "Raktreset",
     "Cancelled" : "Nullet",
+    "Scheduled" : "Raktreset",
     "People" : "Tud",
     "Groups" : "Strolladoù",
     "Name" : "Anv",

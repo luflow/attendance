@@ -2,8 +2,8 @@ OC.L10N.register(
     "attendance",
     {
     "Yes" : "Po",
-    "Group" : "Grup",
     "Cancelled" : "U anulua",
+    "Group" : "Grup",
     "Attachments" : "Bashkangjitjet",
     "Groups" : "Grupet",
     "Name" : "Emër",

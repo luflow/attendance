@@ -2,9 +2,9 @@ OC.L10N.register(
     "attendance",
     {
     "Yes" : "Si",
+    "Cancelled" : "Cancelado",
     "Group" : "Grupo",
     "Scheduled" : "Programado",
-    "Cancelled" : "Cancelado",
     "Groups" : "Grupos",
     "Name" : "Nombre",
     "Total" : "Total",
