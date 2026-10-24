@@ -148,6 +148,7 @@ OC.L10N.register(
     "Sign in" : "Είσοδος",
     "Skip" : "Παράλειψη",
     "Standard" : "Τυπικό",
+    "Take photo" : "Βγάλε φωτογραφία",
     "Thanks — that really helps." : "Ευχαριστούμε — αυτό βοηθάει πραγματικά.",
     "This appointment has been cancelled." : "Αυτό το ραντεβού έχει ακυρωθεί.",
     "Try again" : "Δοκιμάστε ξανά",

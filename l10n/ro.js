@@ -17,6 +17,7 @@ OC.L10N.register(
     "No response" : "Fără răspuns",
     "Present" : "Cadou",
     "Connect" : "Conectare",
+    "Start over" : "Ia-o de la capăt",
     "Add account" : "Adaugă un cont",
     "Settings" : "Setări",
     "Log out" : "Deconectare",
@@ -33,6 +34,7 @@ OC.L10N.register(
     "Active filters" : "Filtre active",
     "Last updated {time}" : "Actualizat ultima dată {time}",
     "Subscribe" : "Abonare",
+    "Subscription" : "Abonament",
     "Active" : "Activ",
     "Privacy Policy" : "Politica de confidențialitate",
     "Expired" : "Expirat",
@@ -56,6 +58,7 @@ OC.L10N.register(
     "Show QR code" : "Afișează codul QR",
     "Sign in" : "Conectare",
     "Skip" : "Sari peste",
+    "Standard" : "Standard",
     "Take photo" : "Fă o fotografie",
     "Try again" : "Încearcă din nou",
     "Vacation" : "Vacanță",
@@ -186,6 +189,7 @@ OC.L10N.register(
     "name" : "nume",
     "description" : "descriere",
     "time" : "dată",
-    "Guests" : "Invitați"
+    "Guests" : "Invitați",
+    "All groups" : "Toate grupurile"
 },
 "nplurals=3; plural=(n==1?0:(((n%100>19)||((n%100==0)&&(n!=0)))?2:1));");

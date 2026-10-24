@@ -268,6 +268,7 @@ OC.L10N.register(
     "Skip" : "Skip",
     "Standard" : "Standard",
     "Tag written. Scan it to test the check-in." : "Tag written. Scan it to test the check-in.",
+    "Take photo" : "Take photo",
     "Tell me more (optional)" : "Tell me more (optional)",
     "Thanks — that really helps." : "Thanks — that really helps.",
     "That is {price} a month." : "That is {price} a month.",
