@@ -797,6 +797,11 @@
       <code><![CDATA[syncAppointmentFromVevent]]></code>
     </UnusedMethod>
   </file>
+  <file src="lib/Listener/MembershipRemovedListener.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
   <file src="lib/Listener/ResponseActivityListener.php">
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
@@ -1988,7 +1993,6 @@
       <code><![CDATA[$this->teamsManager]]></code>
       <code><![CDATA[?CirclesManager]]></code>
       <code><![CDATA[CirclesManager]]></code>
-      <code><![CDATA[Member]]></code>
     </UndefinedClass>
   </file>
   <file src="lib/Settings/AdminSection.php">

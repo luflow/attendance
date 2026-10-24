@@ -11,15 +11,18 @@ use OCA\Attendance\BackgroundJob\TalkRoomSyncJob;
 use OCA\Attendance\Dashboard\Widget;
 use OCA\Attendance\Db\AuditEvent;
 use OCA\Attendance\Listener\CalendarObjectUpdateListener;
+use OCA\Attendance\Listener\MembershipRemovedListener;
 use OCA\Attendance\Listener\ResponseActivityListener;
 use OCA\Attendance\Listener\ResponseChangeNotificationListener;
 use OCA\Attendance\Listener\TalkRoomDeletedListener;
 use OCA\Attendance\Listener\UserDeletedListener;
+use OCA\Circles\Events\CircleMemberRemovedEvent;
 use OCA\Talk\Events\RoomDeletedEvent;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\Group\Events\UserRemovedEvent;
 use OCP\User\Events\UserDeletedEvent;
 
 class Application extends App implements IBootstrap {
@@ -33,6 +36,9 @@ class Application extends App implements IBootstrap {
 		$context->registerDashboardWidget(Widget::class);
 		$context->registerNotifierService(\OCA\Attendance\Notification\Notifier::class);
 		$context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
+		$context->registerEventListener(UserRemovedEvent::class, MembershipRemovedListener::class);
+		// Circles (Teams) is optional, same reasoning as the Talk event below.
+		$context->registerEventListener(CircleMemberRemovedEvent::class, MembershipRemovedListener::class);
 		// Talk may not be installed; registering by class name is safe since it
 		// never autoloads the class, only Talk actually dispatching it would.
 		$context->registerEventListener(RoomDeletedEvent::class, TalkRoomDeletedListener::class);

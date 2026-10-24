@@ -296,6 +296,7 @@ class AppointmentServiceTest extends TestCase {
 		$appointment->setId($id);
 		$appointment->setStartDatetime('2030-06-03 10:00:00');
 		$appointment->setEndDatetime('2030-06-03 12:00:00');
+		$this->visibilityService->method('getVisibilitySettings')->willReturn(['users' => [], 'groups' => [], 'teams' => []]);
 		return $appointment;
 	}
 
@@ -954,19 +955,22 @@ class AppointmentServiceTest extends TestCase {
 
 	/**
 	 * @param list<string> $visibleUsers Who the appointment addresses before the edit
+	 * @param list<string> $visibleGroups
 	 */
-	private function setUpUpdateNotificationCase(array $visibleUsers, bool $sendNotification = false): Appointment {
+	private function setUpUpdateNotificationCase(array $visibleUsers, bool $sendNotification = false, array $visibleGroups = []): Appointment {
 		$appointment = new Appointment();
 		$appointment->setId(3);
 		$appointment->setName('Rehearsal');
 		$appointment->setDescription('');
 		$appointment->setStartDatetime('2030-01-01 10:00:00');
 		$appointment->setEndDatetime('2030-01-01 11:00:00');
-		$appointment->setVisibleUsers(json_encode($visibleUsers));
+		$appointment->setVisibleUsers($visibleUsers === [] ? null : json_encode($visibleUsers));
+		$appointment->setVisibleGroups($visibleGroups === [] ? null : json_encode($visibleGroups));
 		$appointment->setSendNotification($sendNotification);
 
 		$this->appointmentMapper->method('find')->with(3)->willReturn($appointment);
 		$this->appointmentMapper->method('update')->willReturnArgument(0);
+		$this->visibilityService->method('getVisibilitySettings')->willReturn(['users' => [], 'groups' => [], 'teams' => []]);
 
 		return $appointment;
 	}
@@ -1055,6 +1059,7 @@ class AppointmentServiceTest extends TestCase {
 		$this->appointmentMapper->method('find')->with(20)->willReturn($siblings[0]);
 		$this->appointmentMapper->method('findBySeriesId')->with('series-1')->willReturn($siblings);
 		$this->appointmentMapper->method('update')->willReturnArgument(0);
+		$this->visibilityService->method('getVisibilitySettings')->willReturn(['users' => [], 'groups' => [], 'teams' => []]);
 		$this->permissionService->method('canManageAppointments')->willReturn(true);
 
 		return $siblings;
@@ -1387,11 +1392,6 @@ class AppointmentServiceTest extends TestCase {
 
 		$this->userManager->method('get')->willReturn($this->createMock(\OCP\IUser::class));
 
-		$this->visibilityService->expects($this->once())
-			->method('canUserSeeAppointment')
-			->with($appointment, $targetUserId)
-			->willReturn(true);
-
 		$this->responseMapper->expects($this->once())
 			->method('findByAppointmentAndUser')
 			->with($appointmentId, $targetUserId)
@@ -1543,16 +1543,34 @@ class AppointmentServiceTest extends TestCase {
 		$appointment->setId(1);
 
 		$this->userManager->method('get')->willReturn($this->createMock(\OCP\IUser::class));
-		$this->visibilityService->expects($this->once())
-			->method('canUserSeeAppointment')
-			->with($appointment, 'stranger')
-			->willReturn(false);
+		$this->visibilityService->method('isUserTargetAttendee')->with($appointment, 'stranger')->willReturn(false);
 
 		$this->responseMapper->expects($this->never())->method('insert');
 		$this->responseMapper->expects($this->never())->method('update');
 
 		$this->expectException(\InvalidArgumentException::class);
+		$this->expectExceptionMessage('Only attendees of this appointment can respond to it.');
 		$this->service->submitResponseForUser($appointment, 'stranger', 'yes', 'manager');
+	}
+
+	/**
+	 * Issue #326: the person left the group, so the organizer has to be able to
+	 * take their stale answer off the appointment by hand.
+	 */
+	public function testSubmitResponseForUserClearsTheAnswerOfSomebodyOutsideTheAudience(): void {
+		$appointment = new Appointment();
+		$appointment->setId(1);
+
+		$this->userManager->method('get')->willReturn($this->createMock(\OCP\IUser::class));
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(false);
+
+		$existingResponse = $this->createResponse(1, 'leaver', 'no');
+		$this->responseMapper->method('findByAppointmentAndUser')->willReturn($existingResponse);
+		$this->responseMapper->expects($this->once())->method('update')->willReturnArgument(0);
+
+		$result = $this->service->submitResponseForUser($appointment, 'leaver', null, 'manager');
+
+		$this->assertNull($result->getResponse());
 	}
 
 	/** Issue #251: an organizer outside the audience answered, and the answer showed up nowhere. */
@@ -2546,5 +2564,99 @@ class AppointmentServiceTest extends TestCase {
 
 		$this->assertSame([201, 202], array_column($navigation['past'], 'id'));
 		$this->assertFalse($navigation['pastHasMore']);
+	}
+
+	// --- issue #326: people who left the audience ---
+
+	private function audienceOf(string ...$userIds): void {
+		$audience = [];
+		foreach ($userIds as $userId) {
+			$audience[$userId] = $this->createMock(IUser::class);
+		}
+		$this->visibilityService->method('getTargetAttendees')->willReturn($audience);
+	}
+
+	public function testWithdrawOutsidersWithdrawsTheAnswersOfPeopleOutsideTheAudience(): void {
+		$appointment = $this->upcomingAppointment(1);
+		$this->audienceOf('alice');
+		$leaver = $this->createResponse(2, 'leaver', 'no');
+		$this->responseMapper->method('findByAppointment')->willReturn([$this->createResponse(1, 'alice', 'yes'), $leaver]);
+		$this->responseMapper->method('findByAppointmentAndUser')->with(1, 'leaver')->willReturn($leaver);
+		$this->responseMapper->expects($this->once())->method('update')->willReturnArgument(0);
+
+		$this->auditEventService->expects($this->once())->method('recordResponseChange')
+			->with(1, 'leaver', 'no', '', null, '', Verb::SOURCE_AUDIENCE, null);
+		// Calendar and Talk follow once, not once per withdrawn answer.
+		$this->orgCalendarSyncService->expects($this->once())->method('syncAppointment');
+		$this->talkRoomService->expects($this->once())->method('openOrSync');
+
+		$this->assertSame(1, $this->service->withdrawOutsiders($appointment));
+		$this->assertNull($leaver->getResponse());
+	}
+
+	public function testWithdrawOutsidersLeavesAPastAppointmentAlone(): void {
+		$appointment = $this->upcomingAppointment(1);
+		$appointment->setEndDatetime('2020-01-01 12:00:00');
+		$this->visibilityService->expects($this->never())->method('getTargetAttendees');
+		$this->responseMapper->expects($this->never())->method('update');
+
+		$this->assertSame(0, $this->service->withdrawOutsiders($appointment));
+	}
+
+	/** An empty audience is a lookup that failed far more often than an appointment for nobody. */
+	public function testWithdrawOutsidersDoesNothingWhenTheAudienceCannotBeResolved(): void {
+		$appointment = $this->upcomingAppointment(1);
+		$this->audienceOf();
+		$this->responseMapper->expects($this->never())->method('findByAppointment');
+		$this->responseMapper->expects($this->never())->method('update');
+
+		$this->assertSame(0, $this->service->withdrawOutsiders($appointment));
+	}
+
+	public function testWithdrawOutsidersDoesNothingForATeamAppointmentWithoutTheTeamsApp(): void {
+		$appointment = new Appointment();
+		$appointment->setId(1);
+		$appointment->setEndDatetime('2030-06-03 12:00:00');
+		$this->visibilityService->method('getVisibilitySettings')->willReturn(['users' => [], 'groups' => [], 'teams' => ['t1']]);
+		$this->visibilityService->method('isTeamsAvailable')->willReturn(false);
+		$this->visibilityService->expects($this->never())->method('getTargetAttendees');
+
+		$this->assertSame(0, $this->service->withdrawOutsiders($appointment));
+	}
+
+	public function testWithdrawFromAppointmentsLeftSweepsOnlyAppointmentsThePersonAnswered(): void {
+		$answered = $this->upcomingAppointment(1);
+		$unanswered = $this->upcomingAppointment(2);
+		$this->appointmentMapper->method('findUpcoming')->willReturn([$answered, $unanswered]);
+		$leaver = $this->createResponse(1, 'leaver', 'yes');
+		$this->responseMapper->method('findByUserForAppointments')->willReturn([1 => $leaver]);
+		$this->responseMapper->method('findByAppointment')->willReturn([$leaver]);
+		$this->responseMapper->method('findByAppointmentAndUser')->willReturn($leaver);
+		$this->audienceOf('alice');
+
+		$this->visibilityService->expects($this->once())->method('getTargetAttendees')->with($answered);
+		$this->responseMapper->expects($this->once())->method('update')->willReturnArgument(0);
+
+		$this->assertSame(1, $this->service->withdrawFromAppointmentsLeft('leaver'));
+	}
+
+	public function testUpdateAppointmentWithdrawsTheAnswersOfPeopleTheEditExcluded(): void {
+		$this->setUpUpdateNotificationCase([], false, ['band']);
+		$this->audienceOf('alice');
+		$excluded = $this->createResponse(1, 'excluded', 'yes');
+		$this->responseMapper->method('findByAppointment')->willReturn([$excluded]);
+		$this->responseMapper->method('findByAppointmentAndUser')->willReturn($excluded);
+		$this->responseMapper->expects($this->once())->method('update')->willReturnArgument(0);
+
+		$this->service->updateAppointment(3, 'Rehearsal', '', '2030-01-01T10:00:00Z', '2030-01-01T11:00:00Z', 'admin', [], ['strings']);
+
+		$this->assertNull($excluded->getResponse());
+	}
+
+	public function testUpdateAppointmentLeavesAnswersAloneWhenTheAudienceDidNotChange(): void {
+		$this->setUpUpdateNotificationCase([], false, ['band']);
+		$this->visibilityService->expects($this->never())->method('getTargetAttendees');
+
+		$this->service->updateAppointment(3, 'Renamed', '', '2030-01-01T10:00:00Z', '2030-01-01T11:00:00Z', 'admin', [], ['band']);
 	}
 }

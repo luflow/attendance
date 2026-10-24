@@ -434,6 +434,9 @@ class AppointmentService {
 		if ($changedFields !== []) {
 			$this->auditEventService->recordAppointmentUpdate($updated->getId(), $changedFields);
 		}
+		if (in_array('visibility', $changedFields, true)) {
+			$this->withdrawOutsiders($updated);
+		}
 
 		$this->orgCalendarSyncService->syncAppointment($updated);
 		$this->talkRoomService->syncRoomDetails($updated);
@@ -1396,12 +1399,9 @@ class AppointmentService {
 			throw new \InvalidArgumentException('User not found');
 		}
 
-		// The target must at least see the appointment; whether they may be
-		// given an answer is the response policy's call in applyResponse().
-		if (!$this->visibilityService->canUserSeeAppointment($appointment, $targetUserId)) {
-			throw new \InvalidArgumentException('User is not part of this appointment\'s audience');
-		}
-
+		// Whether they may be given an answer is the response policy's call in
+		// applyResponse(); clearing one is always allowed, which is how an
+		// organizer removes the answer of somebody who has since left.
 		return $this->applyResponse(
 			$appointment,
 			$targetUserId,
@@ -1411,6 +1411,80 @@ class AppointmentService {
 			\OCA\Attendance\Audit\Verb::SOURCE_ADMIN_RESPONSE,
 			$actorUserId,
 		);
+	}
+
+	/**
+	 * Withdraw the answers of everyone who is no longer part of an upcoming
+	 * appointment's audience — after the organizer narrowed it, or after
+	 * somebody left a group or team it is addressed to (issue #326). Past
+	 * appointments are history and keep every answer as it was given.
+	 *
+	 * The audience is getTargetAttendees(), not isUserTargetAttendee() per
+	 * person: on an open appointment the latter is true for everybody, while
+	 * the group whitelist narrows the former — and the whitelist is what makes
+	 * a band member a band member.
+	 *
+	 * @return int How many answers were withdrawn
+	 */
+	public function withdrawOutsiders(Appointment $appointment): int {
+		// writeResponse() refuses closed and cancelled appointments, and there
+		// is nothing to keep current on either.
+		if ($appointment->isPast() || $appointment->isClosed() || $appointment->isCancelled()) {
+			return 0;
+		}
+		// Without the Teams app a team's members resolve to nobody; that must
+		// not read as "everybody left".
+		if ($this->visibilityService->getVisibilitySettings($appointment)['teams'] !== []
+			&& !$this->visibilityService->isTeamsAvailable()) {
+			return 0;
+		}
+
+		$audience = $this->visibilityService->getTargetAttendees(
+			$appointment,
+			$this->configService->getWhitelistedGroups(),
+		);
+		// Nobody left is a lookup that failed (a deleted group) far more often than an appointment for nobody.
+		if ($audience === []) {
+			return 0;
+		}
+
+		$withdrawn = 0;
+		foreach ($this->responseMapper->findByAppointment($appointment->getId()) as $response) {
+			if (!self::hasAnswered($response) || isset($audience[$response->getUserId()])) {
+				continue;
+			}
+			$this->writeResponse($appointment, $response->getUserId(), null, null, null, \OCA\Attendance\Audit\Verb::SOURCE_AUDIENCE, null, false);
+			$withdrawn++;
+		}
+		if ($withdrawn > 0) {
+			$this->syncAfterResponseChange($appointment);
+		}
+
+		return $withdrawn;
+	}
+
+	/**
+	 * Somebody left a group or team: sweep every upcoming appointment they
+	 * answered. Whether they are actually out is decided per appointment — a
+	 * second group or a direct invitation keeps them in.
+	 *
+	 * @return int How many answers were withdrawn
+	 */
+	public function withdrawFromAppointmentsLeft(string $userId): int {
+		$upcoming = $this->getUpcomingAppointments();
+		$answers = $this->responseMapper->findByUserForAppointments(
+			$userId,
+			array_map(static fn (Appointment $appointment): int => $appointment->getId(), $upcoming),
+		);
+
+		$withdrawn = 0;
+		foreach ($upcoming as $appointment) {
+			if (self::hasAnswered($answers[$appointment->getId()] ?? null)) {
+				$withdrawn += $this->withdrawOutsiders($appointment);
+			}
+		}
+
+		return $withdrawn;
 	}
 
 	private function validateResponseValue(?string $response): void {
@@ -1439,6 +1513,26 @@ class AppointmentService {
 		string $auditSource,
 		?string $actorUserId,
 		bool $acceptWaitlist = false,
+	): AttendanceResponse {
+		$result = $this->writeResponse($appointment, $userId, $response, $comment, $responseSource, $auditSource, $actorUserId, $acceptWaitlist);
+		$this->syncAfterResponseChange($appointment);
+		return $result;
+	}
+
+	/**
+	 * The per-person half of applyResponse(): the row, its audit entry and the
+	 * person's notification state. The appointment-level follow-up is
+	 * syncAfterResponseChange(), kept apart so a sweep over many rows runs it once.
+	 */
+	private function writeResponse(
+		Appointment $appointment,
+		string $userId,
+		?string $response,
+		?string $comment,
+		?string $responseSource,
+		string $auditSource,
+		?string $actorUserId,
+		bool $acceptWaitlist,
 	): AttendanceResponse {
 		$appointmentId = $appointment->getId();
 
@@ -1519,10 +1613,6 @@ class AppointmentService {
 			$result = $this->responseMapper->insert($attendanceResponse);
 		}
 
-		// The queue moved: a withdrawn yes frees a spot for whoever is next, a
-		// fresh one may have taken the last.
-		$this->capacityService->syncWaitlistNotifications($appointment);
-
 		$this->auditEventService->recordResponseChange(
 			$appointmentId,
 			$userId,
@@ -1539,16 +1629,21 @@ class AppointmentService {
 		// next reminder run will re-notify them.
 		$this->notificationService->markAppointmentNotificationsProcessed($appointmentId, $userId);
 
-		// Keep the response summary in the organization calendar event current
-		$this->orgCalendarSyncService->syncAppointment($appointment);
-
-		// A withdrawn yes has to close the Talk room behind them, and without a
-		// planning mode a fresh yes may be what opens the room in the first
-		// place. This is the path the web and mobile clients take; the
-		// quick-response links go through ResponseService.
-		$this->talkRoomService->openOrSync($appointment);
-
 		return $result;
+	}
+
+	/**
+	 * What the appointment owes after its responses changed, all derived from
+	 * the rows as they now stand: the queue moved (a withdrawn yes frees a spot
+	 * for whoever is next), the organization calendar carries the summary, and
+	 * a yes may open the Talk room or a withdrawn one close it behind them.
+	 * This is the path the web and mobile clients take; quick-response links
+	 * go through ResponseService.
+	 */
+	private function syncAfterResponseChange(Appointment $appointment): void {
+		$this->capacityService->syncWaitlistNotifications($appointment);
+		$this->orgCalendarSyncService->syncAppointment($appointment);
+		$this->talkRoomService->openOrSync($appointment);
 	}
 
 	/**

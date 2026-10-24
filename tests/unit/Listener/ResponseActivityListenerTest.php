@@ -105,6 +105,7 @@ class ResponseActivityListenerTest extends TestCase {
 		$this->notificationService->expects($this->never())->method('publishActivity');
 
 		$this->listener->handle($this->event(Verb::RESPONSE_SUBMITTED, [], Verb::SOURCE_VACATION));
+		$this->listener->handle($this->event(Verb::RESPONSE_RESCINDED, [], Verb::SOURCE_AUDIENCE));
 		$this->listener->handle($this->event(Verb::CHECKIN_RECORDED));
 	}
 }

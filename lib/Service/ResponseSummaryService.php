@@ -297,7 +297,8 @@ class ResponseSummaryService {
 	 * never part of — possible until issue #251, and such rows remain. Only
 	 * that case is filtered: a regular user who answered while still a target
 	 * attendee keeps their response even if they later leave the group/team
-	 * (issue #213).
+	 * (issue #213) — on upcoming appointments the write side already withdrew
+	 * it (AppointmentService::withdrawOutsiders, issue #326).
 	 */
 	private function isNonAttendeeAdminResponse(Appointment $appointment, string $userId): bool {
 		return !$this->visibilityService->isUserTargetAttendee($appointment, $userId)

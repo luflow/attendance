@@ -32,6 +32,10 @@ export const SOURCE_LABELS = {
 	// TRANSLATORS: Noun — audit-log source label: the answer was set automatically
 	// because the person is on vacation.
 	vacation: () => t('attendance', 'Vacation'),
+	// TRANSLATORS: Noun — audit-log source label: the answer was withdrawn
+	// automatically because the person is no longer part of the appointment's
+	// audience (left the group or team, or the organizer restricted access).
+	audience: () => t('attendance', 'Access removed'),
 }
 
 export function formatSource(source) {

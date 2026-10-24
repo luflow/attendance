@@ -53,6 +53,12 @@ class ResponseChangeNotificationListenerTest extends TestCase {
 		$this->listener->handle($this->submitted(Verb::SOURCE_VACATION));
 	}
 
+	public function testAnAnswerWithdrawnBecauseThePersonLeftTheAudienceNotifiesNobody(): void {
+		$this->appointmentMapper->expects($this->never())->method('find');
+
+		$this->listener->handle($this->submitted(Verb::SOURCE_AUDIENCE));
+	}
+
 	public function testAnAnswerFromTheAppIsStillHandled(): void {
 		$this->appointmentMapper->expects($this->once())->method('find')->with(5)
 			->willThrowException(new DoesNotExistException('gone'));
