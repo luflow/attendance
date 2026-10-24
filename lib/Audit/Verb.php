@@ -88,5 +88,11 @@ final class Verb {
 	/** An answer set automatically because the person is on vacation. */
 	public const SOURCE_VACATION = 'vacation';
 
+	/** An answer withdrawn because the person is no longer part of the appointment's audience. */
+	public const SOURCE_AUDIENCE = 'audience';
+
+	/** Set on the person's behalf: nobody acted, so nobody is told and no activity is published. */
+	public const AUTOMATIC_SOURCES = [self::SOURCE_VACATION, self::SOURCE_AUDIENCE];
+
 	public const ANONYMISED_USER = '__deleted_user__';
 }

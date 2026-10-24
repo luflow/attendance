@@ -33,8 +33,8 @@ final class ResponseActivityListener {
 	}
 
 	public function handle(AuditEvent $event): void {
-		// Vacation answers arrive one per invitee with every new appointment.
-		if (!in_array($event->getVerb(), Verb::ALL_RESPONSE, true) || $event->getSource() === Verb::SOURCE_VACATION) {
+		if (!in_array($event->getVerb(), Verb::ALL_RESPONSE, true)
+			|| in_array($event->getSource(), Verb::AUTOMATIC_SOURCES, true)) {
 			return;
 		}
 

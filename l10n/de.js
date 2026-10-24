@@ -1127,6 +1127,7 @@ OC.L10N.register(
     "Name, picture and bio are part of your Nextcloud profile. Who can see your bio is set in your Nextcloud profile settings." : "Name, Bild und Steckbrief gehören zu deinem Nextcloud-Profil. Wer deinen Steckbrief sehen kann, legst du in deinen Nextcloud-Profileinstellungen fest.",
     "Take photo" : "Foto aufnehmen",
     "Write a few words about yourself …" : "Schreib ein paar Worte über dich …",
-    "Your name cannot be changed here." : "Dein Name kann hier nicht geändert werden."
+    "Your name cannot be changed here." : "Dein Name kann hier nicht geändert werden.",
+    "Access removed" : "Zugriff entzogen"
 },
 "nplurals=2; plural=(n != 1);");

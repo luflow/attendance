@@ -23,5 +23,6 @@
 	     its internals keeps TalkRoomService typed instead of `mixed`. -->
 	<stubs>
 		<file name="tests/stubs/talk.php"/>
+		<file name="tests/stubs/circles.php"/>
 	</stubs>
 </psalm>
