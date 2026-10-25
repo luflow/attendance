@@ -19,6 +19,7 @@ OC.L10N.register(
     "OK" : "OK",
     "About" : "Ynglyn â",
     "Email" : "E-bost",
+    "Invite" : "Gwahoddiad",
     "Language" : "Iaith",
     "Send" : "Anfon",
     "Vacation" : "Gwyliau",

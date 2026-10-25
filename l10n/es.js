@@ -63,6 +63,7 @@ OC.L10N.register(
     "Show QR code" : "Mostrar código QR",
     "Sign in" : "Iniciar sesión",
     "Skip" : "Omitir",
+    "Take photo" : "Tomar foto",
     "Try again" : "Vuelva a intentarlo",
     "Vacation" : "Vacaciones",
     "year" : "año",
