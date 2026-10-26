@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\Attendance\Tests\Unit\Service;
 
 use OCA\Attendance\Db\Appointment;
+use OCA\Attendance\Db\AppointmentAttachment;
 use OCA\Attendance\Db\AppointmentAttachmentMapper;
 use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponse;
@@ -34,6 +35,8 @@ use PHPUnit\Framework\TestCase;
 class IcalServiceTest extends TestCase {
 	private ConfigService $configService;
 	private AppointmentAttachmentMapper $attachmentMapper;
+	/** @var list<AppointmentAttachment> */
+	private array $attachments = [];
 	private CategoryMapper $categoryMapper;
 
 	/** @var AttendanceResponseMapper|MockObject */
@@ -43,7 +46,7 @@ class IcalServiceTest extends TestCase {
 	protected function setUp(): void {
 		$this->configService = $this->createMock(ConfigService::class);
 		$this->attachmentMapper = $this->createMock(AppointmentAttachmentMapper::class);
-		$this->attachmentMapper->method('findByAppointment')->willReturn([]);
+		$this->attachmentMapper->method('findByAppointment')->willReturnCallback(fn () => $this->attachments);
 		$this->categoryMapper = $this->createMock(CategoryMapper::class);
 		$this->responseMapper = $this->createMock(AttendanceResponseMapper::class);
 
@@ -234,6 +237,21 @@ class IcalServiceTest extends TestCase {
 
 		$this->assertStringContainsString("URL:https://example.test/attendance.page.appointment/5\r\n", $out);
 		$this->assertStringNotContainsString('#/', $out);
+	}
+
+	/** Issue #330: a hand-built "/f/…" path lacks /index.php/ on servers without mod_rewrite. */
+	public function testAttachmentsLinkToTheFilesRoute(): void {
+		$attachment = new AppointmentAttachment();
+		$attachment->setFileId(42);
+		$attachment->setFileName('Setlist.pdf');
+		$this->attachments = [$attachment];
+
+		$out = $this->generate($this->appointment(), null);
+
+		$this->assertStringContainsString("ATTACH:https://example.test/files.viewcontroller.showFile/42\r\n", $out);
+		// Once in ATTACH, once in the attachment list of the DESCRIPTION.
+		$this->assertSame(2, substr_count($out, 'https://example.test/files.viewcontroller.showFile/42'));
+		$this->assertStringNotContainsString('/f/', $out);
 	}
 
 	public function testVtimezoneListsTheClockChangesAroundThePeriod(): void {
