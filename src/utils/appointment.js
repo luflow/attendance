@@ -1,5 +1,5 @@
 import { translate as t } from '@nextcloud/l10n'
-import { generateUrl } from '@nextcloud/router'
+import { generateUrl, getRootUrl } from '@nextcloud/router'
 import { formatDateTime } from './datetime.js'
 
 /**
@@ -64,7 +64,8 @@ export function calendarDeepLink(appointment) {
 	// We store the event UID; the DAV collection addresses it by filename.
 	// Tolerate rows that already carry the extension.
 	const fileName = calendarEventUid.endsWith('.ics') ? calendarEventUid : `${calendarEventUid}.ics`
-	const davPath = `/remote.php/dav/calendars/${owner}/${calendarUri}/${fileName}`
+	// Calendar keys events by their DAV href, which starts with the webroot.
+	const davPath = `${getRootUrl()}/remote.php/dav/calendars/${owner}/${calendarUri}/${fileName}`
 
 	// The object id goes into a path segment, and base64's alphabet includes
 	// "/" — unescaped it would split into extra segments and miss the route.
