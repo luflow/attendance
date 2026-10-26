@@ -1036,6 +1036,7 @@ OC.L10N.register(
     "Self check-in" : "Samostatná registrácia prítomnosti",
     "Historic" : "Historické",
     "Automatic" : "Automaticky",
+    "Access removed" : "Prístup odobratý",
     "{actor} answered {response}" : "{actor} odpovedal(a): {response}",
     "{actor} answered {response} for {subject}" : "{actor} odpovedal(a): {response} pre {subject}",
     "{actor} changed response from {from} to {to}" : "{actor} zmenil(a) odpoveď z {from} na {to}",

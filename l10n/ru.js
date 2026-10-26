@@ -1036,6 +1036,7 @@ OC.L10N.register(
     "Self check-in" : "Самостоятельная отметка",
     "Historic" : "Историческое",
     "Automatic" : "Автоматически",
+    "Access removed" : "Доступ отозван",
     "{actor} answered {response}" : "{actor} ответил(а): {response}",
     "{actor} answered {response} for {subject}" : "{actor} ответил(а) за {subject}: {response}",
     "{actor} changed response from {from} to {to}" : "{actor} изменил(а) ответ: {from} → {to}",

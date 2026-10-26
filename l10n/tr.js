@@ -1036,6 +1036,7 @@ OC.L10N.register(
     "Self check-in" : "Kendi kendine giriş",
     "Historic" : "Tarihi",
     "Automatic" : "Otomatik",
+    "Access removed" : "Erişme izni kaldırıldı",
     "{actor} answered {response}" : "{actor}, {response} yanıtını verdi",
     "{actor} answered {response} for {subject}" : "{actor}, {subject} için {response} yanıtını verdi",
     "{actor} changed response from {from} to {to}" : "{actor}, {from} olan yanıtı {to} olarak değiştirdi",

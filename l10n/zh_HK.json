@@ -1034,6 +1034,7 @@
     "Self check-in" : "自行簽到",
     "Historic" : "有歷史意義的",
     "Automatic" : "自動",
+    "Access removed" : "存取移除了",
     "{actor} answered {response}" : "{actor} 回覆了 {response}",
     "{actor} answered {response} for {subject}" : "{actor} 代表 {subject} 回覆了 {response}",
     "{actor} changed response from {from} to {to}" : "{actor} 將回覆由 {from} 更改為 {to}",
