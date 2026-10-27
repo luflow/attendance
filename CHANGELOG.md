@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.58.1 – 2026-10-27
+
+### Fixed
+
+- **Leaving a group withdraws upcoming answers**: former members no longer show up under "Others" or in the totals; past appointments keep them
+- **Attachment links on servers without pretty URLs**: no longer a 404 in the web UI, mobile app and iCal feed
+- **"Open in calendar" on subfolder installs**: the link finds the event instead of "Event does not exist"
+
+### Maintenance
+
+- Updated translations from Transifex
+
 ## 1.58.0 – 2026-10-23
 
 ### Added
