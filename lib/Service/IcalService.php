@@ -318,7 +318,7 @@ class IcalService {
 		$attachments = $this->attachmentMapper->findByAppointment($appointment->getId());
 		$attachmentUrls = [];
 		foreach ($attachments as $attachment) {
-			$attachmentUrls[$attachment->getFileId()] = $this->urlGenerator->getAbsoluteURL('/f/' . $attachment->getFileId());
+			$attachmentUrls[$attachment->getFileId()] = $this->urlGenerator->linkToRouteAbsolute('files.viewcontroller.showFile', ['fileid' => $attachment->getFileId()]);
 		}
 		if (count($attachments) > 0) {
 			$attachmentLines = [$l->t('Attachments') . ':'];

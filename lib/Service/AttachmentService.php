@@ -121,7 +121,8 @@ class AttachmentService {
 	 * @return string
 	 */
 	public function getAttachmentDownloadUrl(int $fileId): string {
-		return $this->urlGenerator->getAbsoluteURL('/f/' . $fileId);
+		// Via the route, so servers without mod_rewrite get their /index.php/ (#330).
+		return $this->urlGenerator->linkToRouteAbsolute('files.viewcontroller.showFile', ['fileid' => $fileId]);
 	}
 
 	/**

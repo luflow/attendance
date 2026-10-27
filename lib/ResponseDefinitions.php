@@ -317,15 +317,15 @@ namespace OCA\Attendance;
  *   total: int,
  *   hasMore: bool,
  * }
+ * @psalm-type AttendanceOnboardingState = array{
+ *   setupPrompt: bool,
+ *   firstAppointmentPrompt: bool,
+ * }
  * @psalm-type AttendanceUserConfig = array{
  *   displayOrder: string,
  *   mobileAppBannerEnabled: bool,
  *   hasPushDevice: bool,
  *   onboarding: AttendanceOnboardingState,
- * }
- * @psalm-type AttendanceOnboardingState = array{
- *   setupPrompt: bool,
- *   firstAppointmentPrompt: bool,
  * }
  * @psalm-type AttendanceAdminReminderConfig = array{
  *   enabled: bool,
