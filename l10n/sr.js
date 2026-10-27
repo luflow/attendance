@@ -144,6 +144,7 @@ OC.L10N.register(
     "Quote" : "Понуда",
     "Insert link" : "Уметни линк",
     "Dismiss" : "Одбаци",
+    "Move {name} up" : "Помери {name} нагоре",
     "Comments" : "Коментари",
     "Welcome" : "Добро дошли",
     "Categories" : "Категорије",

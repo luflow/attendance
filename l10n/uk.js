@@ -146,6 +146,7 @@ OC.L10N.register(
     "Numbered list" : "Нумерований список",
     "Quote" : "Цитата",
     "Dismiss" : "Сховати",
+    "Move {name} up" : "Пересунути {name} вгору",
     "Comments" : "Коментарі",
     "Welcome" : "Привітання",
     "Categories" : "Категорії",

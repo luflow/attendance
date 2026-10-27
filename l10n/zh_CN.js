@@ -141,6 +141,7 @@ OC.L10N.register(
     "Quote" : "报价",
     "Insert link" : "插入链接",
     "Dismiss" : "关闭",
+    "Move {name} up" : "上移 {name}",
     "Comments" : "评论",
     "Welcome" : "欢迎",
     "Categories" : "分类",

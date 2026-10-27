@@ -336,6 +336,7 @@ OC.L10N.register(
     "Quote" : "نقل‌قول",
     "Insert link" : "درج پیوند",
     "Dismiss" : "رد کردن",
+    "Move {name} up" : "انتقال {name} به بالا",
     "Comments" : "نظرات",
     "Welcome" : "خوش آمدید",
     "Audit log" : "گزارش حسابرسی",

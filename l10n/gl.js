@@ -247,6 +247,7 @@ OC.L10N.register(
     "Quote" : "Orzamento",
     "Insert link" : "Inserir unha ligazón",
     "Dismiss" : "Desbotar",
+    "Move {name} up" : "Mover {name} cara arriba",
     "Comments" : "Comentarios",
     "Welcome" : "Benvido",
     "Response summary groups" : "Grupos para o resumo de respostas",

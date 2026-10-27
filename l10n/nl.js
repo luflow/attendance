@@ -283,6 +283,7 @@ OC.L10N.register(
     "Quote" : "Quote",
     "Insert link" : "Link invoegen",
     "Dismiss" : "Wijs af",
+    "Move {name} up" : "{name} omhoog verplaatsen",
     "Comments" : "Reacties",
     "Welcome" : "Welkom",
     "More settings" : "Meer instellingen",

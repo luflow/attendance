@@ -144,6 +144,7 @@ OC.L10N.register(
     "Quote" : "نەقىل",
     "Insert link" : "ئۇلىنىش قىستۇر",
     "Dismiss" : "پەرۋا قىلما",
+    "Move {name} up" : "{name} نى يۇقىرىغا يۆتكەش",
     "Comments" : "باھا",
     "Welcome" : "خۇش كەپسىز",
     "Categories" : "سەھىپىلەر",

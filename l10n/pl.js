@@ -150,6 +150,7 @@ OC.L10N.register(
     "Quote" : "Oferta",
     "Insert link" : "Wstaw link",
     "Dismiss" : "Odrzuć",
+    "Move {name} up" : "Przenieś {name} wyżej",
     "Comments" : "Komentarze",
     "Welcome" : "Witaj",
     "More settings" : "Więcej ustawień",

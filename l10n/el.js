@@ -360,6 +360,7 @@ OC.L10N.register(
     "Quote" : "Παράθεση",
     "Insert link" : "Εισαγωγή συνδέσμου",
     "Dismiss" : "Παράβλεψη",
+    "Move {name} up" : "Μετακίνηση {name} επάνω",
     "Comments" : "Σχόλια",
     "Welcome" : "Καλώς ήλθατε",
     "Audit log" : "Καταγραφή ελέγχου (Audit log)",

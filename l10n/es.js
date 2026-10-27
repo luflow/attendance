@@ -153,6 +153,7 @@ OC.L10N.register(
     "Quote" : "Presupuesto",
     "Insert link" : "Insertar enlace",
     "Dismiss" : "Descartar",
+    "Move {name} up" : "Mover {name} hacia arriba",
     "Comments" : "Comentarios",
     "Welcome" : "Bienvenido/a",
     "More settings" : "Más ajustes",

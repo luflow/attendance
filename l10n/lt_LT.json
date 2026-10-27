@@ -509,6 +509,7 @@
     "Self check-in is now in the mobile app" : "Savarankiškas registravimasis dabar galimas mobiliojoje programėlėje",
     "Participants scan a QR code or NFC tag and check themselves in — no clipboard, no manual list." : "Dalyviai nuskaito QR kodą arba NFC žymą ir patys užsiregistruoja – nereikia nei aplanko su popieriais, nei ranka pildomo sąrašo.",
     "Dismiss" : "Atmesti",
+    "Move {name} up" : "Perkelti {name} aukštyn",
     "Comments" : "Komentarai",
     "Welcome" : "Sveiki",
     "Attendance collects replies for your appointments, records who actually turned up, and breaks it all down by your Nextcloud groups. The next steps set up who may do what — on a fresh installation most of it is open to every user." : "„Lankomumas“ renka atsakymus dėl jūsų susitikimų, fiksuoja, kas iš tikrųjų atvyko, ir suskirsto šią informaciją pagal „Nextcloud“ grupes. Tolesniuose žingsniuose nustatoma, kas ir ką gali daryti – ką tik įdiegus sistemą, dauguma funkcijų yra prieinamos visiems vartotojams.",

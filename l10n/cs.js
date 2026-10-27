@@ -316,6 +316,7 @@ OC.L10N.register(
     "Quote" : "Citace",
     "Insert link" : "Vložit odkaz",
     "Dismiss" : "Zahodit",
+    "Move {name} up" : "Přesunout {name} výše",
     "Comments" : "Komentáře",
     "Welcome" : "Vítejte",
     "Audit log" : "Auditní záznam událostí",

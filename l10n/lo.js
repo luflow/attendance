@@ -300,6 +300,7 @@ OC.L10N.register(
     "Quote" : "ຂໍ້ຄວາມອ້າງອີງ",
     "Insert link" : "ແຊກລິງ",
     "Dismiss" : "ຍົກເລີກ",
+    "Move {name} up" : "ຍ້າຍ {name} ຂຶ້ນ",
     "Comments" : "ຄຳເຫັນ",
     "Welcome" : "Welcome",
     "Response summary groups" : "ກຸ່ມສະຫຼຸບການຕອບກັບ",

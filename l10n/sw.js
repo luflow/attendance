@@ -260,6 +260,7 @@ OC.L10N.register(
     "Quote" : "Nukuu",
     "Insert link" : "Ingiza kiungo",
     "Dismiss" : "Tawanya",
+    "Move {name} up" : "Hamisha {name} juu",
     "Comments" : "Maoni",
     "Welcome" : "Karibu",
     "Response summary groups" : "Vikundi vya muhtasari wa majibu",
