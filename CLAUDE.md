@@ -246,9 +246,9 @@ use OCP\AppFramework\Http\Attribute\OpenAPI;
 ## Release Management
 - When I ask you to prepare a release, check if everything is commited
 - Then check all changes since last release (use for example git log --oneline)
-- Disable the app via occ command in the running docker containers (container names: master-stable32-1 and master-nextcloud-1)
+- Disable the app via occ command in the running docker containers (container name: master-stable34-1)
 - Decide which version jump (fix, patch) based on the changes since last version to create and update version numbers in info.xml and package.json
-- Enable the app via occ command in the running docker containers (container names: master-stable32-1 and master-nextcloud-1)
+- Enable the app via occ command in the running docker containers (container name: master-stable34-1)
 - Write release notes in CHANGELOG.md — short and precise: one bullet per change, bold lead naming the change, at most one short clause of context. No narrative back-story, no problem-history — that belongs in the commit message
 - Ask me to review the release notes and version number afterwards
 - Commit everything you changed after my review WITHOUT claude co author in the commit
