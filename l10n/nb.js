@@ -67,6 +67,7 @@ OC.L10N.register(
     "Load more" : "Last mer",
     "Statistics" : "Statistikk",
     "Export" : "Eksporter",
+    "Loading …" : "Laster inn ...",
     "Select all" : "Velg alle",
     "Deselect all" : "Fjern all markering",
     "Custom range" : "Egendefinert område",

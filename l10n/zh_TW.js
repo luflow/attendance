@@ -62,6 +62,7 @@ OC.L10N.register(
     "Light" : "淺色",
     "Dark" : "深色",
     "Push Notifications" : "推播通知",
+    "Connecting …" : "正在連線⋯⋯",
     "Connected" : "已連線",
     "Connection failed — tap to retry" : "連線失敗，輕點以重試",
     "Push notifications are not enabled" : "未啟用推播通知",
