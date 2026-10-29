@@ -315,6 +315,7 @@ OC.L10N.register(
     "You can decide this on your own" : "Vous pouvez en décider vous-même",
     "Your message" : "Votre message",
     "_%n person on this server pays for a personal license — one organization license covers everyone and costs less_::_%n people on this server pay for personal licenses — one organization license covers everyone and costs less_" : ["%n personne sur ce serveur paie une licence personnelle — une seule licence d’organisation couvre tout le monde et coûte moins cher","%n personnes sur ce serveur paient une licence personnelle — une seule licence d’organisation couvre tout le monde et coûte moins cher","%n personnes sur ce serveur paient une licence personnelle — une seule licence d’organisation couvre tout le monde et coûte moins cher"],
+    "Your name cannot be changed here." : "Votre nom ne peut pas être changé ici.",
     "{actor} checked themselves in: {state}" : "{actor} a enregistré sa présence : {state}",
     "{actor} updated their own check-in: {state}" : "{actor} a mis à jour sa présence : {state}",
     "{count} appointments set to \"No\"" : "{count} rendez-vous définis sur « Non »",
