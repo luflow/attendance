@@ -1036,6 +1036,7 @@ OC.L10N.register(
     "Self check-in" : "Féinsheiceáil isteach",
     "Historic" : "Stairiúil",
     "Automatic" : "Uathoibríoch",
+    "Access removed" : "Rochtain bainte",
     "{actor} answered {response}" : "D’fhreagair {actor} {response}",
     "{actor} answered {response} for {subject}" : "D’fhreagair {actor} {response} do {subject}",
     "{actor} changed response from {from} to {to}" : "D'athraigh {actor} freagra ó {from} go {to}",
