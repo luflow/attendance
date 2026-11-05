@@ -68,6 +68,7 @@ OC.L10N.register(
     "Export" : "تصدير",
     "Select all" : "تحديد الكل",
     "Deselect all" : "إلغاء تحديد الكل",
+    "Custom range" : "نطاق مخصص",
     "Start date" : "تاريخ البدء",
     "Copy URL" : "انسخ الرابط",
     "Copy" : "إنسَخ",
