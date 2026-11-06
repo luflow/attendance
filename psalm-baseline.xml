@@ -189,6 +189,11 @@
       <code><![CDATA[IcalController]]></code>
     </UnusedClass>
   </file>
+  <file src="lib/Controller/LicenseController.php">
+    <UnusedClass>
+      <code><![CDATA[LicenseController]]></code>
+    </UnusedClass>
+  </file>
   <file src="lib/Controller/PageController.php">
     <ClassMustBeFinal>
       <code><![CDATA[PageController]]></code>
@@ -1655,6 +1660,11 @@
     <RiskyTruthyFalsyComparison>
       <code><![CDATA[$responseComment]]></code>
     </RiskyTruthyFalsyComparison>
+  </file>
+  <file src="lib/Service/LicenseService.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
   </file>
   <file src="lib/Service/NotificationService.php">
     <ClassMustBeFinal>
