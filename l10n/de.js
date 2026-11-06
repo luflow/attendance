@@ -1149,6 +1149,7 @@ OC.L10N.register(
     "No device has connected the mobile app for push notifications yet, so there is no license status to show. The 30-day trial starts with the first device." : "Bisher hat sich kein Gerät mit der mobilen App für Push-Benachrichtigungen verbunden, deshalb gibt es noch keinen Lizenzstatus. Die 30-tägige Testphase beginnt mit dem ersten Gerät.",
     "A member of your organization would like to use the mobile app" : "Ein Mitglied deiner Organisation möchte die mobile App nutzen",
     "A member of your organization would like to use the mobile app." : "Ein Mitglied deiner Organisation möchte die mobile App nutzen.",
-    "Did you know? You can also buy the license for your whole group by invoice. The Attendance settings show the license status and how to order." : "Wusstest du schon? Die Lizenz für die ganze Gruppe gibt es auch auf Rechnung. In den Einstellungen von Anwesenheit siehst du den Lizenzstatus und kannst bestellen."
+    "Did you know? You can also buy the license for your whole group by invoice. The Attendance settings show the license status and how to order." : "Wusstest du schon? Die Lizenz für die ganze Gruppe gibt es auch auf Rechnung. In den Einstellungen von Anwesenheit siehst du den Lizenzstatus und kannst bestellen.",
+    "Your organization can order the license by invoice on the website. Your Nextcloud administrator will also find it in the Attendance settings." : "Eure Organisation kann die Lizenz auf der Website auf Rechnung bestellen. Euer Nextcloud-Administrator findet das auch in den Einstellungen von Anwesenheit."
 },
 "nplurals=2; plural=(n != 1);");
