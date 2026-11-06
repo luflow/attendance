@@ -88,6 +88,11 @@
       <code><![CDATA[__construct]]></code>
     </PossiblyUnusedMethod>
   </file>
+  <file src="lib/BackgroundJob/PurchaseInterestJob.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
   <file src="lib/BackgroundJob/ReminderJob.php">
     <ClassMustBeFinal>
       <code><![CDATA[ReminderJob]]></code>
@@ -1157,6 +1162,11 @@
       <code><![CDATA[Version000027Date20261012120000]]></code>
     </UnusedClass>
   </file>
+  <file src="lib/Notification/LicenseNotifier.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
   <file src="lib/Notification/Notifier.php">
     <ClassMustBeFinal>
       <code><![CDATA[Notifier]]></code>
@@ -1729,6 +1739,11 @@
     </PossiblyUnusedMethod>
   </file>
   <file src="lib/Service/ProfileService.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Service/PurchaseInterestService.php">
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
     </PossiblyUnusedMethod>
