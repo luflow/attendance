@@ -591,6 +591,93 @@
                     }
                 }
             },
+            "LicenseInfo": {
+                "type": "object",
+                "required": [
+                    "status",
+                    "tier",
+                    "memberLimit",
+                    "deviceCount",
+                    "trialEndsAt",
+                    "expiresAt",
+                    "groupTrialAvailable",
+                    "groupTrialDevices",
+                    "trialExtensionAvailable"
+                ],
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "trial",
+                            "active",
+                            "expired",
+                            "none"
+                        ]
+                    },
+                    "tier": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "memberLimit": {
+                        "type": "integer",
+                        "format": "int64",
+                        "nullable": true
+                    },
+                    "deviceCount": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "trialEndsAt": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "expiresAt": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "groupTrialAvailable": {
+                        "type": "boolean"
+                    },
+                    "groupTrialDevices": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "trialExtensionAvailable": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "LicenseStatus": {
+                "type": "object",
+                "required": [
+                    "state",
+                    "license",
+                    "checkedAt"
+                ],
+                "properties": {
+                    "state": {
+                        "type": "string",
+                        "enum": [
+                            "ok",
+                            "no_devices",
+                            "unreachable",
+                            "unavailable"
+                        ]
+                    },
+                    "license": {
+                        "nullable": true,
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/LicenseInfo"
+                            }
+                        ]
+                    },
+                    "checkedAt": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                }
+            },
             "NotificationsAppStatus": {
                 "type": "object",
                 "required": [
@@ -1520,6 +1607,113 @@
                                             "type": "string"
                                         }
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/index.php/apps/attendance/api/admin/license": {
+            "get": {
+                "operationId": "license-status",
+                "summary": "Get the mobile-app license of this instance",
+                "description": "Asks the push relay, which answers only after fetching a one-time proof back from this server. Cached for a few minutes unless refreshed.\nThis endpoint requires admin access",
+                "tags": [
+                    "license"
+                ],
+                "security": [
+                    {
+                        "bearer_auth": []
+                    },
+                    {
+                        "basic_auth": []
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "refresh",
+                        "in": "query",
+                        "description": "Skip the cache and ask the relay again",
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LicenseStatus"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Current user is not logged in",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Logged in account must be an admin",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "anyOf": [
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "error"
+                                            ],
+                                            "properties": {
+                                                "error": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        },
+                                        {
+                                            "type": "object",
+                                            "required": [
+                                                "message"
+                                            ],
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                }
+                                            }
+                                        }
+                                    ]
                                 }
                             }
                         }

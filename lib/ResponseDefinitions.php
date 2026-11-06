@@ -448,6 +448,22 @@ namespace OCA\Attendance;
  * @psalm-type AttendanceReminderResult = array{
  *   sent: int,
  * }
+ * @psalm-type AttendanceLicenseInfo = array{
+ *   status: 'trial'|'active'|'expired'|'none',
+ *   tier: ?string,
+ *   memberLimit: ?int,
+ *   deviceCount: int,
+ *   trialEndsAt: ?string,
+ *   expiresAt: ?string,
+ *   groupTrialAvailable: bool,
+ *   groupTrialDevices: int,
+ *   trialExtensionAvailable: bool,
+ * }
+ * @psalm-type AttendanceLicenseStatus = array{
+ *   state: 'ok'|'no_devices'|'unreachable'|'unavailable',
+ *   license: ?AttendanceLicenseInfo,
+ *   checkedAt: ?string,
+ * }
  * @psalm-type AttendanceTestReminderResult = array{
  *   sent: int,
  *   appointmentName: string,

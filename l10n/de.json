@@ -1126,6 +1126,24 @@
     "Take photo" : "Foto aufnehmen",
     "Write a few words about yourself …" : "Schreib ein paar Worte über dich …",
     "Your name cannot be changed here." : "Dein Name kann hier nicht geändert werden.",
-    "Access removed" : "Zugriff entzogen"
+    "Access removed" : "Zugriff entzogen",
+    "Buying for a club or organization? Order the group license by invoice on the website. The invoice is made out to your organization, and nobody has to pay with a private app store account." : "Kaufst du für einen Verein oder eine Organisation? Bestell die Gruppenlizenz auf der Website auf Rechnung. Die Rechnung lautet auf eure Organisation, und niemand muss über ein privates App-Store-Konto bezahlen.",
+    "Check again" : "Erneut prüfen",
+    "Last checked: {datetime}" : "Zuletzt geprüft: {datetime}",
+    "License" : "Lizenz",
+    "Order by invoice" : "Auf Rechnung bestellen",
+    "The license status cannot be shown here: the push relay cannot reach this Nextcloud from the internet." : "Der Lizenzstatus lässt sich hier nicht anzeigen: Das Push-Relay erreicht diese Nextcloud nicht aus dem Internet.",
+    "The license status is not available right now." : "Der Lizenzstatus ist gerade nicht verfügbar.",
+    "The mobile app needs a license to keep working." : "Damit die mobile App weiter funktioniert, wird eine Lizenz benötigt.",
+    "The trial ended on {date}." : "Die Testphase ist am {date} abgelaufen.",
+    "The trial has ended." : "Die Testphase ist abgelaufen.",
+    "The trial runs until {date}." : "Die Testphase läuft bis {date}.",
+    "The {plan} license expired on {date}." : "Der Tarif {plan} ist am {date} abgelaufen.",
+    "_As soon as {count} person uses the app, the trial starts over for the whole group._::_As soon as {count} people use the app, the trial starts over for the whole group._" : ["Sobald {count} Person die App nutzt, beginnt die Testphase für die ganze Gruppe neu.","Sobald {count} Personen die App nutzen, beginnt die Testphase für die ganze Gruppe neu."],
+    "_It covers up to {count} member._::_It covers up to {count} members._" : ["Er gilt für bis zu {count} Mitglied.","Er gilt für bis zu {count} Mitglieder."],
+    "_{count} device uses the mobile app._::_{count} devices use the mobile app._" : ["{count} Gerät nutzt die mobile App.","{count} Geräte nutzen die mobile App."],
+    "{plan} license, valid until {date}." : "Tarif {plan}, gültig bis {date}.",
+    "{plan} license, with no end date." : "Tarif {plan}, ohne Enddatum.",
+    "No device has connected the mobile app for push notifications yet, so there is no license status to show. The 30-day trial starts with the first device." : "Bisher hat sich kein Gerät mit der mobilen App für Push-Benachrichtigungen verbunden, deshalb gibt es noch keinen Lizenzstatus. Die 30-tägige Testphase beginnt mit dem ersten Gerät."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
