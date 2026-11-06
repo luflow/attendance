@@ -150,6 +150,7 @@ final class LicenseService {
 			'groupTrialAvailable' => ($data['groupTrialAvailable'] ?? false) === true,
 			'groupTrialDevices' => self::intOrZero($data['groupTrialDevices'] ?? null),
 			'trialExtensionAvailable' => ($data['trialExtensionAvailable'] ?? false) === true,
+			'purchaseInterestAt' => self::nonEmptyString($data['purchaseInterestAt'] ?? null),
 		];
 	}
 

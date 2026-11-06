@@ -602,7 +602,8 @@
                     "expiresAt",
                     "groupTrialAvailable",
                     "groupTrialDevices",
-                    "trialExtensionAvailable"
+                    "trialExtensionAvailable",
+                    "purchaseInterestAt"
                 ],
                 "properties": {
                     "status": {
@@ -644,6 +645,10 @@
                     },
                     "trialExtensionAvailable": {
                         "type": "boolean"
+                    },
+                    "purchaseInterestAt": {
+                        "type": "string",
+                        "nullable": true
                     }
                 }
             },

@@ -14,6 +14,9 @@
 			</p>
 		</template>
 
+		<p v-if="!licensed && status?.license?.purchaseInterestAt" class="license-status__interest" data-test="license-purchase-interest">
+			{{ t('attendance', 'A member of your organization would like to use the mobile app.') }}
+		</p>
 		<p v-if="!licensed" class="license-status__invoice">
 			{{ t('attendance', 'Buying for a club or organization? Order the group license by invoice on the website. The invoice is made out to your organization, and nobody has to pay with a private app store account.') }}
 		</p>
@@ -150,6 +153,15 @@ onMounted(() => load())
 	margin-top: 4px;
 	color: var(--color-text-maxcontrast);
 	font-size: 13px;
+}
+
+.license-status__interest {
+	margin-top: 12px;
+	font-weight: 600;
+}
+
+.license-status__interest + .license-status__invoice {
+	margin-top: 4px;
 }
 
 .license-status__invoice {

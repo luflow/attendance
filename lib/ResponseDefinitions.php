@@ -458,6 +458,7 @@ namespace OCA\Attendance;
  *   groupTrialAvailable: bool,
  *   groupTrialDevices: int,
  *   trialExtensionAvailable: bool,
+ *   purchaseInterestAt: ?string,
  * }
  * @psalm-type AttendanceLicenseStatus = array{
  *   state: 'ok'|'no_devices'|'unreachable'|'unavailable',

@@ -96,6 +96,7 @@ class LicenseServiceTest extends TestCase {
 			'trialEndsAt' => '2027-01-10T12:00:00Z',
 			'groupTrialAvailable' => true,
 			'groupTrialDevices' => 3,
+			'purchaseInterestAt' => '2026-11-01T09:30:00Z',
 		]));
 		$this->client->expects($this->once())
 			->method('post')
@@ -120,6 +121,7 @@ class LicenseServiceTest extends TestCase {
 			'groupTrialAvailable' => true,
 			'groupTrialDevices' => 3,
 			'trialExtensionAvailable' => false,
+			'purchaseInterestAt' => '2026-11-01T09:30:00Z',
 		], $status['license']);
 		$this->assertNotNull($status['checkedAt']);
 		// Single use: once the relay has answered the proof is gone.

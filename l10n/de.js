@@ -1146,6 +1146,9 @@ OC.L10N.register(
     "_{count} device uses the mobile app._::_{count} devices use the mobile app._" : ["{count} Gerät nutzt die mobile App.","{count} Geräte nutzen die mobile App."],
     "{plan} license, valid until {date}." : "Tarif {plan}, gültig bis {date}.",
     "{plan} license, with no end date." : "Tarif {plan}, ohne Enddatum.",
-    "No device has connected the mobile app for push notifications yet, so there is no license status to show. The 30-day trial starts with the first device." : "Bisher hat sich kein Gerät mit der mobilen App für Push-Benachrichtigungen verbunden, deshalb gibt es noch keinen Lizenzstatus. Die 30-tägige Testphase beginnt mit dem ersten Gerät."
+    "No device has connected the mobile app for push notifications yet, so there is no license status to show. The 30-day trial starts with the first device." : "Bisher hat sich kein Gerät mit der mobilen App für Push-Benachrichtigungen verbunden, deshalb gibt es noch keinen Lizenzstatus. Die 30-tägige Testphase beginnt mit dem ersten Gerät.",
+    "A member of your organization would like to use the mobile app" : "Ein Mitglied deiner Organisation möchte die mobile App nutzen",
+    "A member of your organization would like to use the mobile app." : "Ein Mitglied deiner Organisation möchte die mobile App nutzen.",
+    "Did you know? You can also buy the license for your whole group by invoice. The Attendance settings show the license status and how to order." : "Wusstest du schon? Die Lizenz für die ganze Gruppe gibt es auch auf Rechnung. In den Einstellungen von Anwesenheit siehst du den Lizenzstatus und kannst bestellen."
 },
 "nplurals=2; plural=(n != 1);");
