@@ -631,6 +631,8 @@ n('attendance', '%n person on this server pays for a personal license — one or
 // TRANSLATORS: Audit-log entries in the mobile app for a person recording
 // their own check-in; the web timeline uses the neutral variants instead.
 t('attendance', 'Your name cannot be changed here.')
+// TRANSLATORS: Mobile app, shown after someone answered that they need an invoice for the license. "It" in the second sentence is the option to order by invoice.
+t('attendance', 'Your organization can order the license by invoice on the website. Your Nextcloud administrator will also find it in the Attendance settings.')
 t('attendance', '{actor} checked themselves in: {state}')
 t('attendance', '{actor} updated their own check-in: {state}')
 // TRANSLATORS: Confirmation in the mobile app after the question asked on saving a vacation; {count} is how many appointments were answered. The quoted "No" is the app's own no-response label — translate it to match that label's wording in this language.
