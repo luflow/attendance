@@ -893,4 +893,25 @@ class PermissionServiceTest extends TestCase {
 
 		$this->assertFalse($this->service->canExport('guestuser'));
 	}
+
+	public function testAdminUsersAreTheEnabledMembersOfTheAdminGroup(): void {
+		$users = [];
+		foreach (['alice' => true, 'former' => false, 'bob' => true] as $uid => $enabled) {
+			$user = $this->createMock(IUser::class);
+			$user->method('getUID')->willReturn($uid);
+			$user->method('isEnabled')->willReturn($enabled);
+			$users[] = $user;
+		}
+		$group = $this->createMock(IGroup::class);
+		$group->method('getUsers')->willReturn($users);
+		$this->groupManager->method('get')->with('admin')->willReturn($group);
+
+		$this->assertSame(['alice', 'bob'], array_map(static fn (IUser $u) => $u->getUID(), $this->service->getAdminUsers()));
+	}
+
+	public function testNoAdminGroupMeansNoAdminUsers(): void {
+		$this->groupManager->method('get')->with('admin')->willReturn(null);
+
+		$this->assertSame([], $this->service->getAdminUsers());
+	}
 }

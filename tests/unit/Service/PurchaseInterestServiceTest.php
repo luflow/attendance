@@ -5,21 +5,14 @@ declare(strict_types=1);
 namespace OCA\Attendance\Tests\Unit\Service;
 
 use OCA\Attendance\Notification\LicenseNotifier;
-use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\LicenseService;
-use OCA\Attendance\Service\NotificationService;
+use OCA\Attendance\Service\PermissionService;
 use OCA\Attendance\Service\PurchaseInterestService;
 use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\Http\Client\IClient;
-use OCP\Http\Client\IClientService;
-use OCP\Http\Client\IResponse;
 use OCP\IAppConfig;
-use OCP\IGroup;
-use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\Notification\IManager as INotificationManager;
 use OCP\Notification\INotification;
-use OCP\Security\ISecureRandom;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -27,29 +20,20 @@ use Psr\Log\LoggerInterface;
 class PurchaseInterestServiceTest extends TestCase {
 	private const DAY = 86400;
 
-	/** @var array<string, string|int> */
+	/** @var array<string, int> */
 	private array $appValues = [];
 	private int $now = 1_800_000_000;
-	/** @var array<string, mixed> What the relay answers */
-	private array $relay = [];
+	/** @var array<string, mixed> What the license service reports */
+	private array $status = [];
 	/** @var list<string> Users a notification was sent to */
 	private array $notified = [];
 	private int $withdrawn = 0;
-	/** @var IGroupManager|MockObject */
-	private $groupManager;
 	private PurchaseInterestService $service;
 
 	protected function setUp(): void {
 		$appConfig = $this->createMock(IAppConfig::class);
-		$appConfig->method('getValueString')->willReturnCallback(
-			fn (string $app, string $key, string $default = '') => (string)($this->appValues[$key] ?? $default),
-		);
-		$appConfig->method('setValueString')->willReturnCallback(function (string $app, string $key, string $value): bool {
-			$this->appValues[$key] = $value;
-			return true;
-		});
 		$appConfig->method('getValueInt')->willReturnCallback(
-			fn (string $app, string $key, int $default = 0) => (int)($this->appValues[$key] ?? $default),
+			fn (string $app, string $key, int $default = 0) => $this->appValues[$key] ?? $default,
 		);
 		$appConfig->method('setValueInt')->willReturnCallback(function (string $app, string $key, int $value): bool {
 			$this->appValues[$key] = $value;
@@ -59,19 +43,8 @@ class PurchaseInterestServiceTest extends TestCase {
 		$timeFactory->method('getTime')->willReturnCallback(fn () => $this->now);
 		$timeFactory->method('getDateTime')->willReturnCallback(fn () => new \DateTime('@' . $this->now));
 
-		$response = $this->createMock(IResponse::class);
-		$response->method('getStatusCode')->willReturn(200);
-		$response->method('getBody')->willReturnCallback(fn () => json_encode($this->relay));
-		$client = $this->createMock(IClient::class);
-		$client->method('post')->willReturn($response);
-		$clientService = $this->createMock(IClientService::class);
-		$clientService->method('newClient')->willReturn($client);
-		$notificationService = $this->createMock(NotificationService::class);
-		$notificationService->method('getPushDeviceIdentifiers')->willReturn(['dev-a']);
-		$random = $this->createMock(ISecureRandom::class);
-		$random->method('generate')->willReturn(str_repeat('n', 48));
-		$configService = $this->createMock(ConfigService::class);
-		$configService->method('getPushProxyServer')->willReturn('https://push.example.org');
+		$licenseService = $this->createMock(LicenseService::class);
+		$licenseService->method('getStatus')->willReturnCallback(fn () => $this->status);
 
 		$notificationManager = $this->createMock(INotificationManager::class);
 		$notificationManager->method('createNotification')->willReturnCallback(fn () => $this->notification());
@@ -86,17 +59,16 @@ class PurchaseInterestServiceTest extends TestCase {
 			$this->withdrawn++;
 		});
 
-		$this->groupManager = $this->createMock(IGroupManager::class);
-		$this->admins(['alice' => true, 'bob' => true, 'former' => false]);
+		$permissionService = $this->createMock(PermissionService::class);
+		$permissionService->method('getAdminUsers')->willReturn([$this->user('alice'), $this->user('bob')]);
 
-		$logger = $this->createMock(LoggerInterface::class);
 		$this->service = new PurchaseInterestService(
-			new LicenseService($configService, $notificationService, $clientService, $appConfig, $random, $timeFactory, $logger),
+			$licenseService,
 			$notificationManager,
-			$this->groupManager,
+			$permissionService,
 			$appConfig,
 			$timeFactory,
-			$logger,
+			$this->createMock(LoggerInterface::class),
 		);
 	}
 
@@ -120,30 +92,32 @@ class PurchaseInterestServiceTest extends TestCase {
 		return $notification;
 	}
 
-	/**
-	 * @param array<string, bool> $admins uid => enabled
-	 */
-	private function admins(array $admins): void {
-		$users = [];
-		foreach ($admins as $uid => $enabled) {
-			$user = $this->createMock(IUser::class);
-			$user->method('getUID')->willReturn($uid);
-			$user->method('isEnabled')->willReturn($enabled);
-			$users[] = $user;
-		}
-		$group = $this->createMock(IGroup::class);
-		$group->method('getUsers')->willReturn($users);
-		$this->groupManager->method('get')->with('admin')->willReturn($group);
+	private function user(string $uid): IUser&MockObject {
+		$user = $this->createMock(IUser::class);
+		$user->method('getUID')->willReturn($uid);
+		return $user;
 	}
 
-	private function relayReports(string $status, ?int $interestAt): void {
-		$this->relay = ['status' => $status, 'deviceCount' => 3];
-		if ($interestAt !== null) {
-			$this->relay['purchaseInterestAt'] = gmdate('Y-m-d\TH:i:s\Z', $interestAt);
-		}
+	private function relayReports(string $licenseStatus, ?int $interestAt): void {
+		$this->status = [
+			'state' => 'ok',
+			'license' => [
+				'status' => $licenseStatus,
+				'tier' => null,
+				'memberLimit' => null,
+				'deviceCount' => 3,
+				'trialEndsAt' => null,
+				'expiresAt' => null,
+				'groupTrialAvailable' => false,
+				'groupTrialDevices' => 0,
+				'trialExtensionAvailable' => false,
+				'purchaseInterestAt' => $interestAt === null ? null : gmdate('Y-m-d\TH:i:s\Z', $interestAt),
+			],
+			'checkedAt' => gmdate('Y-m-d\TH:i:s\Z', $this->now),
+		];
 	}
 
-	public function testNewInterestNotifiesEveryEnabledAdmin(): void {
+	public function testNewInterestNotifiesEveryAdmin(): void {
 		$this->relayReports('trial', $this->now - self::DAY);
 
 		$this->service->check();
@@ -204,7 +178,7 @@ class PurchaseInterestServiceTest extends TestCase {
 	}
 
 	public function testNothingHappensWhenTheStatusIsNotKnown(): void {
-		$this->relay = ['status' => 'bogus'];
+		$this->status = ['state' => 'unavailable', 'license' => null, 'checkedAt' => null];
 
 		$this->service->check();
 

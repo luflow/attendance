@@ -85,7 +85,7 @@ class LicenseServiceTest extends TestCase {
 	public function testRelayIsAskedWithDevicesAndAProofThatHoldsDuringTheCall(): void {
 		$this->notificationService->expects($this->once())
 			->method('getPushDeviceIdentifiers')
-			->with('https://push.example.org', 20)
+			->with('https://push.example.org/', 20)
 			->willReturn(['dev-a', 'dev-b']);
 
 		$response = $this->createMock(IResponse::class);
@@ -226,7 +226,7 @@ class LicenseServiceTest extends TestCase {
 	}
 
 	public function testExpiredProofIsRejected(): void {
-		$this->appValues['license_proof_nonce'] = json_encode(['nonce' => self::NONCE, 'until' => $this->now - 1]);
+		$this->appValues['license_proof_nonce'] = json_encode(['until' => $this->now - 1, 'value' => ['nonce' => self::NONCE]]);
 
 		$this->assertFalse($this->service->isValidProof(self::NONCE));
 	}

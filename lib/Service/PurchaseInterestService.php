@@ -8,7 +8,6 @@ use OCA\Attendance\AppInfo\Application;
 use OCA\Attendance\Notification\LicenseNotifier;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\IAppConfig;
-use OCP\IGroupManager;
 use OCP\Notification\IManager as INotificationManager;
 use Psr\Log\LoggerInterface;
 
@@ -20,7 +19,6 @@ use Psr\Log\LoggerInterface;
  * license status, which carries when that last happened.
  */
 final class PurchaseInterestService {
-	private const SEEN_KEY = 'license_interest_seen';
 	private const NOTIFIED_KEY = 'license_interest_notified';
 	/** A member can answer the feedback again and again; the admins hear about it this often at most. */
 	private const MIN_INTERVAL = 30 * 86400;
@@ -28,7 +26,7 @@ final class PurchaseInterestService {
 	public function __construct(
 		private LicenseService $licenseService,
 		private INotificationManager $notificationManager,
-		private IGroupManager $groupManager,
+		private PermissionService $permissionService,
 		private IAppConfig $appConfig,
 		private ITimeFactory $timeFactory,
 		private LoggerInterface $logger,
@@ -36,7 +34,7 @@ final class PurchaseInterestService {
 	}
 
 	public function check(): void {
-		$status = $this->licenseService->getStatus(true);
+		$status = $this->licenseService->getStatus();
 		$license = $status['license'];
 		if ($status['state'] !== 'ok' || $license === null) {
 			return;
@@ -46,20 +44,17 @@ final class PurchaseInterestService {
 			return;
 		}
 
+		// One marker does both: an answer older than the last notification was
+		// covered by it, and a newer one waits until the interval has passed.
 		$interestAt = $license['purchaseInterestAt'] === null ? false : strtotime($license['purchaseInterestAt']);
-		if ($interestAt === false || $interestAt <= $this->appConfig->getValueInt(Application::APP_ID, self::SEEN_KEY, 0, lazy: true)) {
-			return;
-		}
+		$notifiedAt = $this->appConfig->getValueInt(Application::APP_ID, self::NOTIFIED_KEY, 0, lazy: true);
 		$now = $this->timeFactory->getTime();
-		if ($now - $this->appConfig->getValueInt(Application::APP_ID, self::NOTIFIED_KEY, 0, lazy: true) < self::MIN_INTERVAL) {
+		if ($interestAt === false || $interestAt <= $notifiedAt || $now - $notifiedAt < self::MIN_INTERVAL) {
 			return;
 		}
 
 		$this->withdraw();
-		foreach ($this->groupManager->get('admin')?->getUsers() ?? [] as $admin) {
-			if (!$admin->isEnabled()) {
-				continue;
-			}
+		foreach ($this->permissionService->getAdminUsers() as $admin) {
 			try {
 				$notification = $this->notificationManager->createNotification();
 				$notification->setApp(LicenseNotifier::APP)
@@ -75,7 +70,6 @@ final class PurchaseInterestService {
 				]);
 			}
 		}
-		$this->appConfig->setValueInt(Application::APP_ID, self::SEEN_KEY, $interestAt, lazy: true);
 		$this->appConfig->setValueInt(Application::APP_ID, self::NOTIFIED_KEY, $now, lazy: true);
 	}
 

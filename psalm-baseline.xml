@@ -1672,6 +1672,9 @@
     </RiskyTruthyFalsyComparison>
   </file>
   <file src="lib/Service/LicenseService.php">
+    <ClassMustBeFinal>
+      <code><![CDATA[LicenseService]]></code>
+    </ClassMustBeFinal>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
     </PossiblyUnusedMethod>

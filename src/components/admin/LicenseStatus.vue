@@ -72,6 +72,8 @@ function devicesLine(count) {
 	return n('attendance', '{count} device uses the mobile app.', '{count} devices use the mobile app.', count, { count })
 }
 
+const unavailable = { type: 'info', lines: [t('attendance', 'The license status is not available right now.')] }
+
 const note = computed(() => {
 	if (!status.value) {
 		return null
@@ -84,7 +86,7 @@ const note = computed(() => {
 		return { type: 'info', lines: [t('attendance', 'The license status cannot be shown here: the push relay cannot reach this Nextcloud from the internet.')] }
 	}
 	if (state !== 'ok' || !license) {
-		return { type: 'info', lines: [t('attendance', 'The license status is not available right now.')] }
+		return unavailable
 	}
 
 	const devices = devicesLine(license.deviceCount)
@@ -114,7 +116,7 @@ const note = computed(() => {
 			return { type: 'success', lines }
 		}
 		case 'expired': {
-			const ended = license.tier && license.tier !== 'trial' && license.expiresAt
+			const ended = license.tier && license.expiresAt
 				? t('attendance', 'The {plan} license expired on {date}.', { plan: planName(license.tier), date: formatDate(license.expiresAt) })
 				: license.trialEndsAt
 					? t('attendance', 'The trial ended on {date}.', { date: formatDate(license.trialEndsAt) })
@@ -122,7 +124,7 @@ const note = computed(() => {
 			return { type: 'warning', lines: [ended, t('attendance', 'The mobile app needs a license to keep working.'), devices] }
 		}
 		default:
-			return { type: 'info', lines: [t('attendance', 'The license status is not available right now.')] }
+			return unavailable
 	}
 })
 
