@@ -154,6 +154,7 @@ OC.L10N.register(
     "Insert link" : "Insertar enlace",
     "Dismiss" : "Descartar",
     "Move {name} up" : "Mover {name} hacia arriba",
+    "Move {name} down" : "Mover {name} abajo",
     "Comments" : "Comentarios",
     "Welcome" : "Bienvenido/a",
     "More settings" : "Más ajustes",
