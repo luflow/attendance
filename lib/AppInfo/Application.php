@@ -6,6 +6,7 @@ namespace OCA\Attendance\AppInfo;
 
 use OCA\Attendance\Audit\AuditEventDispatcher;
 use OCA\Attendance\BackgroundJob\AutoCloseJob;
+use OCA\Attendance\BackgroundJob\PurchaseInterestJob;
 use OCA\Attendance\BackgroundJob\ReminderJob;
 use OCA\Attendance\BackgroundJob\TalkRoomSyncJob;
 use OCA\Attendance\Dashboard\Widget;
@@ -35,6 +36,7 @@ class Application extends App implements IBootstrap {
 	public function register(IRegistrationContext $context): void {
 		$context->registerDashboardWidget(Widget::class);
 		$context->registerNotifierService(\OCA\Attendance\Notification\Notifier::class);
+		$context->registerNotifierService(\OCA\Attendance\Notification\LicenseNotifier::class);
 		$context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
 		$context->registerEventListener(UserRemovedEvent::class, MembershipRemovedListener::class);
 		// Circles (Teams) is optional, same reasoning as the Talk event below.
@@ -73,6 +75,9 @@ class Application extends App implements IBootstrap {
 		}
 		if (!$jobList->has(TalkRoomSyncJob::class, null)) {
 			$jobList->add(TalkRoomSyncJob::class);
+		}
+		if (!$jobList->has(PurchaseInterestJob::class, null)) {
+			$jobList->add(PurchaseInterestJob::class);
 		}
 	}
 

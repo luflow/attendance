@@ -504,8 +504,6 @@ t('attendance', 'Invite')
 t('attendance', 'Invite guest')
 t('attendance', 'Invite your group')
 t('attendance', 'Invite your group instead')
-// TRANSLATORS: Reason for buying directly instead of through the app store: the buyer is a registered club or society (German "Verein") needing a proper invoice. Not an assignment.
-t('attendance', 'Invoice/association')
 t('attendance', "It's not my decision alone")
 t('attendance', 'Just for me')
 t('attendance', 'Just for you, on any of your Nextcloud accounts')
@@ -604,9 +602,7 @@ t('attendance', 'Which license did you have in mind?')
 t('attendance', 'Which appointment?')
 t('attendance', 'Write a few words about yourself …')
 t('attendance', 'Write NFC tag')
-t('attendance', 'Write email')
 t('attendance', 'year')
-t('attendance', "You can book directly through me — no App Store purchase needed, and you'll get a proper invoice. Just send me an email!")
 // TRANSLATORS: "the store" is the same app/subscription store referred to elsewhere as "App Store" — keep the term consistent with that.
 t('attendance', 'You are covered by your organization. You can cancel your personal subscription in the store.')
 t('attendance', 'You can only assign guests to groups you administer. Ask a server admin to grant you sub-admin rights if you need this.')
@@ -631,6 +627,8 @@ n('attendance', '%n person on this server pays for a personal license — one or
 // TRANSLATORS: Audit-log entries in the mobile app for a person recording
 // their own check-in; the web timeline uses the neutral variants instead.
 t('attendance', 'Your name cannot be changed here.')
+// TRANSLATORS: Mobile app, shown after someone answered that they need an invoice for the license. "It" in the second sentence is the option to order by invoice.
+t('attendance', 'Your organization can order the license by invoice on the website. Your Nextcloud administrator will also find it in the Attendance settings.')
 t('attendance', '{actor} checked themselves in: {state}')
 t('attendance', '{actor} updated their own check-in: {state}')
 // TRANSLATORS: Confirmation in the mobile app after the question asked on saving a vacation; {count} is how many appointments were answered. The quoted "No" is the app's own no-response label — translate it to match that label's wording in this language.
