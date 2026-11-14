@@ -144,6 +144,7 @@ OC.L10N.register(
     "Close" : "閉じる",
     "Continue" : "続ける",
     "Never" : "なし",
+    "Guest" : "ゲスト",
     "Permissions" : "アクセス権限",
     "Settings saved" : "設定が保存されました",
     "Failed to save settings" : "設定の保存に失敗しました",

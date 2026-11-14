@@ -22,6 +22,7 @@ OC.L10N.register(
     "Present" : "Presente",
     "Connect" : "Conectar",
     "Add account" : "Añadir cuenta",
+    "Login timed out. Please try again." : "La sesión ha caducado. Por favor, inténtalo de nuevo.",
     "Let's go!" : "¡Vamos!",
     "Settings" : "Ajustes",
     "Log out" : "Cerrar sesión",
