@@ -790,6 +790,20 @@
 					</div>
 				</template>
 			</NcSettingsSection>
+
+			<!-- TRANSLATORS: Admin settings section title. The section holds one switch that hides the email address of Nextcloud accounts from other accounts. -->
+			<NcSettingsSection id="privacy"
+				:name="t('attendance', 'Privacy')"
+				:description="t('attendance', 'Nextcloud shows the email address of every account to all other accounts, for example in the menu on a profile picture in Talk.')">
+				<NcCheckboxRadioSwitch v-model="hideAccountEmail"
+					type="switch"
+					data-test="switch-hide-account-email">
+					{{ t('attendance', 'Hide the email address of accounts') }}
+				</NcCheckboxRadioSwitch>
+				<p class="hint-text">
+					{{ t('attendance', 'This applies to the whole server, not only to Attendance. The address is removed from the menu on a profile picture, the contacts menu and the account search. Profile pages and synced address books still show it.') }}
+				</p>
+			</NcSettingsSection>
 		</template>
 
 		<!-- Writes the same settings this page shows, so reload when it saved -->
@@ -856,6 +870,7 @@ const navSections = [
 	{ id: 'display-options', label: t('attendance', 'Display options') },
 	{ id: 'mobile-apps', label: t('attendance', 'Mobile apps') },
 	{ id: 'guests', label: t('attendance', 'Guest invitation') },
+	{ id: 'privacy', label: t('attendance', 'Privacy') },
 ]
 
 // Anchor plus label for a SectionLink, taken from the nav so a link can never
@@ -1001,6 +1016,7 @@ const pushEnabled = ref(true)
 const mobileAppBannerEnabled = ref(true)
 const bookingEnabled = ref(false)
 const allowMaybe = ref(true)
+const hideAccountEmail = ref(false)
 const displayOrder = ref('name_first')
 const pushDeviceCount = ref(0)
 const loadingData = ref(true)
@@ -1253,6 +1269,7 @@ autoSave(
 )
 autoSave(bookingEnabled, 'bookingEnabled', () => ({ bookingEnabled: bookingEnabled.value }))
 autoSave(allowMaybe, 'allowMaybe', () => ({ allowMaybe: allowMaybe.value }))
+autoSave(hideAccountEmail, 'hideAccountEmail', () => ({ hideAccountEmail: hideAccountEmail.value }))
 
 // Methods
 function scrollToSection(id) {
@@ -1362,6 +1379,7 @@ async function loadSettings() {
 		// Load planning / booking setting (opt-in, defaults off)
 		bookingEnabled.value = config.bookingEnabled === true
 		allowMaybe.value = config.allowMaybe !== false
+		hideAccountEmail.value = config.hideAccountEmail === true
 
 		// Load guests app status (for whitelist warning)
 		if (config.guestsApp) {

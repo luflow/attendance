@@ -24,5 +24,6 @@
 	<stubs>
 		<file name="tests/stubs/talk.php"/>
 		<file name="tests/stubs/circles.php"/>
+		<file name="tests/stubs/core.php"/>
 	</stubs>
 </psalm>

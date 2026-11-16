@@ -373,6 +373,7 @@ namespace OCA\Attendance;
  *   bookingEnabled: bool,
  *   allowMaybe: bool,
  *   selfCheckinWindowMinutes: int,
+ *   hideAccountEmail: bool,
  *   guestsApp: AttendanceGuestsAppStatus,
  *   notificationsApp: AttendanceNotificationsAppStatus,
  * }

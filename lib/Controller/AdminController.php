@@ -189,6 +189,7 @@ class AdminController extends Controller {
 					'bookingEnabled' => $this->configService->isBookingEnabled(),
 					'allowMaybe' => $this->configService->isMaybeAllowed(),
 					'selfCheckinWindowMinutes' => $this->configService->getSelfCheckinWindowMinutes(),
+					'hideAccountEmail' => $this->configService->isAccountEmailHidden(),
 					'guestsApp' => [
 						'enabled' => $this->guestService->isGuestsAppEnabled(),
 						'whitelistEnabled' => $this->guestService->isGuestsWhitelistEnabled(),
@@ -233,6 +234,7 @@ class AdminController extends Controller {
 	 * @param ?int $selfCheckinWindowMinutes Minutes before appointment start that self-check-in opens
 	 * @param ?bool $onboardingCompleted Whether the setup wizard has been walked to its end
 	 * @param ?bool $notificationEmailHintDismissed Whether the admin collapsed the hint that notifications do not reach email
+	 * @param ?bool $hideAccountEmail Whether the email address of accounts is hidden in the server's contact menus and account search
 	 * @return DataResponse<Http::STATUS_OK, array<string, mixed>, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
 	 */
 	#[NoCSRFRequired]
@@ -256,6 +258,7 @@ class AdminController extends Controller {
 		?int $selfCheckinWindowMinutes = null,
 		?bool $onboardingCompleted = null,
 		?bool $notificationEmailHintDismissed = null,
+		?bool $hideAccountEmail = null,
 	): DataResponse {
 		// Get current user
 		$user = $this->userSession->getUser();
@@ -356,6 +359,10 @@ class AdminController extends Controller {
 
 			if ($notificationEmailHintDismissed !== null) {
 				$this->configService->setNotificationEmailHintDismissed($notificationEmailHintDismissed);
+			}
+
+			if ($hideAccountEmail !== null) {
+				$this->configService->setAccountEmailHidden($hideAccountEmail);
 			}
 
 			return new DataResponse([]);

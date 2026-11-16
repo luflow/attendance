@@ -117,6 +117,8 @@ export default defineConfig({
 				'42-export-permission.spec.js',
 				// Selects teams for grouping and grants see_statistics instance-wide.
 				'43-statistics-teams.spec.js',
+				// Hides account email addresses instance-wide and gives a user one.
+				'44-hide-account-email.spec.js',
 			],
 			fullyParallel: false,
 			workers: 1,
