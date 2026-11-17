@@ -1126,6 +1126,10 @@
     "Take photo" : "Foto aufnehmen",
     "Write a few words about yourself …" : "Schreib ein paar Worte über dich …",
     "Your name cannot be changed here." : "Dein Name kann hier nicht geändert werden.",
-    "Access removed" : "Zugriff entzogen"
+    "Access removed" : "Zugriff entzogen",
+    "Privacy" : "Datenschutz",
+    "Nextcloud shows the email address of every account to all other accounts, for example in the menu on a profile picture in Talk." : "Nextcloud zeigt die E-Mail-Adresse jedes Kontos allen anderen Konten, zum Beispiel im Menü am Profilbild in Talk.",
+    "Hide the email address of accounts" : "E-Mail-Adresse von Konten ausblenden",
+    "This applies to the whole server, not only to Attendance. The address is removed from the menu on a profile picture, the contacts menu and the account search. Profile pages and synced address books still show it." : "Das gilt für den ganzen Server, nicht nur für Anwesenheit. Die Adresse verschwindet aus dem Menü am Profilbild, aus dem Kontaktmenü und aus der Kontosuche. Profilseiten und synchronisierte Adressbücher zeigen die Adresse weiterhin."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
