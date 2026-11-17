@@ -296,6 +296,7 @@ something a reader would otherwise get wrong or "fix" back.
 
 ## Avoid
 - NO coauthoring of commits with "claude"!
+- No `[skip ci]`, `[ci skip]` or `[no ci]` in a commit message, not even quoted: GitHub then starts no workflow for that push
 - No hardcoded admin checks - use PermissionService
 - No German strings in t() calls
 - No direct database access without Mapper
