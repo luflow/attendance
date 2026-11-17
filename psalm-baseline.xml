@@ -807,6 +807,11 @@
       <code><![CDATA[syncAppointmentFromVevent]]></code>
     </UnusedMethod>
   </file>
+  <file src="lib/Listener/HideAccountEmailListener.php">
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
   <file src="lib/Listener/MembershipRemovedListener.php">
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
@@ -841,6 +846,11 @@
     <MissingOverrideAttribute>
       <code><![CDATA[public function handle(Event $event): void {]]></code>
     </MissingOverrideAttribute>
+    <PossiblyUnusedMethod>
+      <code><![CDATA[__construct]]></code>
+    </PossiblyUnusedMethod>
+  </file>
+  <file src="lib/Middleware/HideAccountEmailMiddleware.php">
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
     </PossiblyUnusedMethod>

@@ -65,6 +65,7 @@
                     "bookingEnabled",
                     "allowMaybe",
                     "selfCheckinWindowMinutes",
+                    "hideAccountEmail",
                     "guestsApp",
                     "notificationsApp"
                 ],
@@ -123,6 +124,9 @@
                     "selfCheckinWindowMinutes": {
                         "type": "integer",
                         "format": "int64"
+                    },
+                    "hideAccountEmail": {
+                        "type": "boolean"
                     },
                     "guestsApp": {
                         "$ref": "#/components/schemas/GuestsAppStatus"
@@ -1134,6 +1138,12 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Whether the admin collapsed the hint that notifications do not reach email"
+                                    },
+                                    "hideAccountEmail": {
+                                        "type": "boolean",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Whether the email address of accounts is hidden in the server's contact menus and account search"
                                     }
                                 }
                             }

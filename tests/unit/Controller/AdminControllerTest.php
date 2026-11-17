@@ -97,6 +97,31 @@ class AdminControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
+	public function testSettingsTellWhetherAccountEmailsAreHidden(): void {
+		$this->configService->method('isAccountEmailHidden')->willReturn(true);
+
+		$config = $this->controller->getSettings()->getData()['config'];
+
+		$this->assertTrue($config['hideAccountEmail']);
+	}
+
+	public function testHidingAccountEmailsIsStored(): void {
+		$this->configService->expects($this->once())
+			->method('setAccountEmailHidden')
+			->with(true);
+
+		$response = $this->controller->saveSettings(hideAccountEmail: true);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+	}
+
+	/** The settings page auto-saves partial payloads, so an unrelated save must not switch it off. */
+	public function testSavingAnotherSettingLeavesAccountEmailsAlone(): void {
+		$this->configService->expects($this->never())->method('setAccountEmailHidden');
+
+		$this->controller->saveSettings(allowMaybe: false);
+	}
+
 	/** The preview parsed a naive string as local time and showed the UTC hour. */
 	public function testNextAppointmentStartCarriesTheUtcMarker(): void {
 		$this->appointmentMapper->method('findUpcoming')->willReturn([$this->upcoming('Rehearsal')]);

@@ -40,6 +40,26 @@ class ConfigServiceTest extends TestCase {
 			);
 	}
 
+	// --- hide account email ---
+
+	/** It changes what the whole server shows, so it must never be on unasked. */
+	public function testAccountEmailsAreShownUnlessAnAdminHidesThem(): void {
+		$this->appConfig->expects($this->once())
+			->method('getValueBool')
+			->with('attendance', 'hide_account_email', false)
+			->willReturn(false);
+
+		$this->assertFalse($this->service->isAccountEmailHidden());
+	}
+
+	public function testHidingAccountEmailsIsStored(): void {
+		$this->appConfig->expects($this->once())
+			->method('setValueBool')
+			->with('attendance', 'hide_account_email', true);
+
+		$this->service->setAccountEmailHidden(true);
+	}
+
 	// --- response summary groups mode ---
 
 	public function testGetResponseSummaryGroupsModeReturnsStoredValue(): void {

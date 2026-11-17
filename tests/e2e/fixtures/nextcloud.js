@@ -39,7 +39,7 @@ async function resilientJson(responseFn, { retries = 3, delay = 1000 } = {}) {
  * installations without mod_rewrite need /index.php/ocs/v2.php.
  */
 let _ocsBase = null
-async function getOcsBase(request) {
+export async function getOcsBase(request) {
 	if (_ocsBase !== null) return _ocsBase
 	// Try without /index.php first (mod_rewrite enabled)
 	const resp = await request.get(`${BASE_URL}/ocs/v2.php/cloud/capabilities?format=json`, {
