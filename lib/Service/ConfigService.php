@@ -627,6 +627,18 @@ class ConfigService {
 		$this->config->setAppValue(self::APP_ID, 'audit_log_visibility', $visibility);
 	}
 
+	/**
+	 * Reaches beyond this app: hides the email address of accounts in the
+	 * server's own contact menus and account search.
+	 */
+	public function isAccountEmailHidden(): bool {
+		return $this->appConfig->getValueBool(self::APP_ID, 'hide_account_email', false);
+	}
+
+	public function setAccountEmailHidden(bool $hidden): void {
+		$this->appConfig->setValueBool(self::APP_ID, 'hide_account_email', $hidden);
+	}
+
 	// --- User-level settings ---
 
 	private const ALLOWED_ICAL_TRIGGERS = ['PT15M', 'PT30M', 'PT1H', 'PT2H', 'P1D', 'P2D'];

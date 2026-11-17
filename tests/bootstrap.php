@@ -23,3 +23,6 @@ require_once __DIR__ . '/stubs/talk.php';
 // Some OCP interfaces name private `OC\` classes in their signatures, which
 // nextcloud/ocp does not ship — without these, PHPUnit cannot mock them.
 require_once __DIR__ . '/stubs/oc-internals.php';
+
+// The core controllers and OCS response HideAccountEmailMiddleware matches on.
+require_once __DIR__ . '/stubs/core.php';
