@@ -314,6 +314,7 @@ OC.L10N.register(
     "Insert link" : "插入連結",
     "Dismiss" : "忽略",
     "Move {name} up" : "向上移動 {name}",
+    "Move {name} down" : "向下移動 {name}",
     "Comments" : "留言",
     "Welcome" : "歡迎",
     "Response summary groups" : "回應摘要群組",

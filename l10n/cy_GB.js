@@ -56,6 +56,8 @@ OC.L10N.register(
     "Ends" : "Yn gorffen",
     "On date" : "Ar ddyddiad",
     "Import" : "Mewnforio",
+    "From" : "o",
+    "To" : "at",
     "Untitled event" : "Digwyddiad di-deitl",
     "User" : "Defnyddwyr",
     "Bold" : "Trwm",

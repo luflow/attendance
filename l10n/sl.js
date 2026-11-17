@@ -47,6 +47,7 @@ OC.L10N.register(
     "Default" : "Privzeto",
     "Display name" : "Prikazno ime",
     "Done" : "Končano",
+    "Edit profile" : "Uredi profil",
     "Email" : "Elektronski naslov",
     "Groups (required)" : "Skupine (zahtevano)",
     "Invite" : "Povabi",
