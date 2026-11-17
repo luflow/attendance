@@ -78,9 +78,11 @@ produces, so excluding a language from the pull *deletes* it. A `lang_map` entry
 pointing de/de_DE at a dot-directory was tried and wiped all four files on the
 next nightly run. Do not try that again — `.tx/config` carries a warning.
 
-What protects German is `.github/workflows/protect-german-l10n.yml`: when a
-commit by the Transifex bot touches any of the four files on `main`, it restores
-them from the commit before and pushes. German therefore survives the sync, but
+What protects German is `.github/workflows/protect-german-l10n.yml`: every hour
+it puts the four files on `main` back to the newest state the Transifex bot did
+not write — a merged pull request, a direct edit or its own last restore — and
+pushes. It runs on a schedule because the bot marks its commits `[skip ci]`, and
+GitHub starts nothing on such a push. German therefore survives the sync, but
 only after it — expect one restore commit behind each nightly sync that touched
 it. Everything else syncs normally.
 
@@ -93,7 +95,7 @@ it. Everything else syncs normally.
 - `scripts/check-german-l10n.py` (part of `./scripts/check.sh`) enforces this
   plus placeholders, German quotes „…“, stray whitespace and duplicate keys.
 - If a sync commit touches `l10n/de*` and **no** restore commit follows within
-  the hour, the workflow is broken — check its run log. Never fix this in
+  two hours, the workflow is broken — check its run log. Never fix this in
   `.tx/config`; see above for why that deletes the files.
 
 Follow these Nextcloud translation guidelines (see https://docs.nextcloud.com/server/latest/developer_manual/basics/translations.html):

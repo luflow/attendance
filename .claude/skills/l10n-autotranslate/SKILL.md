@@ -16,11 +16,10 @@ not preserved. A `lang_map` entry pointing de/de_DE at a dot-directory was tried
 and wiped all four files on the next nightly run. Do not try that again;
 `.tx/config` carries a warning.
 
-What protects German is `.github/workflows/protect-german-l10n.yml`: when a
-commit by the Transifex bot touches any of the four files on `main`, it restores
-them from the preceding commit and pushes. German therefore survives each sync,
-but only *after* it — expect one restore commit behind every nightly run that
-touched it.
+What protects German is `.github/workflows/protect-german-l10n.yml`: every hour
+it puts the four files on `main` back to the newest state the Transifex bot did
+not write and pushes. German therefore survives each sync, but only *after* it —
+expect one restore commit behind every nightly run that touched it.
 
 That makes this skill the **canonical path**: a string added with a fresh `t()` /
 `n()` call stays English until someone runs it. Nothing downstream will fix it

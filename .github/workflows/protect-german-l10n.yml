@@ -3,10 +3,14 @@ name: Protect German translations
 # German is hand-maintained in this repo (see CLAUDE.md). The nightly Transifex
 # bot cannot be told to leave a language alone: it runs `rm -f l10n/*.js
 # l10n/*.json` and then rebuilds only what `convert-po-files` produces, so any
-# attempt to exclude de/de_DE from the pull deletes them instead. This restores
-# the four German files whenever a bot commit touched them.
+# attempt to exclude de/de_DE from the pull deletes them instead. This puts the
+# four German files back whenever the bot has overwritten them.
 
 on:
+  # The bot marks its commits `[skip ci]`, and GitHub starts no workflow on such
+  # a push, so the schedule is what actually catches a sync.
+  schedule:
+    - cron: '25 * * * *'
   push:
     branches: [main]
     paths:
@@ -14,33 +18,44 @@ on:
       - 'l10n/de.json'
       - 'l10n/de_DE.js'
       - 'l10n/de_DE.json'
+  workflow_dispatch:
 
 permissions:
   contents: write
 
+concurrency: protect-german-l10n
+
 jobs:
   restore:
     runs-on: ubuntu-latest
-    # Only the sync bot is reverted; humans editing German is the intended path.
-    if: github.event.head_commit.author.email == 'bot@nextcloud.com'
     steps:
       - name: Checkout
         uses: actions/checkout@v5
         with:
-          fetch-depth: 2
+          ref: main
+          # The German to restore can sit any number of syncs back.
+          fetch-depth: 0
 
       - name: Restore the German files from before the sync
         id: restore
         run: |
           set -euo pipefail
           FILES="l10n/de.js l10n/de.json l10n/de_DE.js l10n/de_DE.json"
-          # HEAD~1 is the state before the bot commit — the reviewed German.
-          git checkout HEAD~1 -- $FILES
+          # The newest change to German on main that is not the sync bot's: a
+          # merged pull request, a direct edit or an earlier restore.
+          GOOD=$(git log --first-parent --format='%H %ae' -- $FILES \
+            | awk '$2 != "bot@nextcloud.com" && !found { print $1; found = 1 }')
+          if [ -z "$GOOD" ]; then
+            echo "::error::Found no German on main that did not come from the sync bot"
+            exit 1
+          fi
+          git checkout "$GOOD" -- $FILES
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "German is unchanged, nothing to restore."
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Restoring German from $GOOD"
             git diff --cached --stat
           fi
 
@@ -54,5 +69,5 @@ jobs:
 
           The Transifex sync deletes and regenerates every l10n file, which
           overwrites or drops the German this repo maintains itself. Restored
-          from the commit before the sync.'
+          from the last state the sync did not write.'
           git push
