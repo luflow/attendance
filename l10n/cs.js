@@ -395,6 +395,7 @@ OC.L10N.register(
     "Setup wizard" : "Průvodce nastavením",
     "Permissions" : "Oprávnění",
     "Mobile apps" : "Mobilní aplikace",
+    "Privacy" : "Soukromí",
     "Response summary teams" : "Týmy souhrnu odpovědí",
     "Settings saved" : "Nastavení uložena",
     "Failed to save settings" : "Nastavení se nepodařilo uložit",

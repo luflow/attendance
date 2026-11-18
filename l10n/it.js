@@ -162,6 +162,7 @@ OC.L10N.register(
     "Never" : "Mai",
     "Guest" : "Ospite",
     "Permissions" : "Permessi",
+    "Privacy" : "Riservatezza",
     "Settings saved" : "Impostazioni salvate",
     "Failed to save settings" : "Salvataggio impostazioni non riuscito",
     "Failed to load settings" : "Caricamento impostazioni non riuscito",

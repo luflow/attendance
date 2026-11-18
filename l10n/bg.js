@@ -141,6 +141,7 @@ OC.L10N.register(
     "Continue" : "Продължаване",
     "Never" : "Никога",
     "Permissions" : "Права",
+    "Privacy" : "Поверителност",
     "Settings saved" : "Настройките са запазени",
     "Failed to save settings" : "Неуспешно запазване на настройките",
     "Failed to load settings" : "Неуспешно зареждане на настройки",

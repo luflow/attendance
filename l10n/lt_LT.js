@@ -593,6 +593,7 @@ OC.L10N.register(
     "Setup wizard" : "Sąrankos vedlys",
     "Permissions" : "Leidimai",
     "Mobile apps" : "Programėlės mobiliesiems",
+    "Privacy" : "Privatumas",
     "New category name" : "Naujas kategorijos pavadinimas",
     "Could not load categories" : "Nepavyko įkelti kategorijų",
     "Could not create category" : "Nepavyko sukurti kategorijos",

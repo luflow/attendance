@@ -703,6 +703,7 @@ OC.L10N.register(
     "Vacation calendar" : "Tatil takvimi",
     "Answer options" : "Yanıt seçenekleri",
     "Mobile apps" : "Mobil uygulamalar",
+    "Privacy" : "Gizlilik",
     "New category name" : "Yeni kategori adı",
     "Could not load categories" : "Kategoriler yüklenemedi",
     "Could not create category" : "Kategori oluşturulamadı",

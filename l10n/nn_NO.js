@@ -69,6 +69,7 @@ OC.L10N.register(
     "Continue" : "Gå vidare",
     "Never" : "Aldri",
     "Guest" : "Gjest",
+    "Privacy" : "Personvern",
     "Link copied" : "Lenkje kopiert",
     "Group by" : "Grupper etter",
     "Delete category" : "Slett kategori",

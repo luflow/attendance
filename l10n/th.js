@@ -69,6 +69,7 @@ OC.L10N.register(
     "Close" : "ปิด",
     "Continue" : "ดำเนินการต่อ",
     "Never" : "ไม่เคย",
+    "Privacy" : "ความเป็นส่วนตัว",
     "Settings saved" : "บันทึกการตั้งค่าแล้ว",
     "Failed to save settings" : "ไม่สามารถบันทึกการตั้งค่าได้",
     "Failed to load settings" : "ไม่สามารถโหลดการตั้งค่าได้",

@@ -208,6 +208,7 @@ OC.L10N.register(
     "Never" : "Ei koskaan",
     "Guest" : "Vieras",
     "Permissions" : "Oikeudet",
+    "Privacy" : "Yksityisyys",
     "Settings saved" : "Asetukset tallennettu",
     "Failed to save settings" : "Asetusten tallentaminen epäonnistui",
     "Failed to load settings" : "Asetusten lataaminen epäonnistui",

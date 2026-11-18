@@ -703,6 +703,7 @@ OC.L10N.register(
     "Vacation calendar" : "Kalendár dovoleniek",
     "Answer options" : "Možnosti odpovede",
     "Mobile apps" : "Mobilné aplikácie",
+    "Privacy" : "Súkromie",
     "New category name" : "Nový názov kategórie",
     "Could not load categories" : "Kategórie sa nepodarilo načítať",
     "Could not create category" : "Kategóriu sa nepodarilo vytvoriť",

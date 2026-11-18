@@ -151,6 +151,7 @@ OC.L10N.register(
     "Never" : "Mai",
     "Guest" : "Convidat",
     "Permissions" : "Permisos",
+    "Privacy" : "Privadesa",
     "Settings saved" : "S'han desat els paràmetres",
     "Failed to save settings" : "Ha fallat desar els paràmetres",
     "Failed to load settings" : "Ha fallat carregar els paràmetres",

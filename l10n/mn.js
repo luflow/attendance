@@ -133,6 +133,7 @@ OC.L10N.register(
     "Never" : "—Ö—ç–∑—ç—ç—á",
     "Guest" : "–ó–æ—á–∏–Ω",
     "Permissions" : "Зөвшөөрлүүд",
+    "Privacy" : "Хувийн нууц",
     "Settings saved" : "Тохиргоо хадгалагдлаа",
     "Failed to save settings" : "Тохиргоог хадгалж чадсангүй",
     "Failed to load settings" : "Тохиргоог ачаалж чадсангүй",

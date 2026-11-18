@@ -102,6 +102,7 @@ OC.L10N.register(
     "Never" : "Nekad",
     "Guest" : "Viesis",
     "Permissions" : "Atļaujas",
+    "Privacy" : "Privātums",
     "Settings saved" : "Iestatījumi saglabāti",
     "Failed to save settings" : "Neizdevās saglabāt iestatījumus",
     "Failed to load settings" : "Neizdevās ielādēt iestatījumus",

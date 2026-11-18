@@ -270,6 +270,7 @@ OC.L10N.register(
     "Never" : "Nunca",
     "Guest" : "Convidado",
     "Permissions" : "Permisos",
+    "Privacy" : "Privacidade",
     "Response summary teams" : "Equipos para o resumo de respostas",
     "Settings saved" : "Axustes gardados",
     "Failed to save settings" : "Produciuse un fallo ao gardar os axustes",

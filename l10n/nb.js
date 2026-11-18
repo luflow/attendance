@@ -150,6 +150,7 @@ OC.L10N.register(
     "Continue" : "Fortsett",
     "Never" : "Aldri",
     "Permissions" : "Rettigheter",
+    "Privacy" : "Personvern",
     "Settings saved" : "Innstillinger lagret",
     "Failed to save settings" : "Klarte ikke å lagre innstillinger",
     "Failed to load settings" : "Klarte ikke å laste inn innstillinger",

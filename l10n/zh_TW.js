@@ -339,6 +339,7 @@ OC.L10N.register(
     "Guest" : "訪客",
     "Permissions" : "權限",
     "Mobile apps" : "行動裝置應用程式",
+    "Privacy" : "隱私",
     "Response summary teams" : "回應摘要團隊",
     "Settings saved" : "設定已儲存",
     "Failed to save settings" : "設定儲存失敗",

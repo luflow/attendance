@@ -84,6 +84,7 @@ OC.L10N.register(
     "Continue" : "Vazhdo",
     "Never" : "Kurrë",
     "Permissions" : "Lejet",
+    "Privacy" : "Privatësi",
     "Settings saved" : "Opsjonet u Ruajtën.",
     "Link copied" : "Linku u kopjua",
     "Group by" : "Grupo sipas",

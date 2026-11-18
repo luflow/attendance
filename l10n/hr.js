@@ -136,6 +136,7 @@ OC.L10N.register(
     "Never" : "Nikad",
     "Guest" : "Gost",
     "Permissions" : "Dopuštenja",
+    "Privacy" : "Privatnost",
     "Settings saved" : "Postavke spremljene",
     "Failed to save settings" : "Spremanje postavki nije uspjelo",
     "Failed to load settings" : "Učitavanje postavki nije uspjelo",

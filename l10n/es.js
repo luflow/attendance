@@ -168,6 +168,7 @@ OC.L10N.register(
     "Never" : "Nunca",
     "Guest" : "Invitado",
     "Permissions" : "Permisos",
+    "Privacy" : "Privacidad",
     "Settings saved" : "Ajustes guardados",
     "Failed to save settings" : "Fallo al guardar ajustes",
     "Failed to load settings" : "Fallo al cargar ajustes",

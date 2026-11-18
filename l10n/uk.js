@@ -156,6 +156,7 @@ OC.L10N.register(
     "Never" : "Ніколи",
     "Guest" : "Гість",
     "Permissions" : "Дозволи ",
+    "Privacy" : "Конфіденційність",
     "Settings saved" : "Налаштування збережено",
     "Failed to save settings" : "Неможливо зберегти налаштування",
     "Failed to load settings" : "Не вдалося завантажити налаштування",

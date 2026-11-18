@@ -154,6 +154,7 @@ OC.L10N.register(
     "Never" : "Никад",
     "Guest" : "Гост",
     "Permissions" : "Дозволе",
+    "Privacy" : "Приватност",
     "Settings saved" : "Поставке сачуване",
     "Failed to save settings" : "Грешка приликом чувања поставки",
     "Failed to load settings" : "Грешка у дохватању поставки",
