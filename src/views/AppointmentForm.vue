@@ -139,7 +139,7 @@
 						<template #icon>
 							<TextBoxCheckOutline :size="20" />
 						</template>
-						<!-- TRANSLATORS: Button under the category field of the appointment form. A category can carry a template — a description and an access restriction — and this button writes it into the form, replacing what is there. Sample German: "Vorlage anwenden". -->
+						<!-- TRANSLATORS: Button under the category field of the appointment form. A category can carry a template — a description and an access restriction — and this button writes it into the form, replacing what is there. -->
 						{{ t('attendance', 'Apply template') }}
 					</NcButton>
 				</div>
@@ -174,7 +174,7 @@
 			</div>
 
 			<div class="form-section">
-				<h3>{{ t("attendance", "Date & Time") }}</h3>
+				<h3>{{ t("attendance", "Date & time") }}</h3>
 				<NcCheckboxRadioSwitch
 					:modelValue="formData.isAllDay"
 					data-test="checkbox-all-day"
@@ -295,7 +295,7 @@
 						type="number"
 						min="1"
 						class="deadline-relative-value"
-						:label="t('attendance', 'Number')"
+						:label="deadlineNumberLabel"
 						data-test="input-deadline-relative-value" />
 					<select
 						v-model="deadlineRelativeUnit"
@@ -348,7 +348,7 @@
 
 			<div v-if="attendanceLimitAvailable" class="form-section">
 				<h3>{{ t("attendance", "Attendance limit & waitlist") }}</h3>
-				<!-- TRANSLATORS: Hint under the attendance-limit field in the appointment form. It explains what setting a number does — once that many people have said yes, the rest can only queue — and that leaving it empty keeps the appointment open to everyone. Sample German: "Sobald so viele zugesagt haben, ist der Termin voll. Leer lassen für unbegrenzt." -->
+				<!-- TRANSLATORS: Hint under the attendance-limit field in the appointment form. It explains what setting a number does — once that many people have said yes, the rest can only queue — and that leaving it empty keeps the appointment open to everyone. -->
 				<p class="hint-text">
 					{{
 						t(
@@ -377,7 +377,7 @@
 
 			<div v-if="responseOptionsAvailable && !hasAttendanceLimit" class="form-section">
 				<h3>{{ t("attendance", "Answer options") }}</h3>
-				<!-- TRANSLATORS: Hint under the "Maybe" switch in the appointment form. It explains what turning the option off does — people are left with a straight yes or no — and is aimed at organizers who find "Maybe" unhelpful for this particular appointment. Sample German: "Ohne „Vielleicht“ bleibt nur eine klare Zu- oder Absage." -->
+				<!-- TRANSLATORS: Hint under the "Maybe" switch in the appointment form. It explains what turning the option off does — people are left with a straight yes or no — and is aimed at organizers who find "Maybe" unhelpful for this particular appointment. -->
 				<p class="hint-text">
 					{{
 						t(
@@ -397,7 +397,7 @@
 				v-if="notificationsAppEnabled && (mode === 'create' || mode === 'copy')"
 				class="form-section">
 				<h3>{{ t("attendance", "Notification") }}</h3>
-				<!-- TRANSLATORS: Hint under the notification toggle when creating an appointment. It tells the organizer what the people on the other end actually get: a notification on their devices that pushes for a quick answer. The last sentence is guidance on when to use it, so that the urgent wording of that notification stays true — routine appointments are better left unnotified. Sample German: "Benachrichtigt alle, die diesen Termin sehen können, und bittet um sofortige Antwort. Nutze das, wenn du schnell Rückmeldungen brauchst." -->
+				<!-- TRANSLATORS: Hint under the notification toggle when creating an appointment. It tells the organizer what the people on the other end actually get: a notification on their devices that pushes for a quick answer. The last sentence is guidance on when to use it, so that the urgent wording of that notification stays true — routine appointments are better left unnotified. -->
 				<p class="hint-text">
 					{{
 						t(
@@ -646,6 +646,8 @@ const UNIT_MS = {
 	weeks: 7 * 24 * 60 * 60 * 1000,
 }
 
+// TRANSLATORS: Label of the number field of a response deadline, next to a unit dropdown (minutes, hours, days, weeks) — an amount as in "2 days", not a serial number.
+const deadlineNumberLabel = t('attendance', 'Number')
 const deadlineUnitOptions = computed(() => [
 	{ value: 'minutes', label: t('attendance', 'minutes') },
 	{ value: 'hours', label: t('attendance', 'hours') },

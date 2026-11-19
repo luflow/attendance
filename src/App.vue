@@ -355,18 +355,19 @@ t('attendance', 'System')
 t('attendance', 'Light')
 t('attendance', 'Dark')
 
-t('attendance', 'Push Notifications')
+t('attendance', 'Push notifications')
 t('attendance', 'Connecting …')
+// TRANSLATORS: Status line under a server in the mobile app's push notification settings — the app is connected to that server's push service.
 t('attendance', 'Connected')
 t('attendance', 'Connection failed — tap to retry')
 t('attendance', 'Push notifications are not enabled')
-t('attendance', 'Notifications Disabled')
-t('attendance', 'Open Settings')
+t('attendance', 'Notifications disabled')
+t('attendance', 'Open settings')
 t('attendance', 'Stay up to date')
 t('attendance', 'Get notified about new appointments and reminders.')
-t('attendance', 'Enable Notifications')
+t('attendance', 'Enable notifications')
 t('attendance', 'Not now')
-t('attendance', 'Server Update Available')
+t('attendance', 'Server update available')
 t('attendance', "Your server's Attendance app may be outdated. Please update to version 1.34.0 or later for the best experience.")
 
 // TRANSLATORS: "Attendance" is the app name here, not the act of attending — error screen title in the mobile app when the Attendance app cannot be reached on the server.
@@ -397,11 +398,11 @@ t('attendance', 'Subscribe')
 t('attendance', 'Subscription')
 t('attendance', 'Active')
 t('attendance', 'Active app users')
-t('attendance', 'Manage Subscription')
+t('attendance', 'Manage subscription')
 // TRANSLATORS: Subscription status — the free trial period is running. German "Testphase", the same word as in "Your free trial has ended".
 t('attendance', 'Trial')
 t('attendance', 'days remaining')
-t('attendance', 'Restore Purchases')
+t('attendance', 'Restore purchases')
 // TRANSLATORS: Standalone button label (nominative) opening the Terms of Service document — not part of a sentence; the consent sentence uses inline links instead.
 t('attendance', 'Terms of Service')
 // TRANSLATORS: Standalone button label (nominative) opening the privacy policy document — not part of a sentence; the consent sentence uses inline links instead.
@@ -411,7 +412,7 @@ t('attendance', 'By connecting, you agree to our [Terms of Service](terms) and a
 t('attendance', 'Current plan')
 t('attendance', 'Expired')
 // TRANSLATORS: Call-to-action button opening the subscription screen; "plans" are the paid subscription tiers, not schedules or agendas.
-t('attendance', 'See plans')
+t('attendance', 'View plans')
 t('attendance', 'No subscription plans available at this time.')
 t('attendance', 'No previous purchases found.')
 t('attendance', 'Purchase failed. Please try again.')
@@ -548,9 +549,6 @@ t('attendance', 'Rather book directly?')
 t('attendance', 'Scan NFC tag')
 t('attendance', 'Scan again')
 t('attendance', 'Scan to get the app, then sign in with this server address:')
-// TRANSLATORS: Call-to-action button opening the subscription screen on the group tiers; "plans" are the paid subscription tiers, not schedules or agendas.
-t('attendance', 'See group plans')
-t('attendance', 'See prices')
 t('attendance', 'Search by name …')
 t('attendance', 'Search users, groups or teams …')
 t('attendance', 'Select the appointment you want to check into:')
@@ -596,6 +594,10 @@ t('attendance', 'Using Attendance with a group? One license for the whole group 
 t('attendance', 'Using account {user} on {server}')
 // TRANSLATORS: Noun. In the mobile app: header of the personal-settings section where a user records their own absence periods. In the audit log: source label of an answer that was set automatically because the person is on vacation.
 t('attendance', 'Vacation')
+// TRANSLATORS: Call-to-action button opening the subscription screen on the group tiers; "plans" are the paid subscription tiers, not schedules or agendas.
+t('attendance', 'View group plans')
+// TRANSLATORS: Link in the mobile app's note about buying a license directly; it opens the price list on the website.
+t('attendance', 'View prices')
 t('attendance', 'What would you be willing to pay per year?')
 t('attendance', "What's still holding you back?")
 // TRANSLATORS: Asked after someone says the price is too high, to learn whether
@@ -628,10 +630,11 @@ t('attendance', 'Your message')
 // TRANSLATORS: Nudge shown to appointment managers when several people on the
 // same server pay for individual personal licenses; %n is how many.
 n('attendance', '%n person on this server pays for a personal license — one organization license covers everyone and costs less', '%n people on this server pay for personal licenses — one organization license covers everyone and costs less', 1)
-// TRANSLATORS: Audit-log entries in the mobile app for a person recording
-// their own check-in; the web timeline uses the neutral variants instead.
+// TRANSLATORS: Hint under the read-only name field on the mobile app's profile screen, shown when the server does not let people change their display name.
 t('attendance', 'Your name cannot be changed here.')
+// TRANSLATORS: Audit-log entry in the mobile app for a person recording their own check-in; {actor} is their display name, {state} renders as a response chip (yes/no/maybe/…).
 t('attendance', '{actor} checked themselves in: {state}')
+// TRANSLATORS: Audit-log entry in the mobile app for a person changing their own check-in; {actor} is their display name, {state} renders as a response chip (yes/no/maybe/…).
 t('attendance', '{actor} updated their own check-in: {state}')
 // TRANSLATORS: Confirmation in the mobile app after the question asked on saving a vacation; {count} is how many appointments were answered. The quoted "No" is the app's own no-response label — translate it to match that label's wording in this language.
 t('attendance', '{count} appointments set to "No"')

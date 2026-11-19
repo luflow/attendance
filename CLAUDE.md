@@ -105,6 +105,9 @@ Follow these Nextcloud translation guidelines (see https://docs.nextcloud.com/se
 - Correct: `Create appointment`, `Calendar subscription`, `Response summary`
 - Wrong: `Create Appointment`, `Calendar Subscription`, `Response Summary`
 - Exception: Proper nouns like "Nextcloud" or "Attendance" (app name)
+- `scripts/check-source-strings.py` enforces this. A real name it does not know
+  yet goes into its `PROPER_NOUNS` list — as the whole phrase ("Calendar app"),
+  never as a bare word that would also excuse a Title Case label.
 
 #### Success/Feedback Messages
 - **Never use "successfully"** in feedback messages - it's redundant
