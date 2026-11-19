@@ -38,6 +38,38 @@ GERMAN = re.compile(
 # Sentence-final punctuation, or a colon introducing a following value.
 ENDS_CLEANLY = re.compile(r'[.!?:……)\]}»"\'%]$')
 
+# Names that keep their capital inside a sentence. Whole phrases, not words:
+# "Notifications app" names the app, "Enable Notifications" is Title Case.
+PROPER_NOUNS = (
+    # Products and vendors
+    'Nextcloud', 'Nextcloud GmbH', 'Attendance', 'Android', 'App Store',
+    'Apple Calendar', 'Apple Maps', 'Google Calendar', 'Google Maps',
+    'Google Play', 'MIFARE Classic', 'OpenStreetMap', 'Thunderbird',
+    'UnifiedPush',
+    # Nextcloud apps and features, named as such
+    'Talk', 'Nextcloud Calendar', 'Nextcloud Team', 'Calendar app',
+    'Guests app', 'Notifications app', 'Notifications settings',
+    'Administration settings', 'Apps section', 'from Files',
+    # Titles of the two legal documents
+    'Terms of Service', 'Privacy Policy',
+    # This app's own labels, referred to by name
+    'Others', 'Import from calendar', 'Response summary groups',
+    'Response summary teams',
+)
+PROPER_NOUN = re.compile(
+    r'(?<!\w)(?:' + '|'.join(re.escape(p) for p in sorted(PROPER_NOUNS, key=len, reverse=True))
+    + r')(?!\w)')
+# A capital followed by lower case: "Settings", but not "QR", "URL" or "I".
+CAPITALIZED = re.compile(r'[(\[]*[A-Z][a-z]')
+SENTENCE_END = re.compile(r'[.!?:…—–→]["\'”)\]]*$')
+
+
+def title_case_words(s):
+    """Capitalized words that neither start a sentence nor name something."""
+    words = re.split(r'[\s/-]+', PROPER_NOUN.sub('x', s).strip())
+    return [w.strip('()[].,;:!?') for prev, w in zip(words, words[1:])
+            if CAPITALIZED.match(w) and not SENTENCE_END.search(prev)]
+
 
 def walk(rel, exts):
     base = os.path.join(ROOT, rel)
@@ -87,6 +119,11 @@ def check_string(s, kind, findings, where, plural_check=True):
         findings.append(f'{where}: "successfully" is redundant in {s[:60]!r}')
     if GERMAN.search(s):
         findings.append(f'{where}: German in a source string: {s[:60]!r}')
+    title_case = title_case_words(s)
+    if title_case:
+        findings.append(f'{where}: Title Case ({", ".join(title_case)}) — only '
+                        f'the first word and names are capitalized; a real name '
+                        f'goes into PROPER_NOUNS: {s[:60]!r}')
     if plural_check and kind == 't' and COUNT_PLACEHOLDER.search(s):
         findings.append(f'{where}: t() with a count placeholder — use n() with '
                         f'singular and plural forms: {s[:60]!r}')
