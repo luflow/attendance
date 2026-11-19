@@ -149,6 +149,7 @@ OC.L10N.register(
     "Continue" : "متابعة",
     "Never" : "مُطلَقاً",
     "Permissions" : "الصلاحيّات",
+    "Privacy" : "الخصوصية",
     "Settings saved" : "تمّ حفظ الإعدادات",
     "Failed to save settings" : "فشل في حفظ الإعدادات",
     "Failed to load settings" : "فشل في تحميل الإعدادات",

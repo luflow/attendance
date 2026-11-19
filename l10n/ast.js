@@ -116,6 +116,7 @@ OC.L10N.register(
     "Never" : "Enxamás",
     "Guest" : "Convidáu",
     "Permissions" : "Permisos",
+    "Privacy" : "Privacidá",
     "Settings saved" : "Guardóse la configuración",
     "Failed to save settings" : "Nun se pue guardar la configuración",
     "Failed to load settings" : "Nun se pue cargar la configuración",
