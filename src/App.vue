@@ -357,6 +357,7 @@ t('attendance', 'Dark')
 
 t('attendance', 'Push Notifications')
 t('attendance', 'Connecting …')
+// TRANSLATORS: Status line under a server in the mobile app's push notification settings — the app is connected to that server's push service.
 t('attendance', 'Connected')
 t('attendance', 'Connection failed — tap to retry')
 t('attendance', 'Push notifications are not enabled')
@@ -628,10 +629,11 @@ t('attendance', 'Your message')
 // TRANSLATORS: Nudge shown to appointment managers when several people on the
 // same server pay for individual personal licenses; %n is how many.
 n('attendance', '%n person on this server pays for a personal license — one organization license covers everyone and costs less', '%n people on this server pay for personal licenses — one organization license covers everyone and costs less', 1)
-// TRANSLATORS: Audit-log entries in the mobile app for a person recording
-// their own check-in; the web timeline uses the neutral variants instead.
+// TRANSLATORS: Hint under the read-only name field on the mobile app's profile screen, shown when the server does not let people change their display name.
 t('attendance', 'Your name cannot be changed here.')
+// TRANSLATORS: Audit-log entry in the mobile app for a person recording their own check-in; {actor} is their display name, {state} renders as a response chip (yes/no/maybe/…).
 t('attendance', '{actor} checked themselves in: {state}')
+// TRANSLATORS: Audit-log entry in the mobile app for a person changing their own check-in; {actor} is their display name, {state} renders as a response chip (yes/no/maybe/…).
 t('attendance', '{actor} updated their own check-in: {state}')
 // TRANSLATORS: Confirmation in the mobile app after the question asked on saving a vacation; {count} is how many appointments were answered. The quoted "No" is the app's own no-response label — translate it to match that label's wording in this language.
 t('attendance', '{count} appointments set to "No"')

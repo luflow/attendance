@@ -46,7 +46,7 @@
 							v-model="draft.deadlineValue"
 							type="number"
 							min="1"
-							:label="t('attendance', 'Number')"
+							:label="deadlineNumberLabel"
 							data-test="input-category-template-deadline-value" />
 						<select
 							v-model="draft.deadlineUnit"
@@ -137,6 +137,8 @@ const emit = defineEmits(['close', 'save'])
 // Only loaded while the dialog is open — the editor is too heavy to ship with the page.
 const MarkdownEditor = defineAsyncComponent(() => import('../common/MarkdownEditor.vue'))
 
+// TRANSLATORS: Label of the number field of a response deadline, next to a unit dropdown (minutes, hours, days, weeks) — an amount as in "2 days", not a serial number.
+const deadlineNumberLabel = t('attendance', 'Number')
 const deadlineUnits = computed(() => [
 	{ value: 'minutes', label: t('attendance', 'minutes') },
 	{ value: 'hours', label: t('attendance', 'hours') },

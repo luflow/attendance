@@ -33,9 +33,9 @@ final class EventMessages {
 		$appointmentDate = $this->formatAppointmentDate($params, $userId);
 
 		return [
-			// TRANSLATORS: Notification subject: the appointment was called off and will not happen (German "abgesagt", not "abgebrochen"). %1$s is the appointment name, %2$s the date it would have taken place. Sample German: "Termin abgesagt: „Probe" am 12.09.2026 18:00".
+			// TRANSLATORS: Notification subject: the appointment was called off and will not happen (German "abgesagt", not "abgebrochen"). %1$s is the appointment name, %2$s the date it would have taken place. Example: Appointment cancelled: Rehearsal on 12 September 2026 18:00.
 			'subject' => $l->t('Appointment cancelled: %1$s on %2$s', [$appointmentName, $appointmentDate]),
-			// TRANSLATORS Notification body for a called-off appointment (German "abgesagt", not "abgebrochen"), shown under an "Appointment cancelled" subject that already names it and its date. The second half is the useful part: nothing is left to do and the slot in the calendar is free again. Sample German: "Der Termin fällt aus, du hast die Zeit wieder frei.".
+			// TRANSLATORS Notification body for a called-off appointment (German "abgesagt", not "abgebrochen"), shown under an "Appointment cancelled" subject that already names it and its date. The second half is the useful part: nothing is left to do and the slot in the calendar is free again.
 			'message' => $l->t('It will not take place, so the time is yours again.'),
 		];
 	}
@@ -51,7 +51,7 @@ final class EventMessages {
 		return [
 			// TRANSLATORS Notification subject: a cancelled appointment is back on. %1$s is the appointment name, %2$s the date.
 			'subject' => $l->t('Appointment takes place after all: %1$s on %2$s', [$appointmentName, $appointmentDate]),
-			// TRANSLATORS Notification body, shown under the "takes place after all" subject, which already names the appointment and its date. The app speaks as "we", the people organizing. The second sentence is the point: someone who was told it was off has likely booked that slot for something else, so their old yes/no/maybe answer may no longer hold. Sample German: "Wir haben die Absage zurückgenommen. Falls du inzwischen etwas anderes vorhast, ändere bitte deine Antwort.".
+			// TRANSLATORS Notification body, shown under the "takes place after all" subject, which already names the appointment and its date. The app speaks as "we", the people organizing. The second sentence is the point: someone who was told it was off has likely booked that slot for something else, so their old yes/no/maybe answer may no longer hold.
 			'message' => $l->t('We have withdrawn the cancellation. If you have made other plans since, please update your response.'),
 		];
 	}
@@ -84,7 +84,7 @@ final class EventMessages {
 			return [
 				// TRANSLATORS Notification subject: the person got a place in the appointment ("scheduled in", German "eingeplant" — not "geplant": the appointment itself is not being planned). %1$s is the appointment name, %2$s the date.
 				'subject' => $l->t('You are scheduled for %1$s on %2$s', [$appointmentName, $appointmentDate]),
-				// TRANSLATORS Notification body, personal and friendly, shown under a subject that already says the person is scheduled (German "eingeplant", not "geplant") and names the appointment. More people volunteer than there are places, so the news is that this person got one and is expected to turn up. Sample German: "Du bist dabei — bitte halte dir den Termin frei. Danke für deine Antwort.".
+				// TRANSLATORS Notification body, personal and friendly, shown under a subject that already says the person is scheduled (German "eingeplant", not "geplant") and names the appointment. More people volunteer than there are places, so the news is that this person got one and is expected to turn up.
 				'message' => $l->t('You have a place, so please plan to be there. Thanks for answering.'),
 			];
 		}
@@ -92,7 +92,7 @@ final class EventMessages {
 		return [
 			// TRANSLATORS Notification subject: the person did not get a place in the appointment this time (German "nicht eingeplant", not "nicht geplant"). %1$s is the appointment name, %2$s the date.
 			'subject' => $l->t('You are not scheduled for %1$s on %2$s', [$appointmentName, $appointmentDate]),
-			// TRANSLATORS Notification body, personal and friendly, shown under a subject that already says the person is not scheduled (German "nicht eingeplant", not "nicht geplant"). The app speaks as "we", the people organizing. The delicate one: being turned down reads as a judgement unless the reason is named, so keep the explanation that there were simply more volunteers than places. Sample German: "Diesmal hatten wir mehr Zusagen als Plätze. Danke für deine Antwort.".
+			// TRANSLATORS Notification body, personal and friendly, shown under a subject that already says the person is not scheduled (German "nicht eingeplant", not "nicht geplant"). The app speaks as "we", the people organizing. The delicate one: being turned down reads as a judgement unless the reason is named, so keep the explanation that there were simply more volunteers than places.
 			'message' => $l->t('We had more volunteers than places this time. Thanks for answering.'),
 		];
 	}
@@ -106,7 +106,7 @@ final class EventMessages {
 		$seriesName = (string)($params['name'] ?? '');
 
 		return [
-			// TRANSLATORS Notification subject: several appointments of a recurring series moved at once. %1$s is how many, %2$s the name they share. Sample German: "1 Termin der Reihe „Probe" geändert" / "12 Termine der Reihe „Probe" geändert".
+			// TRANSLATORS Notification subject: several appointments of a recurring series moved at once. %1$s is how many, %2$s the name they share. Example: 1 appointment changed in "Rehearsal" / 12 appointments changed in "Rehearsal".
 			'subject' => $l->n('%1$s appointment changed in "%2$s"', '%1$s appointments changed in "%2$s"', $count, [$count, $seriesName]),
 			'message' => $this->describeUpdate((array)($params['changed'] ?? []), $l),
 		];
@@ -213,7 +213,7 @@ final class EventMessages {
 		// in the wording when someone answered on behalf of another person.
 		$onBehalfOf = ($subjectId !== '' && $subjectId !== $actor) ? $subjectId : '';
 
-		// TRANSLATORS: Stands in for a person's name in the response notifications below when the acting account cannot be identified. It is the grammatical subject of sentences like "Someone answered Yes on ...". Sample German: "Jemand".
+		// TRANSLATORS: Stands in for a person's name in the response notifications below when the acting account cannot be identified. It is the grammatical subject of sentences like "Someone answered Yes on ...".
 		$actorLabel = $actor !== '' ? $this->resolveDisplayName($actor) : $l->t('Someone');
 		$onBehalfOfLabel = $onBehalfOf !== '' ? $this->resolveDisplayName($onBehalfOf) : '';
 		$fromLabel = $this->translateResponseValue($from, $l);
@@ -223,7 +223,7 @@ final class EventMessages {
 			case 'response_changed':
 				$subject = $onBehalfOf !== ''
 					// TRANSLATORS: Notification to an organizer. Someone edited another person's answer for them. %1$s is the display name of whoever made the edit, %2$s the display name of the person whose answer it is, %3$s and %4$s are the old and the new answer (each already translated as Yes, No or Maybe), %5$s the appointment name.
-					// Sample German: "Anna Weber hat die Antwort von Bernd Klein auf „Probe" von Ja zu Nein geaendert".
+					// Example: Anna Weber changed the response of Bernd Klein from Yes to No on "Rehearsal".
 					? $l->t('%1$s changed the response of %2$s from %3$s to %4$s on "%5$s"', [
 						$actorLabel,
 						$onBehalfOfLabel,
@@ -232,7 +232,7 @@ final class EventMessages {
 						$appointmentName,
 					])
 					// TRANSLATORS: Notification to an organizer. Someone edited their own answer. %1$s is their display name, %2$s and %3$s are the old and the new answer (each already translated as Yes, No or Maybe), %4$s the appointment name. "Their" is a single person of unknown gender, not a group.
-					// Sample German: "Anna Weber hat ihre Antwort auf „Probe" von Ja zu Nein geaendert".
+					// Example: Anna Weber changed their response from Yes to No on "Rehearsal".
 					: $l->t('%1$s changed their response from %2$s to %3$s on "%4$s"', [
 						$actorLabel,
 						$fromLabel,
@@ -243,14 +243,14 @@ final class EventMessages {
 			case 'response_rescinded':
 				$subject = $onBehalfOf !== ''
 					// TRANSLATORS: Notification to an organizer. Someone deleted another person's answer, leaving them unanswered again — this is not a No. %1$s is the display name of whoever deleted it, %2$s the display name of the person whose answer it was, %3$s the appointment name.
-					// Sample German: "Anna Weber hat die Antwort von Bernd Klein auf „Probe" geloescht".
+					// Example: Anna Weber removed the response of Bernd Klein on "Rehearsal".
 					? $l->t('%1$s removed the response of %2$s on "%3$s"', [
 						$actorLabel,
 						$onBehalfOfLabel,
 						$appointmentName,
 					])
 					// TRANSLATORS: Notification to an organizer. Someone withdrew their own answer and now counts as unanswered again — this is not a No. %1$s is their display name, %2$s the appointment name. "Their" is a single person of unknown gender, not a group.
-					// Sample German: "Anna Weber hat ihre Antwort auf „Probe" zurueckgezogen".
+					// Example: Anna Weber took back their response on "Rehearsal".
 					: $l->t('%1$s took back their response on "%2$s"', [
 						$actorLabel,
 						$appointmentName,
@@ -259,14 +259,14 @@ final class EventMessages {
 			case 'response_comment_updated':
 				$subject = $onBehalfOf !== ''
 					// TRANSLATORS: Activity entry for an organizer. Someone changed the comment another person left with their answer, e.g. a manager noting what a member said by phone; the answer itself stayed the same. %1$s is the display name of whoever made the edit, %2$s the display name of the person whose answer it is, %3$s the appointment name. The comment itself is shown below this line.
-					// Sample German: "Anna Weber hat den Kommentar von Bernd Klein zu „Probe" geändert".
+					// Example: Anna Weber changed the comment of Bernd Klein on "Rehearsal".
 					? $l->t('%1$s changed the comment of %2$s on "%3$s"', [
 						$actorLabel,
 						$onBehalfOfLabel,
 						$appointmentName,
 					])
 					// TRANSLATORS: Activity entry for an organizer. Someone changed the comment they left with their answer; the answer itself stayed the same. %1$s is their display name, %2$s the appointment name. The comment itself is shown below this line. "Their" is a single person of unknown gender, not a group.
-					// Sample German: "Anna Weber hat ihren Kommentar zu „Probe" geändert".
+					// Example: Anna Weber changed their comment on "Rehearsal".
 					: $l->t('%1$s changed their comment on "%2$s"', [
 						$actorLabel,
 						$appointmentName,
@@ -274,7 +274,7 @@ final class EventMessages {
 				break;
 			case 'waitlist_promoted':
 				// TRANSLATORS: Activity entry for an organizer. A spot came free and the next person on the waitlist got it automatically — nobody clicked anything. %1$s is that person's display name, %2$s the appointment name.
-				// Sample German: "Anna Weber ist bei „Probe" von der Warteliste auf einen frei gewordenen Platz nachgerückt".
+				// Example: Anna Weber moved off the waitlist into a free spot on "Rehearsal".
 				$subject = $l->t('%1$s moved off the waitlist into a free spot on "%2$s"', [
 					$onBehalfOf !== '' ? $onBehalfOfLabel : $actorLabel,
 					$appointmentName,
@@ -284,7 +284,7 @@ final class EventMessages {
 			default:
 				$subject = $onBehalfOf !== ''
 					// TRANSLATORS: Notification to an organizer. Someone answered on another person's behalf, e.g. a manager entering an answer a member gave by phone. %1$s is the display name of whoever entered it, %2$s the answer itself (already translated as Yes, No or Maybe), %3$s the display name of the person it is for, %4$s the appointment name.
-					// Sample German: "Anna Weber hat fuer Bernd Klein mit Ja auf „Probe" geantwortet".
+					// Example: Anna Weber answered Yes for Bernd Klein on "Rehearsal".
 					? $l->t('%1$s answered %2$s for %3$s on "%4$s"', [
 						$actorLabel,
 						$toLabel,
@@ -292,7 +292,7 @@ final class EventMessages {
 						$appointmentName,
 					])
 					// TRANSLATORS: Notification to an organizer that someone answered for themselves. %1$s is their display name, %2$s the answer itself (already translated as Yes, No or Maybe), %3$s the appointment name.
-					// Sample German: "Anna Weber hat mit Ja auf „Probe" geantwortet".
+					// Example: Anna Weber answered Yes on "Rehearsal".
 					: $l->t('%1$s answered %2$s on "%3$s"', [
 						$actorLabel,
 						$toLabel,
@@ -320,13 +320,13 @@ final class EventMessages {
 	private function translateResponseValue(string $value, IL10N $l): string {
 		switch ($value) {
 			case 'yes':
-				// TRANSLATORS: An attendee's answer, meaning "I will be there". Serves two purposes with one translation: it is the label of the Yes button on the notification, and it is substituted into sentences like "... answered Yes on ...". So it must work both as a standalone button and mid-sentence. Sample German: "Ja".
+				// TRANSLATORS: An attendee's answer, meaning "I will be there". Serves two purposes with one translation: it is the label of the Yes button on the notification, and it is substituted into sentences like "... answered Yes on ...". So it must work both as a standalone button and mid-sentence.
 				return $l->t('Yes');
 			case 'no':
-				// TRANSLATORS: An attendee's answer, meaning "I will not be there". Serves two purposes with one translation: it is the label of the No button on the notification, and it is substituted into sentences like "... answered No on ...". So it must work both as a standalone button and mid-sentence. Sample German: "Nein".
+				// TRANSLATORS: An attendee's answer, meaning "I will not be there". Serves two purposes with one translation: it is the label of the No button on the notification, and it is substituted into sentences like "... answered No on ...". So it must work both as a standalone button and mid-sentence.
 				return $l->t('No');
 			case 'maybe':
-				// TRANSLATORS: An attendee's answer, meaning "I do not know yet". Serves two purposes with one translation: it is the label of the Maybe button on the notification, and it is substituted into sentences like "... answered Maybe on ...". So it must work both as a standalone button and mid-sentence. Sample German: "Vielleicht".
+				// TRANSLATORS: An attendee's answer, meaning "I do not know yet". Serves two purposes with one translation: it is the label of the Maybe button on the notification, and it is substituted into sentences like "... answered Maybe on ...". So it must work both as a standalone button and mid-sentence.
 				return $l->t('Maybe');
 			default:
 				return $value;
