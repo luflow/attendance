@@ -412,7 +412,7 @@ t('attendance', 'By connecting, you agree to our [Terms of Service](terms) and a
 t('attendance', 'Current plan')
 t('attendance', 'Expired')
 // TRANSLATORS: Call-to-action button opening the subscription screen; "plans" are the paid subscription tiers, not schedules or agendas.
-t('attendance', 'See plans')
+t('attendance', 'View plans')
 t('attendance', 'No subscription plans available at this time.')
 t('attendance', 'No previous purchases found.')
 t('attendance', 'Purchase failed. Please try again.')
@@ -549,9 +549,6 @@ t('attendance', 'Rather book directly?')
 t('attendance', 'Scan NFC tag')
 t('attendance', 'Scan again')
 t('attendance', 'Scan to get the app, then sign in with this server address:')
-// TRANSLATORS: Call-to-action button opening the subscription screen on the group tiers; "plans" are the paid subscription tiers, not schedules or agendas.
-t('attendance', 'See group plans')
-t('attendance', 'See prices')
 t('attendance', 'Search by name …')
 t('attendance', 'Search users, groups or teams …')
 t('attendance', 'Select the appointment you want to check into:')
@@ -597,6 +594,10 @@ t('attendance', 'Using Attendance with a group? One license for the whole group 
 t('attendance', 'Using account {user} on {server}')
 // TRANSLATORS: Noun. In the mobile app: header of the personal-settings section where a user records their own absence periods. In the audit log: source label of an answer that was set automatically because the person is on vacation.
 t('attendance', 'Vacation')
+// TRANSLATORS: Call-to-action button opening the subscription screen on the group tiers; "plans" are the paid subscription tiers, not schedules or agendas.
+t('attendance', 'View group plans')
+// TRANSLATORS: Link in the mobile app's note about buying a license directly; it opens the price list on the website.
+t('attendance', 'View prices')
 t('attendance', 'What would you be willing to pay per year?')
 t('attendance', "What's still holding you back?")
 // TRANSLATORS: Asked after someone says the price is too high, to learn whether
