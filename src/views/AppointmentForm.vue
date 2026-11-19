@@ -174,7 +174,7 @@
 			</div>
 
 			<div class="form-section">
-				<h3>{{ t("attendance", "Date & Time") }}</h3>
+				<h3>{{ t("attendance", "Date & time") }}</h3>
 				<NcCheckboxRadioSwitch
 					:modelValue="formData.isAllDay"
 					data-test="checkbox-all-day"

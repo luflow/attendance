@@ -355,19 +355,19 @@ t('attendance', 'System')
 t('attendance', 'Light')
 t('attendance', 'Dark')
 
-t('attendance', 'Push Notifications')
+t('attendance', 'Push notifications')
 t('attendance', 'Connecting …')
 // TRANSLATORS: Status line under a server in the mobile app's push notification settings — the app is connected to that server's push service.
 t('attendance', 'Connected')
 t('attendance', 'Connection failed — tap to retry')
 t('attendance', 'Push notifications are not enabled')
-t('attendance', 'Notifications Disabled')
-t('attendance', 'Open Settings')
+t('attendance', 'Notifications disabled')
+t('attendance', 'Open settings')
 t('attendance', 'Stay up to date')
 t('attendance', 'Get notified about new appointments and reminders.')
-t('attendance', 'Enable Notifications')
+t('attendance', 'Enable notifications')
 t('attendance', 'Not now')
-t('attendance', 'Server Update Available')
+t('attendance', 'Server update available')
 t('attendance', "Your server's Attendance app may be outdated. Please update to version 1.34.0 or later for the best experience.")
 
 // TRANSLATORS: "Attendance" is the app name here, not the act of attending — error screen title in the mobile app when the Attendance app cannot be reached on the server.
@@ -398,11 +398,11 @@ t('attendance', 'Subscribe')
 t('attendance', 'Subscription')
 t('attendance', 'Active')
 t('attendance', 'Active app users')
-t('attendance', 'Manage Subscription')
+t('attendance', 'Manage subscription')
 // TRANSLATORS: Subscription status — the free trial period is running. German "Testphase", the same word as in "Your free trial has ended".
 t('attendance', 'Trial')
 t('attendance', 'days remaining')
-t('attendance', 'Restore Purchases')
+t('attendance', 'Restore purchases')
 // TRANSLATORS: Standalone button label (nominative) opening the Terms of Service document — not part of a sentence; the consent sentence uses inline links instead.
 t('attendance', 'Terms of Service')
 // TRANSLATORS: Standalone button label (nominative) opening the privacy policy document — not part of a sentence; the consent sentence uses inline links instead.

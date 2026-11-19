@@ -63,7 +63,7 @@
 
 			<!-- Regenerate confirmation dialog -->
 			<NcDialog :open="showRegenerateConfirm"
-				:name="t('attendance', 'Regenerate Subscription URL?')"
+				:name="t('attendance', 'Regenerate subscription URL?')"
 				@update:open="showRegenerateConfirm = false">
 				<p>{{ t('attendance', 'This will invalidate your current calendar subscription URL. Any calendar apps using the old URL will need to be updated with the new URL.') }}</p>
 				<template #actions>
