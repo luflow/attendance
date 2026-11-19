@@ -357,6 +357,7 @@ OC.L10N.register(
     "Guest" : "Convidado",
     "Permissions" : "Permissões",
     "Mobile apps" : "Aplicativos móveis",
+    "Privacy" : "Privacidade",
     "Response summary teams" : "Equipes para o resumo de respostas",
     "Settings saved" : "Definições guardadas",
     "Failed to save settings" : "Erro ao gravar as definições",

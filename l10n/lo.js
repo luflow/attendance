@@ -324,6 +324,7 @@ OC.L10N.register(
     "Guest" : "ແຂກ",
     "Permissions" : "ການອະນຸຍາດ",
     "Mobile apps" : "ແອັບມືຖື",
+    "Privacy" : "ຄວາມເປັນສ່ວນຕົວ",
     "Response summary teams" : "ທີມສະຫຼຸບການຕອບກັບ",
     "Settings saved" : "ບັນທຶກການຕັ້ງຄ່າແລ້ວ",
     "Failed to save settings" : "ບໍ່ສາມາດບັນທຶກການຕັ້ງຄ່າໄດ້",

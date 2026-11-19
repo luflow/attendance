@@ -144,6 +144,7 @@ OC.L10N.register(
     "Continue" : "Nadaljuj",
     "Never" : "nikoli",
     "Permissions" : "Dovoljenja",
+    "Privacy" : "Zasebnost",
     "Settings saved" : "Nastavitve so shranjene",
     "Failed to save settings" : "Shranjevanje nastavitev je spodletelo",
     "Failed to load settings" : "Nalaganje nastavitev je spodletelo.",

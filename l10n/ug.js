@@ -154,6 +154,7 @@ OC.L10N.register(
     "Never" : "ھەرگىز",
     "Guest" : "مېھمان",
     "Permissions" : "ئىجازەت",
+    "Privacy" : "مەخپىيەتلىك",
     "Settings saved" : "تەڭشەكلەر ساقلاندى",
     "Failed to save settings" : "تەڭشەكلەرنى ساقلىيالمىدى",
     "Failed to load settings" : "تەڭشەكلەرنى يۈكلىيەلمىدى",

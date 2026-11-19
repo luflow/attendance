@@ -62,6 +62,7 @@ OC.L10N.register(
     "Close" : "Zoumaachen",
     "Continue" : "Weider",
     "Never" : "Ni",
+    "Privacy" : "Dateschutz",
     "Settings saved" : "Astellunge gespäichert",
     "Failed to save settings" : "Späichere vun den Astellunge feelgeschloen",
     "Link copied" : "Link kopéiert",

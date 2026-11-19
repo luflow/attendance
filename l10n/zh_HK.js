@@ -703,6 +703,7 @@ OC.L10N.register(
     "Vacation calendar" : "休假日曆",
     "Answer options" : "回覆選項",
     "Mobile apps" : "流動應用程式",
+    "Privacy" : "私隱",
     "New category name" : "新類別名稱",
     "Could not load categories" : "無法載入類別",
     "Could not create category" : "無法建立類別",

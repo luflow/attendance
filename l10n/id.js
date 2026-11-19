@@ -610,6 +610,7 @@ OC.L10N.register(
     "Setup wizard" : "Panduan penyiapan",
     "Permissions" : "Izin",
     "Mobile apps" : "Aplikasi seluler",
+    "Privacy" : "Privasi",
     "New category name" : "Nama kategori baru",
     "Could not load categories" : "Tidak dapat memuat kategori",
     "Could not create category" : "Tidak dapat membuat kategori",

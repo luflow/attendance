@@ -146,6 +146,7 @@ OC.L10N.register(
     "Never" : "なし",
     "Guest" : "ゲスト",
     "Permissions" : "アクセス権限",
+    "Privacy" : "プライバシー",
     "Settings saved" : "設定が保存されました",
     "Failed to save settings" : "設定の保存に失敗しました",
     "Failed to load settings" : "設定の読込に失敗しました",

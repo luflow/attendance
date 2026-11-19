@@ -86,6 +86,7 @@ OC.L10N.register(
     "Never" : "Jamai",
     "Guest" : "Convidat",
     "Permissions" : "Autorizacions",
+    "Privacy" : "Confidencialitat",
     "Settings saved" : "Paramètres salvats",
     "Failed to save settings" : "Fracàs de l’enregistrament dels paramètres",
     "Link copied" : "Ligam copiat",

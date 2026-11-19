@@ -107,6 +107,7 @@ OC.L10N.register(
     "Never" : "Never",
     "Guest" : "Guest",
     "Permissions" : "Permissions",
+    "Privacy" : "Privacy",
     "Settings saved" : "Settings saved",
     "Failed to save settings" : "Failed to save settings",
     "Link copied" : "ლინკი მოიკოპა",

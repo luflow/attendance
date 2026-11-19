@@ -367,6 +367,7 @@ OC.L10N.register(
     "Guest" : "مهمان",
     "Permissions" : "مجوزها",
     "Mobile apps" : "برنامه‌های موبایل",
+    "Privacy" : "حریم خصوصی",
     "Response summary teams" : "تیم‌های خلاصه پاسخ",
     "Settings saved" : "تنظیمات ذخیره شد",
     "Failed to save settings" : "ذخیره تنظیمات انجام نشد",

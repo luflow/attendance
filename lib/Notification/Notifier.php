@@ -108,11 +108,11 @@ class Notifier implements INotifier {
 				$userId = $notification->getUser();
 
 				$notification->setParsedSubject(
-					// TRANSLATORS: Push notification subject reminding someone that they have not answered yet. %1$s is the appointment name, %2$s its date and time. "Response" is the recipient's own yes/no/maybe answer. Sample German: "Antwort fehlt: „Probe" am 12.09.2026 18:00".
+					// TRANSLATORS: Push notification subject reminding someone that they have not answered yet. %1$s is the appointment name, %2$s its date and time. "Response" is the recipient's own yes/no/maybe answer. Example: Response missing: Rehearsal on 12 September 2026 18:00.
 					$l->t('Response missing: %1$s on %2$s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
-					// TRANSLATORS Push notification body for a reminder, shown under a "Response missing" subject that already names the appointment and its date. The app speaks as "we", the people organizing — not about them in the third person. People who cannot come tend to stay silent rather than answer, which leaves the planning guessing, hence the second sentence. Sample German: "Wir warten noch auf dich. Ein Nein hilft uns genauso wie ein Ja.".
+					// TRANSLATORS Push notification body for a reminder, shown under a "Response missing" subject that already names the appointment and its date. The app speaks as "we", the people organizing — not about them in the third person. People who cannot come tend to stay silent rather than answer, which leaves the planning guessing, hence the second sentence.
 					$l->t('We are still waiting. A no helps just as much as a yes.')
 				);
 				$notification->setIcon($this->iconUrl());
@@ -131,11 +131,11 @@ class Notifier implements INotifier {
 				$userId = $notification->getUser();
 
 				$notification->setParsedSubject(
-					// TRANSLATORS: Push notification subject announcing an appointment the recipient has just been invited to. %1$s is the appointment name, %2$s its date and time. Sample German: "Neuer Termin: „Probe" am 12.09.2026 18:00".
+					// TRANSLATORS: Push notification subject announcing an appointment the recipient has just been invited to. %1$s is the appointment name, %2$s its date and time. Example: New appointment: Rehearsal on 12 September 2026 18:00.
 					$l->t('New appointment: %1$s on %2$s', [$appointmentName, $appointmentDate])
 				);
 				$notification->setParsedMessage(
-					// TRANSLATORS Push notification body for a newly created appointment, shown under a "New appointment" subject that already names it and its date. The app speaks as "we", the people organizing — not about them in the third person. "Make it" means being able to attend. Organizers only switch this notification on when they need answers fast, so keep the urgency of the first sentence: it is the whole reason the message was sent. Sample German: "Wir brauchen schnell deine Rückmeldung. Bist du dabei?".
+					// TRANSLATORS Push notification body for a newly created appointment, shown under a "New appointment" subject that already names it and its date. The app speaks as "we", the people organizing — not about them in the third person. "Make it" means being able to attend. Organizers only switch this notification on when they need answers fast, so keep the urgency of the first sentence: it is the whole reason the message was sent.
 					$l->t('We need your answer quickly. Let us know whether you can make it.')
 				);
 				$notification->setIcon($this->iconUrl());
@@ -202,7 +202,7 @@ class Notifier implements INotifier {
 						$l->t('A spot came free for %1$s on %2$s', [$appointmentName, $appointmentDate])
 					);
 					$notification->setParsedMessage(
-						// TRANSLATORS Push notification body, shown under a subject that already says a spot came free. Nobody clicked anything to make this happen — the person was waiting and moved up — so say plainly that they are in now. Sample German: "Du warst auf der Warteliste und bist jetzt dabei. Bitte halte dir den Termin frei."
+						// TRANSLATORS Push notification body, shown under a subject that already says a spot came free. Nobody clicked anything to make this happen — the person was waiting and moved up — so say plainly that they are in now.
 						$l->t('You were on the waitlist and are in now. Please plan to be there.')
 					);
 				} else {
@@ -211,7 +211,7 @@ class Notifier implements INotifier {
 						$l->t('No spot came free for %1$s on %2$s', [$appointmentName, $appointmentDate])
 					);
 					$notification->setParsedMessage(
-						// TRANSLATORS Push notification body, shown under a subject that already says no spot came free. The point is to release the person from holding the date — without this they keep the evening free for nothing. The app speaks as "we", the people organizing. Sample German: "Der Termin ist voll geblieben, du musst dir den Tag nicht mehr freihalten. Danke für deine Antwort."
+						// TRANSLATORS Push notification body, shown under a subject that already says no spot came free. The point is to release the person from holding the date — without this they keep the evening free for nothing. The app speaks as "we", the people organizing.
 						$l->t('The appointment stayed full, so you no longer need to keep the date free. Thanks for answering.')
 					);
 				}
@@ -228,11 +228,11 @@ class Notifier implements INotifier {
 
 				$notification->setParsedSubject(
 					// TRANSLATORS Push notification subject: a recurring appointment was set up, or a whole series just became visible to this person. %1$s is how many dates there are, %2$s the name they all share — every appointment in the batch carries that same name, so it is the title of the whole thing rather than one example. Keep %1$s in both forms: languages with more than two plural forms need the number in the "one" form too (Russian uses it for 21, 31, …).
-					// Sample German: "1 neuer Termin „Probe" hinzugefuegt" / "12 neue Termine „Probe" hinzugefuegt".
+					// Example: 1 new "Rehearsal" appointment added / 12 new "Rehearsal" appointments added.
 					$l->n('%1$s new "%2$s" appointment added', '%1$s new "%2$s" appointments added', $count, [$count, $firstName])
 				);
 				$notification->setParsedMessage(
-					// TRANSLATORS Push notification body for several appointments added at once, shown under a subject that already gives the number and one example name. The app speaks as "we", the people organizing — not about them in the third person. The recipient answers each appointment separately, which is why this says "which ones" rather than asking for a single answer. Sample German: "Sag uns bitte, bei welchen Terminen du dabei bist.".
+					// TRANSLATORS Push notification body for several appointments added at once, shown under a subject that already gives the number and one example name. The app speaks as "we", the people organizing — not about them in the third person. The recipient answers each appointment separately, which is why this says "which ones" rather than asking for a single answer.
 					$l->t('Let us know which ones you can make.')
 				);
 				$notification->setIcon($this->iconUrl());

@@ -673,7 +673,7 @@
 				<LicenseStatus class="subsection" />
 
 				<div class="subsection">
-					<h4>{{ t('attendance', 'Mobile App promotion banner') }}</h4>
+					<h4>{{ t('attendance', 'Mobile app promotion banner') }}</h4>
 					<p class="subsection-hint">
 						{{ t('attendance', 'Show a banner at the top of the web app advertising the mobile apps. Users can dismiss the banner, and users who already have a push device connected will not see it.') }}
 					</p>

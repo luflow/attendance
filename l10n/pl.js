@@ -162,6 +162,7 @@ OC.L10N.register(
     "Never" : "Nigdy",
     "Guest" : "Gość",
     "Permissions" : "Uprawnienia",
+    "Privacy" : "Prywatność",
     "Settings saved" : "Ustawienia zapisane",
     "Failed to save settings" : "Nie udało się zapisać ustawień",
     "Failed to load settings" : "Nie udało się wczytać ustawień",

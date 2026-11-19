@@ -155,6 +155,7 @@ OC.L10N.register(
     "Continue" : "Folytatás",
     "Never" : "Soha",
     "Permissions" : "Jogosultságok",
+    "Privacy" : "Adatvédelem",
     "Settings saved" : "Beállítások mentve",
     "Failed to save settings" : "A beállítások mentése sikertelen",
     "Failed to load settings" : "A beállítások betöltése sikertelen",

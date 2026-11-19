@@ -703,6 +703,7 @@ OC.L10N.register(
     "Vacation calendar" : "Calendarul concediilor",
     "Answer options" : "Opțiuni de răspuns",
     "Mobile apps" : "Aplicații mobile",
+    "Privacy" : "Confidențialitate",
     "New category name" : "Numele noii categorii",
     "Could not load categories" : "Categoriile nu au putut fi încărcate",
     "Could not create category" : "Categoria nu a putut fi creată",

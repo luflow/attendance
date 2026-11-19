@@ -296,6 +296,7 @@ OC.L10N.register(
     "Never" : "Nooit",
     "Guest" : "Gast",
     "Permissions" : "Rechten",
+    "Privacy" : "Privacy",
     "Settings saved" : "Instellingen opgeslagen",
     "Failed to save settings" : "Instellingen konden niet worden opgeslagen",
     "Failed to load settings" : "Kon instellingen niet laden",

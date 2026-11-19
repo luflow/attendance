@@ -537,6 +537,7 @@ OC.L10N.register(
     "Vacation calendar" : "Puhkusekalender",
     "Answer options" : "Küsimuste valikud",
     "Mobile apps" : "Nutirakendused",
+    "Privacy" : "Privaatsus",
     "New category name" : "Uue kategooria nimi",
     "Could not load categories" : "Kategooriate laadimine ei õnnestunud",
     "Could not create category" : "Kategooria lisamine ei õnnestunud",

@@ -703,6 +703,7 @@ OC.L10N.register(
     "Vacation calendar" : "Semesterkalender",
     "Answer options" : "Svarsalternativ",
     "Mobile apps" : "Mobilappar",
+    "Privacy" : "Integritet",
     "New category name" : "Nytt kategorinamn",
     "Could not load categories" : "Det gick inte att läsa in kategorierna",
     "Could not create category" : "Det gick inte att skapa kategorin",

@@ -559,7 +559,9 @@ class TalkRoomService {
 		// Same distinction the UI hint makes: without planning nobody is
 		// "scheduled", everyone who accepted is simply in.
 		$intro = $this->configService->isBookingEnabled()
+			// TRANSLATORS: Description of the Talk room opened for an appointment. "Scheduled into" means the people who were given a place when the organizers planned the lineup. %1$s is a link to the appointment.
 			? $l->t('Talk room for everyone scheduled into this appointment. Details: %1$s', [$url])
+			// TRANSLATORS: Description of the Talk room opened for an appointment, holding everyone who answered yes. %1$s is a link to the appointment.
 			: $l->t('Talk room for everyone who accepted this appointment. Details: %1$s', [$url]);
 
 		$own = trim($appointment->getDescription() ?? '');

@@ -93,6 +93,7 @@ OC.L10N.register(
     "Continue" : "Davom etish",
     "Never" : "Hech qachon",
     "Permissions" : "Ruxsatnomalar",
+    "Privacy" : "Maxfiylik",
     "Settings saved" : "Sozlamalar saqlandi",
     "Failed to save settings" : "Sozlamalarni saqlab bo'lmadi",
     "Failed to load settings" : "Sozlamalarni yuklab bo'lmadi",

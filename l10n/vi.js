@@ -106,6 +106,7 @@ OC.L10N.register(
     "Close" : "Đóng",
     "Continue" : "Tiếp tục",
     "Never" : "Không bao giờ",
+    "Privacy" : "Bảo mật",
     "Settings saved" : "Cấu hình đã được lưu",
     "Failed to save settings" : "Lưu cấu hình thất bại",
     "Failed to load settings" : "Tải cấu hình thất bại",

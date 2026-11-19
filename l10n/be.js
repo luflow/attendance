@@ -101,6 +101,7 @@ OC.L10N.register(
     "Guest" : "Госць",
     "Permissions" : "Дазволы",
     "Mobile apps" : "Мабільныя праграмы",
+    "Privacy" : "Прыватнасць",
     "Settings saved" : "Налады захаваны",
     "Failed to save settings" : "Не ўдалося захаваць налады",
     "Link copied" : "Спасылка скапіявана",

@@ -117,6 +117,7 @@ OC.L10N.register(
     "Never" : "מעולם לא",
     "Guest" : "אורח",
     "Permissions" : "הרשאות",
+    "Privacy" : "פרטיות",
     "Settings saved" : "הגדרות נשמרו",
     "Failed to save settings" : "שמירת ההגדרות נכשלה",
     "Failed to load settings" : "טעינת ההגדרות נכשלה",

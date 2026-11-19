@@ -703,6 +703,7 @@ OC.L10N.register(
     "Vacation calendar" : "Календарь отпусков",
     "Answer options" : "Варианты ответа",
     "Mobile apps" : "Мобильные приложения",
+    "Privacy" : "Конфиденциальность",
     "New category name" : "Название новой категории",
     "Could not load categories" : "Не удалось загрузить категории",
     "Could not create category" : "Не удалось создать категорию",

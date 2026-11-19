@@ -394,6 +394,7 @@ OC.L10N.register(
     "Guest" : "Επισκέπτης",
     "Permissions" : "Δικαιώματα",
     "Mobile apps" : "Εφαρμογές για κινητά",
+    "Privacy" : "Απόρρητο",
     "Let managers mark yes-responders as scheduled for an appointment. When off, no scheduling controls are shown anywhere." : "Επιτρέπει στους διαχειριστές να σημειώνουν όσους απάντησαν θετικά ως προγραμματισμένους για ένα ραντεβού. Όταν είναι απενεργοποιημένο, δεν εμφανίζονται στοιχεία ελέγχου προγραμματισμού πουθενά.",
     "Response summary teams" : "Ομάδες εργασίας (teams) σύνοψης απαντήσεων",
     "Settings saved" : "Οι ρυθμίσεις αποθηκεύτηκαν",

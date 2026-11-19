@@ -124,6 +124,7 @@ OC.L10N.register(
     "Close" : "Cerrar",
     "Continue" : "Continuar",
     "Permissions" : "Permisos",
+    "Privacy" : "Privacidad",
     "Settings saved" : "Se han guardado las configuraciones ",
     "Failed to save settings" : "No se pudo guardar la configuración",
     "Failed to load settings" : "No se pudo cargar la configuración",

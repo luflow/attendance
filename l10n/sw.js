@@ -283,6 +283,7 @@ OC.L10N.register(
     "Never" : "Kamwe",
     "Guest" : "Mgeni",
     "Permissions" : "Ruhusa",
+    "Privacy" : "Faragha",
     "Response summary teams" : "Timu za muhtasari wa majibu",
     "Settings saved" : "Mipangilio imehifadhiwa",
     "Failed to save settings" : "Imeshindwa kuhifadhi mipangilio",

@@ -152,6 +152,7 @@ OC.L10N.register(
     "Never" : "Weṛǧin",
     "Guest" : "Inebgi",
     "Permissions" : "Tisirag",
+    "Privacy" : "Tabaḍnit",
     "Settings saved" : "Iɣewwaren ttwakelsen",
     "Link copied" : "Aseɣwen yettwanɣel",
     "Group by" : "Segrew s",

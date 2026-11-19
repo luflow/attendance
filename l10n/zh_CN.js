@@ -152,6 +152,7 @@ OC.L10N.register(
     "Never" : "永不",
     "Guest" : "访客",
     "Permissions" : "权限",
+    "Privacy" : "隐私",
     "Settings saved" : "已保存设置",
     "Failed to save settings" : "无法保存设置",
     "Failed to load settings" : "无法加载设置",
