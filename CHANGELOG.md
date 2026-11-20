@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.60.0 – 2026-11-20
+
+### Added
+
+- **Month headings in the appointment lists**: appointments are grouped by month, the heading stays pinned while scrolling, and a line marks every change of year
+- **"Past" badge**: appointments that are over carry it in the lists and on the detail page
+- **Mobile-app license in the admin settings**: trial or plan status, device count and how to buy by invoice
+- **Notification when a member asks for the mobile app**: admins hear about it when someone needs an invoice or cannot decide alone
+
+### Changed
+
+- **Clearer sections in "All appointments"**: larger headings for upcoming, past and cancelled appointments
+
 ## 1.59.0 – 2026-11-20
 
 ### Changed
