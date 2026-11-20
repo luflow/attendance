@@ -16,6 +16,7 @@ OC.L10N.register(
     "Theme" : "ვიზუალური თემა",
     "System" : "სისტემა",
     "Connected" : "კავშირი დამყარებულია",
+    "Open settings" : "პარამეტრების გახსნა",
     "Not now" : "ახლა არა",
     "Subscribe" : "გამოწერა",
     "Expired" : "გაუქმდა",
