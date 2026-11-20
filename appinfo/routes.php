@@ -62,6 +62,10 @@ return [
 		['name' => 'admin#syncOrgCalendar', 'url' => '/api/admin/org-calendar/sync', 'verb' => 'POST'],
 		['name' => 'admin#syncVacationCalendar', 'url' => '/api/admin/vacation-calendar/sync', 'verb' => 'POST'],
 
+		// Mobile-app license; the relay fetches the proof to confirm this server's URL
+		['name' => 'license#status', 'url' => '/api/admin/license', 'verb' => 'GET'],
+		['name' => 'license#proof', 'url' => '/api/license/proof', 'verb' => 'GET'],
+
 		// Categories (admin-managed list; GET is available to any user for the
 		// appointment-form picker and the list filter)
 		['name' => 'category#index', 'url' => '/api/categories', 'verb' => 'GET'],

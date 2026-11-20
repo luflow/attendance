@@ -670,6 +670,8 @@
 					</div>
 				</div>
 
+				<LicenseStatus class="subsection" />
+
 				<div class="subsection">
 					<h4>{{ t('attendance', 'Mobile app promotion banner') }}</h4>
 					<p class="subsection-hint">
@@ -842,6 +844,7 @@ import RocketLaunchIcon from 'vue-material-design-icons/RocketLaunch.vue'
 import TrashCan from 'vue-material-design-icons/TrashCan.vue'
 import CategoryEditDialog from '../components/admin/CategoryEditDialog.vue'
 import CategoryIconPicker from '../components/admin/CategoryIconPicker.vue'
+import LicenseStatus from '../components/admin/LicenseStatus.vue'
 import PermissionRow from '../components/admin/PermissionRow.vue'
 import SectionLink from '../components/admin/SectionLink.vue'
 import GroupSelect from '../components/common/GroupSelect.vue'

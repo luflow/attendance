@@ -8,6 +8,7 @@ use OCA\Attendance\Db\Appointment;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use OCP\IGroupManager;
+use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
 
@@ -544,6 +545,17 @@ class PermissionService {
 	 */
 	public function isAdmin(string $userId): bool {
 		return $this->groupManager->isAdmin($userId);
+	}
+
+	/**
+	 * The enabled members of the admin group: who gets told about things only
+	 * an administrator can act on.
+	 *
+	 * @return list<IUser>
+	 */
+	public function getAdminUsers(): array {
+		$users = $this->groupManager->get('admin')?->getUsers() ?? [];
+		return array_values(array_filter($users, static fn (IUser $user): bool => $user->isEnabled()));
 	}
 
 	/**

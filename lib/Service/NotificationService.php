@@ -7,6 +7,7 @@ namespace OCA\Attendance\Service;
 use OCA\Attendance\Db\Appointment;
 use OCP\Activity\IManager as IActivityManager;
 use OCP\App\IAppManager;
+use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IAppConfig;
 use OCP\IDBConnection;
 use OCP\IURLGenerator;
@@ -107,6 +108,35 @@ class NotificationService {
 		} catch (\Exception $e) {
 			$this->logger->debug('Could not query push devices: ' . $e->getMessage());
 			return 0;
+		}
+	}
+
+	/**
+	 * Device identifiers registered with the given push proxy, across all users.
+	 *
+	 * @return list<string>
+	 */
+	public function getPushDeviceIdentifiers(string $proxyServer, int $limit): array {
+		$proxy = rtrim($proxyServer, '/');
+		try {
+			$qb = $this->db->getQueryBuilder();
+			$qb->select('deviceidentifier')
+				->from('notifications_pushhash')
+				->where($qb->expr()->in('proxyserver', $qb->createNamedParameter([$proxy, $proxy . '/'], IQueryBuilder::PARAM_STR_ARRAY)))
+				->orderBy('id', 'DESC')
+				->setMaxResults($limit);
+			$result = $qb->executeQuery();
+			$identifiers = [];
+			foreach ($result->fetchAllAssociative() as $row) {
+				if (isset($row['deviceidentifier']) && is_string($row['deviceidentifier'])) {
+					$identifiers[] = $row['deviceidentifier'];
+				}
+			}
+			$result->closeCursor();
+			return $identifiers;
+		} catch (\Exception $e) {
+			$this->logger->debug('Could not query push devices: ' . $e->getMessage());
+			return [];
 		}
 	}
 
