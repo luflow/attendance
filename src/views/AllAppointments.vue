@@ -218,22 +218,30 @@
 			</NcEmptyContent>
 			<div v-else>
 				<template v-for="section in visibleSections" :key="section.key">
-					<h3 v-if="section.label" class="section-heading">
+					<h3 v-if="section.label" class="section-heading" data-test="section-heading">
 						{{ section.label }}
 					</h3>
-					<AppointmentListCard
-						v-for="appointment in section.items"
-						:key="appointment.id"
-						:appointment="appointment"
-						@openDetail="(id) => emit('openDetail', id)"
-						@startCheckin="startCheckin"
-						@edit="editAppointment"
-						@copy="copyAppointment"
-						@delete="deleteAppointment"
-						@export="showExportDialog"
-						@submitResponse="submitResponse"
-						@closedToggled="handleClosedToggled"
-						@showAuditLog="(id) => emit('showAuditLog', id)" />
+					<section v-for="group in section.groups" :key="group.key">
+						<div v-if="group.year" class="year-divider" data-test="year-divider">
+							{{ group.year }}
+						</div>
+						<h3 v-if="group.label" class="month-heading" data-test="month-heading">
+							{{ group.label }}
+						</h3>
+						<AppointmentListCard
+							v-for="appointment in group.items"
+							:key="appointment.id"
+							:appointment="appointment"
+							@openDetail="(id) => emit('openDetail', id)"
+							@startCheckin="startCheckin"
+							@edit="editAppointment"
+							@copy="copyAppointment"
+							@delete="deleteAppointment"
+							@export="showExportDialog"
+							@submitResponse="submitResponse"
+							@closedToggled="handleClosedToggled"
+							@showAuditLog="(id) => emit('showAuditLog', id)" />
+					</section>
 				</template>
 				<!-- Scrolling near the end loads the next page; the button is the
 				     same action for keyboards and for a browser that never fires. -->
@@ -293,6 +301,7 @@ import { useCategoryFilterChips } from '../composables/useCategoryFilterChips.js
 import { usePagedAppointments } from '../composables/usePagedAppointments.js'
 import { usePermissions } from '../composables/usePermissions.js'
 import { categoryIconComponent } from '../utils/categoryIcons.js'
+import { appointmentStart, formatMonthHeading } from '../utils/datetime.js'
 import { VIEWS } from './appointmentViews.js'
 
 const props = defineProps({
@@ -702,11 +711,33 @@ const availableCategories = computed(() => categories.filter((category) => facet
 // Reload what is on screen without a spinner or a jump back to the top.
 const refresh = () => reload({ silent: true, keepLoaded: true })
 
+// A year line marks every change of year; a section that opens in the current year needs none.
+function monthGroups(items) {
+	const now = new Date()
+	const groups = new Map()
+	let year = now.getFullYear()
+	for (const appointment of items) {
+		const start = appointmentStart(appointment.startDatetime, appointment.isAllDay)
+		const month = `${start.getFullYear()}-${start.getMonth()}`
+		if (!groups.has(month)) {
+			groups.set(month, {
+				key: month,
+				label: formatMonthHeading(start, now),
+				year: start.getFullYear() === year ? null : start.getFullYear(),
+				items: [],
+			})
+			year = start.getFullYear()
+		}
+		groups.get(month).items.push(appointment)
+	}
+	return [...groups.values()]
+}
+
 // All view shows upcoming + past back-to-back; subdivide so the user knows
 // where the boundary is. Other views are a single homogeneous list.
 const visibleSections = computed(() => {
 	if (!viewDef.value.mixesPastAndUpcoming) {
-		return [{ key: 'all', label: '', items: appointments.value }]
+		return [{ key: 'all', label: '', groups: monthGroups(appointments.value) }]
 	}
 	// Cancelled appointments get their own section at the bottom, regardless of
 	// past/upcoming, so they stay visible but clearly set apart. The server
@@ -717,10 +748,10 @@ const visibleSections = computed(() => {
 	const upcoming = active.filter((a) => !a.isPast)
 	const past = active.filter((a) => a.isPast)
 	return [
-		upcoming.length && { key: 'upcoming', label: t('attendance', 'Upcoming'), items: upcoming },
-		past.length && { key: 'past', label: t('attendance', 'Past'), items: past },
-		// TRANSLATORS: Group heading for appointments that were called off (German "Abgesagt", not "Abgebrochen").
-		cancelled.length && { key: 'cancelled', label: t('attendance', 'Cancelled'), items: cancelled },
+		upcoming.length && { key: 'upcoming', label: t('attendance', 'Upcoming appointments'), groups: monthGroups(upcoming) },
+		past.length && { key: 'past', label: t('attendance', 'Past appointments'), groups: monthGroups(past) },
+		// Upcoming and past mixed, so its months would run forwards, then back: one group.
+		cancelled.length && { key: 'cancelled', label: t('attendance', 'Cancelled appointments'), groups: [{ key: 'cancelled', items: cancelled }] },
 	].filter(Boolean)
 })
 
@@ -903,6 +934,7 @@ onMounted(async () => {
 	padding: 0 20px 20px;
 	max-width: 1200px;
 	margin: 0 auto;
+	container-type: inline-size;
 }
 
 .appointments-list {
@@ -930,12 +962,50 @@ onMounted(async () => {
 }
 
 .section-heading {
+	font-size: 1.25em;
+	font-weight: 700;
+	color: var(--color-main-text);
+	margin: 36px 0 4px;
+	&:first-child {
+		margin-top: 0;
+	}
+}
+
+.month-heading {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	// A hair wider than the cards, or their borders show beside the pinned heading.
+	margin: 0 -2px;
+	padding: 10px 2px 8px;
+	background: var(--color-main-background);
 	font-size: 1.05em;
 	font-weight: 600;
 	color: var(--color-text-maxcontrast);
-	margin: 16px 0 8px;
-	&:first-child {
-		margin-top: 0;
+}
+
+// Narrower than this, the list starts beneath the navigation toggle, which
+// would sit on top of a pinned heading.
+@container (max-width: 860px) {
+	.month-heading {
+		padding-inline-start: var(--default-clickable-area, 34px);
+	}
+}
+
+.year-divider {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	margin: 20px 0 4px;
+	font-size: 1.15em;
+	font-weight: 700;
+	color: var(--color-main-text);
+
+	&::before,
+	&::after {
+		content: '';
+		flex: 1;
+		border-top: 2px solid var(--color-border-dark);
 	}
 }
 

@@ -626,8 +626,7 @@ OC.L10N.register(
     "Create one and everybody can reply straight away." : "Legen Sie einen an, dann können alle sofort antworten.",
     "No appointments found" : "Keine Termine gefunden",
     "No appointments match the active filters." : "Keine Termine stimmen mit den aktiven Filtern überein.",
-    "Upcoming" : "Kommende",
-    "Past" : "Vergangene",
+    "Past" : "Vergangen",
     "View all" : "Alle anzeigen",
     "Hurray! You responded to all appointments." : "Hurra! Sie haben auf alle Termine geantwortet.",
     "Show upcoming appointments" : "Anstehende Termine anzeigen",
@@ -1150,6 +1149,7 @@ OC.L10N.register(
     "Privacy" : "Datenschutz",
     "Nextcloud shows the email address of every account to all other accounts, for example in the menu on a profile picture in Talk." : "Nextcloud zeigt die E-Mail-Adresse jedes Kontos allen anderen Konten, zum Beispiel im Menü am Profilbild in Talk.",
     "Hide the email address of accounts" : "E-Mail-Adresse von Konten ausblenden",
-    "This applies to the whole server, not only to Attendance. The address is removed from the menu on a profile picture, the contacts menu and the account search. Profile pages and synced address books still show it." : "Das gilt für den ganzen Server, nicht nur für Anwesenheit. Die Adresse verschwindet aus dem Menü am Profilbild, aus dem Kontaktmenü und aus der Kontosuche. Profilseiten und synchronisierte Adressbücher zeigen die Adresse weiterhin."
+    "This applies to the whole server, not only to Attendance. The address is removed from the menu on a profile picture, the contacts menu and the account search. Profile pages and synced address books still show it." : "Das gilt für den ganzen Server, nicht nur für Anwesenheit. Die Adresse verschwindet aus dem Menü am Profilbild, aus dem Kontaktmenü und aus der Kontosuche. Profilseiten und synchronisierte Adressbücher zeigen die Adresse weiterhin.",
+    "Cancelled appointments" : "Abgesagte Termine"
 },
 "nplurals=2; plural=(n != 1);");
