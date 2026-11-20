@@ -20,14 +20,14 @@
 		</template>
 	</NcChip>
 	<NcChip
-		v-else-if="isClosed"
-		class="status-chip status-chip--closed"
-		:text="t('attendance', 'Closed')"
+		v-if="neutralChip"
+		class="status-chip status-chip--neutral"
+		:text="neutralChip.text"
 		variant="tertiary"
 		noClose
-		data-test="closed-badge">
+		:data-test="neutralChip.test">
 		<template #icon>
-			<LockIcon :size="14" />
+			<component :is="neutralChip.icon" :size="14" />
 		</template>
 	</NcChip>
 </template>
@@ -37,9 +37,11 @@ import { NcChip } from '@nextcloud/vue'
 import { computed } from 'vue'
 import CalendarCheckIcon from 'vue-material-design-icons/CalendarCheck.vue'
 import CalendarRemoveIcon from 'vue-material-design-icons/CalendarRemove.vue'
+import HistoryIcon from 'vue-material-design-icons/History.vue'
 import LockIcon from 'vue-material-design-icons/Lock.vue'
 import { usePermissions } from '../../composables/usePermissions.js'
 import { finalScheduleStatus } from '../../utils/appointment.js'
+import { isPast as isPastDate } from '../../utils/datetime.js'
 
 const props = defineProps({
 	appointment: {
@@ -52,7 +54,22 @@ const { capabilities } = usePermissions()
 
 const isCancelled = computed(() => Boolean(props.appointment.cancelledAt))
 const isClosed = computed(() => Boolean(props.appointment.closedAt))
+// List rows carry the server's verdict; the detail payload has none.
+const isPast = computed(() => props.appointment.isPast ?? isPastDate(props.appointment.endDatetime))
 const scheduleStatus = computed(() => finalScheduleStatus(props.appointment, capabilities.bookingEnabled))
+
+// Over is the stronger reason nobody can answer any more, so it replaces "Closed".
+const neutralChip = computed(() => {
+	if (isCancelled.value) return null
+	if (isPast.value) {
+		// TRANSLATORS: Status badge on a single appointment that is over (German "Vergangen").
+		return { text: t('attendance', 'Past'), icon: HistoryIcon, test: 'past-badge' }
+	}
+	if (isClosed.value && !scheduleStatus.value) {
+		return { text: t('attendance', 'Closed'), icon: LockIcon, test: 'closed-badge' }
+	}
+	return null
+})
 
 const scheduleLabel = computed(() => {
 	if (scheduleStatus.value === 'booked') {
@@ -68,9 +85,9 @@ const scheduleLabel = computed(() => {
 .status-chip {
     flex-shrink: 0;
 
-    // The closed state is easy to overlook next to a plain title, so it gets a
-    // stronger outline than the default chip.
-    &--closed {
+    // Grey on grey is easy to overlook next to a plain title, so the neutral
+    // states get a stronger outline than the default chip.
+    &--neutral {
         border: 1.5px solid var(--color-border-dark);
     }
 }

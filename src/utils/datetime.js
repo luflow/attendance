@@ -273,6 +273,17 @@ export function allDaySpan(startDatetime, endDatetime) {
 }
 
 /**
+ * When an appointment starts; an all-day one at the local midnight of its first day.
+ *
+ * @param {string|Date} startDatetime - The start datetime
+ * @param {boolean} allDay - Whether the appointment is all day, see allDaySpan()
+ * @return {Date} The start
+ */
+export function appointmentStart(startDatetime, allDay = false) {
+	return allDay ? allDaySpan(startDatetime)[0] : new Date(startDatetime)
+}
+
+/**
  * Format an appointment's start: date and time, or the date alone when it is all day.
  *
  * @param {string|Date} startDatetime - The start datetime
@@ -284,6 +295,19 @@ export function formatStart(startDatetime, allDay = false, dateStyle = 'short') 
 	if (!allDay) return formatDateTime(startDatetime, { dateStyle })
 	const [first] = allDaySpan(startDatetime)
 	return first ? formatDate(first, dateStyle) : ''
+}
+
+/**
+ * Month an appointment list is grouped under: "November", with the year
+ * unless it is the current one.
+ *
+ * @param {Date} date - A day in that month
+ * @param {Date} now - Decides which year needs no mention
+ * @return {string} Month heading
+ */
+export function formatMonthHeading(date, now = new Date()) {
+	const year = date.getFullYear() === now.getFullYear() ? undefined : 'numeric'
+	return date.toLocaleDateString(getCanonicalLocale(), { month: 'long', year })
 }
 
 /**

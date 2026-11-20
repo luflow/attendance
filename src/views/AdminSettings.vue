@@ -849,7 +849,7 @@ import LoadingState from '../components/common/LoadingState.vue'
 import TeamSelect from '../components/common/TeamSelect.vue'
 import { categoryIconComponent, DEFAULT_CATEGORY_ICON } from '../utils/categoryIcons.js'
 import { copyToClipboard } from '../utils/clipboard.js'
-import { allDaySpan, formatDate, formatDateTimeMedium, formatStart } from '../utils/datetime.js'
+import { appointmentStart, formatDate, formatDateTimeMedium, formatStart } from '../utils/datetime.js'
 import { toGroupObjects } from '../utils/groups.js'
 import { MOBILE_APP_STORES } from '../utils/mobileApp.js'
 import { AUDIT_VISIBILITIES, permissionGroups as buildPermissionGroups, emptyPermissionState, PERMISSION_NAMES, PERMISSION_ROWS, REMINDER_TARGETS, RESPONSE_SUMMARY_GROUP_MODES, RESPONSE_SUMMARY_TEAM_MODES } from '../utils/permissions.js'
@@ -1093,8 +1093,7 @@ const reminderSectionDescription = computed(() => {
 // An all-day appointment starts on its day, in whatever zone its midnight was entered.
 const nextAppointmentStart = computed(() => {
 	if (!nextAppointment.value) return null
-	const { startDatetime, isAllDay } = nextAppointment.value
-	return isAllDay ? allDaySpan(startDatetime)[0] : new Date(startDatetime)
+	return appointmentStart(nextAppointment.value.startDatetime, nextAppointment.value.isAllDay)
 })
 
 const reminderPreviewDates = computed(() => {
