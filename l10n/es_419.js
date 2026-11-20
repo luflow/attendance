@@ -15,6 +15,7 @@ OC.L10N.register(
     "Light" : "Claro",
     "Dark" : "Oscuro",
     "Connected" : "Conectado",
+    "Open settings" : "Abrir configuraciones",
     "Not now" : "No ahora",
     "Subscribe" : "Suscribir",
     "OK" : "OK",

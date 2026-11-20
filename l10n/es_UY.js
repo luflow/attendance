@@ -14,6 +14,7 @@ OC.L10N.register(
     "System" : "Sistema",
     "Dark" : "Oscuro",
     "Connected" : "Conectado",
+    "Open settings" : "Abrir configuraciones",
     "Not now" : "No ahora",
     "Subscribe" : "Suscribir",
     "OK" : "OK",

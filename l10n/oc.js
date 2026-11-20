@@ -18,6 +18,7 @@ OC.L10N.register(
     "Theme" : "Tèma",
     "Light" : "Clar",
     "Dark" : "Escur",
+    "Open settings" : "Dobrir los paramètres",
     "Subscribe" : "S'abonar",
     "Active" : "Activa",
     "Expired" : "Expirat",
