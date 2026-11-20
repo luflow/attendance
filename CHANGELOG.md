@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.59.0 – 2026-11-20
+
+### Changed
+
+- **Sentence case in the remaining labels**: "Open settings", "Push notifications", "Date & time" and seven more
+
+### Maintenance
+
+- Clearer context hints for translators
+- Updated translations from Transifex
+- Updated dependencies, including @nextcloud/dialogs 8
+
 ## 1.58.1 – 2026-10-27
 
 ### Fixed
