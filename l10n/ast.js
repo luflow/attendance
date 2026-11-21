@@ -26,6 +26,7 @@ OC.L10N.register(
     "Light" : "Claridá",
     "Dark" : "Escuridá",
     "Push notifications" : "Avisos push",
+    "Open settings" : "Abrir la configuración",
     "Not now" : "Agora non",
     "Subscribe" : "Soscribise",
     "Subscription" : "Soscripción",

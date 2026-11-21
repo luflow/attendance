@@ -60,6 +60,7 @@ OC.L10N.register(
     "Location" : "Atrašanās vieta",
     "Unlimited" : "Neierobežota",
     "Save" : "Saglabāt",
+    "License" : "Licence",
     "Appointment" : "Plānota tikšanās",
     "Delete" : "Izdzēst",
     "Share link" : "Dalīt saiti",

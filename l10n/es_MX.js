@@ -71,6 +71,7 @@ OC.L10N.register(
     "Location" : "Ubicación",
     "Unlimited" : "Ilimitado",
     "Save" : "Guardar",
+    "License" : "Licencia",
     "All users" : "Todos los usuarios",
     "Link copied to clipboard" : "Enlace copiado al portapapeles",
     "Responses" : "Respuestas",

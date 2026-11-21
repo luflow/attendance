@@ -79,6 +79,7 @@ OC.L10N.register(
     "Location" : "Локација",
     "Unlimited" : "Неограничено",
     "Save" : "Сними",
+    "License" : "Лиценца",
     "All users" : "Сите корисници",
     "Link copied to clipboard" : "Линкот е копиран во клипборд",
     "Responses" : "Одговори",

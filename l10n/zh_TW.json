@@ -182,6 +182,7 @@
     "Send notification" : "傳送通知",
     "Restrict access" : "限制存取權",
     "Save" : "儲存",
+    "License" : "授權條款",
     "All users" : "所有使用者",
     "Select groups …" : "選取群組……",
     "Reopen inquiry" : "重新開啟調查",
@@ -373,6 +374,7 @@
     "_({count} day before)_::_({count} days before)_" : ["（{count}天前）"],
     "_{count} device registered for push notifications_::_{count} devices registered for push notifications_" : ["已註冊 {count} 個裝置用來接收推播通知"],
     "No appointments found" : "找不到預約",
+    "Past appointments" : "過去的預約",
     "View all" : "檢視全部",
     "Hurray! You responded to all appointments." : "太棒了！您已回覆所有預約。",
     "Show upcoming appointments" : "顯示即將到來的預約",
@@ -489,7 +491,6 @@
     "App Store (iOS)" : "App Store (iOS)",
     "Google Play (Android)" : "Google Play (Android)",
     "All groups" : "所有群組",
-    "Past appointments" : "過去的預約",
     "Unanswered" : "未回答"
 },"pluralForm" :"nplurals=1; plural=0;"
 }

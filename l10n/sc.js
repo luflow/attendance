@@ -63,6 +63,7 @@ OC.L10N.register(
     "Description" : "Descritzione",
     "Location" : "Positzione",
     "Save" : "Sarva",
+    "License" : "Lissèntzia",
     "All users" : "Totu is utentes",
     "Link copied to clipboard" : "Ligòngiu copiadu in punta de billete",
     "Responses" : "Rispostas",

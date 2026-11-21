@@ -91,6 +91,7 @@ OC.L10N.register(
     "Location" : "地点",
     "Unlimited" : "无限制",
     "Save" : "保存",
+    "License" : "许可证",
     "All users" : "所有用户",
     "Link copied to clipboard" : "链接已复制到剪贴板",
     "Responses" : "全部回应",

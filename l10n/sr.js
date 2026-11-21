@@ -91,6 +91,7 @@ OC.L10N.register(
     "Location" : "Локација",
     "Unlimited" : "Неограничено",
     "Save" : "Сачувај",
+    "License" : "Лиценца",
     "All users" : "Сви корисници",
     "Link copied to clipboard" : "Веза копирана у оставу",
     "Responses" : "Одговори",

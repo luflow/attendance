@@ -152,6 +152,7 @@ OC.L10N.register(
     "Send notification" : "Tuma arifa",
     "Restrict access" : "Zuia ufikiaji",
     "Save" : "Hifadhi",
+    "License" : "Leseni",
     "All users" : "Watumiaji wote",
     "Select groups …" : "Chagua vikundi  …",
     "Reopen inquiry" : "Fungua uchunguzi upya",
@@ -307,7 +308,7 @@ OC.L10N.register(
     "_%n team selected_::_%n teams selected_" : ["%n team selected","%n timu zilizochaguliwa"],
     "Inquiry status" : "Hali ya uchunguzi",
     "No appointments found" : "Hakuna maoni yaliyopatikana",
-    "Upcoming" : "Ijayo",
+    "Past appointments" : "Miadi iliyopita",
     "View all" : "Tazama zote",
     "Hurray! You responded to all appointments." : "Hongera! Umejibu miadi yote.",
     "Show upcoming appointments" : "Onyesha miadi ijayo",
@@ -405,7 +406,6 @@ OC.L10N.register(
     "description" : "maelezo",
     "time" : "time",
     "Guests" : "Wageni",
-    "Past appointments" : "Miadi iliyopita",
     "Unanswered" : "Haijajibiwa"
 },
 "nplurals=2; plural=(n != 1);");

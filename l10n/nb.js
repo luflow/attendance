@@ -89,6 +89,7 @@ OC.L10N.register(
     "Location" : "Sted",
     "Unlimited" : "Ubegrenset",
     "Save" : "Lagre",
+    "License" : "Lisens",
     "All users" : "Alle brukere",
     "Link copied to clipboard" : "Lenke kopiert til utklippstavlen",
     "Responses" : "Besvarelser",

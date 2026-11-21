@@ -55,6 +55,7 @@ OC.L10N.register(
     "Location" : "Joylashuv",
     "Unlimited" : "Unlimited",
     "Save" : "Saqlash",
+    "License" : "Litsenziya",
     "Talk room" : "Suhbat xonasi",
     "Appointment" : "Uchrashuv",
     "Delete" : "Oʻchirish",

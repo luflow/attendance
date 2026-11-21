@@ -115,6 +115,7 @@ OC.L10N.register(
     "Send notification" : "Lähetä ilmoitus",
     "Restrict access" : "Rajoita pääsyä",
     "Save" : "Tallenna",
+    "License" : "Lisenssi",
     "All users" : "Kaikki käyttäjät",
     "Select groups …" : "Valitse ryhmät …",
     "Link copied to clipboard" : "Linkki kopioitu leikepöydälle",
@@ -227,7 +228,7 @@ OC.L10N.register(
     "_%n group selected_::_%n groups selected_" : ["%n ryhmä valittu","%n ryhmää valittu"],
     "_%n team selected_::_%n teams selected_" : ["%n tiimi valittu","%n tiimiä valittu"],
     "No appointments found" : "Tapaamisia ei löytynyt",
-    "Upcoming" : "Tulevat",
+    "Past appointments" : "Menneet tapaamiset",
     "View all" : "Näytä kaikki",
     "Hurray! You responded to all appointments." : "Hienoa! Vastasit kaikkiin tapaamisiisi.",
     "Show upcoming appointments" : "Näytä tulevat tapaamiset",
@@ -301,7 +302,6 @@ OC.L10N.register(
     "name" : "nimi",
     "time" : "kerran",
     "Guests" : "Vieraat",
-    "Past appointments" : "Menneet tapaamiset",
     "Unanswered" : "Vastaamatta"
 },
 "nplurals=2; plural=(n != 1);");

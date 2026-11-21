@@ -40,6 +40,7 @@ OC.L10N.register(
     "Location" : "Lec'hiadur",
     "Unlimited" : "Didermenet",
     "Save" : "Enrollañ",
+    "License" : "Aotre",
     "Delete" : "Dilemel",
     "Share link" : "Lodañ al liamm",
     "Edit" : "Embann",

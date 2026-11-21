@@ -79,6 +79,7 @@ OC.L10N.register(
     "Description" : "Opis",
     "Unlimited" : "Neograničeno",
     "Save" : "Spremi",
+    "License" : "Licenca",
     "All users" : "Svi korisnici",
     "Link copied to clipboard" : "Poveznica je kopirana u međuspremnik",
     "Responses" : "Odgovori",

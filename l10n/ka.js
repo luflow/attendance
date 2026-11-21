@@ -68,6 +68,7 @@ OC.L10N.register(
     "Location" : "Location",
     "Unlimited" : "Unlimited",
     "Save" : "დამახსოვრება",
+    "License" : "License",
     "All users" : "All users",
     "Appointment" : "Appointment",
     "Delete" : "წაშლა",

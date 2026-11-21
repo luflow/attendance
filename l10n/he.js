@@ -68,6 +68,7 @@ OC.L10N.register(
     "Location" : "מיקום",
     "Unlimited" : "ללא הגבלה",
     "Save" : "שמירה",
+    "License" : "רישיון",
     "Link copied to clipboard" : "הקישור הועתק ללוח הגזירים",
     "Responses" : "תגובות",
     "Appointment" : "פגישה",

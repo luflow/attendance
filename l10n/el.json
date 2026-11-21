@@ -148,9 +148,7 @@
     "Use the recipient's server locale" : "Χρήση των τοπικών ρυθμίσεων (locale) του διακομιστή του παραλήπτη",
     "Vacation" : "Διακοπές",
     "What's still holding you back?" : "Τι είναι αυτό που σας κρατάει ακόμα πίσω;",
-    "Write email" : "Σύνταξη email",
     "year" : "έτος",
-    "You can book directly through me — no App Store purchase needed, and you'll get a proper invoice. Just send me an email!" : "Μπορείτε να κάνετε κράτηση απευθείας μέσω εμού — δεν απαιτείται αγορά από το App Store και θα λάβετε κανονικό τιμολόγιο. Απλώς στείλτε μου ένα email!",
     "You can only assign guests to groups you administer. Ask a server admin to grant you sub-admin rights if you need this." : "Μπορείτε να αντιστοιχίσετε επισκέπτες μόνο σε ομάδες που διαχειρίζεστε. Ζητήστε από έναν διαχειριστή του διακομιστή να σας παραχωρήσει δικαιώματα υποδιαχειριστή εάν το χρειάζεστε αυτό.",
     "Your free trial has ended" : "Η δωρεάν δοκιμαστική περίοδος έληξε",
     "Search appointments" : "Αναζήτηση ραντεβού",
@@ -210,6 +208,7 @@
     "Send notification" : "Αποστολή ειδοποίησης",
     "Restrict access" : "Περιορισμός πρόσβασης",
     "Save" : "Αποθήκευση",
+    "License" : "Άδεια χρήσης",
     "All users" : "Όλοι οι χρήστες",
     "Nobody" : "Κανένας",
     "Select groups …" : "Επιλέξτε ομάδες …",
@@ -240,6 +239,7 @@
     "Show details" : "Εμφάνιση λεπτομερειών",
     "Imported from calendar" : "Εισήχθη από το ημερολόγιο",
     "Part of a recurring series" : "Μέρος μιας επαναλαμβανόμενης σειράς",
+    "Past" : "Παρελθόντα",
     "Closed" : "Κλειστό",
     "Activity history" : "Ιστορικό δραστηριότητας",
     "Failed to load activity" : "Αποτυχία φόρτωσης δραστηριότητας",
@@ -451,8 +451,7 @@
     "Opened" : "Ανοιχτό",
     "No appointments found" : "Δεν βρέθηκαν ραντεβού",
     "No appointments match the active filters." : "Δεν υπάρχουν ραντεβού που να ταιριάζουν με τα ενεργά φίλτρα.",
-    "Upcoming" : "Προσεχή",
-    "Past" : "Παρελθόντα",
+    "Past appointments" : "Προηγούμενα ραντεβού",
     "View all" : "Προβολή όλων",
     "Hurray! You responded to all appointments." : "Ζήτω! Απαντήσατε σε όλα τα ραντεβού.",
     "Show upcoming appointments" : "Εμφάνιση επερχόμενων ραντεβού",
@@ -622,7 +621,6 @@
     "Non-responders only" : "Μόνο σε όσους δεν έχουν απαντήσει",
     "Maybe responders only" : "Μόνο σε όσους απάντησαν \"Maybe\"",
     "Both non-responders and maybe responders" : "Τόσο σε όσους δεν απάντησαν όσο και σε όσους απάντησαν \"Maybe\"",
-    "Past appointments" : "Προηγούμενα ραντεβού",
     "Unanswered" : "Αναπάντητα"
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }

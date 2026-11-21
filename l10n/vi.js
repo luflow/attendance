@@ -63,6 +63,7 @@ OC.L10N.register(
     "Location" : "Vị trí",
     "Unlimited" : "Không giới hạn",
     "Save" : "Lưu",
+    "License" : "Giấy phép",
     "Talk room" : "Phòng họp",
     "Appointment" : "Cuộc hẹn",
     "Delete" : "Xóa",

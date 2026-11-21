@@ -92,6 +92,7 @@ OC.L10N.register(
     "Location" : "Hely",
     "Unlimited" : "Korlátlan",
     "Save" : "Mentés",
+    "License" : "Licenc",
     "All users" : "Összes felhasználó",
     "Select groups …" : "Csoportok kiválasztása …",
     "Reopen inquiry" : "Vizsgálat újranyitása",

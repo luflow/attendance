@@ -89,6 +89,7 @@ OC.L10N.register(
     "Location" : "ئورنى",
     "Unlimited" : "چەكسىز",
     "Save" : "ساقلا",
+    "License" : "ئىجازەتنامە",
     "All users" : "بارلىق ئىشلەتكۈچىلەر",
     "Reopen inquiry" : "قايتا تەكشۈرۈش",
     "Close inquiry" : "تەكشۈرۈشنى تاقاش",

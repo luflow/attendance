@@ -35,6 +35,7 @@ OC.L10N.register(
     "Number" : "Broj",
     "Description" : "Opis",
     "Save" : "Sačuvaj",
+    "License" : "Licenca",
     "Delete" : "Obriši",
     "Share link" : "Veza deljenja",
     "Edit" : "Izmeni",

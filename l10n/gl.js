@@ -139,6 +139,7 @@ OC.L10N.register(
     "Send notification" : "Enviar a notificación",
     "Restrict access" : "Restrinxir o acceso",
     "Save" : "Gardar",
+    "License" : "Licenza",
     "All users" : "Todos os usuarios",
     "Select groups …" : "Seleccionar grupos…",
     "Reopen inquiry" : "Volver abrir a consulta",
@@ -294,7 +295,7 @@ OC.L10N.register(
     "_%n team selected_::_%n teams selected_" : ["%n equipo seleccionado","%n equipos seleccionados"],
     "Inquiry status" : "Estado da consulta",
     "No appointments found" : "Non se atopou ningunha cita",
-    "Upcoming" : "Próximos",
+    "Past appointments" : "Citas pasadas",
     "View all" : "Ver todo",
     "Hurray! You responded to all appointments." : "Excelente! Respondeu a todas as citas.",
     "Show upcoming appointments" : "Amosar as próximas citas",
@@ -402,7 +403,6 @@ OC.L10N.register(
     "time" : "vez",
     "Guests" : "Convidado",
     "All groups" : "Todos os grupos",
-    "Past appointments" : "Citas pasadas",
     "Unanswered" : "Sen resposta"
 },
 "nplurals=2; plural=(n != 1);");

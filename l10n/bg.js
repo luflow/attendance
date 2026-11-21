@@ -87,6 +87,7 @@ OC.L10N.register(
     "Location" : "Местоположение",
     "Unlimited" : "Неограничено",
     "Save" : "Запиши",
+    "License" : "Лиценз",
     "All users" : "Всички потребители",
     "Link copied to clipboard" : "Връзката е копирана в клипборда",
     "Responses" : "Отговори",

@@ -40,6 +40,7 @@ OC.L10N.register(
     "Unit" : "Eining",
     "Unlimited" : "Ubegrensa",
     "Save" : "Lagre",
+    "License" : "Lisens",
     "Delete" : "Slett",
     "Edit" : "Rediger",
     "Show details" : "Vis detaljar",

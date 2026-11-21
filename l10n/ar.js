@@ -33,6 +33,7 @@ OC.L10N.register(
     "Dark" : "داكن",
     "Push notifications" : "دفع الإخطارات",
     "Connected" : " متصل",
+    "Open settings" : "فتح الإعدادات",
     "Not now" : "ليس الآن",
     "Active filters" : "فلاتر نشطة",
     "No connection" : "لا يتوفر اتصال",

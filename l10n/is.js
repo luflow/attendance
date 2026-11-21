@@ -78,6 +78,7 @@ OC.L10N.register(
     "Location" : "Staðsetning",
     "Unlimited" : "Ótakmarkað",
     "Save" : "Vista",
+    "License" : "Notkunarleyfi",
     "All users" : "Allir notendur",
     "Link copied to clipboard" : "Tengill afritaður á klippispjald",
     "Responses" : "Svör",

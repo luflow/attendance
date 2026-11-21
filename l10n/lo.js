@@ -174,6 +174,7 @@ OC.L10N.register(
     "Send notification" : "ສົ່ງການແຈ້ງເຕືອນ",
     "Restrict access" : "ຈຳກັດການເຂົ້າເຖິງ",
     "Save" : "ບັນທຶກ",
+    "License" : "ໃບອະນຸຍາດ",
     "All users" : "ຜູ້ໃຊ້ທັງໝົດ",
     "Select groups …" : "ເລືອກກຸ່ມ …",
     "Reopen inquiry" : "ເປີດການສຳຫຼວດຄືນໃໝ່",
@@ -359,6 +360,7 @@ OC.L10N.register(
     "_{count} device registered for push notifications_::_{count} devices registered for push notifications_" : ["ລົງທະບຽນແລ້ວ {count} ອຸປະກອນສຳລັບການແຈ້ງເຕືອນ"],
     "Inquiry status" : "ສະຖານະການສອບຖາມ",
     "No appointments found" : "ບໍ່ພົບການນັດໝາຍ",
+    "Past appointments" : "ການນັດໝາຍໃນອະດີດ",
     "View all" : "ເບິ່ງທັງໝົດ",
     "Hurray! You responded to all appointments." : "ໄຊໂຍ! ທ່ານໄດ້ຕອບກັບທຸກການນັດໝາຍແລ້ວ.",
     "Show upcoming appointments" : "ສະແດງການນັດໝາຍທີ່ກຳລັງຈະມາເຖິງ",
@@ -463,7 +465,6 @@ OC.L10N.register(
     "Guests" : "Guests",
     "App Store (iOS)" : "App Store (iOS)",
     "Google Play (Android)" : "Google Play (Android)",
-    "Past appointments" : "ການນັດໝາຍໃນອະດີດ",
     "Unanswered" : "ຍັງບໍ່ໄດ້ຕອບ"
 },
 "nplurals=1; plural=0;");

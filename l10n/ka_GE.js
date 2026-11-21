@@ -43,6 +43,7 @@ OC.L10N.register(
     "Location" : "ადგილმდებარეობა",
     "Unlimited" : "ულიმიტო",
     "Save" : "შენახვა",
+    "License" : "ლიცენზია",
     "Delete" : "წაშლა",
     "Share link" : "ბმულს გაზიარება",
     "Edit" : "შეცვლა",

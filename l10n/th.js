@@ -45,6 +45,7 @@ OC.L10N.register(
     "Location" : "ตำแหน่ง",
     "Unlimited" : "ไม่จำกัด",
     "Save" : "บันทึก",
+    "License" : "สัญญาอนุญาต",
     "Delete" : "ลบ",
     "Share link" : "แชร์ลิงก์",
     "Edit" : "แก้ไข",

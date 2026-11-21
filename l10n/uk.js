@@ -92,6 +92,7 @@ OC.L10N.register(
     "Location" : "Місце розташування",
     "Unlimited" : "Необмежено",
     "Save" : "Зберегти",
+    "License" : "Ліцензія",
     "All users" : "Всі користувачі",
     "Reopen inquiry" : "Поновити розслідування",
     "Close inquiry" : "Закрити запит",

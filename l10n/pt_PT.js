@@ -194,6 +194,7 @@ OC.L10N.register(
     "Send notification" : "Enviar notificação",
     "Restrict access" : "Restringir acesso",
     "Save" : "Guardar",
+    "License" : "Licença",
     "All users" : "Todos os usuários",
     "Select groups …" : "Selecionar grupos …",
     "Reopen inquiry" : "Reabrir consulta",
@@ -218,6 +219,7 @@ OC.L10N.register(
     "Show details" : "Mostrar detalhes",
     "Imported from calendar" : "Importado do calendário",
     "Part of a recurring series" : "Parte de uma série recorrente",
+    "Past" : "Anteriores",
     "Closed" : "Fechado",
     "Activity history" : "Histórico de atividades",
     "Failed to load activity" : "Falha ao carregar as atividades",
@@ -406,8 +408,7 @@ OC.L10N.register(
     "Opened" : "Aberta",
     "No appointments found" : "Nenhum compromisso encontrado",
     "No appointments match the active filters." : "Nenhum compromisso corresponde aos filtros ativos.",
-    "Upcoming" : "Próximos",
-    "Past" : "Anteriores",
+    "Past appointments" : "Compromissos anteriores",
     "View all" : "Ver tudo",
     "Hurray! You responded to all appointments." : "Parabéns! Você respondeu a todos os compromissos.",
     "Show upcoming appointments" : "Mostrar compromissos futuros",
@@ -558,7 +559,6 @@ OC.L10N.register(
     "Non-responders only" : "Somente pessoas que não responderam",
     "Maybe responders only" : "Somente pessoas que responderam com talvez",
     "Both non-responders and maybe responders" : "Tanto os que não responderam quanto os que responderam com talvez",
-    "Past appointments" : "Compromissos anteriores",
     "Unanswered" : "Sem resposta"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

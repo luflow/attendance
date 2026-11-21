@@ -113,6 +113,7 @@ OC.L10N.register(
     "Send notification" : "알림 보내기",
     "Restrict access" : "접근 제한",
     "Save" : "저장",
+    "License" : "라이선스",
     "All users" : "모든 사용자",
     "Select groups …" : "그룹을 선택하세요…",
     "Link copied to clipboard" : "링크가 클립보드로 복사됨",
@@ -226,7 +227,7 @@ OC.L10N.register(
     "_%n group selected_::_%n groups selected_" : ["선택된 그룹%n"],
     "_%n team selected_::_%n teams selected_" : ["선정된 팀%n"],
     "No appointments found" : "예약 가능한 일정이 없습니다.",
-    "Upcoming" : "예정",
+    "Past appointments" : "지난 약속",
     "View all" : "모두 보기",
     "Hurray! You responded to all appointments." : "와! 모든 약속에 응답해 주셨네요.",
     "Show upcoming appointments" : "예정된 약속을 보여주세요",
@@ -305,7 +306,6 @@ OC.L10N.register(
     "Historic" : "역사적",
     "Automatic" : "자동",
     "name" : "이름",
-    "Past appointments" : "지난 약속",
     "Unanswered" : "답장 없음"
 },
 "nplurals=1; plural=0;");

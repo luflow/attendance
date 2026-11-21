@@ -41,6 +41,7 @@ OC.L10N.register(
     "Location" : "Ubicación",
     "Unlimited" : "Ilimitado",
     "Save" : "Guardar",
+    "License" : "Licencia",
     "Delete" : "Borrar",
     "Share link" : "Compartir enlace",
     "Edit" : "Editar",

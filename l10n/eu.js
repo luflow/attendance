@@ -92,6 +92,7 @@ OC.L10N.register(
     "Location" : "Kokapena",
     "Unlimited" : "Mugagabea",
     "Save" : "Gorde",
+    "License" : "Lizentzia",
     "All users" : "Erabiltzaile guztiak",
     "Link copied to clipboard" : "Arbelara kopiatutako esteka",
     "Responses" : "Erantzunak",

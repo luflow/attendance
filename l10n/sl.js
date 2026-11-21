@@ -85,6 +85,7 @@ OC.L10N.register(
     "Location" : "Mesto",
     "Unlimited" : "Neomejeno",
     "Save" : "Shrani",
+    "License" : "Dovoljenje",
     "All users" : "Vsi uporabniki",
     "Link copied to clipboard" : "Povezava je kopirana v odložišče",
     "Responses" : "Odzivi",

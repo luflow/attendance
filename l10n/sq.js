@@ -55,6 +55,7 @@ OC.L10N.register(
     "Location" : "Vendndodhje",
     "Unlimited" : "E palimituar",
     "Save" : "Ruaje",
+    "License" : "Liçenca",
     "Delete" : "Fshi",
     "Share link" : "Lidhje ndarjeje",
     "Edit" : "Përpuno",

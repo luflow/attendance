@@ -54,6 +54,7 @@ OC.L10N.register(
     "Location" : "Ubicación",
     "Unlimited" : "Ilimitado",
     "Save" : "Guardar",
+    "License" : "Licencia",
     "Link copied to clipboard" : "Enlace copiado al portapapeles",
     "Responses" : "Respuestas",
     "Delete" : "Eliminar",

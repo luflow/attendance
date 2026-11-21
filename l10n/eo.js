@@ -46,6 +46,7 @@ OC.L10N.register(
     "Location" : "Loko",
     "Unlimited" : "Senlima",
     "Save" : "Konservi",
+    "License" : "Permesilo",
     "Link copied to clipboard" : "Ligilo kopiita al tondujo",
     "Delete" : "Forigi",
     "Share link" : "Konhavigi ligilon",

@@ -35,6 +35,7 @@ OC.L10N.register(
     "Description" : "Disgrifiad",
     "Location" : "Lleoliad",
     "Save" : "Cadw",
+    "License" : "Trwydded",
     "Appointment" : "Apwyntiad",
     "Delete" : "Dileu",
     "Edit" : "Golygu",

@@ -97,6 +97,7 @@ OC.L10N.register(
     "Location" : "Luogo",
     "Unlimited" : "Illimitata",
     "Save" : "Salva",
+    "License" : "Licenza",
     "All users" : "Tutti gli utenti",
     "Select groups …" : "Seleziona gruppi …",
     "Link copied to clipboard" : "Collegamento copiato negli appunti",
@@ -173,7 +174,7 @@ OC.L10N.register(
     "Preview" : "Anteprima",
     "Open" : "Aperte",
     "or" : "o",
-    "Upcoming" : "Prossimi",
+    "Past appointments" : "Appuntamenti passati",
     "View all" : "Vedi tutto",
     "Category" : "Categoria",
     "Appointment not found" : "Appuntamento non trovato",
@@ -210,7 +211,6 @@ OC.L10N.register(
     "Automatic" : "Automatico",
     "name" : "nome",
     "time" : "volta",
-    "Guests" : "Ospiti",
-    "Past appointments" : "Appuntamenti passati"
+    "Guests" : "Ospiti"
 },
 "nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

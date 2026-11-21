@@ -88,6 +88,7 @@ OC.L10N.register(
     "Location" : "場所",
     "Unlimited" : "無制限",
     "Save" : "保存する",
+    "License" : "利用許諾",
     "All users" : "すべてのユーザー",
     "Link copied to clipboard" : "クリップボードにリンクをコピーしました",
     "Responses" : "回答",

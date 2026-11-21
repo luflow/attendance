@@ -197,6 +197,7 @@ OC.L10N.register(
     "Send notification" : "ارسال اعلان",
     "Restrict access" : "محدود کردن دسترسی",
     "Save" : "ذخیره",
+    "License" : "مجوز کاربری",
     "All users" : "همه کاربران",
     "Select groups …" : "انتخاب گروه‌ها …",
     "Reopen inquiry" : "بازگشایی نظرسنجی",
@@ -223,6 +224,7 @@ OC.L10N.register(
     "Show details" : "نمایش جزئیات",
     "Imported from calendar" : "وارد شده از تقویم",
     "Part of a recurring series" : "بخشی از یک مجموعه تکراری",
+    "Past" : "گذشته",
     "Closed" : "بسته شده",
     "Activity history" : "تاریخچه فعالیت",
     "Failed to load activity" : "بارگذاری فعالیت ناموفق بود",
@@ -419,8 +421,7 @@ OC.L10N.register(
     "Opened" : "باز شده",
     "No appointments found" : "هیچ قراری یافت نشد",
     "No appointments match the active filters." : "هیچ قراری با فیلترهای فعال مطابقت ندارد.",
-    "Upcoming" : "آینده",
-    "Past" : "گذشته",
+    "Past appointments" : "قرار ملاقات‌های گذشته",
     "View all" : "مشاهده همه",
     "Hurray! You responded to all appointments." : "آفرین! به همه قرارها پاسخ داده‌اید.",
     "Show upcoming appointments" : "نمایش قرارهای پیش‌رو",
@@ -576,7 +577,6 @@ OC.L10N.register(
     "Non-responders only" : "فقط پاسخ‌نداده‌ها",
     "Maybe responders only" : "فقط پاسخ‌شایدها",
     "Both non-responders and maybe responders" : "هم پاسخ‌نداده‌ها و هم پاسخ‌شایدها",
-    "Past appointments" : "قرار ملاقات‌های گذشته",
     "Unanswered" : "بی‌پاسخ"
 },
 "nplurals=2; plural=(n > 1);");

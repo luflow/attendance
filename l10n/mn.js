@@ -78,6 +78,7 @@ OC.L10N.register(
     "Location" : "–ë–∞–π—Ä—à–∏–ª",
     "Unlimited" : "Хязгааргүй",
     "Save" : "Хадгалах",
+    "License" : "Тусгай зөвшөөрөл",
     "Select groups …" : "Бүлгүүдийг сонгох …",
     "Link copied to clipboard" : "Холбоос санах ойд хуулагдсан",
     "Responses" : "Хариултууд",
