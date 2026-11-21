@@ -28,19 +28,13 @@
 <script setup>
 import { translate as t } from '@nextcloud/l10n'
 import { NcButton } from '@nextcloud/vue'
-import { onMounted } from 'vue'
 import CloseIcon from 'vue-material-design-icons/Close.vue'
 import StarIcon from 'vue-material-design-icons/StarOutline.vue'
-import { useRatingRequest } from '../../composables/useRatingRequest.js'
 
 const emit = defineEmits(['dismiss'])
 
 // The "Rate app" button sits under this heading, for signed-in visitors only.
 const RATING_URL = 'https://apps.nextcloud.com/apps/attendance#comments'
-
-const { markShown } = useRatingRequest()
-
-onMounted(markShown)
 </script>
 
 <style scoped>

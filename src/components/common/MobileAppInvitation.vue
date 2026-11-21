@@ -47,7 +47,6 @@
 import { translate as t } from '@nextcloud/l10n'
 import { getRootUrl } from '@nextcloud/router'
 import { NcButton } from '@nextcloud/vue'
-import QRCode from 'qrcode'
 import { onMounted, ref } from 'vue'
 import CellphoneIcon from 'vue-material-design-icons/Cellphone.vue'
 import CloseIcon from 'vue-material-design-icons/Close.vue'
@@ -56,7 +55,6 @@ import { joinLinkFor } from '../../utils/mobileApp.js'
 
 const emit = defineEmits(['dismiss'])
 
-// Rendered locally: showing the invitation must not contact anwesenheit.app.
 const joinLink = joinLinkFor(window.location.origin + getRootUrl())
 // A phone cannot scan its own screen, so it gets the link instead.
 const onPhone = window.matchMedia?.('(hover: none) and (pointer: coarse)').matches ?? false
@@ -64,6 +62,8 @@ const qrDataUrl = ref(null)
 
 onMounted(async () => {
 	if (!onPhone) {
+		// Rendered locally: showing the invitation must not contact anwesenheit.app.
+		const { default: QRCode } = await import('qrcode')
 		qrDataUrl.value = await QRCode.toDataURL(joinLink, { width: 224, margin: 1 })
 	}
 })

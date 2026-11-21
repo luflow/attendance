@@ -23,11 +23,9 @@ function writeStorage(key, value) {
 	}
 }
 
-const state = reactive({
-	bannerDismissed: readStorage(DISMISS_KEY) === '1',
-	// Once shown, the celebration invitation stays for the rest of this page load.
-	celebrationShownAt: null,
-})
+const state = reactive({ bannerDismissed: readStorage(DISMISS_KEY) === '1' })
+// Once shown, the celebration invitation stays for the rest of this page load.
+let celebrationShown = false
 
 /**
  * The invitation to the mobile app: a banner until dismissed, then a quieter
@@ -49,19 +47,15 @@ export function useMobileAppInvitation() {
 		if (!offered.value || !state.bannerDismissed) {
 			return false
 		}
-		if (state.celebrationShownAt !== null) {
+		if (celebrationShown) {
 			return true
 		}
 		const stored = readStorage(CELEBRATION_KEY)
-		if (stored === 'dismissed') {
+		if (stored === 'dismissed' || Date.now() - Number(stored) < CELEBRATION_INTERVAL_MS) {
 			return false
 		}
-		const lastShown = Number(stored)
-		if (lastShown > 0 && Date.now() - lastShown < CELEBRATION_INTERVAL_MS) {
-			return false
-		}
-		state.celebrationShownAt = Date.now()
-		writeStorage(CELEBRATION_KEY, String(state.celebrationShownAt))
+		celebrationShown = true
+		writeStorage(CELEBRATION_KEY, String(Date.now()))
 		return true
 	}
 

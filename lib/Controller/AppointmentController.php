@@ -1281,7 +1281,7 @@ class AppointmentController extends Controller {
 	/** Asked once, and only of people who know the app by now. */
 	private function isRatingPromptDue(string $userId): bool {
 		return !$this->configService->wasAskedForRating($userId)
-			&& $this->appointmentService->countOwnAnswers($userId) >= self::RATING_PROMPT_MIN_ANSWERS;
+			&& $this->appointmentService->hasAnsweredAtLeast($userId, self::RATING_PROMPT_MIN_ANSWERS);
 	}
 
 	/**

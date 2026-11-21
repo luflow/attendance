@@ -810,7 +810,7 @@ function pickCelebrationPrompt(afterOwnAnswer) {
 	}
 	if (mobileAppInvitation.takeCelebrationTurn()) {
 		celebrationPrompt.value = 'invitation'
-	} else if (afterOwnAnswer && ratingRequest.due.value) {
+	} else if (afterOwnAnswer && ratingRequest.takeCelebrationTurn()) {
 		celebrationPrompt.value = 'rating'
 	}
 }

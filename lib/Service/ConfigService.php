@@ -689,8 +689,7 @@ class ConfigService {
 	}
 
 	/**
-	 * Whether the web UI already asked this user to rate the app. Set when the
-	 * request is shown, whatever the user then does with it.
+	 * Whether the web UI already asked this user to rate the app.
 	 */
 	public function wasAskedForRating(string $userId): bool {
 		return $this->userConfig->getValueBool($userId, self::APP_ID, 'rating_prompt_shown');

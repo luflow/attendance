@@ -1118,10 +1118,10 @@ class AppointmentService {
 	}
 
 	/**
-	 * How many appointments the user answered themselves.
+	 * Counts only answers the user gave: no vacation auto-answers, none given on their behalf.
 	 */
-	public function countOwnAnswers(string $userId): int {
-		return $this->responseMapper->countOwnAnswers($userId, [ResponseService::SOURCE_VACATION, ResponseService::SOURCE_ADMIN]);
+	public function hasAnsweredAtLeast(string $userId, int $count): bool {
+		return $this->responseMapper->hasAtLeastAnswers($userId, $count, [ResponseService::SOURCE_VACATION, ResponseService::SOURCE_ADMIN]);
 	}
 
 	/**

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\Attendance\Db;
 
 use OCA\Attendance\Service\BookingService;
+use OCA\Attendance\Service\ResponsePolicyService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
@@ -276,28 +277,27 @@ class AttendanceResponseMapper extends QBMapper {
 	}
 
 	/**
-	 * Answers the user gave themselves: no vacation auto-answers, none given
-	 * on their behalf.
-	 *
-	 * @param list<string> $excludedSources
+	 * @param list<string> $excludedSources Answers from these sources do not count
 	 */
-	public function countOwnAnswers(string $userId, array $excludedSources): int {
+	public function hasAtLeastAnswers(string $userId, int $count, array $excludedSources): bool {
 		$qb = $this->db->getQueryBuilder();
 
-		$qb->select($qb->func()->count('*', 'answers'))
+		// Only the threshold matters, so the database stops once it is reached.
+		$qb->select('id')
 			->from($this->getTableName())
 			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
-			->andWhere($qb->expr()->in('response', $qb->createNamedParameter(['yes', 'no', 'maybe'], IQueryBuilder::PARAM_STR_ARRAY)))
+			->andWhere($qb->expr()->in('response', $qb->createNamedParameter(ResponsePolicyService::RESPONSES, IQueryBuilder::PARAM_STR_ARRAY)))
 			->andWhere($qb->expr()->orX(
 				$qb->expr()->isNull('response_source'),
 				$qb->expr()->notIn('response_source', $qb->createNamedParameter($excludedSources, IQueryBuilder::PARAM_STR_ARRAY)),
-			));
+			))
+			->setMaxResults($count);
 
 		$result = $qb->executeQuery();
-		$count = (int)$result->fetchOne();
+		$rows = $result->fetchAll();
 		$result->closeCursor();
 
-		return $count;
+		return count($rows) >= $count;
 	}
 
 	/**

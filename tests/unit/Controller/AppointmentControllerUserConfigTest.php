@@ -158,7 +158,7 @@ class AppointmentControllerUserConfigTest extends TestCase {
 		$this->bannerEnabled = true;
 		$this->signIn('alice');
 		$this->configService->method('wasAskedForRating')->with('alice')->willReturn(false);
-		$this->appointmentService->method('countOwnAnswers')->with('alice')->willReturn(5);
+		$this->appointmentService->method('hasAnsweredAtLeast')->with('alice', 5)->willReturn(true);
 
 		$this->assertTrue($this->controller->getUserConfig()->getData()['ratingPromptDue']);
 	}
@@ -167,7 +167,7 @@ class AppointmentControllerUserConfigTest extends TestCase {
 		$this->bannerEnabled = true;
 		$this->signIn('alice');
 		$this->configService->method('wasAskedForRating')->willReturn(false);
-		$this->appointmentService->method('countOwnAnswers')->willReturn(4);
+		$this->appointmentService->method('hasAnsweredAtLeast')->with('alice', 5)->willReturn(false);
 
 		$this->assertFalse($this->controller->getUserConfig()->getData()['ratingPromptDue']);
 	}
@@ -176,7 +176,7 @@ class AppointmentControllerUserConfigTest extends TestCase {
 		$this->bannerEnabled = true;
 		$this->signIn('alice');
 		$this->configService->method('wasAskedForRating')->willReturn(true);
-		$this->appointmentService->expects($this->never())->method('countOwnAnswers');
+		$this->appointmentService->expects($this->never())->method('hasAnsweredAtLeast');
 
 		$this->assertFalse($this->controller->getUserConfig()->getData()['ratingPromptDue']);
 	}
@@ -184,7 +184,7 @@ class AppointmentControllerUserConfigTest extends TestCase {
 	public function testPromotionSwitchAlsoTurnsTheRatingPromptOff(): void {
 		$this->signIn('alice');
 		$this->configService->expects($this->never())->method('wasAskedForRating');
-		$this->appointmentService->expects($this->never())->method('countOwnAnswers');
+		$this->appointmentService->expects($this->never())->method('hasAnsweredAtLeast');
 
 		$this->assertFalse($this->controller->getUserConfig()->getData()['ratingPromptDue']);
 	}

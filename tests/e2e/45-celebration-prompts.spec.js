@@ -62,7 +62,6 @@ test.describe('Requests at the "Hurray!" banner', () => {
 		await expect(page.locator('[data-test="rating-request-link"]'))
 			.toHaveAttribute('href', 'https://apps.nextcloud.com/apps/attendance#comments')
 		await expect(page.locator('[data-test="celebration-invitation"]')).toHaveCount(0)
-		// Shown counts as asked, whatever the person does next.
 		await expect.poll(() => ratingDue(request, 'test5')).toBe(false)
 	})
 
@@ -88,4 +87,5 @@ test.describe('Requests at the "Hurray!" banner', () => {
 		await expect(page.locator('[data-test="rating-request"]')).toBeVisible()
 		await expect(page.locator('[data-test="celebration-invitation"]')).toHaveCount(0)
 	})
+
 })

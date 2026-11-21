@@ -1,25 +1,23 @@
 import axios from '@nextcloud/axios'
 import { generateUrl } from '@nextcloud/router'
-import { computed, reactive } from 'vue'
 import { usePermissions } from './usePermissions.js'
 
-const state = reactive({ shown: false })
+let shown = false
 
 /** The request to rate the app: once per person, who is eligible decides the server. */
 export function useRatingRequest() {
 	const { config } = usePermissions()
 
-	const due = computed(() => config.ratingPromptDue && !state.shown)
-
-	// Counts as asked the moment it shows, whatever the person then does.
-	function markShown() {
-		if (state.shown) {
-			return
+	/** Decides at a celebration whether the request appears; it counts as asked the moment it does. */
+	function takeCelebrationTurn() {
+		if (shown || !config.ratingPromptDue) {
+			return false
 		}
-		state.shown = true
+		shown = true
 		axios.post(generateUrl('/apps/attendance/api/user/rating-prompt'))
 			.catch((error) => console.error('Failed to note the rating request:', error))
+		return true
 	}
 
-	return { due, markShown }
+	return { takeCelebrationTurn }
 }
