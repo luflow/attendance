@@ -20,6 +20,13 @@
 					@click="goToUpcoming">
 					{{ t('attendance', 'Show upcoming appointments') }}
 				</NcButton>
+				<MobileAppInvitation v-if="celebrationPrompt === 'invitation'"
+					class="celebration-prompt"
+					data-test="celebration-invitation"
+					@dismiss="dismissCelebrationPrompt" />
+				<RatingRequest v-else-if="celebrationPrompt === 'rating'"
+					class="celebration-prompt"
+					@dismiss="dismissCelebrationPrompt" />
 			</div>
 		</div>
 
@@ -294,12 +301,16 @@ import TagIcon from 'vue-material-design-icons/TagOutline.vue'
 import AppointmentListCard from '../components/appointment/AppointmentListCard.vue'
 import DeleteAppointmentDialog from '../components/appointment/DeleteAppointmentDialog.vue'
 import LoadingState from '../components/common/LoadingState.vue'
+import MobileAppInvitation from '../components/common/MobileAppInvitation.vue'
+import RatingRequest from '../components/common/RatingRequest.vue'
 import SingleAppointmentExportDialog from '../components/SingleAppointmentExportDialog.vue'
 import { useAppointmentResponse } from '../composables/useAppointmentResponse.js'
 import { useCategories } from '../composables/useCategories.js'
 import { useCategoryFilterChips } from '../composables/useCategoryFilterChips.js'
+import { useMobileAppInvitation } from '../composables/useMobileAppInvitation.js'
 import { usePagedAppointments } from '../composables/usePagedAppointments.js'
 import { usePermissions } from '../composables/usePermissions.js'
+import { useRatingRequest } from '../composables/useRatingRequest.js'
 import { categoryIconComponent } from '../utils/categoryIcons.js'
 import { appointmentStart, formatMonthHeading } from '../utils/datetime.js'
 import { VIEWS } from './appointmentViews.js'
@@ -775,13 +786,40 @@ function handleClosedToggled(updated) {
 // here, so neither the heading nor the generic empty-state card belongs.
 const showCelebration = computed(() => viewDef.value.celebratesEmpty && !loading.value && total.value === 0)
 
+// Only the person's own answer earns the rating request, not opening an empty list.
+let answeredHere = false
+
 // Use the shared response composable
 const { submitResponse: submitResponseApi } = useAppointmentResponse({
 	onSuccess: () => {
+		answeredHere = true
 		emit('responseUpdated')
 		refresh()
 	},
 })
+
+const mobileAppInvitation = useMobileAppInvitation()
+const ratingRequest = useRatingRequest()
+// At most one request rides along with the "Hurray!" banner; the invitation goes first.
+const celebrationPrompt = ref(null)
+
+function pickCelebrationPrompt(afterOwnAnswer) {
+	if (celebrationPrompt.value) {
+		return
+	}
+	if (mobileAppInvitation.takeCelebrationTurn()) {
+		celebrationPrompt.value = 'invitation'
+	} else if (afterOwnAnswer && ratingRequest.due.value && !mobileAppInvitation.bannerVisible.value) {
+		celebrationPrompt.value = 'rating'
+	}
+}
+
+function dismissCelebrationPrompt() {
+	if (celebrationPrompt.value === 'invitation') {
+		mobileAppInvitation.dismissCelebration()
+	}
+	celebrationPrompt.value = null
+}
 
 // Capabilities arriving at mount can flip the scheduling filter; the first
 // load in onMounted already covers that, so only later changes refetch.
@@ -909,6 +947,7 @@ function triggerConfetti() {
 watch(loading, () => {
 	if (showCelebration.value) {
 		triggerConfetti()
+		pickCelebrationPrompt(false)
 	}
 })
 
@@ -916,6 +955,7 @@ watch(loading, () => {
 watch(total, (_, oldTotal) => {
 	if (showCelebration.value && oldTotal > 0) {
 		triggerConfetti()
+		pickCelebrationPrompt(answeredHere)
 	}
 })
 
@@ -1107,5 +1147,9 @@ onMounted(async () => {
 		color: var(--color-text-maxcontrast);
 		gap: 16px;
 	}
+}
+
+.celebration-prompt {
+	align-self: stretch;
 }
 </style>

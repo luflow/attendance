@@ -192,9 +192,11 @@
 		<!-- Main content area -->
 		<NcAppContent ref="appContent">
 			<div class="attendance-content" :class="{ 'attendance-content--below-toggle': hasNavigation }">
-				<div v-if="hasNavigation && config.mobileAppBannerEnabled && !config.hasPushDevice"
+				<div v-if="hasNavigation && mobileAppBannerVisible"
 					class="mobile-banner-container">
-					<MobileAppBanner />
+					<MobileAppInvitation class="mobile-app-banner"
+						data-test="mobile-app-banner"
+						@dismiss="dismissMobileAppBanner" />
 				</div>
 
 				<!-- Check-in View -->
@@ -310,7 +312,7 @@ import LockIcon from 'vue-material-design-icons/Lock.vue'
 import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
 import LoadingState from './components/common/LoadingState.vue'
-import MobileAppBanner from './components/common/MobileAppBanner.vue'
+import MobileAppInvitation from './components/common/MobileAppInvitation.vue'
 import ExportDialog from './components/ExportDialog.vue'
 import IcalFeedModal from './components/IcalFeedModal.vue'
 import AllAppointments from './views/AllAppointments.vue'
@@ -318,6 +320,7 @@ import AppointmentDetail from './views/AppointmentDetail.vue'
 import AppointmentForm from './views/AppointmentForm.vue'
 import CheckinView from './views/Checkin.vue'
 import StatisticsOverview from './views/StatisticsOverview.vue'
+import { useMobileAppInvitation } from './composables/useMobileAppInvitation.js'
 import { usePermissions } from './composables/usePermissions.js'
 import { confirmLeave, hasUnsavedChanges } from './composables/useUnsavedChanges.js'
 import { formatStart } from './utils/datetime.js'
@@ -684,6 +687,7 @@ function onSearchInput() {
 
 // Use the shared permissions composable
 const { permissions, capabilities, config, loadPermissions } = usePermissions()
+const { bannerVisible: mobileAppBannerVisible, dismissBanner: dismissMobileAppBanner } = useMobileAppInvitation()
 
 const unansweredAppointments = computed(() => {
 	return currentAppointments.value.filter((appointment) => {
@@ -1005,6 +1009,11 @@ onMounted(async () => {
 .mobile-banner-container {
     padding: 0 20px 20px;
     max-width: 1200px;
+    margin: 0 auto;
+}
+
+.mobile-app-banner {
+    max-width: 800px;
     margin: 0 auto;
 }
 

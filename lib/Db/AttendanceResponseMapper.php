@@ -276,6 +276,31 @@ class AttendanceResponseMapper extends QBMapper {
 	}
 
 	/**
+	 * Answers the user gave themselves: no vacation auto-answers, none given
+	 * on their behalf.
+	 *
+	 * @param list<string> $excludedSources
+	 */
+	public function countOwnAnswers(string $userId, array $excludedSources): int {
+		$qb = $this->db->getQueryBuilder();
+
+		$qb->select($qb->func()->count('*', 'answers'))
+			->from($this->getTableName())
+			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->in('response', $qb->createNamedParameter(['yes', 'no', 'maybe'], IQueryBuilder::PARAM_STR_ARRAY)))
+			->andWhere($qb->expr()->orX(
+				$qb->expr()->isNull('response_source'),
+				$qb->expr()->notIn('response_source', $qb->createNamedParameter($excludedSources, IQueryBuilder::PARAM_STR_ARRAY)),
+			));
+
+		$result = $qb->executeQuery();
+		$count = (int)$result->fetchOne();
+		$result->closeCursor();
+
+		return $count;
+	}
+
+	/**
 	 * @param int $appointmentId
 	 * @return array{yes: int, no: int, maybe: int}
 	 */

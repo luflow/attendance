@@ -673,15 +673,18 @@
 				<LicenseStatus class="subsection" />
 
 				<div class="subsection">
-					<h4>{{ t('attendance', 'Mobile app promotion banner') }}</h4>
+					<h4>{{ t('attendance', 'Mobile app invitation and rating request') }}</h4>
 					<p class="subsection-hint">
-						{{ t('attendance', 'Show a banner at the top of the web app advertising the mobile apps. Users can dismiss the banner, and users who already have a push device connected will not see it.') }}
+						{{ t('attendance', 'Users without a phone connected yet are invited to the mobile app, at the top of the web app and when they have answered all appointments. Users who answered at least five appointments are asked once to rate the app in the Nextcloud App Store. Users can dismiss each of these.') }}
+					</p>
+					<p class="subsection-hint">
+						{{ t('attendance', 'The invitation links to anwesenheit.app with this server\'s address in the link. Showing it sends nothing there; the address only reaches anwesenheit.app when someone follows the link.') }}
 					</p>
 					<NcCheckboxRadioSwitch
 						v-model="mobileAppBannerEnabled"
 						type="switch"
 						data-test="switch-mobile-app-banner-enabled">
-						{{ t('attendance', 'Show promotion banner') }}
+						{{ t('attendance', 'Show invitation and rating request') }}
 					</NcCheckboxRadioSwitch>
 				</div>
 

@@ -1118,6 +1118,13 @@ class AppointmentService {
 	}
 
 	/**
+	 * How many appointments the user answered themselves.
+	 */
+	public function countOwnAnswers(string $userId): int {
+		return $this->responseMapper->countOwnAnswers($userId, [ResponseService::SOURCE_VACATION, ResponseService::SOURCE_ADMIN]);
+	}
+
+	/**
 	 * Get a single appointment with user response and summary.
 	 *
 	 * @param bool $includeResponseSummary Attach the full response overview

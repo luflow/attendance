@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Service;
 
+use OCP\Config\IUserConfig;
 use OCP\IAppConfig;
 use OCP\IConfig;
 
@@ -25,10 +26,12 @@ class ConfigService {
 
 	private IConfig $config;
 	private IAppConfig $appConfig;
+	private IUserConfig $userConfig;
 
-	public function __construct(IConfig $config, IAppConfig $appConfig) {
+	public function __construct(IConfig $config, IAppConfig $appConfig, IUserConfig $userConfig) {
 		$this->config = $config;
 		$this->appConfig = $appConfig;
+		$this->userConfig = $userConfig;
 	}
 
 	/**
@@ -683,5 +686,17 @@ class ConfigService {
 
 	public function setWantsResponseChangeNotifications(string $userId, bool $enabled): void {
 		$this->config->setUserValue($userId, self::APP_ID, 'notify_response_changes', $enabled ? 'yes' : 'no');
+	}
+
+	/**
+	 * Whether the web UI already asked this user to rate the app. Set when the
+	 * request is shown, whatever the user then does with it.
+	 */
+	public function wasAskedForRating(string $userId): bool {
+		return $this->userConfig->getValueBool($userId, self::APP_ID, 'rating_prompt_shown');
+	}
+
+	public function setAskedForRating(string $userId): void {
+		$this->userConfig->setValueBool($userId, self::APP_ID, 'rating_prompt_shown', true);
 	}
 }
