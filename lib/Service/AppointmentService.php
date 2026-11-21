@@ -1118,6 +1118,13 @@ class AppointmentService {
 	}
 
 	/**
+	 * Counts only answers the user gave: no vacation auto-answers, none given on their behalf.
+	 */
+	public function hasAnsweredAtLeast(string $userId, int $count): bool {
+		return $this->responseMapper->hasAtLeastAnswers($userId, $count, [ResponseService::SOURCE_VACATION, ResponseService::SOURCE_ADMIN]);
+	}
+
+	/**
 	 * Get a single appointment with user response and summary.
 	 *
 	 * @param bool $includeResponseSummary Attach the full response overview

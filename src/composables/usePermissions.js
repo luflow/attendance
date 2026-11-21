@@ -46,6 +46,7 @@ const DEFAULTS = {
 		mobileAppBannerEnabled: true,
 		hasPushDevice: false,
 		onboarding: { setupPrompt: false, firstAppointmentPrompt: false },
+		ratingPromptDue: false,
 	},
 }
 
@@ -129,6 +130,8 @@ export function usePermissions() {
 				setupPrompt: configRes.data.onboarding?.setupPrompt === true,
 				firstAppointmentPrompt: configRes.data.onboarding?.firstAppointmentPrompt === true,
 			}
+			// Absent on older servers too: never ask.
+			state.config.ratingPromptDue = configRes.data.ratingPromptDue === true
 
 			state.loaded = true
 		} catch (error) {

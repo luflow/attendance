@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\Attendance\Tests\Unit\Service;
 
 use OCA\Attendance\Service\ConfigService;
+use OCP\Config\IUserConfig;
 use OCP\IAppConfig;
 use OCP\IConfig;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -17,13 +18,17 @@ class ConfigServiceTest extends TestCase {
 	/** @var IAppConfig|MockObject */
 	private $appConfig;
 
+	/** @var IUserConfig|MockObject */
+	private $userConfig;
+
 	private ConfigService $service;
 
 	protected function setUp(): void {
 		$this->config = $this->createMock(IConfig::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
+		$this->userConfig = $this->createMock(IUserConfig::class);
 
-		$this->service = new ConfigService($this->config, $this->appConfig);
+		$this->service = new ConfigService($this->config, $this->appConfig, $this->userConfig);
 	}
 
 	/**
@@ -130,5 +135,20 @@ class ConfigServiceTest extends TestCase {
 
 		$this->expectException(\InvalidArgumentException::class);
 		$this->service->setResponseSummaryTeamsMode('all');
+	}
+
+	public function testRatingPromptIsPerUserAndOffUntilShown(): void {
+		$this->userConfig->method('getValueBool')
+			->with('alice', 'attendance', 'rating_prompt_shown')
+			->willReturn(false);
+
+		$this->assertFalse($this->service->wasAskedForRating('alice'));
+	}
+
+	public function testShowingTheRatingPromptIsRemembered(): void {
+		$this->userConfig->expects($this->once())->method('setValueBool')
+			->with('alice', 'attendance', 'rating_prompt_shown', true);
+
+		$this->service->setAskedForRating('alice');
 	}
 }

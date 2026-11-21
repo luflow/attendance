@@ -53,6 +53,8 @@ use OCP\Security\ISecureRandom;
  * @psalm-import-type AttendanceUserPermissions from \OCA\Attendance\ResponseDefinitions
  */
 class AppointmentController extends Controller {
+	private const RATING_PROMPT_MIN_ANSWERS = 5;
+
 	private AppointmentService $appointmentService;
 	private AttachmentService $attachmentService;
 	private CalendarService $calendarService;
@@ -1254,7 +1256,32 @@ class AppointmentController extends Controller {
 			'mobileAppBannerEnabled' => $bannerEnabled,
 			'hasPushDevice' => $hasPushDevice,
 			'onboarding' => $this->onboardingStateFor($user),
+			'ratingPromptDue' => $bannerEnabled && $user !== null && $this->isRatingPromptDue($user->getUID()),
 		]);
+	}
+
+	/**
+	 * Note that the web UI asked the user to rate the app, so it never asks again
+	 *
+	 * @return DataResponse<Http::STATUS_OK, array{success: bool}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>
+	 */
+	#[NoAdminRequired]
+	#[NoCSRFRequired]
+	#[OpenAPI]
+	public function markRatingPromptShown(): DataResponse {
+		$user = $this->userSession->getUser();
+		if ($user === null) {
+			return new DataResponse(['error' => 'User not authenticated'], Http::STATUS_UNAUTHORIZED);
+		}
+
+		$this->configService->setAskedForRating($user->getUID());
+		return new DataResponse(['success' => true]);
+	}
+
+	/** Asked once, and only of people who know the app by now. */
+	private function isRatingPromptDue(string $userId): bool {
+		return !$this->configService->wasAskedForRating($userId)
+			&& $this->appointmentService->hasAnsweredAtLeast($userId, self::RATING_PROMPT_MIN_ANSWERS);
 	}
 
 	/**

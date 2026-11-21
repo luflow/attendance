@@ -326,6 +326,7 @@ namespace OCA\Attendance;
  *   mobileAppBannerEnabled: bool,
  *   hasPushDevice: bool,
  *   onboarding: AttendanceOnboardingState,
+ *   ratingPromptDue?: bool,
  * }
  * @psalm-type AttendanceAdminReminderConfig = array{
  *   enabled: bool,

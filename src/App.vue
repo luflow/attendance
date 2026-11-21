@@ -192,9 +192,11 @@
 		<!-- Main content area -->
 		<NcAppContent ref="appContent">
 			<div class="attendance-content" :class="{ 'attendance-content--below-toggle': hasNavigation }">
-				<div v-if="hasNavigation && config.mobileAppBannerEnabled && !config.hasPushDevice"
+				<div v-if="hasNavigation && mobileAppBannerVisible"
 					class="mobile-banner-container">
-					<MobileAppBanner />
+					<MobileAppInvitation class="mobile-app-banner"
+						data-test="mobile-app-banner"
+						@dismiss="dismissMobileAppBanner" />
 				</div>
 
 				<!-- Check-in View -->
@@ -310,7 +312,7 @@ import LockIcon from 'vue-material-design-icons/Lock.vue'
 import PlusIcon from 'vue-material-design-icons/Plus.vue'
 import ProgressQuestion from 'vue-material-design-icons/ProgressQuestion.vue'
 import LoadingState from './components/common/LoadingState.vue'
-import MobileAppBanner from './components/common/MobileAppBanner.vue'
+import MobileAppInvitation from './components/common/MobileAppInvitation.vue'
 import ExportDialog from './components/ExportDialog.vue'
 import IcalFeedModal from './components/IcalFeedModal.vue'
 import AllAppointments from './views/AllAppointments.vue'
@@ -318,6 +320,7 @@ import AppointmentDetail from './views/AppointmentDetail.vue'
 import AppointmentForm from './views/AppointmentForm.vue'
 import CheckinView from './views/Checkin.vue'
 import StatisticsOverview from './views/StatisticsOverview.vue'
+import { useMobileAppInvitation } from './composables/useMobileAppInvitation.js'
 import { usePermissions } from './composables/usePermissions.js'
 import { confirmLeave, hasUnsavedChanges } from './composables/useUnsavedChanges.js'
 import { formatStart } from './utils/datetime.js'
@@ -528,6 +531,8 @@ t('attendance', 'Notifications are delivered via UnifiedPush — no Google Play 
 t('attendance', 'Notify users who can see this appointment about its creation')
 t('attendance', 'On vacation at this time')
 t('attendance', 'One license covers everyone on your server.')
+// TRANSLATORS: Shown in the mobile app right after an appointment was created, while few people on the server use the app yet. Next to an "Invite your group" button.
+t('attendance', 'Only people who use the app get a push notification about it.')
 t('attendance', 'OpenStreetMap')
 // TRANSLATORS: Message an organizer forwards to their group from the mobile app. {server} is the Nextcloud address, {link} the download page.
 t('attendance', 'Our group now uses Attendance for appointments and check-in. Get the app and sign in with our server address: {server} — App: {link}')
@@ -538,6 +543,7 @@ t('attendance', 'Personal license')
 t('attendance', 'Pick how the check-in button scans, or ask each time.')
 t('attendance', 'Point your camera at the check-in code, or hold your phone to the NFC tag.')
 t('attendance', 'Point your camera at the check-in code.')
+t('attendance', 'Point your camera at the invitation code.')
 // TRANSLATORS: Name of the largest organization subscription plan.
 t('attendance', 'Premium')
 t('attendance', 'Product developer')
@@ -546,6 +552,8 @@ t('attendance', 'Questions?')
 t('attendance', 'Rather book directly?')
 t('attendance', 'Scan NFC tag')
 t('attendance', 'Scan again')
+// TRANSLATORS: Button on the mobile app's sign-in screen. Opens the camera to read the QR code someone shared to invite you to their Nextcloud server.
+t('attendance', 'Scan invitation code')
 t('attendance', 'Scan to get the app, then sign in with this server address:')
 t('attendance', 'Search by name …')
 t('attendance', 'Search users, groups or teams …')
@@ -575,6 +583,7 @@ t('attendance', 'There is no appointment to check into right now.')
 // TRANSLATORS: The appointment was called off and will not take place (German "abgesagt", not "abgebrochen").
 t('attendance', 'This appointment has been cancelled.')
 t('attendance', 'This code belongs to {host}.')
+t('attendance', 'This invitation does not contain a valid server address.')
 t('attendance', 'This is not an Attendance check-in tag.')
 t('attendance', 'This tag is not supported.')
 t('attendance', 'This tag is write-protected.')
@@ -684,6 +693,7 @@ function onSearchInput() {
 
 // Use the shared permissions composable
 const { permissions, capabilities, config, loadPermissions } = usePermissions()
+const { bannerVisible: mobileAppBannerVisible, dismissBanner: dismissMobileAppBanner } = useMobileAppInvitation()
 
 const unansweredAppointments = computed(() => {
 	return currentAppointments.value.filter((appointment) => {
@@ -1005,6 +1015,11 @@ onMounted(async () => {
 .mobile-banner-container {
     padding: 0 20px 20px;
     max-width: 1200px;
+    margin: 0 auto;
+}
+
+.mobile-app-banner {
+    max-width: 800px;
     margin: 0 auto;
 }
 

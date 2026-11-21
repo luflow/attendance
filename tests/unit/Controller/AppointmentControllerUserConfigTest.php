@@ -19,6 +19,7 @@ use OCA\Attendance\Service\PermissionService;
 use OCA\Attendance\Service\TalkRoomService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\App\IAppManager;
+use OCP\AppFramework\Http;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -27,8 +28,8 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Covers the onboarding signals the web app boots on — everything else about
- * getUserConfig is plain config passthrough.
+ * Covers the onboarding and rating signals the web app boots on — everything
+ * else about getUserConfig is plain config passthrough.
  */
 class AppointmentControllerUserConfigTest extends TestCase {
 	/** @var AppointmentService|MockObject */
@@ -41,6 +42,8 @@ class AppointmentControllerUserConfigTest extends TestCase {
 	private $userSession;
 
 	private AppointmentController $controller;
+
+	private bool $bannerEnabled = false;
 
 	protected function setUp(): void {
 		$this->appointmentService = $this->createMock(AppointmentService::class);
@@ -70,7 +73,7 @@ class AppointmentControllerUserConfigTest extends TestCase {
 		);
 
 		$this->configService->method('getDisplayOrder')->willReturn('name_first');
-		$this->configService->method('isMobileAppBannerEnabled')->willReturn(false);
+		$this->configService->method('isMobileAppBannerEnabled')->willReturnCallback(fn () => $this->bannerEnabled);
 	}
 
 	private function signIn(string $uid): void {
@@ -149,5 +152,61 @@ class AppointmentControllerUserConfigTest extends TestCase {
 			['setupPrompt' => false, 'firstAppointmentPrompt' => false],
 			$this->controller->getUserConfig()->getData()['onboarding'],
 		);
+	}
+
+	public function testRatingIsDueForAnEstablishedUserNotAskedYet(): void {
+		$this->bannerEnabled = true;
+		$this->signIn('alice');
+		$this->configService->method('wasAskedForRating')->with('alice')->willReturn(false);
+		$this->appointmentService->method('hasAnsweredAtLeast')->with('alice', 5)->willReturn(true);
+
+		$this->assertTrue($this->controller->getUserConfig()->getData()['ratingPromptDue']);
+	}
+
+	public function testNewcomersAreNotAskedToRate(): void {
+		$this->bannerEnabled = true;
+		$this->signIn('alice');
+		$this->configService->method('wasAskedForRating')->willReturn(false);
+		$this->appointmentService->method('hasAnsweredAtLeast')->with('alice', 5)->willReturn(false);
+
+		$this->assertFalse($this->controller->getUserConfig()->getData()['ratingPromptDue']);
+	}
+
+	public function testRatingIsAskedOnlyOnce(): void {
+		$this->bannerEnabled = true;
+		$this->signIn('alice');
+		$this->configService->method('wasAskedForRating')->willReturn(true);
+		$this->appointmentService->expects($this->never())->method('hasAnsweredAtLeast');
+
+		$this->assertFalse($this->controller->getUserConfig()->getData()['ratingPromptDue']);
+	}
+
+	public function testPromotionSwitchAlsoTurnsTheRatingPromptOff(): void {
+		$this->signIn('alice');
+		$this->configService->expects($this->never())->method('wasAskedForRating');
+		$this->appointmentService->expects($this->never())->method('hasAnsweredAtLeast');
+
+		$this->assertFalse($this->controller->getUserConfig()->getData()['ratingPromptDue']);
+	}
+
+	public function testAnonymousRequestIsNeverAskedToRate(): void {
+		$this->bannerEnabled = true;
+		$this->userSession->method('getUser')->willReturn(null);
+
+		$this->assertFalse($this->controller->getUserConfig()->getData()['ratingPromptDue']);
+	}
+
+	public function testShowingTheRatingPromptMarksTheUserAsAsked(): void {
+		$this->signIn('alice');
+		$this->configService->expects($this->once())->method('setAskedForRating')->with('alice');
+
+		$this->assertSame(['success' => true], $this->controller->markRatingPromptShown()->getData());
+	}
+
+	public function testMarkingTheRatingPromptNeedsASignedInUser(): void {
+		$this->userSession->method('getUser')->willReturn(null);
+		$this->configService->expects($this->never())->method('setAskedForRating');
+
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $this->controller->markRatingPromptShown()->getStatus());
 	}
 }
