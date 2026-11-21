@@ -800,7 +800,8 @@ const { submitResponse: submitResponseApi } = useAppointmentResponse({
 
 const mobileAppInvitation = useMobileAppInvitation()
 const ratingRequest = useRatingRequest()
-// At most one request rides along with the "Hurray!" banner; the invitation goes first.
+// At most one request rides along with the "Hurray!" banner; the invitation goes
+// first. The app banner at the top does not count, or web-only users are never asked.
 const celebrationPrompt = ref(null)
 
 function pickCelebrationPrompt(afterOwnAnswer) {
@@ -809,7 +810,7 @@ function pickCelebrationPrompt(afterOwnAnswer) {
 	}
 	if (mobileAppInvitation.takeCelebrationTurn()) {
 		celebrationPrompt.value = 'invitation'
-	} else if (afterOwnAnswer && ratingRequest.due.value && !mobileAppInvitation.bannerVisible.value) {
+	} else if (afterOwnAnswer && ratingRequest.due.value) {
 		celebrationPrompt.value = 'rating'
 	}
 }

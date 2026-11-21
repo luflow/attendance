@@ -119,6 +119,8 @@ export default defineConfig({
 				'43-statistics-teams.spec.js',
 				// Hides account email addresses instance-wide and gives a user one.
 				'44-hide-account-email.spec.js',
+				// Wipes every appointment and spends test4/test5's once-only rating request.
+				'45-celebration-prompts.spec.js',
 			],
 			fullyParallel: false,
 			workers: 1,
