@@ -1148,6 +1148,10 @@
     "Nextcloud shows the email address of every account to all other accounts, for example in the menu on a profile picture in Talk." : "Nextcloud zeigt die E-Mail-Adresse jedes Kontos allen anderen Konten, zum Beispiel im Menü am Profilbild in Talk.",
     "Hide the email address of accounts" : "E-Mail-Adresse von Konten ausblenden",
     "This applies to the whole server, not only to Attendance. The address is removed from the menu on a profile picture, the contacts menu and the account search. Profile pages and synced address books still show it." : "Das gilt für den ganzen Server, nicht nur für Anwesenheit. Die Adresse verschwindet aus dem Menü am Profilbild, aus dem Kontaktmenü und aus der Kontosuche. Profilseiten und synchronisierte Adressbücher zeigen die Adresse weiterhin.",
-    "Cancelled appointments" : "Abgesagte Termine"
+    "Cancelled appointments" : "Abgesagte Termine",
+    "Only people who use the app get a push notification about it." : "Eine Push-Benachrichtigung dazu bekommt nur, wer die App nutzt.",
+    "Point your camera at the invitation code." : "Ihre Kamera auf den Einladungscode richten.",
+    "Scan invitation code" : "Einladungscode scannen",
+    "This invitation does not contain a valid server address." : "Diese Einladung enthält keine gültige Serveradresse."
 },"pluralForm" :"nplurals=2; plural=(n != 1);"
 }
