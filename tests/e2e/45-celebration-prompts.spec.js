@@ -88,4 +88,25 @@ test.describe('Requests at the "Hurray!" banner', () => {
 		await expect(page.locator('[data-test="celebration-invitation"]')).toHaveCount(0)
 	})
 
+	test('closing the invitation inside "Hurray!" hides it for good', async ({ page, request, loginAsUser }) => {
+		const invitation = page.locator('[data-test="celebration-invitation"]')
+		const hurray = page.getByText('Hurray! You responded to all appointments.')
+		await loginAsUser('test3', 'test3')
+		await page.goto('/apps/attendance/unanswered')
+		await page.locator('[data-test="mobile-app-banner"] [data-test="mobile-app-invitation-dismiss"]').click()
+		await page.reload()
+		await expect(invitation).toBeVisible()
+		await invitation.locator('[data-test="mobile-app-invitation-dismiss"]').click()
+
+		// The next empty list within the same page load, then on a fresh one.
+		await seedOpen(request, 'test3', 'Open for test3')
+		await page.locator('[data-test="nav-all"]').click()
+		await page.goBack()
+		await page.locator('[data-test="appointment-card"] [data-test="response-yes"]').click()
+		await expect(hurray).toBeVisible()
+		await expect(invitation).toHaveCount(0)
+		await page.reload()
+		await expect(hurray).toBeVisible()
+		await expect(invitation).toHaveCount(0)
+	})
 })

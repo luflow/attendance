@@ -60,6 +60,7 @@ export function useMobileAppInvitation() {
 	}
 
 	function dismissCelebration() {
+		celebrationShown = false
 		writeStorage(CELEBRATION_KEY, 'dismissed')
 	}
 
