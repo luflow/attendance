@@ -159,6 +159,7 @@ OC.L10N.register(
     "Dismiss" : "Descartar",
     "Move {name} up" : "Mover {name} hacia arriba",
     "Move {name} down" : "Mover {name} abajo",
+    "Rate the app" : "Calificar la aplicación",
     "Comments" : "Comentarios",
     "Welcome" : "Bienvenido/a",
     "More settings" : "Más ajustes",

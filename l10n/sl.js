@@ -138,6 +138,7 @@ OC.L10N.register(
     "Insert link" : "Vstavi povezavo",
     "Dismiss" : "Prekliči",
     "Move {name} up" : "Premakni {name} navzgor",
+    "Rate the app" : "Oceni program",
     "Comments" : "Opombe",
     "Welcome" : "Dobrodošli",
     "More settings" : "Več nastavitev",

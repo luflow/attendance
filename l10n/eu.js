@@ -146,6 +146,7 @@ OC.L10N.register(
     "Quote" : "Aurrekontua",
     "Dismiss" : "Ezikusi",
     "Move {name} up" : "Eraman {name} gora",
+    "Rate the app" : "Baloratu aplikazioa",
     "Comments" : "Iruzkinak",
     "Welcome" : "Ongi etorri",
     "Categories" : "Kategoriak",

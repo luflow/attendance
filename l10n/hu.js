@@ -150,6 +150,7 @@ OC.L10N.register(
     "Quote" : "Árajánlat",
     "Dismiss" : "Eltüntetés",
     "Move {name} up" : "{name} feljebb mozgatása",
+    "Rate the app" : "Értékelje az alkalmazást",
     "Comments" : "Hozzászólások",
     "Welcome" : "Üdvözöljük",
     "Categories" : "Kategóriák",

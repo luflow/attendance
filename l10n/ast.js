@@ -70,6 +70,7 @@ OC.L10N.register(
     "Location" : "Llocalización",
     "Unlimited" : "Ensin llende",
     "Save" : "Guardar",
+    "License" : "Llicencia",
     "All users" : "Tolos usuarios",
     "Link copied to clipboard" : "L'enllaz copióse nel cartafueyu",
     "Responses" : "Rempuestes",

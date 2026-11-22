@@ -120,6 +120,7 @@ OC.L10N.register(
     "Insert link" : "Insertar enlace",
     "Dismiss" : "Descartar",
     "Move {name} up" : "Mover {name} hacia arriba",
+    "Rate the app" : "Calificar la aplicación",
     "Comments" : "Comentarios",
     "Welcome" : "Bienvenido",
     "Categories" : "Categorías",

@@ -31,6 +31,7 @@ OC.L10N.register(
     "Location" : "Yerləşdiyiniz ünvan",
     "Unlimited" : "Limitsiz",
     "Save" : "Saxla",
+    "License" : "Lisenziya",
     "Delete" : "Sil",
     "Edit" : "Dəyişiklik et",
     "Daily" : "Günlük",

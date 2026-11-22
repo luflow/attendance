@@ -196,6 +196,7 @@ OC.L10N.register(
     "Insert link" : "Lisää linkki",
     "Dismiss" : "Hylkää",
     "Move {name} up" : "Siirrä {name} ylös",
+    "Rate the app" : "Arvostele sovellus",
     "Comments" : "Kommentit",
     "Welcome" : "Tervetuloa",
     "Categories" : "Luokat",

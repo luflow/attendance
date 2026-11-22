@@ -32,6 +32,7 @@ OC.L10N.register(
     "Description" : "Beskrywing",
     "Unlimited" : "Onbeperkte",
     "Save" : "Stoor",
+    "License" : "Lisensie",
     "Delete" : "Skrap",
     "No activity yet" : "Nog geen aktiwiteit",
     "Daily" : "Daagliks",

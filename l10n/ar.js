@@ -88,6 +88,7 @@ OC.L10N.register(
     "Location" : "الموقع",
     "Unlimited" : "غير محدود",
     "Save" : "حفظ",
+    "License" : "الرخصة",
     "All users" : "كُلّ المستخدمين",
     "Link copied to clipboard" : "تمّ نسخ الرابط إلى الحافظة",
     "Responses" : "الردود",

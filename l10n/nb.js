@@ -144,6 +144,7 @@ OC.L10N.register(
     "Insert link" : "Sett inn kobling",
     "Dismiss" : "Avvis",
     "Move {name} up" : "Flytt {name} opp",
+    "Rate the app" : "Vurder appen",
     "Comments" : "Kommentarer",
     "Welcome" : "Velkommen",
     "Categories" : "Kategorier",

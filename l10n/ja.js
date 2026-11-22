@@ -140,6 +140,7 @@ OC.L10N.register(
     "Bullet list" : "箇条書きリスト",
     "Insert link" : "リンクを挿入する",
     "Dismiss" : "無視する",
+    "Rate the app" : "アプリを評価する",
     "Comments" : "コメント",
     "Welcome" : "ようこそ",
     "Categories" : "カテゴリ",

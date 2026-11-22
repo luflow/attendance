@@ -280,6 +280,7 @@ OC.L10N.register(
     "Insert link" : "Link invoegen",
     "Dismiss" : "Wijs af",
     "Move {name} up" : "{name} omhoog verplaatsen",
+    "Rate the app" : "Beoordeel de app",
     "Comments" : "Reacties",
     "Welcome" : "Welkom",
     "More settings" : "Meer instellingen",

@@ -145,6 +145,7 @@ OC.L10N.register(
     "Quote" : "Tanebdurt",
     "Insert link" : "Ger aseɣwen",
     "Dismiss" : "Agi",
+    "Rate the app" : "Rnu tazmilt i usnas",
     "Comments" : "Iwenniten",
     "Welcome" : "Ansuf",
     "Categories" : "Taggayin",

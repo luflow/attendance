@@ -192,6 +192,7 @@ OC.L10N.register(
     "Quote" : "ㅇ",
     "Insert link" : "링크 삽입",
     "Dismiss" : "끄기",
+    "Rate the app" : "앱 평가하기",
     "Comments" : "댓글",
     "Welcome" : "환영합니다.",
     "Response summary groups" : "응답 요약 그룹",

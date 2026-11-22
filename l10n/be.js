@@ -56,6 +56,7 @@ OC.L10N.register(
     "Description" : "Апісанне",
     "Location" : "Месцазнаходжанне",
     "Save" : "Захаваць",
+    "License" : "Ліцэнзія",
     "Link copied to clipboard" : "Спасылка скапіявана ў буфер абмену",
     "Both" : "Абодва",
     "Delete" : "Выдаліць",

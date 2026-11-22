@@ -131,6 +131,7 @@ OC.L10N.register(
     "Insert link" : "Umetni poveznicu",
     "Dismiss" : "Zanemari",
     "Move {name} up" : "Premjesti {name} gore",
+    "Rate the app" : "Ocijeni aplikaciju",
     "Comments" : "Komentari",
     "Welcome" : "Dobrodošli",
     "Categories" : "Kategorije",

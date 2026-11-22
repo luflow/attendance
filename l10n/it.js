@@ -154,6 +154,7 @@ OC.L10N.register(
     "Insert link" : "Inserisci collegamento",
     "Dismiss" : "Rifiuta",
     "Move {name} up" : "Sposta {name} in alto",
+    "Rate the app" : "Valuta l'applicazione",
     "Comments" : "Commenti",
     "Welcome" : "Benvenuto",
     "More settings" : "Altre impostazioni",

@@ -149,6 +149,7 @@ OC.L10N.register(
     "Quote" : "Цитата",
     "Dismiss" : "Сховати",
     "Move {name} up" : "Пересунути {name} вгору",
+    "Rate the app" : "Оцініть застосунок",
     "Comments" : "Коментарі",
     "Welcome" : "Привітання",
     "Categories" : "Категорії",

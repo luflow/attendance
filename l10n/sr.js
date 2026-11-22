@@ -147,6 +147,7 @@ OC.L10N.register(
     "Insert link" : "Уметни линк",
     "Dismiss" : "Одбаци",
     "Move {name} up" : "Помери {name} нагоре",
+    "Rate the app" : "Оцените апликацију",
     "Comments" : "Коментари",
     "Welcome" : "Добро дошли",
     "Categories" : "Категорије",

@@ -128,6 +128,7 @@ OC.L10N.register(
     "Insert link" : "Setja inn tengil",
     "Dismiss" : "Hafna",
     "Move {name} up" : "Færa {name} upp",
+    "Rate the app" : "Gefðu forritinu einkunn",
     "Comments" : "Athugasemdir",
     "Welcome" : "Velkomin",
     "Categories" : "Flokkar",

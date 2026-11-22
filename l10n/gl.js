@@ -249,6 +249,7 @@ OC.L10N.register(
     "Insert link" : "Inserir unha ligazón",
     "Dismiss" : "Desbotar",
     "Move {name} up" : "Mover {name} cara arriba",
+    "Rate the app" : "Valore a aplicación",
     "Comments" : "Comentarios",
     "Welcome" : "Benvido",
     "Response summary groups" : "Grupos para o resumo de respostas",
