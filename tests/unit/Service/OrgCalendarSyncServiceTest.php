@@ -282,9 +282,25 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$this->assertStringContainsString('DTEND:20260901T200000Z', $ics);
 		$this->assertStringContainsString('STATUS:CONFIRMED', $ics);
 
-		// Link uses the owner-side calendar URI so the update listener matches
+		// The update listener matches edits back by calendar ID
 		$this->assertSame('org-events-owner-uri', $appointment->getCalendarUri());
 		$this->assertSame('attendance-org-5@cloud.example.com', $appointment->getCalendarEventUid());
+		$this->assertSame(42, $appointment->getCalendarId());
+	}
+
+	public function testSyncBindsALegacyLinkToTheCalendarId(): void {
+		$this->configureEnabled();
+		$appointment = $this->buildAppointment();
+		$appointment->setCalendarUri('org-events-owner-uri');
+		$appointment->setCalendarEventUid('attendance-org-5@cloud.example.com');
+		$this->backend->existingObjects['attendance-org-5@cloud.example.com.ics'] = ['id' => 1];
+
+		$this->appointmentMapper->expects($this->once())
+			->method('update')
+			->with($this->callback(fn (Appointment $a): bool => $a->getCalendarId() === 42))
+			->willReturnArgument(0);
+
+		$this->assertTrue($this->service->syncAppointment($appointment));
 	}
 
 	public function testSyncUpdatesExistingEventWithoutRelinking(): void {
@@ -292,6 +308,7 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$appointment = $this->buildAppointment();
 		$appointment->setCalendarUri('org-events-owner-uri');
 		$appointment->setCalendarEventUid('attendance-org-5@cloud.example.com');
+		$appointment->setCalendarId(42);
 		$this->backend->existingObjects['attendance-org-5@cloud.example.com.ics'] = ['id' => 1];
 
 		$this->appointmentMapper->expects($this->never())->method('update');
@@ -308,6 +325,7 @@ class OrgCalendarSyncServiceTest extends TestCase {
 		$appointment = $this->buildAppointment();
 		$appointment->setCalendarUri('org-events-owner-uri');
 		$appointment->setCalendarEventUid('attendance-org-5@old.example.org');
+		$appointment->setCalendarId(42);
 		$this->backend->existingObjects['attendance-org-5@old.example.org.ics'] = ['id' => 1];
 
 		$this->appointmentMapper->expects($this->never())->method('update');

@@ -86,6 +86,7 @@ class AppointmentService {
 		VacationService $vacationService,
 		private TimezoneService $timezoneService,
 		private CheckinService $checkinService,
+		private CalendarService $calendarService,
 	) {
 		$this->appointmentMapper = $appointmentMapper;
 		$this->responseMapper = $responseMapper;
@@ -162,6 +163,10 @@ class AppointmentService {
 		$appointment->setCategoryId($this->normalizeCategoryId($categoryId));
 		$appointment->setCalendarUri($calendarUri);
 		$appointment->setCalendarEventUid($calendarEventUid);
+		// Resolved from the creator's own calendar home, never taken from the request.
+		$appointment->setCalendarId($calendarUri !== null && $calendarEventUid !== null
+			? $this->calendarService->findCalendarId($createdBy, $calendarUri)
+			: null);
 		$appointment->setSeriesId($seriesId);
 		$appointment->setSeriesPosition($seriesPosition);
 		$appointment->setSendNotification($sendNotification);

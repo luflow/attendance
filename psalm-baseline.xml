@@ -702,8 +702,6 @@
       <code><![CDATA[$vevent]]></code>
     </MissingParamType>
     <MixedArgument>
-      <code><![CDATA[$calendarUri]]></code>
-      <code><![CDATA[$calendarUri]]></code>
       <code><![CDATA[$davUri]]></code>
       <code><![CDATA[$davUri]]></code>
       <code><![CDATA[$uid]]></code>
@@ -711,8 +709,6 @@
       <code><![CDATA[(clone $dtstart)->setTimezone($utcTimezone)->format('Y-m-d H:i:s')]]></code>
     </MixedArgument>
     <MixedArrayAccess>
-      <code><![CDATA[$calendarData['uri']]]></code>
-      <code><![CDATA[$calendarData['uri']]]></code>
       <code><![CDATA[$objectData['uid']]]></code>
       <code><![CDATA[$objectData['uri']]]></code>
     </MixedArrayAccess>
@@ -721,10 +717,6 @@
       <code><![CDATA[$timestamps[$ve->DTSTART->getDateTime()->getTimestamp()]]]></code>
     </MixedArrayOffset>
     <MixedAssignment>
-      <code><![CDATA[$calendarData]]></code>
-      <code><![CDATA[$calendarData]]></code>
-      <code><![CDATA[$calendarUri]]></code>
-      <code><![CDATA[$calendarUri]]></code>
       <code><![CDATA[$davUri]]></code>
       <code><![CDATA[$dtend]]></code>
       <code><![CDATA[$dtstart]]></code>
@@ -781,8 +773,6 @@
       <code><![CDATA[$s !== null]]></code>
     </RedundantConditionGivenDocblockType>
     <RiskyTruthyFalsyComparison>
-      <code><![CDATA[!$calendarUri]]></code>
-      <code><![CDATA[!$calendarUri]]></code>
       <code><![CDATA[!$davUri]]></code>
       <code><![CDATA[!$earliestStart]]></code>
       <code><![CDATA[!$latestStart]]></code>
@@ -796,8 +786,6 @@
       <code><![CDATA[Reader]]></code>
     </UndefinedClass>
     <UndefinedMethod>
-      <code><![CDATA[getCalendarData]]></code>
-      <code><![CDATA[getCalendarData]]></code>
       <code><![CDATA[getObjectData]]></code>
       <code><![CDATA[getObjectData]]></code>
     </UndefinedMethod>
@@ -1170,6 +1158,11 @@
     </DeprecatedMethod>
     <UnusedClass>
       <code><![CDATA[Version000027Date20261012120000]]></code>
+    </UnusedClass>
+  </file>
+  <file src="lib/Migration/Version000028Date20261122120000.php">
+    <UnusedClass>
+      <code><![CDATA[Version000028Date20261122120000]]></code>
     </UnusedClass>
   </file>
   <file src="lib/Notification/LicenseNotifier.php">

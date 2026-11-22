@@ -198,10 +198,10 @@ class AppointmentMapper extends QBMapper {
 	/**
 	 * Find appointments linked to a specific calendar event
 	 * @param string $calendarEventUid The iCal UID of the calendar event
-	 * @param string|null $calendarUri Optional calendar URI to narrow search
+	 * @param int $calendarId Numeric ID of the calendar the event lives in
 	 * @return array<Appointment>
 	 */
-	public function findByCalendarEventUid(string $calendarEventUid, ?string $calendarUri = null): array {
+	public function findByCalendarEventUid(string $calendarEventUid, int $calendarId): array {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
@@ -209,15 +209,10 @@ class AppointmentMapper extends QBMapper {
 			->where(
 				$qb->expr()->andX(
 					$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
-					$qb->expr()->eq('calendar_event_uid', $qb->createNamedParameter($calendarEventUid))
+					$qb->expr()->eq('calendar_event_uid', $qb->createNamedParameter($calendarEventUid)),
+					$qb->expr()->eq('calendar_id', $qb->createNamedParameter($calendarId, IQueryBuilder::PARAM_INT))
 				)
 			);
-
-		if ($calendarUri !== null) {
-			$qb->andWhere(
-				$qb->expr()->eq('calendar_uri', $qb->createNamedParameter($calendarUri))
-			);
-		}
 
 		return $this->findEntities($qb);
 	}
@@ -226,10 +221,10 @@ class AppointmentMapper extends QBMapper {
 	 * Find imported calendar event identifiers for a given calendar.
 	 * Returns calendarEventUid + startDatetime pairs for building occurrence IDs.
 	 *
-	 * @param string $calendarUri Calendar URI to filter by
+	 * @param int $calendarId Numeric ID of the calendar to filter by
 	 * @return list<array{calendar_event_uid: string, start_datetime: string}>
 	 */
-	public function findImportedByCalendarUri(string $calendarUri): array {
+	public function findImportedByCalendarId(int $calendarId): array {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('calendar_event_uid', 'start_datetime')
@@ -237,7 +232,7 @@ class AppointmentMapper extends QBMapper {
 			->where(
 				$qb->expr()->andX(
 					$qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)),
-					$qb->expr()->eq('calendar_uri', $qb->createNamedParameter($calendarUri)),
+					$qb->expr()->eq('calendar_id', $qb->createNamedParameter($calendarId, IQueryBuilder::PARAM_INT)),
 					$qb->expr()->isNotNull('calendar_event_uid'),
 					$qb->expr()->neq('calendar_event_uid', $qb->createNamedParameter(''))
 				)

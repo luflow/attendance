@@ -134,8 +134,9 @@ class CalendarController extends Controller {
 			);
 
 			$importedIds = [];
-			if (!empty($events)) {
-				$imported = $this->appointmentMapper->findImportedByCalendarUri($calendarUri);
+			$calendarId = empty($events) ? null : $this->calendarService->findCalendarId($user->getUID(), $calendarUri);
+			if ($calendarId !== null) {
+				$imported = $this->appointmentMapper->findImportedByCalendarId($calendarId);
 				foreach ($imported as $row) {
 					$importedIds[] = CalendarService::buildOccurrenceId(
 						$row['calendar_event_uid'],
