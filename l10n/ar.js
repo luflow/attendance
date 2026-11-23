@@ -144,6 +144,7 @@ OC.L10N.register(
     "Insert link" : "أدخِل الرابط",
     "Dismiss" : "الغاء",
     "Move {name} up" : "نقل {name} للأعلى",
+    "Rate the app" : "قَيِّم التطبيق",
     "Comments" : "تعليقات",
     "Welcome" : "مرحباً",
     "Categories" : "التصنيفات",
