@@ -10,6 +10,7 @@ use OCA\Attendance\Service\AppointmentService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\OrgCalendarSyncService;
 use OCA\Attendance\Service\TimezoneService;
+use OCP\Calendar\Events\AbstractCalendarObjectEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\IUserSession;
@@ -60,15 +61,23 @@ class CalendarObjectUpdateListener implements IEventListener {
 	 *
 	 * @return list<Appointment>
 	 */
-	private function findLinkedAppointments(string $uid, ?string $davUri, string $calendarUri): array {
-		$appointments = $this->appointmentMapper->findByCalendarEventUid($uid, $calendarUri);
+	private function findLinkedAppointments(string $uid, ?string $davUri, int $calendarId): array {
+		$appointments = $this->appointmentMapper->findByCalendarEventUid($uid, $calendarId);
 		if (empty($appointments)) {
-			$appointments = $this->appointmentMapper->findByCalendarEventUid($uid . '.ics', $calendarUri);
+			$appointments = $this->appointmentMapper->findByCalendarEventUid($uid . '.ics', $calendarId);
 		}
 		if (empty($appointments) && $davUri) {
-			$appointments = $this->appointmentMapper->findByCalendarEventUid($davUri, $calendarUri);
+			$appointments = $this->appointmentMapper->findByCalendarEventUid($davUri, $calendarId);
 		}
 		return $appointments;
+	}
+
+	/**
+	 * The ID of the calendar the event lives in — for a shared calendar, the
+	 * owner's, so a write-sharee's edit still reaches the linked appointment.
+	 */
+	private function calendarIdOf(Event $event): ?int {
+		return $event instanceof AbstractCalendarObjectEvent ? $event->getCalendarId() : null;
 	}
 
 	/**
@@ -128,14 +137,13 @@ class CalendarObjectUpdateListener implements IEventListener {
 	private function handleUpdate(Event $event): void {
 		try {
 			$objectData = $event->getObjectData();
-			$calendarData = $event->getCalendarData();
 
 			if (!isset($objectData['calendardata'])) {
 				return;
 			}
 
-			$calendarUri = $calendarData['uri'] ?? null;
-			if (!$calendarUri) {
+			$calendarId = $this->calendarIdOf($event);
+			if ($calendarId === null) {
 				return;
 			}
 
@@ -151,7 +159,7 @@ class CalendarObjectUpdateListener implements IEventListener {
 			}
 
 			$davUri = $objectData['uri'] ?? null;
-			$appointments = $this->findLinkedAppointments($uid, $davUri, $calendarUri);
+			$appointments = $this->findLinkedAppointments($uid, $davUri, $calendarId);
 			if (empty($appointments)) {
 				return;
 			}
@@ -291,10 +299,9 @@ class CalendarObjectUpdateListener implements IEventListener {
 	private function handleDelete(Event $event): void {
 		try {
 			$objectData = $event->getObjectData();
-			$calendarData = $event->getCalendarData();
 
-			$calendarUri = $calendarData['uri'] ?? null;
-			if (!$calendarUri) {
+			$calendarId = $this->calendarIdOf($event);
+			if ($calendarId === null) {
 				return;
 			}
 
@@ -306,8 +313,8 @@ class CalendarObjectUpdateListener implements IEventListener {
 			}
 
 			$appointments = $uid
-				? $this->findLinkedAppointments($uid, $davUri, $calendarUri)
-				: $this->appointmentMapper->findByCalendarEventUid($davUri, $calendarUri);
+				? $this->findLinkedAppointments($uid, $davUri, $calendarId)
+				: $this->appointmentMapper->findByCalendarEventUid($davUri, $calendarId);
 
 			if (empty($appointments)) {
 				$this->logger->debug('Attendance handleDelete: no linked appointments found for uid={uid}', [
