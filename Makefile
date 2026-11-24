@@ -29,7 +29,7 @@ endif
 # wipes out unused composer files.
 .PHONY: composer
 composer:
-	composer install --no-dev --prefer-dist
+	composer install --no-dev --no-scripts --prefer-dist
 
 # Installs npm dependencies
 .PHONY: npm
@@ -107,6 +107,8 @@ appstore:
 	--exclude="../$(app_name)/node_modules" \
 	--exclude="../$(app_name)/scripts" \
 	--exclude="../$(app_name)/translationfiles" \
+	--exclude="../$(app_name)/vendor-bin" \
+	--exclude="../$(app_name)/vendor/bin" \
 	../$(app_name) \
 
 .PHONY: test
