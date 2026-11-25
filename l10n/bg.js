@@ -137,6 +137,7 @@ OC.L10N.register(
     "Quote" : "Оферта",
     "Dismiss" : "Затвори",
     "Move {name} up" : "Преместване на {name} нагоре",
+    "Rate the app" : "Оценете приложението",
     "Comments" : "Коментари",
     "Welcome" : "Добре дошли",
     "Categories" : "Категории",

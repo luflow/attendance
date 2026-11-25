@@ -144,6 +144,7 @@ OC.L10N.register(
     "Insert link" : "Insereix un enllaç",
     "Dismiss" : "Descarta",
     "Move {name} up" : "Mou {name} amunt",
+    "Rate the app" : "Valoreu l'aplicació",
     "Comments" : "Comentaris",
     "Welcome" : "Benvingut",
     "Categories" : "Categories",
