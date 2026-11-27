@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace OCA\Attendance\Service;
 
 use OCA\Attendance\Db\Appointment;
+use OCP\IL10N;
 
 /**
  * The rules deciding which answers an appointment accepts.
@@ -22,6 +23,7 @@ class ResponsePolicyService {
 		private ConfigService $configService,
 		private CapacityService $capacityService,
 		private VisibilityService $visibilityService,
+		private IL10N $l,
 	) {
 	}
 
@@ -40,6 +42,17 @@ class ResponsePolicyService {
 	}
 
 	/**
+	 * Whether this answer has to come with a reason. Only the person's own
+	 * answer does: vacation auto-answers and organizers setting an answer for
+	 * somebody else are exempt, which is why they reach the policy without a
+	 * comment.
+	 */
+	public function isCommentRequired(?string $response): bool {
+		return ($response === 'no' || $response === 'maybe')
+			&& $this->configService->isCommentRequiredForDecline();
+	}
+
+	/**
 	 * @param string $userId the person the answer is for
 	 * @param ?string $response the answer about to be stored, or null to withdraw
 	 * @param ?string $currentResponse the answer on record, null when there is none
@@ -48,6 +61,9 @@ class ResponsePolicyService {
 	 * @param bool $onBehalf an organizer is answering for somebody else, which
 	 *                       may exceed the limit — they own the appointment and
 	 *                       real rosters have exceptions
+	 * @param ?string $comment the comment given with the person's own answer;
+	 *                         null where nobody can give one (vacation, on behalf)
+	 * @throws CommentRequiredException if the answer needs a reason and has none
 	 * @throws \InvalidArgumentException if this appointment does not accept the answer
 	 * @throws \RuntimeException if the appointment is full
 	 */
@@ -58,6 +74,7 @@ class ResponsePolicyService {
 		?string $currentResponse = null,
 		bool $acceptWaitlist = false,
 		bool $onBehalf = false,
+		?string $comment = null,
 	): void {
 		if ($response === null) {
 			return;
@@ -72,6 +89,9 @@ class ResponsePolicyService {
 		}
 		if ($response === 'maybe' && !$this->isMaybeAllowed($appointment)) {
 			throw new \InvalidArgumentException('This appointment does not accept "maybe" as an answer.');
+		}
+		if ($comment !== null && trim($comment) === '' && $this->isCommentRequired($response)) {
+			throw new CommentRequiredException($this->l->t('Please add a comment with your reason when you answer “No” or “Maybe”.'));
 		}
 
 		// Only a fresh yes can run into the limit. Re-saving one — the same

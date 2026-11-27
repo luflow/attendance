@@ -491,6 +491,18 @@ class ConfigService {
 	}
 
 	/**
+	 * Whether members have to give a reason (a comment) when they answer
+	 * "No" or "Maybe". Off by default.
+	 */
+	public function isCommentRequiredForDecline(): bool {
+		return $this->appConfig->getValueBool(self::APP_ID, 'comment_required_for_decline', false);
+	}
+
+	public function setCommentRequiredForDecline(bool $required): void {
+		$this->appConfig->setValueBool(self::APP_ID, 'comment_required_for_decline', $required);
+	}
+
+	/**
 	 * Minutes before an appointment starts that self-check-in opens.
 	 * The window always closes at the appointment end.
 	 */

@@ -122,6 +122,16 @@ class AdminControllerTest extends TestCase {
 		$this->controller->saveSettings(allowMaybe: false);
 	}
 
+	public function testRequiringACommentForNoAndMaybeIsStoredAndReported(): void {
+		$this->configService->expects($this->once())
+			->method('setCommentRequiredForDecline')
+			->with(true);
+		$this->configService->method('isCommentRequiredForDecline')->willReturn(true);
+
+		$this->assertSame(Http::STATUS_OK, $this->controller->saveSettings(commentRequiredForDecline: true)->getStatus());
+		$this->assertTrue($this->controller->getSettings()->getData()['config']['commentRequiredForDecline']);
+	}
+
 	/** The preview parsed a naive string as local time and showed the UTC hour. */
 	public function testNextAppointmentStartCarriesTheUtcMarker(): void {
 		$this->appointmentMapper->method('findUpcoming')->willReturn([$this->upcoming('Rehearsal')]);

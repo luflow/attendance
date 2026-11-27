@@ -6,7 +6,9 @@ namespace OCA\Attendance\Tests\Unit\Controller;
 
 use OCA\Attendance\Controller\QuickResponseController;
 use OCA\Attendance\Db\Appointment;
+use OCA\Attendance\Service\CommentRequiredException;
 use OCA\Attendance\Service\QuickResponseTokenService;
+use OCA\Attendance\Service\ResponsePolicyService;
 use OCA\Attendance\Service\ResponseService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\AppFramework\Http;
@@ -36,6 +38,8 @@ class QuickResponseControllerTest extends TestCase {
 	private $logger;
 	/** @var VisibilityService|MockObject */
 	private $visibilityService;
+	/** @var ResponsePolicyService|MockObject */
+	private $responsePolicyService;
 
 	private QuickResponseController $controller;
 
@@ -48,6 +52,7 @@ class QuickResponseControllerTest extends TestCase {
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->visibilityService = $this->createMock(VisibilityService::class);
+		$this->responsePolicyService = $this->createMock(ResponsePolicyService::class);
 
 		// Pass-through translator — keeps message assertions readable.
 		$this->l->method('t')->willReturnCallback(
@@ -67,6 +72,7 @@ class QuickResponseControllerTest extends TestCase {
 			$this->userManager,
 			$this->logger,
 			$this->visibilityService,
+			$this->responsePolicyService,
 		);
 	}
 
@@ -179,5 +185,31 @@ class QuickResponseControllerTest extends TestCase {
 
 		// submitResponse must NEVER run for a closed inquiry.
 		$this->responseService->expects($this->never())->method('submitResponse');
+	}
+
+	public function testConfirmResponseHandsTheReasonOn(): void {
+		$this->primeValidationDependencies($this->makeAppointment(closed: false));
+
+		$this->responseService->expects($this->once())
+			->method('submitResponse')
+			->with(42, 'alice', 'no', 'Away on business', 'quick_link');
+
+		$response = $this->controller->confirmResponse(42, 'no', 'sometoken', 'alice', 'Away on business');
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+	}
+
+	/** A missing reason is the person's to fix on the page, not an error to throttle. */
+	public function testConfirmResponseWithoutTheRequiredReasonExplainsWhy(): void {
+		$this->primeValidationDependencies($this->makeAppointment(closed: false));
+		$this->responseService->method('submitResponse')
+			->willThrowException(new CommentRequiredException('Please add a comment with your reason.'));
+
+		$response = $this->controller->confirmResponse(42, 'no', 'sometoken', 'alice');
+
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+		$this->assertSame(['success' => false, 'message' => 'Please add a comment with your reason.'], $response->getData());
+		$this->assertSame([], $response->getThrottleMetadata());
+		$this->assertFalse($response->isThrottled());
 	}
 }

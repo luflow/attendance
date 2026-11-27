@@ -9,10 +9,12 @@ use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Service\AuditEventService;
 use OCA\Attendance\Service\CapacityService;
+use OCA\Attendance\Service\CommentRequiredException;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\NotificationService;
 use OCA\Attendance\Service\ResponsePolicyService;
 use OCA\Attendance\Service\VisibilityService;
+use OCP\IL10N;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -36,6 +38,8 @@ class ResponsePolicyServiceTest extends TestCase {
 		$this->responseMapper = $this->createMock(AttendanceResponseMapper::class);
 		$this->visibilityService = $this->createMock(VisibilityService::class);
 		$this->visibilityService->method('isUserTargetAttendee')->willReturnCallback(fn () => $this->inAudience);
+		$l = $this->createMock(IL10N::class);
+		$l->method('t')->willReturnCallback(static fn (string $text): string => $text);
 		// The real capacity rules, on a mocked queue.
 		$this->service = new ResponsePolicyService(
 			$this->configService,
@@ -45,6 +49,7 @@ class ResponsePolicyServiceTest extends TestCase {
 				$this->createMock(AuditEventService::class),
 			),
 			$this->visibilityService,
+			$l,
 		);
 	}
 
@@ -186,5 +191,59 @@ class ResponsePolicyServiceTest extends TestCase {
 		$this->service->assertResponseAllowed($appointment, 'alice', 'no', null);
 		$this->service->assertResponseAllowed($appointment, 'alice', null, 'yes');
 		$this->addToAssertionCount(2);
+	}
+
+	public function testNoAndMaybeNeedAReasonWhenTheInstanceAsksForOne(): void {
+		$this->configService->method('isMaybeAllowed')->willReturn(true);
+		$this->configService->method('isCommentRequiredForDecline')->willReturn(true);
+		$appointment = $this->appointment(true);
+
+		foreach (['no', 'maybe'] as $answer) {
+			foreach (['', "  \n\t"] as $comment) {
+				try {
+					$this->service->assertResponseAllowed($appointment, 'alice', $answer, comment: $comment);
+					$this->fail("A $answer without a reason must be refused");
+				} catch (CommentRequiredException $e) {
+					$this->assertStringContainsString('comment', $e->getMessage());
+				}
+			}
+		}
+	}
+
+	public function testAReasonSatisfiesTheRule(): void {
+		$this->configService->method('isMaybeAllowed')->willReturn(true);
+		$this->configService->method('isCommentRequiredForDecline')->willReturn(true);
+		$appointment = $this->appointment(true);
+
+		$this->service->assertResponseAllowed($appointment, 'alice', 'no', comment: 'Sick');
+		$this->service->assertResponseAllowed($appointment, 'alice', 'maybe', comment: 'Depends on my shift');
+		$this->addToAssertionCount(2);
+	}
+
+	public function testYesAndWithdrawingNeedNoReason(): void {
+		$this->configService->method('isMaybeAllowed')->willReturn(true);
+		$this->configService->method('isCommentRequiredForDecline')->willReturn(true);
+		$appointment = $this->appointment(true);
+
+		$this->service->assertResponseAllowed($appointment, 'alice', 'yes', comment: '');
+		$this->service->assertResponseAllowed($appointment, 'alice', null, 'no', comment: '');
+		$this->addToAssertionCount(2);
+	}
+
+	/** Vacation auto-answers and organizers answering for somebody pass no comment at all. */
+	public function testAnAnswerWithoutACommentOfItsOwnNeedsNoReason(): void {
+		$this->configService->method('isMaybeAllowed')->willReturn(true);
+		$this->configService->method('isCommentRequiredForDecline')->willReturn(true);
+
+		$this->service->assertResponseAllowed($this->appointment(true), 'alice', 'no', null, false, true);
+		$this->addToAssertionCount(1);
+	}
+
+	public function testNoReasonIsAskedForWhileTheSettingIsOff(): void {
+		$this->configService->method('isMaybeAllowed')->willReturn(true);
+		$this->configService->method('isCommentRequiredForDecline')->willReturn(false);
+
+		$this->service->assertResponseAllowed($this->appointment(true), 'alice', 'no', comment: '');
+		$this->assertFalse($this->service->isCommentRequired('no'));
 	}
 }

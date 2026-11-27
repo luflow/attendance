@@ -9,6 +9,7 @@ use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Service\AuditEventService;
 use OCA\Attendance\Service\CapacityService;
+use OCA\Attendance\Service\CommentRequiredException;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\NotificationService;
@@ -19,6 +20,7 @@ use OCA\Attendance\Service\TalkRoomService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IGroupManager;
+use OCP\IL10N;
 use OCP\IUserManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -54,6 +56,9 @@ class ResponseServiceTest extends TestCase {
 		$visibilityService = $this->createMock(VisibilityService::class);
 		$visibilityService->method('isUserTargetAttendee')->willReturn(true);
 
+		$l = $this->createMock(IL10N::class);
+		$l->method('t')->willReturnCallback(static fn (string $text): string => $text);
+
 		$this->service = new ResponseService(
 			$this->appointmentMapper,
 			$this->responseMapper,
@@ -65,7 +70,7 @@ class ResponseServiceTest extends TestCase {
 			$this->createMock(AuditEventService::class),
 			$this->createMock(OrgCalendarSyncService::class),
 			$this->createMock(TalkRoomService::class),
-			new ResponsePolicyService($this->configService, $capacityService, $visibilityService),
+			new ResponsePolicyService($this->configService, $capacityService, $visibilityService, $l),
 			$capacityService,
 		);
 	}
@@ -108,5 +113,33 @@ class ResponseServiceTest extends TestCase {
 		$this->responseMapper->expects($this->once())->method('insert')->willReturnArgument(0);
 
 		$this->assertSame('maybe', $this->service->submitResponse(7, 'alice', 'maybe')->getResponse());
+	}
+
+	public function testQuickLinkCannotAnswerNoWithoutTheReasonTheInstanceAsksFor(): void {
+		$this->configService->method('isCommentRequiredForDecline')->willReturn(true);
+		$appointment = new Appointment();
+		$appointment->setId(7);
+
+		$this->appointmentMapper->method('find')->with(7)->willReturn($appointment);
+		$this->responseMapper->method('findByAppointmentAndUser')
+			->willThrowException(new DoesNotExistException('none'));
+		$this->responseMapper->expects($this->never())->method('insert');
+
+		$this->expectException(CommentRequiredException::class);
+		$this->service->submitResponse(7, 'alice', 'no', '', ResponseService::SOURCE_QUICK_LINK);
+	}
+
+	public function testQuickLinkStoresTheReasonGivenOnTheConfirmationPage(): void {
+		$this->configService->method('isCommentRequiredForDecline')->willReturn(true);
+		$appointment = new Appointment();
+		$appointment->setId(7);
+
+		$this->appointmentMapper->method('find')->with(7)->willReturn($appointment);
+		$this->responseMapper->method('findByAppointmentAndUser')
+			->willThrowException(new DoesNotExistException('none'));
+		$this->responseMapper->expects($this->once())->method('insert')->willReturnArgument(0);
+
+		$saved = $this->service->submitResponse(7, 'alice', 'no', 'Away on business', ResponseService::SOURCE_QUICK_LINK);
+		$this->assertSame('Away on business', $saved->getComment());
 	}
 }

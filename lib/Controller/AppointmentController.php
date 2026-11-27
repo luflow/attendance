@@ -1132,6 +1132,9 @@ class AppointmentController extends Controller {
 			// What an appointment offers when it has no opinion of its own.
 			// The appointment editor starts its switch here.
 			'allowMaybeDefault' => $this->configService->isMaybeAllowed(),
+			// A "no" or "maybe" without a comment is refused. Older servers omit
+			// the flag, which reads as false: no reason is asked for.
+			'commentRequiredForDecline' => $this->configService->isCommentRequiredForDecline(),
 			// Server understands maxAttendees/waitlistEnabled on an appointment,
 			// reports occupancy and isFull, and takes acceptWaitlist on respond.
 			// Clients without this flag show a plain "Yes" that a full
