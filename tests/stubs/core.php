@@ -37,3 +37,20 @@ namespace OC\Core\Controller {
 	class ContactsMenuController extends Controller {
 	}
 }
+
+namespace OC\Hooks {
+	/** OCP\Files\IRootFolder extends it. */
+	interface Emitter {
+		/**
+		 * @param string $scope
+		 * @param string $method
+		 */
+		public function listen($scope, $method, callable $callback);
+
+		/**
+		 * @param string|null $scope
+		 * @param string|null $method
+		 */
+		public function removeListener($scope = null, $method = null, ?callable $callback = null);
+	}
+}
