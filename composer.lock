@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1fff808397402b2a103106a2aa337441",
+    "content-hash": "a627a0b035068b1415e8e79bbdb3d6b5",
     "packages": [
         {
             "name": "bamarni/composer-bin-plugin",
@@ -1947,16 +1947,16 @@
         },
         {
             "name": "sabre/vobject",
-            "version": "4.6.1",
+            "version": "4.5.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sabre-io/vobject.git",
-                "reference": "63613f6c53a0a2bddfe22caba0d052e6c59f7d0e"
+                "reference": "04fc933d1cf41def672f6b24cdcea41658918cd1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sabre-io/vobject/zipball/63613f6c53a0a2bddfe22caba0d052e6c59f7d0e",
-                "reference": "63613f6c53a0a2bddfe22caba0d052e6c59f7d0e",
+                "url": "https://api.github.com/repos/sabre-io/vobject/zipball/04fc933d1cf41def672f6b24cdcea41658918cd1",
+                "reference": "04fc933d1cf41def672f6b24cdcea41658918cd1",
                 "shasum": ""
             },
             "require": {
@@ -2047,7 +2047,7 @@
                 "issues": "https://github.com/sabre-io/vobject/issues",
                 "source": "https://github.com/fruux/sabre-vobject"
             },
-            "time": "2026-07-07T03:20:17+00:00"
+            "time": "2026-05-31T12:37:29+00:00"
         },
         {
             "name": "sabre/xml",

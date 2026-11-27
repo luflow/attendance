@@ -37,13 +37,17 @@ Rules that keep the repo clean over time:
   human decide.
 - **`psalm-baseline.xml` is the known backlog, not a dumping ground.** New
   findings get fixed in the code. Do not run `psalm --set-baseline` to make
-  your own errors disappear — that hides them and rewrites 1300 unrelated
-  entries. Entries only ever leave the baseline by being fixed. Note that it
-  counts occurrences *per file and issue type*, so adding one more call of an
-  already-baselined kind surfaces an error pointing at somebody else's line —
-  the fix belongs in your new code, not there. Deprecated `IConfig::getAppValue`
-  is the usual one; new settings in `ConfigService` take `IAppConfig`
-  (`getValueBool`/`setValueBool`).
+  your own errors disappear. Entries only ever leave the baseline by being
+  fixed (`psalm --update-baseline` then drops them). What is left on purpose:
+  shipped migrations, and `PermissionService`'s `permission_*` keys, which
+  those migrations share through `IConfig`. Note that it counts occurrences
+  *per file and issue type*, so one more call of an already-baselined kind
+  surfaces an error pointing at somebody else's line — the fix belongs in
+  your new code, not there.
+- **App settings go through `ConfigService` only**, on `IAppConfig` /
+  `IUserConfig`. A typed write fixes the key's type, so a second writer using
+  another type or legacy `IConfig::setAppValue` throws a type conflict. Keep
+  the stored format of an existing key (`'yes'`/`'no'` stays a string).
 - **Do not run `psalm --alter`.** Its suggestions are led by deleting
   "unused" methods (this app is DI-driven, so psalm cannot see most call
   sites) and by making classes `final` (PHPUnit cannot mock final classes, so
