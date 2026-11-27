@@ -1,6 +1,9 @@
 import {
+	addGroupToTeamViaOCS,
+	addUserToGroupViaOCS,
 	addUserToTeamViaOCS,
 	createAppointmentViaAPI,
+	createGroupViaOCS,
 	createTeamViaOCS,
 	deleteTeamViaOCS,
 	expect,
@@ -79,6 +82,7 @@ test.describe('Attendance App - Statistics grouped by teams (sequential)', () =>
 
 	test.describe('with a team selected for grouping', () => {
 		const teamName = `Statistics team ${Math.random().toString(36).slice(2, 8)}`
+		const memberGroup = 'statistics-team-group'
 		let teamId = null
 
 		test.beforeAll(async ({ request }) => {
@@ -86,6 +90,9 @@ test.describe('Attendance App - Statistics grouped by teams (sequential)', () =>
 
 			teamId = await createTeamViaOCS(request, teamName)
 			await addUserToTeamViaOCS(request, teamId, 'test3')
+			await createGroupViaOCS(request, memberGroup)
+			await addUserToGroupViaOCS(request, 'test4', memberGroup)
+			await addGroupToTeamViaOCS(request, teamId, memberGroup)
 			await selectTeamsForGrouping(request, [teamId])
 		})
 
@@ -112,6 +119,16 @@ test.describe('Attendance App - Statistics grouped by teams (sequential)', () =>
 			// is wrong any more, so there is no hint.
 			await expect(page.locator('[data-test="statistics-section-__others__"]')).toBeVisible()
 			await expect(page.locator('[data-test="statistics-teams-hint"]')).toHaveCount(0)
+		})
+
+		test('counts people who are in the team through a group', async ({ page, loginAsUser }) => {
+			await loginAsUser('admin', 'admin')
+
+			await page.goto(`/apps/attendance/statistics?period=${YEAR}&groupBy=teams`)
+			await page.waitForLoadState('networkidle')
+
+			const teamBody = page.locator('tbody', { has: page.locator(`[data-test="statistics-section-${teamId}"]`) })
+			await expect(teamBody.getByRole('rowheader', { name: 'test4', exact: true })).toBeVisible()
 		})
 	})
 })

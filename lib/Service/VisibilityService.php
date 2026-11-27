@@ -389,7 +389,8 @@ class VisibilityService {
 			$this->teamsManager->startSuperSession();
 
 			$circle = $this->teamsManager->getCircle($teamId);
-			$members = $circle->getMembers();
+			// getMembers() alone misses everyone who belongs through a group or a nested team.
+			$members = array_merge($circle->getMembers(), $circle->getInheritedMembers());
 
 			$userIds = [];
 			foreach ($members as $member) {
@@ -397,11 +398,12 @@ class VisibilityService {
 				if ($member->getUserType() !== Member::TYPE_USER) {
 					continue;
 				}
-				$userId = (string)$member->getUserId();
+				$userId = $member->getUserId();
 				if ($this->getEnabledUser($userId) !== null) {
 					$userIds[] = $userId;
 				}
 			}
+			$userIds = array_values(array_unique($userIds));
 
 			$this->teamsManager->stopSession();
 
@@ -482,7 +484,7 @@ class VisibilityService {
 
 			$info = [
 				'id' => $teamId,
-				'label' => (string)$circle->getDisplayName(),
+				'label' => $circle->getDisplayName(),
 				'type' => 'team',
 			];
 		} catch (\Exception $e) {

@@ -1974,22 +1974,9 @@
     <DeprecatedMethod>
       <code><![CDATA[search]]></code>
     </DeprecatedMethod>
-    <MixedArgument>
-      <code><![CDATA[CirclesManager::class]]></code>
-    </MixedArgument>
     <MixedAssignment>
-      <code><![CDATA[$circle]]></code>
-      <code><![CDATA[$circle]]></code>
-      <code><![CDATA[$member]]></code>
-      <code><![CDATA[$members]]></code>
       <code><![CDATA[$this->teamsManager]]></code>
     </MixedAssignment>
-    <MixedMethodCall>
-      <code><![CDATA[getDisplayName]]></code>
-      <code><![CDATA[getMembers]]></code>
-      <code><![CDATA[getUserId]]></code>
-      <code><![CDATA[getUserType]]></code>
-    </MixedMethodCall>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
       <code><![CDATA[filterVisibleAppointments]]></code>
@@ -2002,16 +1989,6 @@
       <code><![CDATA[empty($settings['teams'])]]></code>
       <code><![CDATA[empty($settings['users'])]]></code>
     </RiskyTruthyFalsyComparison>
-    <UndefinedClass>
-      <code><![CDATA[$this->teamsManager]]></code>
-      <code><![CDATA[$this->teamsManager]]></code>
-      <code><![CDATA[$this->teamsManager]]></code>
-      <code><![CDATA[$this->teamsManager]]></code>
-      <code><![CDATA[$this->teamsManager]]></code>
-      <code><![CDATA[$this->teamsManager]]></code>
-      <code><![CDATA[?CirclesManager]]></code>
-      <code><![CDATA[CirclesManager]]></code>
-    </UndefinedClass>
   </file>
   <file src="lib/Settings/AdminSection.php">
     <ClassMustBeFinal>
