@@ -854,9 +854,9 @@ watch(() => appointments.value.length, async () => {
 	}
 })
 
-async function submitResponse(appointmentId, response, acceptWaitlist = false) {
+async function submitResponse(appointmentId, response, acceptWaitlist = false, givenComment) {
 	const appointment = appointments.value.find((a) => a.id === appointmentId)
-	const comment = appointment?.userResponse?.comment || ''
+	const comment = givenComment ?? (appointment?.userResponse?.comment || '')
 	await submitResponseApi(appointmentId, response, comment, acceptWaitlist)
 }
 

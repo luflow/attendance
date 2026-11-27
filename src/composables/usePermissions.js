@@ -40,6 +40,7 @@ const DEFAULTS = {
 		responseOptions: false,
 		allowMaybeDefault: true,
 		attendanceLimit: false,
+		commentRequiredForDecline: false,
 	},
 	config: {
 		displayOrder: 'name_first',
@@ -121,6 +122,7 @@ export function usePermissions() {
 			state.capabilities.responseOptions = capabilitiesRes.data.responseOptions === true
 			state.capabilities.allowMaybeDefault = capabilitiesRes.data.allowMaybeDefault !== false
 			state.capabilities.attendanceLimit = capabilitiesRes.data.attendanceLimit === true
+			state.capabilities.commentRequiredForDecline = capabilitiesRes.data.commentRequiredForDecline === true
 
 			state.config.displayOrder = configRes.data.displayOrder || 'name_first'
 			state.config.mobileAppBannerEnabled = configRes.data.mobileAppBannerEnabled !== false

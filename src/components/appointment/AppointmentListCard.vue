@@ -79,7 +79,7 @@
 				:waitlistEnabled="appointment.waitlistEnabled === true"
 				:waitlisted="appointment.userResponse?.waitlisted === true"
 				:waitlistPosition="appointment.userResponse?.waitlistPosition ?? null"
-				@submitResponse="(id, response, acceptWaitlist) => emit('submitResponse', id, response, acceptWaitlist)">
+				@submitResponse="(...args) => emit('submitResponse', ...args)">
 				<template #label>
 					<span class="list-card__label">{{ t("attendance", "Your response") }}</span>
 				</template>

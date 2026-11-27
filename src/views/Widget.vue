@@ -86,11 +86,11 @@ const items = computed(() => {
 })
 
 // Methods
-async function respond(appointmentId, response, acceptWaitlist = false) {
+async function respond(appointmentId, response, acceptWaitlist = false, givenComment) {
 	const appointmentIndex = appointments.value.findIndex((a) => a.id === appointmentId)
 	// The endpoint stores response and comment together, so posting an empty
 	// string here would wipe a comment the user wrote earlier.
-	const comment = appointments.value[appointmentIndex]?.userResponse?.comment || ''
+	const comment = givenComment ?? (appointments.value[appointmentIndex]?.userResponse?.comment || '')
 
 	try {
 		await submitResponseApi(appointmentId, response, comment, acceptWaitlist)
