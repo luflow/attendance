@@ -59,10 +59,4 @@
       <code><![CDATA[setAppValue]]></code>
     </DeprecatedMethod>
   </file>
-  <file src="lib/Service/PermissionService.php">
-    <DeprecatedMethod>
-      <code><![CDATA[getAppValue]]></code>
-      <code><![CDATA[setAppValue]]></code>
-    </DeprecatedMethod>
-  </file>
 </files>
