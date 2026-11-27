@@ -641,7 +641,8 @@
                     "roleFilter",
                     "pagination",
                     "allDay",
-                    "userProfiles"
+                    "userProfiles",
+                    "organizerCalendar"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -738,6 +739,9 @@
                         "type": "boolean"
                     },
                     "userProfiles": {
+                        "type": "boolean"
+                    },
+                    "organizerCalendar": {
                         "type": "boolean"
                     }
                 }
@@ -984,6 +988,31 @@
                         "type": "boolean"
                     },
                     "alreadyExisted": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "IcalFeed": {
+                "type": "object",
+                "required": [
+                    "feedUrl",
+                    "createdAt",
+                    "lastUsedAt",
+                    "organizerAvailable"
+                ],
+                "properties": {
+                    "feedUrl": {
+                        "type": "string"
+                    },
+                    "createdAt": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "lastUsedAt": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "organizerAvailable": {
                         "type": "boolean"
                     }
                 }
@@ -8467,7 +8496,7 @@
         "/index.php/apps/attendance/api/ical/token": {
             "get": {
                 "operationId": "ical-get-token",
-                "summary": "Get or create iCal feed token for the current user",
+                "summary": "Get or create the token of one of the current user's iCal feeds",
                 "tags": [
                     "ical"
                 ],
@@ -8479,29 +8508,39 @@
                         "basic_auth": []
                     }
                 ],
+                "parameters": [
+                    {
+                        "name": "kind",
+                        "in": "query",
+                        "description": "Which feed: `personal` (own appointments and answer) or `organizer` (managed appointments with everybody's answers)",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "Feed URL returned",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/IcalFeed"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Unknown feed kind",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "feedUrl",
-                                        "createdAt",
-                                        "lastUsedAt"
+                                        "error"
                                     ],
                                     "properties": {
-                                        "feedUrl": {
+                                        "error": {
                                             "type": "string"
-                                        },
-                                        "createdAt": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "lastUsedAt": {
-                                            "type": "string",
-                                            "nullable": true
                                         }
                                     }
                                 }
@@ -8509,7 +8548,7 @@
                         }
                     },
                     "401": {
-                        "description": "Current user is not logged in",
+                        "description": "Not logged in",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -8537,6 +8576,24 @@
                                             }
                                         }
                                     ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "The organizer feed is not available to this user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -8565,7 +8622,7 @@
         "/index.php/apps/attendance/api/ical/token/regenerate": {
             "post": {
                 "operationId": "ical-regenerate-token",
-                "summary": "Regenerate iCal feed token for the current user",
+                "summary": "Regenerate the token of one of the current user's iCal feeds",
                 "tags": [
                     "ical"
                 ],
@@ -8577,29 +8634,45 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "kind": {
+                                        "type": "string",
+                                        "description": "Which feed: `personal` or `organizer`"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
-                        "description": "",
+                        "description": "New feed URL returned",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/IcalFeed"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Unknown feed kind",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "object",
                                     "required": [
-                                        "feedUrl",
-                                        "createdAt",
-                                        "lastUsedAt"
+                                        "error"
                                     ],
                                     "properties": {
-                                        "feedUrl": {
+                                        "error": {
                                             "type": "string"
-                                        },
-                                        "createdAt": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "lastUsedAt": {
-                                            "type": "string",
-                                            "nullable": true
                                         }
                                     }
                                 }
@@ -8607,7 +8680,7 @@
                         }
                     },
                     "401": {
-                        "description": "Current user is not logged in",
+                        "description": "Not logged in",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -8635,6 +8708,24 @@
                                             }
                                         }
                                     ]
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "The organizer feed is not available to this user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
                                 }
                             }
                         }

@@ -17,17 +17,19 @@ class IcalTokenMapper extends QBMapper {
 	}
 
 	/**
-	 * Find token by user ID
+	 * Find the token of one of a user's feeds
 	 *
 	 * @param string $userId
+	 * @param string $kind One of IcalToken::KINDS
 	 * @return IcalToken|null
 	 */
-	public function findByUserId(string $userId): ?IcalToken {
+	public function findByUserId(string $userId, string $kind): ?IcalToken {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->select('*')
 			->from($this->getTableName())
-			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
+			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->eq('kind', $qb->createNamedParameter($kind)));
 
 		try {
 			return $this->findEntity($qb);
@@ -57,16 +59,18 @@ class IcalTokenMapper extends QBMapper {
 	}
 
 	/**
-	 * Delete token for user (used before regenerating)
+	 * Delete the token of one of a user's feeds (used before regenerating)
 	 *
 	 * @param string $userId
+	 * @param string $kind One of IcalToken::KINDS
 	 * @return int Number of deleted rows
 	 */
-	public function deleteByUserId(string $userId): int {
+	public function deleteByUserId(string $userId, string $kind): int {
 		$qb = $this->db->getQueryBuilder();
 
 		$qb->delete($this->getTableName())
-			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)));
+			->where($qb->expr()->eq('user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->eq('kind', $qb->createNamedParameter($kind)));
 
 		return $qb->executeStatement();
 	}

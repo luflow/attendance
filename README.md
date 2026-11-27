@@ -44,6 +44,7 @@ The mobile app is free for the first 30 days per Nextcloud instance, then one ye
 - **Activity history:** every reply, change, withdrawal and check-in with who, when and from where (web, email link, admin check-in, QR or NFC)
 - **Export:** all appointment data as an ODS spreadsheet
 - **Calendar subscription:** a personal iCal feed for Google Calendar, Apple Calendar, Outlook or Thunderbird, with token regeneration
+- **Organizer calendar:** a second iCal feed for organizers and managers, listing who is attending and who declined on every appointment
 
 ### Administration
 - **Six group-based permissions:** manage appointments, create own appointments, check-in access, see response and check-in summary, see comments, self-check-in

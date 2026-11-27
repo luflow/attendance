@@ -37,6 +37,9 @@ class IcalService {
 	private CategoryMapper $categoryMapper;
 	private CapacityService $capacityService;
 
+	/** @var array<int, ?string> A feed names the same few categories on every event */
+	private array $categoryNames = [];
+
 	private const TOKEN_LENGTH = 64;
 	private const TOKEN_CHARS = 'abcdef0123456789';
 
@@ -55,6 +58,8 @@ class IcalService {
 		CategoryMapper $categoryMapper,
 		CapacityService $capacityService,
 		private TimezoneService $timezoneService,
+		private PermissionService $permissionService,
+		private ResponseSummaryService $responseSummaryService,
 	) {
 		$this->icalTokenMapper = $icalTokenMapper;
 		$this->appointmentMapper = $appointmentMapper;
@@ -72,29 +77,34 @@ class IcalService {
 	}
 
 	/**
-	 * Get existing token for user or create new one
+	 * Get the existing token of one of a user's feeds or create a new one
+	 *
+	 * @param string $kind One of IcalToken::KINDS
 	 */
-	public function getOrCreateToken(string $userId): IcalToken {
-		$existingToken = $this->icalTokenMapper->findByUserId($userId);
+	public function getOrCreateToken(string $userId, string $kind): IcalToken {
+		$existingToken = $this->icalTokenMapper->findByUserId($userId, $kind);
 		if ($existingToken !== null) {
 			return $existingToken;
 		}
 
-		return $this->createToken($userId);
+		return $this->createToken($userId, $kind);
 	}
 
 	/**
-	 * Regenerate token for user (invalidates old token)
+	 * Regenerate the token of one of a user's feeds (invalidates the old one)
+	 *
+	 * @param string $kind One of IcalToken::KINDS
 	 */
-	public function regenerateToken(string $userId): IcalToken {
-		$this->icalTokenMapper->deleteByUserId($userId);
-		return $this->createToken($userId);
+	public function regenerateToken(string $userId, string $kind): IcalToken {
+		$this->icalTokenMapper->deleteByUserId($userId, $kind);
+		return $this->createToken($userId, $kind);
 	}
 
 	/**
-	 * Validate token and return userId if valid
+	 * Validate a token and return it, so the caller knows whose feed of which
+	 * kind it unlocks
 	 */
-	public function validateToken(string $token): ?string {
+	public function validateToken(string $token): ?IcalToken {
 		// Validate token format
 		if (!preg_match('/^[a-f0-9]{64}$/', $token)) {
 			return null;
@@ -108,36 +118,77 @@ class IcalService {
 		$icalToken->setLastUsedAt(gmdate('Y-m-d H:i:s'));
 		$this->icalTokenMapper->update($icalToken);
 
-		return $icalToken->getUserId();
+		return $icalToken;
+	}
+
+	/**
+	 * Generate the feed a validated token unlocks
+	 */
+	public function generateFeedFor(IcalToken $token): string {
+		return $token->getKind() === IcalToken::KIND_ORGANIZER
+			? $this->generateOrganizerFeed($token->getUserId())
+			: $this->generateIcalFeed($token->getUserId());
+	}
+
+	/**
+	 * What a feed reaches back to: the last 150 days and everything upcoming.
+	 *
+	 * @return list<Appointment>
+	 */
+	private function feedCandidates(): array {
+		$cutoffDate = (new \DateTime())->modify('-150 days')->format('Y-m-d H:i:s');
+
+		/** @var list<Appointment> $active */
+		$active = $this->appointmentMapper->findAll();
+
+		return array_values(array_filter(
+			$active,
+			fn (Appointment $apt) => $apt->getStartDatetime() >= $cutoffDate,
+		));
+	}
+
+	private function feedLanguage(string $userId): IL10N {
+		$userLang = $this->config->getUserValue($userId, 'core', 'lang', 'en');
+
+		return $this->l10nFactory->get('attendance', $userLang);
+	}
+
+	private function uidDomain(): string {
+		$host = parse_url($this->urlGenerator->getAbsoluteURL('/'), PHP_URL_HOST);
+
+		return is_string($host) ? $host : 'nextcloud';
+	}
+
+	private function instanceName(): string {
+		return $this->config->getSystemValueString('instancename', 'Nextcloud');
+	}
+
+	private function calendarHeader(string $calendarName): string {
+		$output = "BEGIN:VCALENDAR\r\n";
+		$output .= "VERSION:2.0\r\n";
+		$output .= "PRODID:-//Nextcloud//Attendance App//EN\r\n";
+		$output .= "CALSCALE:GREGORIAN\r\n";
+		$output .= 'NAME:' . self::escapeIcalText($calendarName) . "\r\n";
+		$output .= 'X-WR-CALNAME:' . self::escapeIcalText($calendarName) . "\r\n";
+		$output .= "REFRESH-INTERVAL;VALUE=DURATION:PT15M\r\n";
+		$output .= "X-PUBLISHED-TTL:PT15M\r\n";
+
+		return $output;
 	}
 
 	/**
 	 * Generate iCal feed content for user
 	 */
 	public function generateIcalFeed(string $userId): string {
-		// Get user's language for translations
-		$userLang = $this->config->getUserValue($userId, 'core', 'lang', 'en');
-		$l = $this->l10nFactory->get('attendance', $userLang);
+		$l = $this->feedLanguage($userId);
 
-		// Get all appointments from last 150 days and upcoming
-		$cutoffDate = (new \DateTime())->modify('-150 days')->format('Y-m-d H:i:s');
-		$allAppointments = $this->appointmentMapper->findAll();
-
-		// Filter appointments where user is target attendee and within date range
-		$appointments = array_filter($allAppointments, function (Appointment $apt) use ($userId, $cutoffDate) {
-			// Only active appointments
-			if (!$apt->getIsActive()) {
-				return false;
-			}
-			// Only within date range (start date >= cutoff)
-			if ($apt->getStartDatetime() < $cutoffDate) {
-				return false;
-			}
-			// Only if user is target attendee — no see-all bypass, and
-			// deliberately narrower than the list's "My appointments": a feed
-			// carries what you are asked to attend, not what you organize.
-			return $this->visibilityService->isUserTargetAttendee($apt, $userId);
-		});
+		// Only if user is target attendee — no see-all bypass, and deliberately
+		// narrower than the list's "My appointments": this feed carries what you
+		// are asked to attend. What you organize is the organizer feed.
+		$appointments = array_filter(
+			$this->feedCandidates(),
+			fn (Appointment $apt) => $this->visibilityService->isUserTargetAttendee($apt, $userId),
+		);
 
 		// Get user's responses for all appointments
 		$userResponses = [];
@@ -150,21 +201,8 @@ class IcalService {
 			// Continue with empty responses
 		}
 
-		// Build iCal content
-		$domain = $this->urlGenerator->getAbsoluteURL('/');
-		$domain = parse_url($domain, PHP_URL_HOST) ?? 'nextcloud';
-
-		$instanceName = $this->config->getSystemValue('instancename', 'Nextcloud');
-		$calendarName = $l->t('Attendance') . ' – ' . $instanceName;
-
-		$output = "BEGIN:VCALENDAR\r\n";
-		$output .= "VERSION:2.0\r\n";
-		$output .= "PRODID:-//Nextcloud//Attendance App//EN\r\n";
-		$output .= "CALSCALE:GREGORIAN\r\n";
-		$output .= 'NAME:' . self::escapeIcalText($calendarName) . "\r\n";
-		$output .= 'X-WR-CALNAME:' . self::escapeIcalText($calendarName) . "\r\n";
-		$output .= "REFRESH-INTERVAL;VALUE=DURATION:PT15M\r\n";
-		$output .= "X-PUBLISHED-TTL:PT15M\r\n";
+		$domain = $this->uidDomain();
+		$output = $this->calendarHeader($l->t('Attendance') . ' – ' . $this->instanceName());
 
 		// Get user's reminder trigger preferences
 		$reminderTriggers = $this->configService->getUserIcalReminderTriggers($userId);
@@ -180,21 +218,48 @@ class IcalService {
 	}
 
 	/**
-	 * Get the feed URL for a user
+	 * The organizer calendar: what the user manages, with everybody's answers.
+	 * Rights are checked on every poll, so a link loses what its holder gave up.
 	 */
-	public function getFeedUrl(string $userId): string {
-		$token = $this->getOrCreateToken($userId);
+	public function generateOrganizerFeed(string $userId): string {
+		$l = $this->feedLanguage($userId);
+
+		// A deactivated account keeps its groups, and with them its rights.
+		$appointments = $this->visibilityService->getEnabledUser($userId) === null ? [] : array_values(array_filter(
+			$this->feedCandidates(),
+			fn (Appointment $apt) => $this->permissionService->canManageAppointment($userId, $apt),
+		));
+		$responses = $this->responseMapper->findByAppointments(
+			array_map(fn (Appointment $apt) => $apt->getId(), $appointments),
+		);
+
+		$domain = $this->uidDomain();
+		$output = $this->calendarHeader(
+			$l->t('Attendance') . ' – ' . $this->instanceName() . ' (' . $l->t('Organizers') . ')',
+		);
+
+		foreach ($appointments as $appointment) {
+			$output .= $this->generateOrganizerVEvent($appointment, $responses[$appointment->getId()] ?? [], $l, $domain);
+		}
+
+		$output .= "END:VCALENDAR\r\n";
+
+		return $this->foldIcalContent($output);
+	}
+
+	public function getFeedUrl(IcalToken $token): string {
 		return $this->urlGenerator->linkToRouteAbsolute('attendance.ical.feed', [
 			'token' => $token->getToken()
 		]);
 	}
 
 	/**
-	 * Create a new token for user
+	 * Create a new token for one of a user's feeds
 	 */
-	private function createToken(string $userId): IcalToken {
+	private function createToken(string $userId, string $kind): IcalToken {
 		$token = new IcalToken();
 		$token->setUserId($userId);
+		$token->setKind($kind);
 		$token->setToken($this->secureRandom->generate(self::TOKEN_LENGTH, self::TOKEN_CHARS));
 		$token->setCreatedAt(gmdate('Y-m-d H:i:s'));
 
@@ -225,10 +290,7 @@ class IcalService {
 		];
 		$responseLabel = $responseState !== null ? ($responseLabels[$responseState] ?? '?') : '?';
 
-		// Determine iCal STATUS and TRANSP based on response
-		// STATUS: CONFIRMED for all (the appointment itself is confirmed, only attendance varies)
 		// TRANSP: OPAQUE (busy) for yes, TRANSPARENT (free) for no/maybe/none
-		$status = 'CONFIRMED';
 		$transpMap = [
 			'yes' => 'OPAQUE',
 			'no' => 'TRANSPARENT',
@@ -288,7 +350,6 @@ class IcalService {
 		// and free up the slot (TRANSPARENT). The feed is regenerated on every
 		// poll, so this flows through to subscribers automatically.
 		if ($appointment->isCancelled()) {
-			$status = 'CANCELLED';
 			$transp = 'TRANSPARENT';
 			// TRANSLATORS Prefix on the calendar event title of an appointment that was called off (German "Abgesagt", not "Abgebrochen").
 			$summary = $l->t('Cancelled') . ': ' . $summary;
@@ -337,38 +398,121 @@ class IcalService {
 
 		$description = implode("\n\n", $descriptionParts);
 
-		// Format dates
-		$startDt = new \DateTime($appointment->getStartDatetime(), new \DateTimeZone('UTC'));
-		$endDt = new \DateTime($appointment->getEndDatetime(), new \DateTimeZone('UTC'));
-		$createdDt = new \DateTime($appointment->getCreatedAt(), new \DateTimeZone('UTC'));
-		$updatedDt = new \DateTime($appointment->getUpdatedAt(), new \DateTimeZone('UTC'));
+		// Reminders for confirmed/tentative attendance (issue #62)
+		$alarms = ($responseState === 'yes' || $responseState === 'maybe') ? $reminderTriggers : [];
 
-		// Track the latest modification time (appointment or response)
-		$lastModifiedDt = $updatedDt;
+		return $this->renderVEvent(
+			$appointment,
+			'attendance-appointment-' . $appointment->getId() . '@' . $domain,
+			$summary,
+			$description,
+			$response !== null ? [$response] : [],
+			$transp,
+			array_values($attachmentUrls),
+			$alarms,
+		);
+	}
 
-		// Calculate SEQUENCE: tracks revision count for calendar apps to detect changes
-		// 0 = base state, +1 for each type of change
-		$sequence = 0;
+	/**
+	 * VEVENT of the organizer calendar: the title carries the counts, the
+	 * description who answered what.
+	 *
+	 * @param list<AttendanceResponse> $responses All responses of the appointment
+	 */
+	private function generateOrganizerVEvent(Appointment $appointment, array $responses, IL10N $l, string $domain): string {
+		$responders = $this->responseSummaryService->getRespondersByAnswer($appointment, $responses);
+		$counts = array_map('count', $responders);
 
-		// +1 if appointment was modified after creation
-		if ($updatedDt > $createdDt) {
-			$sequence++;
+		// Symbols, not words: the numbers have to survive a month view that
+		// cuts titles short.
+		$summary = $appointment->getName();
+		if (array_sum($counts) > 0) {
+			$summary .= ' (' . $counts['yes'] . ' ✓ · ' . $counts['no'] . ' ✗ · ' . $counts['maybe'] . ' ?)';
 		}
 
-		// +1 if user has responded, and use respondedAt if it's newer
-		if ($response !== null && $response->getRespondedAt()) {
+		if ($appointment->isCancelled()) {
+			$summary = $l->t('Cancelled') . ': ' . $summary;
+		}
+
+		$descriptionParts = [];
+		$appointmentDescription = trim($appointment->getDescription() ?? '');
+		if ($appointmentDescription !== '') {
+			$descriptionParts[] = $appointmentDescription;
+		}
+		$labels = self::answerCountLabels($l, $counts['yes'], $counts['no'], $counts['maybe']);
+		$descriptionParts[] = implode("\n", array_map(
+			fn (string $label, array $names) => $names === [] ? $label : $label . ' (' . implode(', ', $names) . ')',
+			$labels,
+			$responders,
+		));
+		$descriptionParts[] = $this->getAppointmentUrl($appointment->getId());
+
+		// Never busy and no reminders: whether the organizer attends is the
+		// personal feed's business, and both may be subscribed side by side.
+		return $this->renderVEvent(
+			$appointment,
+			// Own UID space, so a calendar app holding both feeds keeps both events.
+			'attendance-organizer-' . $appointment->getId() . '@' . $domain,
+			$summary,
+			implode("\n\n", $descriptionParts),
+			$responses,
+			'TRANSPARENT',
+		);
+	}
+
+	/**
+	 * "12 attending", "3 declined", "2 maybe" — one source string each for
+	 * every calendar that spells the counts out.
+	 *
+	 * @return array{yes: string, no: string, maybe: string}
+	 */
+	public static function answerCountLabels(IL10N $l, int $yes, int $no, int $maybe): array {
+		return [
+			'yes' => $l->n('%n attending', '%n attending', $yes),
+			'no' => $l->n('%n declined', '%n declined', $no),
+			'maybe' => $l->n('%n maybe', '%n maybe', $maybe),
+		];
+	}
+
+	/**
+	 * The VEVENT envelope both feeds share: revision, times, place, category and link.
+	 *
+	 * @param list<AttendanceResponse> $responses The answers this event shows; each one is a revision of it
+	 * @param list<string> $attachmentUrls
+	 * @param list<string> $alarmTriggers Duration strings for VALARM triggers
+	 */
+	private function renderVEvent(
+		Appointment $appointment,
+		string $uid,
+		string $summary,
+		string $description,
+		array $responses,
+		string $transp,
+		array $attachmentUrls = [],
+		array $alarmTriggers = [],
+	): string {
+		$utc = new \DateTimeZone('UTC');
+		$startDt = new \DateTime($appointment->getStartDatetime(), $utc);
+		$endDt = new \DateTime($appointment->getEndDatetime(), $utc);
+		$createdDt = new \DateTime($appointment->getCreatedAt(), $utc);
+
+		// SEQUENCE is how calendar apps notice a change: one step for an edit, one per answer.
+		$lastModifiedDt = new \DateTime($appointment->getUpdatedAt(), $utc);
+		$sequence = $lastModifiedDt > $createdDt ? 1 : 0;
+		foreach ($responses as $response) {
+			$respondedAt = $response->getRespondedAt();
+			if (!$respondedAt) {
+				continue;
+			}
 			$sequence++;
-			$respondedDt = new \DateTime($response->getRespondedAt(), new \DateTimeZone('UTC'));
+			$respondedDt = new \DateTime($respondedAt, $utc);
 			if ($respondedDt > $lastModifiedDt) {
 				$lastModifiedDt = $respondedDt;
 			}
 		}
 
-		// Build URL for direct access to appointment
-		$appointmentUrl = $this->getAppointmentUrl($appointment->getId());
-
 		$output = "BEGIN:VEVENT\r\n";
-		$output .= 'UID:attendance-appointment-' . $appointment->getId() . '@' . $domain . "\r\n";
+		$output .= 'UID:' . $uid . "\r\n";
 		$output .= 'DTSTAMP:' . $lastModifiedDt->format('Ymd\THis\Z') . "\r\n";
 		$output .= 'CREATED:' . $createdDt->format('Ymd\THis\Z') . "\r\n";
 		$output .= 'LAST-MODIFIED:' . $lastModifiedDt->format('Ymd\THis\Z') . "\r\n";
@@ -390,24 +534,20 @@ class IcalService {
 		if ($categoryName !== null) {
 			$output .= 'CATEGORIES:' . self::escapeIcalText($categoryName) . "\r\n";
 		}
-		$output .= 'URL:' . $appointmentUrl . "\r\n";
-		$output .= 'STATUS:' . $status . "\r\n";
+		$output .= 'URL:' . $this->getAppointmentUrl($appointment->getId()) . "\r\n";
+		$output .= 'STATUS:' . ($appointment->isCancelled() ? 'CANCELLED' : 'CONFIRMED') . "\r\n";
 		$output .= 'TRANSP:' . $transp . "\r\n";
 
-		// Add attachments as ATTACH properties (using pre-computed URLs)
 		foreach ($attachmentUrls as $attachUrl) {
 			$output .= 'ATTACH:' . $attachUrl . "\r\n";
 		}
 
-		// Add reminders for confirmed/tentative attendance (issue #62)
-		if (($responseState === 'yes' || $responseState === 'maybe') && !empty($reminderTriggers)) {
-			foreach ($reminderTriggers as $trigger) {
-				$output .= "BEGIN:VALARM\r\n";
-				$output .= 'TRIGGER:-' . $trigger . "\r\n";
-				$output .= "ACTION:DISPLAY\r\n";
-				$output .= 'DESCRIPTION:' . self::escapeIcalText($appointment->getName()) . "\r\n";
-				$output .= "END:VALARM\r\n";
-			}
+		foreach ($alarmTriggers as $trigger) {
+			$output .= "BEGIN:VALARM\r\n";
+			$output .= 'TRIGGER:-' . $trigger . "\r\n";
+			$output .= "ACTION:DISPLAY\r\n";
+			$output .= 'DESCRIPTION:' . self::escapeIcalText($appointment->getName()) . "\r\n";
+			$output .= "END:VALARM\r\n";
 		}
 
 		$output .= "END:VEVENT\r\n";
@@ -423,11 +563,15 @@ class IcalService {
 		if ($categoryId === null) {
 			return null;
 		}
-		try {
-			return $this->categoryMapper->find($categoryId)->getName();
-		} catch (DoesNotExistException) {
-			return null;
+		if (!array_key_exists($categoryId, $this->categoryNames)) {
+			try {
+				$this->categoryNames[$categoryId] = $this->categoryMapper->find($categoryId)->getName();
+			} catch (DoesNotExistException) {
+				$this->categoryNames[$categoryId] = null;
+			}
 		}
+
+		return $this->categoryNames[$categoryId];
 	}
 
 	/**

@@ -1110,6 +1110,15 @@ class AppointmentService {
 	}
 
 	/**
+	 * Who gets what is meant for organizers (response notifications, the
+	 * organizer calendar): whoever may create appointments or organizes one.
+	 */
+	public function actsAsOrganizer(string $userId): bool {
+		return $this->permissionService->canCreateAppointments($userId)
+			|| $this->isOrganizerAnywhere($userId);
+	}
+
+	/**
 	 * Whether the instance holds any appointment at all — the signal for a
 	 * fresh install, used to offer admins the setup wizard.
 	 */

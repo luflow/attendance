@@ -632,13 +632,12 @@ class OrgCalendarSyncService {
 			return null;
 		}
 
-		$l10n = $this->getL10N();
-
-		return implode(', ', [
-			$l10n->n('%n attending', '%n attending', $counts['yes'] ?? 0),
-			$l10n->n('%n declined', '%n declined', $counts['no'] ?? 0),
-			$l10n->n('%n maybe', '%n maybe', $counts['maybe'] ?? 0),
-		]);
+		return implode(', ', IcalService::answerCountLabels(
+			$this->getL10N(),
+			$counts['yes'] ?? 0,
+			$counts['no'] ?? 0,
+			$counts['maybe'] ?? 0,
+		));
 	}
 
 	/**

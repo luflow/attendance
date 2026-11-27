@@ -873,4 +873,41 @@ class ResponseSummaryServiceTest extends TestCase {
 		$this->assertSame(1, $summary['by_group']['admins']['yes']);
 		$this->assertSame(0, $summary['others']['yes']);
 	}
+
+	public function testGetRespondersByAnswerNamesPeopleByTheSummarysRule(): void {
+		$appointment = new Appointment();
+		$appointment->setId(1);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturnCallback(
+			fn (Appointment $a, string $userId) => $userId !== 'boss',
+		);
+		$this->permissionService->method('canManageAppointments')->willReturnCallback(
+			fn (string $userId) => $userId === 'boss',
+		);
+		$this->userManager->method('getDisplayName')->willReturnMap([
+			['zoe', 'Zoe'],
+			['adam', 'adam'],
+			['carl', 'Carl'],
+			['gone', null],
+		]);
+		$response = function (string $userId, ?string $answer): AttendanceResponse {
+			$r = new AttendanceResponse();
+			$r->setAppointmentId(1);
+			$r->setUserId($userId);
+			$r->setResponse($answer);
+			return $r;
+		};
+
+		$responders = $this->service->getRespondersByAnswer($appointment, [
+			$response('zoe', 'yes'),
+			$response('adam', 'yes'),
+			$response('carl', 'no'),
+			$response('gone', 'no'),
+			// A manager's answer to an appointment they were never part of.
+			$response('boss', 'yes'),
+			// Withdrawn answer.
+			$response('dora', null),
+		]);
+
+		$this->assertSame(['yes' => ['adam', 'Zoe'], 'no' => ['Carl', 'gone'], 'maybe' => []], $responders);
+	}
 }

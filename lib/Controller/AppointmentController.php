@@ -1216,6 +1216,9 @@ class AppointmentController extends Controller {
 			// Server supports GET/PUT /profile, POST /profile/avatar and
 			// GET /profiles. Clients hide the profile tile and bios when false.
 			'userProfiles' => true,
+			// GET /ical/token and POST /ical/token/regenerate take kind=organizer
+			// and say in organizerAvailable whether this user is offered that feed.
+			'organizerCalendar' => true,
 		]);
 	}
 
@@ -1337,7 +1340,7 @@ class AppointmentController extends Controller {
 		];
 
 		if ($this->configService->isAuditLogEnabled()
-			&& $this->canReceiveResponseNotifications($user->getUID())) {
+			&& $this->appointmentService->actsAsOrganizer($user->getUID())) {
 			$payload['notifyResponseChanges'] = $this->configService->wantsResponseChangeNotifications($user->getUID());
 		}
 
@@ -1364,21 +1367,11 @@ class AppointmentController extends Controller {
 
 		if ($notifyResponseChanges !== null
 			&& $this->configService->isAuditLogEnabled()
-			&& $this->canReceiveResponseNotifications($user->getUID())) {
+			&& $this->appointmentService->actsAsOrganizer($user->getUID())) {
 			$this->configService->setWantsResponseChangeNotifications($user->getUID(), $notifyResponseChanges);
 		}
 
 		return new DataResponse(['success' => true]);
-	}
-
-	/**
-	 * Whether the user can receive response-change notifications: global
-	 * managers, users allowed to create appointments (they will become
-	 * organizers), and current organizers of at least one appointment.
-	 */
-	private function canReceiveResponseNotifications(string $userId): bool {
-		return $this->permissionService->canCreateAppointments($userId)
-			|| $this->appointmentService->isOrganizerAnywhere($userId);
 	}
 
 	/**
@@ -1528,8 +1521,7 @@ class AppointmentController extends Controller {
 		// Managers and users allowed to create appointments need the picker
 		// for visibility/organizer fields; organizers need it in the edit form;
 		// admins need it for the response-summary-teams admin setting.
-		if (!$this->permissionService->canCreateAppointments($user->getUID())
-			&& !$this->appointmentService->isOrganizerAnywhere($user->getUID())
+		if (!$this->appointmentService->actsAsOrganizer($user->getUID())
 			&& !$this->permissionService->isAdmin($user->getUID())) {
 			return new DataResponse(['error' => 'Insufficient permissions'], 403);
 		}

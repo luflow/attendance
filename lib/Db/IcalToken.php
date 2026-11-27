@@ -18,13 +18,24 @@ use OCP\AppFramework\Db\Entity;
  * @method void setCreatedAt(string $createdAt)
  * @method string|null getLastUsedAt()
  * @method void setLastUsedAt(?string $lastUsedAt)
+ * @method string getKind()
+ * @method void setKind(string $kind)
  */
 class IcalToken extends Entity implements JsonSerializable {
 	use DatetimeFormatTrait;
+
+	/** What the user is asked to attend, with their own answer. */
+	public const KIND_PERSONAL = 'personal';
+	/** What the user manages, with everybody's answers. */
+	public const KIND_ORGANIZER = 'organizer';
+	public const KINDS = [self::KIND_PERSONAL, self::KIND_ORGANIZER];
+
 	protected $userId = '';
 	protected $token = '';
 	protected $createdAt = '';
 	protected $lastUsedAt = null;
+	/** @var string */
+	protected $kind = self::KIND_PERSONAL;
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -32,6 +43,7 @@ class IcalToken extends Entity implements JsonSerializable {
 		$this->addType('token', 'string');
 		$this->addType('createdAt', 'string');
 		$this->addType('lastUsedAt', 'string');
+		$this->addType('kind', 'string');
 	}
 
 	public function jsonSerialize(): array {

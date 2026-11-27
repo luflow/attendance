@@ -106,13 +106,8 @@ class ResponseSummaryService {
 		$counts = $this->initializeSummary();
 		/** @var array<string, true> $respondedUserIds */
 		$respondedUserIds = [];
-		foreach ($responses as $response) {
-			$value = $response->getResponse();
-			if (!in_array($value, ['yes', 'no', 'maybe'], true)
-				|| $this->isNonAttendeeAdminResponse($appointment, $response->getUserId())) {
-				continue;
-			}
-			$counts[$value]++;
+		foreach ($this->countedResponses($appointment, $responses) as $answer => $response) {
+			$counts[$answer]++;
 			$respondedUserIds[$response->getUserId()] = true;
 		}
 
@@ -125,6 +120,44 @@ class ResponseSummaryService {
 		}
 
 		return $counts;
+	}
+
+	/**
+	 * Display names of who answered what. Carries names — only for callers
+	 * that may see the response overview of this appointment.
+	 *
+	 * @param list<AttendanceResponse> $responses All responses of the appointment
+	 * @return array{yes: list<string>, no: list<string>, maybe: list<string>}
+	 */
+	public function getRespondersByAnswer(Appointment $appointment, array $responses): array {
+		$names = ['yes' => [], 'no' => [], 'maybe' => []];
+		foreach ($this->countedResponses($appointment, $responses) as $answer => $response) {
+			$userId = $response->getUserId();
+			$names[$answer][] = $this->userManager->getDisplayName($userId) ?? $userId;
+		}
+
+		foreach ($names as &$list) {
+			sort($list, SORT_NATURAL | SORT_FLAG_CASE);
+		}
+
+		return $names;
+	}
+
+	/**
+	 * The responses the numbers are made of: a real answer, and not a manager's
+	 * on an appointment they were never part of.
+	 *
+	 * @param list<AttendanceResponse> $responses
+	 * @return \Generator<'yes'|'no'|'maybe', AttendanceResponse>
+	 */
+	private function countedResponses(Appointment $appointment, array $responses): \Generator {
+		foreach ($responses as $response) {
+			$answer = $response->getResponse();
+			if (in_array($answer, ['yes', 'no', 'maybe'], true)
+				&& !$this->isNonAttendeeAdminResponse($appointment, $response->getUserId())) {
+				yield $answer => $response;
+			}
+		}
 	}
 
 	/**

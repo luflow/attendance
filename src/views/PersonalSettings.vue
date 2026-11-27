@@ -1,80 +1,7 @@
 <template>
 	<div id="attendance-personal-settings">
-		<NcSettingsSection :name="t('attendance', 'Calendar subscription')"
-			:description="t('attendance', 'Subscribe to your appointments in external calendar apps like Google Calendar, Apple Calendar, or Thunderbird.')">
-			<LoadingState v-if="icalLoading" />
-
-			<template v-else>
-				<div class="quick-subscribe-section">
-					<label class="quick-subscribe-label">{{ t('attendance', 'Quick subscribe') }}</label>
-					<div class="quick-subscribe-buttons">
-						<NcButton variant="secondary"
-							:href="googleCalendarUrl"
-							target="_blank">
-							<template #icon>
-								<GoogleIcon :size="20" />
-							</template>
-							{{ t('attendance', 'Google Calendar') }}
-						</NcButton>
-						<NcButton variant="secondary"
-							:href="webcalUrl">
-							<template #icon>
-								<AppleIcon :size="20" />
-							</template>
-							{{ t('attendance', 'Apple Calendar') }}
-						</NcButton>
-					</div>
-				</div>
-
-				<div class="feed-url-section">
-					<label class="feed-url-label">{{ t('attendance', 'Subscription URL') }}</label>
-					<div class="feed-url-row">
-						<code class="feed-url-display">{{ feedUrl }}</code>
-						<NcButton variant="secondary"
-							:aria-label="t('attendance', 'Copy URL')"
-							@click="handleCopy">
-							<template #icon>
-								<ContentCopy :size="20" />
-							</template>
-							{{ t('attendance', 'Copy') }}
-						</NcButton>
-					</div>
-				</div>
-
-				<div v-if="lastUsedAt" class="last-used-info">
-					<!-- TRANSLATORS: Label before a timestamp saying when a calendar app last fetched this iCal feed — the feed being polled, not a person opening something. -->
-					<span class="last-used-label">{{ t('attendance', 'Last accessed') }}:</span>
-					<span>{{ formatDateTime(lastUsedAt) }}</span>
-				</div>
-
-				<NcNoteCard type="warning" class="security-warning">
-					{{ t('attendance', 'Keep this URL private! Anyone with this link can see your appointments.') }}
-				</NcNoteCard>
-
-				<NcButton variant="tertiary"
-					:disabled="icalLoading"
-					@click="showRegenerateConfirm = true">
-					<template #icon>
-						<Refresh :size="20" />
-					</template>
-					{{ t('attendance', 'Regenerate URL') }}
-				</NcButton>
-			</template>
-
-			<!-- Regenerate confirmation dialog -->
-			<NcDialog :open="showRegenerateConfirm"
-				:name="t('attendance', 'Regenerate subscription URL?')"
-				@update:open="showRegenerateConfirm = false">
-				<p>{{ t('attendance', 'This will invalidate your current calendar subscription URL. Any calendar apps using the old URL will need to be updated with the new URL.') }}</p>
-				<template #actions>
-					<NcButton variant="secondary" @click="showRegenerateConfirm = false">
-						{{ t('attendance', 'Cancel') }}
-					</NcButton>
-					<NcButton variant="error" @click="handleRegenerate">
-						{{ t('attendance', 'Regenerate') }}
-					</NcButton>
-				</template>
-			</NcDialog>
+		<NcSettingsSection :name="t('attendance', 'Calendar subscription')">
+			<IcalFeedSubscription />
 		</NcSettingsSection>
 
 		<NcSettingsSection :name="t('attendance', 'Calendar reminders')"
@@ -130,37 +57,20 @@ import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
 import {
-	NcButton,
 	NcCheckboxRadioSwitch,
-	NcDialog,
-	NcNoteCard,
 	NcSelect,
 	NcSettingsSection,
 } from '@nextcloud/vue'
 import { computed, onMounted, ref } from 'vue'
-import AppleIcon from 'vue-material-design-icons/Apple.vue'
-import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
-import GoogleIcon from 'vue-material-design-icons/Google.vue'
-import Refresh from 'vue-material-design-icons/Refresh.vue'
 import LoadingState from '../components/common/LoadingState.vue'
+import IcalFeedSubscription from '../components/IcalFeedSubscription.vue'
 import MyVacations from '../components/vacation/MyVacations.vue'
 import TeamVacationCalendar from '../components/vacation/TeamVacationCalendar.vue'
-import { useIcalFeed } from '../composables/useIcalFeed.js'
 import { usePermissions } from '../composables/usePermissions.js'
-import { formatDateTime } from '../utils/datetime.js'
 
-const { feedUrl, webcalUrl, googleCalendarUrl, lastUsedAt, loading: icalLoading, loadToken, regenerateToken, copyToClipboard } = useIcalFeed()
 const { capabilities, permissions, loadPermissions } = usePermissions()
-const showRegenerateConfirm = ref(false)
 // Own entries show up in the team calendar too, so it reloads when they change.
 const teamVacationCalendar = ref(null)
-
-const handleCopy = () => copyToClipboard()
-
-async function handleRegenerate() {
-	showRegenerateConfirm.value = false
-	await regenerateToken()
-}
 
 // Reminder settings
 const settingsLoading = ref(true)
@@ -222,67 +132,12 @@ async function save() {
 }
 
 onMounted(() => {
-	loadToken()
 	loadSettings()
 	loadPermissions()
 })
 </script>
 
 <style scoped>
-.feed-url-section {
-	margin-bottom: 16px;
-}
-
-.feed-url-label,
-.quick-subscribe-label {
-	display: block;
-	margin-bottom: 6px;
-	font-weight: 600;
-}
-
-.feed-url-row {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	flex-wrap: wrap;
-}
-
-.feed-url-display {
-	flex: 1 1 300px;
-	padding: 8px 12px;
-	background-color: var(--color-background-dark);
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius);
-	font-family: monospace;
-	font-size: 12px;
-	word-break: break-all;
-	user-select: all;
-}
-
-.quick-subscribe-section {
-	margin-bottom: 16px;
-}
-
-.quick-subscribe-buttons {
-	display: flex;
-	gap: 8px;
-	flex-wrap: wrap;
-}
-
-.last-used-info {
-	margin-bottom: 16px;
-	font-size: 13px;
-	color: var(--color-text-maxcontrast);
-}
-
-.last-used-label {
-	margin-inline-end: 4px;
-}
-
-.security-warning {
-	margin: 16px 0;
-}
-
 .setting-row {
 	display: flex;
 	flex-direction: column;

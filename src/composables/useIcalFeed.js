@@ -2,16 +2,20 @@ import axios from '@nextcloud/axios'
 import { showError, showSuccess } from '@nextcloud/dialogs'
 import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
-import { computed, ref } from 'vue'
+import { computed, ref, toValue } from 'vue'
 import { copyToClipboard as copyTextToClipboard } from '../utils/clipboard.js'
 
 /**
  * Composable for managing iCal feed functionality
+ *
+ * @param {import('vue').MaybeRefOrGetter<'personal'|'organizer'>} kind Which of the user's feeds
  */
-export function useIcalFeed() {
+export function useIcalFeed(kind = 'personal') {
 	const feedUrl = ref('')
 	const createdAt = ref(null)
 	const lastUsedAt = ref(null)
+	// Whether this user is offered the organizer feed at all; the server says so with every token.
+	const organizerAvailable = ref(false)
 	const loading = ref(true) // Start true to avoid flash of empty state
 	const error = ref(null)
 
@@ -24,11 +28,12 @@ export function useIcalFeed() {
 
 		try {
 			const url = generateUrl('/apps/attendance/api/ical/token')
-			const response = await axios.get(url)
+			const response = await axios.get(url, { params: { kind: toValue(kind) } })
 
 			feedUrl.value = response.data.feedUrl || ''
 			createdAt.value = response.data.createdAt || null
 			lastUsedAt.value = response.data.lastUsedAt || null
+			organizerAvailable.value = response.data.organizerAvailable === true
 		} catch (err) {
 			console.error('Failed to load iCal token:', err)
 			error.value = err
@@ -49,7 +54,7 @@ export function useIcalFeed() {
 
 		try {
 			const url = generateUrl('/apps/attendance/api/ical/token/regenerate')
-			const response = await axios.post(url)
+			const response = await axios.post(url, { kind: toValue(kind) })
 
 			feedUrl.value = response.data.feedUrl || ''
 			createdAt.value = response.data.createdAt || null
@@ -91,6 +96,7 @@ export function useIcalFeed() {
 		googleCalendarUrl,
 		createdAt,
 		lastUsedAt,
+		organizerAvailable,
 		loading,
 		error,
 		loadToken,

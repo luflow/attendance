@@ -1160,6 +1160,10 @@ OC.L10N.register(
     "Only people who use the app get a push notification about it." : "Eine Push-Benachrichtigung dazu bekommt nur, wer die App nutzt.",
     "Point your camera at the invitation code." : "Richte deine Kamera auf den Einladungscode.",
     "Scan invitation code" : "Einladungscode scannen",
-    "This invitation does not contain a valid server address." : "Diese Einladung enthält keine gültige Serveradresse."
+    "This invitation does not contain a valid server address." : "Diese Einladung enthält keine gültige Serveradresse.",
+    "Personal calendar" : "Persönlicher Kalender",
+    "Organizer calendar" : "Organisatorenkalender",
+    "Keep this URL private! Anyone with this link can see who answered what." : "Behalte diese URL für dich! Jeder, der diesen Link hat, kann sehen, wer was geantwortet hat.",
+    "Subscribe to the appointments you organize or manage. Every calendar entry shows how many people are attending and who answered what." : "Abonniere die Termine, die du organisierst oder verwaltest. Jeder Kalendereintrag zeigt, wie viele zugesagt haben und wer was geantwortet hat."
 },
 "nplurals=2; plural=(n != 1);");

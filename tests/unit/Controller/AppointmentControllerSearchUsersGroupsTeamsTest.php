@@ -81,8 +81,7 @@ class AppointmentControllerSearchUsersGroupsTeamsTest extends TestCase {
 	public function testAdminWithNoAppointmentRoleCanStillSearch(): void {
 		$this->signIn('admin');
 		$this->permissionService->method('isAdmin')->with('admin')->willReturn(true);
-		$this->permissionService->method('canCreateAppointments')->willReturn(false);
-		$this->appointmentService->method('isOrganizerAnywhere')->willReturn(false);
+		$this->appointmentService->method('actsAsOrganizer')->willReturn(false);
 		$this->directorySearchService->method('search')->with('acme', 'admin')->willReturn([]);
 
 		$response = $this->controller->searchUsersGroupsTeams('acme');
@@ -93,8 +92,7 @@ class AppointmentControllerSearchUsersGroupsTeamsTest extends TestCase {
 	public function testUserWithNoRoleAtAllIsRejected(): void {
 		$this->signIn('alice');
 		$this->permissionService->method('isAdmin')->willReturn(false);
-		$this->permissionService->method('canCreateAppointments')->willReturn(false);
-		$this->appointmentService->method('isOrganizerAnywhere')->willReturn(false);
+		$this->appointmentService->method('actsAsOrganizer')->willReturn(false);
 		$this->directorySearchService->expects($this->never())->method('search');
 
 		$response = $this->controller->searchUsersGroupsTeams('acme');

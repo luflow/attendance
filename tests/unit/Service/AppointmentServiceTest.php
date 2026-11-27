@@ -2659,4 +2659,23 @@ class AppointmentServiceTest extends TestCase {
 
 		$this->service->updateAppointment(3, 'Renamed', '', '2030-01-01T10:00:00Z', '2030-01-01T11:00:00Z', 'admin', [], ['band']);
 	}
+
+	/** @dataProvider organizerRoles */
+	public function testActsAsOrganizerCoversCreatorsAndAssignedOrganizers(bool $canCreate, bool $organizesOne, bool $expected): void {
+		$this->permissionService->method('canCreateAppointments')->with('alice')->willReturn($canCreate);
+		$this->appointmentMapper->method('existsWithOrganizer')->with('alice')->willReturn($organizesOne);
+
+		$this->assertSame($expected, $this->service->actsAsOrganizer('alice'));
+	}
+
+	/**
+	 * @return array<string, array{bool, bool, bool}>
+	 */
+	public static function organizerRoles(): array {
+		return [
+			'plain member' => [false, false, false],
+			'may create appointments' => [true, false, true],
+			'organizer of one appointment' => [false, true, true],
+		];
+	}
 }
