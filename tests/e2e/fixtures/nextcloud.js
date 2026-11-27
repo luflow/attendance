@@ -529,7 +529,7 @@ export async function createTeamViaOCS(request, name) {
 	const ocsBase = await getOcsBase(request)
 	const resp = await request.post(`${ocsBase}/apps/circles/circles?format=json`, {
 		headers: { ...authHeaders('admin', 'admin'), 'Content-Type': 'application/x-www-form-urlencoded' },
-		form: { name, personal: 'false', local: 'true' },
+		form: { name, personal: 'false' },
 	})
 	expect(resp.ok(), `creating team "${name}" failed: ${resp.status()} ${await resp.text()}`).toBeTruthy()
 	return (await resp.json()).ocs.data.id
@@ -545,6 +545,18 @@ export async function addUserToTeamViaOCS(request, teamId, username) {
 		form: { userId: username, type: '1' },
 	})
 	expect(resp.ok(), `adding ${username} to the team failed: ${resp.status()} ${await resp.text()}`).toBeTruthy()
+}
+
+/**
+ * Add a Nextcloud group to a team, so its users are members through the group.
+ */
+export async function addGroupToTeamViaOCS(request, teamId, groupName) {
+	const ocsBase = await getOcsBase(request)
+	const resp = await request.post(`${ocsBase}/apps/circles/circles/${teamId}/members?format=json`, {
+		headers: { ...authHeaders('admin', 'admin'), 'Content-Type': 'application/x-www-form-urlencoded' },
+		form: { userId: groupName, type: '2' },
+	})
+	expect(resp.ok(), `adding group ${groupName} to the team failed: ${resp.status()} ${await resp.text()}`).toBeTruthy()
 }
 
 export async function deleteTeamViaOCS(request, teamId) {

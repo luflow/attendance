@@ -27,8 +27,9 @@ async function main() {
 		// Wait for Nextcloud to be ready
 		await waitOnNextcloud(ip)
 		
-		// Configure Nextcloud with the attendance app
-		await configureNextcloud(['notifications', 'attendance', 'calendar'])
+		// Configure Nextcloud with the attendance app. Teams (circles) is not
+		// part of the server image; without it every team spec skips itself.
+		await configureNextcloud(['notifications', 'attendance', 'calendar', 'circles'])
 
 		// Create snapshot of clean database state
 		const container = getContainer()
