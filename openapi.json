@@ -632,6 +632,7 @@
                     "remindMaybe",
                     "responseOptions",
                     "allowMaybeDefault",
+                    "commentRequiredForDecline",
                     "attendanceLimit",
                     "responseToggle",
                     "guestInvitation",
@@ -690,6 +691,9 @@
                         "type": "boolean"
                     },
                     "allowMaybeDefault": {
+                        "type": "boolean"
+                    },
+                    "commentRequiredForDecline": {
                         "type": "boolean"
                     },
                     "attendanceLimit": {

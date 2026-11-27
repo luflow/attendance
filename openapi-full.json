@@ -64,6 +64,7 @@
                     "mobileAppBannerEnabled",
                     "bookingEnabled",
                     "allowMaybe",
+                    "commentRequiredForDecline",
                     "selfCheckinWindowMinutes",
                     "hideAccountEmail",
                     "guestsApp",
@@ -119,6 +120,9 @@
                         "type": "boolean"
                     },
                     "allowMaybe": {
+                        "type": "boolean"
+                    },
+                    "commentRequiredForDecline": {
                         "type": "boolean"
                     },
                     "selfCheckinWindowMinutes": {
@@ -857,6 +861,7 @@
                     "remindMaybe",
                     "responseOptions",
                     "allowMaybeDefault",
+                    "commentRequiredForDecline",
                     "attendanceLimit",
                     "responseToggle",
                     "guestInvitation",
@@ -915,6 +920,9 @@
                         "type": "boolean"
                     },
                     "allowMaybeDefault": {
+                        "type": "boolean"
+                    },
+                    "commentRequiredForDecline": {
                         "type": "boolean"
                     },
                     "attendanceLimit": {
@@ -10235,6 +10243,12 @@
                                         "nullable": true,
                                         "default": null,
                                         "description": "Whether appointments offer \"Maybe\" where they have no override of their own"
+                                    },
+                                    "commentRequiredForDecline": {
+                                        "type": "boolean",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Whether members have to add a comment when they answer \"No\" or \"Maybe\""
                                     },
                                     "selfCheckinWindowMinutes": {
                                         "type": "integer",

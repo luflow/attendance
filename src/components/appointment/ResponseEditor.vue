@@ -25,7 +25,7 @@
 					:class="{ 'comment-active': commentExpanded }"
 					variant="tertiary"
 					:size="buttonSize"
-					:title="t('attendance', 'Comment (optional)')"
+					:title="commentLabel"
 					data-test="button-toggle-comment"
 					@click="toggleComment">
 					<template #icon>
@@ -41,19 +41,27 @@
 				ref="commentInput"
 				v-model="localComment"
 				type="text"
-				:label="t('attendance', 'Comment (optional)')"
+				:label="commentLabel"
 				:placeholder="commentPlaceholder"
+				:error="reasonMissing"
 				data-test="response-comment"
 				@keydown.enter="saveComment" />
 			<NcButton
 				variant="secondary"
-				:disabled="!commentChanged || savingComment"
+				:disabled="(!commentChanged && !pendingResponse) || savingComment"
 				data-test="button-save-comment"
 				@click="saveComment">
 				<!-- TRANSLATORS: Button next to the comment field on an appointment — stores what was typed. -->
 				{{ t("attendance", "Save") }}
 			</NcButton>
 		</div>
+		<p
+			v-if="reasonMissing"
+			class="response-editor__hint"
+			role="alert"
+			data-test="response-reason-hint">
+			{{ t('attendance', 'Please add a reason for your answer.') }}
+		</p>
 
 		<div
 			v-if="capacityNotice"
@@ -83,8 +91,9 @@ import CloseCircle from 'vue-material-design-icons/CloseCircle.vue'
 import CommentIcon from 'vue-material-design-icons/Comment.vue'
 import HelpCircle from 'vue-material-design-icons/HelpCircle.vue'
 import { useAppointmentResponse, useResponseCooldown } from '../../composables/useAppointmentResponse.js'
+import { usePermissions } from '../../composables/usePermissions.js'
 import { formatDateTime } from '../../utils/datetime.js'
-import { getResponseIcon, getResponseText, getResponseVariant, RESPONSE_ORDER } from '../../utils/response.js'
+import { getResponseIcon, getResponseText, getResponseVariant, RESPONSE_ORDER, RESPONSES } from '../../utils/response.js'
 
 const props = defineProps({
 	appointmentId: {
@@ -135,7 +144,11 @@ const props = defineProps({
 	},
 })
 
+// (appointmentId, response, acceptWaitlist, comment) — the endpoint stores answer
+// and comment together, so the comment on record always rides along.
 const emit = defineEmits(['submitResponse'])
+
+const { capabilities } = usePermissions()
 
 // Labels, variants and glyphs all come from the shared response helpers, so
 // the buttons carry the same filled circles the sidebar uses.
@@ -182,20 +195,23 @@ const formattedDeadline = computed(() => (props.responseDeadline ? formatDateTim
 
 const { responseCooldown, resolveNext, startCooldown } = useResponseCooldown(() => props.userResponse)
 
-function handleResponse(response) {
-	if (responseCooldown.value) return
-	startCooldown()
-	const next = resolveNext(response)
-	// Only a click on the button that says "Join waitlist" carries the intent.
-	// Without it a yes on an appointment that filled up since the page loaded is
-	// refused, rather than quietly turning into a place in line.
-	emit('submitResponse', props.appointmentId, next, next === 'yes' && joiningWaitlist.value)
+function needsReason(response) {
+	return capabilities.commentRequiredForDecline && (response === RESPONSES.NO || response === RESPONSES.MAYBE)
 }
+
+// A no or maybe held back until its reason is typed; Save then sends both.
+const pendingResponse = ref(null)
+const reasonRequested = ref(false)
 
 // The extractor needs the NBSP before the ellipsis (Nextcloud l10n rule).
 const commentPlaceholder = t('attendance', 'Add your comment\u00A0…')
 
 const localComment = ref(props.comment)
+const commentRequired = computed(() => needsReason(pendingResponse.value ?? props.userResponse))
+const commentLabel = computed(() => (commentRequired.value
+	? t('attendance', 'Comment (required)')
+	: t('attendance', 'Comment (optional)')))
+const reasonMissing = computed(() => reasonRequested.value && localComment.value.trim() === '')
 // An existing comment is content, not a setting — show it on the detail card
 // instead of hiding it behind a toggle. The list card stays collapsed so a long
 // list does not grow a paragraph per row.
@@ -212,12 +228,35 @@ const savedComment = ref(null)
 
 const commentChanged = computed(() => localComment.value !== (savedComment.value ?? props.comment ?? ''))
 
+function focusComment() {
+	commentInput.value?.$el?.querySelector('input')?.focus()
+}
+
 async function toggleComment() {
 	commentExpanded.value = !commentExpanded.value
 	if (commentExpanded.value) {
 		await nextTick()
-		commentInput.value?.$el?.querySelector('input')?.focus()
+		focusComment()
+	} else {
+		pendingResponse.value = null
+		reasonRequested.value = false
 	}
+}
+
+function handleResponse(response) {
+	if (responseCooldown.value) return
+	startCooldown()
+	const next = resolveNext(response)
+	reasonRequested.value = false
+	pendingResponse.value = needsReason(next) ? next : null
+	if (pendingResponse.value) {
+		saveComment()
+		return
+	}
+	// Only a click on the button that says "Join waitlist" carries the intent.
+	// Without it a yes on an appointment that filled up since the page loaded is
+	// refused, rather than quietly turning into a place in line.
+	emit('submitResponse', props.appointmentId, next, next === 'yes' && joiningWaitlist.value, savedComment.value ?? props.comment ?? '')
 }
 
 // Adopt server state only while the field is untouched, so a background
@@ -230,6 +269,21 @@ watch(() => props.comment, (next) => {
 })
 
 async function saveComment() {
+	if (commentRequired.value && localComment.value.trim() === '') {
+		reasonRequested.value = true
+		commentExpanded.value = true
+		await nextTick()
+		focusComment()
+		return
+	}
+	if (pendingResponse.value) {
+		const response = pendingResponse.value
+		pendingResponse.value = null
+		reasonRequested.value = false
+		savedComment.value = localComment.value
+		emit('submitResponse', props.appointmentId, response, false, localComment.value)
+		return
+	}
 	if (!commentChanged.value || savingComment.value) return
 	const pending = localComment.value
 	const saved = await saveCommentApi(props.appointmentId, props.userResponse, pending)
@@ -296,6 +350,12 @@ async function saveComment() {
             flex: 1;
             min-width: 0;
         }
+    }
+
+    &__hint {
+        margin: -4px 0 0;
+        font-size: 13px;
+        color: var(--color-text-error, var(--color-error));
     }
 
     &__capacity {

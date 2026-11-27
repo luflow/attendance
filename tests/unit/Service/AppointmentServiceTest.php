@@ -20,6 +20,7 @@ use OCA\Attendance\Service\BookingService;
 use OCA\Attendance\Service\CalendarService;
 use OCA\Attendance\Service\CapacityService;
 use OCA\Attendance\Service\CheckinService;
+use OCA\Attendance\Service\CommentRequiredException;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\DeadlineUpdate;
 use OCA\Attendance\Service\GuestService;
@@ -37,6 +38,7 @@ use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\Config\IUserConfig;
 use OCP\IDateTimeZone;
 use OCP\IGroupManager;
+use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -127,7 +129,9 @@ class AppointmentServiceTest extends TestCase {
 			$this->notificationService,
 			$this->auditEventService,
 		);
-		$this->responsePolicyService = new ResponsePolicyService($this->configService, $this->capacityService, $this->visibilityService);
+		$l = $this->createMock(IL10N::class);
+		$l->method('t')->willReturnCallback(static fn (string $text): string => $text);
+		$this->responsePolicyService = new ResponsePolicyService($this->configService, $this->capacityService, $this->visibilityService, $l);
 		$this->vacationService = $this->createMock(VacationService::class);
 		$this->checkinService = $this->createMock(CheckinService::class);
 		$this->calendarService = $this->createMock(CalendarService::class);
@@ -857,6 +861,82 @@ class AppointmentServiceTest extends TestCase {
 		$this->expectException(\InvalidArgumentException::class);
 		$this->expectExceptionMessage('maybe');
 		$this->service->submitResponseForUser($appointment, 'bob', 'maybe', 'manager');
+	}
+
+	/** Issue #270: with the setting on, the person's own no needs a reason. */
+	public function testSubmitResponseRefusesANoWithoutTheRequiredReason(): void {
+		$this->configService->method('isCommentRequiredForDecline')->willReturn(true);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
+		$appointment = new Appointment();
+		$appointment->setId(9);
+		$this->appointmentMapper->method('find')->with(9)->willReturn($appointment);
+		$this->responseMapper->method('findByAppointmentAndUser')
+			->willThrowException(new DoesNotExistException('none'));
+		$this->responseMapper->expects($this->never())->method('insert');
+		$this->responseMapper->expects($this->never())->method('update');
+
+		$this->expectException(CommentRequiredException::class);
+		$this->service->submitResponse(9, 'alice', 'no', ' ');
+	}
+
+	/** Clearing the reason of a standing no is the same answer without one. */
+	public function testSubmitResponseRefusesToClearTheReasonOfAMaybe(): void {
+		$this->configService->method('isCommentRequiredForDecline')->willReturn(true);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
+		$appointment = new Appointment();
+		$appointment->setId(9);
+		$this->appointmentMapper->method('find')->with(9)->willReturn($appointment);
+		$existing = new AttendanceResponse();
+		$existing->setId(3);
+		$existing->setResponse('maybe');
+		$existing->setComment('Depends on my shift');
+		$this->responseMapper->method('findByAppointmentAndUser')->willReturn($existing);
+		$this->responseMapper->expects($this->never())->method('update');
+
+		$this->expectException(CommentRequiredException::class);
+		$this->service->submitResponse(9, 'alice', 'maybe', '');
+	}
+
+	public function testSubmitResponseWithdrawsWithoutAReasonEvenWhenOneIsRequired(): void {
+		$this->configService->method('isCommentRequiredForDecline')->willReturn(true);
+		$this->visibilityService->method('canUserSeeAppointment')->willReturn(true);
+		$appointment = new Appointment();
+		$appointment->setId(9);
+		$this->appointmentMapper->method('find')->with(9)->willReturn($appointment);
+		$existing = new AttendanceResponse();
+		$existing->setId(3);
+		$existing->setResponse('no');
+		$existing->setComment('Sick');
+		$this->responseMapper->method('findByAppointmentAndUser')->willReturn($existing);
+		$this->responseMapper->expects($this->once())->method('update')->willReturnArgument(0);
+
+		$this->assertNull($this->service->submitResponse(9, 'alice', null)->getResponse());
+	}
+
+	public function testSubmitResponseForUserSetsANoWithoutAReason(): void {
+		$this->configService->method('isCommentRequiredForDecline')->willReturn(true);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+		$this->userManager->method('get')->willReturn($this->createMock(IUser::class));
+		$appointment = new Appointment();
+		$appointment->setId(9);
+		$this->responseMapper->method('findByAppointmentAndUser')
+			->willThrowException(new DoesNotExistException('none'));
+		$this->responseMapper->expects($this->once())->method('insert')->willReturnArgument(0);
+
+		$this->assertSame('no', $this->service->submitResponseForUser($appointment, 'bob', 'no', 'manager')->getResponse());
+	}
+
+	public function testAnswerNoDuringVacationNeedsNoReason(): void {
+		$this->configService->method('isCommentRequiredForDecline')->willReturn(true);
+		$this->appointmentMapper->method('findUpcomingOverlapping')->willReturn([$this->upcomingAppointment(11)]);
+		$this->visibilityService->method('isUserTargetAttendee')->willReturn(true);
+		$this->responseMapper->method('findByAppointmentAndUser')
+			->willThrowException(new DoesNotExistException('no answer yet'));
+		$this->responseMapper->expects($this->once())->method('insert')->willReturnArgument(0);
+
+		$this->assertSame(1, $this->service->answerNoDuringVacation('alice', '2030-06-01', '2030-06-10'));
 	}
 
 	public function testSubmitResponseKeepsMaybeWhereTheAppointmentStillOffersIt(): void {

@@ -147,9 +147,7 @@ function showExportDialog() {
 	exportDialogVisible.value = true
 }
 
-async function submitResponse(appointmentId, response, acceptWaitlist = false) {
-	const comment = appointment.value.userResponse?.comment || ''
-
+async function submitResponse(appointmentId, response, acceptWaitlist = false, comment = '') {
 	if (response === null) {
 		appointment.value.userResponse = null
 	} else {
@@ -157,6 +155,7 @@ async function submitResponse(appointmentId, response, acceptWaitlist = false) {
 			appointment.value.userResponse = {}
 		}
 		appointment.value.userResponse.response = response
+		appointment.value.userResponse.comment = comment
 	}
 
 	await submitResponseApi(appointmentId, response, comment, acceptWaitlist)

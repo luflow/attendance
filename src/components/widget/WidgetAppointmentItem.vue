@@ -46,7 +46,7 @@
 			:waitlistEnabled="item.waitlistEnabled === true"
 			:waitlisted="item.userResponse?.waitlisted === true"
 			:waitlistPosition="item.userResponse?.waitlistPosition ?? null"
-			@submitResponse="(id, response, acceptWaitlist) => emit('respond', id, response, acceptWaitlist)" />
+			@submitResponse="(...args) => emit('respond', ...args)" />
 	</div>
 </template>
 

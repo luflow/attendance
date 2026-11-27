@@ -188,6 +188,7 @@ class AdminController extends Controller {
 					'mobileAppBannerEnabled' => $this->configService->isMobileAppBannerEnabled(),
 					'bookingEnabled' => $this->configService->isBookingEnabled(),
 					'allowMaybe' => $this->configService->isMaybeAllowed(),
+					'commentRequiredForDecline' => $this->configService->isCommentRequiredForDecline(),
 					'selfCheckinWindowMinutes' => $this->configService->getSelfCheckinWindowMinutes(),
 					'hideAccountEmail' => $this->configService->isAccountEmailHidden(),
 					'guestsApp' => [
@@ -231,6 +232,7 @@ class AdminController extends Controller {
 	 * @param ?bool $mobileAppBannerEnabled Whether the mobile app promotion banner is enabled
 	 * @param ?bool $bookingEnabled Whether the booking / planning feature is enabled
 	 * @param ?bool $allowMaybe Whether appointments offer "Maybe" where they have no override of their own
+	 * @param ?bool $commentRequiredForDecline Whether members have to add a comment when they answer "No" or "Maybe"
 	 * @param ?int $selfCheckinWindowMinutes Minutes before appointment start that self-check-in opens
 	 * @param ?bool $onboardingCompleted Whether the setup wizard has been walked to its end
 	 * @param ?bool $notificationEmailHintDismissed Whether the admin collapsed the hint that notifications do not reach email
@@ -255,6 +257,7 @@ class AdminController extends Controller {
 		?bool $mobileAppBannerEnabled = null,
 		?bool $bookingEnabled = null,
 		?bool $allowMaybe = null,
+		?bool $commentRequiredForDecline = null,
 		?int $selfCheckinWindowMinutes = null,
 		?bool $onboardingCompleted = null,
 		?bool $notificationEmailHintDismissed = null,
@@ -347,6 +350,10 @@ class AdminController extends Controller {
 
 			if ($allowMaybe !== null) {
 				$this->configService->setMaybeAllowed($allowMaybe);
+			}
+
+			if ($commentRequiredForDecline !== null) {
+				$this->configService->setCommentRequiredForDecline($commentRequiredForDecline);
 			}
 
 			if ($selfCheckinWindowMinutes !== null) {

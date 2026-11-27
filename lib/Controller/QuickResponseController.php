@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace OCA\Attendance\Controller;
 
 use OCA\Attendance\AppInfo\Application;
+use OCA\Attendance\Service\CommentRequiredException;
 use OCA\Attendance\Service\QuickResponseTokenService;
+use OCA\Attendance\Service\ResponsePolicyService;
 use OCA\Attendance\Service\ResponseService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\AppFramework\Controller;
@@ -33,6 +35,7 @@ class QuickResponseController extends Controller {
 	private IUserManager $userManager;
 	private LoggerInterface $logger;
 	private VisibilityService $visibilityService;
+	private ResponsePolicyService $responsePolicyService;
 
 	public function __construct(
 		string $appName,
@@ -44,6 +47,7 @@ class QuickResponseController extends Controller {
 		IUserManager $userManager,
 		LoggerInterface $logger,
 		VisibilityService $visibilityService,
+		ResponsePolicyService $responsePolicyService,
 	) {
 		parent::__construct($appName, $request);
 		$this->tokenService = $tokenService;
@@ -53,6 +57,7 @@ class QuickResponseController extends Controller {
 		$this->userManager = $userManager;
 		$this->logger = $logger;
 		$this->visibilityService = $visibilityService;
+		$this->responsePolicyService = $responsePolicyService;
 	}
 
 	/**
@@ -128,6 +133,8 @@ class QuickResponseController extends Controller {
 			'appointmentAllDay' => $appointment->isAllDay(),
 			'response' => $response,
 			'responseLabel' => $this->getResponseLabel($response),
+			// A one-click link cannot carry the reason, so the page asks for it.
+			'commentRequired' => $this->responsePolicyService->isCommentRequired($response),
 			'token' => $token,
 			'userId' => $userId,
 			'userName' => $this->getUserDisplayName($userId),
@@ -163,6 +170,7 @@ class QuickResponseController extends Controller {
 		string $response,
 		string $token,
 		string $userId,
+		string $comment = '',
 	): DataResponse {
 		$validationResult = $this->validateQuickResponse($appointmentId, $response, $token, $userId);
 
@@ -213,7 +221,7 @@ class QuickResponseController extends Controller {
 				$appointmentId,
 				$userId,
 				$response,
-				'',
+				$comment,
 				ResponseService::SOURCE_QUICK_LINK
 			);
 
@@ -230,6 +238,21 @@ class QuickResponseController extends Controller {
 				'success' => true,
 				'message' => $this->l->t('Response recorded'),
 			]);
+		} catch (CommentRequiredException $e) {
+			// The link is fine, the reason is missing: no throttling.
+			$this->tokenService->logQuickResponse(
+				$appointmentId,
+				$userId,
+				$response,
+				false,
+				'Comment required',
+				$this->request->getRemoteAddress()
+			);
+
+			return new DataResponse([
+				'success' => false,
+				'message' => $e->getMessage(),
+			], 400);
 		} catch (\Exception $e) {
 			$this->logger->error('Failed to record quick response: ' . $e->getMessage());
 

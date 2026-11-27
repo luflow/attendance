@@ -117,7 +117,7 @@
 				:waitlistEnabled="appointment.waitlistEnabled === true"
 				:waitlisted="appointment.userResponse?.waitlisted === true"
 				:waitlistPosition="appointment.userResponse?.waitlistPosition ?? null"
-				@submitResponse="(id, response, acceptWaitlist) => emit('submitResponse', id, response, acceptWaitlist)" />
+				@submitResponse="(...args) => emit('submitResponse', ...args)" />
 		</div>
 
 		<!-- Not asked to answer: sees the appointment from outside its audience -->

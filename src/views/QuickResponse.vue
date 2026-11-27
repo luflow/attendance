@@ -89,6 +89,17 @@
 				</p>
 			</div>
 
+			<div v-if="commentRequired" class="reason">
+				<NcTextArea
+					v-model="comment"
+					:label="t('attendance', 'Comment (required)')"
+					:placeholder="commentPlaceholder"
+					:error="reasonMissing"
+					:helperText="reasonMissing ? t('attendance', 'Please add a reason for your answer.') : ''"
+					resize="vertical"
+					data-test="quickresponse-comment" />
+			</div>
+
 			<div class="button-row">
 				<NcButton
 					variant="primary"
@@ -114,8 +125,9 @@
 <script setup>
 import axios from '@nextcloud/axios'
 import { loadState } from '@nextcloud/initial-state'
+import { translate as t } from '@nextcloud/l10n'
 import { generateUrl } from '@nextcloud/router'
-import { NcButton, NcChip, NcLoadingIcon, NcNoteCard } from '@nextcloud/vue'
+import { NcButton, NcChip, NcLoadingIcon, NcNoteCard, NcTextArea } from '@nextcloud/vue'
 import { computed, ref } from 'vue'
 import CalendarIcon from 'vue-material-design-icons/Calendar.vue'
 import CheckIcon from 'vue-material-design-icons/Check.vue'
@@ -131,6 +143,8 @@ const error = ref(initialState.error || false)
 const errorMessage = ref(initialState.errorMessage || '')
 const confirmed = ref(initialState.confirmed || false)
 const submitting = ref(false)
+const comment = ref('')
+const reasonRequested = ref(false)
 
 // Static payload from the server-rendered initial state.
 const closed = initialState.closed || false
@@ -146,6 +160,12 @@ const responseLabel = initialState.responseLabel || ''
 const token = initialState.token || ''
 const userId = initialState.userId || ''
 const userName = initialState.userName || ''
+// A one-click link cannot carry the reason the instance asks for with "No" and "Maybe".
+const commentRequired = initialState.commentRequired === true
+
+// The extractor needs the NBSP before the ellipsis (Nextcloud l10n rule).
+const commentPlaceholder = t('attendance', 'Add your comment\u00A0…')
+const reasonMissing = computed(() => reasonRequested.value && comment.value.trim() === '')
 
 const formattedDateRange = computed(() => formatDateRange(appointmentDatetime, appointmentEndDatetime, appointmentAllDay))
 const closedLabel = formatClosedLabel(closedAt, responseDeadline)
@@ -157,6 +177,10 @@ const responseVariant = computed(() => getResponseVariant(response))
 
 // Methods
 async function confirmResponse() {
+	if (commentRequired && comment.value.trim() === '') {
+		reasonRequested.value = true
+		return
+	}
 	submitting.value = true
 	try {
 		const url = generateUrl('/apps/attendance/respond/{appointmentId}/confirm', { appointmentId })
@@ -164,6 +188,7 @@ async function confirmResponse() {
 			response,
 			token,
 			userId,
+			comment: comment.value,
 		})
 		confirmed.value = true
 	} catch (err) {
@@ -242,6 +267,10 @@ async function confirmResponse() {
 		gap: 12px;
 		margin-top: 16px;
 	}
+}
+
+.reason {
+	margin: 0 0 8px;
 }
 
 .button-row {

@@ -606,6 +606,15 @@
 					<!-- TRANSLATORS: Switch label — appointments offer Yes, Maybe and No rather than just Yes and No. -->
 					{{ t('attendance', 'Offer “Maybe” as an answer') }}
 				</NcCheckboxRadioSwitch>
+				<NcCheckboxRadioSwitch v-model="commentRequiredForDecline"
+					type="switch"
+					data-test="switch-comment-required-for-decline">
+					<!-- TRANSLATORS: Switch label — members have to write a comment with their reason when they answer No or Maybe. -->
+					{{ t('attendance', 'Require a comment for “No” and “Maybe”') }}
+					<template #subtext>
+						{{ t('attendance', 'Asks for a reason when someone cannot come or is unsure. Answers set for somebody else or for a vacation need none.') }}
+					</template>
+				</NcCheckboxRadioSwitch>
 			</NcSettingsSection>
 
 			<NcSettingsSection id="display-options"
@@ -1022,6 +1031,7 @@ const pushEnabled = ref(true)
 const mobileAppBannerEnabled = ref(true)
 const bookingEnabled = ref(false)
 const allowMaybe = ref(true)
+const commentRequiredForDecline = ref(false)
 const hideAccountEmail = ref(false)
 const displayOrder = ref('name_first')
 const pushDeviceCount = ref(0)
@@ -1274,6 +1284,11 @@ autoSave(
 )
 autoSave(bookingEnabled, 'bookingEnabled', () => ({ bookingEnabled: bookingEnabled.value }))
 autoSave(allowMaybe, 'allowMaybe', () => ({ allowMaybe: allowMaybe.value }))
+autoSave(
+	commentRequiredForDecline,
+	'commentRequiredForDecline',
+	() => ({ commentRequiredForDecline: commentRequiredForDecline.value }),
+)
 autoSave(hideAccountEmail, 'hideAccountEmail', () => ({ hideAccountEmail: hideAccountEmail.value }))
 
 // Methods
@@ -1384,6 +1399,7 @@ async function loadSettings() {
 		// Load planning / booking setting (opt-in, defaults off)
 		bookingEnabled.value = config.bookingEnabled === true
 		allowMaybe.value = config.allowMaybe !== false
+		commentRequiredForDecline.value = config.commentRequiredForDecline === true
 		hideAccountEmail.value = config.hideAccountEmail === true
 
 		// Load guests app status (for whitelist warning)

@@ -1605,7 +1605,8 @@ class AppointmentService {
 
 		// Same guards ResponseService::submitResponse() runs for quick-response
 		// links, so neither path can accept an answer the other rejects. An
-		// organizer answering for somebody else may exceed a limit.
+		// organizer answering for somebody else may exceed a limit. Only the
+		// person's own answer carries a comment, so only it can need a reason.
 		$this->responsePolicyService->assertResponseAllowed(
 			$appointment,
 			$userId,
@@ -1613,6 +1614,7 @@ class AppointmentService {
 			$beforeResponse,
 			$acceptWaitlist,
 			$actorUserId !== null,
+			$comment,
 		);
 
 		if ($response === null) {
