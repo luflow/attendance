@@ -127,6 +127,18 @@ export function formatCancelledLabel(cancelledAt) {
 }
 
 /**
+ * The organizer's reason for calling an appointment off, if they gave one.
+ *
+ * @param {object} appointment The appointment payload.
+ * @return {string} Translated line, or '' without a reason (older servers send none).
+ */
+export function formatCancelReason(appointment) {
+	const reason = appointment.cancelledAt ? (appointment.cancelReason ?? '').trim() : ''
+	// TRANSLATORS: Shown on an appointment that was called off. {reason} is what the organizer typed when cancelling, in their own words.
+	return reason ? t('attendance', 'Reason: {reason}', { reason }) : ''
+}
+
+/**
  * Human label for a closed inquiry. Distinguishes auto-close-by-deadline
  * from a manual close so the message matches across the appointment card
  * and the public quick-response page.

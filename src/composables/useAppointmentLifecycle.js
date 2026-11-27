@@ -38,6 +38,7 @@ export function useAppointmentLifecycle(appointmentSource, { onUpdated } = {}) {
 	const togglingClosed = ref(false)
 	const togglingCancelled = ref(false)
 	const showCloseDialog = ref(false)
+	const showCancelDialog = ref(false)
 
 	// Yes-responders split into scheduled-in / not-scheduled-in, deduped by
 	// user. Drives the close-confirmation dialog and mirrors the server's
@@ -63,10 +64,10 @@ export function useAppointmentLifecycle(appointmentSource, { onUpdated } = {}) {
 		return { booked: [...booked.values()], declined: [...declined.values()] }
 	})
 
-	async function request(action, messages, method = 'post') {
+	async function request(action, messages, method = 'post', data = undefined) {
 		const url = generateUrl(`/apps/attendance/api/appointments/${appointment.value.id}/${action}`)
 		try {
-			const response = await axios({ method, url })
+			const response = await axios({ method, url, data })
 			showSuccess(messages.success)
 			onUpdated?.(response.data)
 		} catch (error) {
@@ -102,17 +103,27 @@ export function useAppointmentLifecycle(appointmentSource, { onUpdated } = {}) {
 		await performToggleClosed(true)
 	}
 
+	// Cancelling asks for an optional reason first; reactivating stays one click.
 	async function toggleCancelled() {
 		if (togglingCancelled.value) return
+		if (!isCancelled.value) {
+			showCancelDialog.value = true
+			return
+		}
 		togglingCancelled.value = true
-		const wantsCancel = !isCancelled.value
-		// TRANSLATORS: Success toast — the appointment was called off (German "abgesagt", not "abgebrochen").
-		const cancelled = t('attendance', 'Appointment cancelled')
 		// TRANSLATORS: Success toast — the cancellation was taken back, the appointment takes place again.
 		const reactivated = t('attendance', 'Appointment reactivated')
-		await request(wantsCancel ? 'cancel' : 'uncancel', wantsCancel
-			? { success: cancelled, error: t('attendance', 'Failed to cancel appointment') }
-			: { success: reactivated, error: t('attendance', 'Failed to reactivate appointment') })
+		await request('uncancel', { success: reactivated, error: t('attendance', 'Failed to reactivate appointment') })
+		togglingCancelled.value = false
+	}
+
+	async function confirmCancel(reason) {
+		if (togglingCancelled.value) return
+		showCancelDialog.value = false
+		togglingCancelled.value = true
+		// TRANSLATORS: Success toast — the appointment was called off (German "abgesagt", not "abgebrochen").
+		const cancelled = t('attendance', 'Appointment cancelled')
+		await request('cancel', { success: cancelled, error: t('attendance', 'Failed to cancel appointment') }, 'post', reason ? { reason } : undefined)
 		togglingCancelled.value = false
 	}
 
@@ -178,10 +189,12 @@ export function useAppointmentLifecycle(appointmentSource, { onUpdated } = {}) {
 		togglingClosed,
 		togglingCancelled,
 		showCloseDialog,
+		showCancelDialog,
 		dialogGroups,
 		toggleClosed,
 		confirmClose,
 		toggleCancelled,
+		confirmCancel,
 		canOpenTalkRoom,
 		openingTalkRoom,
 		openTalkRoom,
