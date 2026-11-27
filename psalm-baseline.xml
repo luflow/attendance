@@ -601,6 +601,7 @@
     </MissingPropertyType>
     <PossiblyUnusedProperty>
       <code><![CDATA[$createdAt]]></code>
+      <code><![CDATA[$kind]]></code>
       <code><![CDATA[$lastUsedAt]]></code>
       <code><![CDATA[$token]]></code>
       <code><![CDATA[$userId]]></code>
@@ -1165,6 +1166,11 @@
       <code><![CDATA[Version000028Date20261122120000]]></code>
     </UnusedClass>
   </file>
+  <file src="lib/Migration/Version000029Date20261127120000.php">
+    <UnusedClass>
+      <code><![CDATA[Version000029Date20261127120000]]></code>
+    </UnusedClass>
+  </file>
   <file src="lib/Notification/LicenseNotifier.php">
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
@@ -1648,25 +1654,6 @@
     <DeprecatedMethod>
       <code><![CDATA[getUserValue]]></code>
     </DeprecatedMethod>
-    <MixedArgument>
-      <code><![CDATA[$appointment]]></code>
-    </MixedArgument>
-    <MixedArrayOffset>
-      <code><![CDATA[$userResponses[$appointment->getId()]]]></code>
-    </MixedArrayOffset>
-    <MixedAssignment>
-      <code><![CDATA[$appointment]]></code>
-      <code><![CDATA[$instanceName]]></code>
-    </MixedAssignment>
-    <MixedMethodCall>
-      <code><![CDATA[getId]]></code>
-    </MixedMethodCall>
-    <MixedOperand>
-      <code><![CDATA[$instanceName]]></code>
-    </MixedOperand>
-    <PossiblyFalseArgument>
-      <code><![CDATA[$domain]]></code>
-    </PossiblyFalseArgument>
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
     </PossiblyUnusedMethod>

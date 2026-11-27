@@ -7,6 +7,7 @@ import {
 	createGroupViaOCS,
 	addUserToGroupViaOCS,
 	deleteAllAppointments,
+	forceWipeAllAppointments,
 	PERMISSIVE_PERMISSIONS,
 } from './fixtures/nextcloud.js'
 
@@ -69,5 +70,21 @@ test.describe('Attendance App - Create appointment permission (sequential)', () 
 		await page.waitForLoadState('networkidle')
 
 		await expect(page.locator('[data-test="button-create-appointment"]')).toHaveCount(0)
+	})
+
+	// Lives here because the default install lets everybody manage appointments.
+	test('user with neither role is not offered the organizer calendar', async ({ page, request, loginAsUser, attendanceApp }) => {
+		// Organizing a leftover appointment would be a role of its own.
+		await forceWipeAllAppointments(request)
+		await loginAsUser('test', 'test')
+		await attendanceApp()
+		await page.waitForLoadState('networkidle')
+
+		await page.locator('[data-test="button-calendar-feed"]').click()
+		await expect(page.locator('[data-test="input-ical-feed-url"]')).not.toBeEmpty()
+		await expect(page.locator('[data-test="radio-feed-organizer"]')).toHaveCount(0)
+
+		const response = await page.request.get('/index.php/apps/attendance/api/ical/token?kind=organizer')
+		expect(response.status()).toBe(403)
 	})
 })

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace OCA\Attendance\Controller;
 
+use OCA\Attendance\Db\IcalToken;
+use OCA\Attendance\Service\AppointmentService;
 use OCA\Attendance\Service\IcalService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -17,76 +19,88 @@ use OCP\AppFramework\Http\Response;
 use OCP\IRequest;
 use OCP\IUserSession;
 
+/**
+ * @psalm-import-type AttendanceIcalFeed from \OCA\Attendance\ResponseDefinitions
+ */
 class IcalController extends Controller {
-	private IcalService $icalService;
-	private IUserSession $userSession;
-
 	public function __construct(
 		string $appName,
 		IRequest $request,
-		IcalService $icalService,
-		IUserSession $userSession,
+		private IcalService $icalService,
+		private IUserSession $userSession,
+		private AppointmentService $appointmentService,
 	) {
 		parent::__construct($appName, $request);
-		$this->icalService = $icalService;
-		$this->userSession = $userSession;
 	}
 
 	/**
-	 * Get or create iCal feed token for the current user
+	 * Get or create the token of one of the current user's iCal feeds
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{feedUrl: string, createdAt: ?string, lastUsedAt: ?string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
+	 * @param string $kind Which feed: `personal` (own appointments and answer) or `organizer` (managed appointments with everybody's answers)
+	 * @return DataResponse<Http::STATUS_OK, AttendanceIcalFeed, array{}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_UNAUTHORIZED|Http::STATUS_FORBIDDEN|Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
+	 *
+	 * 200: Feed URL returned
+	 * 400: Unknown feed kind
+	 * 401: Not logged in
+	 * 403: The organizer feed is not available to this user
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI]
-	public function getToken(): DataResponse {
-		$user = $this->userSession->getUser();
-		if (!$user) {
-			return new DataResponse(['error' => 'User not authenticated'], 401);
-		}
-
-		try {
-			$token = $this->icalService->getOrCreateToken($user->getUID());
-			$feedUrl = $this->icalService->getFeedUrl($user->getUID());
-			$tokenData = $token->jsonSerialize();
-
-			return new DataResponse([
-				'feedUrl' => $feedUrl,
-				'createdAt' => $tokenData['createdAt'],
-				'lastUsedAt' => $tokenData['lastUsedAt'],
-			]);
-		} catch (\Exception $e) {
-			return new DataResponse(['error' => $e->getMessage()], 500);
-		}
+	public function getToken(string $kind = IcalToken::KIND_PERSONAL): DataResponse {
+		return $this->tokenResponse($kind, false);
 	}
 
 	/**
-	 * Regenerate iCal feed token for the current user
+	 * Regenerate the token of one of the current user's iCal feeds
 	 *
-	 * @return DataResponse<Http::STATUS_OK, array{feedUrl: string, createdAt: ?string, lastUsedAt: ?string}, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
+	 * @param string $kind Which feed: `personal` or `organizer`
+	 * @return DataResponse<Http::STATUS_OK, AttendanceIcalFeed, array{}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_UNAUTHORIZED|Http::STATUS_FORBIDDEN|Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
+	 *
+	 * 200: New feed URL returned
+	 * 400: Unknown feed kind
+	 * 401: Not logged in
+	 * 403: The organizer feed is not available to this user
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI]
-	public function regenerateToken(): DataResponse {
+	public function regenerateToken(string $kind = IcalToken::KIND_PERSONAL): DataResponse {
+		return $this->tokenResponse($kind, true);
+	}
+
+	/**
+	 * @return DataResponse<Http::STATUS_OK, AttendanceIcalFeed, array{}>|DataResponse<Http::STATUS_BAD_REQUEST|Http::STATUS_UNAUTHORIZED|Http::STATUS_FORBIDDEN|Http::STATUS_INTERNAL_SERVER_ERROR, array{error: string}, array{}>
+	 */
+	private function tokenResponse(string $kind, bool $regenerate): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
-			return new DataResponse(['error' => 'User not authenticated'], 401);
+			return new DataResponse(['error' => 'User not authenticated'], Http::STATUS_UNAUTHORIZED);
+		}
+		if (!in_array($kind, IcalToken::KINDS, true)) {
+			return new DataResponse(['error' => 'Unknown feed kind'], Http::STATUS_BAD_REQUEST);
+		}
+		// Answered here rather than with the permissions: it costs a scan of the
+		// appointments, and only whoever opens the subscription needs to know.
+		$organizerAvailable = $this->appointmentService->actsAsOrganizer($user->getUID());
+		if ($kind === IcalToken::KIND_ORGANIZER && !$organizerAvailable) {
+			return new DataResponse(['error' => 'Insufficient permissions'], Http::STATUS_FORBIDDEN);
 		}
 
 		try {
-			$token = $this->icalService->regenerateToken($user->getUID());
-			$feedUrl = $this->icalService->getFeedUrl($user->getUID());
+			$token = $regenerate
+				? $this->icalService->regenerateToken($user->getUID(), $kind)
+				: $this->icalService->getOrCreateToken($user->getUID(), $kind);
 			$tokenData = $token->jsonSerialize();
 
 			return new DataResponse([
-				'feedUrl' => $feedUrl,
+				'feedUrl' => $this->icalService->getFeedUrl($token),
 				'createdAt' => $tokenData['createdAt'],
 				'lastUsedAt' => $tokenData['lastUsedAt'],
+				'organizerAvailable' => $organizerAvailable,
 			]);
 		} catch (\Exception $e) {
-			return new DataResponse(['error' => $e->getMessage()], 500);
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -97,14 +111,14 @@ class IcalController extends Controller {
 	#[NoCSRFRequired]
 	#[OpenAPI(OpenAPI::SCOPE_IGNORE)]
 	public function feed(string $token): Response {
-		$userId = $this->icalService->validateToken($token);
+		$icalToken = $this->icalService->validateToken($token);
 
-		if ($userId === null) {
+		if ($icalToken === null) {
 			return new DataResponse(['error' => 'Invalid token'], 401);
 		}
 
 		try {
-			$icalContent = $this->icalService->generateIcalFeed($userId);
+			$icalContent = $this->icalService->generateFeedFor($icalToken);
 
 			// ETag for conditional requests (saves bandwidth on repeated polls)
 			$etag = '"' . md5($icalContent) . '"';

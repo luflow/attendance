@@ -301,7 +301,8 @@
                     "roleFilter",
                     "pagination",
                     "allDay",
-                    "userProfiles"
+                    "userProfiles",
+                    "organizerCalendar"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -398,6 +399,9 @@
                         "type": "boolean"
                     },
                     "userProfiles": {
+                        "type": "boolean"
+                    },
+                    "organizerCalendar": {
                         "type": "boolean"
                     }
                 }

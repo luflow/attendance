@@ -12,6 +12,7 @@ use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Db\Category;
 use OCA\Attendance\Db\CategoryMapper;
+use OCA\Attendance\Db\IcalToken;
 use OCA\Attendance\Db\IcalTokenMapper;
 use OCA\Attendance\Service\AuditEventService;
 use OCA\Attendance\Service\BookingService;
@@ -19,6 +20,8 @@ use OCA\Attendance\Service\CapacityService;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\IcalService;
 use OCA\Attendance\Service\NotificationService;
+use OCA\Attendance\Service\PermissionService;
+use OCA\Attendance\Service\ResponseSummaryService;
 use OCA\Attendance\Service\TalkRoomService;
 use OCA\Attendance\Service\TimezoneService;
 use OCA\Attendance\Service\VisibilityService;
@@ -28,8 +31,10 @@ use OCP\IConfig;
 use OCP\IDateTimeZone;
 use OCP\IL10N;
 use OCP\IURLGenerator;
+use OCP\IUser;
 use OCP\L10N\IFactory as IL10NFactory;
 use OCP\Security\ISecureRandom;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class IcalServiceTest extends TestCase {
@@ -41,6 +46,16 @@ class IcalServiceTest extends TestCase {
 
 	/** @var AttendanceResponseMapper|MockObject */
 	private $responseMapper;
+	/** @var AttendanceResponseMapper|MockObject */
+	private $feedResponseMapper;
+	/** @var AppointmentMapper|MockObject */
+	private $appointmentMapper;
+	/** @var VisibilityService|MockObject */
+	private $visibilityService;
+	/** @var PermissionService|MockObject */
+	private $permissionService;
+	/** @var ResponseSummaryService|MockObject */
+	private $responseSummaryService;
 	private IcalService $service;
 
 	protected function setUp(): void {
@@ -49,6 +64,11 @@ class IcalServiceTest extends TestCase {
 		$this->attachmentMapper->method('findByAppointment')->willReturnCallback(fn () => $this->attachments);
 		$this->categoryMapper = $this->createMock(CategoryMapper::class);
 		$this->responseMapper = $this->createMock(AttendanceResponseMapper::class);
+		$this->feedResponseMapper = $this->createMock(AttendanceResponseMapper::class);
+		$this->appointmentMapper = $this->createMock(AppointmentMapper::class);
+		$this->visibilityService = $this->createMock(VisibilityService::class);
+		$this->permissionService = $this->createMock(PermissionService::class);
+		$this->responseSummaryService = $this->createMock(ResponseSummaryService::class);
 
 		$urlGenerator = $this->createMock(IURLGenerator::class);
 		$urlGenerator->method('getAbsoluteURL')->willReturn('https://example.test/');
@@ -56,16 +76,19 @@ class IcalServiceTest extends TestCase {
 			fn (string $route, array $params = []) => 'https://example.test/' . $route . '/' . implode('/', $params),
 		);
 
+		$l10nFactory = $this->createMock(IL10NFactory::class);
+		$l10nFactory->method('get')->willReturn($this->createMock(IL10N::class));
+
 		$userConfig = $this->createMock(IUserConfig::class);
 		$userConfig->method('getValueString')->willReturn('Europe/Berlin');
 		$timezoneService = new TimezoneService($userConfig, $this->createMock(IDateTimeZone::class));
 
 		$this->service = new IcalService(
 			$this->createMock(IcalTokenMapper::class),
-			$this->createMock(AppointmentMapper::class),
+			$this->appointmentMapper,
 			$this->attachmentMapper,
-			$this->createMock(AttendanceResponseMapper::class),
-			$this->createMock(VisibilityService::class),
+			$this->feedResponseMapper,
+			$this->visibilityService,
 			$this->configService,
 			// The real thing: effectiveBookingStatus() is the rule under test,
 			// and it only reads the row it is handed.
@@ -78,7 +101,7 @@ class IcalServiceTest extends TestCase {
 			),
 			$this->createMock(ISecureRandom::class),
 			$urlGenerator,
-			$this->createMock(IL10NFactory::class),
+			$l10nFactory,
 			$this->createMock(IConfig::class),
 			$this->categoryMapper,
 			// Real again: whether a yes holds a spot is what decides the title and
@@ -89,6 +112,8 @@ class IcalServiceTest extends TestCase {
 				$this->createMock(AuditEventService::class),
 			),
 			$timezoneService,
+			$this->permissionService,
+			$this->responseSummaryService,
 		);
 	}
 
@@ -109,6 +134,36 @@ class IcalServiceTest extends TestCase {
 		$l->method('t')->willReturnArgument(0);
 		$ref = new \ReflectionMethod(IcalService::class, 'generateVEvent');
 		return $ref->invoke($this->service, $appointment, $response, 'alice', $l, 'example.test', []);
+	}
+
+	/**
+	 * @param array{yes: list<string>, no: list<string>, maybe: list<string>} $responders
+	 * @param list<AttendanceResponse> $responses
+	 */
+	private function generateForOrganizer(Appointment $appointment, array $responders, array $responses = []): string {
+		$this->responseSummaryService->method('getRespondersByAnswer')->willReturn($responders);
+		$l = $this->createMock(IL10N::class);
+		$l->method('t')->willReturnArgument(0);
+		$l->method('n')->willReturnCallback(
+			fn (string $singular, string $plural, int $count) => str_replace('%n', (string)$count, $plural),
+		);
+		$ref = new \ReflectionMethod(IcalService::class, 'generateOrganizerVEvent');
+		return $ref->invoke($this->service, $appointment, $responses, $l, 'example.test');
+	}
+
+	private function upcoming(int $id): Appointment {
+		$a = $this->appointment();
+		$a->setId($id);
+		$a->setStartDatetime((new \DateTime('+7 days'))->format('Y-m-d H:i:s'));
+		$a->setEndDatetime((new \DateTime('+7 days 1 hour'))->format('Y-m-d H:i:s'));
+		return $a;
+	}
+
+	private function organizerToken(): IcalToken {
+		$token = new IcalToken();
+		$token->setUserId('alice');
+		$token->setKind(IcalToken::KIND_ORGANIZER);
+		return $token;
 	}
 
 	private function closedAppointment(): Appointment {
@@ -300,5 +355,76 @@ class IcalServiceTest extends TestCase {
 		$out = $this->generate($appointment, null);
 
 		$this->assertStringNotContainsString('CATEGORIES:', $out);
+	}
+
+	public function testOrganizerEventNamesWhoAnsweredWhat(): void {
+		$ics = $this->generateForOrganizer($this->appointment(), [
+			'yes' => ['Anna', 'Ben'],
+			'no' => ['Carl'],
+			'maybe' => [],
+		]);
+
+		$this->assertStringContainsString("SUMMARY:Team sync (2 ✓ · 1 ✗ · 0 ?)\r\n", $ics);
+		$this->assertStringContainsString('2 attending (Anna\\, Ben)\\n1 declined (Carl)\\n0 maybe\\n', $ics);
+	}
+
+	public function testOrganizerEventWithoutAnswersKeepsThePlainTitle(): void {
+		$ics = $this->generateForOrganizer($this->appointment(), ['yes' => [], 'no' => [], 'maybe' => []]);
+
+		$this->assertStringContainsString("SUMMARY:Team sync\r\n", $ics);
+	}
+
+	/** Both feeds may sit in one calendar app: no shared UID, no second busy block, no second alarm. */
+	public function testOrganizerEventStaysOutOfThePersonalOnesWay(): void {
+		$this->configService->method('getUserIcalReminderTriggers')->willReturn(['PT1H']);
+		$ics = $this->generateForOrganizer($this->appointment(), ['yes' => ['Alice'], 'no' => [], 'maybe' => []], [$this->yes(null)]);
+
+		$this->assertStringContainsString("UID:attendance-organizer-5@example.test\r\n", $ics);
+		$this->assertStringContainsString("TRANSP:TRANSPARENT\r\n", $ics);
+		$this->assertStringNotContainsString('VALARM', $ics);
+	}
+
+	public function testOrganizerEventChangesWhenSomebodyAnswers(): void {
+		$ics = $this->generateForOrganizer($this->appointment(), ['yes' => ['Alice'], 'no' => [], 'maybe' => []], [$this->yes(null)]);
+
+		$this->assertStringContainsString("LAST-MODIFIED:20260702T090000Z\r\n", $ics);
+		$this->assertStringContainsString("SEQUENCE:1\r\n", $ics);
+	}
+
+	public function testOrganizerEventMarksACancelledAppointment(): void {
+		$appointment = $this->appointment();
+		$appointment->setCancelledAt('2026-07-10 12:00:00');
+		$ics = $this->generateForOrganizer($appointment, ['yes' => [], 'no' => [], 'maybe' => []]);
+
+		$this->assertStringContainsString("SUMMARY:Cancelled: Team sync\r\n", $ics);
+		$this->assertStringContainsString("STATUS:CANCELLED\r\n", $ics);
+	}
+
+	public function testOrganizerTokenUnlocksOnlyWhatItsHolderManages(): void {
+		$managed = $this->upcoming(7);
+		$foreign = $this->upcoming(8);
+		$this->appointmentMapper->method('findAll')->willReturn([$managed, $foreign]);
+		$this->visibilityService->method('getEnabledUser')->with('alice')->willReturn($this->createMock(IUser::class));
+		$this->permissionService->method('canManageAppointment')->willReturnCallback(
+			fn (string $userId, Appointment $appointment) => $userId === 'alice' && $appointment->getId() === 7,
+		);
+		$this->feedResponseMapper->expects($this->once())->method('findByAppointments')->with([7])->willReturn([]);
+		$this->responseSummaryService->method('getRespondersByAnswer')->willReturn(['yes' => [], 'no' => [], 'maybe' => []]);
+
+		$ics = $this->service->generateFeedFor($this->organizerToken());
+
+		$this->assertStringContainsString('UID:attendance-organizer-7@', $ics);
+		$this->assertStringNotContainsString('UID:attendance-organizer-8@', $ics);
+		$this->assertStringNotContainsString('UID:attendance-appointment-', $ics);
+	}
+
+	public function testOrganizerFeedOfADeactivatedAccountIsEmpty(): void {
+		$this->appointmentMapper->method('findAll')->willReturn([$this->upcoming(7)]);
+		$this->visibilityService->method('getEnabledUser')->willReturn(null);
+		$this->permissionService->method('canManageAppointment')->willReturn(true);
+
+		$ics = $this->service->generateFeedFor($this->organizerToken());
+
+		$this->assertStringNotContainsString('BEGIN:VEVENT', $ics);
 	}
 }

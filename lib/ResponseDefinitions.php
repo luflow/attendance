@@ -262,6 +262,12 @@ namespace OCA\Attendance;
  *   canSeeTeamVacations: bool,
  *   canExport: bool,
  * }
+ * @psalm-type AttendanceIcalFeed = array{
+ *   feedUrl: string,
+ *   createdAt: ?string,
+ *   lastUsedAt: ?string,
+ *   organizerAvailable: bool,
+ * }
  * @psalm-type AttendanceCapabilities = array{
  *   calendarAvailable: bool,
  *   calendarSyncEnabled: bool,
@@ -295,6 +301,7 @@ namespace OCA\Attendance;
  *   pagination: bool,
  *   allDay: bool,
  *   userProfiles: bool,
+ *   organizerCalendar: bool,
  * }
  * @psalm-type AttendanceAuditUserRef = array{
  *   userId: string,

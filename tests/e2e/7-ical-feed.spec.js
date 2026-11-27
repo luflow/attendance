@@ -214,4 +214,28 @@ test.describe('Attendance App - iCal Feed', () => {
 
 		expect(feedUrl).toMatch(/\/apps\/attendance\/ical\/[a-f0-9]{64}\.ics/)
 	})
+
+	test('should give organizers a second feed with everybody\'s answers', async ({ page, loginAsUser, attendanceApp }) => {
+		await loginAsUser('admin', 'admin')
+		await attendanceApp()
+		await page.waitForLoadState('networkidle')
+
+		await page.locator('[data-test="button-calendar-feed"]').click()
+		const feedUrlElement = page.locator('[data-test="input-ical-feed-url"]')
+		await expect(feedUrlElement).not.toBeEmpty()
+		const personalUrl = await feedUrlElement.textContent()
+
+		// The radio input itself sits behind its label.
+		await page.getByRole('dialog', { name: /calendar subscription/i })
+			.getByText('Organizer calendar', { exact: true }).click()
+		await expect(feedUrlElement).not.toHaveText(personalUrl)
+		await expect(feedUrlElement).toHaveText(/\/apps\/attendance\/ical\/[a-f0-9]{64}\.ics/)
+		const organizerUrl = await feedUrlElement.textContent()
+		expect(organizerUrl).not.toBe(personalUrl)
+
+		const feed = await page.request.get(organizerUrl)
+		expect(feed.ok()).toBe(true)
+		// Only the organizer feed carries the role in its name.
+		expect(await feed.text()).toMatch(/X-WR-CALNAME:.*\(Organizers\)/)
+	})
 })
