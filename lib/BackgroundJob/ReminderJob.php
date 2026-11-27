@@ -64,6 +64,7 @@ class ReminderJob extends TimedJob {
 		$this->setInterval(self::INTERVAL_DAILY);
 	}
 
+	#[\Override]
 	protected function run($argument): void {
 		$this->logger->info('Reminder job starting...');
 

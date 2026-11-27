@@ -48,6 +48,7 @@ class Vacation extends Entity implements JsonSerializable {
 	/**
 	 * @return AttendanceVacationData
 	 */
+	#[\Override]
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->getId(),

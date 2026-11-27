@@ -26,6 +26,7 @@ class UserDeletedListener implements IEventListener {
 		$this->logger = $logger;
 	}
 
+	#[\Override]
 	public function handle(Event $event): void {
 		if (!($event instanceof UserDeletedEvent)) {
 			return;

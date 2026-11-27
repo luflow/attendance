@@ -42,6 +42,7 @@ class AppointmentAttachment extends Entity implements JsonSerializable {
 		$this->addType('addedAt', 'string');
 	}
 
+	#[\Override]
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->getId(),

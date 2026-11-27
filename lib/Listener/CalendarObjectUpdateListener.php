@@ -34,6 +34,7 @@ class CalendarObjectUpdateListener implements IEventListener {
 	) {
 	}
 
+	#[\Override]
 	public function handle(Event $event): void {
 		$eventClass = get_class($event);
 		$this->logger->debug('Attendance: CalendarObjectUpdateListener received event: {class}', [

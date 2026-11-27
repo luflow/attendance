@@ -26,4 +26,25 @@
 		<file name="tests/stubs/circles.php"/>
 		<file name="tests/stubs/core.php"/>
 	</stubs>
+	<issueHandlers>
+		<!-- PHPUnit cannot mock final classes. -->
+		<ClassMustBeFinal errorLevel="suppress"/>
+		<!-- The DI container and Entity magic call these; psalm sees no caller. -->
+		<UnusedClass errorLevel="suppress"/>
+		<PossiblyUnusedMethod errorLevel="suppress"/>
+		<PossiblyUnusedProperty errorLevel="suppress"/>
+		<PossiblyUnusedParam errorLevel="suppress"/>
+		<PossiblyUnusedReturnValue errorLevel="suppress"/>
+		<!-- Entity's magic getters/setters need untyped properties; Entity sets $id. -->
+		<MissingPropertyType>
+			<errorLevel type="suppress">
+				<directory name="lib/Db"/>
+			</errorLevel>
+		</MissingPropertyType>
+		<PropertyNotSetInConstructor>
+			<errorLevel type="suppress">
+				<directory name="lib/Db"/>
+			</errorLevel>
+		</PropertyNotSetInConstructor>
+	</issueHandlers>
 </psalm>

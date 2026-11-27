@@ -46,6 +46,7 @@ class IcalToken extends Entity implements JsonSerializable {
 		$this->addType('kind', 'string');
 	}
 
+	#[\Override]
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->getId(),

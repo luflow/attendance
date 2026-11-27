@@ -30,10 +30,12 @@ class EnsureAppointmentSchema implements IRepairStep {
 	) {
 	}
 
+	#[\Override]
 	public function getName(): string {
 		return 'Ensure Attendance appointment schema integrity';
 	}
 
+	#[\Override]
 	public function run(IOutput $output): void {
 		if (!$this->connection->tableExists('att_appointments')) {
 			return;

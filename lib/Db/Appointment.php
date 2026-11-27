@@ -134,6 +134,7 @@ class Appointment extends Entity implements JsonSerializable {
 		$this->addType('allDay', 'boolean');
 	}
 
+	#[\Override]
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->getId(),

@@ -48,6 +48,7 @@ class Widget implements IAPIWidget {
 	/**
 	 * @inheritDoc
 	 */
+	#[\Override]
 	public function getId(): string {
 		return 'attendance-vue-widget';
 	}
@@ -55,6 +56,7 @@ class Widget implements IAPIWidget {
 	/**
 	 * @inheritDoc
 	 */
+	#[\Override]
 	public function getTitle(): string {
 		return $this->l10n->t('My appointments');
 	}
@@ -62,6 +64,7 @@ class Widget implements IAPIWidget {
 	/**
 	 * @inheritDoc
 	 */
+	#[\Override]
 	public function getOrder(): int {
 		return 10;
 	}
@@ -69,6 +72,7 @@ class Widget implements IAPIWidget {
 	/**
 	 * @inheritDoc
 	 */
+	#[\Override]
 	public function getIconClass(): string {
 		return 'icon-attendance';
 	}
@@ -76,6 +80,7 @@ class Widget implements IAPIWidget {
 	/**
 	 * @inheritDoc
 	 */
+	#[\Override]
 	public function getUrl(): ?string {
 		return null;
 	}
@@ -83,6 +88,7 @@ class Widget implements IAPIWidget {
 	/**
 	 * @inheritDoc
 	 */
+	#[\Override]
 	public function load(): void {
 		if ($this->userId !== null) {
 			$items = $this->getItems($this->userId);
@@ -98,6 +104,7 @@ class Widget implements IAPIWidget {
 	/**
 	 * @inheritDoc
 	 */
+	#[\Override]
 	public function getItems(string $userId, ?string $since = null, int $limit = 7): array {
 		return $this->appointmentService->getUpcomingAppointmentsForWidget($userId, 10);
 	}

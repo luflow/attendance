@@ -29,6 +29,7 @@ class Version000009Date20260307120000 extends SimpleMigrationStep {
 	 * @param array $options
 	 * @return null|ISchemaWrapper
 	 */
+	#[\Override]
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
@@ -52,6 +53,7 @@ class Version000009Date20260307120000 extends SimpleMigrationStep {
 	/**
 	 * Backfill existing check-ins as 'manual' since that was the only method before this migration.
 	 */
+	#[\Override]
 	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
 		$qb = $this->db->getQueryBuilder();
 

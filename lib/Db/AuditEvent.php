@@ -67,6 +67,7 @@ class AuditEvent extends Entity implements JsonSerializable {
 	/**
 	 * @return array{id: int, appointmentId: int, verb: string, actorId: ?string, subjectId: ?string, meta: array<string, mixed>, source: ?string, createdAt: ?string}
 	 */
+	#[\Override]
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->getId(),

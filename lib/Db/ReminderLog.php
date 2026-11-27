@@ -29,6 +29,7 @@ class ReminderLog extends Entity implements JsonSerializable {
 		$this->addType('remindedAt', 'string');
 	}
 
+	#[\Override]
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->getId(),

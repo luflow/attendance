@@ -51,10 +51,12 @@ class Version000018Date20260803120000 extends SimpleMigrationStep {
 	 * @param array $options
 	 * @return null|ISchemaWrapper
 	 */
+	#[\Override]
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		return null;
 	}
 
+	#[\Override]
 	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
 		foreach (self::ALL_PERMISSIONS as $permission) {
 			$modeKey = 'permission_' . $permission . '_mode';

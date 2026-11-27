@@ -36,6 +36,7 @@ class Application extends App implements IBootstrap {
 		parent::__construct(self::APP_ID, $urlParams);
 	}
 
+	#[\Override]
 	public function register(IRegistrationContext $context): void {
 		$context->registerDashboardWidget(Widget::class);
 		$context->registerNotifierService(\OCA\Attendance\Notification\Notifier::class);
@@ -54,6 +55,7 @@ class Application extends App implements IBootstrap {
 		$this->registerCalendarListeners($context);
 	}
 
+	#[\Override]
 	public function boot(IBootContext $context): void {
 		$container = $context->getAppContainer();
 

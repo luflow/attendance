@@ -49,14 +49,17 @@ class Notifier implements INotifier {
 		$this->eventMessages = $eventMessages;
 	}
 
+	#[\Override]
 	public function getID(): string {
 		return 'attendance';
 	}
 
+	#[\Override]
 	public function getName(): string {
 		return $this->l10nFactory->get('attendance')->t('Attendance');
 	}
 
+	#[\Override]
 	public function prepare(INotification $notification, string $languageCode): INotification {
 		if ($notification->getApp() !== 'attendance') {
 			throw new UnknownNotificationException();

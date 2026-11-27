@@ -23,6 +23,7 @@ class Version000013Date20260515120000 extends SimpleMigrationStep {
 		$this->connection = $connection;
 	}
 
+	#[\Override]
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
@@ -68,6 +69,7 @@ class Version000013Date20260515120000 extends SimpleMigrationStep {
 		return $schema;
 	}
 
+	#[\Override]
 	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
 		$qb = $this->connection->getQueryBuilder();
 		$qb->select($qb->func()->count('*', 'cnt'))

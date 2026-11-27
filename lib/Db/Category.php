@@ -33,6 +33,7 @@ class Category extends Entity implements JsonSerializable {
 	/**
 	 * @return array{id: int, name: string, icon: string}
 	 */
+	#[\Override]
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->getId(),
