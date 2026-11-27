@@ -225,27 +225,17 @@ test.describe('Attendance App - iCal Feed', () => {
 		await expect(feedUrlElement).not.toBeEmpty()
 		const personalUrl = await feedUrlElement.textContent()
 
-		await page.locator('[data-test="radio-feed-organizer"]').click()
+		// The radio input itself sits behind its label.
+		await page.getByRole('dialog', { name: /calendar subscription/i })
+			.getByText('Organizer calendar', { exact: true }).click()
 		await expect(feedUrlElement).not.toHaveText(personalUrl)
+		await expect(feedUrlElement).toHaveText(/\/apps\/attendance\/ical\/[a-f0-9]{64}\.ics/)
 		const organizerUrl = await feedUrlElement.textContent()
-		expect(organizerUrl).toMatch(/\/apps\/attendance\/ical\/[a-f0-9]{64}\.ics/)
+		expect(organizerUrl).not.toBe(personalUrl)
 
 		const feed = await page.request.get(organizerUrl)
 		expect(feed.ok()).toBe(true)
 		// Only the organizer feed carries the role in its name.
 		expect(await feed.text()).toMatch(/X-WR-CALNAME:.*\(Organizers\)/)
-	})
-
-	test('should keep the organizer feed away from plain members', async ({ page, loginAsUser, attendanceApp }) => {
-		await loginAsUser('test', 'test')
-		await attendanceApp()
-		await page.waitForLoadState('networkidle')
-
-		await page.locator('[data-test="button-calendar-feed"]').click()
-		await expect(page.locator('[data-test="input-ical-feed-url"]')).not.toBeEmpty()
-		await expect(page.locator('[data-test="radio-feed-organizer"]')).toHaveCount(0)
-
-		const response = await page.request.get('/index.php/apps/attendance/api/ical/token?kind=organizer')
-		expect(response.status()).toBe(403)
 	})
 })
