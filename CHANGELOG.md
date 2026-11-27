@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.61.0 – 2026-11-27
+
+### Added
+
+- **Organizer calendar**: see in your own calendar who is coming to the appointments you organize
+- **Reason for a cancellation**: tell everyone why an appointment is called off, right in the notification
+- **Comment required for "No" and "Maybe"**: admins can ask members to give a reason when they decline or are unsure
+- **Easier start with the mobile app**: scan a QR code and the app already knows your server
+
+### Fixed
+
+- Members of groups or teams inside a team now count as team members
+- Calendar changes by other people no longer affect linked appointments by mistake
+- Changing your answer no longer sends an old comment again
+- The mobile app invitation stays closed once you dismiss it
+
+### Maintenance
+
+- Smaller app store package
+- Updated translations from Transifex
+
 ## 1.60.0 – 2026-11-20
 
 ### Added
