@@ -86,6 +86,9 @@ class AttendanceResponse extends Entity implements JsonSerializable {
 		$this->addType('waitlistNotifiedAt', 'string');
 	}
 
+	/**
+	 * @return array{id: int, appointmentId: int, userId: string, response: ?string, comment: ?string, respondedAt: ?string, checkinState: ?string, checkinComment: ?string, checkinBy: ?string, checkinAt: ?string, isCheckedIn: bool, responseSource: ?string, checkinSource: ?string, bookingStatus: ?string}
+	 */
 	#[\Override]
 	public function jsonSerialize(): array {
 		return [
