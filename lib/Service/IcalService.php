@@ -465,7 +465,7 @@ class IcalService {
 	 */
 	private function cancelReasonLines(Appointment $appointment, IL10N $l): array {
 		$reason = $appointment->getCancelReason();
-		if (!$appointment->isCancelled() || $reason === null || $reason === '') {
+		if ($reason === null) {
 			return [];
 		}
 		// TRANSLATORS Opening line in the calendar event description of an appointment that was called off (German "Absagegrund"). %1$s is the reason the organizer typed, in their own words.

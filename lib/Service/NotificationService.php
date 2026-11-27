@@ -210,7 +210,7 @@ class NotificationService {
 			$appointment,
 			$userIds,
 			'appointment_cancelled',
-			$reason !== null && $reason !== '' ? ['reason' => $reason] : [],
+			$reason !== null ? ['reason' => $reason] : [],
 		);
 	}
 

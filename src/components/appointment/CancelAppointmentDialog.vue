@@ -3,7 +3,7 @@
 		:name="t('attendance', 'Cancel appointment')"
 		isForm
 		data-test="cancel-appointment-dialog"
-		@submit="emit('confirm', reason.trim())"
+		@submit="emit('confirm', reason)"
 		@closing="emit('cancel')">
 		<div class="cancel-confirm">
 			<p class="cancel-confirm__hint">

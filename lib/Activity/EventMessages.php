@@ -32,7 +32,7 @@ final class EventMessages {
 		$appointmentName = (string)($params['name'] ?? 'Unknown');
 		$appointmentDate = $this->formatAppointmentDate($params, $userId);
 
-		$reason = trim((string)($params['reason'] ?? ''));
+		$reason = (string)($params['reason'] ?? '');
 
 		return [
 			// TRANSLATORS: Notification subject: the appointment was called off and will not happen (German "abgesagt", not "abgebrochen"). %1$s is the appointment name, %2$s the date it would have taken place. Example: Appointment cancelled: Rehearsal on 12 September 2026 18:00.

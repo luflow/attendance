@@ -26,9 +26,9 @@ final class Version000030Date20261127150000 extends SimpleMigrationStep {
 			return null;
 		}
 
-		$table->addColumn('cancel_reason', Types::TEXT, [
+		$table->addColumn('cancel_reason', Types::STRING, [
 			'notnull' => false,
-			'default' => null,
+			'length' => 500,
 		]);
 
 		return $schema;

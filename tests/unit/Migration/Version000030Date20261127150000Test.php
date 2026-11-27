@@ -34,7 +34,7 @@ class Version000030Date20261127150000Test extends TestCase {
 
 		$column = $table->getColumn('cancel_reason');
 		$this->assertFalse($column->getNotnull());
-		$this->assertNull($column->getDefault());
+		$this->assertSame(500, $column->getLength());
 	}
 
 	/** After a failed update, app:enable runs pending steps again. */

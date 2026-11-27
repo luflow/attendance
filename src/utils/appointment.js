@@ -133,7 +133,7 @@ export function formatCancelledLabel(cancelledAt) {
  * @return {string} Translated line, or '' without a reason (older servers send none).
  */
 export function formatCancelReason(appointment) {
-	const reason = appointment.cancelledAt ? (appointment.cancelReason ?? '').trim() : ''
+	const reason = appointment.cancelReason
 	// TRANSLATORS: Shown on an appointment that was called off. {reason} is what the organizer typed when cancelling, in their own words.
 	return reason ? t('attendance', 'Reason: {reason}', { reason }) : ''
 }

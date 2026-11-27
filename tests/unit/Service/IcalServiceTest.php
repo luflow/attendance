@@ -129,11 +129,16 @@ class IcalServiceTest extends TestCase {
 		return $a;
 	}
 
-	private function generate(Appointment $appointment, ?AttendanceResponse $response): string {
+	private function l10n(): IL10N&MockObject {
 		$l = $this->createMock(IL10N::class);
 		$l->method('t')->willReturnCallback(
 			static fn (string $text, array $params = []): string => $params === [] ? $text : vsprintf($text, $params),
 		);
+		return $l;
+	}
+
+	private function generate(Appointment $appointment, ?AttendanceResponse $response): string {
+		$l = $this->l10n();
 		$ref = new \ReflectionMethod(IcalService::class, 'generateVEvent');
 		return $ref->invoke($this->service, $appointment, $response, 'alice', $l, 'example.test', []);
 	}
@@ -144,10 +149,7 @@ class IcalServiceTest extends TestCase {
 	 */
 	private function generateForOrganizer(Appointment $appointment, array $responders, array $responses = []): string {
 		$this->responseSummaryService->method('getRespondersByAnswer')->willReturn($responders);
-		$l = $this->createMock(IL10N::class);
-		$l->method('t')->willReturnCallback(
-			static fn (string $text, array $params = []): string => $params === [] ? $text : vsprintf($text, $params),
-		);
+		$l = $this->l10n();
 		$l->method('n')->willReturnCallback(
 			fn (string $singular, string $plural, int $count) => str_replace('%n', (string)$count, $plural),
 		);
