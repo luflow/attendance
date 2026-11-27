@@ -943,6 +943,88 @@ class AppointmentServiceTest extends TestCase {
 		$this->service->cancelAppointment(8, 'admin');
 	}
 
+	public function testCancelAppointmentStoresTheTrimmedReasonAndAuditsIt(): void {
+		$appointment = new Appointment();
+		$appointment->setId(8);
+		$appointment->setVisibleUsers(json_encode(['alice']));
+
+		$this->appointmentMapper->method('find')->with(8)->willReturn($appointment);
+		$this->appointmentMapper->expects($this->once())
+			->method('update')
+			->with($this->callback(static fn (Appointment $a): bool => $a->getCancelReason() === 'Too few singers'))
+			->willReturnArgument(0);
+
+		$this->auditEventService->expects($this->once())
+			->method('recordAppointmentLifecycle')
+			->with(Verb::APPOINTMENT_CANCELLED, 8, Verb::SOURCE_CLIENT, ['reason' => 'Too few singers']);
+
+		$result = $this->service->cancelAppointment(8, 'admin', "  Too few singers\n ");
+		$this->assertSame('Too few singers', $result->getCancelReason());
+	}
+
+	public function testCancelAppointmentStoresABlankReasonAsNone(): void {
+		$appointment = new Appointment();
+		$appointment->setId(8);
+
+		$this->appointmentMapper->method('find')->with(8)->willReturn($appointment);
+		$this->appointmentMapper->method('update')->willReturnArgument(0);
+
+		$this->auditEventService->expects($this->once())
+			->method('recordAppointmentLifecycle')
+			->with(Verb::APPOINTMENT_CANCELLED, 8, Verb::SOURCE_CLIENT, []);
+
+		$result = $this->service->cancelAppointment(8, 'admin', "  \n\t ");
+		$this->assertNotNull($result->getCancelledAt());
+		$this->assertNull($result->getCancelReason());
+	}
+
+	public function testCancelAppointmentRefusesAnOverlongReasonBeforeTouchingAnything(): void {
+		$this->appointmentMapper->expects($this->never())->method('update');
+		$this->notificationService->expects($this->never())->method('sendCancellationNotifications');
+
+		$this->expectException(\InvalidArgumentException::class);
+		$this->service->cancelAppointment(8, 'admin', str_repeat('ä', AppointmentService::CANCEL_REASON_MAX_LENGTH + 1));
+	}
+
+	public function testCancelAppointmentAcceptsAReasonOfExactlyTheLimit(): void {
+		$appointment = new Appointment();
+		$appointment->setId(8);
+		$this->appointmentMapper->method('find')->willReturn($appointment);
+		$this->appointmentMapper->method('update')->willReturnArgument(0);
+
+		$reason = str_repeat('ä', AppointmentService::CANCEL_REASON_MAX_LENGTH);
+		$this->assertSame($reason, $this->service->cancelAppointment(8, 'admin', $reason)->getCancelReason());
+	}
+
+	public function testCancelAppointmentHandsTheReasonToTheNotificationWave(): void {
+		$appointment = new Appointment();
+		$appointment->setId(8);
+		$appointment->setVisibleUsers(json_encode(['alice']));
+
+		$this->appointmentMapper->method('find')->willReturn($appointment);
+		$this->appointmentMapper->method('update')->willReturnArgument(0);
+
+		$this->notificationService->expects($this->once())
+			->method('sendCancellationNotifications')
+			->with($this->callback(static fn (Appointment $a): bool => $a->getCancelReason() === 'Venue flooded'), ['alice']);
+
+		$this->service->cancelAppointment(8, 'admin', 'Venue flooded');
+	}
+
+	public function testUncancelAppointmentClearsTheReason(): void {
+		$appointment = new Appointment();
+		$appointment->setId(9);
+		$appointment->setCancelledAt('2026-01-01 12:00:00');
+		$appointment->setCancelReason('Venue flooded');
+
+		$this->appointmentMapper->method('find')->with(9)->willReturn($appointment);
+		$this->appointmentMapper->method('update')->willReturnArgument(0);
+
+		$result = $this->service->uncancelAppointment(9, 'admin');
+		$this->assertNull($result->getCancelReason());
+		$this->assertNull($result->jsonSerialize()['cancelReason']);
+	}
+
 	public function testUncancelAppointmentRecordsAuditEvent(): void {
 		$appointment = new Appointment();
 		$appointment->setId(9);

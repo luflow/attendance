@@ -212,6 +212,12 @@
 			:disabled="togglingClosed"
 			@confirm="confirmClose"
 			@cancel="showCloseDialog = false" />
+
+		<CancelAppointmentDialog
+			v-if="showCancelDialog"
+			:disabled="togglingCancelled"
+			@confirm="confirmCancel"
+			@cancel="showCancelDialog = false" />
 	</div>
 </template>
 
@@ -236,6 +242,7 @@ import MessagePlusIcon from 'vue-material-design-icons/MessagePlus.vue'
 import MessageTextIcon from 'vue-material-design-icons/MessageText.vue'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import ShareVariantIcon from 'vue-material-design-icons/ShareVariant.vue'
+import CancelAppointmentDialog from './CancelAppointmentDialog.vue'
 import CloseInquiryDialog from './CloseInquiryDialog.vue'
 import { useAppointmentLifecycle } from '../../composables/useAppointmentLifecycle.js'
 import { usePermissions } from '../../composables/usePermissions.js'
@@ -273,10 +280,12 @@ const {
 	togglingClosed,
 	togglingCancelled,
 	showCloseDialog,
+	showCancelDialog,
 	dialogGroups,
 	toggleClosed,
 	confirmClose,
 	toggleCancelled,
+	confirmCancel,
 	canOpenTalkRoom,
 	openingTalkRoom,
 	openTalkRoom,

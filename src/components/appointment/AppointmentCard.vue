@@ -46,6 +46,9 @@
 				<!-- TRANSLATORS: Banner headline on an appointment that was called off (German "Termin abgesagt", not "abgebrochen"). -->
 				<strong>{{ t("attendance", "Appointment cancelled") }}</strong>
 				<span>{{ formatCancelledLabel(appointment.cancelledAt) }}</span>
+				<p v-if="cancelReason" class="status-banner__reason" data-test="cancel-reason">
+					{{ cancelReason }}
+				</p>
 			</div>
 			<NcButton
 				v-if="canCancel"
@@ -188,7 +191,7 @@ import ResponseEditor from './ResponseEditor.vue'
 import ResponseSummary from './ResponseSummary.vue'
 import { useAppointmentCard } from '../../composables/useAppointmentCard.js'
 import { useAppointmentLifecycle } from '../../composables/useAppointmentLifecycle.js'
-import { finalScheduleStatus, formatCancelledLabel, formatClosedLabel } from '../../utils/appointment.js'
+import { finalScheduleStatus, formatCancelledLabel, formatCancelReason, formatClosedLabel } from '../../utils/appointment.js'
 import { categoryIconComponent } from '../../utils/categoryIcons.js'
 import { formatTime } from '../../utils/datetime.js'
 import { renderMarkdown, sanitizeHtml } from '../../utils/markdown.js'
@@ -243,6 +246,8 @@ const {
 // guards closing.
 const { canCancel, togglingClosed, togglingCancelled, toggleClosed, toggleCancelled }
 	= useAppointmentLifecycle(() => props.appointment, { onUpdated: (updated) => emit('closedToggled', updated) })
+
+const cancelReason = computed(() => formatCancelReason(props.appointment))
 
 const closedLabel = computed(() => formatClosedLabel(props.appointment.closedAt, props.appointment.responseDeadline))
 
@@ -398,6 +403,12 @@ const renderedDescription = computed(() => {
             font-size: 0.85em;
             color: var(--color-text-maxcontrast);
         }
+    }
+
+    &__reason {
+        margin: 4px 0 0;
+        white-space: pre-line;
+        overflow-wrap: anywhere;
     }
 }
 

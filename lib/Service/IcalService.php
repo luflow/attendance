@@ -356,7 +356,7 @@ class IcalService {
 		}
 
 		// Build description (use double quotes for actual newlines)
-		$descriptionParts = [];
+		$descriptionParts = $this->cancelReasonLines($appointment, $l);
 
 		// Add appointment description if present
 		$appointmentDescription = trim($appointment->getDescription() ?? '');
@@ -434,7 +434,7 @@ class IcalService {
 			$summary = $l->t('Cancelled') . ': ' . $summary;
 		}
 
-		$descriptionParts = [];
+		$descriptionParts = $this->cancelReasonLines($appointment, $l);
 		$appointmentDescription = trim($appointment->getDescription() ?? '');
 		if ($appointmentDescription !== '') {
 			$descriptionParts[] = $appointmentDescription;
@@ -458,6 +458,18 @@ class IcalService {
 			$responses,
 			'TRANSPARENT',
 		);
+	}
+
+	/**
+	 * @return list<string> The organizer's reason as the opening line, if the appointment was called off with one
+	 */
+	private function cancelReasonLines(Appointment $appointment, IL10N $l): array {
+		$reason = $appointment->getCancelReason();
+		if ($reason === null) {
+			return [];
+		}
+		// TRANSLATORS Opening line in the calendar event description of an appointment that was called off (German "Absagegrund"). %1$s is the reason the organizer typed, in their own words.
+		return [$l->t('Reason for cancellation: %1$s', [$reason])];
 	}
 
 	/**

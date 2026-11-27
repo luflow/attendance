@@ -32,11 +32,16 @@ final class EventMessages {
 		$appointmentName = (string)($params['name'] ?? 'Unknown');
 		$appointmentDate = $this->formatAppointmentDate($params, $userId);
 
+		$reason = (string)($params['reason'] ?? '');
+
 		return [
 			// TRANSLATORS: Notification subject: the appointment was called off and will not happen (German "abgesagt", not "abgebrochen"). %1$s is the appointment name, %2$s the date it would have taken place. Example: Appointment cancelled: Rehearsal on 12 September 2026 18:00.
 			'subject' => $l->t('Appointment cancelled: %1$s on %2$s', [$appointmentName, $appointmentDate]),
-			// TRANSLATORS Notification body for a called-off appointment (German "abgesagt", not "abgebrochen"), shown under an "Appointment cancelled" subject that already names it and its date. The second half is the useful part: nothing is left to do and the slot in the calendar is free again.
-			'message' => $l->t('It will not take place, so the time is yours again.'),
+			'message' => $reason === ''
+				// TRANSLATORS Notification body for a called-off appointment (German "abgesagt", not "abgebrochen"), shown under an "Appointment cancelled" subject that already names it and its date. The second half is the useful part: nothing is left to do and the slot in the calendar is free again.
+				? $l->t('It will not take place, so the time is yours again.')
+				// TRANSLATORS Notification body for a called-off appointment (German "abgesagt", not "abgebrochen"), shown under an "Appointment cancelled" subject that already names it and its date. %1$s is the reason the organizer typed, in their own words, e.g. "Too few people can make it".
+				: $l->t('It will not take place. Reason: %1$s', [$reason]),
 		];
 	}
 

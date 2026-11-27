@@ -674,12 +674,13 @@ class AppointmentController extends Controller {
 	 * and the calendar feed reflects the cancellation.
 	 *
 	 * @param int $id Appointment ID
-	 * @return DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>
+	 * @param ?string $reason Why the appointment is called off, shown to everyone it reaches; blank means none (at most 500 characters)
+	 * @return DataResponse<Http::STATUS_OK, AttendanceAppointmentData, array{}>|DataResponse<Http::STATUS_UNAUTHORIZED, array{error: string}, array{}>|DataResponse<Http::STATUS_FORBIDDEN, array{error: string}, array{}>|DataResponse<Http::STATUS_NOT_FOUND, array{error: string}, array{}>|DataResponse<Http::STATUS_BAD_REQUEST, array{error: string}, array{}>
 	 */
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
 	#[OpenAPI]
-	public function cancel(int $id): DataResponse {
+	public function cancel(int $id, ?string $reason = null): DataResponse {
 		$user = $this->userSession->getUser();
 		if (!$user) {
 			return new DataResponse(['error' => 'User not authenticated'], 401);
@@ -690,7 +691,11 @@ class AppointmentController extends Controller {
 			return $appointment;
 		}
 
-		$updated = $this->appointmentService->cancelAppointment($id, $user->getUID());
+		try {
+			$updated = $this->appointmentService->cancelAppointment($id, $user->getUID(), $reason);
+		} catch (\InvalidArgumentException $e) {
+			return new DataResponse(['error' => $e->getMessage()], 400);
+		}
 		return new DataResponse($this->appointmentService->serializeAppointment($updated));
 	}
 
@@ -1219,6 +1224,9 @@ class AppointmentController extends Controller {
 			// GET /ical/token and POST /ical/token/regenerate take kind=organizer
 			// and say in organizerAvailable whether this user is offered that feed.
 			'organizerCalendar' => true,
+			// POST /appointments/{id}/cancel takes an optional reason, and
+			// appointments carry it back as cancelReason.
+			'cancellationReason' => true,
 		]);
 	}
 

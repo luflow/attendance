@@ -50,6 +50,9 @@
 		</div>
 
 		<div class="list-card__body">
+			<p v-if="cancelReason" class="list-card__cancel-reason" data-test="cancel-reason">
+				{{ cancelReason }}
+			</p>
 			<div
 				v-if="descriptionPreview || attachmentCount"
 				class="list-card__preview"
@@ -133,7 +136,7 @@ import ResponseDot from './ResponseDot.vue'
 import ResponseEditor from './ResponseEditor.vue'
 import ShowDetailsLink from './ShowDetailsLink.vue'
 import { useAppointmentCard } from '../../composables/useAppointmentCard.js'
-import { appointmentDetailUrl, formatCancelledLabel, formatClosedLabel } from '../../utils/appointment.js'
+import { appointmentDetailUrl, formatCancelledLabel, formatCancelReason, formatClosedLabel } from '../../utils/appointment.js'
 import { categoryIconComponent } from '../../utils/categoryIcons.js'
 import { stripMarkdown } from '../../utils/markdown.js'
 import { getResponseText, responseOptionsFor, responseSegments } from '../../utils/response.js'
@@ -202,6 +205,8 @@ const detailLinkInBar = computed(() => Boolean(props.appointment.responseSummary
 const summarySegments = computed(() => responseSegments(props.appointment.responseSummary))
 
 const attachmentCount = computed(() => props.appointment.attachments?.length ?? 0)
+
+const cancelReason = computed(() => formatCancelReason(props.appointment))
 
 const stateLabel = computed(() => (isCancelled.value
 	? formatCancelledLabel(props.appointment.cancelledAt)
@@ -359,6 +364,13 @@ const stateLabel = computed(() => (isCancelled.value
         flex-direction: column;
         gap: 14px;
         padding: 16px 20px 14px;
+    }
+
+    &__cancel-reason {
+        margin: 0;
+        color: var(--color-error-text);
+        white-space: pre-line;
+        overflow-wrap: anywhere;
     }
 
     &__preview {

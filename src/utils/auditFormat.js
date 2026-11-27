@@ -282,7 +282,10 @@ export function formatAuditEvent(event) {
 			return {
 				icon: 'CalendarRemoveOutline',
 				iconVariant: 'default',
-				segments: textOnly(t('attendance', '{actor} cancelled the appointment', { actor })),
+				segments: textOnly(meta.reason
+					// TRANSLATORS: Audit-log entry. {actor} is a person's name, {reason} what they typed as the reason for calling the appointment off (German "abgesagt").
+					? t('attendance', '{actor} cancelled the appointment. Reason: {reason}', { actor, reason: meta.reason })
+					: t('attendance', '{actor} cancelled the appointment', { actor })),
 			}
 		case 'appointment.uncancelled':
 			return {

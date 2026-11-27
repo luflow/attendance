@@ -108,6 +108,7 @@ class NotificationServiceTest extends TestCase {
 		$event = $this->createMock(IEvent::class);
 		$event->method('setApp')->willReturnSelf();
 		$event->method('setType')->willReturnSelf();
+		$event->method('setAuthor')->willReturnSelf();
 		$event->method('setSubject')->willReturnSelf();
 		$event->method('setObject')->willReturnSelf();
 		$event->method('setLink')->willReturnSelf();
@@ -146,6 +147,44 @@ class NotificationServiceTest extends TestCase {
 		$this->notificationManager->method('createNotification')->willReturn($this->mockNotification());
 
 		$this->notificationManager->expects($this->once())->method('notify');
+
+		$this->service->sendCancellationNotifications($this->appointment(), ['alice']);
+	}
+
+	public function testCancellationCarriesTheReasonOnTheDirectPath(): void {
+		$this->setAppsEnabled(notifications: true, activity: false);
+		$appointment = $this->appointment();
+		$appointment->setCancelReason('Venue flooded');
+		$notification = $this->mockNotification();
+		$this->notificationManager->method('createNotification')->willReturn($notification);
+
+		$notification->expects($this->once())->method('setSubject')
+			->with('appointment_cancelled', $this->callback(static fn (array $params): bool => ($params['reason'] ?? null) === 'Venue flooded'));
+
+		$this->service->sendCancellationNotifications($appointment, ['alice']);
+	}
+
+	public function testCancellationCarriesTheReasonOnTheActivityPath(): void {
+		$this->setAppsEnabled(notifications: true, activity: true);
+		$appointment = $this->appointment();
+		$appointment->setCancelReason('Venue flooded');
+		$event = $this->mockEvent();
+		$this->activityManager->method('generateEvent')->willReturn($event);
+		$this->activityManager->method('getSettingById')->willReturn($this->createMock(ActivitySettings::class));
+
+		$event->expects($this->once())->method('setSubject')
+			->with('appointment_cancelled', $this->callback(static fn (array $params): bool => ($params['reason'] ?? null) === 'Venue flooded'));
+
+		$this->service->sendCancellationNotifications($appointment, ['alice']);
+	}
+
+	public function testCancellationWithoutReasonSendsNoReasonParameter(): void {
+		$this->setAppsEnabled(notifications: true, activity: false);
+		$notification = $this->mockNotification();
+		$this->notificationManager->method('createNotification')->willReturn($notification);
+
+		$notification->expects($this->once())->method('setSubject')
+			->with('appointment_cancelled', $this->callback(static fn (array $params): bool => !array_key_exists('reason', $params)));
 
 		$this->service->sendCancellationNotifications($this->appointment(), ['alice']);
 	}
