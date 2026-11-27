@@ -48,7 +48,6 @@ use OCP\AppFramework\Db\Entity;
  * @method void setClosedAt(?string $closedAt)
  * @method string|null getCancelledAt()
  * @method void setCancelledAt(?string $cancelledAt)
- * @method string|null getCancelReason()
  * @method void setCancelReason(?string $cancelReason)
  * @method string|null getResponseDeadline()
  * @method void setResponseDeadline(?string $responseDeadline)
@@ -90,7 +89,7 @@ class Appointment extends Entity implements JsonSerializable {
 	protected $sendNotification = false;
 	protected $closedAt = null;
 	protected $cancelledAt = null;
-	protected $cancelReason = null;
+	protected ?string $cancelReason = null;
 	protected $responseDeadline = null;
 	protected $location = null;
 	protected $categoryId = null;
@@ -196,6 +195,10 @@ class Appointment extends Entity implements JsonSerializable {
 	/** Calendar the linked event lives in; the sync matches by it, NULL means no sync. */
 	public function getCalendarId(): ?int {
 		return $this->calendarId;
+	}
+
+	public function getCancelReason(): ?string {
+		return $this->cancelReason;
 	}
 
 	public function isClosed(): bool {

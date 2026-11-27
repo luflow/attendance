@@ -1171,6 +1171,11 @@
       <code><![CDATA[Version000029Date20261127120000]]></code>
     </UnusedClass>
   </file>
+  <file src="lib/Migration/Version000030Date20261127150000.php">
+    <UnusedClass>
+      <code><![CDATA[Version000030Date20261127150000]]></code>
+    </UnusedClass>
+  </file>
   <file src="lib/Notification/LicenseNotifier.php">
     <PossiblyUnusedMethod>
       <code><![CDATA[__construct]]></code>
