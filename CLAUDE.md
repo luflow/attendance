@@ -1,4 +1,4 @@
-# Attendance App - Windsurf Rules
+# Attendance App
 
 ## Before you hand work back: run `./scripts/check.sh`
 
@@ -25,6 +25,9 @@ installed before blaming the toolchain:
 ```bash
 composer bin all install
 ```
+
+Work delegated to subagents ends with a `/simplify` pass over the change,
+followed by `./scripts/check.sh` again.
 
 Rules that keep the repo clean over time:
 
@@ -145,7 +148,7 @@ Follow these Nextcloud translation guidelines (see https://docs.nextcloud.com/se
   as under "Plural Forms" above.
 
 ### PHP Backend
-- Use PHP 8.0+ syntax
+- Use PHP 8.1+ syntax (the floor in `appinfo/info.xml`)
 - Follow PSR-12 Code Style
 - Use Dependency Injection via Nextcloud Container
 - All Services in `lib/Service/` directory
@@ -187,7 +190,7 @@ first-party apps (spreed, mail, forms, deck) structure theirs:
 
 ### Permissions & Security
 - Use `PermissionService` for all permission checks (not directly `isAdmin()`)
-- Two main permissions: `PERMISSION_MANAGE_APPOINTMENTS` and `PERMISSION_CHECKIN`
+- Every permission is a `PERMISSION_*` constant in `PermissionService` (manage and create appointments, check-in, response visibility, statistics, export, …)
 - Perform permission checks in both backend (Service layer) and frontend
 - If more permissions are needed, add them to the PermissionService and use consistent naming
 
@@ -249,18 +252,19 @@ use OCP\AppFramework\Http\Attribute\OpenAPI;
 - Add regression tests, but keep implementation minimal
 
 ## Release Management
-- When I ask you to prepare a release, check if everything is commited
-- Then check all changes since last release (use for example git log --oneline)
-- Disable the app via occ command in the running docker containers (container name: master-stable34-1)
-- Decide which version jump (fix, patch) based on the changes since last version to create and update version numbers in info.xml and package.json
-- Enable the app via occ command in the running docker containers (container name: master-stable34-1)
-- Write release notes in CHANGELOG.md — short and precise: one bullet per change, bold lead naming the change, at most one short clause of context. No narrative back-story, no problem-history — that belongs in the commit message
-- Ask me to review the release notes and version number afterwards
-- Commit everything you changed after my review WITHOUT claude co author in the commit
-- Create a new tag based on the version number
-- Push the tag to the remote repository
-- Create a new release on GitHub via GitHub MCP which triggers the release process and upload to nextcloud app store
+- When I ask you to prepare a release, check that everything is committed and `main` is up to date
+- Collect the changes since the last tag (`git log --oneline --no-merges vX.Y.Z..HEAD`)
+- Version: minor for new features, patch for fixes only
+- Disable the app in the dev container (`docker exec -u www-data master-stable34-1 php occ app:disable attendance`), set the version in `appinfo/info.xml` and with `npm version X.Y.Z --no-git-tag-version` (keeps `package-lock.json` in step), then `occ app:enable attendance`. If enable says the appinfo file cannot be read, the container has not seen the edited file yet — retry after a few seconds
+- Write release notes in CHANGELOG.md for users, not developers: short bullets in plain words, no capability names, class names or other jargon, no back-story. Added/Changed entries get a short bold lead; fixes are plain sentences
+- Ask me to review the release notes and version number
+- After my review: commit as `chore(release): X.Y.Z` WITHOUT claude co-author, tag `vX.Y.Z`, push `main` and the tag
+- `gh release create vX.Y.Z --title X.Y.Z --notes-file <that CHANGELOG section> --verify-tag` — the release starts the "Build and publish app release" workflow, which uploads to the Nextcloud app store
 
+## Local dev instance (stable34)
+- `~/nextcloud-docker-dev`, container `master-stable34-1`, http://localhost:8034; it serves this checkout from `apps-extra/attendance`
+- `occ upgrade` only runs migrations when the version changes; after pulling a new migration without a version bump, run `occ migrations:migrate attendance`
+- Right after a `git pull` the container can serve stale PHP files for a few minutes (e.g. 500s for "undefined method" on code that exists); re-request before hunting a bug
 ## Mobile (Flutter) compatibility
 
 A Flutter mobile client (repo `luflow/attendance-flutter`) is a first-class
@@ -278,7 +282,8 @@ is updated, so:
   the server they're talking to may also be older than. New feature → new
   capability key, default `false` semantics on absence.
 - Examples already in the wild: `calendarSyncAvailable`, `teamsAvailable`,
-  `notificationsAppEnabled`, `closing` (close-inquiry feature).
+  `closing` (close-inquiry feature), `organizerCalendar`, `cancellationReason`,
+  `commentRequiredForDecline` (carries an admin setting's value).
 - When you add a capability, also add the corresponding gate on the Flutter
   side in the same change (or a paired PR), so the rollout is atomic.
 - Migrations may add nullable columns freely, but **do not remove columns**
