@@ -50,6 +50,17 @@ class EventMessagesTest extends TestCase {
 		$this->assertStringContainsString('Rehearsal', $rendered['subject']);
 	}
 
+	public function testForCancelledCarriesTheReason(): void {
+		$rendered = $this->eventMessages->forCancelled($this->l, [
+			'name' => 'Rehearsal',
+			'startDatetime' => '2030-08-01 18:00:00',
+			'reason' => 'Too few singers',
+		], 'alice');
+
+		$this->assertSame('It will not take place. Reason: Too few singers', $rendered['message']);
+		$this->assertStringContainsString('Rehearsal', $rendered['subject']);
+	}
+
 	public function testForReactivated(): void {
 		$rendered = $this->eventMessages->forReactivated($this->l, [
 			'name' => 'Rehearsal',

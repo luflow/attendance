@@ -190,13 +190,16 @@ class AuditEventService {
 	 * Actor is taken from the current session — null in background-job
 	 * contexts (e.g. AutoCloseJob), which is what we want: the audit row
 	 * then reflects "system closed it" via the $source field.
+	 *
+	 * @param array<string, mixed> $meta e.g. the reason of a cancellation
 	 */
 	public function recordAppointmentLifecycle(
 		string $verb,
 		int $appointmentId,
 		string $source,
+		array $meta = [],
 	): ?AuditEvent {
-		return $this->record($verb, $appointmentId, null, null, [], $source);
+		return $this->record($verb, $appointmentId, null, null, $meta, $source);
 	}
 
 	/**

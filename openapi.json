@@ -43,6 +43,7 @@
                     "sendNotification",
                     "closedAt",
                     "cancelledAt",
+                    "cancelReason",
                     "responseDeadline",
                     "location",
                     "categoryId",
@@ -134,6 +135,10 @@
                         "nullable": true
                     },
                     "cancelledAt": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "cancelReason": {
                         "type": "string",
                         "nullable": true
                     },
@@ -258,6 +263,7 @@
                     "sendNotification",
                     "closedAt",
                     "cancelledAt",
+                    "cancelReason",
                     "responseDeadline",
                     "location",
                     "categoryId",
@@ -361,6 +367,10 @@
                         "nullable": true
                     },
                     "cancelledAt": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "cancelReason": {
                         "type": "string",
                         "nullable": true
                     },
@@ -642,7 +652,8 @@
                     "pagination",
                     "allDay",
                     "userProfiles",
-                    "organizerCalendar"
+                    "organizerCalendar",
+                    "cancellationReason"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -742,6 +753,9 @@
                         "type": "boolean"
                     },
                     "organizerCalendar": {
+                        "type": "boolean"
+                    },
+                    "cancellationReason": {
                         "type": "boolean"
                     }
                 }
@@ -5438,6 +5452,24 @@
                         "basic_auth": []
                     }
                 ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "reason": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "default": null,
+                                        "description": "Why the appointment is called off, shown to everyone it reaches; blank means none (at most 500 characters)"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
                 "parameters": [
                     {
                         "name": "id",
@@ -5513,6 +5545,24 @@
                         }
                     },
                     "404": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "required": [
+                                        "error"
+                                    ],
+                                    "properties": {
+                                        "error": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
                         "description": "",
                         "content": {
                             "application/json": {

@@ -205,7 +205,13 @@ class NotificationService {
 	 * @param list<string> $userIds Addressed attendees to notify
 	 */
 	public function sendCancellationNotifications(Appointment $appointment, array $userIds): void {
-		$this->sendActivityAwareLifecycleWave($appointment, $userIds, 'appointment_cancelled');
+		$reason = $appointment->getCancelReason();
+		$this->sendActivityAwareLifecycleWave(
+			$appointment,
+			$userIds,
+			'appointment_cancelled',
+			$reason !== null && $reason !== '' ? ['reason' => $reason] : [],
+		);
 	}
 
 	/**
@@ -304,16 +310,17 @@ class NotificationService {
 	 * delivery never depends on it being installed.
 	 *
 	 * @param list<string> $userIds
+	 * @param array<string, mixed> $extraParameters Merged into the subject parameters
 	 */
-	private function sendActivityAwareLifecycleWave(Appointment $appointment, array $userIds, string $subject): void {
+	private function sendActivityAwareLifecycleWave(Appointment $appointment, array $userIds, string $subject, array $extraParameters = []): void {
 		$this->sendViaActivityOrDirect(
 			$subject,
-			$this->appointmentSubjectParameters($appointment),
+			array_merge($this->appointmentSubjectParameters($appointment), $extraParameters),
 			$userIds,
 			'appointment',
 			(string)$appointment->getId(),
 			$this->appointmentUrl($appointment),
-			fn () => $this->sendLifecycleWave($appointment, $userIds, $subject),
+			fn () => $this->sendLifecycleWave($appointment, $userIds, $subject, $extraParameters),
 		);
 	}
 

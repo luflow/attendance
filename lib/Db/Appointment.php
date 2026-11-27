@@ -48,6 +48,8 @@ use OCP\AppFramework\Db\Entity;
  * @method void setClosedAt(?string $closedAt)
  * @method string|null getCancelledAt()
  * @method void setCancelledAt(?string $cancelledAt)
+ * @method string|null getCancelReason()
+ * @method void setCancelReason(?string $cancelReason)
  * @method string|null getResponseDeadline()
  * @method void setResponseDeadline(?string $responseDeadline)
  * @method string|null getLocation()
@@ -88,6 +90,7 @@ class Appointment extends Entity implements JsonSerializable {
 	protected $sendNotification = false;
 	protected $closedAt = null;
 	protected $cancelledAt = null;
+	protected $cancelReason = null;
 	protected $responseDeadline = null;
 	protected $location = null;
 	protected $categoryId = null;
@@ -120,6 +123,7 @@ class Appointment extends Entity implements JsonSerializable {
 		$this->addType('sendNotification', 'boolean');
 		$this->addType('closedAt', 'string');
 		$this->addType('cancelledAt', 'string');
+		$this->addType('cancelReason', 'string');
 		$this->addType('responseDeadline', 'string');
 		$this->addType('location', 'string');
 		$this->addType('categoryId', 'integer');
@@ -154,6 +158,7 @@ class Appointment extends Entity implements JsonSerializable {
 			'sendNotification' => (bool)$this->getSendNotification(),
 			'closedAt' => $this->formatDatetimeToUtc($this->getClosedAt()),
 			'cancelledAt' => $this->formatDatetimeToUtc($this->getCancelledAt()),
+			'cancelReason' => $this->getCancelReason(),
 			'responseDeadline' => $this->formatDatetimeToUtc($this->getResponseDeadline()),
 			'location' => $this->getLocation(),
 			'categoryId' => $this->getCategoryId(),

@@ -131,7 +131,9 @@ class IcalServiceTest extends TestCase {
 
 	private function generate(Appointment $appointment, ?AttendanceResponse $response): string {
 		$l = $this->createMock(IL10N::class);
-		$l->method('t')->willReturnArgument(0);
+		$l->method('t')->willReturnCallback(
+			static fn (string $text, array $params = []): string => $params === [] ? $text : vsprintf($text, $params),
+		);
 		$ref = new \ReflectionMethod(IcalService::class, 'generateVEvent');
 		return $ref->invoke($this->service, $appointment, $response, 'alice', $l, 'example.test', []);
 	}
@@ -143,7 +145,9 @@ class IcalServiceTest extends TestCase {
 	private function generateForOrganizer(Appointment $appointment, array $responders, array $responses = []): string {
 		$this->responseSummaryService->method('getRespondersByAnswer')->willReturn($responders);
 		$l = $this->createMock(IL10N::class);
-		$l->method('t')->willReturnArgument(0);
+		$l->method('t')->willReturnCallback(
+			static fn (string $text, array $params = []): string => $params === [] ? $text : vsprintf($text, $params),
+		);
 		$l->method('n')->willReturnCallback(
 			fn (string $singular, string $plural, int $count) => str_replace('%n', (string)$count, $plural),
 		);
@@ -398,6 +402,26 @@ class IcalServiceTest extends TestCase {
 
 		$this->assertStringContainsString("SUMMARY:Cancelled: Team sync\r\n", $ics);
 		$this->assertStringContainsString("STATUS:CANCELLED\r\n", $ics);
+	}
+
+	public function testCancelledEventOpensWithTheReason(): void {
+		$appointment = $this->appointment();
+		$appointment->setDescription('Bring sheet music');
+		$appointment->setCancelledAt('2026-07-10 12:00:00');
+		$appointment->setCancelReason('Venue flooded');
+
+		$this->assertStringContainsString('DESCRIPTION:Reason for cancellation: Venue flooded\\n\\nBring sheet music', $this->generate($appointment, null));
+		$this->assertStringContainsString(
+			'DESCRIPTION:Reason for cancellation: Venue flooded\\n\\nBring sheet music',
+			$this->generateForOrganizer($appointment, ['yes' => [], 'no' => [], 'maybe' => []]),
+		);
+	}
+
+	public function testCancelledEventWithoutReasonKeepsItsDescription(): void {
+		$appointment = $this->appointment();
+		$appointment->setCancelledAt('2026-07-10 12:00:00');
+
+		$this->assertStringNotContainsString('Reason for cancellation', $this->generate($appointment, null));
 	}
 
 	public function testOrganizerTokenUnlocksOnlyWhatItsHolderManages(): void {

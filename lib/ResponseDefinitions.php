@@ -26,6 +26,7 @@ namespace OCA\Attendance;
  *   sendNotification: bool,
  *   closedAt: ?string,
  *   cancelledAt: ?string,
+ *   cancelReason: ?string,
  *   responseDeadline: ?string,
  *   location: ?string,
  *   categoryId: ?int,
@@ -122,6 +123,7 @@ namespace OCA\Attendance;
  *   sendNotification: bool,
  *   closedAt: ?string,
  *   cancelledAt: ?string,
+ *   cancelReason: ?string,
  *   responseDeadline: ?string,
  *   location: ?string,
  *   categoryId: ?int,
@@ -302,6 +304,7 @@ namespace OCA\Attendance;
  *   allDay: bool,
  *   userProfiles: bool,
  *   organizerCalendar: bool,
+ *   cancellationReason: bool,
  * }
  * @psalm-type AttendanceAuditUserRef = array{
  *   userId: string,

@@ -40,6 +40,9 @@ class AppointmentService {
 	/** Rows read per round when paging the sidebar's past appointments. */
 	private const NAVIGATION_CHUNK_SIZE = 200;
 
+	/** Room for a sentence or two; it travels in push notifications. */
+	public const CANCEL_REASON_MAX_LENGTH = 500;
+
 	private AppointmentMapper $appointmentMapper;
 	private AttendanceResponseMapper $responseMapper;
 	private IGroupManager $groupManager;
@@ -708,13 +711,17 @@ class AppointmentService {
 	 * @param int $id The appointment ID
 	 * @param string|null $actorId The user performing the cancellation; excluded
 	 *                             from the notification wave (they already know they cancelled).
+	 * @param string|null $reason Why it is called off; blank means none
+	 * @throws \InvalidArgumentException When the reason is longer than CANCEL_REASON_MAX_LENGTH
 	 */
-	public function cancelAppointment(int $id, ?string $actorId = null): Appointment {
+	public function cancelAppointment(int $id, ?string $actorId = null, ?string $reason = null): Appointment {
+		$reason = self::normalizeCancelReason($reason);
 		$appointment = $this->appointmentMapper->find($id);
 		if ($appointment->isCancelled()) {
 			return $appointment;
 		}
 		$appointment->setCancelledAt(gmdate('Y-m-d H:i:s'));
+		$appointment->setCancelReason($reason);
 		$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
 		$updated = $this->appointmentMapper->update($appointment);
 
@@ -722,6 +729,7 @@ class AppointmentService {
 			\OCA\Attendance\Audit\Verb::APPOINTMENT_CANCELLED,
 			$id,
 			\OCA\Attendance\Audit\Verb::SOURCE_CLIENT,
+			$reason !== null ? ['reason' => $reason] : [],
 		);
 
 		$this->orgCalendarSyncService->syncAppointment($updated);
@@ -733,6 +741,22 @@ class AppointmentService {
 		);
 
 		return $updated;
+	}
+
+	/**
+	 * Trimmed reason, or null when there is none.
+	 *
+	 * @throws \InvalidArgumentException When it is longer than CANCEL_REASON_MAX_LENGTH
+	 */
+	public static function normalizeCancelReason(?string $reason): ?string {
+		$reason = trim($reason ?? '');
+		if ($reason === '') {
+			return null;
+		}
+		if (mb_strlen($reason) > self::CANCEL_REASON_MAX_LENGTH) {
+			throw new \InvalidArgumentException('The reason must not be longer than ' . self::CANCEL_REASON_MAX_LENGTH . ' characters');
+		}
+		return $reason;
 	}
 
 	/**
@@ -751,6 +775,7 @@ class AppointmentService {
 			return $appointment;
 		}
 		$appointment->setCancelledAt(null);
+		$appointment->setCancelReason(null);
 		$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
 		$updated = $this->appointmentMapper->update($appointment);
 

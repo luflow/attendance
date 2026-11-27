@@ -302,7 +302,8 @@
                     "pagination",
                     "allDay",
                     "userProfiles",
-                    "organizerCalendar"
+                    "organizerCalendar",
+                    "cancellationReason"
                 ],
                 "properties": {
                     "calendarAvailable": {
@@ -402,6 +403,9 @@
                         "type": "boolean"
                     },
                     "organizerCalendar": {
+                        "type": "boolean"
+                    },
+                    "cancellationReason": {
                         "type": "boolean"
                     }
                 }
