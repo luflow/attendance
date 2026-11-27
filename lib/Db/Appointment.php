@@ -37,6 +37,7 @@ use OCP\AppFramework\Db\Entity;
  * @method void setCalendarUri(?string $calendarUri)
  * @method string|null getCalendarEventUid()
  * @method void setCalendarEventUid(?string $calendarEventUid)
+ * @method void setCalendarId(?int $calendarId)
  * @method string|null getSeriesId()
  * @method void setSeriesId(?string $seriesId)
  * @method int|null getSeriesPosition()
@@ -81,6 +82,7 @@ class Appointment extends Entity implements JsonSerializable {
 	protected $organizers = null;
 	protected $calendarUri = null;
 	protected $calendarEventUid = null;
+	protected ?int $calendarId = null;
 	protected $seriesId = null;
 	protected $seriesPosition = null;
 	protected $sendNotification = false;
@@ -112,6 +114,7 @@ class Appointment extends Entity implements JsonSerializable {
 		$this->addType('organizers', 'string');
 		$this->addType('calendarUri', 'string');
 		$this->addType('calendarEventUid', 'string');
+		$this->addType('calendarId', 'integer');
 		$this->addType('seriesId', 'string');
 		$this->addType('seriesPosition', 'integer');
 		$this->addType('sendNotification', 'boolean');
@@ -183,6 +186,11 @@ class Appointment extends Entity implements JsonSerializable {
 	public function getOrganizersList(): array {
 		return $this->organizersListCache
 			??= array_values(array_map('strval', $this->parseJsonField($this->getOrganizers())));
+	}
+
+	/** Calendar the linked event lives in; the sync matches by it, NULL means no sync. */
+	public function getCalendarId(): ?int {
+		return $this->calendarId;
 	}
 
 	public function isClosed(): bool {

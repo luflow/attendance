@@ -350,6 +350,7 @@ OC.L10N.register(
     "Insert link" : "Vložit odkaz",
     "Dismiss" : "Zahodit",
     "Move {name} up" : "Přesunout {name} výše",
+    "Rate the app" : "Ohodnotit aplikaci",
     "Comments" : "Komentáře",
     "Welcome" : "Vítejte",
     "Audit log" : "Auditní záznam událostí",

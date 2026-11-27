@@ -78,6 +78,13 @@ jobs:
           exit "$failed"
       - name: Run build
         run: cd ${{ env.APP_NAME }} && make appstore
+      # Dev tooling is not part of the app and must never ship with it.
+      - name: Check package contents
+        run: |
+          if tar tzf "$APP_NAME/build/artifacts/appstore/$APP_NAME.tar.gz" | grep -E '/(vendor-bin|vendor/bin)/'; then
+            echo "::error::The app store package must not contain vendor-bin or vendor/bin"
+            exit 1
+          fi
       - name: Upload app tarball to release
         uses: svenstaro/upload-release-action@v2
         id: attach_to_release

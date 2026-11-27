@@ -79,6 +79,9 @@ class CalendarService {
 		return !($calendar instanceof \OCP\Calendar\ICalendarIsWritable) || $calendar->isWritable();
 	}
 
+	/** @var array<string, \OCP\Calendar\ICalendar|null> */
+	private array $calendarsByUserAndUri = [];
+
 	/**
 	 * Resolve a calendar of a user by URI, but only if events can be written
 	 * into it. Used by the org calendar sync to resolve its target.
@@ -88,14 +91,31 @@ class CalendarService {
 			return null;
 		}
 
-		$principal = 'principals/users/' . $userId;
-		foreach ($this->calendarManager->getCalendarsForPrincipal($principal, [$uri]) as $calendar) {
-			if ($calendar->getUri() === $uri && !$calendar->isDeleted() && $this->isWritableCalendar($calendar)) {
-				return $calendar;
+		$calendar = $this->findCalendar($userId, $uri);
+		return $calendar !== null && $this->isWritableCalendar($calendar) ? $calendar : null;
+	}
+
+	/**
+	 * ID of the calendar a user sees under this URI, own or shared — the URI
+	 * alone is the same in every user's home.
+	 */
+	public function findCalendarId(string $userId, string $uri): ?int {
+		$calendar = $this->findCalendar($userId, $uri);
+		return $calendar === null ? null : (int)$calendar->getKey();
+	}
+
+	private function findCalendar(string $userId, string $uri): ?\OCP\Calendar\ICalendar {
+		$key = $userId . "\0" . $uri;
+		if (!array_key_exists($key, $this->calendarsByUserAndUri)) {
+			$this->calendarsByUserAndUri[$key] = null;
+			foreach ($this->calendarManager->getCalendarsForPrincipal('principals/users/' . $userId, [$uri]) as $calendar) {
+				if ($calendar->getUri() === $uri && !$calendar->isDeleted()) {
+					$this->calendarsByUserAndUri[$key] = $calendar;
+					break;
+				}
 			}
 		}
-
-		return null;
+		return $this->calendarsByUserAndUri[$key];
 	}
 
 	/**

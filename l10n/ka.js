@@ -54,6 +54,7 @@ OC.L10N.register(
     "Export" : "Export",
     "Select all" : "Select all",
     "Deselect all" : "Deselect all",
+    "Custom range" : "მორგებული დიაპაზონი",
     "Start date" : "Start date",
     "Copy" : "Copy",
     "Last accessed" : "Last accessed",
