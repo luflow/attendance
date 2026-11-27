@@ -1163,7 +1163,7 @@ OC.L10N.register(
     "This invitation does not contain a valid server address." : "Diese Einladung enthält keine gültige Serveradresse.",
     "Personal calendar" : "Persönlicher Kalender",
     "Organizer calendar" : "Organisatorenkalender",
-    "Keep this URL private! Anyone with this link can see who answered what." : "Behalten Sie diese URL für sich! Jeder, der diesen Link hat, kann sehen, wer was geantwortet hat.",
-    "Subscribe to the appointments you organize or manage. Every calendar entry shows how many people are attending and who answered what." : "Abonnieren Sie die Termine, die Sie organisieren oder verwalten. Jeder Kalendereintrag zeigt, wie viele zugesagt haben und wer was geantwortet hat."
+    "Subscribe to the appointments you organize or manage. Every calendar entry shows how many people are attending and who answered what." : "Abonnieren Sie die Termine, die Sie organisieren oder verwalten. Jeder Kalendereintrag zeigt, wie viele zugesagt haben und wer was geantwortet hat.",
+    "Keep this URL private! Anyone with this link can see who answered what." : "Behalten Sie diese URL für sich! Jeder, der diesen Link hat, kann sehen, wer was geantwortet hat."
 },
 "nplurals=2; plural=(n != 1);");
