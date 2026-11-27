@@ -13,6 +13,7 @@ use OCA\Attendance\Db\CategoryMapper;
 use OCA\Attendance\Db\IcalToken;
 use OCA\Attendance\Db\IcalTokenMapper;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\Config\IUserConfig;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -55,6 +56,7 @@ class IcalService {
 		IURLGenerator $urlGenerator,
 		IL10NFactory $l10nFactory,
 		IConfig $config,
+		private IUserConfig $userConfig,
 		CategoryMapper $categoryMapper,
 		CapacityService $capacityService,
 		private TimezoneService $timezoneService,
@@ -148,7 +150,7 @@ class IcalService {
 	}
 
 	private function feedLanguage(string $userId): IL10N {
-		$userLang = $this->config->getUserValue($userId, 'core', 'lang', 'en');
+		$userLang = $this->userConfig->getValueString($userId, 'core', 'lang', 'en');
 
 		return $this->l10nFactory->get('attendance', $userLang);
 	}

@@ -12,7 +12,6 @@ use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\AppFramework\Utility\ITimeFactory;
 use OCP\BackgroundJob\TimedJob;
-use OCP\IConfig;
 use OCP\IURLGenerator;
 use OCP\Notification\IManager as INotificationManager;
 use Psr\Log\LoggerInterface;
@@ -21,18 +20,11 @@ class ReminderJob extends TimedJob {
 	/** @var int Interval in seconds (24 hours) */
 	private const INTERVAL_DAILY = 86400;
 
-	/** @var int Default number of days before appointment to start reminding */
-	private const DEFAULT_REMINDER_DAYS = 7;
-
-	/** @var int Default reminder frequency (0 = remind once only) */
-	private const DEFAULT_REMINDER_FREQUENCY = 0;
-
 	private AppointmentMapper $appointmentMapper;
 	private AttendanceResponseMapper $responseMapper;
 	private ReminderLogMapper $reminderLogMapper;
 	private VisibilityService $visibilityService;
 	private ConfigService $configService;
-	private IConfig $config;
 	private INotificationManager $notificationManager;
 	private IURLGenerator $urlGenerator;
 	private LoggerInterface $logger;
@@ -44,7 +36,6 @@ class ReminderJob extends TimedJob {
 		ReminderLogMapper $reminderLogMapper,
 		VisibilityService $visibilityService,
 		ConfigService $configService,
-		IConfig $config,
 		INotificationManager $notificationManager,
 		IURLGenerator $urlGenerator,
 		LoggerInterface $logger,
@@ -56,7 +47,6 @@ class ReminderJob extends TimedJob {
 		$this->reminderLogMapper = $reminderLogMapper;
 		$this->visibilityService = $visibilityService;
 		$this->configService = $configService;
-		$this->config = $config;
 		$this->notificationManager = $notificationManager;
 		$this->urlGenerator = $urlGenerator;
 		$this->logger = $logger;
@@ -68,7 +58,7 @@ class ReminderJob extends TimedJob {
 	protected function run(mixed $argument): void {
 		$this->logger->info('Reminder job starting...');
 
-		$enabled = $this->config->getAppValue('attendance', 'reminders_enabled', 'no') === 'yes';
+		$enabled = $this->configService->areRemindersEnabled();
 		$this->logger->info('Reminders enabled check', ['enabled' => $enabled ? 'yes' : 'no']);
 
 		if (!$enabled) {
@@ -76,12 +66,9 @@ class ReminderJob extends TimedJob {
 			return;
 		}
 
-		$reminderDays = (int)$this->config->getAppValue('attendance', 'reminder_days', (string)self::DEFAULT_REMINDER_DAYS);
-		$reminderFrequency = (int)$this->config->getAppValue('attendance', 'reminder_frequency', (string)self::DEFAULT_REMINDER_FREQUENCY);
-		$reminderTarget = $this->config->getAppValue('attendance', 'reminder_target', 'non_responders');
-		if (!in_array($reminderTarget, ConfigService::VALID_REMINDER_TARGETS, true)) {
-			$reminderTarget = 'non_responders';
-		}
+		$reminderDays = $this->configService->getReminderDays();
+		$reminderFrequency = $this->configService->getReminderFrequency();
+		$reminderTarget = $this->configService->getReminderTarget();
 		$this->logger->info('Reminder configuration', [
 			'reminderDays' => $reminderDays,
 			'reminderFrequencyDays' => $reminderFrequency,

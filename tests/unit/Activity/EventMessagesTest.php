@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace OCA\Attendance\Tests\Unit\Activity;
 
 use OCA\Attendance\Activity\EventMessages;
-use OCP\IConfig;
+use OCP\Config\IUserConfig;
 use OCP\IL10N;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -13,14 +13,14 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class EventMessagesTest extends TestCase {
-	/** @var IConfig|MockObject */
+	/** @var IUserConfig|MockObject */
 	private $config;
 	private IL10N $l;
 	private EventMessages $eventMessages;
 
 	protected function setUp(): void {
-		$this->config = $this->createMock(IConfig::class);
-		$this->config->method('getUserValue')->willReturn('');
+		$this->config = $this->createMock(IUserConfig::class);
+		$this->config->method('getValueString')->willReturn('');
 
 		$l = $this->createMock(IL10N::class);
 		$l->method('t')->willReturnCallback(

@@ -9,8 +9,8 @@ use OCA\Attendance\Dashboard\Widget;
 use OCA\Attendance\Service\AppointmentService;
 use OCA\Attendance\Service\ConfigService;
 use OCP\AppFramework\Services\IInitialState;
+use OCP\Config\IUserConfig;
 use OCP\Dashboard\Model\WidgetItem;
-use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
@@ -25,8 +25,8 @@ class WidgetTest extends TestCase {
 	protected function setUp(): void {
 		$this->appointmentService = $this->createMock(AppointmentService::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
-		$config = $this->createMock(IConfig::class);
-		$config->method('getUserValue')->with('alice', 'core', 'timezone', '')->willReturn('Europe/Berlin');
+		$config = $this->createMock(IUserConfig::class);
+		$config->method('getValueString')->with('alice', 'core', 'timezone', '')->willReturn('Europe/Berlin');
 
 		$this->widget = new Widget(
 			$this->createMock(IL10N::class),

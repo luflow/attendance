@@ -7,14 +7,10 @@ namespace OCA\Attendance\Tests\Unit\Service;
 use OCA\Attendance\Service\ConfigService;
 use OCP\Config\IUserConfig;
 use OCP\IAppConfig;
-use OCP\IConfig;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class ConfigServiceTest extends TestCase {
-	/** @var IConfig|MockObject */
-	private $config;
-
 	/** @var IAppConfig|MockObject */
 	private $appConfig;
 
@@ -24,21 +20,16 @@ class ConfigServiceTest extends TestCase {
 	private ConfigService $service;
 
 	protected function setUp(): void {
-		$this->config = $this->createMock(IConfig::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->userConfig = $this->createMock(IUserConfig::class);
 
-		$this->service = new ConfigService($this->config, $this->appConfig, $this->userConfig);
+		$this->service = new ConfigService($this->appConfig, $this->userConfig);
 	}
 
 	/**
 	 * @param array<string, string> $values Keyed by the raw config key (no 'attendance' app prefix).
 	 */
 	private function configValues(array $values): void {
-		$this->config->method('getAppValue')
-			->willReturnCallback(
-				fn (string $app, string $key, string $default = '') => $values[$key] ?? $default,
-			);
 		$this->appConfig->method('getValueString')
 			->willReturnCallback(
 				fn (string $app, string $key, string $default = '') => $values[$key] ?? $default,

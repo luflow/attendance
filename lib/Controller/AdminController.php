@@ -22,7 +22,6 @@ use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\BackgroundJob\IJobList;
-use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IUserSession;
 
@@ -38,7 +37,6 @@ class AdminController extends Controller {
 
 	private PermissionService $permissionService;
 	private IUserSession $userSession;
-	private IConfig $config;
 	private IAppManager $appManager;
 	private ConfigService $configService;
 	private VisibilityService $visibilityService;
@@ -55,7 +53,6 @@ class AdminController extends Controller {
 		IRequest $request,
 		IUserSession $userSession,
 		PermissionService $permissionService,
-		IConfig $config,
 		IAppManager $appManager,
 		ConfigService $configService,
 		VisibilityService $visibilityService,
@@ -70,7 +67,6 @@ class AdminController extends Controller {
 		parent::__construct($appName, $request);
 		$this->userSession = $userSession;
 		$this->permissionService = $permissionService;
-		$this->config = $config;
 		$this->appManager = $appManager;
 		$this->configService = $configService;
 		$this->visibilityService = $visibilityService;
@@ -292,21 +288,8 @@ class AdminController extends Controller {
 				$this->permissionService->setAllPermissionSettings($permissions);
 			}
 
-			// Save reminder settings
-			if (isset($reminders['enabled'])) {
-				$this->config->setAppValue('attendance', 'reminders_enabled', $reminders['enabled'] ? 'yes' : 'no');
-			}
-			if (isset($reminders['reminderDays'])) {
-				$reminderDays = max(1, min(30, $reminders['reminderDays'])); // Clamp between 1-30
-				$this->config->setAppValue('attendance', 'reminder_days', (string)$reminderDays);
-			}
-			if (isset($reminders['reminderFrequency'])) {
-				// Frequency: 0 = once, 1-30 = days between reminders
-				$reminderFrequency = max(0, min(30, $reminders['reminderFrequency']));
-				$this->config->setAppValue('attendance', 'reminder_frequency', (string)$reminderFrequency);
-			}
-			if (isset($reminders['reminderTarget'])) {
-				$this->configService->setReminderTarget($reminders['reminderTarget']);
+			if ($reminders !== null) {
+				$this->configService->setReminderSettings($reminders);
 			}
 
 			// Save calendar sync settings
