@@ -10,7 +10,7 @@ use OCA\Attendance\Db\AppointmentMapper;
 use OCA\Attendance\Db\AuditEvent;
 use OCA\Attendance\Service\PermissionService;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\IConfig;
+use OCP\Config\IUserConfig;
 use OCP\IURLGenerator;
 use OCP\Notification\IManager as INotificationManager;
 use Psr\Log\LoggerInterface;
@@ -28,7 +28,7 @@ class ResponseChangeNotificationListener {
 	];
 
 	private PermissionService $permissionService;
-	private IConfig $config;
+	private IUserConfig $userConfig;
 	private AppointmentMapper $appointmentMapper;
 	private INotificationManager $notificationManager;
 	private IURLGenerator $urlGenerator;
@@ -36,14 +36,14 @@ class ResponseChangeNotificationListener {
 
 	public function __construct(
 		PermissionService $permissionService,
-		IConfig $config,
+		IUserConfig $userConfig,
 		AppointmentMapper $appointmentMapper,
 		INotificationManager $notificationManager,
 		IURLGenerator $urlGenerator,
 		LoggerInterface $logger,
 	) {
 		$this->permissionService = $permissionService;
-		$this->config = $config;
+		$this->userConfig = $userConfig;
 		$this->appointmentMapper = $appointmentMapper;
 		$this->notificationManager = $notificationManager;
 		$this->urlGenerator = $urlGenerator;
@@ -117,8 +117,8 @@ class ResponseChangeNotificationListener {
 		if ($candidates === []) {
 			return [];
 		}
-		// One bulk read instead of N getUserValue() calls.
-		$optInValues = $this->config->getUserValueForUsers('attendance', 'notify_response_changes', $candidates);
+		// One bulk read instead of N getValueString() calls.
+		$optInValues = $this->userConfig->getValuesByUsers('attendance', 'notify_response_changes', null, $candidates);
 		$recipients = [];
 		foreach ($candidates as $uid) {
 			if ($uid === $actorId) {

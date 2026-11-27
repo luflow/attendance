@@ -12,6 +12,7 @@ use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCA\Attendance\Notification\Notifier;
 use OCA\Attendance\Service\QuickResponseTokenService;
 use OCA\Attendance\Service\ResponsePolicyService;
+use OCP\Config\IUserConfig;
 use OCP\IConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
@@ -59,7 +60,8 @@ class NotifierTest extends TestCase {
 		// takes "Maybe" away.
 		$this->responsePolicyService->method('isMaybeAllowed')->willReturn(true);
 
-		$this->config->method('getUserValue')->willReturn('');
+		$userConfig = $this->createMock(IUserConfig::class);
+		$userConfig->method('getValueString')->willReturn('');
 
 		$l = $this->createMock(IL10N::class);
 		$l->method('t')->willReturnCallback(
@@ -78,7 +80,7 @@ class NotifierTest extends TestCase {
 			$this->responseMapper,
 			$this->appointmentMapper,
 			$this->responsePolicyService,
-			new EventMessages($this->config, $this->userManager),
+			new EventMessages($userConfig, $this->userManager),
 		);
 	}
 

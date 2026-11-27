@@ -11,10 +11,16 @@ use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\OrgCalendarSyncService;
 use OCA\Attendance\Service\TimezoneService;
 use OCP\Calendar\Events\AbstractCalendarObjectEvent;
+use OCP\Calendar\Events\CalendarObjectDeletedEvent;
+use OCP\Calendar\Events\CalendarObjectMovedToTrashEvent;
+use OCP\Calendar\Events\CalendarObjectUpdatedEvent;
 use OCP\EventDispatcher\Event;
 use OCP\EventDispatcher\IEventListener;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
+use Sabre\VObject\Component\VCalendar;
+use Sabre\VObject\Component\VEvent;
+use Sabre\VObject\Property\ICalendar\DateTime as VDateTime;
 use Sabre\VObject\Reader;
 
 /**
@@ -34,10 +40,10 @@ class CalendarObjectUpdateListener implements IEventListener {
 	) {
 	}
 
+	#[\Override]
 	public function handle(Event $event): void {
-		$eventClass = get_class($event);
 		$this->logger->debug('Attendance: CalendarObjectUpdateListener received event: {class}', [
-			'class' => $eventClass,
+			'class' => get_class($event),
 		]);
 
 		if (!$this->configService->isCalendarSyncEnabled()) {
@@ -45,10 +51,10 @@ class CalendarObjectUpdateListener implements IEventListener {
 			return;
 		}
 
-		if (str_ends_with($eventClass, 'CalendarObjectUpdatedEvent')) {
+		if ($event instanceof CalendarObjectUpdatedEvent) {
 			$this->handleUpdate($event);
-		} elseif (str_ends_with($eventClass, 'CalendarObjectDeletedEvent')
-			|| str_ends_with($eventClass, 'CalendarObjectMovedToTrashEvent')) {
+		} elseif ($event instanceof CalendarObjectDeletedEvent
+			|| $event instanceof CalendarObjectMovedToTrashEvent) {
 			$this->handleDelete($event);
 		}
 	}
@@ -59,25 +65,17 @@ class CalendarObjectUpdateListener implements IEventListener {
 	 * 2. By UID.ics (old native Nextcloud imports)
 	 * 3. By DAV object URI (old external imports, e.g. Google Calendar)
 	 *
-	 * @return list<Appointment>
+	 * @return array<Appointment>
 	 */
 	private function findLinkedAppointments(string $uid, ?string $davUri, int $calendarId): array {
 		$appointments = $this->appointmentMapper->findByCalendarEventUid($uid, $calendarId);
 		if (empty($appointments)) {
 			$appointments = $this->appointmentMapper->findByCalendarEventUid($uid . '.ics', $calendarId);
 		}
-		if (empty($appointments) && $davUri) {
+		if (empty($appointments) && $davUri !== null && $davUri !== '') {
 			$appointments = $this->appointmentMapper->findByCalendarEventUid($davUri, $calendarId);
 		}
 		return $appointments;
-	}
-
-	/**
-	 * The ID of the calendar the event lives in — for a shared calendar, the
-	 * owner's, so a write-sharee's edit still reaches the linked appointment.
-	 */
-	private function calendarIdOf(Event $event): ?int {
-		return $event instanceof AbstractCalendarObjectEvent ? $event->getCalendarId() : null;
 	}
 
 	/**
@@ -88,7 +86,7 @@ class CalendarObjectUpdateListener implements IEventListener {
 	 * driven by the actual field diff, which is what keeps the app's own
 	 * write-back through OrgCalendarSyncService from echoing back as a change.
 	 */
-	private function syncAppointmentFromVevent(Appointment $appointment, $vevent, string $fallbackSummary, string $fallbackDescription): void {
+	private function syncAppointmentFromVevent(Appointment $appointment, VEvent $vevent, string $fallbackSummary, string $fallbackDescription): void {
 		$before = clone $appointment;
 		$utcTimezone = new \DateTimeZone('UTC');
 
@@ -104,17 +102,19 @@ class CalendarObjectUpdateListener implements IEventListener {
 		}
 
 		// A date-only start means whole days; they carry no zone, so they are the creator's.
-		$dayZone = preg_match('/^\d{8}$/', (string)($vevent->DTSTART ?? '')) === 1
+		$start = $vevent->DTSTART ?? null;
+		$end = $vevent->DTEND ?? null;
+		$dayZone = preg_match('/^\d{8}$/', (string)($start ?? '')) === 1
 			? $this->timezoneService->ofCreator($appointment)
 			: null;
-		$dtstart = $vevent->DTSTART ? $vevent->DTSTART->getDateTime($dayZone) : null;
-		$dtend = $vevent->DTEND ? $vevent->DTEND->getDateTime($dayZone) : null;
-		if ($dtstart) {
-			$appointment->setStartDatetime((clone $dtstart)->setTimezone($utcTimezone)->format('Y-m-d H:i:s'));
+		$dtstart = $start instanceof VDateTime ? $start->getDateTime($dayZone) : null;
+		$dtend = $end instanceof VDateTime ? $end->getDateTime($dayZone) : null;
+		if ($dtstart !== null) {
+			$appointment->setStartDatetime($dtstart->setTimezone($utcTimezone)->format('Y-m-d H:i:s'));
 			$appointment->setAllDay($dayZone !== null);
 		}
-		if ($dtend) {
-			$appointment->setEndDatetime((clone $dtend)->setTimezone($utcTimezone)->format('Y-m-d H:i:s'));
+		if ($dtend !== null) {
+			$appointment->setEndDatetime($dtend->setTimezone($utcTimezone)->format('Y-m-d H:i:s'));
 		} elseif ($dayZone !== null) {
 			// RFC 5545: a date without an end is that one day
 			$appointment->setEndDatetime($appointment->getStartDatetime());
@@ -134,37 +134,39 @@ class CalendarObjectUpdateListener implements IEventListener {
 		);
 	}
 
-	private function handleUpdate(Event $event): void {
+	/**
+	 * The calendar ID is the owner's for a shared calendar, so a write-sharee's
+	 * edit still reaches the linked appointment.
+	 */
+	private function handleUpdate(AbstractCalendarObjectEvent $event): void {
 		try {
 			$objectData = $event->getObjectData();
-
-			if (!isset($objectData['calendardata'])) {
+			$calendarData = $objectData['calendardata'] ?? null;
+			if (!is_string($calendarData) && !is_resource($calendarData)) {
 				return;
 			}
 
-			$calendarId = $this->calendarIdOf($event);
-			if ($calendarId === null) {
+			$vcalendar = Reader::read($calendarData);
+			if (!$vcalendar instanceof VCalendar) {
+				return;
+			}
+			$vevents = self::veventsOf($vcalendar);
+			$vevent = $vevents[0] ?? null;
+			if ($vevent === null) {
 				return;
 			}
 
-			$vcalendar = Reader::read($objectData['calendardata']);
-			if (!$vcalendar || !isset($vcalendar->VEVENT)) {
-				return;
-			}
-
-			$vevent = $vcalendar->VEVENT;
 			$uid = (string)($vevent->UID ?? '');
-			if (!$uid) {
+			if ($uid === '') {
 				return;
 			}
 
-			$davUri = $objectData['uri'] ?? null;
-			$appointments = $this->findLinkedAppointments($uid, $davUri, $calendarId);
+			$appointments = $this->findLinkedAppointments($uid, self::stringOrNull($objectData, 'uri'), $event->getCalendarId());
 			if (empty($appointments)) {
 				return;
 			}
 
-			$isRecurring = isset($vevent->RRULE) || count($vcalendar->VEVENT) > 1;
+			$isRecurring = isset($vevent->RRULE) || count($vevents) > 1;
 			$summary = (string)($vevent->SUMMARY ?? '');
 			$description = (string)($vevent->DESCRIPTION ?? '');
 
@@ -222,39 +224,31 @@ class CalendarObjectUpdateListener implements IEventListener {
 	/**
 	 * Expand recurring event occurrences within the window of linked appointments.
 	 *
-	 * @param list<Appointment> $appointments
-	 * @return array<int, mixed> timestamp => VEVENT
+	 * @param array<Appointment> $appointments
+	 * @return array<int, VEvent> timestamp => VEVENT
 	 */
-	private function expandOccurrences($vcalendar, array $appointments): array {
+	private function expandOccurrences(VCalendar $vcalendar, array $appointments): array {
 		$utcTimezone = new \DateTimeZone('UTC');
 		$earliestStart = null;
 		$latestStart = null;
 		foreach ($appointments as $appt) {
 			$s = $appt->getStartDatetime();
-			if ($s !== null) {
-				if ($earliestStart === null || $s < $earliestStart) {
-					$earliestStart = $s;
-				}
-				if ($latestStart === null || $s > $latestStart) {
-					$latestStart = $s;
-				}
+			if ($earliestStart === null || $s < $earliestStart) {
+				$earliestStart = $s;
+			}
+			if ($latestStart === null || $s > $latestStart) {
+				$latestStart = $s;
 			}
 		}
 
-		if (!$earliestStart || !$latestStart) {
+		if ($earliestStart === null || $latestStart === null || $earliestStart === '') {
 			return [];
 		}
 
 		try {
 			$expandStart = (new \DateTimeImmutable($earliestStart, $utcTimezone))->modify('-2 days');
 			$expandEnd = (new \DateTimeImmutable($latestStart, $utcTimezone))->modify('+2 days');
-			$expanded = $vcalendar->expand($expandStart, $expandEnd);
-			$timestamps = [];
-			foreach ($expanded->VEVENT as $ve) {
-				if ($ve->DTSTART) {
-					$timestamps[$ve->DTSTART->getDateTime()->getTimestamp()] = $ve;
-				}
-			}
+			$timestamps = self::indexByStart($vcalendar->expand($expandStart, $expandEnd));
 			$this->logger->debug('Expanded recurring event to {count} occurrences', [
 				'count' => count($timestamps),
 			]);
@@ -264,28 +258,58 @@ class CalendarObjectUpdateListener implements IEventListener {
 				'message' => $e->getMessage(),
 			]);
 			// Fallback: use raw VEVENTs
-			$timestamps = [];
-			foreach ($vcalendar->VEVENT as $ve) {
-				if ($ve->DTSTART) {
-					$timestamps[$ve->DTSTART->getDateTime()->getTimestamp()] = $ve;
-				}
-			}
-			return $timestamps;
+			return self::indexByStart($vcalendar);
 		}
+	}
+
+	/**
+	 * @return array<int, VEvent> timestamp => VEVENT
+	 */
+	private static function indexByStart(VCalendar $vcalendar): array {
+		$timestamps = [];
+		foreach (self::veventsOf($vcalendar) as $ve) {
+			$start = $ve->DTSTART ?? null;
+			if ($start instanceof VDateTime) {
+				$timestamps[$start->getDateTime()->getTimestamp()] = $ve;
+			}
+		}
+		return $timestamps;
+	}
+
+	/**
+	 * Typed stand-in for the magic `$vcalendar->VEVENT`, in document order.
+	 *
+	 * @return list<VEvent>
+	 */
+	private static function veventsOf(VCalendar $vcalendar): array {
+		return array_values(array_filter(
+			$vcalendar->select('VEVENT'),
+			static fn (mixed $node): bool => $node instanceof VEvent,
+		));
+	}
+
+	/**
+	 * A non-empty string value from the event's object data, else null.
+	 */
+	private static function stringOrNull(array $objectData, string $key): ?string {
+		return isset($objectData[$key]) && is_string($objectData[$key]) && $objectData[$key] !== ''
+			? $objectData[$key]
+			: null;
 	}
 
 	/**
 	 * Find the closest expanded occurrence to an appointment's start time.
 	 * Returns null if no occurrence is within 36 hours (timezone tolerance).
+	 *
+	 * @param array<int, VEvent> $occurrenceTimestamps
 	 */
-	private function findClosestOccurrence(string $appointmentStart, array $occurrenceTimestamps): mixed {
+	private function findClosestOccurrence(string $appointmentStart, array $occurrenceTimestamps): ?VEvent {
 		$apptTs = (new \DateTime($appointmentStart, new \DateTimeZone('UTC')))->getTimestamp();
 		$matchedVe = null;
 		$bestDiff = PHP_INT_MAX;
 
 		foreach ($occurrenceTimestamps as $occTs => $ve) {
-			// Keys are timestamps, so PHP has already coerced them to int.
-			$diff = abs($apptTs - (int)$occTs);
+			$diff = abs($apptTs - $occTs);
 			if ($diff < $bestDiff) {
 				$bestDiff = $diff;
 				$matchedVe = $ve;
@@ -296,25 +320,20 @@ class CalendarObjectUpdateListener implements IEventListener {
 		return ($matchedVe !== null && $bestDiff <= $maxDiff) ? $matchedVe : null;
 	}
 
-	private function handleDelete(Event $event): void {
+	private function handleDelete(AbstractCalendarObjectEvent $event): void {
 		try {
 			$objectData = $event->getObjectData();
+			$calendarId = $event->getCalendarId();
+			$uid = self::stringOrNull($objectData, 'uid');
+			$davUri = self::stringOrNull($objectData, 'uri');
 
-			$calendarId = $this->calendarIdOf($event);
-			if ($calendarId === null) {
+			if ($uid !== null) {
+				$appointments = $this->findLinkedAppointments($uid, $davUri, $calendarId);
+			} elseif ($davUri !== null) {
+				$appointments = $this->appointmentMapper->findByCalendarEventUid($davUri, $calendarId);
+			} else {
 				return;
 			}
-
-			$uid = $objectData['uid'] ?? null;
-			$davUri = $objectData['uri'] ?? null;
-
-			if (!$uid && !$davUri) {
-				return;
-			}
-
-			$appointments = $uid
-				? $this->findLinkedAppointments($uid, $davUri, $calendarId)
-				: $this->appointmentMapper->findByCalendarEventUid($davUri, $calendarId);
 
 			if (empty($appointments)) {
 				$this->logger->debug('Attendance handleDelete: no linked appointments found for uid={uid}', [

@@ -17,6 +17,7 @@ use OCP\Migration\SimpleMigrationStep;
  * clients keep working.
  */
 class Version000020Date20260804140000 extends SimpleMigrationStep {
+	#[\Override]
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		$schema = $schemaClosure();
 

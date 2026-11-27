@@ -159,9 +159,9 @@ class AppointmentService {
 		$appointment->setCreatedAt(gmdate('Y-m-d H:i:s'));
 		$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
 		$appointment->setIsActive(1);
-		$appointment->setVisibleUsers(empty($visibleUsers) ? null : json_encode($visibleUsers));
-		$appointment->setVisibleGroups(empty($visibleGroups) ? null : json_encode($visibleGroups));
-		$appointment->setVisibleTeams(empty($visibleTeams) ? null : json_encode($visibleTeams));
+		$appointment->setVisibleUsers(self::encodeIdList($visibleUsers));
+		$appointment->setVisibleGroups(self::encodeIdList($visibleGroups));
+		$appointment->setVisibleTeams(self::encodeIdList($visibleTeams));
 		$appointment->setLocation($this->normalizeLocation($location));
 		$appointment->setCategoryId($this->normalizeCategoryId($categoryId));
 		$appointment->setCalendarUri($calendarUri);
@@ -375,9 +375,9 @@ class AppointmentService {
 			$appointment->keepMidnightsOfSameDays($before, $this->timezoneService->ofCreator($appointment));
 		}
 		$appointment->setUpdatedAt(gmdate('Y-m-d H:i:s'));
-		$appointment->setVisibleUsers(empty($visibleUsers) ? null : json_encode($visibleUsers));
-		$appointment->setVisibleGroups(empty($visibleGroups) ? null : json_encode($visibleGroups));
-		$appointment->setVisibleTeams(empty($visibleTeams) ? null : json_encode($visibleTeams));
+		$appointment->setVisibleUsers(self::encodeIdList($visibleUsers));
+		$appointment->setVisibleGroups(self::encodeIdList($visibleGroups));
+		$appointment->setVisibleTeams(self::encodeIdList($visibleTeams));
 		$appointment->setLocation($this->normalizeLocation($location));
 		$appointment->setCategoryId($this->normalizeCategoryId($categoryId));
 
@@ -567,8 +567,7 @@ class AppointmentService {
 	 */
 	private function normalizeOrganizers(array $organizers): array {
 		$normalized = [];
-		foreach ($organizers as $userId) {
-			$userId = (string)$userId;
+		foreach (self::stringIds($organizers) as $userId) {
 			if (isset($normalized[$userId])) {
 				continue;
 			}
@@ -595,7 +594,7 @@ class AppointmentService {
 				throw new \InvalidArgumentException('Organizers can only remove themselves from the organizer list.');
 			}
 		}
-		$appointment->setOrganizers($normalized === [] ? null : json_encode($normalized));
+		$appointment->setOrganizers(self::encodeIdList($normalized));
 	}
 
 	/**
@@ -893,12 +892,7 @@ class AppointmentService {
 		$startDelta = $newStart->getTimestamp() - $oldStart->getTimestamp();
 		$endDelta = $newEnd->getTimestamp() - $oldEnd->getTimestamp();
 
-		// Load siblings
-		if ($scope === 'future') {
-			$siblings = $this->appointmentMapper->findBySeriesIdFromPosition($seriesId, $reference->getSeriesPosition());
-		} else {
-			$siblings = $this->appointmentMapper->findBySeriesId($seriesId);
-		}
+		$siblings = $this->findSiblings($reference, $seriesId, $scope);
 
 		// Hoisted once for the whole series: the requested organizer list and
 		// the actor's manager status are identical for every sibling.
@@ -910,9 +904,9 @@ class AppointmentService {
 		$this->validateDateRange($startDatetime, $endDatetime);
 
 		$descriptionClean = $this->stripHtmlFromMarkdown($description);
-		$visibleUsersJson = empty($visibleUsers) ? null : json_encode($visibleUsers);
-		$visibleGroupsJson = empty($visibleGroups) ? null : json_encode($visibleGroups);
-		$visibleTeamsJson = empty($visibleTeams) ? null : json_encode($visibleTeams);
+		$visibleUsersJson = self::encodeIdList($visibleUsers);
+		$visibleGroupsJson = self::encodeIdList($visibleGroups);
+		$visibleTeamsJson = self::encodeIdList($visibleTeams);
 		$locationValue = $this->normalizeLocation($location);
 		$categoryIdValue = $this->normalizeCategoryId($categoryId);
 
@@ -921,8 +915,9 @@ class AppointmentService {
 		//   clear   → null
 		//   unchanged → rebase the existing deadline by startDelta
 		$deadlineOffsetSeconds = null;
-		if ($deadlineUpdate->isSet()) {
-			$newDeadline = new \DateTime($deadlineUpdate->value());
+		$newDeadlineValue = $deadlineUpdate->value();
+		if ($newDeadlineValue !== null) {
+			$newDeadline = new \DateTime($newDeadlineValue);
 			$newDeadline->setTimezone(new \DateTimeZone('UTC'));
 			$deadlineOffsetSeconds = $newDeadline->getTimestamp() - $newStart->getTimestamp();
 		}
@@ -971,11 +966,14 @@ class AppointmentService {
 			} elseif ($deadlineOffsetSeconds !== null) {
 				$siblingDeadline = (clone $siblingStart)->modify("{$deadlineOffsetSeconds} seconds");
 				$sibling->setResponseDeadline($siblingDeadline->format('Y-m-d H:i:s'));
-			} elseif ($sibling->getResponseDeadline() !== null) {
-				// Rebase the existing deadline by startDelta so it tracks the new start.
-				$siblingDeadline = new \DateTime($sibling->getResponseDeadline(), new \DateTimeZone('UTC'));
-				$siblingDeadline->modify("{$startDelta} seconds");
-				$sibling->setResponseDeadline($siblingDeadline->format('Y-m-d H:i:s'));
+			} else {
+				$existingDeadline = $sibling->getResponseDeadline();
+				if ($existingDeadline !== null) {
+					// Rebase the existing deadline by startDelta so it tracks the new start.
+					$siblingDeadline = new \DateTime($existingDeadline, new \DateTimeZone('UTC'));
+					$siblingDeadline->modify("{$startDelta} seconds");
+					$sibling->setResponseDeadline($siblingDeadline->format('Y-m-d H:i:s'));
+				}
 			}
 
 			$updatedSibling = $this->appointmentMapper->update($sibling);
@@ -1085,11 +1083,7 @@ class AppointmentService {
 			return 1;
 		}
 
-		if ($scope === 'future') {
-			$siblings = $this->appointmentMapper->findBySeriesIdFromPosition($seriesId, $reference->getSeriesPosition());
-		} else {
-			$siblings = $this->appointmentMapper->findBySeriesId($seriesId);
-		}
+		$siblings = $this->findSiblings($reference, $seriesId, $scope);
 
 		$this->assertCanManageSiblings($siblings, $userId, $this->permissionService->canManageAppointments($userId));
 
@@ -1108,7 +1102,7 @@ class AppointmentService {
 	 * authorized. Managers may touch all of them; organizers only when they
 	 * are organizer of every affected sibling.
 	 *
-	 * @param list<Appointment> $siblings
+	 * @param array<Appointment> $siblings
 	 * @throws \InvalidArgumentException
 	 */
 	private function assertCanManageSiblings(array $siblings, string $userId, bool $actorIsManager): void {
@@ -1120,6 +1114,50 @@ class AppointmentService {
 				throw new \InvalidArgumentException('You are not an organizer of all appointments in this series.');
 			}
 		}
+	}
+
+	/**
+	 * @param string $scope 'future' for the reference and all after it, otherwise the whole series
+	 * @return array<Appointment>
+	 */
+	private function findSiblings(Appointment $reference, string $seriesId, string $scope): array {
+		if ($scope !== 'future') {
+			return $this->appointmentMapper->findBySeriesId($seriesId);
+		}
+		$position = $reference->getSeriesPosition();
+		if ($position === null) {
+			throw new \RuntimeException('Series appointment ' . $reference->getId() . ' has no series position.');
+		}
+		return $this->appointmentMapper->findBySeriesIdFromPosition($seriesId, $position);
+	}
+
+	/**
+	 * @param array<array-key, mixed> $ids
+	 */
+	private static function encodeIdList(array $ids): ?string {
+		return $ids === [] ? null : json_encode($ids, JSON_THROW_ON_ERROR);
+	}
+
+	/**
+	 * @return list<string>
+	 */
+	private static function decodeIdList(?string $json): array {
+		return $json === null || $json === '' ? [] : self::stringIds(json_decode($json, true));
+	}
+
+	/**
+	 * Numeric IDs come back from the JSON as ints.
+	 *
+	 * @return list<string>
+	 */
+	private static function stringIds(mixed $decoded): array {
+		if (!is_array($decoded)) {
+			return [];
+		}
+		return array_values(array_map(
+			static fn (string|int $id): string => (string)$id,
+			array_filter($decoded, static fn (mixed $id): bool => is_string($id) || is_int($id)),
+		));
 	}
 
 	/**
@@ -2286,7 +2324,7 @@ class AppointmentService {
 		$relevantUsers = $this->visibilityService->getRelevantUsersForAppointment($appointment, $whitelistedGroups);
 
 		$nonResponding = [];
-		foreach ($relevantUsers as $userId => $user) {
+		foreach (array_keys($relevantUsers) as $userId) {
 			if (!isset($respondedUserIds[$userId])) {
 				$nonResponding[] = $userId;
 			}
@@ -2317,7 +2355,7 @@ class AppointmentService {
 		$relevantUsers = $this->visibilityService->getRelevantUsersForAppointment($appointment, $whitelistedGroups);
 
 		$result = [];
-		foreach ($relevantUsers as $userId => $user) {
+		foreach (array_keys($relevantUsers) as $userId) {
 			if (isset($maybeUserIds[$userId])) {
 				$result[] = $userId;
 			}
@@ -2352,7 +2390,7 @@ class AppointmentService {
 		$relevantUsers = $this->visibilityService->getRelevantUsersForAppointment($appointment, $whitelistedGroups);
 
 		$result = [];
-		foreach ($relevantUsers as $userId => $user) {
+		foreach (array_keys($relevantUsers) as $userId) {
 			$userResponse = $responseByUser[$userId] ?? null;
 			if ($userResponse === null || $userResponse === 'maybe') {
 				$result[] = $userId;
@@ -2366,20 +2404,20 @@ class AppointmentService {
 	 * Get all users who can see an appointment.
 	 */
 	public function getAffectedUsers(Appointment $appointment): array {
-		$visibleUsers = $appointment->getVisibleUsers();
-		$visibleGroups = $appointment->getVisibleGroups();
-		$visibleTeams = $appointment->getVisibleTeams();
-
-		$visibleUsersList = $visibleUsers ? (array)json_decode($visibleUsers, true) : [];
-		$visibleGroupsList = $visibleGroups ? (array)json_decode($visibleGroups, true) : [];
-		$visibleTeamsList = $visibleTeams ? (array)json_decode($visibleTeams, true) : [];
-
-		return $this->resolveAudience($visibleUsersList, $visibleGroupsList, $visibleTeamsList);
+		return $this->resolveAudience(
+			self::decodeIdList($appointment->getVisibleUsers()),
+			self::decodeIdList($appointment->getVisibleGroups()),
+			self::decodeIdList($appointment->getVisibleTeams()),
+		);
 	}
 
 	/**
 	 * The users an audience selection addresses; no selection at all means
 	 * everyone in the whitelist.
+	 *
+	 * @param array<array-key, string> $visibleUsersList
+	 * @param array<array-key, string> $visibleGroupsList
+	 * @param array<array-key, string> $visibleTeamsList
 	 */
 	private function resolveAudience(array $visibleUsersList, array $visibleGroupsList, array $visibleTeamsList): array {
 		if (empty($visibleUsersList) && empty($visibleGroupsList) && empty($visibleTeamsList)) {
@@ -2388,7 +2426,7 @@ class AppointmentService {
 
 		$userIds = array_values(array_filter(
 			$visibleUsersList,
-			fn ($userId): bool => $this->visibilityService->getEnabledUser((string)$userId) !== null,
+			fn (string $userId): bool => $this->visibilityService->getEnabledUser($userId) !== null,
 		));
 		foreach ($visibleGroupsList as $groupId) {
 			foreach ($this->visibilityService->getGroupMembers($groupId) as $user) {
@@ -2566,9 +2604,11 @@ class AppointmentService {
 			$this->visibilityService->enrichAudience($userIds, $groupIds, $teamIds),
 		);
 
+		/** @var list<string> $organizerIds */
+		$organizerIds = $appointmentData['organizers'] ?? [];
 		$appointmentData['organizers'] = array_map(
 			fn (string $userId) => $this->visibilityService->userRef($userId),
-			$appointmentData['organizers'] ?? [],
+			$organizerIds,
 		);
 
 		return $appointmentData;

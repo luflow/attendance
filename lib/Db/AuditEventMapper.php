@@ -33,7 +33,7 @@ class AuditEventMapper extends QBMapper {
 			->setMaxResults($limit)
 			->setFirstResult($offset);
 
-		return array_values($this->findEntities($qb));
+		return $this->findEntities($qb);
 	}
 
 	public function countByAppointment(
@@ -43,9 +43,10 @@ class AuditEventMapper extends QBMapper {
 	): int {
 		$qb = $this->buildAppointmentQuery($appointmentId, $verbPrefix, $subjectId, true);
 		$result = $qb->executeQuery();
+		/** @var array<string, mixed>|false $row IResult::fetch() is declared mixed */
 		$row = $result->fetch();
 		$result->closeCursor();
-		return (int)($row['cnt'] ?? 0);
+		return $row === false ? 0 : (int)($row['cnt'] ?? 0);
 	}
 
 	private function buildAppointmentQuery(
@@ -95,12 +96,12 @@ class AuditEventMapper extends QBMapper {
 		$result = $qb->executeQuery();
 		// Buffer the rows before issuing UPDATEs — some DB drivers refuse
 		// statements while a SELECT cursor is still open on the same connection.
+		/** @var list<array{id: int|string, actor_id: ?string, subject_id: ?string, meta: ?string}> $rows the four selected columns */
 		$rows = $result->fetchAll();
 		$result->closeCursor();
 
 		foreach ($rows as $row) {
-			$meta = json_decode((string)($row['meta'] ?? ''), true);
-			$cleanedMeta = $this->stripPiiFromMeta(is_array($meta) ? $meta : []);
+			$cleanedMeta = $this->stripPiiFromMeta($this->decodeMeta($row['meta']));
 			$encodedMeta = $cleanedMeta === [] ? null : json_encode($cleanedMeta, JSON_UNESCAPED_UNICODE);
 
 			$update = $this->db->getQueryBuilder();
@@ -116,6 +117,17 @@ class AuditEventMapper extends QBMapper {
 			$update->executeStatement();
 		}
 		return count($rows);
+	}
+
+	private function decodeMeta(?string $json): array {
+		if ($json === null || $json === '') {
+			return [];
+		}
+		$decoded = json_decode($json, true);
+		if (!is_array($decoded)) {
+			return [];
+		}
+		return $decoded;
 	}
 
 	private function stripPiiFromMeta(array $meta): array {

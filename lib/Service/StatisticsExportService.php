@@ -208,7 +208,6 @@ class StatisticsExportService {
 
 	private function attendanceFolder(string $userId): Folder {
 		try {
-			/** @var Folder $userFolder */
 			$userFolder = $this->rootFolder->getUserFolder($userId);
 		} catch (\Exception $e) {
 			throw new \Exception('Failed to get user folder: ' . $e->getMessage());

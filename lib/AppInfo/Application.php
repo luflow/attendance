@@ -25,9 +25,11 @@ use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\BackgroundJob\IJobList;
 use OCP\Collaboration\AutoComplete\AutoCompleteFilterEvent;
 use OCP\Group\Events\UserRemovedEvent;
 use OCP\User\Events\UserDeletedEvent;
+use Psr\Container\ContainerInterface;
 
 class Application extends App implements IBootstrap {
 	public const APP_ID = 'attendance';
@@ -36,6 +38,7 @@ class Application extends App implements IBootstrap {
 		parent::__construct(self::APP_ID, $urlParams);
 	}
 
+	#[\Override]
 	public function register(IRegistrationContext $context): void {
 		$context->registerDashboardWidget(Widget::class);
 		$context->registerNotifierService(\OCA\Attendance\Notification\Notifier::class);
@@ -54,36 +57,32 @@ class Application extends App implements IBootstrap {
 		$this->registerCalendarListeners($context);
 	}
 
+	#[\Override]
 	public function boot(IBootContext $context): void {
-		$container = $context->getAppContainer();
+		// Done at boot so container-resolved services are available.
+		$context->injectFn($this->registerAuditListeners(...));
+		$context->injectFn($this->registerBackgroundJobs(...));
+	}
 
-		// Wire the audit-event dispatcher to its listeners. Done at boot so
-		// container-resolved services are available.
-		/** @var AuditEventDispatcher $dispatcher */
-		$dispatcher = $container->get(AuditEventDispatcher::class);
-		$listener = $container->get(ResponseChangeNotificationListener::class);
-		$dispatcher->register([$listener, 'handle']);
+	private function registerAuditListeners(
+		AuditEventDispatcher $dispatcher,
+		ResponseChangeNotificationListener $notificationListener,
+		ContainerInterface $container,
+	): void {
+		$dispatcher->register($notificationListener->handle(...));
 		// Resolved on first use, so requests without a response skip its services.
 		$dispatcher->register(static function (AuditEvent $event) use ($container): void {
 			/** @var ResponseActivityListener $activityListener */
 			$activityListener = $container->get(ResponseActivityListener::class);
 			$activityListener->handle($event);
 		});
+	}
 
-		// Register background job for reminders
-		/** @var \OCP\BackgroundJob\IJobList $jobList */
-		$jobList = $container->get(\OCP\BackgroundJob\IJobList::class);
-		if (!$jobList->has(ReminderJob::class, null)) {
-			$jobList->add(ReminderJob::class);
-		}
-		if (!$jobList->has(AutoCloseJob::class, null)) {
-			$jobList->add(AutoCloseJob::class);
-		}
-		if (!$jobList->has(TalkRoomSyncJob::class, null)) {
-			$jobList->add(TalkRoomSyncJob::class);
-		}
-		if (!$jobList->has(PurchaseInterestJob::class, null)) {
-			$jobList->add(PurchaseInterestJob::class);
+	private function registerBackgroundJobs(IJobList $jobList): void {
+		foreach ([ReminderJob::class, AutoCloseJob::class, TalkRoomSyncJob::class, PurchaseInterestJob::class] as $job) {
+			if (!$jobList->has($job, null)) {
+				$jobList->add($job);
+			}
 		}
 	}
 

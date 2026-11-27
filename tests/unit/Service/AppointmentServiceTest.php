@@ -326,7 +326,7 @@ class AppointmentServiceTest extends TestCase {
 		$this->vacationService->method('findUsersOnVacation')->willReturn([]);
 
 		// The common case must not pay for enumerating the whole whitelist.
-		$this->userManager->expects($this->never())->method('search');
+		$this->userManager->expects($this->never())->method('searchDisplayName');
 		$this->responseMapper->expects($this->never())->method('insert');
 
 		$this->service->createAppointment(
@@ -1233,7 +1233,7 @@ class AppointmentServiceTest extends TestCase {
 		// Unrestricted visibility resolves through the whitelist, which hydrates
 		// every account on the instance — a rename must not pay for that.
 		$this->configService->expects($this->never())->method('getWhitelistedGroups');
-		$this->userManager->expects($this->never())->method('search');
+		$this->userManager->expects($this->never())->method('searchDisplayName');
 
 		$this->service->updateAppointment(
 			3, 'Rehearsal reloaded', 'Bring your scores', '2030-01-01T10:00:00Z', '2030-01-01T11:00:00Z',

@@ -10,7 +10,7 @@ use OCA\Attendance\Db\AuditEvent;
 use OCA\Attendance\Listener\ResponseChangeNotificationListener;
 use OCA\Attendance\Service\PermissionService;
 use OCP\AppFramework\Db\DoesNotExistException;
-use OCP\IConfig;
+use OCP\Config\IUserConfig;
 use OCP\IURLGenerator;
 use OCP\Notification\IManager as INotificationManager;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -28,7 +28,7 @@ class ResponseChangeNotificationListenerTest extends TestCase {
 
 		$this->listener = new ResponseChangeNotificationListener(
 			$this->createMock(PermissionService::class),
-			$this->createMock(IConfig::class),
+			$this->createMock(IUserConfig::class),
 			$this->appointmentMapper,
 			$this->createMock(INotificationManager::class),
 			$this->createMock(IURLGenerator::class),

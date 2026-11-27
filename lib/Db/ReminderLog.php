@@ -18,9 +18,9 @@ use OCP\AppFramework\Db\Entity;
  * @method void setRemindedAt(string $remindedAt)
  */
 class ReminderLog extends Entity implements JsonSerializable {
-	protected $appointmentId = 0;
-	protected $userId = '';
-	protected $remindedAt = '';
+	protected int $appointmentId = 0;
+	protected string $userId = '';
+	protected string $remindedAt = '';
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -29,6 +29,7 @@ class ReminderLog extends Entity implements JsonSerializable {
 		$this->addType('remindedAt', 'string');
 	}
 
+	#[\Override]
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->getId(),

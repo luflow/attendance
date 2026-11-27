@@ -9,7 +9,7 @@ use OCA\Attendance\Activity\Provider;
 use OCA\Attendance\Service\PermissionService;
 use OCP\Activity\Exceptions\UnknownActivityException;
 use OCP\Activity\IEvent;
-use OCP\IConfig;
+use OCP\Config\IUserConfig;
 use OCP\IL10N;
 use OCP\IURLGenerator;
 use OCP\IUserManager;
@@ -42,8 +42,8 @@ class ProviderTest extends TestCase {
 		);
 		$this->l10nFactory->method('get')->willReturn($l);
 
-		$config = $this->createMock(IConfig::class);
-		$config->method('getUserValue')->willReturn('');
+		$config = $this->createMock(IUserConfig::class);
+		$config->method('getValueString')->willReturn('');
 
 		$this->permissionService = $this->createMock(PermissionService::class);
 

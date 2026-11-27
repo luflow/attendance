@@ -12,6 +12,7 @@ class AdminSettings implements ISettings {
 	/**
 	 * @return TemplateResponse
 	 */
+	#[\Override]
 	public function getForm() {
 		// No need to pass data to template anymore - Vue will fetch via API
 		return new TemplateResponse('attendance', 'admin-settings', []);
@@ -20,6 +21,7 @@ class AdminSettings implements ISettings {
 	/**
 	 * @return string the section ID
 	 */
+	#[\Override]
 	public function getSection(): string {
 		return 'attendance';
 	}
@@ -29,6 +31,7 @@ class AdminSettings implements ISettings {
 	 *             the admin section. The forms are arranged in ascending order of the
 	 *             priority values. It is required to return a value between 0 and 100.
 	 */
+	#[\Override]
 	public function getPriority(): int {
 		return 50;
 	}

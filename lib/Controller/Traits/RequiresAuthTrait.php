@@ -54,7 +54,7 @@ trait RequiresAuthTrait {
 	 */
 	protected function currentUserHasPermission(string $permission): bool {
 		$userId = $this->getCurrentUserId();
-		if (!$userId) {
+		if ($userId === null || $userId === '') {
 			return false;
 		}
 

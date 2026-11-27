@@ -6,6 +6,7 @@ namespace OCA\Attendance\Service;
 
 use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AttendanceResponse;
+use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserManager;
@@ -14,6 +15,12 @@ use OCP\IUserManager;
  * Service for generating response summaries.
  * Handles the complex logic of aggregating responses by group and team.
  * Optimized to avoid N+1 query patterns through caching and batch operations.
+ *
+ * @psalm-type Answer = 'yes'|'no'|'maybe'
+ * @psalm-type PendingUser = array{userId: string, displayName: string, isGuest: bool, checkinState: ?string}
+ * @psalm-type Section = array{displayName?: string, yes: int, no: int, maybe: int, no_response: int, responses: list<array<array-key, mixed>>, non_responding_users?: list<PendingUser>, maybe_users?: list<PendingUser>}
+ * @psalm-type Summary = array{yes: int, no: int, maybe: int, no_response: int, by_group: array<array-key, Section>, by_team: array<array-key, Section>, others: array{yes: int, no: int, maybe: int, no_response: int, responses: list<array<array-key, mixed>>, non_responding_users: list<PendingUser>, maybe_users: list<PendingUser>}, non_responding_users?: list<PendingUser>, maybe_users?: list<PendingUser>}
+ * @psalm-type SummaryCache = array{groupsMode: string, sectionGroups: list<string>, sectionGroupsLower: list<string>, sectionTeams: list<string>, teamMembers: array<array-key, array<string>>, teamInfo: array<array-key, array{id: string, label: string, type: string}>, users: array<string, IUser>, userGroups: array<string, array<IGroup>>, checkinStates: array<string, ?string>, groupUsers: array<array-key, list<IUser>>, allUsers: array<string, IUser>, allUserGroups: array<string, array<IGroup>>, appointmentHasRestrictions: bool, appointmentVisibleGroupsLower: array<string>, confirmedIds: array<string, true>}
  */
 class ResponseSummaryService {
 	private ConfigService $configService;
@@ -78,12 +85,8 @@ class ResponseSummaryService {
 		$summary['by_group'] = $this->filterEmptyGroups($summary['by_group']);
 		$summary['by_team'] = $this->filterEmptyGroups($summary['by_team']);
 
-		/** @var list<string> $sectionGroups */
-		$sectionGroups = $cache['sectionGroups'];
-		/** @var list<string> $sectionTeams */
-		$sectionTeams = $cache['sectionTeams'];
-		$summary['by_group'] = $this->sortGroups($summary['by_group'], $sectionGroups);
-		$summary['by_team'] = $this->sortTeams($summary['by_team'], $sectionTeams);
+		$summary['by_group'] = $this->sortGroups($summary['by_group'], $cache['sectionGroups']);
+		$summary['by_team'] = $this->sortTeams($summary['by_team'], $cache['sectionTeams']);
 
 		return $summary;
 	}
@@ -167,6 +170,7 @@ class ResponseSummaryService {
 	 * and whitelisted groups/teams, avoiding loading ALL users in large instances.
 	 *
 	 * @param list<AttendanceResponse> $responses
+	 * @return SummaryCache
 	 */
 	private function buildCache(Appointment $appointment, array $responses): array {
 		// Cache whitelisted groups (called once instead of per-group)
@@ -228,7 +232,7 @@ class ResponseSummaryService {
 		foreach ($sectionTeams as $teamId) {
 			$teamMembers[$teamId] = $this->visibilityService->getTeamMembers($teamId);
 			$info = $this->visibilityService->getTeamInfo($teamId);
-			if ($info) {
+			if ($info !== null) {
 				$teamInfo[$teamId] = $info;
 			}
 		}
@@ -272,6 +276,9 @@ class ResponseSummaryService {
 	 * The chip shape for somebody with no answer to show — a non-responder or a
 	 * "maybe". Carries the check-in state: attending without answering is
 	 * exactly the case the organizer has to be able to see.
+	 *
+	 * @param SummaryCache $cache
+	 * @return PendingUser
 	 */
 	private function pendingUserData(IUser $user, array $cache): array {
 		$userId = $user->getUID();
@@ -293,15 +300,15 @@ class ResponseSummaryService {
 	 * #199 applies with no whitelist too) — only a fully open appointment
 	 * tells them apart: 'none' sections nothing there (issue #212), 'all'
 	 * sections every group the responder belongs to.
+	 *
+	 * @param SummaryCache $cache
 	 */
 	private function isGroupAllowedCached(string $groupId, array $cache): bool {
 		if ($cache['groupsMode'] === ConfigService::RESPONSE_SUMMARY_MODE_SPECIFIC) {
-			/** @var list<string> $sectionGroupsLower */
-			$sectionGroupsLower = $cache['sectionGroupsLower'];
-			return in_array(strtolower($groupId), $sectionGroupsLower);
+			return in_array(strtolower($groupId), $cache['sectionGroupsLower']);
 		}
 
-		if (!empty($cache['appointmentVisibleGroupsLower'])) {
+		if ($cache['appointmentVisibleGroupsLower'] !== []) {
 			return in_array(strtolower($groupId), $cache['appointmentVisibleGroupsLower']);
 		}
 
@@ -314,12 +321,12 @@ class ResponseSummaryService {
 	 * Same as isGroupAllowedCached but hides the Guests app's system group
 	 * unless an admin opts in via the whitelist — otherwise every guest user
 	 * would be lumped under one section regardless of context.
+	 *
+	 * @param SummaryCache $cache
 	 */
 	private function isGroupVisibleAsSection(string $groupId, array $cache): bool {
-		/** @var list<string> $sectionGroupsLower */
-		$sectionGroupsLower = $cache['sectionGroupsLower'];
 		if (GuestService::isGuestsSystemGroup($groupId)
-			&& !in_array(GuestService::GUESTS_SYSTEM_GROUP, $sectionGroupsLower, true)) {
+			&& !in_array(GuestService::GUESTS_SYSTEM_GROUP, $cache['sectionGroupsLower'], true)) {
 			return false;
 		}
 		return $this->isGroupAllowedCached($groupId, $cache);
@@ -340,6 +347,8 @@ class ResponseSummaryService {
 
 	/**
 	 * Initialize the summary structure.
+	 *
+	 * @return Summary
 	 */
 	private function initializeSummary(): array {
 		return [
@@ -363,6 +372,10 @@ class ResponseSummaryService {
 
 	/**
 	 * Process a single response and update the summary.
+	 *
+	 * @param Summary $summary
+	 * @param array<string, Answer> $respondedUserIds
+	 * @param SummaryCache $cache
 	 */
 	private function processResponse(
 		Appointment $appointment,
@@ -392,8 +405,6 @@ class ResponseSummaryService {
 		$summary[$responseValue]++;
 		$respondedUserIds[$userId] = $responseValue;
 
-		// Get user from cache
-		/** @var ?IUser $user */
 		$user = $cache['users'][$userId] ?? null;
 		$userInWhitelistedGroup = false;
 		$userInWhitelistedTeam = false;
@@ -412,9 +423,7 @@ class ResponseSummaryService {
 			}
 
 			// Check teams (user can be in both groups AND teams - duplicates allowed)
-			/** @var list<string> $sectionTeams */
-			$sectionTeams = $cache['sectionTeams'];
-			foreach ($sectionTeams as $teamId) {
+			foreach ($cache['sectionTeams'] as $teamId) {
 				$teamMemberIds = $cache['teamMembers'][$teamId] ?? [];
 				if (in_array($userId, $teamMemberIds)) {
 					$userInWhitelistedTeam = true;
@@ -434,8 +443,11 @@ class ResponseSummaryService {
 	 * Serialize a response for inclusion in the summary, enriched with the
 	 * responder's display name and guest flag. Strips the free-text comment /
 	 * checkinComment fields unless the caller is permitted to read comments.
+	 *
+	 * @param SummaryCache $cache
+	 * @return array<array-key, mixed>
 	 */
-	private function serializeResponse(AttendanceResponse $response, IUser $user, bool $includeComments, array $cache = []): array {
+	private function serializeResponse(AttendanceResponse $response, IUser $user, bool $includeComments, array $cache): array {
 		$responseData = $response->jsonSerialize();
 		if (!$includeComments) {
 			unset($responseData['comment'], $responseData['checkinComment']);
@@ -444,8 +456,7 @@ class ResponseSummaryService {
 		$responseData['isGuest'] = $this->guestService->isGuestUser($user->getUID());
 		// Whoever may see who answered what also sees where they stand in the
 		// queue — it is strictly less than the names already in this payload.
-		/** @var array<string, true> $confirmedIds */
-		$confirmedIds = $cache['confirmedIds'] ?? [];
+		$confirmedIds = $cache['confirmedIds'];
 		$responseData['waitlisted'] = $responseData['response'] === 'yes'
 			&& $confirmedIds !== []
 			&& !isset($confirmedIds[$user->getUID()]);
@@ -468,6 +479,10 @@ class ResponseSummaryService {
 
 	/**
 	 * Add a response to a group's summary.
+	 *
+	 * @param Summary $summary
+	 * @param Answer $responseValue
+	 * @param SummaryCache $cache
 	 */
 	private function addResponseToGroup(
 		array &$summary,
@@ -476,7 +491,7 @@ class ResponseSummaryService {
 		AttendanceResponse $response,
 		IUser $user,
 		bool $includeComments,
-		array $cache = [],
+		array $cache,
 	): void {
 		if (!isset($summary['by_group'][$groupId])) {
 			$summary['by_group'][$groupId] = [
@@ -496,6 +511,10 @@ class ResponseSummaryService {
 
 	/**
 	 * Add a response to a team's summary.
+	 *
+	 * @param Summary $summary
+	 * @param Answer $responseValue
+	 * @param SummaryCache $cache
 	 */
 	private function addResponseToTeam(
 		array &$summary,
@@ -507,9 +526,8 @@ class ResponseSummaryService {
 		bool $includeComments,
 	): void {
 		if (!isset($summary['by_team'][$teamId])) {
-			$teamInfo = $cache['teamInfo'][$teamId] ?? null;
 			$summary['by_team'][$teamId] = [
-				'displayName' => $teamInfo ? $teamInfo['label'] : $teamId,
+				'displayName' => $cache['teamInfo'][$teamId]['label'] ?? $teamId,
 				'yes' => 0,
 				'no' => 0,
 				'maybe' => 0,
@@ -526,6 +544,10 @@ class ResponseSummaryService {
 
 	/**
 	 * Add non-responding users to group summaries.
+	 *
+	 * @param Summary $summary
+	 * @param array<string, Answer> $respondedUserIds
+	 * @param SummaryCache $cache
 	 */
 	private function addNonRespondingUsers(
 		array &$summary,
@@ -535,9 +557,7 @@ class ResponseSummaryService {
 		// $cache['groupUsers'] already holds exactly the candidate groups for
 		// the active mode (every group for 'all', the whitelist for
 		// 'specific', none for 'none') — no need to branch on mode again here.
-		/** @var list<array-key> $groupIds */
-		$groupIds = array_keys($cache['groupUsers']);
-		foreach ($groupIds as $groupId) {
+		foreach ($cache['groupUsers'] as $groupId => $groupUsers) {
 			// Numeric-string group IDs get coerced to int when used as array keys (issue #63)
 			$groupId = (string)$groupId;
 
@@ -557,12 +577,9 @@ class ResponseSummaryService {
 				];
 			}
 
-			// Get users from cache
-			$groupUsers = $cache['groupUsers'][$groupId] ?? [];
 			$nonRespondingUsers = [];
 			$maybeUsers = [];
 
-			/** @var \OCP\IUser $user */
 			foreach ($groupUsers as $user) {
 				$userId = $user->getUID();
 
@@ -587,6 +604,10 @@ class ResponseSummaryService {
 
 	/**
 	 * Add non-responding users to team summaries.
+	 *
+	 * @param Summary $summary
+	 * @param array<string, Answer> $respondedUserIds
+	 * @param SummaryCache $cache
 	 */
 	private function addNonRespondingTeamUsers(
 		Appointment $appointment,
@@ -594,14 +615,10 @@ class ResponseSummaryService {
 		array $respondedUserIds,
 		array $cache,
 	): void {
-		/** @var list<string> $sectionTeams */
-		$sectionTeams = $cache['sectionTeams'];
-		foreach ($sectionTeams as $teamId) {
-			$teamInfo = $cache['teamInfo'][$teamId] ?? null;
-
+		foreach ($cache['sectionTeams'] as $teamId) {
 			if (!isset($summary['by_team'][$teamId])) {
 				$summary['by_team'][$teamId] = [
-					'displayName' => $teamInfo ? $teamInfo['label'] : $teamId,
+					'displayName' => $cache['teamInfo'][$teamId]['label'] ?? $teamId,
 					'yes' => 0,
 					'no' => 0,
 					'maybe' => 0,
@@ -611,8 +628,6 @@ class ResponseSummaryService {
 				];
 			}
 
-			// Get team members from cache
-			/** @var list<string> $teamMemberIds */
 			$teamMemberIds = $cache['teamMembers'][$teamId] ?? [];
 			$nonRespondingUsers = [];
 			$maybeUsers = [];
@@ -652,6 +667,10 @@ class ResponseSummaryService {
 	 * non-responder lists and the Others bucket. A user is in the Others
 	 * bucket when they have no visible section (no allowed group/team that
 	 * renders) — typically a guest with only `guest_app` membership.
+	 *
+	 * @param Summary $summary
+	 * @param array<string, Answer> $respondedUserIds
+	 * @param SummaryCache $cache
 	 */
 	private function collectMissingResponders(
 		array &$summary,
@@ -663,10 +682,7 @@ class ResponseSummaryService {
 		$othersNonResponding = [];
 		$othersMaybe = [];
 		$skipUnaffiliated = !$cache['appointmentHasRestrictions'];
-		/** @var list<string> $sectionTeams */
-		$sectionTeams = $cache['sectionTeams'];
 
-		/** @var \OCP\IUser $user */
 		foreach ($cache['allUsers'] as $user) {
 			$userId = $user->getUID();
 
@@ -693,7 +709,7 @@ class ResponseSummaryService {
 
 			$hasRelevantTeam = false;
 			if (!$hasVisibleGroup) {
-				foreach ($sectionTeams as $teamId) {
+				foreach ($cache['sectionTeams'] as $teamId) {
 					$teamMemberIds = $cache['teamMembers'][$teamId] ?? [];
 					if (in_array($userId, $teamMemberIds)) {
 						$hasRelevantTeam = true;
@@ -739,84 +755,60 @@ class ResponseSummaryService {
 	 * When visibility settings restrict which users can see an appointment,
 	 * some whitelisted groups may end up with no target attendees.
 	 * This method removes those empty groups to clean up the response.
+	 *
+	 * @param array<array-key, Section> $byGroup
+	 * @return array<array-key, Section>
 	 */
 	private function filterEmptyGroups(array $byGroup): array {
 		return array_filter($byGroup, function (array $group): bool {
 			// A group is considered non-empty if it has any responses, non-responding, or maybe users
-			$hasResponses = !empty($group['responses']);
-			$hasNonResponding = !empty($group['non_responding_users']);
-			$hasMaybeUsers = !empty($group['maybe_users']);
+			$hasResponses = $group['responses'] !== [];
+			$hasNonResponding = ($group['non_responding_users'] ?? []) !== [];
+			$hasMaybeUsers = ($group['maybe_users'] ?? []) !== [];
 			return $hasResponses || $hasNonResponding || $hasMaybeUsers;
 		});
 	}
 
 	/**
 	 * Sort groups by whitelisted order or alphabetically.
+	 *
+	 * @param array<array-key, Section> $byGroup
+	 * @param list<string> $whitelistedGroups
+	 * @return array<array-key, Section>
 	 */
 	private function sortGroups(array $byGroup, array $whitelistedGroups): array {
-		$sortedByGroup = [];
-
-		if (!empty($whitelistedGroups)) {
-			// First add groups in the order they appear in settings
-			foreach ($whitelistedGroups as $groupId) {
-				if (isset($byGroup[$groupId])) {
-					$sortedByGroup[$groupId] = $byGroup[$groupId];
-				}
-			}
-			// Then add any remaining groups alphabetically
-			$remainingGroups = array_diff(array_keys($byGroup), $whitelistedGroups);
-			sort($remainingGroups);
-			foreach ($remainingGroups as $groupId) {
-				$sortedByGroup[$groupId] = $byGroup[$groupId];
-			}
-		} else {
-			// No whitelist configured, sort alphabetically
-			$groupIds = array_keys($byGroup);
-			sort($groupIds);
-			foreach ($groupIds as $groupId) {
-				$sortedByGroup[$groupId] = $byGroup[$groupId];
-			}
-		}
-
-		return $sortedByGroup;
+		return $this->sortSections($byGroup, $whitelistedGroups, static fn (int|string $a, int|string $b): int => $a <=> $b);
 	}
 
 	/**
 	 * Sort teams by whitelisted order or alphabetically by display name.
+	 *
+	 * @param array<array-key, Section> $byTeam
+	 * @param list<string> $whitelistedTeams
+	 * @return array<array-key, Section>
 	 */
 	private function sortTeams(array $byTeam, array $whitelistedTeams): array {
-		$sortedByTeam = [];
+		return $this->sortSections($byTeam, $whitelistedTeams, static fn (int|string $a, int|string $b): int => strcasecmp(
+			$byTeam[$a]['displayName'] ?? (string)$a,
+			$byTeam[$b]['displayName'] ?? (string)$b,
+		));
+	}
 
-		if (!empty($whitelistedTeams)) {
-			// First add teams in the order they appear in settings
-			foreach ($whitelistedTeams as $teamId) {
-				if (isset($byTeam[$teamId])) {
-					$sortedByTeam[$teamId] = $byTeam[$teamId];
-				}
-			}
-			// Then add any remaining teams alphabetically by display name
-			$remainingTeams = array_diff(array_keys($byTeam), $whitelistedTeams);
-			usort($remainingTeams, function ($a, $b) use ($byTeam) {
-				$nameA = $byTeam[$a]['displayName'] ?? $a;
-				$nameB = $byTeam[$b]['displayName'] ?? $b;
-				return strcasecmp($nameA, $nameB);
-			});
-			foreach ($remainingTeams as $teamId) {
-				$sortedByTeam[$teamId] = $byTeam[$teamId];
-			}
-		} else {
-			// No whitelist configured, sort alphabetically by display name
-			$teamIds = array_keys($byTeam);
-			usort($teamIds, function ($a, $b) use ($byTeam) {
-				$nameA = $byTeam[$a]['displayName'] ?? $a;
-				$nameB = $byTeam[$b]['displayName'] ?? $b;
-				return strcasecmp($nameA, $nameB);
-			});
-			foreach ($teamIds as $teamId) {
-				$sortedByTeam[$teamId] = $byTeam[$teamId];
-			}
+	/**
+	 * Whitelisted sections first in their configured order, the rest by $compare.
+	 *
+	 * @param array<array-key, Section> $sections
+	 * @param list<string> $whitelist
+	 * @param \Closure(array-key, array-key): int $compare
+	 * @return array<array-key, Section>
+	 */
+	private function sortSections(array $sections, array $whitelist, \Closure $compare): array {
+		$position = [];
+		foreach ($whitelist as $index => $id) {
+			$position[$id] ??= $index;
 		}
-
-		return $sortedByTeam;
+		uksort($sections, static fn (int|string $a, int|string $b): int
+			=> (($position[$a] ?? PHP_INT_MAX) <=> ($position[$b] ?? PHP_INT_MAX)) ?: $compare($a, $b));
+		return $sections;
 	}
 }

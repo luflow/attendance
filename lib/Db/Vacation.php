@@ -26,14 +26,14 @@ use OCP\AppFramework\Db\Entity;
  * @psalm-import-type AttendanceVacationData from \OCA\Attendance\ResponseDefinitions
  */
 class Vacation extends Entity implements JsonSerializable {
-	protected $userId = '';
+	protected string $userId = '';
 	// Date-only (Y-m-d) on purpose: a vacation is a set of whole days, not a
 	// timed window, so there is no timezone conversion to do at read time.
-	protected $startDate = '';
-	protected $endDate = '';
-	protected $note = null;
-	protected $createdAt = '';
-	protected $updatedAt = '';
+	protected string $startDate = '';
+	protected string $endDate = '';
+	protected ?string $note = null;
+	protected string $createdAt = '';
+	protected string $updatedAt = '';
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -48,6 +48,7 @@ class Vacation extends Entity implements JsonSerializable {
 	/**
 	 * @return AttendanceVacationData
 	 */
+	#[\Override]
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->getId(),

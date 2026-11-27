@@ -15,6 +15,9 @@ class AuditEventDispatcher {
 	/** @var array<int, callable(AuditEvent): void> */
 	private array $listeners = [];
 
+	/**
+	 * @param callable(AuditEvent): void $listener
+	 */
 	public function register(callable $listener): void {
 		$this->listeners[] = $listener;
 	}

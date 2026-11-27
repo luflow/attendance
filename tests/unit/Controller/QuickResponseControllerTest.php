@@ -12,7 +12,7 @@ use OCA\Attendance\Service\ResponsePolicyService;
 use OCA\Attendance\Service\ResponseService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\AppFramework\Http;
-use OCP\IInitialStateService;
+use OCP\AppFramework\Services\IInitialState;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUser;
@@ -28,7 +28,7 @@ class QuickResponseControllerTest extends TestCase {
 	private $tokenService;
 	/** @var ResponseService|MockObject */
 	private $responseService;
-	/** @var IInitialStateService|MockObject */
+	/** @var IInitialState|MockObject */
 	private $initialStateService;
 	/** @var IL10N|MockObject */
 	private $l;
@@ -47,7 +47,7 @@ class QuickResponseControllerTest extends TestCase {
 		$this->request = $this->createMock(IRequest::class);
 		$this->tokenService = $this->createMock(QuickResponseTokenService::class);
 		$this->responseService = $this->createMock(ResponseService::class);
-		$this->initialStateService = $this->createMock(IInitialStateService::class);
+		$this->initialStateService = $this->createMock(IInitialState::class);
 		$this->l = $this->createMock(IL10N::class);
 		$this->userManager = $this->createMock(IUserManager::class);
 		$this->logger = $this->createMock(LoggerInterface::class);

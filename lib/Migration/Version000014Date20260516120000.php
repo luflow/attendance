@@ -24,10 +24,12 @@ class Version000014Date20260516120000 extends SimpleMigrationStep {
 		$this->connection = $connection;
 	}
 
+	#[\Override]
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		return null;
 	}
 
+	#[\Override]
 	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
 		$this->connection->beginTransaction();
 		try {

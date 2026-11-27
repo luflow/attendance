@@ -78,7 +78,7 @@ class GuestService {
 		$result = false;
 		if ($this->isGuestsAppEnabled()) {
 			$manager = $this->resolveGuestManager();
-			if ($manager !== null) {
+			if ($manager !== null && method_exists($manager, 'isGuest')) {
 				try {
 					$result = (bool)$manager->isGuest($userId);
 				} catch (\Throwable $e) {
@@ -219,8 +219,7 @@ class GuestService {
 			return null;
 		}
 		try {
-			$instance = $this->container->get($class);
-			return is_object($instance) && method_exists($instance, 'isGuest') ? $instance : null;
+			return self::objectOrNull($this->container->get($class));
 		} catch (\Throwable $e) {
 			$this->logger->debug('Resolving GuestManager failed', [
 				'app' => self::ATTENDANCE_APP_ID,
@@ -228,5 +227,9 @@ class GuestService {
 			]);
 			return null;
 		}
+	}
+
+	private static function objectOrNull(mixed $value): ?object {
+		return is_object($value) ? $value : null;
 	}
 }

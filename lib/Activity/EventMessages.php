@@ -6,7 +6,7 @@ namespace OCA\Attendance\Activity;
 
 use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Db\AuditEvent;
-use OCP\IConfig;
+use OCP\Config\IUserConfig;
 use OCP\IL10N;
 use OCP\IUserManager;
 
@@ -19,7 +19,7 @@ use OCP\IUserManager;
  */
 final class EventMessages {
 	public function __construct(
-		private IConfig $config,
+		private IUserConfig $userConfig,
 		private IUserManager $userManager,
 	) {
 	}
@@ -166,7 +166,7 @@ final class EventMessages {
 		}
 
 		try {
-			$userTimezone = $this->config->getUserValue($userId, 'core', 'timezone', '');
+			$userTimezone = $this->userConfig->getValueString($userId, 'core', 'timezone', '');
 			if ($userTimezone === '') {
 				$userTimezone = date_default_timezone_get();
 			}

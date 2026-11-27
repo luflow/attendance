@@ -14,7 +14,6 @@ use OCA\Attendance\Db\ReminderLogMapper;
 use OCA\Attendance\Service\ConfigService;
 use OCA\Attendance\Service\VisibilityService;
 use OCP\AppFramework\Utility\ITimeFactory;
-use OCP\IConfig;
 use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\Notification\IManager as INotificationManager;
@@ -29,7 +28,6 @@ class ReminderJobTest extends TestCase {
 	private ReminderLogMapper|MockObject $reminderLogMapper;
 	private VisibilityService|MockObject $visibilityService;
 	private ConfigService|MockObject $configService;
-	private IConfig|MockObject $config;
 	private INotificationManager|MockObject $notificationManager;
 	private IURLGenerator|MockObject $urlGenerator;
 	private LoggerInterface|MockObject $logger;
@@ -42,7 +40,6 @@ class ReminderJobTest extends TestCase {
 		$this->reminderLogMapper = $this->createMock(ReminderLogMapper::class);
 		$this->visibilityService = $this->createMock(VisibilityService::class);
 		$this->configService = $this->createMock(ConfigService::class);
-		$this->config = $this->createMock(IConfig::class);
 		$this->notificationManager = $this->createMock(INotificationManager::class);
 		$this->urlGenerator = $this->createMock(IURLGenerator::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
@@ -55,7 +52,6 @@ class ReminderJobTest extends TestCase {
 			$this->reminderLogMapper,
 			$this->visibilityService,
 			$this->configService,
-			$this->config,
 			$this->notificationManager,
 			$this->urlGenerator,
 			$this->logger,
@@ -107,16 +103,10 @@ class ReminderJobTest extends TestCase {
 	 * Helper: set up the standard config mock for enabled reminders.
 	 */
 	private function configureReminders(bool $enabled, int $days, int $frequency, string $target = 'non_responders'): void {
-		$this->config->method('getAppValue')
-			->willReturnCallback(function (string $app, string $key, string $default) use ($enabled, $days, $frequency, $target) {
-				return match ($key) {
-					'reminders_enabled' => $enabled ? 'yes' : 'no',
-					'reminder_days' => (string)$days,
-					'reminder_frequency' => (string)$frequency,
-					'reminder_target' => $target,
-					default => $default,
-				};
-			});
+		$this->configService->method('areRemindersEnabled')->willReturn($enabled);
+		$this->configService->method('getReminderDays')->willReturn($days);
+		$this->configService->method('getReminderFrequency')->willReturn($frequency);
+		$this->configService->method('getReminderTarget')->willReturn($target);
 	}
 
 	/**

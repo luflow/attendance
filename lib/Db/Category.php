@@ -18,10 +18,9 @@ use OCP\AppFramework\Db\Entity;
  * @method void setTemplate(?string $template)
  */
 class Category extends Entity implements JsonSerializable {
-	protected $name = '';
-	protected $icon = 'tag';
-	/** @var ?string */
-	protected $template = null;
+	protected string $name = '';
+	protected string $icon = 'tag';
+	protected ?string $template = null;
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -33,6 +32,7 @@ class Category extends Entity implements JsonSerializable {
 	/**
 	 * @return array{id: int, name: string, icon: string}
 	 */
+	#[\Override]
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->getId(),

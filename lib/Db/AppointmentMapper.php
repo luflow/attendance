@@ -90,7 +90,7 @@ class AppointmentMapper extends QBMapper {
 	public function existsWithOrganizer(string $userId): bool {
 		$qb = $this->db->getQueryBuilder();
 
-		$needle = '%' . $this->db->escapeLikeParameter(json_encode($userId)) . '%';
+		$needle = '%' . $this->db->escapeLikeParameter(json_encode($userId, JSON_THROW_ON_ERROR)) . '%';
 		$qb->select('id')
 			->from($this->getTableName())
 			->where($qb->expr()->eq('is_active', $qb->createNamedParameter(1, IQueryBuilder::PARAM_INT)))
@@ -98,6 +98,7 @@ class AppointmentMapper extends QBMapper {
 			->setMaxResults(1);
 
 		$result = $qb->executeQuery();
+		/** @var array<string, mixed>|false $row IResult::fetch() is declared mixed */
 		$row = $result->fetch();
 		$result->closeCursor();
 
@@ -238,7 +239,9 @@ class AppointmentMapper extends QBMapper {
 				)
 			);
 
-		return $qb->executeQuery()->fetchAll();
+		/** @var list<array{calendar_event_uid: string, start_datetime: string}> $rows both columns are filtered non-null above */
+		$rows = $qb->executeQuery()->fetchAll();
+		return $rows;
 	}
 
 	/**
@@ -253,7 +256,6 @@ class AppointmentMapper extends QBMapper {
 		$qb = $this->db->getQueryBuilder();
 
 		$now = new \DateTime('now', new \DateTimeZone('UTC'));
-		$windowStart = (clone $now)->modify("-{$windowMinutes} minutes");
 
 		$qb->select('*')
 			->from($this->getTableName())
@@ -481,13 +483,11 @@ class AppointmentMapper extends QBMapper {
 				)
 			);
 		$result = $select->executeQuery();
-		$ids = [];
-		while ($row = $result->fetch()) {
-			$ids[] = (int)$row['id'];
-		}
+		/** @var list<array{id: int|string}> $rows IResult::fetchAll() is declared mixed */
+		$rows = $result->fetchAll();
 		$result->closeCursor();
 
-		return $ids;
+		return array_map(static fn (array $row): int => (int)$row['id'], $rows);
 	}
 
 	/**

@@ -26,13 +26,13 @@ use OCP\AppFramework\Db\Entity;
 class AuditEvent extends Entity implements JsonSerializable {
 	use DatetimeFormatTrait;
 
-	protected $appointmentId = 0;
-	protected $verb = '';
-	protected $actorId = null;
-	protected $subjectId = null;
-	protected $meta = null;
-	protected $source = null;
-	protected $createdAt = '';
+	protected int $appointmentId = 0;
+	protected string $verb = '';
+	protected ?string $actorId = null;
+	protected ?string $subjectId = null;
+	protected ?string $meta = null;
+	protected ?string $source = null;
+	protected string $createdAt = '';
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -61,12 +61,15 @@ class AuditEvent extends Entity implements JsonSerializable {
 	}
 
 	public function setMetaArray(array $meta): void {
-		$this->setMeta($meta === [] ? null : json_encode($meta, JSON_UNESCAPED_UNICODE));
+		$encoded = $meta === [] ? false : json_encode($meta, JSON_UNESCAPED_UNICODE);
+		// Unencodable meta (e.g. invalid UTF-8) drops the meta, not the whole event.
+		$this->setMeta($encoded === false ? null : $encoded);
 	}
 
 	/**
 	 * @return array{id: int, appointmentId: int, verb: string, actorId: ?string, subjectId: ?string, meta: array<string, mixed>, source: ?string, createdAt: ?string}
 	 */
+	#[\Override]
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->getId(),

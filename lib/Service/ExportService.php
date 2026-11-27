@@ -170,9 +170,7 @@ class ExportService {
 		}
 
 		// Sort appointments by start datetime
-		usort($appointments, function ($a, $b) {
-			return strcmp($a->getStartDatetime(), $b->getStartDatetime());
-		});
+		usort($appointments, static fn (Appointment $a, Appointment $b): int => strcmp($a->getStartDatetime(), $b->getStartDatetime()));
 
 		// Collect all unique users who have responded or checked in
 		$allUserIds = [];
@@ -221,9 +219,14 @@ class ExportService {
 		}
 
 		// Sort users by display name
-		usort($users, function ($a, $b) {
-			return strcmp($a['displayName'], $b['displayName']);
-		});
+		usort(
+			$users,
+			/**
+			 * @param array{userId: string, displayName: string, group: string} $a
+			 * @param array{userId: string, displayName: string, group: string} $b
+			 */
+			static fn (array $a, array $b): int => strcmp($a['displayName'], $b['displayName']),
+		);
 
 		$odsContent = $this->odsWriter->write($this->getTableXml($appointments, $users, $appointmentResponses, $options, $confirmedIds));
 
@@ -380,7 +383,7 @@ class ExportService {
 		foreach ($appointments as $appointment) {
 			$startDate = $appointment->isAllDay()
 				? Appointment::allDayAnchor($appointment->getStartDatetime())->format('Y-m-d')
-				: date('Y-m-d', strtotime($appointment->getStartDatetime()));
+				: (new \DateTimeImmutable($appointment->getStartDatetime()))->format('Y-m-d');
 			$location = $options->includeLocation ? $appointment->getLocation() : null;
 			$dateLabel = $location !== null && $location !== '' ? $startDate . ' · ' . $this->odsWriter->escape($location) : $startDate;
 			if ($appointment->isCancelled()) {
@@ -398,14 +401,14 @@ class ExportService {
 				<table:table-row>'
 			. str_repeat($this->plainCell(OdsWriter::STYLE_HEADER, ''), $leading);
 
-		foreach ($appointments as $appointment) {
-			foreach ($columns as $column) {
-				$xml .= '
+		$labelCells = '';
+		foreach ($columns as $column) {
+			$labelCells .= '
 					<table:table-cell table:style-name="' . OdsWriter::STYLE_HEADER . '" office:value-type="string">
 						<text:p>' . $column['label'] . '</text:p>
 					</table:table-cell>';
-			}
 		}
+		$xml .= str_repeat($labelCells, count($appointments));
 
 		$xml .= '
 				</table:table-row>';

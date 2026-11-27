@@ -31,6 +31,7 @@ class Version000017Date20260724120000 extends SimpleMigrationStep {
 	 * @param array $options
 	 * @return null|ISchemaWrapper
 	 */
+	#[\Override]
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		/** @var ISchemaWrapper $schema */
 		$schema = $schemaClosure();
@@ -51,6 +52,7 @@ class Version000017Date20260724120000 extends SimpleMigrationStep {
 	/**
 	 * Backfill organizers with the creator for all existing appointments.
 	 */
+	#[\Override]
 	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
 		$select = $this->db->getQueryBuilder();
 		$select->select('id', 'created_by')

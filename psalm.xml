@@ -25,5 +25,22 @@
 		<file name="tests/stubs/talk.php"/>
 		<file name="tests/stubs/circles.php"/>
 		<file name="tests/stubs/core.php"/>
+		<file name="tests/stubs/oc-internals.php"/>
 	</stubs>
+	<issueHandlers>
+		<!-- PHPUnit cannot mock final classes. -->
+		<ClassMustBeFinal errorLevel="suppress"/>
+		<!-- The DI container and Entity magic call these; psalm sees no caller. -->
+		<UnusedClass errorLevel="suppress"/>
+		<PossiblyUnusedMethod errorLevel="suppress"/>
+		<PossiblyUnusedProperty errorLevel="suppress"/>
+		<PossiblyUnusedParam errorLevel="suppress"/>
+		<PossiblyUnusedReturnValue errorLevel="suppress"/>
+		<!-- Entity declares $id and fromRow() fills it. -->
+		<PropertyNotSetInConstructor>
+			<errorLevel type="suppress">
+				<directory name="lib/Db"/>
+			</errorLevel>
+		</PropertyNotSetInConstructor>
+	</issueHandlers>
 </psalm>

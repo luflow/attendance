@@ -6,7 +6,6 @@ namespace OCA\Attendance\Service;
 
 use OCP\Config\IUserConfig;
 use OCP\IAppConfig;
-use OCP\IConfig;
 
 /**
  * Centralized configuration service for the Attendance app.
@@ -24,12 +23,10 @@ class ConfigService {
 	public const RESPONSE_SUMMARY_GROUP_MODES = [self::RESPONSE_SUMMARY_MODE_NONE, self::RESPONSE_SUMMARY_MODE_SPECIFIC, self::RESPONSE_SUMMARY_MODE_ALL];
 	public const RESPONSE_SUMMARY_TEAM_MODES = [self::RESPONSE_SUMMARY_MODE_NONE, self::RESPONSE_SUMMARY_MODE_SPECIFIC];
 
-	private IConfig $config;
 	private IAppConfig $appConfig;
 	private IUserConfig $userConfig;
 
-	public function __construct(IConfig $config, IAppConfig $appConfig, IUserConfig $userConfig) {
-		$this->config = $config;
+	public function __construct(IAppConfig $appConfig, IUserConfig $userConfig) {
 		$this->appConfig = $appConfig;
 		$this->userConfig = $userConfig;
 	}
@@ -38,11 +35,10 @@ class ConfigService {
 	 * Get whitelisted groups from app config.
 	 * If no groups are configured, returns empty array (meaning all groups are allowed).
 	 *
-	 * @return array<string> List of group IDs
+	 * @return list<string> List of group IDs
 	 */
 	public function getWhitelistedGroups(): array {
-		$groupsJson = $this->config->getAppValue(self::APP_ID, 'whitelisted_groups', '[]');
-		return json_decode($groupsJson, true) ?: [];
+		return $this->getStringList('whitelisted_groups');
 	}
 
 	/**
@@ -51,7 +47,7 @@ class ConfigService {
 	 * @param array<string> $groups List of group IDs
 	 */
 	public function setWhitelistedGroups(array $groups): void {
-		$this->config->setAppValue(self::APP_ID, 'whitelisted_groups', json_encode($groups));
+		$this->appConfig->setValueString(self::APP_ID, 'whitelisted_groups', json_encode($groups, JSON_THROW_ON_ERROR));
 	}
 
 	/**
@@ -120,11 +116,24 @@ class ConfigService {
 	 * Get whitelisted teams from app config.
 	 * If no teams are configured, returns empty array.
 	 *
-	 * @return array<string> List of team/circle IDs
+	 * @return list<string> List of team/circle IDs
 	 */
 	public function getWhitelistedTeams(): array {
-		$teamsJson = $this->config->getAppValue(self::APP_ID, 'whitelisted_teams', '[]');
-		return json_decode($teamsJson, true) ?: [];
+		return $this->getStringList('whitelisted_teams');
+	}
+
+	/**
+	 * @return list<string>
+	 */
+	private function getStringList(string $key): array {
+		return self::onlyStrings(json_decode($this->appConfig->getValueString(self::APP_ID, $key, '[]'), true));
+	}
+
+	/**
+	 * @return list<string>
+	 */
+	private static function onlyStrings(mixed $decoded): array {
+		return is_array($decoded) ? array_values(array_filter($decoded, 'is_string')) : [];
 	}
 
 	/**
@@ -133,7 +142,7 @@ class ConfigService {
 	 * @param array<string> $teams List of team/circle IDs
 	 */
 	public function setWhitelistedTeams(array $teams): void {
-		$this->config->setAppValue(self::APP_ID, 'whitelisted_teams', json_encode($teams));
+		$this->appConfig->setValueString(self::APP_ID, 'whitelisted_teams', json_encode($teams, JSON_THROW_ON_ERROR));
 	}
 
 	/**
@@ -184,7 +193,7 @@ class ConfigService {
 	 * @return bool True if reminders are enabled
 	 */
 	public function areRemindersEnabled(): bool {
-		return $this->config->getAppValue(self::APP_ID, 'reminders_enabled', 'no') === 'yes';
+		return $this->appConfig->getValueString(self::APP_ID, 'reminders_enabled', 'no') === 'yes';
 	}
 
 	/**
@@ -193,7 +202,7 @@ class ConfigService {
 	 * @param bool $enabled Whether reminders should be enabled
 	 */
 	public function setRemindersEnabled(bool $enabled): void {
-		$this->config->setAppValue(self::APP_ID, 'reminders_enabled', $enabled ? 'yes' : 'no');
+		$this->appConfig->setValueString(self::APP_ID, 'reminders_enabled', $enabled ? 'yes' : 'no');
 	}
 
 	/**
@@ -202,7 +211,7 @@ class ConfigService {
 	 * @return int Number of days (1-30)
 	 */
 	public function getReminderDays(): int {
-		return (int)$this->config->getAppValue(self::APP_ID, 'reminder_days', '7');
+		return (int)$this->appConfig->getValueString(self::APP_ID, 'reminder_days', '7');
 	}
 
 	/**
@@ -212,7 +221,7 @@ class ConfigService {
 	 */
 	public function setReminderDays(int $days): void {
 		$days = max(1, min(30, $days));
-		$this->config->setAppValue(self::APP_ID, 'reminder_days', (string)$days);
+		$this->appConfig->setValueString(self::APP_ID, 'reminder_days', (string)$days);
 	}
 
 	/**
@@ -222,7 +231,7 @@ class ConfigService {
 	 * @return int Frequency in days
 	 */
 	public function getReminderFrequency(): int {
-		return (int)$this->config->getAppValue(self::APP_ID, 'reminder_frequency', '0');
+		return (int)$this->appConfig->getValueString(self::APP_ID, 'reminder_frequency', '0');
 	}
 
 	/**
@@ -232,7 +241,7 @@ class ConfigService {
 	 */
 	public function setReminderFrequency(int $frequency): void {
 		$frequency = max(0, min(30, $frequency));
-		$this->config->setAppValue(self::APP_ID, 'reminder_frequency', (string)$frequency);
+		$this->appConfig->setValueString(self::APP_ID, 'reminder_frequency', (string)$frequency);
 	}
 
 	/**
@@ -241,7 +250,7 @@ class ConfigService {
 	 * @return string One of 'non_responders', 'maybe', 'both'
 	 */
 	public function getReminderTarget(): string {
-		$target = $this->config->getAppValue(self::APP_ID, 'reminder_target', 'non_responders');
+		$target = $this->appConfig->getValueString(self::APP_ID, 'reminder_target', 'non_responders');
 		if (!in_array($target, self::VALID_REMINDER_TARGETS, true)) {
 			return 'non_responders';
 		}
@@ -257,7 +266,7 @@ class ConfigService {
 		if (!in_array($target, self::VALID_REMINDER_TARGETS, true)) {
 			$target = 'non_responders';
 		}
-		$this->config->setAppValue(self::APP_ID, 'reminder_target', $target);
+		$this->appConfig->setValueString(self::APP_ID, 'reminder_target', $target);
 	}
 
 	/**
@@ -302,7 +311,7 @@ class ConfigService {
 	 * @return bool True if calendar sync is enabled
 	 */
 	public function isCalendarSyncEnabled(): bool {
-		return $this->config->getAppValue(self::APP_ID, 'calendar_sync_enabled', 'no') === 'yes';
+		return $this->appConfig->getValueString(self::APP_ID, 'calendar_sync_enabled', 'no') === 'yes';
 	}
 
 	/**
@@ -311,7 +320,7 @@ class ConfigService {
 	 * @param bool $enabled Whether calendar sync should be enabled
 	 */
 	public function setCalendarSyncEnabled(bool $enabled): void {
-		$this->config->setAppValue(self::APP_ID, 'calendar_sync_enabled', $enabled ? 'yes' : 'no');
+		$this->appConfig->setValueString(self::APP_ID, 'calendar_sync_enabled', $enabled ? 'yes' : 'no');
 	}
 
 	/**
@@ -322,7 +331,7 @@ class ConfigService {
 	 * @return bool True if the organization calendar feature is enabled
 	 */
 	public function isOrgCalendarEnabled(): bool {
-		return $this->config->getAppValue(self::APP_ID, 'org_calendar_enabled', 'no') === 'yes';
+		return $this->appConfig->getValueString(self::APP_ID, 'org_calendar_enabled', 'no') === 'yes';
 	}
 
 	/**
@@ -331,7 +340,7 @@ class ConfigService {
 	 * @param bool $enabled Whether the organization calendar feature should be enabled
 	 */
 	public function setOrgCalendarEnabled(bool $enabled): void {
-		$this->config->setAppValue(self::APP_ID, 'org_calendar_enabled', $enabled ? 'yes' : 'no');
+		$this->appConfig->setValueString(self::APP_ID, 'org_calendar_enabled', $enabled ? 'yes' : 'no');
 	}
 
 	/**
@@ -341,7 +350,7 @@ class ConfigService {
 	 * @return string Calendar URI, empty string if not configured
 	 */
 	public function getOrgCalendarUri(): string {
-		return $this->config->getAppValue(self::APP_ID, 'org_calendar_uri', '');
+		return $this->appConfig->getValueString(self::APP_ID, 'org_calendar_uri', '');
 	}
 
 	/**
@@ -350,7 +359,7 @@ class ConfigService {
 	 * @param string $uri Calendar URI
 	 */
 	public function setOrgCalendarUri(string $uri): void {
-		$this->config->setAppValue(self::APP_ID, 'org_calendar_uri', $uri);
+		$this->appConfig->setValueString(self::APP_ID, 'org_calendar_uri', $uri);
 	}
 
 	/**
@@ -360,7 +369,7 @@ class ConfigService {
 	 * @return string User ID, empty string if not configured
 	 */
 	public function getOrgCalendarUserId(): string {
-		return $this->config->getAppValue(self::APP_ID, 'org_calendar_user_id', '');
+		return $this->appConfig->getValueString(self::APP_ID, 'org_calendar_user_id', '');
 	}
 
 	/**
@@ -369,7 +378,7 @@ class ConfigService {
 	 * @param string $userId User ID
 	 */
 	public function setOrgCalendarUserId(string $userId): void {
-		$this->config->setAppValue(self::APP_ID, 'org_calendar_user_id', $userId);
+		$this->appConfig->setValueString(self::APP_ID, 'org_calendar_user_id', $userId);
 	}
 
 	/**
@@ -439,7 +448,7 @@ class ConfigService {
 	 * @return bool True if push notifications are enabled
 	 */
 	public function isPushEnabled(): bool {
-		return $this->config->getAppValue(self::APP_ID, 'push_enabled', 'yes') === 'yes';
+		return $this->appConfig->getValueString(self::APP_ID, 'push_enabled', 'yes') === 'yes';
 	}
 
 	/**
@@ -448,7 +457,7 @@ class ConfigService {
 	 * @param bool $enabled Whether push notifications should be enabled
 	 */
 	public function setPushEnabled(bool $enabled): void {
-		$this->config->setAppValue(self::APP_ID, 'push_enabled', $enabled ? 'yes' : 'no');
+		$this->appConfig->setValueString(self::APP_ID, 'push_enabled', $enabled ? 'yes' : 'no');
 	}
 
 	/**
@@ -459,7 +468,7 @@ class ConfigService {
 	 * @return bool True if booking is enabled
 	 */
 	public function isBookingEnabled(): bool {
-		return $this->config->getAppValue(self::APP_ID, 'booking_enabled', 'no') === 'yes';
+		return $this->appConfig->getValueString(self::APP_ID, 'booking_enabled', 'no') === 'yes';
 	}
 
 	/**
@@ -468,7 +477,7 @@ class ConfigService {
 	 * @param bool $enabled Whether booking should be enabled
 	 */
 	public function setBookingEnabled(bool $enabled): void {
-		$this->config->setAppValue(self::APP_ID, 'booking_enabled', $enabled ? 'yes' : 'no');
+		$this->appConfig->setValueString(self::APP_ID, 'booking_enabled', $enabled ? 'yes' : 'no');
 	}
 
 	/**
@@ -507,13 +516,13 @@ class ConfigService {
 	 * The window always closes at the appointment end.
 	 */
 	public function getSelfCheckinWindowMinutes(): int {
-		$value = (int)$this->config->getAppValue(self::APP_ID, 'self_checkin_window_minutes', '30');
+		$value = (int)$this->appConfig->getValueString(self::APP_ID, 'self_checkin_window_minutes', '30');
 		return max(0, min(1440, $value));
 	}
 
 	public function setSelfCheckinWindowMinutes(int $minutes): void {
 		// No clamp here — the getter clamps, which also covers values set via occ.
-		$this->config->setAppValue(self::APP_ID, 'self_checkin_window_minutes', (string)$minutes);
+		$this->appConfig->setValueString(self::APP_ID, 'self_checkin_window_minutes', (string)$minutes);
 	}
 
 	/**
@@ -523,7 +532,7 @@ class ConfigService {
 	 * @return string The push proxy server URL
 	 */
 	public function getPushProxyServer(): string {
-		return $this->config->getAppValue(self::APP_ID, 'push_proxy_server', self::DEFAULT_PUSH_PROXY_SERVER);
+		return $this->appConfig->getValueString(self::APP_ID, 'push_proxy_server', self::DEFAULT_PUSH_PROXY_SERVER);
 	}
 
 	/**
@@ -532,7 +541,7 @@ class ConfigService {
 	 * @param string $url The push proxy server URL
 	 */
 	public function setPushProxyServer(string $url): void {
-		$this->config->setAppValue(self::APP_ID, 'push_proxy_server', $url);
+		$this->appConfig->setValueString(self::APP_ID, 'push_proxy_server', $url);
 	}
 
 	/**
@@ -541,7 +550,7 @@ class ConfigService {
 	 * @return bool True if the banner should be shown to users
 	 */
 	public function isMobileAppBannerEnabled(): bool {
-		return $this->config->getAppValue(self::APP_ID, 'mobile_app_banner_enabled', 'yes') === 'yes';
+		return $this->appConfig->getValueString(self::APP_ID, 'mobile_app_banner_enabled', 'yes') === 'yes';
 	}
 
 	/**
@@ -550,7 +559,7 @@ class ConfigService {
 	 * @param bool $enabled Whether the banner should be shown to users
 	 */
 	public function setMobileAppBannerEnabled(bool $enabled): void {
-		$this->config->setAppValue(self::APP_ID, 'mobile_app_banner_enabled', $enabled ? 'yes' : 'no');
+		$this->appConfig->setValueString(self::APP_ID, 'mobile_app_banner_enabled', $enabled ? 'yes' : 'no');
 	}
 
 	/**
@@ -570,9 +579,6 @@ class ConfigService {
 	 * Whether an admin has walked the setup wizard to its end. Only decides
 	 * which empty-instance hint admins get — the wizard stays reachable from
 	 * the admin settings either way.
-	 *
-	 * A new key, so it lives on the typed IAppConfig API; the older settings
-	 * around it stay on IConfig because downgrades still have to read them.
 	 */
 	public function isOnboardingCompleted(): bool {
 		return $this->appConfig->getValueBool(self::APP_ID, 'onboarding_completed');
@@ -588,7 +594,7 @@ class ConfigService {
 	 * @return string 'name_first' or 'date_first'
 	 */
 	public function getDisplayOrder(): string {
-		return $this->config->getAppValue(self::APP_ID, 'display_order', 'name_first');
+		return $this->appConfig->getValueString(self::APP_ID, 'display_order', 'name_first');
 	}
 
 	/**
@@ -600,7 +606,7 @@ class ConfigService {
 		if (!in_array($order, ['name_first', 'date_first'], true)) {
 			$order = 'name_first';
 		}
-		$this->config->setAppValue(self::APP_ID, 'display_order', $order);
+		$this->appConfig->setValueString(self::APP_ID, 'display_order', $order);
 	}
 
 	public const AUDIT_LOG_VISIBILITY_MANAGERS = 'managers';
@@ -615,11 +621,11 @@ class ConfigService {
 	 * When disabled, no events are recorded and no pushes fire.
 	 */
 	public function isAuditLogEnabled(): bool {
-		return $this->config->getAppValue(self::APP_ID, 'audit_log_enabled', 'yes') === 'yes';
+		return $this->appConfig->getValueString(self::APP_ID, 'audit_log_enabled', 'yes') === 'yes';
 	}
 
 	public function setAuditLogEnabled(bool $enabled): void {
-		$this->config->setAppValue(self::APP_ID, 'audit_log_enabled', $enabled ? 'yes' : 'no');
+		$this->appConfig->setValueString(self::APP_ID, 'audit_log_enabled', $enabled ? 'yes' : 'no');
 	}
 
 	/**
@@ -628,7 +634,7 @@ class ConfigService {
 	 * to anyone who can already see the response summary.
 	 */
 	public function getAuditLogVisibility(): string {
-		$value = $this->config->getAppValue(self::APP_ID, 'audit_log_visibility', self::AUDIT_LOG_VISIBILITY_MANAGERS);
+		$value = $this->appConfig->getValueString(self::APP_ID, 'audit_log_visibility', self::AUDIT_LOG_VISIBILITY_MANAGERS);
 		if (!in_array($value, self::VALID_AUDIT_LOG_VISIBILITIES, true)) {
 			return self::AUDIT_LOG_VISIBILITY_MANAGERS;
 		}
@@ -639,7 +645,7 @@ class ConfigService {
 		if (!in_array($visibility, self::VALID_AUDIT_LOG_VISIBILITIES, true)) {
 			$visibility = self::AUDIT_LOG_VISIBILITY_MANAGERS;
 		}
-		$this->config->setAppValue(self::APP_ID, 'audit_log_visibility', $visibility);
+		$this->appConfig->setValueString(self::APP_ID, 'audit_log_visibility', $visibility);
 	}
 
 	/**
@@ -665,14 +671,15 @@ class ConfigService {
 	 * @return list<string> List of duration strings (e.g. ['P1D', 'PT1H'])
 	 */
 	public function getUserIcalReminderTriggers(string $userId): array {
-		$json = $this->config->getUserValue($userId, self::APP_ID, 'ical_reminder_triggers', '["PT1H"]');
+		$json = $this->userConfig->getValueString($userId, self::APP_ID, 'ical_reminder_triggers', '["PT1H"]');
 		$values = json_decode($json, true);
 		if (!is_array($values)) {
 			return ['PT1H'];
 		}
-		return array_values(array_filter($values, function (string $v): bool {
-			return in_array($v, self::ALLOWED_ICAL_TRIGGERS, true);
-		}));
+		return array_values(array_filter(
+			$values,
+			fn (mixed $v): bool => is_string($v) && in_array($v, self::ALLOWED_ICAL_TRIGGERS, true),
+		));
 	}
 
 	/**
@@ -685,7 +692,7 @@ class ConfigService {
 		$filtered = array_values(array_unique(array_filter($values, function (string $v): bool {
 			return in_array($v, self::ALLOWED_ICAL_TRIGGERS, true);
 		})));
-		$this->config->setUserValue($userId, self::APP_ID, 'ical_reminder_triggers', json_encode($filtered));
+		$this->userConfig->setValueString($userId, self::APP_ID, 'ical_reminder_triggers', json_encode($filtered, JSON_THROW_ON_ERROR));
 	}
 
 	/**
@@ -693,11 +700,11 @@ class ConfigService {
 	 * so users only receive these notifications after explicitly enabling them.
 	 */
 	public function wantsResponseChangeNotifications(string $userId): bool {
-		return $this->config->getUserValue($userId, self::APP_ID, 'notify_response_changes', 'no') === 'yes';
+		return $this->userConfig->getValueString($userId, self::APP_ID, 'notify_response_changes', 'no') === 'yes';
 	}
 
 	public function setWantsResponseChangeNotifications(string $userId, bool $enabled): void {
-		$this->config->setUserValue($userId, self::APP_ID, 'notify_response_changes', $enabled ? 'yes' : 'no');
+		$this->userConfig->setValueString($userId, self::APP_ID, 'notify_response_changes', $enabled ? 'yes' : 'no');
 	}
 
 	/**

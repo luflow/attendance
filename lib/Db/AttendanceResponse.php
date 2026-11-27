@@ -16,18 +16,18 @@ use OCP\AppFramework\Db\Entity;
  * @method void setUserId(string $userId)
  * @method string|null getResponse()
  * @method void setResponse(?string $response)
- * @method string getComment()
- * @method void setComment(string $comment)
- * @method string getRespondedAt()
- * @method void setRespondedAt(string $respondedAt)
- * @method string getCheckinState()
- * @method void setCheckinState(string $checkinState)
- * @method string getCheckinComment()
- * @method void setCheckinComment(string $checkinComment)
- * @method string getCheckinBy()
- * @method void setCheckinBy(string $checkinBy)
- * @method string getCheckinAt()
- * @method void setCheckinAt(string $checkinAt)
+ * @method string|null getComment()
+ * @method void setComment(?string $comment)
+ * @method string|null getRespondedAt()
+ * @method void setRespondedAt(?string $respondedAt)
+ * @method string|null getCheckinState()
+ * @method void setCheckinState(?string $checkinState)
+ * @method string|null getCheckinComment()
+ * @method void setCheckinComment(?string $checkinComment)
+ * @method string|null getCheckinBy()
+ * @method void setCheckinBy(?string $checkinBy)
+ * @method string|null getCheckinAt()
+ * @method void setCheckinAt(?string $checkinAt)
  * @method string|null getResponseSource()
  * @method void setResponseSource(?string $responseSource)
  * @method string|null getCheckinSource()
@@ -47,23 +47,23 @@ use OCP\AppFramework\Db\Entity;
  */
 class AttendanceResponse extends Entity implements JsonSerializable {
 	use DatetimeFormatTrait;
-	protected $appointmentId = 0;
-	protected $userId = '';
-	protected $response = '';
-	protected $comment = '';
-	protected $respondedAt = '';
-	protected $checkinState = '';
-	protected $checkinComment = '';
-	protected $checkinBy = '';
-	protected $checkinAt = '';
-	protected $responseSource = null;
-	protected $checkinSource = null;
-	protected $bookingStatus = null;
-	protected $bookingNotifiedStatus = null;
-	protected $bookingNotifiedAt = null;
-	protected $spotClaimedAt = null;
-	protected $waitlistNotifiedStatus = null;
-	protected $waitlistNotifiedAt = null;
+	protected int $appointmentId = 0;
+	protected string $userId = '';
+	protected ?string $response = '';
+	protected ?string $comment = '';
+	protected ?string $respondedAt = '';
+	protected ?string $checkinState = '';
+	protected ?string $checkinComment = '';
+	protected ?string $checkinBy = '';
+	protected ?string $checkinAt = '';
+	protected ?string $responseSource = null;
+	protected ?string $checkinSource = null;
+	protected ?string $bookingStatus = null;
+	protected ?string $bookingNotifiedStatus = null;
+	protected ?string $bookingNotifiedAt = null;
+	protected ?string $spotClaimedAt = null;
+	protected ?string $waitlistNotifiedStatus = null;
+	protected ?string $waitlistNotifiedAt = null;
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -86,6 +86,10 @@ class AttendanceResponse extends Entity implements JsonSerializable {
 		$this->addType('waitlistNotifiedAt', 'string');
 	}
 
+	/**
+	 * @return array{id: int, appointmentId: int, userId: string, response: ?string, comment: ?string, respondedAt: ?string, checkinState: ?string, checkinComment: ?string, checkinBy: ?string, checkinAt: ?string, isCheckedIn: bool, responseSource: ?string, checkinSource: ?string, bookingStatus: ?string}
+	 */
+	#[\Override]
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->getId(),
@@ -109,7 +113,8 @@ class AttendanceResponse extends Entity implements JsonSerializable {
 	 * Check if this response has been checked in by an admin
 	 */
 	public function isCheckedIn(): bool {
-		return !empty($this->getCheckinState());
+		$state = $this->getCheckinState();
+		return $state !== null && $state !== '';
 	}
 
 }

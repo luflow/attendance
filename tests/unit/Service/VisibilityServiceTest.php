@@ -205,7 +205,7 @@ class VisibilityServiceTest extends TestCase {
 		$choir->method('getUsers')->willReturn(['alice' => $alice, 'bob' => $bob]);
 		$this->groupManager->method('get')->willReturn($choir);
 		$this->userManager->method('get')->willReturnMap([['alice', $alice], ['bob', $bob]]);
-		$this->userManager->method('search')->willReturn([$alice, $bob]);
+		$this->userManager->method('searchDisplayName')->willReturn([$alice, $bob]);
 		$this->userManager->method('getDisabledUsers')->willReturn([$bob]);
 
 		$service = $this->partialMock(['getTeamMembers']);
@@ -232,7 +232,7 @@ class VisibilityServiceTest extends TestCase {
 	public function testInstanceWideLookupsRunOncePerRequest(): void {
 		$alice = $this->createMock(IUser::class);
 		$alice->method('getUID')->willReturn('alice');
-		$this->userManager->expects($this->once())->method('search')->with('')->willReturn([$alice]);
+		$this->userManager->expects($this->once())->method('searchDisplayName')->with('')->willReturn([$alice]);
 		$choir = $this->createMock(IGroup::class);
 		$choir->method('getGID')->willReturn('choir');
 		$this->groupManager->expects($this->once())->method('search')->with('')->willReturn([$choir]);
@@ -247,6 +247,20 @@ class VisibilityServiceTest extends TestCase {
 		$this->assertSame(['alice' => $alice], $service->getRelevantUsersForAppointment(clone $open));
 		$this->assertSame(['choir'], $service->getAllGroupIds());
 		$this->assertSame(['choir'], $service->getAllGroupIds());
+	}
+
+	public function testAllEnabledUsersKeepUidOrder(): void {
+		$zoe = $this->createMock(IUser::class);
+		$zoe->method('getUID')->willReturn('zoe');
+		$adam = $this->createMock(IUser::class);
+		$adam->method('getUID')->willReturn('Adam');
+		// searchDisplayName() orders by display name, not by UID.
+		$this->userManager->method('searchDisplayName')->with('')->willReturn([$zoe, $adam]);
+		$this->userManager->method('getDisabledUsers')->willReturn([]);
+
+		$service = $this->partialMock(['getTeamMembers']);
+
+		$this->assertSame(['Adam', 'zoe'], array_keys($service->getAllEnabledUsers()));
 	}
 
 	public function testEnrichAudienceLabelsWhatItKnowsAndFallsBackToTheId(): void {

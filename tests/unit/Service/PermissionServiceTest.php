@@ -8,7 +8,6 @@ use OCA\Attendance\Db\Appointment;
 use OCA\Attendance\Service\GuestService;
 use OCA\Attendance\Service\PermissionService;
 use OCP\IAppConfig;
-use OCP\IConfig;
 use OCP\IGroup;
 use OCP\IGroupManager;
 use OCP\IUser;
@@ -18,9 +17,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class PermissionServiceTest extends TestCase {
-	/** @var IConfig|MockObject */
-	private $config;
-
 	/** @var IAppConfig|MockObject */
 	private $appConfig;
 
@@ -39,7 +35,6 @@ class PermissionServiceTest extends TestCase {
 	private PermissionService $service;
 
 	protected function setUp(): void {
-		$this->config = $this->createMock(IConfig::class);
 		$this->appConfig = $this->createMock(IAppConfig::class);
 		$this->groupManager = $this->createMock(IGroupManager::class);
 		$this->userSession = $this->createMock(IUserSession::class);
@@ -47,7 +42,6 @@ class PermissionServiceTest extends TestCase {
 		$this->guestService = $this->createMock(GuestService::class);
 
 		$this->service = new PermissionService(
-			$this->config,
 			$this->appConfig,
 			$this->groupManager,
 			$this->userSession,
@@ -57,16 +51,17 @@ class PermissionServiceTest extends TestCase {
 	}
 
 	/**
-	 * Stub app config values by key: group lists live on IConfig, the
-	 * `*_mode` keys on IAppConfig. Unknown keys return their default, so
+	 * Stub app config values by key, as stored: group lists are JSON arrays,
+	 * the `*_mode` keys strings. Unknown keys return their default, so
 	 * unset mode keys exercise the legacy fallback exactly like an
 	 * un-migrated install.
 	 */
 	private function configValues(array $values): void {
-		$this->config->method('getAppValue')
-			->willReturnCallback(
-				fn (string $app, string $key, string $default = '') => $values[$key] ?? $default,
-			);
+		$this->appConfig->method('getValueArray')
+			->willReturnCallback(function (string $app, string $key, array $default = []) use ($values): array {
+				$decoded = isset($values[$key]) ? json_decode($values[$key], true) : $default;
+				return is_array($decoded) ? $decoded : [];
+			});
 		$this->appConfig->method('getValueString')
 			->willReturnCallback(
 				fn (string $app, string $key, string $default = '') => $values[$key] ?? $default,
@@ -96,9 +91,9 @@ class PermissionServiceTest extends TestCase {
 	}
 
 	public function testSetRolesForPermission(): void {
-		$this->config->expects($this->once())
-			->method('setAppValue')
-			->with('attendance', 'permission_manage_appointments', '["admin","managers"]');
+		$this->appConfig->expects($this->once())
+			->method('setValueArray')
+			->with('attendance', 'permission_manage_appointments', ['admin', 'managers']);
 
 		$this->service->setRolesForPermission(
 			PermissionService::PERMISSION_MANAGE_APPOINTMENTS,
@@ -158,9 +153,10 @@ class PermissionServiceTest extends TestCase {
 
 	public function testSetPermissionWritesModeAndGroups(): void {
 		$written = [];
-		$this->config->method('setAppValue')
-			->willReturnCallback(function (string $app, string $key, string $value) use (&$written): void {
-				$written[$key] = $value;
+		$this->appConfig->method('setValueArray')
+			->willReturnCallback(function (string $app, string $key, array $value) use (&$written): bool {
+				$written[$key] = json_encode($value);
+				return true;
 			});
 		$this->appConfig->method('setValueString')
 			->willReturnCallback(function (string $app, string $key, string $value) use (&$written): bool {
@@ -372,7 +368,7 @@ class PermissionServiceTest extends TestCase {
 
 		// Guest hard-block runs before role lookup; config and userManager
 		// must not be consulted at all.
-		$this->config->expects($this->never())->method('getAppValue');
+		$this->appConfig->expects($this->never())->method('getValueArray');
 		$this->userManager->expects($this->never())->method('get');
 
 		$this->assertFalse(
@@ -422,7 +418,7 @@ class PermissionServiceTest extends TestCase {
 			->with('guestuser')
 			->willReturn(true);
 
-		$this->config->expects($this->never())->method('getAppValue');
+		$this->appConfig->expects($this->never())->method('getValueArray');
 
 		$this->assertFalse(
 			$this->service->hasPermission('guestuser', PermissionService::PERMISSION_MANAGE_APPOINTMENTS),
@@ -431,9 +427,10 @@ class PermissionServiceTest extends TestCase {
 
 	public function testSetAllPermissionSettingsExplicitShape(): void {
 		$written = [];
-		$this->config->method('setAppValue')
-			->willReturnCallback(function (string $app, string $key, string $value) use (&$written): void {
-				$written[$key] = $value;
+		$this->appConfig->method('setValueArray')
+			->willReturnCallback(function (string $app, string $key, array $value) use (&$written): bool {
+				$written[$key] = json_encode($value);
+				return true;
 			});
 		$this->appConfig->method('setValueString')
 			->willReturnCallback(function (string $app, string $key, string $value) use (&$written): bool {
@@ -456,9 +453,10 @@ class PermissionServiceTest extends TestCase {
 
 	public function testSetAllPermissionSettingsLegacyListShape(): void {
 		$written = [];
-		$this->config->method('setAppValue')
-			->willReturnCallback(function (string $app, string $key, string $value) use (&$written): void {
-				$written[$key] = $value;
+		$this->appConfig->method('setValueArray')
+			->willReturnCallback(function (string $app, string $key, array $value) use (&$written): bool {
+				$written[$key] = json_encode($value);
+				return true;
 			});
 		$this->appConfig->method('setValueString')
 			->willReturnCallback(function (string $app, string $key, string $value) use (&$written): bool {
@@ -481,7 +479,7 @@ class PermissionServiceTest extends TestCase {
 	}
 
 	public function testSetAllPermissionSettingsIgnoresUnknownPermission(): void {
-		$this->config->expects($this->never())->method('setAppValue');
+		$this->appConfig->expects($this->never())->method('setValueArray');
 		$this->appConfig->expects($this->never())->method('setValueString');
 
 		$this->service->setAllPermissionSettings([
@@ -493,7 +491,7 @@ class PermissionServiceTest extends TestCase {
 
 	public function testGetUsersWithNobodyReturnsEmpty(): void {
 		$this->configValues(['permission_checkin_mode' => 'nobody']);
-		$this->userManager->expects($this->never())->method('search');
+		$this->userManager->expects($this->never())->method('searchDisplayName');
 
 		$this->assertSame([], $this->service->getUsersWith(PermissionService::PERMISSION_CHECKIN));
 	}
@@ -502,7 +500,7 @@ class PermissionServiceTest extends TestCase {
 		$this->configValues(['permission_checkin_mode' => 'all']);
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('alice');
-		$this->userManager->expects($this->once())->method('search')->with('')->willReturn([$user]);
+		$this->userManager->expects($this->once())->method('searchDisplayName')->with('')->willReturn([$user]);
 
 		$this->assertSame(['alice'], $this->service->getUsersWith(PermissionService::PERMISSION_CHECKIN));
 	}
@@ -517,7 +515,7 @@ class PermissionServiceTest extends TestCase {
 		$group = $this->createMock(IGroup::class);
 		$group->method('getUsers')->willReturn([$member]);
 		$this->groupManager->method('get')->with('staff')->willReturn($group);
-		$this->userManager->expects($this->never())->method('search');
+		$this->userManager->expects($this->never())->method('searchDisplayName');
 
 		$this->assertSame(['bob'], $this->service->getUsersWith(PermissionService::PERMISSION_CHECKIN));
 	}
@@ -606,7 +604,7 @@ class PermissionServiceTest extends TestCase {
 		$this->guestService->method('isGuestUser')->with('guestuser')->willReturn(true);
 		// Guest hard-block runs before the role lookup, even when the guest
 		// group was accidentally whitelisted.
-		$this->config->expects($this->never())->method('getAppValue');
+		$this->appConfig->expects($this->never())->method('getValueArray');
 
 		$this->assertFalse($this->service->canRespondForOthers('guestuser'));
 	}
@@ -803,9 +801,10 @@ class PermissionServiceTest extends TestCase {
 				$written[$key] = $value;
 				return true;
 			});
-		$this->config->method('setAppValue')
-			->willReturnCallback(function (string $app, string $key, string $value) use (&$written): void {
-				$written[$key] = $value;
+		$this->appConfig->method('setValueArray')
+			->willReturnCallback(function (string $app, string $key, array $value) use (&$written): bool {
+				$written[$key] = json_encode($value);
+				return true;
 			});
 
 		$this->service->forgetSeeAllCategory(3);

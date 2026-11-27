@@ -18,7 +18,6 @@ use OCA\Attendance\Service\VisibilityService;
 use OCP\App\IAppManager;
 use OCP\AppFramework\Http;
 use OCP\BackgroundJob\IJobList;
-use OCP\IConfig;
 use OCP\IRequest;
 use OCP\IUser;
 use OCP\IUserSession;
@@ -54,7 +53,6 @@ class AdminControllerTest extends TestCase {
 			$this->createMock(IRequest::class),
 			$userSession,
 			$permissionService,
-			$this->createMock(IConfig::class),
 			$this->createMock(IAppManager::class),
 			$this->configService,
 			$this->createMock(VisibilityService::class),
@@ -111,6 +109,18 @@ class AdminControllerTest extends TestCase {
 			->with(true);
 
 		$response = $this->controller->saveSettings(hideAccountEmail: true);
+
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+	}
+
+	/** ConfigService owns the stored format; a second writer would collide with its typed keys. */
+	public function testReminderSettingsAreStoredThroughConfigService(): void {
+		$reminders = ['enabled' => true, 'reminderDays' => 3, 'reminderFrequency' => 1, 'reminderTarget' => 'maybe'];
+		$this->configService->expects($this->once())
+			->method('setReminderSettings')
+			->with($reminders);
+
+		$response = $this->controller->saveSettings(reminders: $reminders);
 
 		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}

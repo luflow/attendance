@@ -25,12 +25,12 @@ use OCP\AppFramework\Db\Entity;
  */
 class AppointmentAttachment extends Entity implements JsonSerializable {
 	use DatetimeFormatTrait;
-	protected $appointmentId;
-	protected $fileId;
-	protected $fileName = '';
-	protected $filePath = '';
-	protected $addedBy = '';
-	protected $addedAt = '';
+	protected int $appointmentId = 0;
+	protected int $fileId = 0;
+	protected string $fileName = '';
+	protected string $filePath = '';
+	protected string $addedBy = '';
+	protected string $addedAt = '';
 
 	public function __construct() {
 		$this->addType('id', 'integer');
@@ -42,6 +42,7 @@ class AppointmentAttachment extends Entity implements JsonSerializable {
 		$this->addType('addedAt', 'string');
 	}
 
+	#[\Override]
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->getId(),

@@ -17,18 +17,22 @@ class PersonalSection implements IIconSection {
 		$this->urlGenerator = $urlGenerator;
 	}
 
+	#[\Override]
 	public function getID(): string {
 		return 'attendance';
 	}
 
+	#[\Override]
 	public function getName(): string {
 		return $this->l->t('Attendance');
 	}
 
+	#[\Override]
 	public function getPriority(): int {
 		return 75;
 	}
 
+	#[\Override]
 	public function getIcon(): string {
 		return $this->urlGenerator->imagePath('attendance', 'app-dark.svg');
 	}

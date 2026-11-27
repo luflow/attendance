@@ -162,6 +162,6 @@ class QuickResponseTokenService {
 	 * Get the secret key for token generation.
 	 */
 	private function getSecret(): string {
-		return $this->config->getSystemValue('secret', '');
+		return $this->config->getSystemValueString('secret', '');
 	}
 }

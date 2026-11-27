@@ -6,14 +6,12 @@ namespace OCA\Attendance\Service;
 
 use OCA\Attendance\Db\Appointment;
 use OCP\IAppConfig;
-use OCP\IConfig;
 use OCP\IGroupManager;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\IUserSession;
 
 class PermissionService {
-	private IConfig $config;
 	private IAppConfig $appConfig;
 	private IGroupManager $groupManager;
 	private IUserSession $userSession;
@@ -105,14 +103,12 @@ class PermissionService {
 	];
 
 	public function __construct(
-		IConfig $config,
 		IAppConfig $appConfig,
 		IGroupManager $groupManager,
 		IUserSession $userSession,
 		IUserManager $userManager,
 		GuestService $guestService,
 	) {
-		$this->config = $config;
 		$this->appConfig = $appConfig;
 		$this->groupManager = $groupManager;
 		$this->userSession = $userSession;
@@ -130,12 +126,7 @@ class PermissionService {
 			return $this->rolesCache[$permission];
 		}
 
-		$rolesJson = $this->config->getAppValue('attendance', 'permission_' . $permission, '[]');
-		$roles = json_decode($rolesJson, true);
-		if (!is_array($roles)) {
-			return $this->rolesCache[$permission] = [];
-		}
-
+		$roles = $this->appConfig->getValueArray('attendance', 'permission_' . $permission);
 		return $this->rolesCache[$permission] = array_values(array_filter($roles, 'is_string'));
 	}
 
@@ -146,7 +137,7 @@ class PermissionService {
 	 */
 	public function setRolesForPermission(string $permission, array $roles): void {
 		$configKey = 'permission_' . $permission;
-		$this->config->setAppValue('attendance', $configKey, json_encode($roles, JSON_THROW_ON_ERROR));
+		$this->appConfig->setValueArray('attendance', $configKey, $roles);
 		$this->rolesCache[$permission] = $roles;
 		unset($this->usersWithCache[$permission]);
 		$this->permissionCache = [];
@@ -156,10 +147,6 @@ class PermissionService {
 	 * Get the access mode for a permission. With no mode stored, derive it
 	 * from the group list and the default policy — the same semantics the
 	 * pre-mode storage had, and what a brand-new permission starts with.
-	 *
-	 * The mode keys are new and live on the typed IAppConfig API; the group
-	 * lists predate it and stay on IConfig so older app versions keep
-	 * reading them after a downgrade.
 	 */
 	public function getModeForPermission(string $permission): string {
 		if (isset($this->modeCache[$permission])) {
@@ -563,8 +550,8 @@ class PermissionService {
 	 * permission's mode (all users, configured groups, or nobody).
 	 *
 	 * Cached per request — on a large instance the "all" mode walks every
-	 * user via userManager->search(''), so the per-event audit-notification
-	 * listener must not pay that cost N times.
+	 * user via userManager->searchDisplayName(''), so the per-event
+	 * audit-notification listener must not pay that cost N times.
 	 *
 	 * @return list<string>
 	 */
@@ -582,7 +569,7 @@ class PermissionService {
 		$userIds = [];
 
 		$candidates = $mode === self::MODE_ALL
-			? $this->userManager->search('')
+			? $this->userManager->searchDisplayName('')
 			: $this->collectGroupMembers($this->getRolesForPermission($permission));
 
 		foreach ($candidates as $user) {

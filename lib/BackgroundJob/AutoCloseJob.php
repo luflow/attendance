@@ -43,7 +43,8 @@ class AutoCloseJob extends TimedJob {
 		$this->setInterval(self::INTERVAL);
 	}
 
-	protected function run($argument): void {
+	#[\Override]
+	protected function run(mixed $argument): void {
 		$now = gmdate('Y-m-d H:i:s');
 		$dueIds = $this->appointmentMapper->findDueForAutoClose($now);
 		if (empty($dueIds)) {

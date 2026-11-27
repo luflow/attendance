@@ -26,12 +26,12 @@ use OCP\AppFramework\Db\Entity;
  * @method void setUpdatedAt(string $updatedAt)
  * @method int getIsActive()
  * @method void setIsActive(int $isActive)
- * @method string getVisibleUsers()
- * @method void setVisibleUsers(string $visibleUsers)
- * @method string getVisibleGroups()
- * @method void setVisibleGroups(string $visibleGroups)
- * @method string getVisibleTeams()
- * @method void setVisibleTeams(string $visibleTeams)
+ * @method string|null getVisibleUsers()
+ * @method void setVisibleUsers(?string $visibleUsers)
+ * @method string|null getVisibleGroups()
+ * @method void setVisibleGroups(?string $visibleGroups)
+ * @method string|null getVisibleTeams()
+ * @method void setVisibleTeams(?string $visibleTeams)
  * @method string|null getOrganizers()
  * @method string|null getCalendarUri()
  * @method void setCalendarUri(?string $calendarUri)
@@ -42,7 +42,7 @@ use OCP\AppFramework\Db\Entity;
  * @method void setSeriesId(?string $seriesId)
  * @method int|null getSeriesPosition()
  * @method void setSeriesPosition(?int $seriesPosition)
- * @method bool getSendNotification()
+ * @method bool|null getSendNotification()
  * @method void setSendNotification(bool $sendNotification)
  * @method string|null getClosedAt()
  * @method void setClosedAt(?string $closedAt)
@@ -69,35 +69,35 @@ use OCP\AppFramework\Db\Entity;
  */
 class Appointment extends Entity implements JsonSerializable {
 	use DatetimeFormatTrait;
-	protected $name = '';
-	protected $description = '';
-	protected $startDatetime = '';
-	protected $endDatetime = '';
-	protected $createdBy = '';
-	protected $createdAt = '';
-	protected $updatedAt = '';
-	protected $isActive = 1;
-	protected $visibleUsers = null;
-	protected $visibleGroups = null;
-	protected $visibleTeams = null;
-	protected $organizers = null;
-	protected $calendarUri = null;
-	protected $calendarEventUid = null;
+	protected string $name = '';
+	protected ?string $description = '';
+	protected string $startDatetime = '';
+	protected string $endDatetime = '';
+	protected string $createdBy = '';
+	protected string $createdAt = '';
+	protected string $updatedAt = '';
+	protected int $isActive = 1;
+	protected ?string $visibleUsers = null;
+	protected ?string $visibleGroups = null;
+	protected ?string $visibleTeams = null;
+	protected ?string $organizers = null;
+	protected ?string $calendarUri = null;
+	protected ?string $calendarEventUid = null;
 	protected ?int $calendarId = null;
-	protected $seriesId = null;
-	protected $seriesPosition = null;
-	protected $sendNotification = false;
-	protected $closedAt = null;
-	protected $cancelledAt = null;
+	protected ?string $seriesId = null;
+	protected ?int $seriesPosition = null;
+	protected ?bool $sendNotification = false;
+	protected ?string $closedAt = null;
+	protected ?string $cancelledAt = null;
 	protected ?string $cancelReason = null;
-	protected $responseDeadline = null;
-	protected $location = null;
-	protected $categoryId = null;
-	protected $createTalkRoom = false;
-	protected $talkRoomToken = null;
-	protected $allowMaybe = null;
-	protected $maxAttendees = null;
-	protected $waitlistEnabled = true;
+	protected ?string $responseDeadline = null;
+	protected ?string $location = null;
+	protected ?int $categoryId = null;
+	protected ?bool $createTalkRoom = false;
+	protected ?string $talkRoomToken = null;
+	protected ?bool $allowMaybe = null;
+	protected ?int $maxAttendees = null;
+	protected ?bool $waitlistEnabled = true;
 	protected ?bool $allDay = false;
 
 	public function __construct() {
@@ -134,6 +134,7 @@ class Appointment extends Entity implements JsonSerializable {
 		$this->addType('allDay', 'boolean');
 	}
 
+	#[\Override]
 	public function jsonSerialize(): array {
 		return [
 			'id' => $this->getId(),
@@ -189,7 +190,11 @@ class Appointment extends Entity implements JsonSerializable {
 	 */
 	public function getOrganizersList(): array {
 		return $this->organizersListCache
-			??= array_values(array_map('strval', $this->parseJsonField($this->getOrganizers())));
+			// Numeric user IDs come back as JSON numbers (normalizeOrganizers() uses array_keys()).
+			??= array_values(array_map(
+				static fn (mixed $id): string => is_scalar($id) ? (string)$id : '',
+				$this->parseJsonField($this->getOrganizers()),
+			));
 	}
 
 	/** Calendar the linked event lives in; the sync matches by it, NULL means no sync. */
@@ -294,7 +299,10 @@ class Appointment extends Entity implements JsonSerializable {
 			return [];
 		}
 		$decoded = json_decode($field, true);
-		return is_array($decoded) ? $decoded : [];
+		if (!is_array($decoded)) {
+			return [];
+		}
+		return $decoded;
 	}
 
 }

@@ -638,9 +638,7 @@ class TalkRoomService {
 			if (!class_exists($class)) {
 				return null;
 			}
-			$instance = $this->container->get($class);
-
-			return $instance instanceof $class ? $instance : null;
+			return self::instanceOrNull($this->container->get($class), $class);
 		} catch (\Throwable $e) {
 			$this->logger->warning('Resolving a Talk service failed', [
 				'app' => 'attendance',
@@ -649,5 +647,14 @@ class TalkRoomService {
 			]);
 			return null;
 		}
+	}
+
+	/**
+	 * @template T of object
+	 * @param class-string<T> $class
+	 * @return ?T
+	 */
+	private static function instanceOrNull(mixed $value, string $class): ?object {
+		return $value instanceof $class ? $value : null;
 	}
 }

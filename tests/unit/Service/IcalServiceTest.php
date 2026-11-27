@@ -103,6 +103,7 @@ class IcalServiceTest extends TestCase {
 			$urlGenerator,
 			$l10nFactory,
 			$this->createMock(IConfig::class),
+			$this->createMock(IUserConfig::class),
 			$this->categoryMapper,
 			// Real again: whether a yes holds a spot is what decides the title and
 			// the busy flag, and it only reads the queue it is handed.
