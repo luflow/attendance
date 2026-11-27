@@ -147,9 +147,7 @@ function showExportDialog() {
 	exportDialogVisible.value = true
 }
 
-async function submitResponse(appointmentId, response, acceptWaitlist = false, givenComment) {
-	const comment = givenComment ?? (appointment.value.userResponse?.comment || '')
-
+async function submitResponse(appointmentId, response, acceptWaitlist = false, comment = '') {
 	if (response === null) {
 		appointment.value.userResponse = null
 	} else {

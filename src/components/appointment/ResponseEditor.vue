@@ -93,7 +93,7 @@ import HelpCircle from 'vue-material-design-icons/HelpCircle.vue'
 import { useAppointmentResponse, useResponseCooldown } from '../../composables/useAppointmentResponse.js'
 import { usePermissions } from '../../composables/usePermissions.js'
 import { formatDateTime } from '../../utils/datetime.js'
-import { getResponseIcon, getResponseText, getResponseVariant, RESPONSE_ORDER } from '../../utils/response.js'
+import { getResponseIcon, getResponseText, getResponseVariant, RESPONSE_ORDER, RESPONSES } from '../../utils/response.js'
 
 const props = defineProps({
 	appointmentId: {
@@ -144,8 +144,8 @@ const props = defineProps({
 	},
 })
 
-// (appointmentId, response, acceptWaitlist, comment?) — without a comment the
-// parent keeps the one on record.
+// (appointmentId, response, acceptWaitlist, comment) — the endpoint stores answer
+// and comment together, so the comment on record always rides along.
 const emit = defineEmits(['submitResponse'])
 
 const { capabilities } = usePermissions()
@@ -196,7 +196,7 @@ const formattedDeadline = computed(() => (props.responseDeadline ? formatDateTim
 const { responseCooldown, resolveNext, startCooldown } = useResponseCooldown(() => props.userResponse)
 
 function needsReason(response) {
-	return capabilities.commentRequiredForDecline && (response === 'no' || response === 'maybe')
+	return capabilities.commentRequiredForDecline && (response === RESPONSES.NO || response === RESPONSES.MAYBE)
 }
 
 // A no or maybe held back until its reason is typed; Save then sends both.
@@ -247,29 +247,16 @@ function handleResponse(response) {
 	if (responseCooldown.value) return
 	startCooldown()
 	const next = resolveNext(response)
-	pendingResponse.value = null
 	reasonRequested.value = false
-	if (needsReason(next)) {
-		if (localComment.value.trim() === '') {
-			askForReason(next)
-			return
-		}
-		savedComment.value = localComment.value
-		emit('submitResponse', props.appointmentId, next, false, localComment.value)
+	pendingResponse.value = needsReason(next) ? next : null
+	if (pendingResponse.value) {
+		saveComment()
 		return
 	}
 	// Only a click on the button that says "Join waitlist" carries the intent.
 	// Without it a yes on an appointment that filled up since the page loaded is
 	// refused, rather than quietly turning into a place in line.
-	emit('submitResponse', props.appointmentId, next, next === 'yes' && joiningWaitlist.value)
-}
-
-async function askForReason(response) {
-	pendingResponse.value = response
-	reasonRequested.value = true
-	commentExpanded.value = true
-	await nextTick()
-	focusComment()
+	emit('submitResponse', props.appointmentId, next, next === 'yes' && joiningWaitlist.value, savedComment.value ?? props.comment ?? '')
 }
 
 // Adopt server state only while the field is untouched, so a background
@@ -282,8 +269,11 @@ watch(() => props.comment, (next) => {
 })
 
 async function saveComment() {
-	if ((pendingResponse.value || commentRequired.value) && localComment.value.trim() === '') {
+	if (commentRequired.value && localComment.value.trim() === '') {
 		reasonRequested.value = true
+		commentExpanded.value = true
+		await nextTick()
+		focusComment()
 		return
 	}
 	if (pendingResponse.value) {

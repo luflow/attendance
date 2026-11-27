@@ -41,12 +41,7 @@ class ResponsePolicyService {
 		return $appointment->getAllowMaybe() ?? $this->configService->isMaybeAllowed();
 	}
 
-	/**
-	 * Whether this answer has to come with a reason. Only the person's own
-	 * answer does: vacation auto-answers and organizers setting an answer for
-	 * somebody else are exempt, which is why they reach the policy without a
-	 * comment.
-	 */
+	/** Whether "No" and "Maybe" have to come with a reason (admin setting). */
 	public function isCommentRequired(?string $response): bool {
 		return ($response === 'no' || $response === 'maybe')
 			&& $this->configService->isCommentRequiredForDecline();
