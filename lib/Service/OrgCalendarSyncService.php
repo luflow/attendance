@@ -22,7 +22,7 @@ use Psr\Log\LoggerInterface;
  *
  * Direction app → calendar only lives here. The reverse direction (edits made
  * in the Calendar app) is covered by the existing CalendarObjectUpdateListener,
- * because pushed events are linked through the same calendarUri/calendarEventUid
+ * because pushed events are linked through the same calendarId/calendarEventUid
  * columns the import flow uses. The listener writes through the mapper (not this
  * service), so no push/echo loop can form; the listener echo of our own writes
  * is idempotent because the pushed DESCRIPTION is the plain appointment
@@ -191,7 +191,7 @@ class OrgCalendarSyncService {
 				$backend->createCalendarObject($calendarId, $objectUri, $this->buildIcs($appointment, $uid));
 			}
 
-			$this->linkAppointment($appointment, $uid, $ownerCalendarUri);
+			$this->linkAppointment($appointment, $uid, $ownerCalendarUri, $calendarId);
 
 			return true;
 		} catch (\Throwable $e) {
@@ -270,19 +270,18 @@ class OrgCalendarSyncService {
 	}
 
 	/**
-	 * Store the link with the owner's calendar URI — calendar events dispatched
-	 * by the server carry that URI, so the existing CalendarObjectUpdateListener
-	 * can match edits back to us. Also runs when the write itself was skipped:
-	 * the link is what makes an event ours, and a skipped write must not leave
-	 * it unset.
+	 * Runs even when the write was skipped: UID plus calendar ID, which the
+	 * listener matches on, are what make an event ours.
 	 */
-	private function linkAppointment(Appointment $appointment, string $uid, string $ownerCalendarUri): void {
+	private function linkAppointment(Appointment $appointment, string $uid, string $ownerCalendarUri, int $calendarId): void {
 		if ($appointment->getCalendarEventUid() === $uid
-			&& $appointment->getCalendarUri() === $ownerCalendarUri) {
+			&& $appointment->getCalendarUri() === $ownerCalendarUri
+			&& $appointment->getCalendarId() === $calendarId) {
 			return;
 		}
 		$appointment->setCalendarUri($ownerCalendarUri);
 		$appointment->setCalendarEventUid($uid);
+		$appointment->setCalendarId($calendarId);
 		$this->appointmentMapper->update($appointment);
 	}
 

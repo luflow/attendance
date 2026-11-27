@@ -96,6 +96,7 @@ OC.L10N.register(
     "Insert link" : "Уставіць спасылку",
     "Dismiss" : "Адхіліць",
     "Move {name} up" : "Перамясціць {name} уверх",
+    "Rate the app" : "Ацаніце праграму",
     "Comments" : "Каментарыі",
     "Categories" : "Катэгорыі",
     "Close" : "Закрыць",

@@ -14,7 +14,7 @@ use OCP\Migration\SimpleMigrationStep;
  * A user can hold a second feed token, for the organizer calendar. `personal`
  * is a snapshot of IcalToken::KIND_PERSONAL: every existing row is one.
  */
-final class Version000028Date20261127120000 extends SimpleMigrationStep {
+final class Version000029Date20261127120000 extends SimpleMigrationStep {
 	#[\Override]
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
 		$schema = $schemaClosure();

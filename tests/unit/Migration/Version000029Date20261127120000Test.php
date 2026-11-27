@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace OCA\Attendance\Tests\Unit\Migration;
 
 use Doctrine\DBAL\Schema\Table;
-use OCA\Attendance\Migration\Version000028Date20261127120000;
+use OCA\Attendance\Migration\Version000029Date20261127120000;
 use OCP\DB\ISchemaWrapper;
 use OCP\Migration\IOutput;
 use PHPUnit\Framework\TestCase;
 
-class Version000028Date20261127120000Test extends TestCase {
+class Version000029Date20261127120000Test extends TestCase {
 	/** The table as Version000004 created it. */
 	private function tokensTable(): Table {
 		$table = new Table('oc_att_ical_tokens');
@@ -28,7 +28,7 @@ class Version000028Date20261127120000Test extends TestCase {
 		$schema->method('hasTable')->with('att_ical_tokens')->willReturn(true);
 		$schema->method('getTable')->with('att_ical_tokens')->willReturn($table);
 
-		(new Version000028Date20261127120000())->changeSchema($this->createMock(IOutput::class), fn () => $schema, []);
+		(new Version000029Date20261127120000())->changeSchema($this->createMock(IOutput::class), fn () => $schema, []);
 	}
 
 	public function testAUserMayHoldOneTokenPerFeed(): void {
@@ -62,7 +62,7 @@ class Version000028Date20261127120000Test extends TestCase {
 		$schema->method('hasTable')->willReturn(false);
 		$schema->expects($this->never())->method('getTable');
 
-		$result = (new Version000028Date20261127120000())->changeSchema($this->createMock(IOutput::class), fn () => $schema, []);
+		$result = (new Version000029Date20261127120000())->changeSchema($this->createMock(IOutput::class), fn () => $schema, []);
 
 		$this->assertNull($result);
 	}

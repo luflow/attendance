@@ -17,6 +17,7 @@ use OCA\Attendance\Service\AppointmentService;
 use OCA\Attendance\Service\AttachmentService;
 use OCA\Attendance\Service\AuditEventService;
 use OCA\Attendance\Service\BookingService;
+use OCA\Attendance\Service\CalendarService;
 use OCA\Attendance\Service\CapacityService;
 use OCA\Attendance\Service\CheckinService;
 use OCA\Attendance\Service\ConfigService;
@@ -94,6 +95,8 @@ class AppointmentServiceTest extends TestCase {
 	private $vacationService;
 	/** @var CheckinService|MockObject */
 	private $checkinService;
+	/** @var CalendarService|MockObject */
+	private $calendarService;
 
 	private AppointmentService $service;
 
@@ -127,6 +130,7 @@ class AppointmentServiceTest extends TestCase {
 		$this->responsePolicyService = new ResponsePolicyService($this->configService, $this->capacityService, $this->visibilityService);
 		$this->vacationService = $this->createMock(VacationService::class);
 		$this->checkinService = $this->createMock(CheckinService::class);
+		$this->calendarService = $this->createMock(CalendarService::class);
 
 		$userConfig = $this->createMock(IUserConfig::class);
 		$userConfig->method('getValueString')->willReturn('Europe/Berlin');
@@ -155,7 +159,46 @@ class AppointmentServiceTest extends TestCase {
 			$this->vacationService,
 			$timezoneService,
 			$this->checkinService,
+			$this->calendarService,
 		);
+	}
+
+	public function testCreateAppointmentBindsImportToTheCreatorsCalendar(): void {
+		$this->calendarService->expects($this->once())
+			->method('findCalendarId')
+			->with('alice', 'personal')
+			->willReturn(42);
+		$this->appointmentMapper->expects($this->once())
+			->method('insert')
+			->with($this->callback(fn (Appointment $a): bool => $a->getCalendarId() === 42
+				&& $a->getCalendarUri() === 'personal'
+				&& $a->getCalendarEventUid() === 'event-uid'))
+			->willReturnCallback($this->withId(...));
+
+		$this->service->createAppointment(
+			'Rehearsal', '', '2030-01-15T10:00:00Z', '2030-01-15T11:00:00Z', 'alice',
+			calendarUri: 'personal',
+			calendarEventUid: 'event-uid',
+		);
+	}
+
+	public function testCreateAppointmentLeavesAnUnresolvableCalendarUnbound(): void {
+		$this->calendarService->method('findCalendarId')->willReturn(null);
+		$this->appointmentMapper->expects($this->once())
+			->method('insert')
+			->with($this->callback(fn (Appointment $a): bool => $a->getCalendarId() === null))
+			->willReturnCallback($this->withId(...));
+
+		$this->service->createAppointment(
+			'Rehearsal', '', '2030-01-15T10:00:00Z', '2030-01-15T11:00:00Z', 'alice',
+			calendarUri: 'not-mine',
+			calendarEventUid: 'event-uid',
+		);
+	}
+
+	private function withId(Appointment $appointment): Appointment {
+		$appointment->setId(1);
+		return $appointment;
 	}
 
 	public function testCreateAppointment(): void {
