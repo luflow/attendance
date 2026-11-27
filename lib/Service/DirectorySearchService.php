@@ -117,33 +117,26 @@ class DirectorySearchService {
 	 * @return list<AttendanceDirectoryEntry>
 	 */
 	private function formatCollaboratorResults(array $searchResult): array {
+		// Exact matches are nested by type and come first.
+		$exact = isset($searchResult['exact']) && is_array($searchResult['exact']) ? $searchResult['exact'] : [];
+		$items = [];
+		foreach ([$exact, $searchResult] as $source) {
+			foreach (['users', 'groups', 'circles'] as $category) {
+				$items = [...$items, ...$this->arraysIn($source[$category] ?? null)];
+			}
+		}
+
 		$results = [];
-		foreach (['exact', 'users', 'groups', 'circles'] as $category) {
-			$items = [];
+		foreach ($items as $item) {
+			$value = isset($item['value']) && is_array($item['value']) ? $item['value'] : [];
+			$type = $this->mapShareTypeToString(isset($value['shareType']) && is_int($value['shareType']) ? $value['shareType'] : null);
 
-			if ($category === 'exact') {
-				// Exact matches are nested by type
-				$exactMatches = $searchResult['exact'] ?? [];
-				foreach (['users', 'groups', 'circles'] as $subCategory) {
-					if (isset($exactMatches[$subCategory])) {
-						$items = array_merge($items, $exactMatches[$subCategory]);
-					}
-				}
-			} else {
-				$items = $searchResult[$category] ?? [];
+			if ($type === null) {
+				continue;
 			}
 
-			foreach ($items as $item) {
-				$shareType = $item['value']['shareType'] ?? null;
-				$type = $this->mapShareTypeToString($shareType);
-
-				if ($type === null) {
-					continue;
-				}
-
-				$id = (string)($item['value']['shareWith'] ?? $item['shareWith'] ?? '');
-				$results[] = $this->directoryEntry($type, $id, (string)($item['label'] ?? ''));
-			}
+			$id = (string)($value['shareWith'] ?? $item['shareWith'] ?? '');
+			$results[] = $this->directoryEntry($type, $id, (string)($item['label'] ?? ''));
 		}
 
 		$seen = [];
@@ -157,6 +150,13 @@ class DirectorySearchService {
 		}
 
 		return $uniqueResults;
+	}
+
+	/**
+	 * @return list<array<array-key, mixed>>
+	 */
+	private function arraysIn(mixed $value): array {
+		return is_array($value) ? array_values(array_filter($value, 'is_array')) : [];
 	}
 
 	private function mapShareTypeToString(?int $shareType): ?string {

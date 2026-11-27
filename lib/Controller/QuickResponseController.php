@@ -17,7 +17,7 @@ use OCP\AppFramework\Http\Attribute\OpenAPI;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\AppFramework\Http\TemplateResponse;
-use OCP\IInitialStateService;
+use OCP\AppFramework\Services\IInitialState;
 use OCP\IL10N;
 use OCP\IRequest;
 use OCP\IUserManager;
@@ -30,7 +30,7 @@ use Psr\Log\LoggerInterface;
 class QuickResponseController extends Controller {
 	private QuickResponseTokenService $tokenService;
 	private ResponseService $responseService;
-	private IInitialStateService $initialStateService;
+	private IInitialState $initialState;
 	private IL10N $l;
 	private IUserManager $userManager;
 	private LoggerInterface $logger;
@@ -42,7 +42,7 @@ class QuickResponseController extends Controller {
 		IRequest $request,
 		QuickResponseTokenService $tokenService,
 		ResponseService $responseService,
-		IInitialStateService $initialStateService,
+		IInitialState $initialState,
 		IL10N $l,
 		IUserManager $userManager,
 		LoggerInterface $logger,
@@ -52,7 +52,7 @@ class QuickResponseController extends Controller {
 		parent::__construct($appName, $request);
 		$this->tokenService = $tokenService;
 		$this->responseService = $responseService;
-		$this->initialStateService = $initialStateService;
+		$this->initialState = $initialState;
 		$this->l = $l;
 		$this->userManager = $userManager;
 		$this->logger = $logger;
@@ -80,8 +80,7 @@ class QuickResponseController extends Controller {
 		$validationResult = $this->validateQuickResponse($appointmentId, $response, $token, $userId);
 
 		if ($validationResult['error']) {
-			$this->initialStateService->provideInitialState(
-				Application::APP_ID,
+			$this->initialState->provideInitialState(
 				'quick-response-data',
 				$validationResult
 			);
@@ -99,8 +98,7 @@ class QuickResponseController extends Controller {
 		// Validation rejected a missing appointment, but via a separate lookup.
 		$appointment = $this->tokenService->getAppointment($appointmentId);
 		if ($appointment === null) {
-			$this->initialStateService->provideInitialState(
-				Application::APP_ID,
+			$this->initialState->provideInitialState(
 				'quick-response-data',
 				[
 					'error' => true,
@@ -140,8 +138,7 @@ class QuickResponseController extends Controller {
 			'userName' => $this->getUserDisplayName($userId),
 		];
 
-		$this->initialStateService->provideInitialState(
-			Application::APP_ID,
+		$this->initialState->provideInitialState(
 			'quick-response-data',
 			$data
 		);
@@ -175,18 +172,19 @@ class QuickResponseController extends Controller {
 		$validationResult = $this->validateQuickResponse($appointmentId, $response, $token, $userId);
 
 		if ($validationResult['error']) {
+			$errorMessage = $validationResult['errorMessage'] ?? '';
 			$this->tokenService->logQuickResponse(
 				$appointmentId,
 				$userId,
 				$response,
 				false,
-				$validationResult['errorMessage'],
+				$errorMessage,
 				$this->request->getRemoteAddress()
 			);
 
 			$errorResponse = new DataResponse([
 				'success' => false,
-				'message' => $validationResult['errorMessage'],
+				'message' => $errorMessage,
 			], 400);
 			$errorResponse->throttle();
 			return $errorResponse;

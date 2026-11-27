@@ -58,7 +58,7 @@ class VisibilityService {
 
 		// Try to get CirclesManager if the Circles app is available
 		try {
-			$this->teamsManager = $container->get(CirclesManager::class);
+			$this->teamsManager = self::circlesManagerOrNull($container->get(CirclesManager::class));
 		} catch (\Exception $e) {
 			// Circles app not available - this is fine, teams feature will be disabled
 			$this->teamsManager = null;
@@ -149,7 +149,7 @@ class VisibilityService {
 		if (!isset($this->userGroupIdsCache[$userId])) {
 			$user = $this->userManager->get($userId);
 			$this->userGroupIdsCache[$userId] = $user
-				? array_values($this->groupManager->getUserGroupIds($user))
+				? $this->groupManager->getUserGroupIds($user)
 				: [];
 		}
 		return $this->userGroupIdsCache[$userId];
@@ -240,11 +240,13 @@ class VisibilityService {
 	public function getAllEnabledUsers(): array {
 		if ($this->allUsers === null) {
 			$this->allUsers = [];
-			foreach ($this->userManager->search('') as $user) {
+			foreach ($this->userManager->searchDisplayName('') as $user) {
 				if (!$this->isDisabled($user->getUID())) {
 					$this->allUsers[$user->getUID()] = $user;
 				}
 			}
+			// Keep the UID order the deprecated search('') returned; lists render in it.
+			uasort($this->allUsers, static fn (\OCP\IUser $a, \OCP\IUser $b): int => strcasecmp($a->getUID(), $b->getUID()));
 		}
 		return $this->allUsers;
 	}
@@ -302,13 +304,13 @@ class VisibilityService {
 		$visibleGroups = $appointment->getVisibleGroups();
 		$visibleTeams = $appointment->getVisibleTeams();
 
-		$key = $visibleUsers . '|' . $visibleGroups . '|' . $visibleTeams;
+		$key = ($visibleUsers ?? '') . '|' . ($visibleGroups ?? '') . '|' . ($visibleTeams ?? '');
 		if (!isset($this->visibilitySettingsCache[$key])) {
 			/** @var array{users: array<string>, groups: array<string>, teams: array<string>} $settings */
 			$settings = [
-				'users' => $visibleUsers ? (json_decode($visibleUsers, true) ?: []) : [],
-				'groups' => $visibleGroups ? (json_decode($visibleGroups, true) ?: []) : [],
-				'teams' => $visibleTeams ? (json_decode($visibleTeams, true) ?: []) : [],
+				'users' => json_decode($visibleUsers ?? '', true) ?: [],
+				'groups' => json_decode($visibleGroups ?? '', true) ?: [],
+				'teams' => json_decode($visibleTeams ?? '', true) ?: [],
 			];
 			$this->visibilitySettingsCache[$key] = $settings;
 		}
@@ -323,7 +325,7 @@ class VisibilityService {
 	 */
 	public function hasRestrictedVisibility(Appointment $appointment): bool {
 		$settings = $this->getVisibilitySettings($appointment);
-		return !empty($settings['users']) || !empty($settings['groups']) || !empty($settings['teams']);
+		return $settings['users'] !== [] || $settings['groups'] !== [] || $settings['teams'] !== [];
 	}
 
 	/**
@@ -492,5 +494,9 @@ class VisibilityService {
 		}
 
 		return $this->teamInfoCache[$teamId] = $info;
+	}
+
+	private static function circlesManagerOrNull(mixed $value): ?CirclesManager {
+		return $value instanceof CirclesManager ? $value : null;
 	}
 }

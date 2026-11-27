@@ -1681,19 +1681,24 @@ class AppointmentController extends Controller {
 
 	/**
 	 * Add attachments to an appointment by file IDs.
+	 *
+	 * @param list<int> $fileIds
 	 */
 	private function addAttachmentsToAppointment(int $appointmentId, array $fileIds, string $userId): void {
-		foreach ($fileIds as $fileId) {
-			$this->attachmentService->addAttachment($appointmentId, (int)$fileId, $userId);
+		// Request bodies are not type-checked below the top level.
+		foreach (array_map('intval', $fileIds) as $fileId) {
+			$this->attachmentService->addAttachment($appointmentId, $fileId, $userId);
 		}
 	}
 
 	/**
 	 * Sync attachments: add new ones, remove ones no longer in the list.
+	 *
+	 * @param list<int> $fileIds
 	 */
 	private function syncAttachments(int $appointmentId, array $fileIds, string $userId): void {
 		$existing = $this->attachmentService->getAttachments($appointmentId);
-		$existingFileIds = array_map(fn ($a) => $a['fileId'], $existing);
+		$existingFileIds = array_map('intval', array_column($existing, 'fileId'));
 		$desiredFileIds = array_map('intval', $fileIds);
 
 		// Remove attachments no longer in the list

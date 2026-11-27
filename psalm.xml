@@ -36,12 +36,7 @@
 		<PossiblyUnusedProperty errorLevel="suppress"/>
 		<PossiblyUnusedParam errorLevel="suppress"/>
 		<PossiblyUnusedReturnValue errorLevel="suppress"/>
-		<!-- Entity's magic getters/setters need untyped properties; Entity sets $id. -->
-		<MissingPropertyType>
-			<errorLevel type="suppress">
-				<directory name="lib/Db"/>
-			</errorLevel>
-		</MissingPropertyType>
+		<!-- Entity declares $id and fromRow() fills it. -->
 		<PropertyNotSetInConstructor>
 			<errorLevel type="suppress">
 				<directory name="lib/Db"/>

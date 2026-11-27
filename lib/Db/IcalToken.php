@@ -30,12 +30,11 @@ class IcalToken extends Entity implements JsonSerializable {
 	public const KIND_ORGANIZER = 'organizer';
 	public const KINDS = [self::KIND_PERSONAL, self::KIND_ORGANIZER];
 
-	protected $userId = '';
-	protected $token = '';
-	protected $createdAt = '';
-	protected $lastUsedAt = null;
-	/** @var string */
-	protected $kind = self::KIND_PERSONAL;
+	protected string $userId = '';
+	protected string $token = '';
+	protected string $createdAt = '';
+	protected ?string $lastUsedAt = null;
+	protected string $kind = self::KIND_PERSONAL;
 
 	public function __construct() {
 		$this->addType('id', 'integer');

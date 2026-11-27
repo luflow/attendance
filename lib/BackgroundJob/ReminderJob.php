@@ -65,7 +65,7 @@ class ReminderJob extends TimedJob {
 	}
 
 	#[\Override]
-	protected function run($argument): void {
+	protected function run(mixed $argument): void {
 		$this->logger->info('Reminder job starting...');
 
 		$enabled = $this->config->getAppValue('attendance', 'reminders_enabled', 'no') === 'yes';

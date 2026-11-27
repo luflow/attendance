@@ -107,8 +107,8 @@ class OrgCalendarSyncService {
 		$changed = false;
 
 		if (isset($orgCalendar['enabled'])) {
-			$changed = $this->configService->isOrgCalendarEnabled() !== (bool)$orgCalendar['enabled'];
-			$this->configService->setOrgCalendarEnabled((bool)$orgCalendar['enabled']);
+			$changed = $this->configService->isOrgCalendarEnabled() !== $orgCalendar['enabled'];
+			$this->configService->setOrgCalendarEnabled($orgCalendar['enabled']);
 		}
 
 		if (isset($orgCalendar['summary'])) {
@@ -172,11 +172,11 @@ class OrgCalendarSyncService {
 
 			$objectUri = $uid . '.ics';
 
-			$existing = $backend->getCalendarObject($calendarId, $objectUri);
+			$existing = self::arrayOrNull($backend->getCalendarObject($calendarId, $objectUri));
 			if ($existing !== null) {
 				// Patch only the properties the app models so anything added in
 				// the Calendar app (alarms, attendees, categories, …) survives.
-				$existingIcs = $this->extractCalendarData($existing);
+				$existingIcs = $this->extractCalendarData($existing['calendardata'] ?? null);
 				$ics = $existingIcs !== null
 					? $this->patchIcs($existingIcs, $appointment)
 					: $this->buildIcs($appointment, $uid);
@@ -316,8 +316,8 @@ class OrgCalendarSyncService {
 	 */
 	public function buildEventUid(int $appointmentId): string {
 		if ($this->uidDomain === null) {
-			$domain = $this->urlGenerator->getAbsoluteURL('/');
-			$this->uidDomain = parse_url($domain, PHP_URL_HOST) ?? 'nextcloud';
+			$host = parse_url($this->urlGenerator->getAbsoluteURL('/'), PHP_URL_HOST);
+			$this->uidDomain = is_string($host) ? $host : 'nextcloud';
 		}
 		return self::UID_PREFIX . $appointmentId . '@' . $this->uidDomain;
 	}
@@ -697,7 +697,7 @@ class OrgCalendarSyncService {
 		if ($backend === null) {
 			return null;
 		}
-		$row = $backend->getCalendarById($calendarId);
+		$row = self::arrayOrNull($backend->getCalendarById($calendarId));
 		if ($row === null) {
 			return null;
 		}
@@ -707,14 +707,24 @@ class OrgCalendarSyncService {
 	}
 
 	/**
-	 * Get the raw ICS string out of a CalDavBackend object row.
+	 * Get the raw ICS string out of a CalDavBackend object row's calendardata.
 	 */
-	private function extractCalendarData(array $object): ?string {
-		$data = $object['calendardata'] ?? null;
+	private function extractCalendarData(mixed $data): ?string {
 		if (is_resource($data)) {
 			$data = stream_get_contents($data);
 		}
 		return (is_string($data) && $data !== '') ? $data : null;
+	}
+
+	/**
+	 * The backend is untyped here, so its ?array results are checked on the way in.
+	 */
+	private static function arrayOrNull(mixed $value): ?array {
+		return is_array($value) ? $value : null;
+	}
+
+	private static function objectOrNull(mixed $value): ?object {
+		return is_object($value) ? $value : null;
 	}
 
 	/**
@@ -728,7 +738,7 @@ class OrgCalendarSyncService {
 		}
 		$this->backendResolved = true;
 		try {
-			$this->calDavBackend = \OCP\Server::get('OCA\DAV\CalDAV\CalDavBackend');
+			$this->calDavBackend = self::objectOrNull(\OCP\Server::get('OCA\DAV\CalDAV\CalDavBackend'));
 		} catch (\Throwable $e) {
 			$this->logger->warning('Attendance: CalDAV backend unavailable, organization calendar sync skipped: {message}', [
 				'message' => $e->getMessage(),

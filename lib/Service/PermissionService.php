@@ -563,8 +563,8 @@ class PermissionService {
 	 * permission's mode (all users, configured groups, or nobody).
 	 *
 	 * Cached per request — on a large instance the "all" mode walks every
-	 * user via userManager->search(''), so the per-event audit-notification
-	 * listener must not pay that cost N times.
+	 * user via userManager->searchDisplayName(''), so the per-event
+	 * audit-notification listener must not pay that cost N times.
 	 *
 	 * @return list<string>
 	 */
@@ -582,7 +582,7 @@ class PermissionService {
 		$userIds = [];
 
 		$candidates = $mode === self::MODE_ALL
-			? $this->userManager->search('')
+			? $this->userManager->searchDisplayName('')
 			: $this->collectGroupMembers($this->getRolesForPermission($permission));
 
 		foreach ($candidates as $user) {

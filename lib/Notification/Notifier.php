@@ -85,9 +85,9 @@ class Notifier implements INotifier {
 		// For single-appointment notifications, check if the user already responded.
 		// Test reminders skip this so the delivery chain can be verified end-to-end.
 		if (in_array($notification->getSubject(), ['appointment_reminder', 'appointment_created'])
-			&& !($notification->getSubjectParameters()['test'] ?? false)) {
+			&& ($notification->getSubjectParameters()['test'] ?? false) !== true) {
 			$parameters = $notification->getSubjectParameters();
-			$appointmentId = $parameters['appointmentId'] ?? 0;
+			$appointmentId = (int)($parameters['appointmentId'] ?? 0);
 			if ($appointmentId > 0) {
 				try {
 					$response = $this->responseMapper->findByAppointmentAndUser($appointmentId, $notification->getUser());
@@ -105,9 +105,9 @@ class Notifier implements INotifier {
 		switch ($notification->getSubject()) {
 			case 'appointment_reminder':
 				$parameters = $notification->getSubjectParameters();
-				$appointmentName = $parameters['name'] ?? 'Unknown';
+				$appointmentName = (string)($parameters['name'] ?? 'Unknown');
 				$appointmentDate = $this->eventMessages->formatAppointmentDate($parameters, $notification->getUser());
-				$appointmentId = $parameters['appointmentId'] ?? 0;
+				$appointmentId = (int)($parameters['appointmentId'] ?? 0);
 				$userId = $notification->getUser();
 
 				$notification->setParsedSubject(
@@ -128,9 +128,9 @@ class Notifier implements INotifier {
 				return $notification;
 			case 'appointment_created':
 				$parameters = $notification->getSubjectParameters();
-				$appointmentName = $parameters['name'] ?? 'Unknown';
+				$appointmentName = (string)($parameters['name'] ?? 'Unknown');
 				$appointmentDate = $this->eventMessages->formatAppointmentDate($parameters, $notification->getUser());
-				$appointmentId = $parameters['appointmentId'] ?? 0;
+				$appointmentId = (int)($parameters['appointmentId'] ?? 0);
 				$userId = $notification->getUser();
 
 				$notification->setParsedSubject(
@@ -226,8 +226,8 @@ class Notifier implements INotifier {
 				return $this->prepareResponseChangeNotification($notification, $l);
 			case 'appointments_bulk_created':
 				$parameters = $notification->getSubjectParameters();
-				$count = $parameters['count'] ?? 0;
-				$firstName = $parameters['firstName'] ?? '';
+				$count = (int)($parameters['count'] ?? 0);
+				$firstName = (string)($parameters['firstName'] ?? '');
 
 				$notification->setParsedSubject(
 					// TRANSLATORS Push notification subject: a recurring appointment was set up, or a whole series just became visible to this person. %1$s is how many dates there are, %2$s the name they all share — every appointment in the batch carries that same name, so it is the title of the whole thing rather than one example. Keep %1$s in both forms: languages with more than two plural forms need the number in the "one" form too (Russian uses it for 21, 31, …).

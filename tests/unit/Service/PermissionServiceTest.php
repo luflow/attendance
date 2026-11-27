@@ -493,7 +493,7 @@ class PermissionServiceTest extends TestCase {
 
 	public function testGetUsersWithNobodyReturnsEmpty(): void {
 		$this->configValues(['permission_checkin_mode' => 'nobody']);
-		$this->userManager->expects($this->never())->method('search');
+		$this->userManager->expects($this->never())->method('searchDisplayName');
 
 		$this->assertSame([], $this->service->getUsersWith(PermissionService::PERMISSION_CHECKIN));
 	}
@@ -502,7 +502,7 @@ class PermissionServiceTest extends TestCase {
 		$this->configValues(['permission_checkin_mode' => 'all']);
 		$user = $this->createMock(IUser::class);
 		$user->method('getUID')->willReturn('alice');
-		$this->userManager->expects($this->once())->method('search')->with('')->willReturn([$user]);
+		$this->userManager->expects($this->once())->method('searchDisplayName')->with('')->willReturn([$user]);
 
 		$this->assertSame(['alice'], $this->service->getUsersWith(PermissionService::PERMISSION_CHECKIN));
 	}
@@ -517,7 +517,7 @@ class PermissionServiceTest extends TestCase {
 		$group = $this->createMock(IGroup::class);
 		$group->method('getUsers')->willReturn([$member]);
 		$this->groupManager->method('get')->with('staff')->willReturn($group);
-		$this->userManager->expects($this->never())->method('search');
+		$this->userManager->expects($this->never())->method('searchDisplayName');
 
 		$this->assertSame(['bob'], $this->service->getUsersWith(PermissionService::PERMISSION_CHECKIN));
 	}

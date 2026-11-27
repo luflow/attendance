@@ -16,7 +16,7 @@ trait DatetimeFormatTrait {
 	 * @return ?string The formatted datetime in 'Y-m-d\TH:i:s\Z' format, or null if empty
 	 */
 	protected function formatDatetimeToUtc(?string $datetime): ?string {
-		if (empty($datetime)) {
+		if ($datetime === null || $datetime === '') {
 			return null;
 		}
 		try {

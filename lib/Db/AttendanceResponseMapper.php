@@ -316,6 +316,7 @@ class AttendanceResponseMapper extends QBMapper {
 			->groupBy('response');
 
 		$result = $qb->executeQuery();
+		/** @var list<array{response: ?string, count: int|string}> $rows IResult::fetchAll() is declared mixed */
 		$rows = $result->fetchAll();
 
 		$summary = ['yes' => 0, 'no' => 0, 'maybe' => 0];

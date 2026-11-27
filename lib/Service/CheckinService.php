@@ -10,6 +10,7 @@ use OCA\Attendance\Db\AttendanceResponse;
 use OCA\Attendance\Db\AttendanceResponseMapper;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IGroupManager;
+use OCP\IUser;
 
 /**
  * Service for handling check-in operations.
@@ -160,7 +161,7 @@ class CheckinService {
 		}
 
 		$users = array_map(
-			fn ($user) => $this->buildUserData($user, $userResponseMap, $sectionGroups, $confirmedIds),
+			fn (IUser $user) => $this->buildUserData($user, $userResponseMap, $sectionGroups, $confirmedIds),
 			array_values($targetAttendees),
 		);
 
@@ -241,9 +242,11 @@ class CheckinService {
 	/**
 	 * Build data structure for a single user.
 	 *
+	 * @param array<string, AttendanceResponse> $userResponseMap
 	 * @param ?list<string> $sectionGroups null means every group
+	 * @param array<string, true> $confirmedIds
 	 */
-	private function buildUserData($user, array $userResponseMap, ?array $sectionGroups, array $confirmedIds = []): array {
+	private function buildUserData(IUser $user, array $userResponseMap, ?array $sectionGroups, array $confirmedIds = []): array {
 		$userId = $user->getUID();
 		$userGroupIds = $this->groupManager->getUserGroupIds($user);
 
@@ -283,9 +286,7 @@ class CheckinService {
 
 		// Add response data if user has responded
 		if (isset($userResponseMap[$userId])) {
-			/** @var AttendanceResponse $response */
-			$response = $userResponseMap[$userId];
-			$responseData = $response->jsonSerialize();
+			$responseData = $userResponseMap[$userId]->jsonSerialize();
 			$userData['response'] = $responseData['response'];
 			$userData['comment'] = $responseData['comment'];
 			$userData['isCheckedIn'] = $responseData['isCheckedIn'];

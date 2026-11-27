@@ -369,7 +369,7 @@ class IcalService {
 			$descriptionParts[] = $l->t('Please respond! We still need your answer.');
 		} else {
 			$responseText = $l->t('Your response') . ': ' . $responseLabel;
-			if ($responseComment) {
+			if ($responseComment !== null && $responseComment !== '') {
 				$responseText .= "\n" . $responseComment;
 			}
 			$descriptionParts[] = $responseText;
@@ -513,7 +513,7 @@ class IcalService {
 		$sequence = $lastModifiedDt > $createdDt ? 1 : 0;
 		foreach ($responses as $response) {
 			$respondedAt = $response->getRespondedAt();
-			if (!$respondedAt) {
+			if ($respondedAt === null || $respondedAt === '') {
 				continue;
 			}
 			$sequence++;
