@@ -25,6 +25,7 @@
 		<file name="tests/stubs/talk.php"/>
 		<file name="tests/stubs/circles.php"/>
 		<file name="tests/stubs/core.php"/>
+		<file name="tests/stubs/oc-internals.php"/>
 	</stubs>
 	<issueHandlers>
 		<!-- PHPUnit cannot mock final classes. -->
